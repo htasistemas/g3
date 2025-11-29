@@ -143,117 +143,6 @@
     </div>
 
     <div class="card">
-      <div class="card__header">Informações familiares e socioeconômicas</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="hasMinorChildren">Possui filhos menores?</label>
-          <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" id="hasMinorChildren" formControlName="hasMinorChildren" class="h-4 w-4" />
-            <span>Sim</span>
-          </label>
-          <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="minorChildrenCount">Quantidade de filhos menores</label>
-          <input
-            id="minorChildrenCount"
-            type="number"
-            formControlName="minorChildrenCount"
-            class="input"
-            placeholder="0"
-            min="0"
-          />
-          <p
-            *ngIf="beneficiaryForm.get('minorChildrenCount')?.touched && beneficiaryForm.get('minorChildrenCount')?.invalid"
-            class="text-xs text-red-500"
-          >
-            Informe a quantidade de filhos menores.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="educationLevel">Escolaridade</label>
-          <input
-            id="educationLevel"
-            type="text"
-            formControlName="educationLevel"
-            class="input"
-            placeholder="Ensino médio completo"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="individualIncome">Renda individual</label>
-          <input
-            id="individualIncome"
-            type="number"
-            step="0.01"
-            formControlName="individualIncome"
-            class="input"
-            placeholder="0,00"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="familyIncome">Renda total da família</label>
-          <input
-            id="familyIncome"
-            type="number"
-            step="0.01"
-            formControlName="familyIncome"
-            class="input"
-            placeholder="0,00"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="employmentStatus">Situação de trabalho</label>
-          <input
-            id="employmentStatus"
-            type="text"
-            formControlName="employmentStatus"
-            class="input"
-            placeholder="Empregado, autônomo, desempregado..."
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="occupation">Ocupação</label>
-          <input
-            id="occupation"
-            type="text"
-            formControlName="occupation"
-            class="input"
-            placeholder="Profissão ou atividade"
-          />
-        </div>
-
-        <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="housingInformation">Informações sobre a moradia</label>
-          <textarea
-            id="housingInformation"
-            formControlName="housingInformation"
-            rows="3"
-            class="input"
-            placeholder="Tipo de moradia, condições estruturais, acesso a energia, água, etc."
-          ></textarea>
-        </div>
-
-        <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="sanitationConditions">Condições de saneamento básico</label>
-          <textarea
-            id="sanitationConditions"
-            formControlName="sanitationConditions"
-            rows="3"
-            class="input"
-            placeholder="Abastecimento de água, coleta de lixo, rede de esgoto, outras observações"
-          ></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="card__header">Endereço</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-2">
@@ -352,6 +241,126 @@
             rows="4"
             class="input"
             placeholder="Detalhes adicionais sobre o beneficiário"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">Informações familiares e socioeconômicas</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="hasMinorChildren">Possui filhos menores?</label>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" id="hasMinorChildren" formControlName="hasMinorChildren" class="h-4 w-4" />
+            <span>Sim</span>
+          </label>
+          <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="hasDriverLicense">Beneficiário habilitado?</label>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" id="hasDriverLicense" formControlName="hasDriverLicense" class="h-4 w-4" />
+            <span>Sim</span>
+          </label>
+          <p class="text-xs text-slate-500">Quando marcado, o envio da CNH torna-se obrigatório.</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="minorChildrenCount">Quantidade de filhos menores</label>
+          <input
+            id="minorChildrenCount"
+            type="number"
+            formControlName="minorChildrenCount"
+            class="input"
+            placeholder="0"
+            min="0"
+          />
+          <p
+            *ngIf="beneficiaryForm.get('minorChildrenCount')?.touched && beneficiaryForm.get('minorChildrenCount')?.invalid"
+            class="text-xs text-red-500"
+          >
+            Informe a quantidade de filhos menores.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="educationLevel">Escolaridade</label>
+          <input
+            id="educationLevel"
+            type="text"
+            formControlName="educationLevel"
+            class="input"
+            placeholder="Ensino médio completo"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="individualIncome">Renda individual</label>
+          <input
+            id="individualIncome"
+            type="number"
+            step="0.01"
+            formControlName="individualIncome"
+            class="input"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="familyIncome">Renda total da família</label>
+          <input
+            id="familyIncome"
+            type="number"
+            step="0.01"
+            formControlName="familyIncome"
+            class="input"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="employmentStatus">Situação de trabalho</label>
+          <input
+            id="employmentStatus"
+            type="text"
+            formControlName="employmentStatus"
+            class="input"
+            placeholder="Empregado, autônomo, desempregado..."
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="occupation">Ocupação</label>
+          <input
+            id="occupation"
+            type="text"
+            formControlName="occupation"
+            class="input"
+            placeholder="Profissão ou atividade"
+          />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="housingInformation">Informações sobre a moradia</label>
+          <textarea
+            id="housingInformation"
+            formControlName="housingInformation"
+            rows="3"
+            class="input"
+            placeholder="Tipo de moradia, condições estruturais, acesso a energia, água, etc."
+          ></textarea>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="sanitationConditions">Condições de saneamento básico</label>
+          <textarea
+            id="sanitationConditions"
+            formControlName="sanitationConditions"
+            rows="3"
+            class="input"
+            placeholder="Abastecimento de água, coleta de lixo, rede de esgoto, outras observações"
           ></textarea>
         </div>
       </div>
