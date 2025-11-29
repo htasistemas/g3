@@ -24,14 +24,20 @@
 
           <label class="text-sm font-medium text-slate-700">Capturar pela webcam</label>
           <div class="space-y-2">
-            <video #videoElement class="w-full rounded-lg border border-dashed border-slate-300" autoplay muted playsinline></video>
+            <video
+              #videoElement
+              class="w-full rounded-lg border border-dashed border-slate-300"
+              autoplay
+              muted
+              playsinline
+              [class.opacity-0]="!cameraActive"
+            ></video>
             <canvas #canvasElement class="hidden"></canvas>
             <div class="flex gap-2">
-              <button type="button" class="btn-outline" (click)="startCamera(videoElement)">Abrir câmera</button>
+              <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
               <button type="button" class="btn-primary" [disabled]="!cameraActive" (click)="capturePhoto(videoElement, canvasElement)">
                 Capturar
               </button>
-              <button type="button" class="btn-outline" [disabled]="!cameraActive" (click)="stopCamera()">Fechar câmera</button>
             </div>
           </div>
 
@@ -136,7 +142,25 @@
               <option value="Ativo">Ativo</option>
               <option value="Inativo">Inativo</option>
               <option value="Em análise">Em análise</option>
+              <option value="Bloqueado">Bloqueado</option>
             </select>
+          </div>
+
+          <div class="space-y-2" *ngIf="beneficiaryForm.get('status')?.value === 'Bloqueado'">
+            <label class="text-sm font-medium text-slate-700" for="motivoBloqueio">Motivo do bloqueio</label>
+            <textarea
+              id="motivoBloqueio"
+              formControlName="motivoBloqueio"
+              rows="3"
+              class="input"
+              placeholder="Descreva o motivo"
+            ></textarea>
+            <p
+              *ngIf="beneficiaryForm.get('motivoBloqueio')?.touched && beneficiaryForm.get('motivoBloqueio')?.invalid"
+              class="text-xs text-red-500"
+            >
+              Informe o motivo do bloqueio.
+            </p>
           </div>
         </div>
       </div>
@@ -145,7 +169,7 @@
     <div class="card">
       <div class="card__header">Endereço</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2">
+        <div class="space-y-2 md:w-52">
           <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
           <input
             id="cep"
@@ -177,7 +201,7 @@
                 Endereço é obrigatório.
               </p>
             </div>
-            <div class="mt-3 md:mt-0 md:w-48 space-y-2">
+            <div class="md:w-44 space-y-2 md:pt-1">
               <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
               <input
                 id="numeroEndereco"
@@ -254,7 +278,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
-          <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+          <label class="inline-flex items-center gap-3 text-sm text-slate-700 pl-px">
             <input type="checkbox" id="possuiFilhosMenores" formControlName="possuiFilhosMenores" class="h-4 w-4" />
             <span>Sim</span>
           </label>
@@ -356,15 +380,24 @@
           ></textarea>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="space-y-3 md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="condicoesSaneamento">Condições de saneamento básico</label>
-          <textarea
-            id="condicoesSaneamento"
-            formControlName="condicoesSaneamento"
-            rows="3"
-            class="input"
-            placeholder="Abastecimento de água, coleta de lixo, rede de esgoto, outras observações"
-          ></textarea>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <label
+              *ngFor="let option of sanitationOptions"
+              class="flex items-center gap-3 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
+            >
+              <input
+                type="checkbox"
+                class="h-4 w-4 rounded border-slate-300"
+                [checked]="selectedSanitationOptions.has(option)"
+                (change)="toggleSanitationOption(option, $event.target.checked)"
+              />
+              <span>{{ option }}</span>
+            </label>
+          </div>
+          <p class="text-xs text-slate-500">Selecione todas as condições que se aplicam.</p>
+          <input id="condicoesSaneamento" type="hidden" formControlName="condicoesSaneamento" />
         </div>
       </div>
     </div>
@@ -411,35 +444,82 @@
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm">
-      <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
-      <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar cadastro' : 'Salvar cadastro' }}</button>
-      <span
-        *ngIf="saveFeedback"
-        [ngClass]="{ 'text-g3-green-700': saveFeedback.type === 'success', 'text-red-600': saveFeedback.type === 'error' }"
-        class="text-sm font-medium"
-      >
-        {{ saveFeedback.message }}
-      </span>
+  <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm">
+    <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
+    <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar cadastro' : 'Salvar cadastro' }}</button>
+    <span
+      *ngIf="saveFeedback"
+      [ngClass]="{ 'text-g3-green-700': saveFeedback.type === 'success', 'text-red-600': saveFeedback.type === 'error' }"
+      class="text-sm font-medium"
+    >
+      {{ saveFeedback.message }}
+    </span>
+  </div>
+</form>
+
+  <div class="card space-y-4" [formGroup]="filterForm">
+    <div class="card__header">Filtro de beneficiários</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="filterNome">Nome</label>
+        <input id="filterNome" type="text" class="input" formControlName="nome" placeholder="Buscar por nome" />
+      </div>
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="filterCpf">CPF</label>
+        <input id="filterCpf" type="text" class="input" formControlName="cpf" placeholder="000.000.000-00" />
+      </div>
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="filterIdade">Idade</label>
+        <input id="filterIdade" type="number" class="input" formControlName="idade" placeholder="Idade" />
+      </div>
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="filterDataNascimento">Data de nascimento</label>
+        <input id="filterDataNascimento" type="date" class="input" formControlName="dataNascimento" />
+      </div>
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="filterBairro">Bairro</label>
+        <input id="filterBairro" type="text" class="input" formControlName="bairro" placeholder="Filtrar por bairro" />
+      </div>
+      <div class="space-y-2">
+        <p class="text-sm font-medium text-slate-700">Status</p>
+        <div class="flex flex-wrap gap-3">
+          <label
+            *ngFor="let status of statusOptions"
+            class="inline-flex items-center gap-2 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 rounded border-slate-300"
+              [checked]="filterForm.get('status')?.value?.includes(status)"
+              (change)="toggleStatusFilter(status, $event.target.checked)"
+            />
+            <span>{{ status }}</span>
+          </label>
+        </div>
+      </div>
     </div>
-  </form>
+
+    <div class="flex justify-end">
+      <button type="button" class="btn-outline" (click)="clearFilters()">Limpar filtros</button>
+    </div>
+  </div>
 
   <div class="card space-y-4">
-      <div class="card__header">Beneficiários cadastrados</div>
-    <p class="text-sm text-slate-600" *ngIf="!beneficiaries.length">Nenhum beneficiário cadastrado.</p>
-    <div class="overflow-x-auto" *ngIf="beneficiaries.length">
+    <div class="card__header">Beneficiários cadastrados</div>
+    <p class="text-sm text-slate-600" *ngIf="!filteredBeneficiaries.length">Nenhum beneficiário encontrado.</p>
+    <div class="overflow-x-auto" *ngIf="filteredBeneficiaries.length">
       <table class="min-w-full text-sm text-slate-700">
         <thead>
           <tr class="text-left border-b border-slate-200">
             <th class="py-2 pr-4">Nome</th>
             <th class="py-2 pr-4">CPF</th>
             <th class="py-2 pr-4">Status</th>
-            <th class="py-2 pr-4">Cidade/UF</th>
+            <th class="py-2 pr-4">Bairro</th>
             <th class="py-2">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let beneficiary of beneficiaries" class="border-b border-slate-100">
+          <tr *ngFor="let beneficiary of filteredBeneficiaries" class="border-b border-slate-100">
             <td class="py-2 pr-4">
               <div class="flex items-center gap-3">
                 <div class="h-10 w-10 rounded-full bg-slate-100 overflow-hidden flex-shrink-0">
@@ -453,12 +533,15 @@
                     Sem foto
                   </div>
                 </div>
-                <span class="font-semibold">{{ beneficiary.nomeCompleto }}</span>
+                <div class="flex flex-col">
+                  <span class="font-semibold">{{ beneficiary.nomeCompleto }}</span>
+                  <span class="text-xs text-slate-500" *ngIf="beneficiary.idade">{{ beneficiary.idade }} anos</span>
+                </div>
               </div>
             </td>
             <td class="py-2 pr-4">{{ beneficiary.documentos }}</td>
             <td class="py-2 pr-4">{{ beneficiary.status }}</td>
-            <td class="py-2 pr-4">{{ beneficiary.cidade }}/{{ beneficiary.estado }}</td>
+            <td class="py-2 pr-4">{{ beneficiary.bairro || '—' }}</td>
             <td class="py-2">
               <button type="button" class="btn-outline" (click)="startEdit(beneficiary)">Editar</button>
             </td>
