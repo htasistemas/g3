@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 export interface DocumentoObrigatorio {
   nome: string;
@@ -55,7 +55,25 @@ export class BeneficiaryService {
   }
 
   list(): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
-    return this.http.get<{ beneficiarios: BeneficiaryPayload[] }>(this.baseUrl);
+    return this.http.get<
+      { beneficiarios?: BeneficiaryPayload[] } | { beneficiaries?: BeneficiaryPayload[] } | BeneficiaryPayload[]
+    >(this.baseUrl).pipe(
+      map((response) => {
+        if (Array.isArray(response)) {
+          return { beneficiarios: response };
+        }
+
+        if ('beneficiarios' in response) {
+          return { beneficiarios: response.beneficiarios ?? [] };
+        }
+
+        if ('beneficiaries' in response) {
+          return { beneficiarios: response.beneficiaries ?? [] };
+        }
+
+        return { beneficiarios: [] };
+      })
+    );
   }
 
   save(payload: BeneficiaryPayload): Observable<BeneficiaryPayload> {
