@@ -1,0 +1,83 @@
+<div class="p-6 space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <p class="section-kicker">Usuários</p>
+      <h1 class="page-heading">Usuários e permissões</h1>
+      <p class="section-subtitle">
+        Cadastre, edite ou remova usuários com acesso ao sistema.
+      </p>
+    </div>
+  </div>
+
+  <div class="card space-y-4" [formGroup]="form">
+    <div class="card__header">{{ editingId ? 'Editar usuário' : 'Novo usuário' }}</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="space-y-2">
+        <label class="form-label" for="nomeUsuario">Nome de usuário</label>
+        <input id="nomeUsuario" type="text" formControlName="nomeUsuario" class="input" placeholder="usuario" />
+        <p *ngIf="form.get('nomeUsuario')?.touched && form.get('nomeUsuario')?.invalid" class="form-error">
+          Informe um nome com pelo menos 3 caracteres.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="form-label" for="senha">Senha</label>
+        <input
+          id="senha"
+          type="password"
+          formControlName="senha"
+          class="input"
+          placeholder="••••"
+          [attr.aria-describedby]="editingId ? 'senha-help' : null"
+        />
+        <p id="senha-help" class="text-xs text-slate-500" *ngIf="editingId">
+          Preencha apenas se desejar alterar a senha.
+        </p>
+        <p *ngIf="form.get('senha')?.touched && form.get('senha')?.invalid" class="form-error">
+          A senha deve ter pelo menos 4 caracteres.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="button" class="btn-primary" (click)="submit()">{{ editingId ? 'Atualizar' : 'Salvar' }}</button>
+      <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
+      <span
+        *ngIf="feedback"
+        [ngClass]="{ 'text-g3-green-700': feedback.type === 'success', 'text-red-500': feedback.type === 'error' }"
+        class="text-sm font-medium"
+      >
+        {{ feedback.message }}
+      </span>
+    </div>
+  </div>
+
+  <div class="card space-y-4">
+    <div class="card__header">Usuários cadastrados</div>
+    <p class="section-subtitle" *ngIf="loading">Carregando usuários...</p>
+    <p class="section-subtitle" *ngIf="!loading && !users.length">Nenhum usuário cadastrado.</p>
+
+    <div class="overflow-x-auto" *ngIf="users.length">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-slate-200 dark:border-slate-700">
+            <th class="py-2 pr-4">Usuário</th>
+            <th class="py-2 pr-4">Criado em</th>
+            <th class="py-2">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users" class="border-b border-slate-100 dark:border-slate-700/50">
+            <td class="py-2 pr-4 font-semibold">{{ user.nomeUsuario }}</td>
+            <td class="py-2 pr-4 text-slate-600 dark:text-slate-300">{{ user.criadoEm | date: 'short' }}</td>
+            <td class="py-2 flex gap-2">
+              <button type="button" class="btn-outline" (click)="edit(user)">Editar</button>
+              <button type="button" class="btn-danger" (click)="delete(user)">Excluir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

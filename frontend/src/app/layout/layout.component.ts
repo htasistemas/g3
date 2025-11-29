@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -15,6 +15,8 @@ import {
   faMapLocationDot,
   faRightFromBracket,
   faScaleBalanced,
+  faSun,
+  faMoon,
   faUserCircle,
   faUserPlus,
   faUsers,
@@ -23,6 +25,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { environment } from '../../environments/environment';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
+import { ThemeService } from '../services/theme.service';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 interface MenuChild {
   label: string;
@@ -43,12 +48,16 @@ interface MenuItem {
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit, OnDestroy {
   readonly faChevronDown = faChevronDown;
   readonly faChevronUp = faChevronUp;
   readonly faRightFromBracket = faRightFromBracket;
   readonly faUserCircle = faUserCircle;
+  readonly faSun = faSun;
+  readonly faMoon = faMoon;
   readonly versionLabel = this.formatVersion(environment.version);
+  pageTitle = 'Visão geral';
+  private destroy$ = new Subject<void>();
 
   openSection: string | null = null;
 
@@ -122,7 +131,8 @@ export class LayoutComponent {
       icon: faWrench,
       children: [
         { label: 'Documentos obrigatórios', icon: faClipboardList, route: '/configuracoes/sistema' },
-        { label: 'Usuários e permissões', icon: faUserPlus },
+        { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
+        { label: 'Usuários e permissões', icon: faUserPlus, route: '/configuracoes/usuarios' },
         { label: 'Backup e restauração', icon: faClipboardList }
       ]
     }
@@ -130,8 +140,26 @@ export class LayoutComponent {
 
   constructor(
     private readonly auth: AuthService,
-    private readonly assistanceUnitService: AssistanceUnitService
+    private readonly assistanceUnitService: AssistanceUnitService,
+    public readonly themeService: ThemeService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    const initialRoute = this.findDeepestChild(this.activatedRoute);
+    this.pageTitle = initialRoute.snapshot.data['title'] || 'Visão geral';
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        const deepest = this.findDeepestChild(this.activatedRoute);
+        this.pageTitle = deepest.snapshot.data['title'] || 'Visão geral';
+      });
+  }
 
   get username(): string {
     return this.auth.user()?.nomeUsuario ?? 'Admin';
@@ -155,6 +183,19 @@ export class LayoutComponent {
     this.auth.logout();
   }
 
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
+
+  get themeLabel(): 'Claro' | 'Escuro' {
+    return this.themeService.currentTheme() === 'dark' ? 'Escuro' : 'Claro';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private formatVersion(version: string): string {
     const cleaned = version.trim().replace(/^v/i, '');
     const segments = cleaned.split('.').filter(Boolean);
@@ -167,5 +208,15 @@ export class LayoutComponent {
     const paddedPatch = patch.padStart(2, '0');
 
     return `${major}.${minor}.${paddedPatch}`;
+  }
+
+  private findDeepestChild(route: ActivatedRoute): ActivatedRoute {
+    let child: ActivatedRoute = route;
+
+    while (child.firstChild) {
+      child = child.firstChild;
+    }
+
+    return child;
   }
 }

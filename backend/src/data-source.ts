@@ -7,7 +7,7 @@ import { User } from './entities/User';
 import { Beneficiary } from './entities/Beneficiary';
 import { AssistanceUnit } from './entities/AssistanceUnit';
 import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
-import { Migration1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
+import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 
 dotenv.config();
 
@@ -59,7 +59,7 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
       password: process.env.DB_PASSWORD || 'admin',
       database: process.env.DB_NAME || 'g3',
       synchronize: false,
-      migrations: [Migration1729700000000],
+      migrations: [RenameSchemaToPortuguese1729700000000],
       migrationsRun: true,
     };
 

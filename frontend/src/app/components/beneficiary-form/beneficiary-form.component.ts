@@ -29,6 +29,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   missingRequiredDocuments: string[] = [];
   photoPreview: string | null = null;
   cameraActive = false;
+  cameraReady = false;
   filteredBeneficiaries: BeneficiaryPayload[] = [];
   beneficiaries: BeneficiaryPayload[] = [];
   editingId: number | null = null;
@@ -73,6 +74,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   ];
   private mediaStream?: MediaStream;
   private currentVideoElement?: HTMLVideoElement;
+  private photoObjectUrl?: string;
   selectedSanitationOptions = new Set<string>();
 
   constructor(
@@ -373,15 +375,19 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
 
     if (!file) {
+      this.revokePhotoObjectUrl();
       this.photoPreview = null;
       this.beneficiaryForm.get('foto')?.setValue('');
       return;
     }
 
+    this.revokePhotoObjectUrl();
+    this.photoObjectUrl = URL.createObjectURL(file);
+    this.photoPreview = this.photoObjectUrl;
+
     const reader = new FileReader();
     reader.onload = () => {
-      this.photoPreview = reader.result as string;
-      this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
+      this.beneficiaryForm.get('foto')?.setValue(reader.result as string);
     };
     reader.readAsDataURL(file);
   }
@@ -393,14 +399,24 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoElement.srcObject = this.mediaStream;
       await videoElement.play();
+      await new Promise<void>((resolve) => {
+        if (videoElement.readyState >= 1) {
+          resolve();
+        } else {
+          videoElement.onloadedmetadata = () => resolve();
+        }
+      });
       this.cameraActive = true;
+      this.cameraReady = true;
     } catch (error) {
       console.error('Erro ao acessar a câmera', error);
+      this.cameraActive = false;
+      this.cameraReady = false;
     }
   }
 
   capturePhoto(videoElement: HTMLVideoElement, canvasElement: HTMLCanvasElement): void {
-    if (!this.cameraActive) {
+    if (!this.cameraActive || !this.cameraReady) {
       return;
     }
 
@@ -426,9 +442,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       targetVideo.srcObject = null;
     }
     this.cameraActive = false;
+    this.cameraReady = false;
   }
 
   ngOnDestroy(): void {
+    this.revokePhotoObjectUrl();
     this.stopCamera();
   }
 
@@ -449,6 +467,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       foto: beneficiary.foto || '',
       possuiCnh: Boolean(beneficiary.possuiCnh)
     });
+    this.revokePhotoObjectUrl();
     this.photoPreview = beneficiary.foto || null;
     this.toggleMinorChildrenRequirement(Boolean(beneficiary.possuiFilhosMenores));
     this.syncSanitationSelections(beneficiary.condicoesSaneamento);
@@ -459,6 +478,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   resetForm(): void {
     this.editingId = null;
     this.documentStatus = 'Pendente';
+    this.revokePhotoObjectUrl();
     this.photoPreview = null;
     this.selectedSanitationOptions.clear();
     this.saveFeedback = null;
@@ -480,6 +500,13 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.toggleMinorChildrenRequirement(false);
     this.handleStatusChange('Ativo');
     this.updateSanitationControl();
+  }
+
+  private revokePhotoObjectUrl(): void {
+    if (this.photoObjectUrl) {
+      URL.revokeObjectURL(this.photoObjectUrl);
+      this.photoObjectUrl = undefined;
+    }
   }
 
   private updateDocumentControl(): void {

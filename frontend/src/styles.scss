@@ -2,11 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-strong: #0f7a43;
+  --primary-stronger: #0c5c34;
+  --primary-gradient-end: #16a34a;
+  --bg-muted: #f1f5f9;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --text-primary: #0f172a;
+  --border-color: #e2e8f0;
+  --input-bg: #ffffff;
+  --sidebar-card-bg: rgba(255, 255, 255, 0.08);
+  --sidebar-border: rgba(255, 255, 255, 0.15);
+}
+
+.theme-dark {
+  --bg-muted: #0f172a;
+  --surface: #0b1120;
+  --surface-hover: #111827;
+  --text-primary: #e2e8f0;
+  --border-color: #1f2937;
+  --input-bg: #111827;
+  --sidebar-card-bg: rgba(17, 24, 39, 0.6);
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  color-scheme: dark;
+}
+
+.theme-light {
+  color-scheme: light;
+}
+
 body {
-  @apply bg-slate-100 text-slate-900;
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .container-fixed {
   @apply max-w-6xl mx-auto px-4;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+  padding: 1.5rem;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card__header {
+  @apply text-lg font-semibold;
+  color: var(--text-primary);
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-gradient-end);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+}
+
+.btn-primary {
+  @apply inline-flex items-center px-4 py-2 rounded-lg font-semibold shadow-sm transition;
+  background-image: linear-gradient(90deg, var(--primary-stronger), var(--primary-gradient-end));
+  color: #fff;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-outline {
+  @apply inline-flex items-center px-4 py-2 rounded-lg font-medium transition;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.btn-outline:hover {
+  background: var(--surface-hover);
+}
+
+.file-input {
+  @apply text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100;
+  color: var(--text-primary);
 }

@@ -6,6 +6,8 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
+import { UserManagementComponent } from './components/user-management/user-management.component';
+import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -14,10 +16,28 @@ export const routes: Routes = [
     component: LayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', component: DashboardComponent },
-      { path: 'beneficiarios/cadastro', component: BeneficiaryFormComponent },
-      { path: 'unidades/cadastro', component: AssistanceUnitComponent },
-      { path: 'configuracoes/sistema', component: SystemSettingsComponent }
+      { path: '', component: DashboardComponent, data: { title: 'Visão geral' } },
+      {
+        path: 'beneficiarios/cadastro',
+        component: BeneficiaryFormComponent,
+        data: { title: 'Cadastro de beneficiários' }
+      },
+      { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
+      {
+        path: 'configuracoes/sistema',
+        component: SystemSettingsComponent,
+        data: { title: 'Documentos obrigatórios' }
+      },
+      {
+        path: 'configuracoes/usuarios',
+        component: UserManagementComponent,
+        data: { title: 'Usuários e permissões' }
+      },
+      {
+        path: 'configuracoes/parametros',
+        component: SystemParametersComponent,
+        data: { title: 'Parâmetros do sistema' }
+      }
     ]
   },
   { path: '**', redirectTo: '' }
