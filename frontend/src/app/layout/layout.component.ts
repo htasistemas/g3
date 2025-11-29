@@ -102,7 +102,7 @@ export class LayoutComponent {
   ) {}
 
   get username(): string {
-    return this.auth.user()?.username ?? 'Admin';
+    return this.auth.user()?.nomeUsuario ?? 'Admin';
   }
 
   get activeUnitName$() {

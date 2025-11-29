@@ -12,18 +12,18 @@ router.get('/documents', async (_req, res) => {
 
 router.get('/', async (_req, res) => {
   const repository = AppDataSource.getRepository(Beneficiary);
-  const beneficiaries = await repository.find({ order: { createdAt: 'DESC' } });
-  res.json({ beneficiaries });
+  const beneficiaries = await repository.find({ order: { criadoEm: 'DESC' } });
+  res.json({ beneficiarios: beneficiaries });
 });
 
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiary);
   const beneficiary = repository.create(req.body as Beneficiary);
   const configuredDocs = await ensureBeneficiaryDocumentConfig();
-  const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
-  const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
-  const hasMinorChildren = Boolean(req.body.hasMinorChildren);
-  const hasDriverLicense = Boolean(req.body.hasDriverLicense);
+  const requiredDocs = configuredDocs.filter((doc) => doc.obrigatorio).map((doc) => doc.nome);
+  const submittedDocs = (req.body.documentosAnexos || []) as Array<{ nome: string; nomeArquivo?: string }>;
+  const hasMinorChildren = Boolean(req.body.possuiFilhosMenores);
+  const hasDriverLicense = Boolean(req.body.possuiCnh);
 
   if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
     requiredDocs.push('Certidão de Nascimento');
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
     requiredDocs.push('CNH');
   }
   const missingRequired = requiredDocs.filter(
-    (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
+    (docName) => !submittedDocs.some((doc) => doc.nome === docName && doc.nomeArquivo)
   );
 
   if (missingRequired.length) {
@@ -43,7 +43,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    beneficiary.documents = submittedDocs;
+    beneficiary.documentosAnexos = submittedDocs;
+    beneficiary.possuiFilhosMenores = hasMinorChildren;
+    beneficiary.possuiCnh = hasDriverLicense;
     const saved = await repository.save(beneficiary);
     res.status(201).json(saved);
   } catch (error) {
@@ -57,10 +59,10 @@ router.put('/:id', async (req, res) => {
   const id = Number(req.params.id);
   const existing = await repository.findOne({ where: { id } });
   const configuredDocs = await ensureBeneficiaryDocumentConfig();
-  const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
-  const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
-  const hasMinorChildren = Boolean(req.body.hasMinorChildren);
-  const hasDriverLicense = Boolean(req.body.hasDriverLicense);
+  const requiredDocs = configuredDocs.filter((doc) => doc.obrigatorio).map((doc) => doc.nome);
+  const submittedDocs = (req.body.documentosAnexos || []) as Array<{ nome: string; nomeArquivo?: string }>;
+  const hasMinorChildren = Boolean(req.body.possuiFilhosMenores);
+  const hasDriverLicense = Boolean(req.body.possuiCnh);
 
   if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
     requiredDocs.push('Certidão de Nascimento');
@@ -69,7 +71,7 @@ router.put('/:id', async (req, res) => {
     requiredDocs.push('CNH');
   }
   const missingRequired = requiredDocs.filter(
-    (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
+    (docName) => !submittedDocs.some((doc) => doc.nome === docName && doc.nomeArquivo)
   );
 
   if (!existing) {
@@ -84,7 +86,9 @@ router.put('/:id', async (req, res) => {
   }
 
   repository.merge(existing, req.body as Beneficiary);
-  existing.documents = submittedDocs;
+  existing.documentosAnexos = submittedDocs;
+  existing.possuiFilhosMenores = hasMinorChildren;
+  existing.possuiCnh = hasDriverLicense;
 
   try {
     const saved = await repository.save(existing);

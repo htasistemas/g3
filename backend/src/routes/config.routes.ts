@@ -19,15 +19,15 @@ const saveDocuments = async (req: Request, res: Response) => {
   try {
     const existing = await ensureBeneficiaryDocumentConfig();
     const updates = payload.map((doc: any) => ({
-      name: String(doc.name),
-      required: Boolean(doc.required)
+      nome: String(doc.nome ?? doc.name),
+      obrigatorio: Boolean(doc.obrigatorio ?? doc.required)
     }));
 
     for (const doc of updates) {
-      const current = existing.find((item) => item.name === doc.name);
+      const current = existing.find((item) => item.nome === doc.nome);
 
       if (current) {
-        await repository.save({ ...current, required: doc.required });
+        await repository.save({ ...current, obrigatorio: doc.obrigatorio });
       } else {
         await repository.save(repository.create(doc));
       }

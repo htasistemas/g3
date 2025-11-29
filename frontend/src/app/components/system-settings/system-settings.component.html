@@ -19,12 +19,12 @@
           class="flex items-center justify-between border border-slate-200 rounded-lg p-4 bg-slate-50"
         >
           <div>
-            <p class="text-sm font-semibold text-slate-800">{{ doc.get('name')?.value }}</p>
+            <p class="text-sm font-semibold text-slate-800">{{ doc.get('nome')?.value }}</p>
             <p class="text-xs text-slate-500">Marque para tornar o documento obrigatório.</p>
           </div>
 
           <label class="inline-flex items-center space-x-2 text-sm text-slate-700">
-            <input type="checkbox" formControlName="required" class="rounded border-slate-300 text-g3-green-600" />
+            <input type="checkbox" formControlName="obrigatorio" class="rounded border-slate-300 text-g3-green-600" />
             <span>Obrigatório</span>
           </label>
         </div>

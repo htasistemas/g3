@@ -44,74 +44,74 @@
         <div class="card__header">Dados Pessoais</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="fullName">Nome completo</label>
+            <label class="text-sm font-medium text-slate-700" for="nomeCompleto">Nome completo</label>
             <input
-              id="fullName"
+              id="nomeCompleto"
               type="text"
-              formControlName="fullName"
-              (input)="formatTitleCase('fullName')"
+              formControlName="nomeCompleto"
+              (input)="formatTitleCase('nomeCompleto')"
               class="input"
               placeholder="Digite o nome completo"
             />
-            <p *ngIf="beneficiaryForm.get('fullName')?.touched && beneficiaryForm.get('fullName')?.invalid" class="text-xs text-red-500">
+            <p *ngIf="beneficiaryForm.get('nomeCompleto')?.touched && beneficiaryForm.get('nomeCompleto')?.invalid" class="text-xs text-red-500">
               Informe um nome válido (mínimo 3 caracteres).
             </p>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="motherName">Nome da mãe</label>
+            <label class="text-sm font-medium text-slate-700" for="nomeMae">Nome da mãe</label>
             <input
-              id="motherName"
+              id="nomeMae"
               type="text"
-              formControlName="motherName"
-              (input)="formatTitleCase('motherName')"
+              formControlName="nomeMae"
+              (input)="formatTitleCase('nomeMae')"
               class="input"
               placeholder="Digite o nome da mãe"
             />
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="document">CPF</label>
+            <label class="text-sm font-medium text-slate-700" for="documentos">CPF</label>
             <input
-              id="document"
+              id="documentos"
               type="text"
-              formControlName="document"
+              formControlName="documentos"
               (input)="onCpfInput($event)"
               class="input"
               placeholder="000.000.000-00"
             />
-            <p *ngIf="beneficiaryForm.get('document')?.touched && beneficiaryForm.get('document')?.invalid" class="text-xs text-red-500">
+            <p *ngIf="beneficiaryForm.get('documentos')?.touched && beneficiaryForm.get('documentos')?.invalid" class="text-xs text-red-500">
               CPF inválido ou ausente.
             </p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="birthDate">Data de nascimento</label>
+              <label class="text-sm font-medium text-slate-700" for="dataNascimento">Data de nascimento</label>
               <input
-                id="birthDate"
+                id="dataNascimento"
                 type="date"
-                formControlName="birthDate"
+                formControlName="dataNascimento"
                 class="input"
               />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="age">Idade</label>
-              <input id="age" type="number" formControlName="age" class="input" placeholder="Idade" readonly />
+              <label class="text-sm font-medium text-slate-700" for="idade">Idade</label>
+              <input id="idade" type="number" formControlName="idade" class="input" placeholder="Idade" readonly />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="phone">Telefone</label>
+            <label class="text-sm font-medium text-slate-700" for="telefone">Telefone</label>
             <input
-              id="phone"
+              id="telefone"
               type="tel"
-              formControlName="phone"
+              formControlName="telefone"
               (input)="onPhoneInput($event)"
               class="input"
               placeholder="(00) 00000-0000"
             />
-            <p *ngIf="beneficiaryForm.get('phone')?.touched && beneficiaryForm.get('phone')?.invalid" class="text-xs text-red-500">
+            <p *ngIf="beneficiaryForm.get('telefone')?.touched && beneficiaryForm.get('telefone')?.invalid" class="text-xs text-red-500">
               Informe um telefone válido com DDD.
             </p>
           </div>
@@ -146,98 +146,98 @@
       <div class="card__header">Endereço</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="zipCode">CEP</label>
+          <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
           <input
-            id="zipCode"
+            id="cep"
             type="text"
-            formControlName="zipCode"
+            formControlName="cep"
             (input)="handleCepInput($event)"
             class="input"
             placeholder="00000-000"
           />
-          <p *ngIf="beneficiaryForm.get('zipCode')?.touched && beneficiaryForm.get('zipCode')?.invalid" class="text-xs text-red-500">
-            <ng-container *ngIf="beneficiaryForm.get('zipCode')?.errors?.['cep']">Informe um CEP com 8 dígitos.</ng-container>
-            <ng-container *ngIf="beneficiaryForm.get('zipCode')?.errors?.['invalidCep']">CEP não encontrado.</ng-container>
+          <p *ngIf="beneficiaryForm.get('cep')?.touched && beneficiaryForm.get('cep')?.invalid" class="text-xs text-red-500">
+            <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['cep']">Informe um CEP com 8 dígitos.</ng-container>
+            <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['invalidCep']">CEP não encontrado.</ng-container>
           </p>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="addressNumber">Número</label>
+          <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
           <input
-            id="addressNumber"
+            id="numeroEndereco"
             type="text"
-            formControlName="addressNumber"
+            formControlName="numeroEndereco"
             class="input"
             placeholder="Número da residência"
           />
-          <p *ngIf="beneficiaryForm.get('addressNumber')?.touched && beneficiaryForm.get('addressNumber')?.invalid" class="text-xs text-red-500">
+          <p *ngIf="beneficiaryForm.get('numeroEndereco')?.touched && beneficiaryForm.get('numeroEndereco')?.invalid" class="text-xs text-red-500">
             Informe o número da residência.
           </p>
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="address">Endereço</label>
+          <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
           <input
-            id="address"
+            id="endereco"
             type="text"
-            formControlName="address"
-            (input)="formatTitleCase('address')"
+            formControlName="endereco"
+            (input)="formatTitleCase('endereco')"
             class="input"
             placeholder="Rua ou avenida"
           />
-          <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
+          <p *ngIf="beneficiaryForm.get('endereco')?.touched && beneficiaryForm.get('endereco')?.invalid" class="text-xs text-red-500">
             Endereço é obrigatório.
           </p>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="referencePoint">Ponto de referência</label>
+          <label class="text-sm font-medium text-slate-700" for="pontoReferencia">Ponto de referência</label>
           <input
-            id="referencePoint"
+            id="pontoReferencia"
             type="text"
-            formControlName="referencePoint"
+            formControlName="pontoReferencia"
             class="input"
             placeholder="Próximo a..."
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="neighborhood">Bairro</label>
+          <label class="text-sm font-medium text-slate-700" for="bairro">Bairro</label>
           <input
-            id="neighborhood"
+            id="bairro"
             type="text"
-            formControlName="neighborhood"
-            (input)="formatTitleCase('neighborhood')"
+            formControlName="bairro"
+            (input)="formatTitleCase('bairro')"
             class="input"
             placeholder="Digite o bairro"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="city">Cidade</label>
+          <label class="text-sm font-medium text-slate-700" for="cidade">Cidade</label>
           <input
-            id="city"
+            id="cidade"
             type="text"
-            formControlName="city"
-            (input)="formatTitleCase('city')"
+            formControlName="cidade"
+            (input)="formatTitleCase('cidade')"
             class="input"
             placeholder="Informe a cidade"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="state">Estado</label>
-          <select id="state" formControlName="state" class="input">
+          <label class="text-sm font-medium text-slate-700" for="estado">Estado</label>
+          <select id="estado" formControlName="estado" class="input">
             <option value="" disabled>Selecione</option>
             <option *ngFor="let state of states" [value]="state">{{ state }}</option>
           </select>
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="notes">Observações</label>
+          <label class="text-sm font-medium text-slate-700" for="observacoes">Observações</label>
           <textarea
-            id="notes"
-            formControlName="notes"
+            id="observacoes"
+            formControlName="observacoes"
             rows="4"
             class="input"
             placeholder="Detalhes adicionais sobre o beneficiário"
@@ -250,35 +250,35 @@
       <div class="card__header">Informações familiares e socioeconômicas</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="hasMinorChildren">Possui filhos menores?</label>
+          <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
           <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" id="hasMinorChildren" formControlName="hasMinorChildren" class="h-4 w-4" />
+            <input type="checkbox" id="possuiFilhosMenores" formControlName="possuiFilhosMenores" class="h-4 w-4" />
             <span>Sim</span>
           </label>
           <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="hasDriverLicense">Beneficiário habilitado?</label>
+          <label class="text-sm font-medium text-slate-700" for="possuiCnh">Beneficiário habilitado?</label>
           <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" id="hasDriverLicense" formControlName="hasDriverLicense" class="h-4 w-4" />
+            <input type="checkbox" id="possuiCnh" formControlName="possuiCnh" class="h-4 w-4" />
             <span>Sim</span>
           </label>
           <p class="text-xs text-slate-500">Quando marcado, o envio da CNH torna-se obrigatório.</p>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="minorChildrenCount">Quantidade de filhos menores</label>
+          <label class="text-sm font-medium text-slate-700" for="quantidadeFilhosMenores">Quantidade de filhos menores</label>
           <input
-            id="minorChildrenCount"
+            id="quantidadeFilhosMenores"
             type="number"
-            formControlName="minorChildrenCount"
+            formControlName="quantidadeFilhosMenores"
             class="input"
             placeholder="0"
             min="0"
           />
           <p
-            *ngIf="beneficiaryForm.get('minorChildrenCount')?.touched && beneficiaryForm.get('minorChildrenCount')?.invalid"
+            *ngIf="beneficiaryForm.get('quantidadeFilhosMenores')?.touched && beneficiaryForm.get('quantidadeFilhosMenores')?.invalid"
             class="text-xs text-red-500"
           >
             Informe a quantidade de filhos menores.
@@ -286,67 +286,67 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="educationLevel">Escolaridade</label>
+          <label class="text-sm font-medium text-slate-700" for="escolaridade">Escolaridade</label>
           <input
-            id="educationLevel"
+            id="escolaridade"
             type="text"
-            formControlName="educationLevel"
+            formControlName="escolaridade"
             class="input"
             placeholder="Ensino médio completo"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="individualIncome">Renda individual</label>
+          <label class="text-sm font-medium text-slate-700" for="rendaIndividual">Renda individual</label>
           <input
-            id="individualIncome"
+            id="rendaIndividual"
             type="number"
             step="0.01"
-            formControlName="individualIncome"
+            formControlName="rendaIndividual"
             class="input"
             placeholder="0,00"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="familyIncome">Renda total da família</label>
+          <label class="text-sm font-medium text-slate-700" for="rendaFamiliar">Renda total da família</label>
           <input
-            id="familyIncome"
+            id="rendaFamiliar"
             type="number"
             step="0.01"
-            formControlName="familyIncome"
+            formControlName="rendaFamiliar"
             class="input"
             placeholder="0,00"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="employmentStatus">Situação de trabalho</label>
+          <label class="text-sm font-medium text-slate-700" for="situacaoEmprego">Situação de trabalho</label>
           <input
-            id="employmentStatus"
+            id="situacaoEmprego"
             type="text"
-            formControlName="employmentStatus"
+            formControlName="situacaoEmprego"
             class="input"
             placeholder="Empregado, autônomo, desempregado..."
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="occupation">Ocupação</label>
+          <label class="text-sm font-medium text-slate-700" for="ocupacao">Ocupação</label>
           <input
-            id="occupation"
+            id="ocupacao"
             type="text"
-            formControlName="occupation"
+            formControlName="ocupacao"
             class="input"
             placeholder="Profissão ou atividade"
           />
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="housingInformation">Informações sobre a moradia</label>
+          <label class="text-sm font-medium text-slate-700" for="informacoesMoradia">Informações sobre a moradia</label>
           <textarea
-            id="housingInformation"
-            formControlName="housingInformation"
+            id="informacoesMoradia"
+            formControlName="informacoesMoradia"
             rows="3"
             class="input"
             placeholder="Tipo de moradia, condições estruturais, acesso a energia, água, etc."
@@ -354,10 +354,10 @@
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="sanitationConditions">Condições de saneamento básico</label>
+          <label class="text-sm font-medium text-slate-700" for="condicoesSaneamento">Condições de saneamento básico</label>
           <textarea
-            id="sanitationConditions"
-            formControlName="sanitationConditions"
+            id="condicoesSaneamento"
+            formControlName="condicoesSaneamento"
             rows="3"
             class="input"
             placeholder="Abastecimento de água, coleta de lixo, rede de esgoto, outras observações"
@@ -369,7 +369,7 @@
     <div class="card space-y-4">
       <div class="card__header">Documentos Obrigatórios</div>
       <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
-      <input type="hidden" formControlName="documentFiles" />
+      <input type="hidden" formControlName="arquivosDocumentos" />
 
       <div class="space-y-3">
         <div
@@ -378,7 +378,7 @@
         >
           <div>
             <div class="flex items-center gap-2">
-              <p class="text-sm font-semibold text-slate-800">{{ doc.name }}</p>
+              <p class="text-sm font-semibold text-slate-800">{{ doc.nome }}</p>
               <span
                 class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
                 [ngClass]="{
@@ -389,13 +389,13 @@
                 {{ doc.required ? 'Obrigatório' : 'Opcional' }}
               </span>
             </div>
-            <p class="text-xs text-slate-500">{{ doc.fileName ? 'Arquivo: ' + doc.fileName : 'Nenhum arquivo selecionado' }}</p>
+            <p class="text-xs text-slate-500">{{ doc.nomeArquivo ? 'Arquivo: ' + doc.nomeArquivo : 'Nenhum arquivo selecionado' }}</p>
           </div>
-          <input type="file" (change)="onDocumentUpload($event, doc.name)" class="file-input" />
+          <input type="file" (change)="onDocumentUpload($event, doc.nome)" class="file-input" />
         </div>
       </div>
 
-      <p *ngIf="beneficiaryForm.get('documentFiles')?.touched && beneficiaryForm.get('documentFiles')?.invalid" class="text-xs text-red-500">
+      <p *ngIf="beneficiaryForm.get('arquivosDocumentos')?.touched && beneficiaryForm.get('arquivosDocumentos')?.invalid" class="text-xs text-red-500">
         Documentos obrigatórios pendentes: {{ missingRequiredDocuments.join(', ') }}.
       </p>
 
@@ -422,7 +422,7 @@
   </form>
 
   <div class="card space-y-4">
-    <div class="card__header">Beneficiários cadastrados</div>
+      <div class="card__header">Beneficiários cadastrados</div>
     <p class="text-sm text-slate-600" *ngIf="!beneficiaries.length">Nenhum beneficiário cadastrado.</p>
     <div class="overflow-x-auto" *ngIf="beneficiaries.length">
       <table class="min-w-full text-sm text-slate-700">
@@ -437,10 +437,25 @@
         </thead>
         <tbody>
           <tr *ngFor="let beneficiary of beneficiaries" class="border-b border-slate-100">
-            <td class="py-2 pr-4 font-semibold">{{ beneficiary.fullName }}</td>
-            <td class="py-2 pr-4">{{ beneficiary.document }}</td>
+            <td class="py-2 pr-4">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-slate-100 overflow-hidden flex-shrink-0">
+                  <img
+                    *ngIf="beneficiary.foto"
+                    [src]="beneficiary.foto"
+                    alt="Foto de {{ beneficiary.nomeCompleto }}"
+                    class="h-full w-full object-cover"
+                  />
+                  <div *ngIf="!beneficiary.foto" class="h-full w-full flex items-center justify-center text-xs text-slate-400">
+                    Sem foto
+                  </div>
+                </div>
+                <span class="font-semibold">{{ beneficiary.nomeCompleto }}</span>
+              </div>
+            </td>
+            <td class="py-2 pr-4">{{ beneficiary.documentos }}</td>
             <td class="py-2 pr-4">{{ beneficiary.status }}</td>
-            <td class="py-2 pr-4">{{ beneficiary.city }}/{{ beneficiary.state }}</td>
+            <td class="py-2 pr-4">{{ beneficiary.cidade }}/{{ beneficiary.estado }}</td>
             <td class="py-2">
               <button type="button" class="btn-outline" (click)="startEdit(beneficiary)">Editar</button>
             </td>

@@ -1,96 +1,99 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-interface DocumentAttachment {
-  name: string;
-  fileName?: string;
+interface DocumentoAnexo {
+  nome: string;
+  nomeArquivo?: string;
 }
 
-@Entity('beneficiaries')
+@Entity('beneficiarios')
 export class Beneficiary {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
-  fullName!: string;
+  @Column({ name: 'nome_completo' })
+  nomeCompleto!: string;
 
-  @Column({ nullable: true })
-  motherName?: string;
+  @Column({ name: 'nome_mae', nullable: true })
+  nomeMae?: string;
 
-  @Column()
-  document!: string;
+  @Column({ name: 'documentos' })
+  documentos!: string;
 
-  @Column({ type: 'date' })
-  birthDate!: string;
+  @Column({ name: 'data_nascimento', type: 'date' })
+  dataNascimento!: string;
 
-  @Column({ type: 'int', nullable: true })
-  age?: number;
+  @Column({ name: 'idade', type: 'int', nullable: true })
+  idade?: number;
 
-  @Column()
-  phone!: string;
+  @Column({ name: 'telefone' })
+  telefone!: string;
 
-  @Column()
+  @Column({ name: 'email' })
   email!: string;
 
-  @Column()
-  zipCode!: string;
+  @Column({ name: 'cep' })
+  cep!: string;
 
-  @Column()
-  address!: string;
+  @Column({ name: 'endereco' })
+  endereco!: string;
 
-  @Column({ nullable: true })
-  addressNumber?: string;
+  @Column({ name: 'numero_endereco', nullable: true })
+  numeroEndereco?: string;
 
-  @Column({ nullable: true })
-  referencePoint?: string;
+  @Column({ name: 'ponto_referencia', nullable: true })
+  pontoReferencia?: string;
 
-  @Column({ nullable: true })
-  neighborhood?: string;
+  @Column({ name: 'bairro', nullable: true })
+  bairro?: string;
 
-  @Column({ nullable: true })
-  city?: string;
+  @Column({ name: 'cidade', nullable: true })
+  cidade?: string;
 
-  @Column({ nullable: true })
-  state?: string;
+  @Column({ name: 'estado', nullable: true })
+  estado?: string;
 
-  @Column({ nullable: true })
-  notes?: string;
+  @Column({ name: 'observacoes', nullable: true })
+  observacoes?: string;
 
-  @Column({ default: 'Ativo' })
+  @Column({ name: 'status', default: 'Ativo' })
   status!: string;
 
-  @Column({ default: false })
-  hasMinorChildren!: boolean;
+  @Column({ name: 'possui_filhos_menores', default: false })
+  possuiFilhosMenores!: boolean;
 
-  @Column({ default: false })
-  hasDriverLicense!: boolean;
+  @Column({ name: 'possui_cnh', default: false })
+  possuiCnh!: boolean;
 
-  @Column({ type: 'int', nullable: true })
-  minorChildrenCount?: number;
+  @Column({ name: 'quantidade_filhos_menores', type: 'int', nullable: true })
+  quantidadeFilhosMenores?: number;
 
-  @Column({ nullable: true })
-  educationLevel?: string;
+  @Column({ name: 'escolaridade', nullable: true })
+  escolaridade?: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  individualIncome?: number;
+  @Column({ name: 'renda_individual', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  rendaIndividual?: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  familyIncome?: number;
+  @Column({ name: 'renda_familiar', type: 'decimal', precision: 12, scale: 2, nullable: true })
+  rendaFamiliar?: number;
 
-  @Column({ type: 'text', nullable: true })
-  housingInformation?: string;
+  @Column({ name: 'informacoes_moradia', type: 'text', nullable: true })
+  informacoesMoradia?: string;
 
-  @Column({ type: 'text', nullable: true })
-  sanitationConditions?: string;
+  @Column({ name: 'condicoes_saneamento', type: 'text', nullable: true })
+  condicoesSaneamento?: string;
 
-  @Column({ nullable: true })
-  employmentStatus?: string;
+  @Column({ name: 'situacao_emprego', nullable: true })
+  situacaoEmprego?: string;
 
-  @Column({ nullable: true })
-  occupation?: string;
+  @Column({ name: 'ocupacao', nullable: true })
+  ocupacao?: string;
 
-  @Column({ type: 'simple-json', nullable: true })
-  documents?: DocumentAttachment[];
+  @Column({ name: 'documentos_anexos', type: 'simple-json', nullable: true })
+  documentosAnexos?: DocumentoAnexo[];
 
-  @CreateDateColumn()
-  createdAt!: Date;
+  @Column({ name: 'foto', type: 'text', nullable: true })
+  foto?: string | null;
+
+  @CreateDateColumn({ name: 'criado_em' })
+  criadoEm!: Date;
 }

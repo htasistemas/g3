@@ -7,7 +7,11 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { BeneficiaryPayload, BeneficiaryService, DocumentRequirement } from '../../services/beneficiary.service';
+import {
+  BeneficiaryPayload,
+  BeneficiaryService,
+  DocumentoObrigatorio
+} from '../../services/beneficiary.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,7 +24,7 @@ import { CommonModule } from '@angular/common';
 export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   beneficiaryForm: FormGroup;
   documentStatus = 'Pendente';
-  requiredDocuments: DocumentRequirement[] = [];
+  requiredDocuments: DocumentoObrigatorio[] = [];
   missingRequiredDocuments: string[] = [];
   photoPreview: string | null = null;
   cameraActive = false;
@@ -63,46 +67,46 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     private readonly beneficiaryService: BeneficiaryService
   ) {
     this.beneficiaryForm = this.fb.group({
-      zipCode: ['', [Validators.required, this.cepValidator]],
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
-      motherName: [''],
-      document: ['', [Validators.required, this.cpfValidator]],
-      birthDate: ['', Validators.required],
-      age: [{ value: '', disabled: true }],
-      phone: ['', [Validators.required, this.phoneValidator]],
+      cep: ['', [Validators.required, this.cepValidator]],
+      nomeCompleto: ['', [Validators.required, Validators.minLength(3)]],
+      nomeMae: [''],
+      documentos: ['', [Validators.required, this.cpfValidator]],
+      dataNascimento: ['', Validators.required],
+      idade: [{ value: '', disabled: true }],
+      telefone: ['', [Validators.required, this.phoneValidator]],
       email: ['', [Validators.required, Validators.email]],
-      address: ['', Validators.required],
-      addressNumber: ['', Validators.required],
-      referencePoint: [''],
-      neighborhood: [''],
-      city: [''],
-      state: ['', Validators.required],
-      notes: [''],
+      endereco: ['', Validators.required],
+      numeroEndereco: ['', Validators.required],
+      pontoReferencia: [''],
+      bairro: [''],
+      cidade: [''],
+      estado: ['', Validators.required],
+      observacoes: [''],
       status: ['Ativo', Validators.required],
-      hasDriverLicense: [false],
-      documentFiles: [[], [this.documentsRequiredValidator]],
-      photo: [''],
-      hasMinorChildren: [false],
-      minorChildrenCount: [{ value: '', disabled: true }],
-      educationLevel: [''],
-      individualIncome: [''],
-      familyIncome: [''],
-      housingInformation: [''],
-      sanitationConditions: [''],
-      employmentStatus: [''],
-      occupation: ['']
+      possuiCnh: [false],
+      arquivosDocumentos: [[], [this.documentsRequiredValidator]],
+      foto: [''],
+      possuiFilhosMenores: [false],
+      quantidadeFilhosMenores: [{ value: '', disabled: true }],
+      escolaridade: [''],
+      rendaIndividual: [''],
+      rendaFamiliar: [''],
+      informacoesMoradia: [''],
+      condicoesSaneamento: [''],
+      situacaoEmprego: [''],
+      ocupacao: ['']
     });
 
     this.beneficiaryForm
-      .get('birthDate')
+      .get('dataNascimento')
       ?.valueChanges.subscribe((value: string | null) => this.updateAge(value));
 
     this.beneficiaryForm
-      .get('hasMinorChildren')
+      .get('possuiFilhosMenores')
       ?.valueChanges.subscribe((value: boolean) => this.toggleMinorChildrenRequirement(Boolean(value)));
 
     this.beneficiaryForm
-      .get('hasDriverLicense')
+      .get('possuiCnh')
       ?.valueChanges.subscribe(() => this.updateConditionalDocumentRequirements());
   }
 
@@ -122,7 +126,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     const formValue = {
       ...this.beneficiaryForm.getRawValue(),
       id: this.editingId ?? undefined,
-      documents: this.requiredDocuments.map((doc) => ({ name: doc.name, fileName: doc.fileName }))
+      documentosAnexos: this.requiredDocuments.map((doc) => ({ nome: doc.nome, nomeArquivo: doc.nomeArquivo }))
     } as BeneficiaryPayload;
 
     this.beneficiaryService.save(formValue).subscribe({
@@ -172,7 +176,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       formatted = digits.replace(/(\d{3})(\d{0,3}).*/, '$1.$2');
     }
 
-    this.beneficiaryForm.get('document')?.setValue(formatted, { emitEvent: false });
+    this.beneficiaryForm.get('documentos')?.setValue(formatted, { emitEvent: false });
   }
 
   onPhoneInput(event: Event): void {
@@ -188,7 +192,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       formatted = digits.replace(/(\d{2})(\d{0,5}).*/, '($1) $2');
     }
 
-    this.beneficiaryForm.get('phone')?.setValue(formatted, { emitEvent: false });
+    this.beneficiaryForm.get('telefone')?.setValue(formatted, { emitEvent: false });
   }
 
   handleCepInput(event: Event): void {
@@ -200,7 +204,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
     }
 
-    this.beneficiaryForm.get('zipCode')?.setValue(formatted, { emitEvent: false });
+    this.beneficiaryForm.get('cep')?.setValue(formatted, { emitEvent: false });
 
     if (digits.length === 8) {
       this.fetchAddressByCep(digits);
@@ -210,7 +214,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private async fetchAddressByCep(cep: string): Promise<void> {
-    const zipControl = this.beneficiaryForm.get('zipCode');
+    const zipControl = this.beneficiaryForm.get('cep');
 
     if (!zipControl) {
       return;
@@ -225,10 +229,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       }
 
       this.beneficiaryForm.patchValue({
-        address: data.logradouro || '',
-        neighborhood: data.bairro || '',
-        city: data.localidade || '',
-        state: data.uf || ''
+        endereco: data.logradouro || '',
+        bairro: data.bairro || '',
+        cidade: data.localidade || '',
+        estado: data.uf || ''
       });
 
       this.removeZipError('invalidCep');
@@ -240,11 +244,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private clearAddressFields(): void {
-    this.beneficiaryForm.patchValue({ address: '', neighborhood: '', city: '', state: '' });
+    this.beneficiaryForm.patchValue({ endereco: '', bairro: '', cidade: '', estado: '' });
   }
 
   private setZipError(errorKey: string): void {
-    const zipControl = this.beneficiaryForm.get('zipCode');
+    const zipControl = this.beneficiaryForm.get('cep');
 
     if (!zipControl) {
       return;
@@ -255,7 +259,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private removeZipError(errorKey: string): void {
-    const zipControl = this.beneficiaryForm.get('zipCode');
+    const zipControl = this.beneficiaryForm.get('cep');
 
     if (!zipControl?.errors) {
       return;
@@ -267,7 +271,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   private updateAge(dateString: string | null): void {
     if (!dateString) {
-      this.beneficiaryForm.get('age')?.setValue('', { emitEvent: false });
+      this.beneficiaryForm.get('idade')?.setValue('', { emitEvent: false });
       return;
     }
 
@@ -280,11 +284,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       age--;
     }
 
-    this.beneficiaryForm.get('age')?.setValue(age >= 0 ? age : '', { emitEvent: false });
+    this.beneficiaryForm.get('idade')?.setValue(age >= 0 ? age : '', { emitEvent: false });
   }
 
   private toggleMinorChildrenRequirement(hasMinorChildren: boolean): void {
-    const countControl = this.beneficiaryForm.get('minorChildrenCount');
+    const countControl = this.beneficiaryForm.get('quantidadeFilhosMenores');
 
     if (!countControl) {
       return;
@@ -303,13 +307,13 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private updateConditionalDocumentRequirements(): void {
-    const hasMinorChildren = Boolean(this.beneficiaryForm.get('hasMinorChildren')?.value);
-    const hasDriverLicense = Boolean(this.beneficiaryForm.get('hasDriverLicense')?.value);
+    const hasMinorChildren = Boolean(this.beneficiaryForm.get('possuiFilhosMenores')?.value);
+    const hasDriverLicense = Boolean(this.beneficiaryForm.get('possuiCnh')?.value);
 
     this.requiredDocuments = this.requiredDocuments.map((doc) => {
       const baseRequired = doc.baseRequired ?? doc.required ?? false;
-      const isBirthCertificate = doc.name === 'Certidão de Nascimento';
-      const isDriverLicense = doc.name.toLowerCase() === 'cnh';
+      const isBirthCertificate = doc.nome === 'Certidão de Nascimento';
+      const isDriverLicense = doc.nome.toLowerCase() === 'cnh';
       const required =
         baseRequired || (isBirthCertificate && hasMinorChildren) || (isDriverLicense && hasDriverLicense);
 
@@ -322,14 +326,14 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   onDocumentUpload(event: Event, documentName: string): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    const targetDoc = this.requiredDocuments.find((doc) => doc.name === documentName);
+    const targetDoc = this.requiredDocuments.find((doc) => doc.nome === documentName);
 
     if (!targetDoc) {
       return;
     }
 
     targetDoc.file = file || undefined;
-    targetDoc.fileName = file?.name || targetDoc.fileName;
+    targetDoc.nomeArquivo = file?.name || targetDoc.nomeArquivo;
     this.updateDocumentControl();
   }
 
@@ -339,14 +343,14 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
     if (!file) {
       this.photoPreview = null;
-      this.beneficiaryForm.get('photo')?.setValue('');
+      this.beneficiaryForm.get('foto')?.setValue('');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
       this.photoPreview = reader.result as string;
-      this.beneficiaryForm.get('photo')?.setValue(file.name);
+      this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
     };
     reader.readAsDataURL(file);
   }
@@ -376,7 +380,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     canvasElement.height = videoElement.videoHeight;
     context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
     this.photoPreview = canvasElement.toDataURL('image/png');
-    this.beneficiaryForm.get('photo')?.setValue('captured-photo.png');
+    this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
     this.stopCamera();
   }
 
@@ -395,18 +399,19 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.requiredDocuments = this.requiredDocuments.map((doc) => ({
       ...doc,
       file: undefined,
-      fileName: beneficiary.documents?.find((d) => d.name === doc.name)?.fileName
+      nomeArquivo: beneficiary.documentosAnexos?.find((d) => d.nome === doc.nome)?.nomeArquivo
     }));
     this.updateDocumentControl();
 
     this.beneficiaryForm.reset({
       ...beneficiary,
-      age: beneficiary.age,
-      documentFiles: this.requiredDocuments,
-      photo: '',
-      hasDriverLicense: Boolean(beneficiary.hasDriverLicense)
+      idade: beneficiary.idade,
+      arquivosDocumentos: this.requiredDocuments,
+      foto: beneficiary.foto || '',
+      possuiCnh: Boolean(beneficiary.possuiCnh)
     });
-    this.toggleMinorChildrenRequirement(Boolean(beneficiary.hasMinorChildren));
+    this.photoPreview = beneficiary.foto || null;
+    this.toggleMinorChildrenRequirement(Boolean(beneficiary.possuiFilhosMenores));
     this.updateConditionalDocumentRequirements();
   }
 
@@ -416,34 +421,34 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.photoPreview = null;
     this.saveFeedback = null;
     this.requiredDocuments = this.requiredDocuments.map((doc) => ({
-      name: doc.name,
+      nome: doc.nome,
       required: doc.baseRequired ?? doc.required,
       baseRequired: doc.baseRequired ?? doc.required
     }));
     this.beneficiaryForm.reset({
       status: 'Ativo',
-      documentFiles: this.requiredDocuments,
-      age: '',
-      hasDriverLicense: false,
-      hasMinorChildren: false,
-      minorChildrenCount: ''
+      arquivosDocumentos: this.requiredDocuments,
+      idade: '',
+      possuiCnh: false,
+      possuiFilhosMenores: false,
+      quantidadeFilhosMenores: ''
     });
-    this.beneficiaryForm.get('minorChildrenCount')?.disable({ emitEvent: false });
+    this.beneficiaryForm.get('quantidadeFilhosMenores')?.disable({ emitEvent: false });
     this.toggleMinorChildrenRequirement(false);
   }
 
   private updateDocumentControl(): void {
-    const documentControl = this.beneficiaryForm.get('documentFiles');
+    const documentControl = this.beneficiaryForm.get('arquivosDocumentos');
     documentControl?.setValue(this.requiredDocuments);
     documentControl?.updateValueAndValidity();
 
     this.missingRequiredDocuments = this.requiredDocuments
-      .filter((doc) => doc.required && !doc.fileName)
-      .map((doc) => doc.name);
+      .filter((doc) => doc.required && !doc.nomeArquivo)
+      .map((doc) => doc.nome);
 
     const allRequiredProvided = this.requiredDocuments
       .filter((doc) => doc.required)
-      .every((doc) => doc.fileName);
+      .every((doc) => doc.nomeArquivo);
     this.documentStatus = allRequiredProvided ? 'Enviado' : 'Pendente';
   }
 
@@ -451,9 +456,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.beneficiaryService.getRequiredDocuments().subscribe({
       next: ({ documents }) => {
         this.requiredDocuments = documents.map((document) => ({
-          name: document.name,
-          required: Boolean(document.required),
-          baseRequired: Boolean(document.required)
+          nome: document.nome,
+          required: Boolean(document.obrigatorio ?? document.required),
+          baseRequired: Boolean(document.obrigatorio ?? document.required),
+          nomeArquivo: document.nomeArquivo
         }));
         this.updateConditionalDocumentRequirements();
       },
@@ -463,22 +469,22 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   private loadBeneficiaries(): void {
     this.beneficiaryService.list().subscribe({
-      next: ({ beneficiaries }) => {
-        this.beneficiaries = beneficiaries;
+      next: ({ beneficiarios }) => {
+        this.beneficiaries = beneficiarios;
       },
       error: (error) => console.error('Erro ao carregar beneficiários', error)
     });
   }
 
   private documentsRequiredValidator = (control: AbstractControl): ValidationErrors | null => {
-    const docs = control.value as DocumentRequirement[];
+    const docs = control.value as DocumentoObrigatorio[];
     const missingDocuments = this.requiredDocuments.some((doc) => {
       if (!doc.required) {
         return false;
       }
 
-      const matched = docs?.find((item) => item.name === doc.name);
-      return !matched?.fileName;
+      const matched = docs?.find((item) => item.nome === doc.nome);
+      return !matched?.nomeArquivo;
     });
 
     return missingDocuments ? { documentsRequired: true } : null;
