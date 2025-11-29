@@ -161,33 +161,36 @@
           </p>
         </div>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
-          <input
-            id="numeroEndereco"
-            type="text"
-            formControlName="numeroEndereco"
-            class="input"
-            placeholder="Número da residência"
-          />
-          <p *ngIf="beneficiaryForm.get('numeroEndereco')?.touched && beneficiaryForm.get('numeroEndereco')?.invalid" class="text-xs text-red-500">
-            Informe o número da residência.
-          </p>
-        </div>
-
-        <div class="space-y-2 md:col-span-2">
+        <div class="md:col-span-2 space-y-2">
           <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
-          <input
-            id="endereco"
-            type="text"
-            formControlName="endereco"
-            (input)="formatTitleCase('endereco')"
-            class="input"
-            placeholder="Rua ou avenida"
-          />
-          <p *ngIf="beneficiaryForm.get('endereco')?.touched && beneficiaryForm.get('endereco')?.invalid" class="text-xs text-red-500">
-            Endereço é obrigatório.
-          </p>
+          <div class="flex flex-col md:flex-row md:items-start md:gap-4">
+            <div class="flex-1 space-y-2">
+              <input
+                id="endereco"
+                type="text"
+                formControlName="endereco"
+                (input)="formatTitleCase('endereco')"
+                class="input w-full"
+                placeholder="Rua ou avenida"
+              />
+              <p *ngIf="beneficiaryForm.get('endereco')?.touched && beneficiaryForm.get('endereco')?.invalid" class="text-xs text-red-500">
+                Endereço é obrigatório.
+              </p>
+            </div>
+            <div class="mt-3 md:mt-0 md:w-48 space-y-2">
+              <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
+              <input
+                id="numeroEndereco"
+                type="text"
+                formControlName="numeroEndereco"
+                class="input w-full"
+                placeholder="Número da residência"
+              />
+              <p *ngIf="beneficiaryForm.get('numeroEndereco')?.touched && beneficiaryForm.get('numeroEndereco')?.invalid" class="text-xs text-red-500">
+                Informe o número da residência.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div class="space-y-2">

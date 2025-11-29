@@ -10,7 +10,12 @@ import { RenameSchemaToPortuguese172 } from './migrations/1729700000000-RenameSc
 dotenv.config();
 
 const dbType = (process.env.DB_TYPE as any) || 'postgres';
-const dbPort = Number(process.env.DB_PORT) || (dbType === 'mysql' ? 3306 : 5432);
+const dbPort =
+  process.env.DB_PORT !== undefined && process.env.DB_PORT !== ''
+    ? Number(process.env.DB_PORT)
+    : dbType === 'mysql'
+      ? 3306
+      : 5434;
 
 export const AppDataSource = new DataSource({
   type: dbType,
