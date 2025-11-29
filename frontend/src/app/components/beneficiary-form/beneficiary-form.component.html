@@ -26,7 +26,7 @@
           <div class="space-y-2">
             <video
               #videoElement
-              class="w-full rounded-lg border border-dashed border-slate-300"
+              class="w-full rounded-lg border border-dashed border-slate-300 min-h-48 bg-black/30 object-cover"
               autoplay
               muted
               playsinline
@@ -35,10 +35,13 @@
             <canvas #canvasElement class="hidden"></canvas>
             <div class="flex gap-2">
               <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
-              <button type="button" class="btn-primary" [disabled]="!cameraActive" (click)="capturePhoto(videoElement, canvasElement)">
+              <button type="button" class="btn-primary" [disabled]="!cameraReady" (click)="capturePhoto(videoElement, canvasElement)">
                 Capturar
               </button>
             </div>
+            <p class="text-xs text-slate-500">
+              Aguarde a câmera inicializar para habilitar a captura.
+            </p>
           </div>
 
           <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>

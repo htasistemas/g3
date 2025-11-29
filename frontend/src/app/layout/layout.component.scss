@@ -1,3 +1,89 @@
 :host {
   display: block;
 }
+
+.app-shell {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar {
+  background: linear-gradient(180deg, var(--primary-strong) 0%, var(--primary-stronger) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+.sidebar__header {
+  @apply p-4 flex items-start justify-between gap-3;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.menu-card {
+  background: var(--sidebar-card-bg);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu-card__trigger {
+  @apply w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-emerald-50;
+  background: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.menu-card__trigger:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.menu-card__content {
+  background: var(--surface);
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.menu-link {
+  @apply flex items-center px-4 py-2 text-sm cursor-pointer;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.menu-link:hover {
+  background: var(--surface-hover);
+  color: var(--primary-strong);
+}
+
+.menu-link--static {
+  cursor: default;
+}
+
+.app-header {
+  @apply px-6 py-4 flex items-center justify-between shadow-md flex-shrink-0;
+  background: linear-gradient(90deg, var(--primary-stronger) 0%, var(--primary-gradient-end) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.page-title {
+  @apply text-2xl font-bold;
+  color: #fff;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.btn-ghost {
+  @apply inline-flex items-center space-x-2 px-3 py-2 rounded-lg;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
+}
