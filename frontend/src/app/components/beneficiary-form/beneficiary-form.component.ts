@@ -23,14 +23,25 @@ import { CommonModule } from '@angular/common';
 })
 export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   beneficiaryForm: FormGroup;
+  filterForm: FormGroup;
   documentStatus = 'Pendente';
   requiredDocuments: DocumentoObrigatorio[] = [];
   missingRequiredDocuments: string[] = [];
   photoPreview: string | null = null;
   cameraActive = false;
+  filteredBeneficiaries: BeneficiaryPayload[] = [];
   beneficiaries: BeneficiaryPayload[] = [];
   editingId: number | null = null;
   saveFeedback: { type: 'success' | 'error'; message: string } | null = null;
+  readonly statusOptions = ['Ativo', 'Inativo', 'Em análise', 'Bloqueado'];
+  readonly sanitationOptions = [
+    'Água tratada',
+    'Coleta de lixo',
+    'Rede de esgoto',
+    'Fossa séptica',
+    'Água de poço',
+    'Drenagem pluvial'
+  ];
   readonly states = [
     'AC',
     'AL',
@@ -61,6 +72,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     'TO'
   ];
   private mediaStream?: MediaStream;
+  private currentVideoElement?: HTMLVideoElement;
+  selectedSanitationOptions = new Set<string>();
 
   constructor(
     private readonly fb: FormBuilder,
@@ -83,6 +96,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       estado: ['', Validators.required],
       observacoes: [''],
       status: ['Ativo', Validators.required],
+      motivoBloqueio: [''],
       possuiCnh: [false],
       arquivosDocumentos: [[], [this.documentsRequiredValidator]],
       foto: [''],
@@ -97,6 +111,15 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       ocupacao: ['']
     });
 
+    this.filterForm = this.fb.group({
+      nome: [''],
+      cpf: [''],
+      idade: [''],
+      dataNascimento: [''],
+      bairro: [''],
+      status: [[]]
+    });
+
     this.beneficiaryForm
       .get('dataNascimento')
       ?.valueChanges.subscribe((value: string | null) => this.updateAge(value));
@@ -108,11 +131,19 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.beneficiaryForm
       .get('possuiCnh')
       ?.valueChanges.subscribe(() => this.updateConditionalDocumentRequirements());
+
+    this.beneficiaryForm
+      .get('status')
+      ?.valueChanges.subscribe((value: string) => this.handleStatusChange(value));
+
+    this.filterForm.valueChanges.subscribe(() => this.applyFilters());
   }
 
   ngOnInit(): void {
     this.loadRequiredDocuments();
     this.loadBeneficiaries();
+    this.handleStatusChange(this.beneficiaryForm.get('status')?.value);
+    this.syncSanitationSelections(this.beneficiaryForm.get('condicoesSaneamento')?.value);
   }
 
   submit(): void {
@@ -357,9 +388,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   async startCamera(videoElement: HTMLVideoElement): Promise<void> {
     try {
+      this.stopCamera(videoElement);
+      this.currentVideoElement = videoElement;
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoElement.srcObject = this.mediaStream;
-      videoElement.play();
+      await videoElement.play();
       this.cameraActive = true;
     } catch (error) {
       console.error('Erro ao acessar a câmera', error);
@@ -381,11 +414,17 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
     this.photoPreview = canvasElement.toDataURL('image/png');
     this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
-    this.stopCamera();
+    this.stopCamera(videoElement);
   }
 
-  stopCamera(): void {
+  stopCamera(videoElement?: HTMLVideoElement): void {
     this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = undefined;
+    const targetVideo = videoElement ?? this.currentVideoElement;
+    if (targetVideo) {
+      targetVideo.pause();
+      targetVideo.srcObject = null;
+    }
     this.cameraActive = false;
   }
 
@@ -412,6 +451,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     });
     this.photoPreview = beneficiary.foto || null;
     this.toggleMinorChildrenRequirement(Boolean(beneficiary.possuiFilhosMenores));
+    this.syncSanitationSelections(beneficiary.condicoesSaneamento);
+    this.handleStatusChange(beneficiary.status);
     this.updateConditionalDocumentRequirements();
   }
 
@@ -419,6 +460,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.documentStatus = 'Pendente';
     this.photoPreview = null;
+    this.selectedSanitationOptions.clear();
     this.saveFeedback = null;
     this.requiredDocuments = this.requiredDocuments.map((doc) => ({
       nome: doc.nome,
@@ -431,10 +473,13 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       idade: '',
       possuiCnh: false,
       possuiFilhosMenores: false,
-      quantidadeFilhosMenores: ''
+      quantidadeFilhosMenores: '',
+      motivoBloqueio: ''
     });
     this.beneficiaryForm.get('quantidadeFilhosMenores')?.disable({ emitEvent: false });
     this.toggleMinorChildrenRequirement(false);
+    this.handleStatusChange('Ativo');
+    this.updateSanitationControl();
   }
 
   private updateDocumentControl(): void {
@@ -470,7 +515,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   private loadBeneficiaries(): void {
     this.beneficiaryService.list().subscribe({
       next: ({ beneficiarios }) => {
-        this.beneficiaries = beneficiarios;
+        this.beneficiaries = this.addAgeToBeneficiaries(beneficiarios);
+        this.applyFilters();
       },
       error: (error) => console.error('Erro ao carregar beneficiários', error)
     });
@@ -528,5 +574,125 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     }
 
     return value.length === 10 || value.length === 11 ? null : { phone: true };
+  }
+
+  private handleStatusChange(status: string | null): void {
+    const reasonControl = this.beneficiaryForm.get('motivoBloqueio');
+
+    if (!reasonControl) {
+      return;
+    }
+
+    if (status === 'Bloqueado') {
+      reasonControl.setValidators([Validators.required, Validators.minLength(3)]);
+    } else {
+      reasonControl.clearValidators();
+      reasonControl.reset('', { emitEvent: false });
+    }
+
+    reasonControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  toggleSanitationOption(option: string, checked: boolean): void {
+    if (checked) {
+      this.selectedSanitationOptions.add(option);
+    } else {
+      this.selectedSanitationOptions.delete(option);
+    }
+
+    this.updateSanitationControl();
+  }
+
+  private updateSanitationControl(): void {
+    const control = this.beneficiaryForm.get('condicoesSaneamento');
+
+    if (!control) {
+      return;
+    }
+
+    const value = Array.from(this.selectedSanitationOptions).join(', ');
+    control.setValue(value, { emitEvent: false });
+  }
+
+  private syncSanitationSelections(value: string | string[] | null | undefined): void {
+    const entries = Array.isArray(value)
+      ? value
+      : (value ?? '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+
+    this.selectedSanitationOptions = new Set(entries);
+    this.updateSanitationControl();
+  }
+
+  private addAgeToBeneficiaries(list: BeneficiaryPayload[]): BeneficiaryPayload[] {
+    return list.map((beneficiary) => {
+      const idade = beneficiary.idade ?? this.calculateAgeFromDate(beneficiary.dataNascimento);
+      return { ...beneficiary, idade: idade ?? beneficiary.idade };
+    });
+  }
+
+  private calculateAgeFromDate(dateString?: string): number | null {
+    if (!dateString) {
+      return null;
+    }
+
+    const birthDate = new Date(dateString);
+
+    if (Number.isNaN(birthDate.getTime())) {
+      return null;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age >= 0 ? age : null;
+  }
+
+  toggleStatusFilter(status: string, checked: boolean): void {
+    const control = this.filterForm.get('status');
+
+    if (!control) {
+      return;
+    }
+
+    const current = (control.value as string[]) ?? [];
+    const updated = checked
+      ? Array.from(new Set([...current, status]))
+      : current.filter((item) => item !== status);
+
+    control.setValue(updated, { emitEvent: false });
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const { nome, cpf, idade, dataNascimento, bairro, status } = this.filterForm.getRawValue();
+    const statusFilters = (status as string[])?.filter(Boolean) ?? [];
+
+    this.filteredBeneficiaries = this.beneficiaries.filter((beneficiary) => {
+      const matchesNome = nome
+        ? beneficiary.nomeCompleto?.toLowerCase().includes((nome as string).toLowerCase())
+        : true;
+      const matchesCpf = cpf ? beneficiary.documentos?.includes(cpf as string) : true;
+      const matchesIdade = idade ? beneficiary.idade === Number(idade) : true;
+      const matchesData = dataNascimento ? beneficiary.dataNascimento === dataNascimento : true;
+      const matchesBairro = bairro
+        ? (beneficiary.bairro ?? '').toLowerCase().includes((bairro as string).toLowerCase())
+        : true;
+      const matchesStatus = statusFilters.length ? statusFilters.includes(beneficiary.status) : true;
+
+      return matchesNome && matchesCpf && matchesIdade && matchesData && matchesBairro && matchesStatus;
+    });
+  }
+
+  clearFilters(): void {
+    this.filterForm.reset({ nome: '', cpf: '', idade: '', dataNascimento: '', bairro: '', status: [] });
+    this.applyFilters();
   }
 }

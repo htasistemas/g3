@@ -30,6 +30,7 @@ export interface BeneficiaryPayload {
   estado?: string;
   observacoes?: string;
   status: string;
+  motivoBloqueio?: string;
   possuiFilhosMenores?: boolean;
   possuiCnh?: boolean;
   quantidadeFilhosMenores?: number;

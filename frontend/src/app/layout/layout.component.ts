@@ -160,13 +160,12 @@ export class LayoutComponent {
     const segments = cleaned.split('.').filter(Boolean);
 
     if (!segments.length) {
-      return '0.00';
+      return '0.0.00';
     }
 
-    const major = segments[0];
-    const patch = segments[segments.length - 1];
+    const [major = '0', minor = '0', patch = '0'] = segments;
     const paddedPatch = patch.padStart(2, '0');
 
-    return `${major}.${paddedPatch}`;
+    return `${major}.${minor}.${paddedPatch}`;
   }
 }

@@ -2,8 +2,8 @@
   <aside class="w-72 bg-green-50 border-r border-green-100 shadow-sm hidden md:block flex-shrink-0 overflow-y-auto">
     <div class="p-4 border-b border-green-100 flex items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-g3-green-700">{{ activeUnitName$ | async }}</h2>
-        <p class="text-xs text-g3-green-600">Menus prontos para receber componentes</p>
+        <h2 class="text-xl font-semibold text-g3-green-800">{{ activeUnitName$ | async }}</h2>
+        <p class="text-xs text-g3-green-700">Menus prontos para receber componentes</p>
       </div>
       <div class="text-right">
         <span class="block text-[10px] uppercase tracking-wide text-slate-400">Versão</span>
@@ -21,10 +21,10 @@
         <button
           type="button"
           (click)="toggleSection(section.label)"
-          class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-g3-green-700 hover:bg-green-50 transition"
+          class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-g3-green-800 hover:bg-green-50 transition"
         >
           <span class="flex items-center space-x-3">
-            <fa-icon [icon]="section.icon" class="text-g3-green-500"></fa-icon>
+            <fa-icon [icon]="section.icon" class="text-g3-green-700"></fa-icon>
             <span>{{ section.label }}</span>
           </span>
           <fa-icon [icon]="openSection === section.label ? faChevronUp : faChevronDown" class="text-slate-400"></fa-icon>
@@ -35,14 +35,14 @@
             <a
               *ngIf="child.route; else staticChild"
               [routerLink]="child.route"
-              class="flex items-center px-4 py-2 text-sm text-g3-green-700 hover:bg-white hover:text-g3-green-600 transition cursor-pointer"
+              class="flex items-center px-4 py-2 text-sm text-g3-green-800 hover:bg-white hover:text-g3-green-700 transition cursor-pointer"
             >
-              <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>
+              <fa-icon [icon]="child.icon" class="mr-3 text-g3-green-700"></fa-icon>
               <span>{{ child.label }}</span>
             </a>
             <ng-template #staticChild>
-              <div class="flex items-center px-4 py-2 text-sm text-g3-green-700">
-                <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>
+              <div class="flex items-center px-4 py-2 text-sm text-g3-green-800">
+                <fa-icon [icon]="child.icon" class="mr-3 text-g3-green-700"></fa-icon>
                 <span>{{ child.label }}</span>
               </div>
             </ng-template>
@@ -55,8 +55,8 @@
   <div class="flex-1 flex flex-col min-w-0 h-screen">
     <header class="bg-green-50 border-b border-green-100 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
       <div>
-        <h1 class="text-lg font-semibold text-g3-green-700">Painel Principal</h1>
-        <p class="text-sm text-g3-green-600">Monte novas telas dentro deste layout.</p>
+        <h1 class="text-lg font-semibold text-g3-green-800">Painel Principal</h1>
+        <p class="text-sm text-g3-green-700">Monte novas telas dentro deste layout.</p>
       </div>
       <div class="flex items-center space-x-4 text-sm text-slate-600">
         <span class="flex items-center space-x-2">
