@@ -8,6 +8,7 @@ import {
   faChevronDown,
   faChevronUp,
   faClipboardList,
+  faGauge,
   faHandshakeAngle,
   faHouseChimneyUser,
   faRightFromBracket,
@@ -48,12 +49,16 @@ export class LayoutComponent {
 
   menuSections: MenuItem[] = [
     {
-      label: 'Beneficiários',
+      label: 'Dashboard',
+      icon: faGauge,
+      children: [{ label: 'Visão Geral', icon: faGauge, route: '/' }]
+    },
+    {
+      label: 'Cadastros',
       icon: faUsers,
       children: [
-        { label: 'Cadastro de Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
-        { label: 'Lista e Consulta', icon: faClipboardList },
-        { label: 'Documentos', icon: faWallet }
+        { label: 'Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
+        { label: 'Unidade Assistencial', icon: faHouseChimneyUser }
       ]
     },
     {
