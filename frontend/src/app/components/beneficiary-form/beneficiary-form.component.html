@@ -10,8 +10,8 @@
     </div>
   </div>
 
-  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-4">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-3">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
       <div class="card space-y-3 photo-card">
         <div class="card__header">Foto do beneficiário</div>
         <div class="space-y-3">
@@ -51,7 +51,7 @@
 
       <div class="card lg:col-span-2">
         <div class="card__header">Dados Pessoais</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="nomeCompleto">Nome completo</label>
             <input
@@ -171,7 +171,7 @@
 
     <div class="card">
       <div class="card__header">Endereço</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="field-group md:w-52">
           <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
           <input
@@ -190,7 +190,7 @@
 
         <div class="md:col-span-2 field-group">
           <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
-          <div class="flex flex-col gap-2 md:grid md:grid-cols-[1fr_auto] md:items-end md:gap-4">
+          <div class="flex flex-col gap-2 md:grid md:grid-cols-[1fr_auto] md:items-end md:gap-3">
             <div class="flex-1 field-group m-0">
               <input
                 id="endereco"
@@ -278,7 +278,7 @@
 
     <div class="card">
       <div class="card__header">Informações familiares e socioeconômicas</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
           <label class="inline-flex items-center gap-3 text-sm text-slate-700 pl-px">
@@ -405,7 +405,7 @@
       </div>
     </div>
 
-    <div class="card space-y-4">
+    <div class="card space-y-3">
       <div class="card__header">Documentos Obrigatórios</div>
       <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
       <input type="hidden" formControlName="arquivosDocumentos" />
@@ -460,9 +460,9 @@
   </div>
 </form>
 
-  <div class="card space-y-4" [formGroup]="filterForm">
+  <div class="card space-y-3" [formGroup]="filterForm">
     <div class="card__header">Filtro de beneficiários</div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterNome">Nome</label>
         <input id="filterNome" type="text" class="input" formControlName="nome" placeholder="Buscar por nome" />
@@ -507,7 +507,7 @@
     </div>
   </div>
 
-  <div class="card space-y-4">
+  <div class="card space-y-3">
     <div class="card__header">Beneficiários cadastrados</div>
     <p class="text-sm text-slate-600" *ngIf="!filteredBeneficiaries.length">Nenhum beneficiário encontrado.</p>
     <div class="overflow-x-auto" *ngIf="filteredBeneficiaries.length">
