@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { DashboardComponent } from '../components/dashboard/dashboard.component';
 import { AuthService } from '../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -17,6 +16,7 @@ import {
   faUsers,
   faWallet
 } from '@fortawesome/free-solid-svg-icons';
+import { environment } from '../../environments/environment';
 
 interface MenuChild {
   label: string;
@@ -33,7 +33,7 @@ interface MenuItem {
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, DashboardComponent, FontAwesomeModule],
+  imports: [CommonModule, RouterModule, FontAwesomeModule],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })
@@ -42,6 +42,7 @@ export class LayoutComponent {
   readonly faChevronUp = faChevronUp;
   readonly faRightFromBracket = faRightFromBracket;
   readonly faUserCircle = faUserCircle;
+  readonly version = environment.version;
 
   openSection: string | null = null;
 
@@ -50,7 +51,7 @@ export class LayoutComponent {
       label: 'Beneficiários',
       icon: faUsers,
       children: [
-        { label: 'Cadastro de Beneficiário', icon: faUserPlus },
+        { label: 'Cadastro de Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
         { label: 'Lista e Consulta', icon: faClipboardList },
         { label: 'Documentos', icon: faWallet }
       ]
