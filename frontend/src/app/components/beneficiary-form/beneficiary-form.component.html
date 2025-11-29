@@ -10,139 +10,230 @@
     </div>
   </div>
 
-  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="bg-white border border-slate-200 rounded-xl shadow-sm">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="fullName">Nome completo</label>
-        <input
-          id="fullName"
-          type="text"
-          formControlName="fullName"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="Digite o nome completo"
-        />
-        <p *ngIf="beneficiaryForm.get('fullName')?.touched && beneficiaryForm.get('fullName')?.invalid" class="text-xs text-red-500">
-          Informe um nome válido (mínimo 3 caracteres).
-        </p>
-      </div>
+  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-6">
+    <div class="card">
+      <div class="card__header">Dados Pessoais</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="fullName">Nome completo</label>
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            (input)="formatTitleCase('fullName')"
+            class="input"
+            placeholder="Digite o nome completo"
+          />
+          <p *ngIf="beneficiaryForm.get('fullName')?.touched && beneficiaryForm.get('fullName')?.invalid" class="text-xs text-red-500">
+            Informe um nome válido (mínimo 3 caracteres).
+          </p>
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="document">CPF</label>
-        <input
-          id="document"
-          type="text"
-          formControlName="document"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="000.000.000-00"
-        />
-        <p *ngIf="beneficiaryForm.get('document')?.touched && beneficiaryForm.get('document')?.invalid" class="text-xs text-red-500">
-          CPF é obrigatório.
-        </p>
-      </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="motherName">Nome da mãe</label>
+          <input
+            id="motherName"
+            type="text"
+            formControlName="motherName"
+            (input)="formatTitleCase('motherName')"
+            class="input"
+            placeholder="Digite o nome da mãe"
+          />
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="birthDate">Data de nascimento</label>
-        <input
-          id="birthDate"
-          type="date"
-          formControlName="birthDate"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-        />
-      </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="document">CPF</label>
+          <input
+            id="document"
+            type="text"
+            formControlName="document"
+            (input)="onCpfInput($event)"
+            class="input"
+            placeholder="000.000.000-00"
+          />
+          <p *ngIf="beneficiaryForm.get('document')?.touched && beneficiaryForm.get('document')?.invalid" class="text-xs text-red-500">
+            CPF inválido ou ausente.
+          </p>
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="phone">Telefone</label>
-        <input
-          id="phone"
-          type="tel"
-          formControlName="phone"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="(00) 00000-0000"
-        />
-      </div>
+        <div class="space-y-2 grid grid-cols-2 gap-3">
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700" for="birthDate">Data de nascimento</label>
+            <input
+              id="birthDate"
+              type="date"
+              formControlName="birthDate"
+              class="input"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700" for="age">Idade</label>
+            <input id="age" type="number" formControlName="age" class="input" placeholder="Idade" readonly />
+          </div>
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="email">E-mail</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="email@exemplo.com"
-        />
-        <p *ngIf="beneficiaryForm.get('email')?.touched && beneficiaryForm.get('email')?.invalid" class="text-xs text-red-500">
-          E-mail inválido.
-        </p>
-      </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="phone">Telefone</label>
+          <input
+            id="phone"
+            type="tel"
+            formControlName="phone"
+            (input)="onPhoneInput($event)"
+            class="input"
+            placeholder="(00) 00000-0000"
+          />
+          <p *ngIf="beneficiaryForm.get('phone')?.touched && beneficiaryForm.get('phone')?.invalid" class="text-xs text-red-500">
+            Informe um telefone válido com DDD.
+          </p>
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="address">Endereço</label>
-        <input
-          id="address"
-          type="text"
-          formControlName="address"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="Rua, número, complemento"
-        />
-        <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
-          Endereço é obrigatório.
-        </p>
-      </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="input"
+            placeholder="email@exemplo.com"
+          />
+          <p *ngIf="beneficiaryForm.get('email')?.touched && beneficiaryForm.get('email')?.invalid" class="text-xs text-red-500">
+            E-mail inválido.
+          </p>
+        </div>
 
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="neighborhood">Bairro</label>
-        <input
-          id="neighborhood"
-          type="text"
-          formControlName="neighborhood"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="Digite o bairro"
-        />
-      </div>
-
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="city">Cidade</label>
-        <input
-          id="city"
-          type="text"
-          formControlName="city"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="Informe a cidade"
-        />
-      </div>
-
-      <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="state">Estado</label>
-        <input
-          id="state"
-          type="text"
-          formControlName="state"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="UF"
-          maxlength="2"
-        />
-      </div>
-
-      <div class="space-y-2 md:col-span-2">
-        <label class="text-sm font-medium text-slate-700" for="notes">Observações</label>
-        <textarea
-          id="notes"
-          formControlName="notes"
-          rows="4"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
-          placeholder="Detalhes adicionais sobre o beneficiário"
-        ></textarea>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="status">Status do cadastro</label>
+          <select id="status" formControlName="status" class="input">
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+            <option value="Em análise">Em análise</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
-      <button type="reset" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-white">Limpar</button>
-      <button
-        type="submit"
-        class="px-4 py-2 rounded-lg bg-g3-green-600 text-white font-medium hover:bg-g3-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-g3-green-500"
-      >
-        Salvar cadastro
-      </button>
+    <div class="card">
+      <div class="card__header">Endereço</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="address">Endereço</label>
+          <input
+            id="address"
+            type="text"
+            formControlName="address"
+            (input)="formatTitleCase('address')"
+            class="input"
+            placeholder="Rua, número, complemento"
+          />
+          <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
+            Endereço é obrigatório.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="neighborhood">Bairro</label>
+          <input
+            id="neighborhood"
+            type="text"
+            formControlName="neighborhood"
+            (input)="formatTitleCase('neighborhood')"
+            class="input"
+            placeholder="Digite o bairro"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="city">Cidade</label>
+          <input
+            id="city"
+            type="text"
+            formControlName="city"
+            (input)="formatTitleCase('city')"
+            class="input"
+            placeholder="Informe a cidade"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="state">Estado</label>
+          <input
+            id="state"
+            type="text"
+            formControlName="state"
+            (input)="formatTitleCase('state')"
+            class="input uppercase"
+            placeholder="UF"
+            maxlength="2"
+          />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="notes">Observações</label>
+          <textarea
+            id="notes"
+            formControlName="notes"
+            rows="4"
+            class="input"
+            placeholder="Detalhes adicionais sobre o beneficiário"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="card lg:col-span-2 space-y-4">
+        <div class="card__header">Documentos Obrigatórios</div>
+        <p class="text-sm text-slate-600">Anexar Documentos (RG, CPF, Comp. Residência, etc.)</p>
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <input type="file" multiple (change)="onDocumentUpload($event)" class="file-input" />
+          <span class="text-sm text-slate-600" *ngIf="!uploadedDocuments.length">Nenhum arquivo selecionado.</span>
+        </div>
+        <ul class="text-sm text-slate-700 list-disc list-inside" *ngIf="uploadedDocuments.length">
+          <li *ngFor="let file of uploadedDocuments">{{ file.name }}</li>
+        </ul>
+        <p class="text-xs text-slate-500">Nenhum arquivo selecionado. O status será "Pendente" se salvar como "Ativo".</p>
+
+        <div class="flex items-center gap-3 pt-2">
+          <span class="text-sm font-medium text-slate-700">Status do cadastro:</span>
+          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm" [ngClass]="{
+            'bg-green-50 text-g3-green-700': documentStatus === 'Enviado',
+            'bg-orange-50 text-orange-700': documentStatus === 'Pendente'
+          }">{{ documentStatus }}</span>
+        </div>
+      </div>
+
+      <div class="card space-y-4">
+        <div class="card__header">Foto do beneficiário</div>
+        <div class="space-y-3">
+          <div class="flex justify-center">
+            <div class="relative h-36 w-36 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+              <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
+              <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
+            </div>
+          </div>
+
+          <label class="text-sm font-medium text-slate-700">Capturar pela webcam</label>
+          <div class="space-y-2">
+            <video #videoElement class="w-full rounded-lg border border-dashed border-slate-300" autoplay muted playsinline></video>
+            <canvas #canvasElement class="hidden"></canvas>
+            <div class="flex gap-2">
+              <button type="button" class="btn-outline" (click)="startCamera(videoElement)">Abrir câmera</button>
+              <button type="button" class="btn-primary" [disabled]="!cameraActive" (click)="capturePhoto(videoElement, canvasElement)">
+                Capturar
+              </button>
+              <button type="button" class="btn-outline" [disabled]="!cameraActive" (click)="stopCamera()">Fechar câmera</button>
+            </div>
+          </div>
+
+          <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>
+          <input type="file" accept="image/*" (change)="handlePhotoUpload($event)" class="file-input" />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm">
+      <button type="reset" class="btn-outline">Limpar</button>
+      <button type="submit" class="btn-primary">Salvar cadastro</button>
     </div>
   </form>
 </div>
