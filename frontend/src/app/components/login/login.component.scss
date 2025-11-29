@@ -1,3 +1,37 @@
 :host {
   display: block;
 }
+
+.input-field {
+  @apply flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 shadow-inner shadow-slate-100;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+  &:focus-within {
+    @apply border-g3-green-600 bg-white shadow-lg shadow-g3-green-500/10;
+  }
+}
+
+.login-hero {
+  position: relative;
+  background: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.15), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12), transparent 30%),
+    linear-gradient(135deg, #0f9e7b 0%, #0ca174 30%, #0c8d70 65%, #0b7c61 100%);
+  isolation: isolate;
+}
+
+.grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.35;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+@media (max-width: 767px) {
+  .grid-overlay {
+    background-size: 36px 36px;
+  }
+}

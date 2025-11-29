@@ -1,31 +1,125 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-g3-green-500 via-slate-50 to-slate-200 px-4">
-  <div class="bg-white shadow-xl rounded-2xl w-full max-w-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-    <div class="bg-g3-green-600 text-white p-8 flex flex-col justify-between">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">G3 Assistencial</h1>
-        <p class="text-sm text-green-50 leading-relaxed">Acesse o painel e comece a construir novas telas e ferramentas.</p>
+<div class="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-12">
+  <div
+    class="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-200 bg-white/70 backdrop-blur"
+  >
+    <div class="grid md:grid-cols-[1.15fr_1fr]">
+      <div class="p-8 md:p-12 bg-white space-y-8">
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 rounded-full bg-g3-green-600 text-white flex items-center justify-center font-semibold">
+            G3
+          </div>
+          <div>
+            <p class="text-xs uppercase font-semibold text-g3-green-600 tracking-[0.08em]">G3 Assistencial</p>
+            <p class="text-xl font-semibold text-slate-900">Painel de acesso</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h1 class="text-3xl font-semibold text-slate-900">Entre com a sua conta</h1>
+          <p class="text-sm text-slate-500">Informe seus dados de acesso para continuar.</p>
+        </div>
+
+        <form (ngSubmit)="submit()" class="space-y-5">
+          <label class="block space-y-2">
+            <span class="text-sm font-medium text-slate-700">Usuário</span>
+            <div class="input-field">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 text-slate-400">
+                <path
+                  fill="currentColor"
+                  d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-7 7a7 7 0 0 1 14 0 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"
+                />
+              </svg>
+              <input
+                [(ngModel)]="username"
+                name="username"
+                required
+                autocomplete="username"
+                class="flex-1 bg-transparent outline-none"
+                placeholder="Digite seu usuário"
+              />
+            </div>
+          </label>
+
+          <label class="block space-y-2">
+            <span class="text-sm font-medium text-slate-700">Senha</span>
+            <div class="input-field">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 text-slate-400">
+                <path
+                  fill="currentColor"
+                  d="M17 10h-1V7a4 4 0 0 0-8 0v3H7a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1Zm-3 5.73V17a1 1 0 0 1-2 0v-1.27a2 2 0 1 1 2 0ZM10 10V7a2 2 0 0 1 4 0v3Z"
+                />
+              </svg>
+              <input
+                [(ngModel)]="password"
+                name="password"
+                required
+                type="password"
+                autocomplete="current-password"
+                class="flex-1 bg-transparent outline-none"
+                placeholder="Digite sua senha"
+              />
+            </div>
+          </label>
+
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="w-full flex items-center justify-center gap-2 bg-g3-green-600 hover:bg-g3-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-g3-green-500/20"
+          >
+            <span>{{ loading ? 'Entrando...' : 'Entrar' }}</span>
+          </button>
+
+          <div class="flex items-center justify-between text-sm text-slate-500">
+            <span class="flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-g3-green-500"></span>
+              Acesso seguro
+            </span>
+            <button type="button" class="text-g3-green-700 hover:text-g3-green-800 font-medium">
+              Esqueceu a senha?
+            </button>
+          </div>
+
+          <div *ngIf="error" class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3" role="alert">
+            {{ error }}
+          </div>
+        </form>
       </div>
-      <div class="text-xs text-green-50">Banco: g3 @ 72.60.156.202</div>
-    </div>
-    <div class="p-8 space-y-6">
-      <div class="text-center">
-        <h2 class="text-2xl font-semibold">Entrar</h2>
-        <p class="text-sm text-slate-500">Use o usuário padrão admin / 123</p>
+
+      <div class="login-hero text-white">
+        <div class="grid-overlay" aria-hidden="true"></div>
+        <div class="relative h-full flex flex-col justify-between p-8 md:p-12 space-y-8">
+          <div class="space-y-4">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-sm font-medium">
+              <span class="h-2 w-2 rounded-full bg-white"></span>
+              Novidades da plataforma
+            </span>
+            <div class="space-y-3">
+              <h2 class="text-3xl font-semibold leading-tight">Ainda não possui uma conta?</h2>
+              <p class="text-sm text-white/80 leading-relaxed">
+                Crie agora mesmo sua conta para acessar o painel, configurar usuários e acompanhar os
+                indicadores do sistema.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-white/90 text-g3-green-700 font-semibold hover:bg-white"
+            >
+              Criar conta
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5">
+                <path fill="currentColor" d="M13.59 12 9.3 7.71l1.4-1.42L16.41 12l-5.7 5.71-1.4-1.42Z" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="relative flex items-center gap-3 text-sm text-white/80">
+            <div class="h-10 w-10 rounded-full bg-white/15 flex items-center justify-center font-semibold">24/7</div>
+            <div>
+              <p class="font-semibold">Suporte dedicado</p>
+              <p class="text-white/70">Conte com nossa equipe para ajudar na configuração do seu ambiente.</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <form (ngSubmit)="submit()" class="space-y-4">
-        <label class="block space-y-1">
-          <span class="text-sm font-medium text-slate-700">Usuário</span>
-          <input [(ngModel)]="username" name="username" required autocomplete="username" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-g3-green-600 focus:ring focus:ring-g3-green-500/30" />
-        </label>
-        <label class="block space-y-1">
-          <span class="text-sm font-medium text-slate-700">Senha</span>
-          <input [(ngModel)]="password" name="password" required type="password" autocomplete="current-password" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-g3-green-600 focus:ring focus:ring-g3-green-500/30" />
-        </label>
-        <button type="submit" [disabled]="loading" class="w-full bg-g3-green-600 hover:bg-g3-green-700 text-white font-semibold py-2 rounded-lg transition disabled:opacity-70">
-          {{ loading ? 'Entrando...' : 'Acessar painel' }}
-        </button>
-        <div *ngIf="error" class="text-sm text-red-600" role="alert">{{ error }}</div>
-      </form>
     </div>
   </div>
 </div>
