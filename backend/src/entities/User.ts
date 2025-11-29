@@ -2,8 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 @Entity({ name: 'users' })
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Index({ unique: true })
   @Column({ length: 150 })
