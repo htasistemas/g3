@@ -26,6 +26,7 @@ export class BeneficiaryFormComponent implements OnDestroy {
 
   constructor(private readonly fb: FormBuilder) {
     this.beneficiaryForm = this.fb.group({
+      zipCode: ['', [Validators.required, this.cepValidator]],
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       motherName: [''],
       document: ['', [Validators.required, this.cpfValidator]],
@@ -39,7 +40,7 @@ export class BeneficiaryFormComponent implements OnDestroy {
       state: [''],
       notes: [''],
       status: ['Ativo', Validators.required],
-      documentFiles: [''],
+      documentFiles: [[], [this.documentsRequiredValidator]],
       photo: ['']
     });
 
@@ -107,6 +108,80 @@ export class BeneficiaryFormComponent implements OnDestroy {
     this.beneficiaryForm.get('phone')?.setValue(formatted, { emitEvent: false });
   }
 
+  handleCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+
+    let formatted = digits;
+    if (digits.length > 5) {
+      formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    this.beneficiaryForm.get('zipCode')?.setValue(formatted, { emitEvent: false });
+
+    if (digits.length === 8) {
+      this.fetchAddressByCep(digits);
+    } else {
+      this.removeZipError('invalidCep');
+    }
+  }
+
+  private async fetchAddressByCep(cep: string): Promise<void> {
+    const zipControl = this.beneficiaryForm.get('zipCode');
+
+    if (!zipControl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (!response.ok || data?.erro) {
+        throw new Error('CEP não encontrado');
+      }
+
+      this.beneficiaryForm.patchValue({
+        address: data.logradouro || '',
+        neighborhood: data.bairro || '',
+        city: data.localidade || '',
+        state: data.uf || ''
+      });
+
+      this.removeZipError('invalidCep');
+    } catch (error) {
+      console.error('Erro ao buscar CEP', error);
+      this.clearAddressFields();
+      this.setZipError('invalidCep');
+    }
+  }
+
+  private clearAddressFields(): void {
+    this.beneficiaryForm.patchValue({ address: '', neighborhood: '', city: '', state: '' });
+  }
+
+  private setZipError(errorKey: string): void {
+    const zipControl = this.beneficiaryForm.get('zipCode');
+
+    if (!zipControl) {
+      return;
+    }
+
+    const existingErrors = zipControl.errors ?? {};
+    zipControl.setErrors({ ...existingErrors, [errorKey]: true });
+  }
+
+  private removeZipError(errorKey: string): void {
+    const zipControl = this.beneficiaryForm.get('zipCode');
+
+    if (!zipControl?.errors) {
+      return;
+    }
+
+    const { [errorKey]: _, ...rest } = zipControl.errors;
+    zipControl.setErrors(Object.keys(rest).length ? rest : null);
+  }
+
   private updateAge(dateString: string | null): void {
     if (!dateString) {
       this.beneficiaryForm.get('age')?.setValue('', { emitEvent: false });
@@ -130,7 +205,9 @@ export class BeneficiaryFormComponent implements OnDestroy {
     const files = input.files ? Array.from(input.files) : [];
     this.uploadedDocuments = files;
     this.documentStatus = files.length ? 'Enviado' : 'Pendente';
-    this.beneficiaryForm.get('documentFiles')?.setValue(files.map((file) => file.name));
+    const documentControl = this.beneficiaryForm.get('documentFiles');
+    documentControl?.setValue(files);
+    documentControl?.markAsTouched();
   }
 
   handlePhotoUpload(event: Event): void {
@@ -185,6 +262,22 @@ export class BeneficiaryFormComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopCamera();
+  }
+
+  private documentsRequiredValidator = (control: AbstractControl): ValidationErrors | null => {
+    const files = control.value as File[] | undefined;
+
+    return Array.isArray(files) && files.length > 0 ? null : { documentsRequired: true };
+  };
+
+  private cepValidator(control: AbstractControl): ValidationErrors | null {
+    const digits = (control.value as string)?.replace(/\D/g, '');
+
+    if (!digits) {
+      return { cep: true };
+    }
+
+    return digits.length === 8 ? null : { cep: true };
   }
 
   private cpfValidator(control: AbstractControl): ValidationErrors | null {
