@@ -62,13 +62,14 @@ textarea.ng-touched.ng-invalid {
 }
 
 .photo-card {
-  max-width: 200px;
+  width: 100%;
+  max-width: 280px;
   margin: 0 auto;
 }
 
 .photo-card__preview {
-  width: 9rem;
-  height: 9rem;
+  width: 12rem;
+  height: 12rem;
 }
 
 @media (min-width: 1024px) {
