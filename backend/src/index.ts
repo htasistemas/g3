@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
 import beneficiariesRoutes from './routes/beneficiaries.routes';
 import assistanceUnitsRoutes from './routes/assistance-units.routes';
+import configRoutes from './routes/config.routes';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/beneficiaries', beneficiariesRoutes);
 app.use('/api/assistance-units', assistanceUnitsRoutes);
+app.use('/api/config', configRoutes);
 
 async function start() {
   try {

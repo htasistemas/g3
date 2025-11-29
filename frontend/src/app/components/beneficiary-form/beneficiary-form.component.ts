@@ -21,10 +21,12 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   beneficiaryForm: FormGroup;
   documentStatus = 'Pendente';
   requiredDocuments: DocumentRequirement[] = [];
+  missingRequiredDocuments: string[] = [];
   photoPreview: string | null = null;
   cameraActive = false;
   beneficiaries: BeneficiaryPayload[] = [];
   editingId: number | null = null;
+  saveFeedback: { type: 'success' | 'error'; message: string } | null = null;
   readonly states = [
     'AC',
     'AL',
@@ -92,6 +94,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   submit(): void {
+    this.saveFeedback = null;
+
     if (this.beneficiaryForm.invalid) {
       this.beneficiaryForm.markAllAsTouched();
       return;
@@ -107,8 +111,16 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       next: () => {
         this.resetForm();
         this.loadBeneficiaries();
+        this.saveFeedback = { type: 'success', message: 'Beneficiário salvo com sucesso.' };
       },
-      error: (error) => console.error('Erro ao salvar beneficiário', error)
+      error: (error) => {
+        console.error('Erro ao salvar beneficiário', error);
+        const missing = error?.error?.missingDocuments as string[] | undefined;
+        const message = missing?.length
+          ? `Documentos obrigatórios ausentes: ${missing.join(', ')}`
+          : 'Erro ao salvar beneficiário.';
+        this.saveFeedback = { type: 'error', message };
+      }
     });
   }
 
@@ -272,6 +284,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
 
     if (!file) {
+      this.photoPreview = null;
+      this.beneficiaryForm.get('photo')?.setValue('');
       return;
     }
 
@@ -322,6 +336,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   startEdit(beneficiary: BeneficiaryPayload): void {
+    this.saveFeedback = null;
     this.editingId = beneficiary.id ?? null;
     this.requiredDocuments = this.requiredDocuments.map((doc) => ({
       ...doc,
@@ -342,7 +357,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.documentStatus = 'Pendente';
     this.photoPreview = null;
-    this.requiredDocuments = this.requiredDocuments.map((doc) => ({ name: doc.name }));
+    this.saveFeedback = null;
+    this.requiredDocuments = this.requiredDocuments.map((doc) => ({ name: doc.name, required: doc.required }));
     this.updateDocumentControl();
     this.beneficiaryForm.reset({ status: 'Ativo', documentFiles: this.requiredDocuments, age: '' });
   }
@@ -352,14 +368,23 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     documentControl?.setValue(this.requiredDocuments);
     documentControl?.updateValueAndValidity();
 
-    const allProvided = this.requiredDocuments.every((doc) => doc.fileName);
-    this.documentStatus = allProvided ? 'Enviado' : 'Pendente';
+    this.missingRequiredDocuments = this.requiredDocuments
+      .filter((doc) => doc.required && !doc.fileName)
+      .map((doc) => doc.name);
+
+    const allRequiredProvided = this.requiredDocuments
+      .filter((doc) => doc.required)
+      .every((doc) => doc.fileName);
+    this.documentStatus = allRequiredProvided ? 'Enviado' : 'Pendente';
   }
 
   private loadRequiredDocuments(): void {
     this.beneficiaryService.getRequiredDocuments().subscribe({
       next: ({ documents }) => {
-        this.requiredDocuments = documents.map((name) => ({ name }));
+        this.requiredDocuments = documents.map((document) => ({
+          name: document.name,
+          required: Boolean(document.required)
+        }));
         this.updateDocumentControl();
       },
       error: (error) => console.error('Erro ao carregar documentos obrigatórios', error)
@@ -378,6 +403,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   private documentsRequiredValidator = (control: AbstractControl): ValidationErrors | null => {
     const docs = control.value as DocumentRequirement[];
     const missingDocuments = this.requiredDocuments.some((doc) => {
+      if (!doc.required) {
+        return false;
+      }
+
       const matched = docs?.find((item) => item.name === doc.name);
       return !matched?.fileName;
     });

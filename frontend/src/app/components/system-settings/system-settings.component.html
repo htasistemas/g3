@@ -1,0 +1,41 @@
+<div class="p-6 space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <p class="text-sm text-g3-green-600 font-semibold uppercase tracking-wide">Configuração</p>
+      <h1 class="text-2xl font-semibold text-slate-800">Configurações do Sistema</h1>
+      <p class="text-sm text-slate-600">Defina os documentos obrigatórios para cadastro de beneficiários.</p>
+    </div>
+  </div>
+
+  <div class="card space-y-4">
+    <div class="card__header">Documentos obrigatórios para cadastro do beneficiário</div>
+    <p class="text-sm text-slate-600">Selecione quais documentos são exigidos durante o cadastro.</p>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
+      <div formArrayName="documents" class="space-y-3">
+        <div
+          *ngFor="let doc of documents.controls; let i = index"
+          [formGroupName]="i"
+          class="flex items-center justify-between border border-slate-200 rounded-lg p-4 bg-slate-50"
+        >
+          <div>
+            <p class="text-sm font-semibold text-slate-800">{{ doc.get('name')?.value }}</p>
+            <p class="text-xs text-slate-500">Marque para tornar o documento obrigatório.</p>
+          </div>
+
+          <label class="inline-flex items-center space-x-2 text-sm text-slate-700">
+            <input type="checkbox" formControlName="required" class="rounded border-slate-300 text-g3-green-600" />
+            <span>Obrigatório</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="btn-primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar configurações' }}</button>
+        <span *ngIf="feedback" [ngClass]="{ 'text-g3-green-700': feedback.type === 'success', 'text-red-600': feedback.type === 'error' }" class="text-sm font-medium">
+          {{ feedback.message }}
+        </span>
+      </div>
+    </form>
+  </div>
+</div>

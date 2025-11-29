@@ -7,6 +7,7 @@ export interface DocumentRequirement {
   name: string;
   fileName?: string;
   file?: File;
+  required?: boolean;
 }
 
 export interface BeneficiaryPayload {
@@ -36,8 +37,8 @@ export class BeneficiaryService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getRequiredDocuments(): Observable<{ documents: string[] }> {
-    return this.http.get<{ documents: string[] }>(`${this.baseUrl}/documents`);
+  getRequiredDocuments(): Observable<{ documents: DocumentRequirement[] }> {
+    return this.http.get<{ documents: DocumentRequirement[] }>(`${this.baseUrl}/documents`);
   }
 
   list(): Observable<{ beneficiaries: BeneficiaryPayload[] }> {
