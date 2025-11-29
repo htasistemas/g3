@@ -1,0 +1,148 @@
+<div class="p-6 space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <p class="text-sm text-g3-green-600 font-semibold uppercase tracking-wide">Beneficiários</p>
+      <h1 class="text-2xl font-semibold text-slate-800">Cadastro de Beneficiário</h1>
+      <p class="text-sm text-slate-600">Preencha os dados principais para registrar um novo beneficiário.</p>
+    </div>
+    <div class="flex items-center space-x-2 text-sm text-slate-600">
+      <span class="inline-flex items-center rounded-full bg-green-50 text-g3-green-700 px-3 py-1 font-medium">Formulário ativo</span>
+    </div>
+  </div>
+
+  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="bg-white border border-slate-200 rounded-xl shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="fullName">Nome completo</label>
+        <input
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="Digite o nome completo"
+        />
+        <p *ngIf="beneficiaryForm.get('fullName')?.touched && beneficiaryForm.get('fullName')?.invalid" class="text-xs text-red-500">
+          Informe um nome válido (mínimo 3 caracteres).
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="document">CPF</label>
+        <input
+          id="document"
+          type="text"
+          formControlName="document"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="000.000.000-00"
+        />
+        <p *ngIf="beneficiaryForm.get('document')?.touched && beneficiaryForm.get('document')?.invalid" class="text-xs text-red-500">
+          CPF é obrigatório.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="birthDate">Data de nascimento</label>
+        <input
+          id="birthDate"
+          type="date"
+          formControlName="birthDate"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="phone">Telefone</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="(00) 00000-0000"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="email">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="email@exemplo.com"
+        />
+        <p *ngIf="beneficiaryForm.get('email')?.touched && beneficiaryForm.get('email')?.invalid" class="text-xs text-red-500">
+          E-mail inválido.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="address">Endereço</label>
+        <input
+          id="address"
+          type="text"
+          formControlName="address"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="Rua, número, complemento"
+        />
+        <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
+          Endereço é obrigatório.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="neighborhood">Bairro</label>
+        <input
+          id="neighborhood"
+          type="text"
+          formControlName="neighborhood"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="Digite o bairro"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="city">Cidade</label>
+        <input
+          id="city"
+          type="text"
+          formControlName="city"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="Informe a cidade"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-slate-700" for="state">Estado</label>
+        <input
+          id="state"
+          type="text"
+          formControlName="state"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="UF"
+          maxlength="2"
+        />
+      </div>
+
+      <div class="space-y-2 md:col-span-2">
+        <label class="text-sm font-medium text-slate-700" for="notes">Observações</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          rows="4"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-g3-green-400"
+          placeholder="Detalhes adicionais sobre o beneficiário"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl">
+      <button type="reset" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-white">Limpar</button>
+      <button
+        type="submit"
+        class="px-4 py-2 rounded-lg bg-g3-green-600 text-white font-medium hover:bg-g3-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-g3-green-500"
+      >
+        Salvar cadastro
+      </button>
+    </div>
+  </form>
+</div>
