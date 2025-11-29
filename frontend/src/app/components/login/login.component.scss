@@ -3,19 +3,22 @@
 }
 
 .input-field {
-  @apply flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 shadow-inner shadow-slate-100;
+  @apply flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:focus-within {
-    @apply border-g3-green-600 bg-white shadow-lg shadow-g3-green-500/10;
+    @apply border-g3-green-600 bg-white;
+    box-shadow: 0 4px 12px rgba(12, 131, 108, 0.15);
   }
 }
 
 .login-hero {
   position: relative;
-  background: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.15), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12), transparent 30%),
-    linear-gradient(135deg, #0f9e7b 0%, #0ca174 30%, #0c8d70 65%, #0b7c61 100%);
+  min-height: 100%;
+  background: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.08), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(140deg, #0b6c56 0%, #0c7f63 40%, #0b5d4f 100%);
   isolation: isolate;
 }
 
@@ -24,13 +27,17 @@
   inset: 0;
   background-image: linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
-  background-size: 44px 44px;
-  opacity: 0.35;
+  background-size: 48px 48px;
+  opacity: 0.25;
   pointer-events: none;
   mix-blend-mode: soft-light;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
+  .login-hero {
+    min-height: 340px;
+  }
+
   .grid-overlay {
     background-size: 36px 36px;
   }
