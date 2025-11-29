@@ -8,14 +8,18 @@ import {
   faChevronDown,
   faChevronUp,
   faClipboardList,
+  faBullhorn,
   faGauge,
   faHandshakeAngle,
   faHouseChimneyUser,
+  faMapLocationDot,
   faRightFromBracket,
+  faScaleBalanced,
   faUserCircle,
   faUserPlus,
   faUsers,
-  faWallet
+  faWallet,
+  faWrench
 } from '@fortawesome/free-solid-svg-icons';
 import { environment } from '../../environments/environment';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
@@ -52,23 +56,43 @@ export class LayoutComponent {
     {
       label: 'Dashboard',
       icon: faGauge,
-      children: [{ label: 'Visão Geral', icon: faGauge, route: '/' }]
+      children: [
+        { label: 'Visão Geral', icon: faGauge, route: '/' },
+        { label: 'Indicadores', icon: faGauge }
+      ]
     },
     {
       label: 'Cadastros',
       icon: faUsers,
       children: [
-        { label: 'Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
+        { label: 'Beneficiários', icon: faUserPlus, route: '/beneficiarios/cadastro' },
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
         { label: 'Cadastros de Família', icon: faUsers },
-        { label: 'Voluntariado', icon: faClipboardList },
+        { label: 'Voluntariados', icon: faClipboardList },
         { label: 'Colaboradores', icon: faClipboardList }
+      ]
+    },
+    {
+      label: 'Gestão Jurídica',
+      icon: faScaleBalanced,
+      children: [
+        { label: 'Termo de Fomento', icon: faScaleBalanced },
+        { label: 'Plano de Trabalho', icon: faClipboardList }
       ]
     },
     {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [{ label: 'Registrar Doações', icon: faClipboardList }]
+    },
+    {
+      label: 'Gestão de Marketing',
+      icon: faBullhorn,
+      children: [
+        { label: 'Material publicitário', icon: faBullhorn },
+        { label: 'Fotos em geral', icon: faClipboardList },
+        { label: 'Arte final', icon: faClipboardList }
+      ]
     },
     {
       label: 'Gestão Administrativa',
@@ -89,9 +113,18 @@ export class LayoutComponent {
       ]
     },
     {
-      label: 'Configuração',
-      icon: faClipboardList,
-      children: [{ label: 'Configurações do Sistema', icon: faClipboardList, route: '/configuracoes/sistema' }]
+      label: 'Georeferenciamento',
+      icon: faMapLocationDot,
+      children: [{ label: 'Localização', icon: faMapLocationDot }]
+    },
+    {
+      label: 'Configurações Gerais',
+      icon: faWrench,
+      children: [
+        { label: 'Documentos obrigatórios', icon: faClipboardList, route: '/configuracoes/sistema' },
+        { label: 'Usuários e permissões', icon: faUserPlus },
+        { label: 'Backup e restauração', icon: faClipboardList }
+      ]
     }
   ];
 
