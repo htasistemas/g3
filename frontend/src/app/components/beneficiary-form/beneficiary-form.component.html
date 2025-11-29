@@ -1,4 +1,4 @@
-<div class="p-6 space-y-6">
+<div class="p-6 space-y-4 form-compact">
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
       <p class="text-sm text-g3-green-600 font-semibold uppercase tracking-wide">Beneficiários</p>
@@ -10,13 +10,13 @@
     </div>
   </div>
 
-  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="card space-y-4">
+  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card space-y-3 photo-card">
         <div class="card__header">Foto do beneficiário</div>
         <div class="space-y-3">
           <div class="flex justify-center">
-            <div class="relative h-28 w-28 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+            <div class="relative photo-card__preview rounded-lg bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center">
               <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
               <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
             </div>
@@ -26,20 +26,20 @@
           <div class="space-y-2">
             <video
               #videoElement
-              class="w-full rounded-lg border border-dashed border-slate-300 min-h-48 bg-black/30 object-cover"
+              class="w-full rounded-lg border border-dashed border-slate-300 min-h-36 bg-black/30 object-cover"
               autoplay
               muted
               playsinline
               [class.opacity-0]="!cameraActive"
             ></video>
             <canvas #canvasElement class="hidden"></canvas>
-            <div class="flex gap-2">
+            <div class="flex gap-2 justify-center">
               <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
               <button type="button" class="btn-primary" [disabled]="!cameraReady" (click)="capturePhoto(videoElement, canvasElement)">
                 Capturar
               </button>
             </div>
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-500 text-center">
               Aguarde a câmera inicializar para habilitar a captura.
             </p>
           </div>
@@ -51,8 +51,8 @@
 
       <div class="card lg:col-span-2">
         <div class="card__header">Dados Pessoais</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="nomeCompleto">Nome completo</label>
             <input
               id="nomeCompleto"
@@ -67,7 +67,7 @@
             </p>
           </div>
 
-          <div class="space-y-2">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="nomeMae">Nome da mãe</label>
             <input
               id="nomeMae"
@@ -79,7 +79,7 @@
             />
           </div>
 
-          <div class="space-y-2">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="documentos">CPF</label>
             <input
               id="documentos"
@@ -94,8 +94,8 @@
             </p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-            <div class="space-y-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 items-end">
+            <div class="field-group">
               <label class="text-sm font-medium text-slate-700" for="dataNascimento">Data de nascimento</label>
               <input
                 id="dataNascimento"
@@ -104,13 +104,13 @@
                 class="input"
               />
             </div>
-            <div class="space-y-2">
+            <div class="field-group">
               <label class="text-sm font-medium text-slate-700" for="idade">Idade</label>
               <input id="idade" type="number" formControlName="idade" class="input" placeholder="Idade" readonly />
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="telefone">Telefone</label>
             <input
               id="telefone"
@@ -125,7 +125,7 @@
             </p>
           </div>
 
-          <div class="space-y-2">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="email">E-mail</label>
             <input
               id="email"
@@ -139,7 +139,7 @@
             </p>
           </div>
 
-          <div class="space-y-2">
+          <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="status">Status do cadastro</label>
             <select id="status" formControlName="status" class="input">
               <option value="Ativo">Ativo</option>
@@ -149,7 +149,7 @@
             </select>
           </div>
 
-          <div class="space-y-2" *ngIf="beneficiaryForm.get('status')?.value === 'Bloqueado'">
+          <div class="field-group" *ngIf="beneficiaryForm.get('status')?.value === 'Bloqueado'">
             <label class="text-sm font-medium text-slate-700" for="motivoBloqueio">Motivo do bloqueio</label>
             <textarea
               id="motivoBloqueio"
@@ -171,8 +171,8 @@
 
     <div class="card">
       <div class="card__header">Endereço</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2 md:w-52">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group md:w-52">
           <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
           <input
             id="cep"
@@ -188,10 +188,10 @@
           </p>
         </div>
 
-        <div class="md:col-span-2 space-y-2">
+        <div class="md:col-span-2 field-group">
           <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
-          <div class="flex flex-col md:flex-row md:items-start md:gap-4">
-            <div class="flex-1 space-y-2">
+          <div class="flex flex-col gap-2 md:grid md:grid-cols-[1fr_auto] md:items-end md:gap-4">
+            <div class="flex-1 field-group m-0">
               <input
                 id="endereco"
                 type="text"
@@ -204,7 +204,7 @@
                 Endereço é obrigatório.
               </p>
             </div>
-            <div class="md:w-44 space-y-2 md:pt-1">
+            <div class="md:w-44 field-group m-0">
               <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
               <input
                 id="numeroEndereco"
@@ -220,7 +220,7 @@
           </div>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="pontoReferencia">Ponto de referência</label>
           <input
             id="pontoReferencia"
@@ -231,7 +231,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="bairro">Bairro</label>
           <input
             id="bairro"
@@ -243,7 +243,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="cidade">Cidade</label>
           <input
             id="cidade"
@@ -255,7 +255,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="estado">Estado</label>
           <select id="estado" formControlName="estado" class="input">
             <option value="" disabled>Selecione</option>
@@ -263,7 +263,7 @@
           </select>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-group md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="observacoes">Observações</label>
           <textarea
             id="observacoes"
@@ -278,8 +278,8 @@
 
     <div class="card">
       <div class="card__header">Informações familiares e socioeconômicas</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
           <label class="inline-flex items-center gap-3 text-sm text-slate-700 pl-px">
             <input type="checkbox" id="possuiFilhosMenores" formControlName="possuiFilhosMenores" class="h-4 w-4" />
@@ -288,7 +288,7 @@
           <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="possuiCnh">Beneficiário habilitado?</label>
           <label class="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" id="possuiCnh" formControlName="possuiCnh" class="h-4 w-4" />
@@ -297,7 +297,7 @@
           <p class="text-xs text-slate-500">Quando marcado, o envio da CNH torna-se obrigatório.</p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="quantidadeFilhosMenores">Quantidade de filhos menores</label>
           <input
             id="quantidadeFilhosMenores"
@@ -315,7 +315,7 @@
           </p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="escolaridade">Escolaridade</label>
           <input
             id="escolaridade"
@@ -326,7 +326,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="rendaIndividual">Renda individual</label>
           <input
             id="rendaIndividual"
@@ -338,7 +338,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="rendaFamiliar">Renda total da família</label>
           <input
             id="rendaFamiliar"
@@ -350,7 +350,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="situacaoEmprego">Situação de trabalho</label>
           <input
             id="situacaoEmprego"
@@ -361,7 +361,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-group">
           <label class="text-sm font-medium text-slate-700" for="ocupacao">Ocupação</label>
           <input
             id="ocupacao"
@@ -372,7 +372,7 @@
           />
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-group md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="informacoesMoradia">Informações sobre a moradia</label>
           <textarea
             id="informacoesMoradia"
@@ -463,27 +463,27 @@
   <div class="card space-y-4" [formGroup]="filterForm">
     <div class="card__header">Filtro de beneficiários</div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="space-y-2">
+      <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterNome">Nome</label>
         <input id="filterNome" type="text" class="input" formControlName="nome" placeholder="Buscar por nome" />
       </div>
-      <div class="space-y-2">
+      <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterCpf">CPF</label>
         <input id="filterCpf" type="text" class="input" formControlName="cpf" placeholder="000.000.000-00" />
       </div>
-      <div class="space-y-2">
+      <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterIdade">Idade</label>
         <input id="filterIdade" type="number" class="input" formControlName="idade" placeholder="Idade" />
       </div>
-      <div class="space-y-2">
+      <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterDataNascimento">Data de nascimento</label>
         <input id="filterDataNascimento" type="date" class="input" formControlName="dataNascimento" />
       </div>
-      <div class="space-y-2">
+      <div class="field-group">
         <label class="text-sm font-medium text-slate-700" for="filterBairro">Bairro</label>
         <input id="filterBairro" type="text" class="input" formControlName="bairro" placeholder="Filtrar por bairro" />
       </div>
-      <div class="space-y-2">
+      <div class="field-group">
         <p class="text-sm font-medium text-slate-700">Status</p>
         <div class="flex flex-wrap gap-3">
           <label

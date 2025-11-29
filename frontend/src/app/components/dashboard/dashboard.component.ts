@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { of } from 'rxjs';
+import { catchError, finalize, retry } from 'rxjs/operators';
 import { BeneficiaryService } from '../../services/beneficiary.service';
 
 @Component({
@@ -28,8 +30,21 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.beneficiaryService.list().subscribe({
-      next: ({ beneficiarios }) => {
+    this.beneficiaryService
+      .list()
+      .pipe(
+        retry(1),
+        catchError((error) => {
+          console.error('Falha ao carregar estatísticas de beneficiários', error);
+          this.error = 'Não foi possível carregar os dados de beneficiários.';
+          this.stats = { total: 0, active: 0, pending: 0 };
+          return of({ beneficiarios: [] });
+        }),
+        finalize(() => {
+          this.loading = false;
+        })
+      )
+      .subscribe(({ beneficiarios }) => {
         const active = beneficiarios.filter((beneficiary) => this.isActive(beneficiary.status)).length;
         const pending = beneficiarios.filter((beneficiary) => this.hasPendingStatus(beneficiary.status)).length;
 
@@ -38,13 +53,7 @@ export class DashboardComponent implements OnInit {
           active,
           pending
         };
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Não foi possível carregar os dados de beneficiários.';
-        this.loading = false;
-      }
-    });
+      });
   }
 
   private isActive(status?: string): boolean {

@@ -58,6 +58,9 @@ export class Beneficiary {
   @Column({ name: 'status', default: 'Ativo' })
   status!: string;
 
+  @Column({ name: 'motivo_bloqueio', type: 'text', nullable: true })
+  motivoBloqueio?: string;
+
   @Column({ name: 'possui_filhos_menores', default: false })
   possuiFilhosMenores!: boolean;
 

@@ -7,12 +7,14 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   BeneficiaryPayload,
   BeneficiaryService,
   DocumentoObrigatorio
 } from '../../services/beneficiary.service';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-beneficiary-form',
@@ -34,6 +36,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   beneficiaries: BeneficiaryPayload[] = [];
   editingId: number | null = null;
   saveFeedback: { type: 'success' | 'error'; message: string } | null = null;
+  photoFile: File | null = null;
   readonly statusOptions = ['Ativo', 'Inativo', 'Em análise', 'Bloqueado'];
   readonly sanitationOptions = [
     'Água tratada',
@@ -76,10 +79,14 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   private currentVideoElement?: HTMLVideoElement;
   private photoObjectUrl?: string;
   selectedSanitationOptions = new Set<string>();
+  private routeSubscription?: Subscription;
+  private currentEditingBeneficiary: BeneficiaryPayload | null = null;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly beneficiaryService: BeneficiaryService
+    private readonly beneficiaryService: BeneficiaryService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {
     this.beneficiaryForm = this.fb.group({
       cep: ['', [Validators.required, this.cepValidator]],
@@ -146,6 +153,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.loadBeneficiaries();
     this.handleStatusChange(this.beneficiaryForm.get('status')?.value);
     this.syncSanitationSelections(this.beneficiaryForm.get('condicoesSaneamento')?.value);
+    this.listenToRouteChanges();
   }
 
   submit(): void {
@@ -159,10 +167,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     const formValue = {
       ...this.beneficiaryForm.getRawValue(),
       id: this.editingId ?? undefined,
-      documentosAnexos: this.requiredDocuments.map((doc) => ({ nome: doc.nome, nomeArquivo: doc.nomeArquivo }))
+      documentosAnexos: this.requiredDocuments.map((doc) => ({ nome: doc.nome, nomeArquivo: doc.nomeArquivo })),
+      foto: this.photoPreview || (this.beneficiaryForm.get('foto')?.value as string) || null
     } as BeneficiaryPayload;
 
-    this.beneficiaryService.save(formValue).subscribe({
+    this.beneficiaryService.save(formValue, this.photoFile).subscribe({
       next: () => {
         this.resetForm();
         this.loadBeneficiaries();
@@ -377,6 +386,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     if (!file) {
       this.revokePhotoObjectUrl();
       this.photoPreview = null;
+      this.photoFile = null;
       this.beneficiaryForm.get('foto')?.setValue('');
       return;
     }
@@ -384,6 +394,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.revokePhotoObjectUrl();
     this.photoObjectUrl = URL.createObjectURL(file);
     this.photoPreview = this.photoObjectUrl;
+    this.photoFile = file;
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -429,6 +440,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     canvasElement.height = videoElement.videoHeight;
     context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
     this.photoPreview = canvasElement.toDataURL('image/png');
+    this.photoFile = this.dataUrlToFile(this.photoPreview, 'foto.png');
     this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
     this.stopCamera(videoElement);
   }
@@ -448,38 +460,24 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.revokePhotoObjectUrl();
     this.stopCamera();
+    this.routeSubscription?.unsubscribe();
   }
 
   startEdit(beneficiary: BeneficiaryPayload): void {
-    this.saveFeedback = null;
-    this.editingId = beneficiary.id ?? null;
-    this.requiredDocuments = this.requiredDocuments.map((doc) => ({
-      ...doc,
-      file: undefined,
-      nomeArquivo: beneficiary.documentosAnexos?.find((d) => d.nome === doc.nome)?.nomeArquivo
-    }));
-    this.updateDocumentControl();
+    if (!beneficiary.id) {
+      return;
+    }
 
-    this.beneficiaryForm.reset({
-      ...beneficiary,
-      idade: beneficiary.idade,
-      arquivosDocumentos: this.requiredDocuments,
-      foto: beneficiary.foto || '',
-      possuiCnh: Boolean(beneficiary.possuiCnh)
-    });
-    this.revokePhotoObjectUrl();
-    this.photoPreview = beneficiary.foto || null;
-    this.toggleMinorChildrenRequirement(Boolean(beneficiary.possuiFilhosMenores));
-    this.syncSanitationSelections(beneficiary.condicoesSaneamento);
-    this.handleStatusChange(beneficiary.status);
-    this.updateConditionalDocumentRequirements();
+    this.router.navigate(['/beneficiarios/editar', beneficiary.id]);
   }
 
   resetForm(): void {
     this.editingId = null;
+    this.currentEditingBeneficiary = null;
     this.documentStatus = 'Pendente';
     this.revokePhotoObjectUrl();
     this.photoPreview = null;
+    this.photoFile = null;
     this.selectedSanitationOptions.clear();
     this.saveFeedback = null;
     this.requiredDocuments = this.requiredDocuments.map((doc) => ({
@@ -500,6 +498,59 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.toggleMinorChildrenRequirement(false);
     this.handleStatusChange('Ativo');
     this.updateSanitationControl();
+
+    if (this.router.url.includes('/beneficiarios/editar/')) {
+      this.router.navigate(['/beneficiarios/cadastro']);
+    }
+  }
+
+  private listenToRouteChanges(): void {
+    this.routeSubscription = this.route.paramMap.subscribe((params) => {
+      const idParam = params.get('id');
+
+      if (idParam) {
+        this.loadBeneficiaryForEdit(Number(idParam));
+      } else if (this.editingId) {
+        this.resetForm();
+      }
+    });
+  }
+
+  private loadBeneficiaryForEdit(id: number): void {
+    this.beneficiaryService.getById(id).subscribe({
+      next: (beneficiary) => this.applyEditState(beneficiary),
+      error: (error) => {
+        console.error('Erro ao carregar beneficiário', error);
+        this.saveFeedback = { type: 'error', message: 'Não foi possível carregar o beneficiário selecionado.' };
+      }
+    });
+  }
+
+  private applyEditState(beneficiary: BeneficiaryPayload): void {
+    this.currentEditingBeneficiary = beneficiary;
+    this.saveFeedback = null;
+    this.editingId = beneficiary.id ?? null;
+    this.requiredDocuments = this.requiredDocuments.map((doc) => ({
+      ...doc,
+      file: undefined,
+      nomeArquivo: beneficiary.documentosAnexos?.find((d) => d.nome === doc.nome)?.nomeArquivo
+    }));
+    this.updateDocumentControl();
+
+    this.beneficiaryForm.reset({
+      ...beneficiary,
+      idade: beneficiary.idade,
+      arquivosDocumentos: this.requiredDocuments,
+      foto: beneficiary.foto || '',
+      possuiCnh: Boolean(beneficiary.possuiCnh)
+    });
+    this.revokePhotoObjectUrl();
+    this.photoPreview = beneficiary.foto || null;
+    this.photoFile = null;
+    this.toggleMinorChildrenRequirement(Boolean(beneficiary.possuiFilhosMenores));
+    this.syncSanitationSelections(beneficiary.condicoesSaneamento);
+    this.handleStatusChange(beneficiary.status);
+    this.updateConditionalDocumentRequirements();
   }
 
   private revokePhotoObjectUrl(): void {
@@ -534,6 +585,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
           nomeArquivo: document.nomeArquivo
         }));
         this.updateConditionalDocumentRequirements();
+
+        if (this.editingId && this.currentEditingBeneficiary?.id === this.editingId) {
+          this.applyEditState(this.currentEditingBeneficiary);
+        }
       },
       error: (error) => console.error('Erro ao carregar documentos obrigatórios', error)
     });
@@ -639,6 +694,25 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
     const value = Array.from(this.selectedSanitationOptions).join(', ');
     control.setValue(value, { emitEvent: false });
+  }
+
+  private dataUrlToFile(dataUrl: string, filename: string): File | null {
+    const parts = dataUrl.split(',');
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    const match = parts[0].match(/:(.*?);/);
+    const mime = match?.[1] ?? 'image/png';
+    const binary = atob(parts[1]);
+    const array = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+
+    return new File([array], filename, { type: mime });
   }
 
   private syncSanitationSelections(value: string | string[] | null | undefined): void {
