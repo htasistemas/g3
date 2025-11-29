@@ -2,8 +2,8 @@
   <aside class="w-72 bg-white border-r border-slate-200 shadow-sm hidden md:block flex-shrink-0 overflow-y-auto">
     <div class="p-4 border-b border-slate-200 flex items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-slate-800">{{ activeUnitName$ | async }}</h2>
-        <p class="text-xs text-slate-500">Menus prontos para receber componentes</p>
+        <h2 class="text-xl font-semibold text-g3-green-700">{{ activeUnitName$ | async }}</h2>
+        <p class="text-xs text-g3-green-600">Menus prontos para receber componentes</p>
       </div>
       <div class="text-right">
         <span class="block text-[10px] uppercase tracking-wide text-slate-400">Versão</span>
@@ -21,7 +21,7 @@
         <button
           type="button"
           (click)="toggleSection(section.label)"
-          class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+          class="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-g3-green-700 hover:bg-green-50 transition"
         >
           <span class="flex items-center space-x-3">
             <fa-icon [icon]="section.icon" class="text-g3-green-500"></fa-icon>
@@ -35,13 +35,13 @@
             <a
               *ngIf="child.route; else staticChild"
               [routerLink]="child.route"
-              class="flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-white hover:text-slate-800 transition cursor-pointer"
+              class="flex items-center px-4 py-2 text-sm text-g3-green-700 hover:bg-white hover:text-g3-green-600 transition cursor-pointer"
             >
               <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>
               <span>{{ child.label }}</span>
             </a>
             <ng-template #staticChild>
-              <div class="flex items-center px-4 py-2 text-sm text-slate-600">
+              <div class="flex items-center px-4 py-2 text-sm text-g3-green-700">
                 <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>
                 <span>{{ child.label }}</span>
               </div>
@@ -55,8 +55,8 @@
   <div class="flex-1 flex flex-col min-w-0 h-screen">
     <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
       <div>
-        <h1 class="text-lg font-semibold text-slate-800">Painel Principal</h1>
-        <p class="text-sm text-slate-500">Monte novas telas dentro deste layout.</p>
+        <h1 class="text-lg font-semibold text-g3-green-700">Painel Principal</h1>
+        <p class="text-sm text-g3-green-600">Monte novas telas dentro deste layout.</p>
       </div>
       <div class="flex items-center space-x-4 text-sm text-slate-600">
         <span class="flex items-center space-x-2">

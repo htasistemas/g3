@@ -90,6 +90,21 @@ export class LayoutComponent {
       ]
     },
     {
+      label: 'Atendimentos',
+      icon: faHandshakeAngle,
+      children: [{ label: 'Entrega de Benefícios', icon: faClipboardList }]
+    },
+    {
+      label: 'Administrativo',
+      icon: faClipboardList,
+      children: [{ label: 'Painel Administrativo', icon: faClipboardList }]
+    },
+    {
+      label: 'Financeiro',
+      icon: faWallet,
+      children: [{ label: 'Contabilidade', icon: faWallet }]
+    },
+    {
       label: 'Configuração',
       icon: faClipboardList,
       children: [{ label: 'Configurações do Sistema', icon: faClipboardList, route: '/configuracoes/sistema' }]
@@ -126,6 +141,15 @@ export class LayoutComponent {
   private formatVersion(version: string): string {
     const cleaned = version.trim().replace(/^v/i, '');
     const segments = cleaned.split('.').filter(Boolean);
-    return segments.length ? segments.join('.') : '0.0.0';
+
+    if (!segments.length) {
+      return '0.00';
+    }
+
+    const major = segments[0];
+    const patch = segments[segments.length - 1];
+    const paddedPatch = patch.padStart(2, '0');
+
+    return `${major}.${paddedPatch}`;
   }
 }
