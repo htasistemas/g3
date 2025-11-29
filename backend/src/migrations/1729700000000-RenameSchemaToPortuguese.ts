@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class RenameSchemaToPortuguese172 implements MigrationInterface {
-  name = 'RenameSchemaToPortuguese172';
+export class RenameSchemaToPortuguese1729700000000 implements MigrationInterface {
+  name = 'RenameSchemaToPortuguese1729700000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await this.renameBeneficiaries(queryRunner);
@@ -31,45 +31,32 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
     const table = await queryRunner.getTable(newTable);
     if (!table) return;
 
-    const renames: Array<[string, string]> = [
-      ['fullName', 'nome_completo'],
-      ['motherName', 'nome_mae'],
-      ['document', 'documentos'],
-      ['birthDate', 'data_nascimento'],
-      ['age', 'idade'],
-      ['phone', 'telefone'],
-      ['zipCode', 'cep'],
-      ['address', 'endereco'],
-      ['addressNumber', 'numero_endereco'],
-      ['referencePoint', 'ponto_referencia'],
-      ['neighborhood', 'bairro'],
-      ['city', 'cidade'],
-      ['state', 'estado'],
-      ['notes', 'observacoes'],
-      ['hasMinorChildren', 'possui_filhos_menores'],
-      ['hasDriverLicense', 'possui_cnh'],
-      ['minorChildrenCount', 'quantidade_filhos_menores'],
-      ['educationLevel', 'escolaridade'],
-      ['individualIncome', 'renda_individual'],
-      ['familyIncome', 'renda_familiar'],
-      ['housingInformation', 'informacoes_moradia'],
-      ['sanitationConditions', 'condicoes_saneamento'],
-      ['employmentStatus', 'situacao_emprego'],
-      ['occupation', 'ocupacao'],
-      ['documents', 'documentos_anexos'],
-      ['createdAt', 'criado_em'],
-    ];
-
-    for (const [oldName, newName] of renames) {
-      const currentTable = await queryRunner.getTable(newTable);
-      if (!currentTable) break;
-
-      const oldColumn = currentTable.findColumnByName(oldName);
-      const newColumn = currentTable.findColumnByName(newName);
-      if (oldColumn && !newColumn) {
-        await queryRunner.renameColumn(newTable, oldName, newName);
-      }
-    }
+    await this.renameColumnIfExists(queryRunner, newTable, ['fullName', 'fullname', 'full_name'], 'nome_completo');
+    await this.renameColumnIfExists(queryRunner, newTable, ['motherName', 'mothername', 'mother_name'], 'nome_mae');
+    await this.renameColumnIfExists(queryRunner, newTable, ['document', 'documents', 'documento'], 'documentos');
+    await this.renameColumnIfExists(queryRunner, newTable, ['birthDate', 'birthdate', 'birth_date'], 'data_nascimento');
+    await this.renameColumnIfExists(queryRunner, newTable, ['age'], 'idade');
+    await this.renameColumnIfExists(queryRunner, newTable, ['phone', 'telephone'], 'telefone');
+    await this.renameColumnIfExists(queryRunner, newTable, ['zipCode', 'zipcode', 'zip_code', 'cep'], 'cep');
+    await this.renameColumnIfExists(queryRunner, newTable, ['address', 'endereco'], 'endereco');
+    await this.renameColumnIfExists(queryRunner, newTable, ['addressNumber', 'address_number', 'numero_endereco'], 'numero_endereco');
+    await this.renameColumnIfExists(queryRunner, newTable, ['referencePoint', 'reference_point', 'ponto_referencia'], 'ponto_referencia');
+    await this.renameColumnIfExists(queryRunner, newTable, ['neighborhood', 'bairro'], 'bairro');
+    await this.renameColumnIfExists(queryRunner, newTable, ['city', 'cidade'], 'cidade');
+    await this.renameColumnIfExists(queryRunner, newTable, ['state', 'estado'], 'estado');
+    await this.renameColumnIfExists(queryRunner, newTable, ['notes', 'observacoes'], 'observacoes');
+    await this.renameColumnIfExists(queryRunner, newTable, ['hasMinorChildren', 'has_minor_children'], 'possui_filhos_menores');
+    await this.renameColumnIfExists(queryRunner, newTable, ['hasDriverLicense', 'has_driver_license'], 'possui_cnh');
+    await this.renameColumnIfExists(queryRunner, newTable, ['minorChildrenCount', 'minor_children_count'], 'quantidade_filhos_menores');
+    await this.renameColumnIfExists(queryRunner, newTable, ['educationLevel', 'education_level'], 'escolaridade');
+    await this.renameColumnIfExists(queryRunner, newTable, ['individualIncome', 'individual_income'], 'renda_individual');
+    await this.renameColumnIfExists(queryRunner, newTable, ['familyIncome', 'family_income'], 'renda_familiar');
+    await this.renameColumnIfExists(queryRunner, newTable, ['housingInformation', 'housing_information'], 'informacoes_moradia');
+    await this.renameColumnIfExists(queryRunner, newTable, ['sanitationConditions', 'sanitation_conditions'], 'condicoes_saneamento');
+    await this.renameColumnIfExists(queryRunner, newTable, ['employmentStatus', 'employment_status'], 'situacao_emprego');
+    await this.renameColumnIfExists(queryRunner, newTable, ['occupation', 'ocupacao'], 'ocupacao');
+    await this.renameColumnIfExists(queryRunner, newTable, ['documents', 'documentos_anexos'], 'documentos_anexos');
+    await this.renameColumnIfExists(queryRunner, newTable, ['createdAt', 'created_at', 'criado_em'], 'criado_em');
 
     const finalTable = await queryRunner.getTable(newTable);
     if (!finalTable) return;
@@ -172,20 +159,8 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
 
     if (!table) return;
 
-    const renames: Array<[string, string]> = [
-      ['name', 'nome'],
-      ['required', 'obrigatorio'],
-    ];
-
-    for (const [oldName, newName] of renames) {
-      const currentTable = await queryRunner.getTable(newTable);
-      if (!currentTable) break;
-      const oldColumn = currentTable.findColumnByName(oldName);
-      const newColumn = currentTable.findColumnByName(newName);
-      if (oldColumn && !newColumn) {
-        await queryRunner.renameColumn(newTable, oldName, newName);
-      }
-    }
+    await this.renameColumnIfExists(queryRunner, newTable, ['name'], 'nome');
+    await this.renameColumnIfExists(queryRunner, newTable, ['required'], 'obrigatorio');
   }
 
   private async revertBeneficiaries(queryRunner: QueryRunner) {
@@ -193,44 +168,32 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
     const oldTable = 'beneficiaries';
 
     if (await queryRunner.hasTable(newTable)) {
-      const renames: Array<[string, string]> = [
-        ['nome_completo', 'fullName'],
-        ['nome_mae', 'motherName'],
-        ['documentos', 'document'],
-        ['data_nascimento', 'birthDate'],
-        ['idade', 'age'],
-        ['telefone', 'phone'],
-        ['cep', 'zipCode'],
-        ['endereco', 'address'],
-        ['numero_endereco', 'addressNumber'],
-        ['ponto_referencia', 'referencePoint'],
-        ['bairro', 'neighborhood'],
-        ['cidade', 'city'],
-        ['estado', 'state'],
-        ['observacoes', 'notes'],
-        ['possui_filhos_menores', 'hasMinorChildren'],
-        ['possui_cnh', 'hasDriverLicense'],
-        ['quantidade_filhos_menores', 'minorChildrenCount'],
-        ['escolaridade', 'educationLevel'],
-        ['renda_individual', 'individualIncome'],
-        ['renda_familiar', 'familyIncome'],
-        ['informacoes_moradia', 'housingInformation'],
-        ['condicoes_saneamento', 'sanitationConditions'],
-        ['situacao_emprego', 'employmentStatus'],
-        ['ocupacao', 'occupation'],
-        ['documentos_anexos', 'documents'],
-        ['criado_em', 'createdAt'],
-      ];
-
-      for (const [oldName, newName] of renames) {
-        const currentTable = await queryRunner.getTable(newTable);
-        if (!currentTable) break;
-        const oldColumn = currentTable.findColumnByName(oldName);
-        const newColumn = currentTable.findColumnByName(newName);
-        if (oldColumn && !newColumn) {
-          await queryRunner.renameColumn(newTable, oldName, newName);
-        }
-      }
+      await this.renameColumnIfExists(queryRunner, newTable, ['nome_completo'], 'fullName');
+      await this.renameColumnIfExists(queryRunner, newTable, ['nome_mae'], 'motherName');
+      await this.renameColumnIfExists(queryRunner, newTable, ['documentos'], 'document');
+      await this.renameColumnIfExists(queryRunner, newTable, ['data_nascimento'], 'birthDate');
+      await this.renameColumnIfExists(queryRunner, newTable, ['idade'], 'age');
+      await this.renameColumnIfExists(queryRunner, newTable, ['telefone'], 'phone');
+      await this.renameColumnIfExists(queryRunner, newTable, ['cep'], 'zipCode');
+      await this.renameColumnIfExists(queryRunner, newTable, ['endereco'], 'address');
+      await this.renameColumnIfExists(queryRunner, newTable, ['numero_endereco'], 'addressNumber');
+      await this.renameColumnIfExists(queryRunner, newTable, ['ponto_referencia'], 'referencePoint');
+      await this.renameColumnIfExists(queryRunner, newTable, ['bairro'], 'neighborhood');
+      await this.renameColumnIfExists(queryRunner, newTable, ['cidade'], 'city');
+      await this.renameColumnIfExists(queryRunner, newTable, ['estado'], 'state');
+      await this.renameColumnIfExists(queryRunner, newTable, ['observacoes'], 'notes');
+      await this.renameColumnIfExists(queryRunner, newTable, ['possui_filhos_menores'], 'hasMinorChildren');
+      await this.renameColumnIfExists(queryRunner, newTable, ['possui_cnh'], 'hasDriverLicense');
+      await this.renameColumnIfExists(queryRunner, newTable, ['quantidade_filhos_menores'], 'minorChildrenCount');
+      await this.renameColumnIfExists(queryRunner, newTable, ['escolaridade'], 'educationLevel');
+      await this.renameColumnIfExists(queryRunner, newTable, ['renda_individual'], 'individualIncome');
+      await this.renameColumnIfExists(queryRunner, newTable, ['renda_familiar'], 'familyIncome');
+      await this.renameColumnIfExists(queryRunner, newTable, ['informacoes_moradia'], 'housingInformation');
+      await this.renameColumnIfExists(queryRunner, newTable, ['condicoes_saneamento'], 'sanitationConditions');
+      await this.renameColumnIfExists(queryRunner, newTable, ['situacao_emprego'], 'employmentStatus');
+      await this.renameColumnIfExists(queryRunner, newTable, ['ocupacao'], 'occupation');
+      await this.renameColumnIfExists(queryRunner, newTable, ['documentos_anexos'], 'documents');
+      await this.renameColumnIfExists(queryRunner, newTable, ['criado_em'], 'createdAt');
 
       if ((await queryRunner.getTable(newTable))?.findColumnByName('foto')) {
         await queryRunner.dropColumn(newTable, 'foto');
@@ -249,22 +212,10 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
     const oldTable = 'users';
 
     if (await queryRunner.hasTable(newTable)) {
-      const renames: Array<[string, string]> = [
-        ['nome_usuario', 'username'],
-        ['hash_senha', 'password_hash'],
-        ['criado_em', 'created_at'],
-        ['atualizado_em', 'updated_at'],
-      ];
-
-      for (const [oldName, newName] of renames) {
-        const currentTable = await queryRunner.getTable(newTable);
-        if (!currentTable) break;
-        const oldColumn = currentTable.findColumnByName(oldName);
-        const newColumn = currentTable.findColumnByName(newName);
-        if (oldColumn && !newColumn) {
-          await queryRunner.renameColumn(newTable, oldName, newName);
-        }
-      }
+      await this.renameColumnIfExists(queryRunner, newTable, ['nome_usuario'], 'username');
+      await this.renameColumnIfExists(queryRunner, newTable, ['hash_senha'], 'password_hash');
+      await this.renameColumnIfExists(queryRunner, newTable, ['criado_em'], 'created_at');
+      await this.renameColumnIfExists(queryRunner, newTable, ['atualizado_em'], 'updated_at');
     }
 
     if (await queryRunner.hasTable(newTable)) {
@@ -321,25 +272,31 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
 
     if (!table) return;
 
-    const renames: Array<[string, string]> = [
-      ['nome', 'name'],
-      ['obrigatorio', 'required'],
-    ];
-
-    for (const [oldName, newName] of renames) {
-      const currentTable = await queryRunner.getTable(newTable);
-      if (!currentTable) break;
-      const oldColumn = currentTable.findColumnByName(oldName);
-      const newColumn = currentTable.findColumnByName(newName);
-      if (oldColumn && !newColumn) {
-        await queryRunner.renameColumn(newTable, oldName, newName);
-      }
-    }
+    await this.renameColumnIfExists(queryRunner, newTable, ['nome'], 'name');
+    await this.renameColumnIfExists(queryRunner, newTable, ['obrigatorio'], 'required');
 
     if (await queryRunner.hasTable(newTable)) {
       if (!(await queryRunner.hasTable(oldTable))) {
         await queryRunner.renameTable(newTable, oldTable);
       }
     }
+  }
+
+  private async renameColumnIfExists(
+    queryRunner: QueryRunner,
+    tableName: string,
+    currentNames: string[],
+    targetName: string
+  ) {
+    const table = await queryRunner.getTable(tableName);
+    if (!table) return;
+
+    const targetExists = table.findColumnByName(targetName);
+    if (targetExists) return;
+
+    const source = currentNames.find((name) => table.findColumnByName(name));
+    if (!source) return;
+
+    await queryRunner.renameColumn(tableName, source, targetName);
   }
 }
