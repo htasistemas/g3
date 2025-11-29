@@ -257,7 +257,18 @@
           *ngFor="let doc of requiredDocuments"
         >
           <div>
-            <p class="text-sm font-semibold text-slate-800">{{ doc.name }}</p>
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-semibold text-slate-800">{{ doc.name }}</p>
+              <span
+                class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-amber-100 text-amber-700': doc.required,
+                  'bg-slate-100 text-slate-600': !doc.required
+                }"
+              >
+                {{ doc.required ? 'Obrigatório' : 'Opcional' }}
+              </span>
+            </div>
             <p class="text-xs text-slate-500">{{ doc.fileName ? 'Arquivo: ' + doc.fileName : 'Nenhum arquivo selecionado' }}</p>
           </div>
           <input type="file" (change)="onDocumentUpload($event, doc.name)" class="file-input" />
@@ -265,7 +276,7 @@
       </div>
 
       <p *ngIf="beneficiaryForm.get('documentFiles')?.touched && beneficiaryForm.get('documentFiles')?.invalid" class="text-xs text-red-500">
-        Todos os documentos obrigatórios devem ser anexados.
+        Documentos obrigatórios pendentes: {{ missingRequiredDocuments.join(', ') }}.
       </p>
 
       <div class="flex items-center gap-3 pt-2">
@@ -280,6 +291,13 @@
     <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm">
       <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
       <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar cadastro' : 'Salvar cadastro' }}</button>
+      <span
+        *ngIf="saveFeedback"
+        [ngClass]="{ 'text-g3-green-700': saveFeedback.type === 'success', 'text-red-600': saveFeedback.type === 'error' }"
+        class="text-sm font-medium"
+      >
+        {{ saveFeedback.message }}
+      </span>
     </div>
   </form>
 

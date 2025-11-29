@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { User } from './entities/User';
 import { Beneficiary } from './entities/Beneficiary';
 import { AssistanceUnit } from './entities/AssistanceUnit';
+import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
 
 dotenv.config();
 
@@ -19,5 +20,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'g3',
   synchronize: true,
   logging: false,
-  entities: [User, Beneficiary, AssistanceUnit],
+  entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig],
 });

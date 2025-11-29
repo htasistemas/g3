@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { Beneficiary } from '../entities/Beneficiary';
+import { ensureBeneficiaryDocumentConfig } from '../utils/document-config';
 
 const router = Router();
 
-const REQUIRED_DOCUMENTS = ['RG', 'CPF', 'Comprovante de residência', 'Foto 3x4'];
-
-router.get('/documents', (_req, res) => {
-  res.json({ documents: REQUIRED_DOCUMENTS });
+router.get('/documents', async (_req, res) => {
+  const documents = await ensureBeneficiaryDocumentConfig();
+  res.json({ documents });
 });
 
 router.get('/', async (_req, res) => {
@@ -19,6 +19,19 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiary);
   const beneficiary = repository.create(req.body as Beneficiary);
+  const configuredDocs = await ensureBeneficiaryDocumentConfig();
+  const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
+  const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
+  const missingRequired = requiredDocs.filter(
+    (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
+  );
+
+  if (missingRequired.length) {
+    return res.status(400).json({
+      message: 'Documentos obrigatórios ausentes',
+      missingDocuments: missingRequired
+    });
+  }
 
   try {
     const saved = await repository.save(beneficiary);
@@ -33,9 +46,22 @@ router.put('/:id', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiary);
   const id = Number(req.params.id);
   const existing = await repository.findOne({ where: { id } });
+  const configuredDocs = await ensureBeneficiaryDocumentConfig();
+  const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
+  const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
+  const missingRequired = requiredDocs.filter(
+    (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
+  );
 
   if (!existing) {
     return res.status(404).json({ message: 'Beneficiário não encontrado' });
+  }
+
+  if (missingRequired.length) {
+    return res.status(400).json({
+      message: 'Documentos obrigatórios ausentes',
+      missingDocuments: missingRequired
+    });
   }
 
   repository.merge(existing, req.body as Beneficiary);

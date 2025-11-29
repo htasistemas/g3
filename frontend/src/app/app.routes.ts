@@ -5,6 +5,7 @@ import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
+import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -15,7 +16,8 @@ export const routes: Routes = [
     children: [
       { path: '', component: DashboardComponent },
       { path: 'beneficiarios/cadastro', component: BeneficiaryFormComponent },
-      { path: 'unidades/cadastro', component: AssistanceUnitComponent }
+      { path: 'unidades/cadastro', component: AssistanceUnitComponent },
+      { path: 'configuracoes/sistema', component: SystemSettingsComponent }
     ]
   },
   { path: '**', redirectTo: '' }

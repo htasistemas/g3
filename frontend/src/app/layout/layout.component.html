@@ -7,8 +7,8 @@
       </div>
       <div class="text-right">
         <span class="block text-[10px] uppercase tracking-wide text-slate-400">Versão</span>
-        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700">v{{
-          version
+        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700">{{
+          versionLabel
         }}</span>
       </div>
     </div>
@@ -31,6 +31,7 @@
             <a
               *ngIf="child.route; else staticChild"
               [routerLink]="child.route"
+              (click)="selectMenuItem()"
               class="flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-white hover:text-slate-800 transition cursor-pointer"
             >
               <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>

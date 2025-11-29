@@ -44,7 +44,7 @@ export class LayoutComponent {
   readonly faChevronUp = faChevronUp;
   readonly faRightFromBracket = faRightFromBracket;
   readonly faUserCircle = faUserCircle;
-  readonly version = environment.version;
+  readonly versionLabel = this.formatVersion(environment.version);
 
   openSection: string | null = null;
 
@@ -88,6 +88,11 @@ export class LayoutComponent {
         { label: 'Inclusão de Beneficiários', icon: faUsers },
         { label: 'Avaliação Social', icon: faHandshakeAngle }
       ]
+    },
+    {
+      label: 'Configuração',
+      icon: faClipboardList,
+      children: [{ label: 'Configurações do Sistema', icon: faClipboardList, route: '/configuracoes/sistema' }]
     }
   ];
 
@@ -108,7 +113,17 @@ export class LayoutComponent {
     this.openSection = this.openSection === label ? null : label;
   }
 
+  selectMenuItem(): void {
+    this.openSection = null;
+  }
+
   logout(): void {
     this.auth.logout();
+  }
+
+  private formatVersion(version: string): string {
+    const cleaned = version.replace(/^v/i, '');
+    const [major = '0', minor = '0', patch = '0'] = cleaned.split('.');
+    return `${major}.${minor}${patch}`;
   }
 }
