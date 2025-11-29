@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 
 interface LoginResponse {
   token: string;
@@ -14,7 +15,7 @@ export class AuthService {
   private readonly storageKey = 'g3_session';
   readonly user = signal<{ id: string; username: string } | null>(this.loadUser());
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
   login(username: string, password: string): Observable<LoginResponse> {
     return this.http
@@ -30,6 +31,8 @@ export class AuthService {
   logout(): void {
     this.user.set(null);
     localStorage.removeItem(this.storageKey);
+    sessionStorage.removeItem(this.storageKey);
+    this.router.navigate(['/login']);
   }
 
   get isAuthenticated(): boolean {
