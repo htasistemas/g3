@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class Migration1729700000000 implements MigrationInterface {
-  name = 'Migration1729700000000';
+export class RenameSchemaToPortuguese1729700000000 implements MigrationInterface {
+  name = 'RenameSchemaToPortuguese1729700000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await this.renameBeneficiaries(queryRunner);
