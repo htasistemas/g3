@@ -1,41 +1,61 @@
 <div class="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-12">
   <div
-    class="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-200 bg-white/70 backdrop-blur"
+    class="w-full max-w-6xl overflow-hidden rounded-2xl shadow-xl ring-1 ring-slate-200 bg-white"
   >
-    <div class="grid md:grid-cols-[1.15fr_1fr]">
-      <div class="p-8 md:p-12 bg-white space-y-8">
-        <div class="flex items-center gap-3">
-          <div class="h-12 w-12 rounded-full bg-g3-green-600 text-white flex items-center justify-center font-semibold">
-            G3
+    <div class="grid lg:grid-cols-[1.05fr_1fr]">
+      <!-- Form section -->
+      <div class="p-8 lg:p-12 bg-white flex flex-col gap-10">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-full bg-g3-green-600 text-white flex items-center justify-center">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-7 w-7">
+                <path
+                  fill="currentColor"
+                  d="M7.5 11.5a3.5 3.5 0 1 1 3.45-4.1A3 3 0 0 1 14 10.5a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3 3 3 0 0 1 2-2.82 3.48 3.48 0 0 1 1.5 3.32Z"
+                />
+                <circle cx="17.5" cy="8.5" r="2.5" fill="currentColor" />
+                <path
+                  fill="currentColor"
+                  d="M4 15h4.88a4 4 0 0 1 3.88 3.12l.24 1.16a1 1 0 0 1-1 .72H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2Zm11.32.94A4 4 0 0 1 19 14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2.12Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="text-lg font-semibold text-slate-900">G3</p>
+              <p class="text-xs text-slate-500 -mt-1">Assistencial</p>
+            </div>
           </div>
-          <div>
-            <p class="text-xs uppercase font-semibold text-g3-green-600 tracking-[0.08em]">G3 Assistencial</p>
-            <p class="text-xl font-semibold text-slate-900">Painel de acesso</p>
+
+          <div class="flex items-center gap-2 text-sm text-slate-500">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4">
+              <path
+                fill="currentColor"
+                d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm6.93 9H15a15.757 15.757 0 0 0-.9-4.68 8.01 8.01 0 0 1 4.83 4.68ZM12 4.07a13.735 13.735 0 0 1 1.24 4.93H10.8A13.935 13.935 0 0 1 12 4.07ZM9 7.32A15.757 15.757 0 0 0 8 11H5.07a8.01 8.01 0 0 1 3.93-3.68ZM5.07 13H8a15.757 15.757 0 0 0 1 3.68A8.01 8.01 0 0 1 5.07 13ZM10.8 13h2.44A13.735 13.735 0 0 1 12 17.93 13.935 13.935 0 0 1 10.8 13Zm3.3 0h2.54a15.757 15.757 0 0 0 .9 4.68A8.01 8.01 0 0 1 14.1 13Z"
+              />
+            </svg>
+            Português
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4">
+              <path fill="currentColor" d="m7 10 5 5 5-5H7Z" />
+            </svg>
           </div>
         </div>
 
         <div class="space-y-3">
           <h1 class="text-3xl font-semibold text-slate-900">Entre com a sua conta</h1>
-          <p class="text-sm text-slate-500">Informe seus dados de acesso para continuar.</p>
+          <p class="text-sm text-slate-500">Informe seus dados de acesso.</p>
         </div>
 
-        <form (ngSubmit)="submit()" class="space-y-5">
+        <form (ngSubmit)="submit()" class="space-y-4">
           <label class="block space-y-2">
-            <span class="text-sm font-medium text-slate-700">Usuário</span>
+            <span class="text-sm font-medium text-slate-700">Usuário/E-mail</span>
             <div class="input-field">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 text-slate-400">
-                <path
-                  fill="currentColor"
-                  d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-7 7a7 7 0 0 1 14 0 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1Z"
-                />
-              </svg>
               <input
                 [(ngModel)]="username"
                 name="username"
                 required
                 autocomplete="username"
                 class="flex-1 bg-transparent outline-none"
-                placeholder="Digite seu usuário"
+                placeholder="Digite seu e-mail ou CPF"
               />
             </div>
           </label>
@@ -43,12 +63,6 @@
           <label class="block space-y-2">
             <span class="text-sm font-medium text-slate-700">Senha</span>
             <div class="input-field">
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 text-slate-400">
-                <path
-                  fill="currentColor"
-                  d="M17 10h-1V7a4 4 0 0 0-8 0v3H7a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1Zm-3 5.73V17a1 1 0 0 1-2 0v-1.27a2 2 0 1 1 2 0ZM10 10V7a2 2 0 0 1 4 0v3Z"
-                />
-              </svg>
               <input
                 [(ngModel)]="password"
                 name="password"
@@ -56,7 +70,7 @@
                 type="password"
                 autocomplete="current-password"
                 class="flex-1 bg-transparent outline-none"
-                placeholder="Digite sua senha"
+                placeholder="**********"
               />
             </div>
           </label>
@@ -64,20 +78,12 @@
           <button
             type="submit"
             [disabled]="loading"
-            class="w-full flex items-center justify-center gap-2 bg-g3-green-600 hover:bg-g3-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-g3-green-500/20"
+            class="w-full bg-g3-green-600 hover:bg-g3-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            <span>{{ loading ? 'Entrando...' : 'Entrar' }}</span>
+            {{ loading ? 'Entrando...' : 'Entrar' }}
           </button>
 
-          <div class="flex items-center justify-between text-sm text-slate-500">
-            <span class="flex items-center gap-2">
-              <span class="h-2 w-2 rounded-full bg-g3-green-500"></span>
-              Acesso seguro
-            </span>
-            <button type="button" class="text-g3-green-700 hover:text-g3-green-800 font-medium">
-              Esqueceu a senha?
-            </button>
-          </div>
+          <div class="text-sm text-g3-green-700 font-medium">Tive um problema, clique aqui para recuperá-la.</div>
 
           <div *ngIf="error" class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3" role="alert">
             {{ error }}
@@ -85,38 +91,27 @@
         </form>
       </div>
 
-      <div class="login-hero text-white">
+      <!-- Aside section -->
+      <div class="login-hero text-white relative">
         <div class="grid-overlay" aria-hidden="true"></div>
-        <div class="relative h-full flex flex-col justify-between p-8 md:p-12 space-y-8">
-          <div class="space-y-4">
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-sm font-medium">
-              <span class="h-2 w-2 rounded-full bg-white"></span>
-              Novidades da plataforma
-            </span>
-            <div class="space-y-3">
+        <div class="absolute inset-0 flex flex-col justify-between p-8 lg:p-12">
+          <div class="flex justify-end">
+            <span class="px-4 py-2 rounded-full bg-white/15 text-sm font-medium">Ainda não possui uma conta?</span>
+          </div>
+
+          <div class="space-y-6 max-w-md">
+            <div>
               <h2 class="text-3xl font-semibold leading-tight">Ainda não possui uma conta?</h2>
-              <p class="text-sm text-white/80 leading-relaxed">
-                Crie agora mesmo sua conta para acessar o painel, configurar usuários e acompanhar os
-                indicadores do sistema.
+              <p class="mt-3 text-sm text-white/80 leading-relaxed">
+                Crie agora mesmo sua conta. É rápido e fácil.
               </p>
             </div>
             <button
               type="button"
-              class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-white/90 text-g3-green-700 font-semibold hover:bg-white"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-white text-g3-green-700 font-semibold shadow-lg shadow-black/10"
             >
               Criar conta
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5">
-                <path fill="currentColor" d="M13.59 12 9.3 7.71l1.4-1.42L16.41 12l-5.7 5.71-1.4-1.42Z" />
-              </svg>
             </button>
-          </div>
-
-          <div class="relative flex items-center gap-3 text-sm text-white/80">
-            <div class="h-10 w-10 rounded-full bg-white/15 flex items-center justify-center font-semibold">24/7</div>
-            <div>
-              <p class="font-semibold">Suporte dedicado</p>
-              <p class="text-white/70">Conte com nossa equipe para ajudar na configuração do seu ambiente.</p>
-            </div>
           </div>
         </div>
       </div>
