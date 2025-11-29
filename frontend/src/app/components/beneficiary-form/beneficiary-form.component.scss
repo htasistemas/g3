@@ -13,7 +13,7 @@ textarea.ng-touched.ng-invalid {
   border-radius: 1rem;
   box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
   padding: 1.5rem;
-  @apply space-y-4;
+  @apply space-y-3;
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -52,4 +52,24 @@ textarea.ng-touched.ng-invalid {
 .file-input {
   @apply text-sm text-slate-700 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border file:border-slate-300 file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100;
   color: var(--text-primary);
+}
+
+.form-compact .field-group {
+  @apply space-y-1;
+}
+
+.photo-card {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.photo-card__preview {
+  width: 9rem;
+  height: 9rem;
+}
+
+@media (min-width: 1024px) {
+  .photo-card {
+    margin: 0;
+  }
 }

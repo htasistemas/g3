@@ -18,6 +18,11 @@ export const routes: Routes = [
     children: [
       { path: '', component: DashboardComponent, data: { title: 'Visão geral' } },
       {
+        path: 'beneficiarios/editar/:id',
+        component: BeneficiaryFormComponent,
+        data: { title: 'Cadastro de beneficiários' }
+      },
+      {
         path: 'beneficiarios/cadastro',
         component: BeneficiaryFormComponent,
         data: { title: 'Cadastro de beneficiários' }
