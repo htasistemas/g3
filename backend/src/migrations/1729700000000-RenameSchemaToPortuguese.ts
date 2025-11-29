@@ -159,8 +159,16 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
   }
 
   private async renameBeneficiaryDocuments(queryRunner: QueryRunner) {
-    const tableName = 'config_documentos_beneficiario';
-    const table = await queryRunner.getTable(tableName);
+    const oldTable = 'beneficiary_document_config';
+    const newTable = 'config_documentos_beneficiario';
+
+    if (await queryRunner.hasTable(oldTable)) {
+      if (!(await queryRunner.hasTable(newTable))) {
+        await queryRunner.renameTable(oldTable, newTable);
+      }
+    }
+
+    const table = await queryRunner.getTable(newTable);
 
     if (!table) return;
 
@@ -170,12 +178,12 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
     ];
 
     for (const [oldName, newName] of renames) {
-      const currentTable = await queryRunner.getTable(tableName);
+      const currentTable = await queryRunner.getTable(newTable);
       if (!currentTable) break;
       const oldColumn = currentTable.findColumnByName(oldName);
       const newColumn = currentTable.findColumnByName(newName);
       if (oldColumn && !newColumn) {
-        await queryRunner.renameColumn(tableName, oldName, newName);
+        await queryRunner.renameColumn(newTable, oldName, newName);
       }
     }
   }
@@ -307,8 +315,9 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
   }
 
   private async revertBeneficiaryDocuments(queryRunner: QueryRunner) {
-    const tableName = 'config_documentos_beneficiario';
-    const table = await queryRunner.getTable(tableName);
+    const newTable = 'config_documentos_beneficiario';
+    const oldTable = 'beneficiary_document_config';
+    const table = await queryRunner.getTable(newTable);
 
     if (!table) return;
 
@@ -318,12 +327,18 @@ export class RenameSchemaToPortuguese172 implements MigrationInterface {
     ];
 
     for (const [oldName, newName] of renames) {
-      const currentTable = await queryRunner.getTable(tableName);
+      const currentTable = await queryRunner.getTable(newTable);
       if (!currentTable) break;
       const oldColumn = currentTable.findColumnByName(oldName);
       const newColumn = currentTable.findColumnByName(newName);
       if (oldColumn && !newColumn) {
-        await queryRunner.renameColumn(tableName, oldName, newName);
+        await queryRunner.renameColumn(newTable, oldName, newName);
+      }
+    }
+
+    if (await queryRunner.hasTable(newTable)) {
+      if (!(await queryRunner.hasTable(oldTable))) {
+        await queryRunner.renameTable(newTable, oldTable);
       }
     }
   }
