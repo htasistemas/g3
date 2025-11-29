@@ -58,6 +58,33 @@ export class Beneficiary {
   @Column({ default: 'Ativo' })
   status!: string;
 
+  @Column({ default: false })
+  hasMinorChildren!: boolean;
+
+  @Column({ type: 'int', nullable: true })
+  minorChildrenCount?: number;
+
+  @Column({ nullable: true })
+  educationLevel?: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  individualIncome?: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  familyIncome?: number;
+
+  @Column({ type: 'text', nullable: true })
+  housingInformation?: string;
+
+  @Column({ type: 'text', nullable: true })
+  sanitationConditions?: string;
+
+  @Column({ nullable: true })
+  employmentStatus?: string;
+
+  @Column({ nullable: true })
+  occupation?: string;
+
   @Column({ type: 'simple-json', nullable: true })
   documents?: DocumentAttachment[];
 

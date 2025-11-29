@@ -80,12 +80,25 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       notes: [''],
       status: ['Ativo', Validators.required],
       documentFiles: [[], [this.documentsRequiredValidator]],
-      photo: ['']
+      photo: [''],
+      hasMinorChildren: [false],
+      minorChildrenCount: [{ value: '', disabled: true }],
+      educationLevel: [''],
+      individualIncome: [''],
+      familyIncome: [''],
+      housingInformation: [''],
+      sanitationConditions: [''],
+      employmentStatus: [''],
+      occupation: ['']
     });
 
     this.beneficiaryForm
       .get('birthDate')
       ?.valueChanges.subscribe((value: string | null) => this.updateAge(value));
+
+    this.beneficiaryForm
+      .get('hasMinorChildren')
+      ?.valueChanges.subscribe((value: boolean) => this.toggleMinorChildrenRequirement(Boolean(value)));
   }
 
   ngOnInit(): void {
@@ -265,6 +278,37 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.beneficiaryForm.get('age')?.setValue(age >= 0 ? age : '', { emitEvent: false });
   }
 
+  private toggleMinorChildrenRequirement(hasMinorChildren: boolean): void {
+    const countControl = this.beneficiaryForm.get('minorChildrenCount');
+
+    if (!countControl) {
+      return;
+    }
+
+    if (hasMinorChildren) {
+      countControl.setValidators([Validators.required, Validators.min(0)]);
+      countControl.enable({ emitEvent: false });
+    } else {
+      countControl.clearValidators();
+      countControl.reset({ value: '', disabled: true }, { emitEvent: false });
+    }
+
+    countControl.updateValueAndValidity({ emitEvent: false });
+    this.updateBirthCertificateRequirement(hasMinorChildren);
+  }
+
+  private updateBirthCertificateRequirement(hasMinorChildren: boolean): void {
+    this.requiredDocuments = this.requiredDocuments.map((doc) => {
+      const baseRequired = doc.baseRequired ?? doc.required ?? false;
+      const isBirthCertificate = doc.name === 'Certidão de Nascimento';
+      const required = isBirthCertificate ? hasMinorChildren || baseRequired : baseRequired;
+
+      return { ...doc, required };
+    });
+
+    this.updateDocumentControl();
+  }
+
   onDocumentUpload(event: Event, documentName: string): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -351,6 +395,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       documentFiles: this.requiredDocuments,
       photo: ''
     });
+    this.toggleMinorChildrenRequirement(Boolean(beneficiary.hasMinorChildren));
   }
 
   resetForm(): void {
@@ -358,9 +403,20 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.documentStatus = 'Pendente';
     this.photoPreview = null;
     this.saveFeedback = null;
-    this.requiredDocuments = this.requiredDocuments.map((doc) => ({ name: doc.name, required: doc.required }));
-    this.updateDocumentControl();
-    this.beneficiaryForm.reset({ status: 'Ativo', documentFiles: this.requiredDocuments, age: '' });
+    this.requiredDocuments = this.requiredDocuments.map((doc) => ({
+      name: doc.name,
+      required: doc.baseRequired ?? doc.required,
+      baseRequired: doc.baseRequired ?? doc.required
+    }));
+    this.beneficiaryForm.reset({
+      status: 'Ativo',
+      documentFiles: this.requiredDocuments,
+      age: '',
+      hasMinorChildren: false,
+      minorChildrenCount: ''
+    });
+    this.beneficiaryForm.get('minorChildrenCount')?.disable({ emitEvent: false });
+    this.toggleMinorChildrenRequirement(false);
   }
 
   private updateDocumentControl(): void {
@@ -383,9 +439,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       next: ({ documents }) => {
         this.requiredDocuments = documents.map((document) => ({
           name: document.name,
-          required: Boolean(document.required)
+          required: Boolean(document.required),
+          baseRequired: Boolean(document.required)
         }));
-        this.updateDocumentControl();
+        this.updateBirthCertificateRequirement(Boolean(this.beneficiaryForm.get('hasMinorChildren')?.value));
       },
       error: (error) => console.error('Erro ao carregar documentos obrigatórios', error)
     });

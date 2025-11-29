@@ -8,6 +8,7 @@ export interface DocumentRequirement {
   fileName?: string;
   file?: File;
   required?: boolean;
+  baseRequired?: boolean;
 }
 
 export interface BeneficiaryPayload {
@@ -28,6 +29,15 @@ export interface BeneficiaryPayload {
   state?: string;
   notes?: string;
   status: string;
+  hasMinorChildren?: boolean;
+  minorChildrenCount?: number;
+  educationLevel?: string;
+  individualIncome?: number | string;
+  familyIncome?: number | string;
+  housingInformation?: string;
+  sanitationConditions?: string;
+  employmentStatus?: string;
+  occupation?: string;
   documents: DocumentRequirement[];
 }
 

@@ -16,7 +16,7 @@
         <div class="card__header">Foto do beneficiário</div>
         <div class="space-y-3">
           <div class="flex justify-center">
-            <div class="relative h-36 w-36 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+            <div class="relative h-28 w-28 rounded-full bg-slate-100 overflow-hidden shadow-inner">
               <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
               <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
             </div>
@@ -143,6 +143,117 @@
     </div>
 
     <div class="card">
+      <div class="card__header">Informações familiares e socioeconômicas</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="hasMinorChildren">Possui filhos menores?</label>
+          <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" id="hasMinorChildren" formControlName="hasMinorChildren" class="h-4 w-4" />
+            <span>Sim</span>
+          </label>
+          <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="minorChildrenCount">Quantidade de filhos menores</label>
+          <input
+            id="minorChildrenCount"
+            type="number"
+            formControlName="minorChildrenCount"
+            class="input"
+            placeholder="0"
+            min="0"
+          />
+          <p
+            *ngIf="beneficiaryForm.get('minorChildrenCount')?.touched && beneficiaryForm.get('minorChildrenCount')?.invalid"
+            class="text-xs text-red-500"
+          >
+            Informe a quantidade de filhos menores.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="educationLevel">Escolaridade</label>
+          <input
+            id="educationLevel"
+            type="text"
+            formControlName="educationLevel"
+            class="input"
+            placeholder="Ensino médio completo"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="individualIncome">Renda individual</label>
+          <input
+            id="individualIncome"
+            type="number"
+            step="0.01"
+            formControlName="individualIncome"
+            class="input"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="familyIncome">Renda total da família</label>
+          <input
+            id="familyIncome"
+            type="number"
+            step="0.01"
+            formControlName="familyIncome"
+            class="input"
+            placeholder="0,00"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="employmentStatus">Situação de trabalho</label>
+          <input
+            id="employmentStatus"
+            type="text"
+            formControlName="employmentStatus"
+            class="input"
+            placeholder="Empregado, autônomo, desempregado..."
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="occupation">Ocupação</label>
+          <input
+            id="occupation"
+            type="text"
+            formControlName="occupation"
+            class="input"
+            placeholder="Profissão ou atividade"
+          />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="housingInformation">Informações sobre a moradia</label>
+          <textarea
+            id="housingInformation"
+            formControlName="housingInformation"
+            rows="3"
+            class="input"
+            placeholder="Tipo de moradia, condições estruturais, acesso a energia, água, etc."
+          ></textarea>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="sanitationConditions">Condições de saneamento básico</label>
+          <textarea
+            id="sanitationConditions"
+            formControlName="sanitationConditions"
+            rows="3"
+            class="input"
+            placeholder="Abastecimento de água, coleta de lixo, rede de esgoto, outras observações"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card__header">Endereço</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-2">
@@ -161,6 +272,20 @@
           </p>
         </div>
 
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="addressNumber">Número</label>
+          <input
+            id="addressNumber"
+            type="text"
+            formControlName="addressNumber"
+            class="input"
+            placeholder="Número da residência"
+          />
+          <p *ngIf="beneficiaryForm.get('addressNumber')?.touched && beneficiaryForm.get('addressNumber')?.invalid" class="text-xs text-red-500">
+            Informe o número da residência.
+          </p>
+        </div>
+
         <div class="space-y-2 md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="address">Endereço</label>
           <input
@@ -173,20 +298,6 @@
           />
           <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
             Endereço é obrigatório.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="addressNumber">Número</label>
-          <input
-            id="addressNumber"
-            type="text"
-            formControlName="addressNumber"
-            class="input"
-            placeholder="Número da residência"
-          />
-          <p *ngIf="beneficiaryForm.get('addressNumber')?.touched && beneficiaryForm.get('addressNumber')?.invalid" class="text-xs text-red-500">
-            Informe o número da residência.
           </p>
         </div>
 

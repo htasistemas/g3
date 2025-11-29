@@ -22,6 +22,11 @@ router.post('/', async (req, res) => {
   const configuredDocs = await ensureBeneficiaryDocumentConfig();
   const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
   const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
+  const hasMinorChildren = Boolean(req.body.hasMinorChildren);
+
+  if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
+    requiredDocs.push('Certidão de Nascimento');
+  }
   const missingRequired = requiredDocs.filter(
     (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
   );
@@ -34,6 +39,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    beneficiary.documents = submittedDocs;
     const saved = await repository.save(beneficiary);
     res.status(201).json(saved);
   } catch (error) {
@@ -49,6 +55,11 @@ router.put('/:id', async (req, res) => {
   const configuredDocs = await ensureBeneficiaryDocumentConfig();
   const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
   const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
+  const hasMinorChildren = Boolean(req.body.hasMinorChildren);
+
+  if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
+    requiredDocs.push('Certidão de Nascimento');
+  }
   const missingRequired = requiredDocs.filter(
     (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
   );
@@ -65,6 +76,7 @@ router.put('/:id', async (req, res) => {
   }
 
   repository.merge(existing, req.body as Beneficiary);
+  existing.documents = submittedDocs;
 
   try {
     const saved = await repository.save(existing);
