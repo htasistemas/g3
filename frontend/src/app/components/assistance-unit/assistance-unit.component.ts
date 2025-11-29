@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 
 @Component({
@@ -13,14 +13,16 @@ import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/ass
 export class AssistanceUnitComponent implements OnInit {
   units: AssistanceUnitPayload[] = [];
 
-  readonly form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(3)]]
-  });
+  form!: FormGroup;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly unitService: AssistanceUnitService
-  ) {}
+  ) {
+    this.form = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadUnits();
