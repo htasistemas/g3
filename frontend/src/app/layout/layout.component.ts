@@ -59,50 +59,34 @@ export class LayoutComponent {
       icon: faUsers,
       children: [
         { label: 'Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
-        { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' }
-      ]
-    },
-    {
-      label: 'Famílias e Domicílios',
-      icon: faHouseChimneyUser,
-      children: [
-        { label: 'Cadastro de Famílias', icon: faUsers },
-        { label: 'Condições Habitacionais', icon: faClipboardList },
-        { label: 'Acompanhamento', icon: faHandshakeAngle }
-      ]
-    },
-    {
-      label: 'Atendimentos Sociais',
-      icon: faHandshakeAngle,
-      children: [
-        { label: 'Registrar Atendimento', icon: faClipboardList },
-        { label: 'Relatório de Visita', icon: faWallet },
-        { label: 'Acompanhamentos Contínuos', icon: faUsers }
-      ]
-    },
-    {
-      label: 'Programas e Projetos',
-      icon: faWallet,
-      children: [
-        { label: 'Cadastro de Programas', icon: faClipboardList },
-        { label: 'Inclusão de Beneficiários', icon: faUsers },
-        { label: 'Avaliação Social', icon: faHandshakeAngle }
+        { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
+        { label: 'Cadastros de Família', icon: faUsers },
+        { label: 'Voluntariado', icon: faClipboardList },
+        { label: 'Colaboradores', icon: faClipboardList }
       ]
     },
     {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
-      children: [{ label: 'Entrega de Benefícios', icon: faClipboardList }]
+      children: [{ label: 'Registrar Doações', icon: faClipboardList }]
     },
     {
-      label: 'Administrativo',
+      label: 'Gestão Administrativa',
       icon: faClipboardList,
-      children: [{ label: 'Painel Administrativo', icon: faClipboardList }]
+      children: [
+        { label: 'Ofícios', icon: faClipboardList },
+        { label: 'Documentos Internos', icon: faClipboardList },
+        { label: 'Almoxarifado', icon: faClipboardList },
+        { label: 'Patrimônio', icon: faClipboardList }
+      ]
     },
     {
-      label: 'Financeiro',
+      label: 'Gestão Financeira',
       icon: faWallet,
-      children: [{ label: 'Contabilidade', icon: faWallet }]
+      children: [
+        { label: 'Prestação de Contas', icon: faWallet },
+        { label: 'Contabilidade', icon: faWallet }
+      ]
     },
     {
       label: 'Configuração',
