@@ -12,6 +12,30 @@
   background: linear-gradient(180deg, var(--primary-strong) 0%, var(--primary-stronger) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+  width: 18rem;
+  transition: width 0.25s ease;
+}
+
+.sidebar--collapsed {
+  width: 4.5rem;
+}
+
+.sidebar--collapsed .sidebar__header,
+.sidebar--collapsed .menu-card__content,
+.sidebar--collapsed .menu-card__label {
+  display: none;
+}
+
+.sidebar--collapsed .menu-card__trigger {
+  justify-content: center;
+}
+
+.sidebar--collapsed .menu-card {
+  @apply p-2;
+}
+
+.sidebar--collapsed nav {
+  padding: 1rem 0.75rem;
 }
 
 .sidebar__header {

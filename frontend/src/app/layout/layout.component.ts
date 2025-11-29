@@ -58,6 +58,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly versionLabel = this.formatVersion(environment.version);
   pageTitle = 'Visão geral';
   private destroy$ = new Subject<void>();
+  isSidebarCollapsed = true;
 
   openSection: string | null = null;
 
@@ -74,9 +75,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Cadastros',
       icon: faUsers,
       children: [
-        { label: 'Beneficiários', icon: faUserPlus, route: '/beneficiarios/cadastro' },
+        { label: 'Famílias', icon: faUsers, route: '/beneficiarios/cadastro' },
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
-        { label: 'Cadastros de Família', icon: faUsers },
+        { label: 'Cadastros de Beneficiários', icon: faUserPlus },
         { label: 'Voluntariados', icon: faClipboardList },
         { label: 'Colaboradores', icon: faClipboardList }
       ]
@@ -171,6 +172,15 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   toggleSection(label: string): void {
     this.openSection = this.openSection === label ? null : label;
+  }
+
+  handleSidebarEnter(): void {
+    this.isSidebarCollapsed = false;
+  }
+
+  handleSidebarLeave(): void {
+    this.isSidebarCollapsed = true;
+    this.openSection = null;
   }
 
   closeSection(label: string): void {
