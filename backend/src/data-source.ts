@@ -37,7 +37,7 @@ function resolveRelationalPort(): number {
 
 const baseOptions = {
   entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig],
-  logging: false,
+  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true',
 } satisfies Partial<DataSourceOptions>;
 
 const sqliteOptions: DataSourceOptions = {
