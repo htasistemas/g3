@@ -20,12 +20,12 @@ export const routes: Routes = [
       {
         path: 'beneficiarios/editar/:id',
         component: BeneficiaryFormComponent,
-        data: { title: 'Cadastro de beneficiários' }
+        data: { title: 'Cadastro de famílias' }
       },
       {
         path: 'beneficiarios/cadastro',
         component: BeneficiaryFormComponent,
-        data: { title: 'Cadastro de beneficiários' }
+        data: { title: 'Cadastro de famílias' }
       },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       {

@@ -37,6 +37,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   editingId: number | null = null;
   saveFeedback: { type: 'success' | 'error'; message: string } | null = null;
   photoFile: File | null = null;
+  activeTab: 'family' | 'address' | 'members' | 'documents' | 'notes' = 'family';
   readonly statusOptions = ['Ativo', 'Inativo', 'Em análise', 'Bloqueado'];
   readonly sanitationOptions = [
     'Água tratada',
@@ -75,6 +76,25 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     'SE',
     'TO'
   ];
+  readonly tabControlMap: Record<string, string[]> = {
+    family: ['nomeCompleto', 'nomeMae', 'documentos', 'telefone', 'email', 'status', 'motivoBloqueio'],
+    address: ['cep', 'endereco', 'numeroEndereco', 'bairro', 'cidade', 'estado'],
+    members: [
+      'dataNascimento',
+      'idade',
+      'possuiFilhosMenores',
+      'quantidadeFilhosMenores',
+      'escolaridade',
+      'rendaIndividual',
+      'rendaFamiliar',
+      'situacaoEmprego',
+      'ocupacao',
+      'informacoesMoradia',
+      'condicoesSaneamento'
+    ],
+    documents: ['arquivosDocumentos'],
+    notes: ['observacoes']
+  };
   private mediaStream?: MediaStream;
   private currentVideoElement?: HTMLVideoElement;
   private photoObjectUrl?: string;
@@ -161,6 +181,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
     if (this.beneficiaryForm.invalid) {
       this.beneficiaryForm.markAllAsTouched();
+      this.activeTab = this.findFirstInvalidTab();
       return;
     }
 
@@ -175,17 +196,41 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       next: () => {
         this.resetForm();
         this.loadBeneficiaries();
-        this.saveFeedback = { type: 'success', message: 'Beneficiário salvo com sucesso.' };
+        this.saveFeedback = { type: 'success', message: 'Família salva com sucesso.' };
       },
       error: (error) => {
         console.error('Erro ao salvar beneficiário', error);
         const missing = error?.error?.missingDocuments as string[] | undefined;
         const message = missing?.length
           ? `Documentos obrigatórios ausentes: ${missing.join(', ')}`
-          : 'Erro ao salvar beneficiário.';
+          : 'Erro ao salvar a família.';
         this.saveFeedback = { type: 'error', message };
       }
     });
+  }
+
+  setActiveTab(tab: 'family' | 'address' | 'members' | 'documents' | 'notes'): void {
+    this.activeTab = tab;
+  }
+
+  tabHasErrors(tab: 'family' | 'address' | 'members' | 'documents' | 'notes'): boolean {
+    const controls = this.tabControlMap[tab];
+    return controls?.some((controlName) => {
+      const control = this.beneficiaryForm.get(controlName);
+      return control?.invalid && control?.touched;
+    });
+  }
+
+  get observacoesLength(): number {
+    return (this.beneficiaryForm.get('observacoes')?.value as string)?.length ?? 0;
+  }
+
+  private findFirstInvalidTab(): 'family' | 'address' | 'members' | 'documents' | 'notes' {
+    const target = Object.entries(this.tabControlMap).find(([, controls]) =>
+      controls.some((controlName) => this.beneficiaryForm.get(controlName)?.invalid)
+    );
+
+    return (target?.[0] as typeof this.activeTab) ?? this.activeTab;
   }
 
   formatTitleCase(controlName: string): void {
@@ -475,6 +520,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.currentEditingBeneficiary = null;
     this.documentStatus = 'Pendente';
+    this.activeTab = 'family';
     this.revokePhotoObjectUrl();
     this.photoPreview = null;
     this.photoFile = null;
