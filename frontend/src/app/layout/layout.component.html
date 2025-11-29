@@ -1,0 +1,35 @@
+<div class="min-h-screen flex bg-slate-100">
+  <aside class="w-72 bg-white border-r border-slate-200 shadow-sm hidden md:block">
+    <div class="p-4 border-b border-slate-200">
+      <h2 class="text-xl font-semibold text-slate-800">Navegação</h2>
+      <p class="text-xs text-slate-500">Menus prontos para receber componentes</p>
+    </div>
+    <nav class="p-4 space-y-4">
+      <div *ngFor="let section of menuSections" class="space-y-2">
+        <p class="text-sm font-semibold text-slate-700">{{ section.label }}</p>
+        <div class="space-y-1">
+          <div *ngFor="let child of section.children" class="flex items-center px-3 py-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-200">
+            <span class="h-2 w-2 rounded-full bg-g3-green-500 mr-3"></span>
+            {{ child }}
+          </div>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
+      <div>
+        <h1 class="text-lg font-semibold text-slate-800">Painel Principal</h1>
+        <p class="text-sm text-slate-500">Monte novas telas dentro deste layout.</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="text-sm text-slate-600">admin</span>
+        <button (click)="logout()" class="text-sm px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">Sair</button>
+      </div>
+    </header>
+    <main class="flex-1 overflow-y-auto">
+      <app-dashboard></app-dashboard>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-g3-green-500 via-slate-50 to-slate-200 px-4">
+  <div class="bg-white shadow-xl rounded-2xl w-full max-w-xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+    <div class="bg-g3-green-600 text-white p-8 flex flex-col justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">G3 Assistencial</h1>
+        <p class="text-sm text-green-50 leading-relaxed">Acesse o painel e comece a construir novas telas e ferramentas.</p>
+      </div>
+      <div class="text-xs text-green-50">Banco: g3 @ 72.60.156.202</div>
+    </div>
+    <div class="p-8 space-y-6">
+      <div class="text-center">
+        <h2 class="text-2xl font-semibold">Entrar</h2>
+        <p class="text-sm text-slate-500">Use o usuário padrão admin / 123</p>
+      </div>
+      <form (ngSubmit)="submit()" class="space-y-4">
+        <label class="block space-y-1">
+          <span class="text-sm font-medium text-slate-700">Usuário</span>
+          <input [(ngModel)]="username" name="username" required autocomplete="username" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-g3-green-600 focus:ring focus:ring-g3-green-500/30" />
+        </label>
+        <label class="block space-y-1">
+          <span class="text-sm font-medium text-slate-700">Senha</span>
+          <input [(ngModel)]="password" name="password" required type="password" autocomplete="current-password" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-g3-green-600 focus:ring focus:ring-g3-green-500/30" />
+        </label>
+        <button type="submit" [disabled]="loading" class="w-full bg-g3-green-600 hover:bg-g3-green-700 text-white font-semibold py-2 rounded-lg transition disabled:opacity-70">
+          {{ loading ? 'Entrando...' : 'Acessar painel' }}
+        </button>
+        <div *ngIf="error" class="text-sm text-red-600" role="alert">{{ error }}</div>
+      </form>
+    </div>
+  </div>
+</div>
