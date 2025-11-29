@@ -61,6 +61,9 @@ export class Beneficiary {
   @Column({ default: false })
   hasMinorChildren!: boolean;
 
+  @Column({ default: false })
+  hasDriverLicense!: boolean;
+
   @Column({ type: 'int', nullable: true })
   minorChildrenCount?: number;
 

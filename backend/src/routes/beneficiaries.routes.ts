@@ -23,9 +23,13 @@ router.post('/', async (req, res) => {
   const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
   const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
   const hasMinorChildren = Boolean(req.body.hasMinorChildren);
+  const hasDriverLicense = Boolean(req.body.hasDriverLicense);
 
   if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
     requiredDocs.push('Certidão de Nascimento');
+  }
+  if (hasDriverLicense && !requiredDocs.includes('CNH')) {
+    requiredDocs.push('CNH');
   }
   const missingRequired = requiredDocs.filter(
     (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)
@@ -56,9 +60,13 @@ router.put('/:id', async (req, res) => {
   const requiredDocs = configuredDocs.filter((doc) => doc.required).map((doc) => doc.name);
   const submittedDocs = (req.body.documents || []) as Array<{ name: string; fileName?: string }>;
   const hasMinorChildren = Boolean(req.body.hasMinorChildren);
+  const hasDriverLicense = Boolean(req.body.hasDriverLicense);
 
   if (hasMinorChildren && !requiredDocs.includes('Certidão de Nascimento')) {
     requiredDocs.push('Certidão de Nascimento');
+  }
+  if (hasDriverLicense && !requiredDocs.includes('CNH')) {
+    requiredDocs.push('CNH');
   }
   const missingRequired = requiredDocs.filter(
     (docName) => !submittedDocs.some((doc) => doc.name === docName && doc.fileName)

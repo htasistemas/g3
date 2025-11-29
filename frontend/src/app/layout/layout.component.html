@@ -13,7 +13,11 @@
       </div>
     </div>
     <nav class="p-4 space-y-3">
-      <div *ngFor="let section of menuSections" class="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+      <div
+        *ngFor="let section of menuSections"
+        class="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden"
+        (mouseleave)="closeSection(section.label)"
+      >
         <button
           type="button"
           (click)="toggleSection(section.label)"
@@ -31,7 +35,6 @@
             <a
               *ngIf="child.route; else staticChild"
               [routerLink]="child.route"
-              (click)="selectMenuItem()"
               class="flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-white hover:text-slate-800 transition cursor-pointer"
             >
               <fa-icon [icon]="child.icon" class="mr-3 text-slate-500"></fa-icon>

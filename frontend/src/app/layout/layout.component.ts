@@ -113,8 +113,10 @@ export class LayoutComponent {
     this.openSection = this.openSection === label ? null : label;
   }
 
-  selectMenuItem(): void {
-    this.openSection = null;
+  closeSection(label: string): void {
+    if (this.openSection === label) {
+      this.openSection = null;
+    }
   }
 
   logout(): void {
@@ -122,8 +124,8 @@ export class LayoutComponent {
   }
 
   private formatVersion(version: string): string {
-    const cleaned = version.replace(/^v/i, '');
-    const [major = '0', minor = '0', patch = '0'] = cleaned.split('.');
-    return `${major}.${minor}${patch}`;
+    const cleaned = version.trim().replace(/^v/i, '');
+    const segments = cleaned.split('.').filter(Boolean);
+    return segments.length ? segments.join('.') : '0.0.0';
   }
 }

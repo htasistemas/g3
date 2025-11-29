@@ -79,6 +79,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       state: ['', Validators.required],
       notes: [''],
       status: ['Ativo', Validators.required],
+      hasDriverLicense: [false],
       documentFiles: [[], [this.documentsRequiredValidator]],
       photo: [''],
       hasMinorChildren: [false],
@@ -99,6 +100,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.beneficiaryForm
       .get('hasMinorChildren')
       ?.valueChanges.subscribe((value: boolean) => this.toggleMinorChildrenRequirement(Boolean(value)));
+
+    this.beneficiaryForm
+      .get('hasDriverLicense')
+      ?.valueChanges.subscribe(() => this.updateConditionalDocumentRequirements());
   }
 
   ngOnInit(): void {
@@ -294,16 +299,21 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     }
 
     countControl.updateValueAndValidity({ emitEvent: false });
-    this.updateBirthCertificateRequirement(hasMinorChildren);
+    this.updateConditionalDocumentRequirements();
   }
 
-  private updateBirthCertificateRequirement(hasMinorChildren: boolean): void {
+  private updateConditionalDocumentRequirements(): void {
+    const hasMinorChildren = Boolean(this.beneficiaryForm.get('hasMinorChildren')?.value);
+    const hasDriverLicense = Boolean(this.beneficiaryForm.get('hasDriverLicense')?.value);
+
     this.requiredDocuments = this.requiredDocuments.map((doc) => {
       const baseRequired = doc.baseRequired ?? doc.required ?? false;
       const isBirthCertificate = doc.name === 'Certidão de Nascimento';
-      const required = isBirthCertificate ? hasMinorChildren || baseRequired : baseRequired;
+      const isDriverLicense = doc.name.toLowerCase() === 'cnh';
+      const required =
+        baseRequired || (isBirthCertificate && hasMinorChildren) || (isDriverLicense && hasDriverLicense);
 
-      return { ...doc, required };
+      return { ...doc, required, baseRequired };
     });
 
     this.updateDocumentControl();
@@ -393,9 +403,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       ...beneficiary,
       age: beneficiary.age,
       documentFiles: this.requiredDocuments,
-      photo: ''
+      photo: '',
+      hasDriverLicense: Boolean(beneficiary.hasDriverLicense)
     });
     this.toggleMinorChildrenRequirement(Boolean(beneficiary.hasMinorChildren));
+    this.updateConditionalDocumentRequirements();
   }
 
   resetForm(): void {
@@ -412,6 +424,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       status: 'Ativo',
       documentFiles: this.requiredDocuments,
       age: '',
+      hasDriverLicense: false,
       hasMinorChildren: false,
       minorChildrenCount: ''
     });
@@ -442,7 +455,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
           required: Boolean(document.required),
           baseRequired: Boolean(document.required)
         }));
-        this.updateBirthCertificateRequirement(Boolean(this.beneficiaryForm.get('hasMinorChildren')?.value));
+        this.updateConditionalDocumentRequirements();
       },
       error: (error) => console.error('Erro ao carregar documentos obrigatórios', error)
     });

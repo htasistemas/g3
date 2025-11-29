@@ -1,25 +1,33 @@
 <div class="p-6 space-y-6">
   <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100">
-    <h1 class="text-2xl font-semibold text-slate-800 mb-2">Bem-vindo(a) ao painel G3</h1>
-    <p class="text-slate-600">Os menus laterais já estão prontos para receber novos componentes. Use este espaço central para prototipar suas próximas telas.</p>
+    <h1 class="text-2xl font-semibold text-slate-800 mb-2">Visão geral</h1>
+    <p class="text-slate-600">Acompanhe rapidamente a situação dos cadastros de beneficiários e identifique quem ainda precisa de atenção.</p>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-2">
-    <div class="bg-gradient-to-br from-g3-green-500 to-g3-green-700 text-white rounded-xl p-6 shadow">
-      <h2 class="text-lg font-semibold mb-1">Usuário padrão</h2>
-      <p class="text-sm text-green-50">admin / 123</p>
-      <p class="text-xs text-green-50 mt-2">Os dados são gravados automaticamente no banco ao subir o backend.</p>
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <p class="text-sm text-slate-500">Beneficiários cadastrados</p>
+      <p class="text-3xl font-semibold text-slate-800 mt-2">{{ loading ? '...' : stats.total }}</p>
+      <p class="text-xs text-slate-500 mt-1">Total de registros armazenados.</p>
     </div>
-    <div class="bg-white rounded-xl border border-dashed border-slate-200 p-6 flex flex-col justify-center text-slate-500">
-      <p class="font-semibold text-slate-700">Área pronta para widgets</p>
-      <p class="text-sm">Acople aqui gráficos, cards e listas conforme novos requisitos.</p>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <p class="text-sm text-slate-500">Beneficiários ativos</p>
+      <p class="text-3xl font-semibold text-g3-green-700 mt-2">{{ loading ? '...' : stats.active }}</p>
+      <p class="text-xs text-slate-500 mt-1">Registros marcados como ativos no cadastro.</p>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <p class="text-sm text-slate-500">Com pendência</p>
+      <p class="text-3xl font-semibold text-amber-600 mt-2">{{ loading ? '...' : stats.pending }}</p>
+      <p class="text-xs text-slate-500 mt-1">Contam com status pendente ou em análise.</p>
     </div>
   </div>
+
+  <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">{{ error }}</div>
 
   <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-    <h3 class="text-lg font-semibold text-slate-800 mb-4">Módulos aguardando implementação</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div *ngFor="let item of placeholderItems" class="border border-slate-200 rounded-lg p-4 text-center text-slate-700 bg-slate-50">{{ item }}</div>
-    </div>
+    <h3 class="text-lg font-semibold text-slate-800 mb-2">Próximos passos</h3>
+    <p class="text-sm text-slate-600">Utilize os indicadores acima para priorizar cadastros, validar documentos pendentes e acompanhar a evolução do programa.</p>
   </div>
 </div>

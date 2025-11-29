@@ -30,6 +30,7 @@ export interface BeneficiaryPayload {
   notes?: string;
   status: string;
   hasMinorChildren?: boolean;
+  hasDriverLicense?: boolean;
   minorChildrenCount?: number;
   educationLevel?: string;
   individualIncome?: number | string;
