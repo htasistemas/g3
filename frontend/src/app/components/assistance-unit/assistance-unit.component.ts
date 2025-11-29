@@ -11,7 +11,7 @@ import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/ass
   styleUrl: './assistance-unit.component.scss'
 })
 export class AssistanceUnitComponent implements OnInit {
-  units: AssistanceUnitPayload[] = [];
+  unidade: AssistanceUnitPayload | null = null;
 
   form!: FormGroup;
 
@@ -20,12 +20,21 @@ export class AssistanceUnitComponent implements OnInit {
     private readonly unitService: AssistanceUnitService
   ) {
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]]
+      nome: ['', [Validators.required, Validators.minLength(3)]],
+      telefone: [''],
+      email: ['', Validators.email],
+      cep: [''],
+      endereco: [''],
+      numeroEndereco: [''],
+      bairro: [''],
+      cidade: [''],
+      estado: [''],
+      observacoes: ['']
     });
   }
 
   ngOnInit(): void {
-    this.loadUnits();
+    this.loadUnit();
   }
 
   save(): void {
@@ -34,11 +43,16 @@ export class AssistanceUnitComponent implements OnInit {
       return;
     }
 
-    this.unitService.save(this.form.value as AssistanceUnitPayload).subscribe({
+    const payload: AssistanceUnitPayload = {
+      ...this.form.value,
+      id: this.unidade?.id,
+    };
+
+    this.unitService.save(payload).subscribe({
       next: (created) => {
-        this.form.reset();
-        this.loadUnits();
-        this.unitService.setActiveUnit(created.name);
+        this.unidade = created;
+        this.form.patchValue(created);
+        this.unitService.setActiveUnit(created.nome);
       },
       error: (error) => {
         console.error('Erro ao salvar unidade', error);
@@ -46,16 +60,30 @@ export class AssistanceUnitComponent implements OnInit {
     });
   }
 
-  selectUnit(unit: AssistanceUnitPayload): void {
-    this.unitService.setActiveUnit(unit.name);
+  delete(): void {
+    if (!this.unidade?.id) {
+      return;
+    }
+
+    this.unitService.remove(this.unidade.id).subscribe({
+      next: () => {
+        this.unidade = null;
+        this.form.reset();
+      },
+      error: (error) => console.error('Erro ao excluir unidade', error)
+    });
   }
 
-  private loadUnits(): void {
-    this.unitService.list().subscribe({
-      next: (response) => {
-        this.units = response.units;
+  private loadUnit(): void {
+    this.unitService.get().subscribe({
+      next: ({ unidade }) => {
+        this.unidade = unidade;
+        if (unidade) {
+          this.form.patchValue(unidade);
+          this.unitService.setActiveUnit(unidade.nome);
+        }
       },
-      error: (error) => console.error('Erro ao carregar unidades', error)
+      error: (error) => console.error('Erro ao carregar unidade', error)
     });
   }
 }

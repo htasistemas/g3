@@ -5,9 +5,9 @@ export class BeneficiaryDocumentConfig {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ unique: true })
-  name!: string;
+  @Column({ name: 'nome', unique: true })
+  nome!: string;
 
-  @Column({ default: false })
-  required!: boolean;
+  @Column({ name: 'obrigatorio', default: false })
+  obrigatorio!: boolean;
 }

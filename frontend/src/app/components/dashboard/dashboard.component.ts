@@ -29,12 +29,12 @@ export class DashboardComponent implements OnInit {
     this.error = null;
 
     this.beneficiaryService.list().subscribe({
-      next: ({ beneficiaries }) => {
-        const active = beneficiaries.filter((beneficiary) => this.isActive(beneficiary.status)).length;
-        const pending = beneficiaries.filter((beneficiary) => this.hasPendingStatus(beneficiary.status)).length;
+      next: ({ beneficiarios }) => {
+        const active = beneficiarios.filter((beneficiary) => this.isActive(beneficiary.status)).length;
+        const pending = beneficiarios.filter((beneficiary) => this.hasPendingStatus(beneficiary.status)).length;
 
         this.stats = {
-          total: beneficiaries.length,
+          total: beneficiarios.length,
           active,
           pending
         };

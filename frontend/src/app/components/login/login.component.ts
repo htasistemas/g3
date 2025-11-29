@@ -12,8 +12,8 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  username = 'admin';
-  password = '123';
+  nomeUsuario = 'admin';
+  senha = '123';
   loading = false;
   error: string | null = null;
 
@@ -22,7 +22,7 @@ export class LoginComponent {
   submit(): void {
     this.error = null;
     this.loading = true;
-    this.auth.login(this.username, this.password).subscribe({
+    this.auth.login(this.nomeUsuario, this.senha).subscribe({
       next: () => {
         this.loading = false;
         this.router.navigate(['/']);

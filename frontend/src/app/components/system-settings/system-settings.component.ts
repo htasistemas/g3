@@ -38,8 +38,8 @@ export class SystemSettingsComponent implements OnInit {
         const controls = documents.map((doc) =>
           this.fb.group({
             id: [doc.id],
-            name: [doc.name],
-            required: [doc.required]
+            nome: [doc.nome],
+            obrigatorio: [doc.obrigatorio]
           })
         );
         this.form.setControl('documents', this.fb.array(controls));

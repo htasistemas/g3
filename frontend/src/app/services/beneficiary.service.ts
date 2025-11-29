@@ -3,43 +3,45 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 
-export interface DocumentRequirement {
-  name: string;
-  fileName?: string;
+export interface DocumentoObrigatorio {
+  nome: string;
+  nomeArquivo?: string;
   file?: File;
+  obrigatorio?: boolean;
   required?: boolean;
   baseRequired?: boolean;
 }
 
 export interface BeneficiaryPayload {
   id?: number;
-  zipCode: string;
-  fullName: string;
-  motherName?: string;
-  document: string;
-  birthDate: string;
-  age?: number;
-  phone: string;
+  cep: string;
+  nomeCompleto: string;
+  nomeMae?: string;
+  documentos: string;
+  dataNascimento: string;
+  idade?: number;
+  telefone: string;
   email: string;
-  address: string;
-  addressNumber?: string;
-  referencePoint?: string;
-  neighborhood?: string;
-  city?: string;
-  state?: string;
-  notes?: string;
+  endereco: string;
+  numeroEndereco?: string;
+  pontoReferencia?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  observacoes?: string;
   status: string;
-  hasMinorChildren?: boolean;
-  hasDriverLicense?: boolean;
-  minorChildrenCount?: number;
-  educationLevel?: string;
-  individualIncome?: number | string;
-  familyIncome?: number | string;
-  housingInformation?: string;
-  sanitationConditions?: string;
-  employmentStatus?: string;
-  occupation?: string;
-  documents: DocumentRequirement[];
+  possuiFilhosMenores?: boolean;
+  possuiCnh?: boolean;
+  quantidadeFilhosMenores?: number;
+  escolaridade?: string;
+  rendaIndividual?: number | string;
+  rendaFamiliar?: number | string;
+  informacoesMoradia?: string;
+  condicoesSaneamento?: string;
+  situacaoEmprego?: string;
+  ocupacao?: string;
+  documentosAnexos: DocumentoObrigatorio[];
+  foto?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,12 +50,12 @@ export class BeneficiaryService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getRequiredDocuments(): Observable<{ documents: DocumentRequirement[] }> {
-    return this.http.get<{ documents: DocumentRequirement[] }>(`${this.baseUrl}/documents`);
+  getRequiredDocuments(): Observable<{ documents: DocumentoObrigatorio[] }> {
+    return this.http.get<{ documents: DocumentoObrigatorio[] }>(`${this.baseUrl}/documents`);
   }
 
-  list(): Observable<{ beneficiaries: BeneficiaryPayload[] }> {
-    return this.http.get<{ beneficiaries: BeneficiaryPayload[] }>(this.baseUrl);
+  list(): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
+    return this.http.get<{ beneficiarios: BeneficiaryPayload[] }>(this.baseUrl);
   }
 
   save(payload: BeneficiaryPayload): Observable<BeneficiaryPayload> {

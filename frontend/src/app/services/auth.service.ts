@@ -7,19 +7,19 @@ import { Router } from '@angular/router';
 
 interface LoginResponse {
   token: string;
-  user: { id: string; username: string };
+  user: { id: string; nomeUsuario: string };
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'g3_session';
-  readonly user = signal<{ id: string; username: string } | null>(this.loadUser());
+  readonly user = signal<{ id: string; nomeUsuario: string } | null>(this.loadUser());
 
   constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
-  login(username: string, password: string): Observable<LoginResponse> {
+  login(nomeUsuario: string, senha: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${environment.apiUrl}/api/auth/login`, { username, password })
+      .post<LoginResponse>(`${environment.apiUrl}/api/auth/login`, { nomeUsuario, senha })
       .pipe(
         tap((response) => {
           this.user.set(response.user);
@@ -49,7 +49,7 @@ export class AuthService {
     return raw ? (JSON.parse(raw) as LoginResponse) : null;
   }
 
-  private loadUser(): { id: string; username: string } | null {
+  private loadUser(): { id: string; nomeUsuario: string } | null {
     return this.loadSession()?.user ?? null;
   }
 }

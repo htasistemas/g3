@@ -6,27 +6,27 @@ import { User } from '../entities/User';
 const router = Router();
 
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body as { username?: string; password?: string };
+  const { nomeUsuario, senha } = req.body as { nomeUsuario?: string; senha?: string };
 
-  if (!username || !password) {
+  if (!nomeUsuario || !senha) {
     return res.status(400).json({ message: 'Usuário e senha são obrigatórios.' });
   }
 
   const repo = AppDataSource.getRepository(User);
-  const user = await repo.findOne({ where: { username } });
+  const user = await repo.findOne({ where: { nomeUsuario } });
 
   if (!user) {
     return res.status(401).json({ message: 'Credenciais inválidas.' });
   }
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
+  const valid = await bcrypt.compare(senha, user.hashSenha);
   if (!valid) {
     return res.status(401).json({ message: 'Credenciais inválidas.' });
   }
 
   return res.json({
     token: 'session-token',
-    user: { id: user.id, username: user.username },
+    user: { id: user.id, nomeUsuario: user.nomeUsuario },
   });
 });
 

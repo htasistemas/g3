@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 
 export interface BeneficiaryDocumentConfig {
   id?: number;
-  name: string;
-  required: boolean;
+  nome: string;
+  obrigatorio: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

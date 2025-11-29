@@ -5,6 +5,7 @@ import { User } from './entities/User';
 import { Beneficiary } from './entities/Beneficiary';
 import { AssistanceUnit } from './entities/AssistanceUnit';
 import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
+import { RenameSchemaToPortuguese172 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 
 dotenv.config();
 
@@ -18,7 +19,9 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'g3',
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'g3',
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig],
+  migrations: [RenameSchemaToPortuguese172],
+  migrationsRun: true,
 });

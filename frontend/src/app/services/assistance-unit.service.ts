@@ -5,7 +5,16 @@ import { environment } from '../../environments/environment';
 
 export interface AssistanceUnitPayload {
   id?: number;
-  name: string;
+  nome: string;
+  telefone?: string;
+  email?: string;
+  cep?: string;
+  endereco?: string;
+  numeroEndereco?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+  observacoes?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,12 +30,20 @@ export class AssistanceUnitService {
 
   constructor(private readonly http: HttpClient) {}
 
-  list(): Observable<{ units: AssistanceUnitPayload[] }> {
-    return this.http.get<{ units: AssistanceUnitPayload[] }>(this.baseUrl);
+  get(): Observable<{ unidade: AssistanceUnitPayload | null }> {
+    return this.http.get<{ unidade: AssistanceUnitPayload | null }>(this.baseUrl);
   }
 
   save(payload: AssistanceUnitPayload): Observable<AssistanceUnitPayload> {
+    if (payload.id) {
+      return this.http.put<AssistanceUnitPayload>(`${this.baseUrl}/${payload.id}`, payload);
+    }
+
     return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);
+  }
+
+  remove(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(tap(() => this.setActiveUnit('Navegação')));
   }
 
   setActiveUnit(name: string): void {
