@@ -4,6 +4,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
+import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -13,7 +14,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', component: DashboardComponent },
-      { path: 'beneficiarios/cadastro', component: BeneficiaryFormComponent }
+      { path: 'beneficiarios/cadastro', component: BeneficiaryFormComponent },
+      { path: 'unidades/cadastro', component: AssistanceUnitComponent }
     ]
   },
   { path: '**', redirectTo: '' }

@@ -1,5 +1,4 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -8,6 +7,8 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
+import { BeneficiaryPayload, BeneficiaryService, DocumentRequirement } from '../../services/beneficiary.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-beneficiary-form',
@@ -16,15 +17,49 @@ import {
   templateUrl: './beneficiary-form.component.html',
   styleUrl: './beneficiary-form.component.scss'
 })
-export class BeneficiaryFormComponent implements OnDestroy {
+export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   beneficiaryForm: FormGroup;
   documentStatus = 'Pendente';
-  uploadedDocuments: File[] = [];
+  requiredDocuments: DocumentRequirement[] = [];
   photoPreview: string | null = null;
   cameraActive = false;
+  beneficiaries: BeneficiaryPayload[] = [];
+  editingId: number | null = null;
+  readonly states = [
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO'
+  ];
   private mediaStream?: MediaStream;
 
-  constructor(private readonly fb: FormBuilder) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly beneficiaryService: BeneficiaryService
+  ) {
     this.beneficiaryForm = this.fb.group({
       zipCode: ['', [Validators.required, this.cepValidator]],
       fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -35,9 +70,11 @@ export class BeneficiaryFormComponent implements OnDestroy {
       phone: ['', [Validators.required, this.phoneValidator]],
       email: ['', [Validators.required, Validators.email]],
       address: ['', Validators.required],
+      addressNumber: ['', Validators.required],
+      referencePoint: [''],
       neighborhood: [''],
       city: [''],
-      state: [''],
+      state: ['', Validators.required],
       notes: [''],
       status: ['Ativo', Validators.required],
       documentFiles: [[], [this.documentsRequiredValidator]],
@@ -49,14 +86,30 @@ export class BeneficiaryFormComponent implements OnDestroy {
       ?.valueChanges.subscribe((value: string | null) => this.updateAge(value));
   }
 
+  ngOnInit(): void {
+    this.loadRequiredDocuments();
+    this.loadBeneficiaries();
+  }
+
   submit(): void {
     if (this.beneficiaryForm.invalid) {
       this.beneficiaryForm.markAllAsTouched();
       return;
     }
 
-    const formValue = this.beneficiaryForm.value;
-    console.table(formValue);
+    const formValue = {
+      ...this.beneficiaryForm.getRawValue(),
+      id: this.editingId ?? undefined,
+      documents: this.requiredDocuments.map((doc) => ({ name: doc.name, fileName: doc.fileName }))
+    } as BeneficiaryPayload;
+
+    this.beneficiaryService.save(formValue).subscribe({
+      next: () => {
+        this.resetForm();
+        this.loadBeneficiaries();
+      },
+      error: (error) => console.error('Erro ao salvar beneficiário', error)
+    });
   }
 
   formatTitleCase(controlName: string): void {
@@ -200,14 +253,18 @@ export class BeneficiaryFormComponent implements OnDestroy {
     this.beneficiaryForm.get('age')?.setValue(age >= 0 ? age : '', { emitEvent: false });
   }
 
-  onDocumentUpload(event: Event): void {
+  onDocumentUpload(event: Event, documentName: string): void {
     const input = event.target as HTMLInputElement;
-    const files = input.files ? Array.from(input.files) : [];
-    this.uploadedDocuments = files;
-    this.documentStatus = files.length ? 'Enviado' : 'Pendente';
-    const documentControl = this.beneficiaryForm.get('documentFiles');
-    documentControl?.setValue(files);
-    documentControl?.markAsTouched();
+    const file = input.files?.[0];
+    const targetDoc = this.requiredDocuments.find((doc) => doc.name === documentName);
+
+    if (!targetDoc) {
+      return;
+    }
+
+    targetDoc.file = file || undefined;
+    targetDoc.fileName = file?.name || targetDoc.fileName;
+    this.updateDocumentControl();
   }
 
   handlePhotoUpload(event: Event): void {
@@ -264,10 +321,68 @@ export class BeneficiaryFormComponent implements OnDestroy {
     this.stopCamera();
   }
 
-  private documentsRequiredValidator = (control: AbstractControl): ValidationErrors | null => {
-    const files = control.value as File[] | undefined;
+  startEdit(beneficiary: BeneficiaryPayload): void {
+    this.editingId = beneficiary.id ?? null;
+    this.requiredDocuments = this.requiredDocuments.map((doc) => ({
+      ...doc,
+      file: undefined,
+      fileName: beneficiary.documents?.find((d) => d.name === doc.name)?.fileName
+    }));
+    this.updateDocumentControl();
 
-    return Array.isArray(files) && files.length > 0 ? null : { documentsRequired: true };
+    this.beneficiaryForm.reset({
+      ...beneficiary,
+      age: beneficiary.age,
+      documentFiles: this.requiredDocuments,
+      photo: ''
+    });
+  }
+
+  resetForm(): void {
+    this.editingId = null;
+    this.documentStatus = 'Pendente';
+    this.photoPreview = null;
+    this.requiredDocuments = this.requiredDocuments.map((doc) => ({ name: doc.name }));
+    this.updateDocumentControl();
+    this.beneficiaryForm.reset({ status: 'Ativo', documentFiles: this.requiredDocuments, age: '' });
+  }
+
+  private updateDocumentControl(): void {
+    const documentControl = this.beneficiaryForm.get('documentFiles');
+    documentControl?.setValue(this.requiredDocuments);
+    documentControl?.updateValueAndValidity();
+
+    const allProvided = this.requiredDocuments.every((doc) => doc.fileName);
+    this.documentStatus = allProvided ? 'Enviado' : 'Pendente';
+  }
+
+  private loadRequiredDocuments(): void {
+    this.beneficiaryService.getRequiredDocuments().subscribe({
+      next: ({ documents }) => {
+        this.requiredDocuments = documents.map((name) => ({ name }));
+        this.updateDocumentControl();
+      },
+      error: (error) => console.error('Erro ao carregar documentos obrigatórios', error)
+    });
+  }
+
+  private loadBeneficiaries(): void {
+    this.beneficiaryService.list().subscribe({
+      next: ({ beneficiaries }) => {
+        this.beneficiaries = beneficiaries;
+      },
+      error: (error) => console.error('Erro ao carregar beneficiários', error)
+    });
+  }
+
+  private documentsRequiredValidator = (control: AbstractControl): ValidationErrors | null => {
+    const docs = control.value as DocumentRequirement[];
+    const missingDocuments = this.requiredDocuments.some((doc) => {
+      const matched = docs?.find((item) => item.name === doc.name);
+      return !matched?.fileName;
+    });
+
+    return missingDocuments ? { documentsRequired: true } : null;
   };
 
   private cepValidator(control: AbstractControl): ValidationErrors | null {

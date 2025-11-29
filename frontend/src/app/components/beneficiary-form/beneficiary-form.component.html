@@ -85,7 +85,7 @@
             </p>
           </div>
 
-          <div class="space-y-2 grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="birthDate">Data de nascimento</label>
               <input
@@ -169,11 +169,36 @@
             formControlName="address"
             (input)="formatTitleCase('address')"
             class="input"
-            placeholder="Rua, número, complemento"
+            placeholder="Rua ou avenida"
           />
           <p *ngIf="beneficiaryForm.get('address')?.touched && beneficiaryForm.get('address')?.invalid" class="text-xs text-red-500">
             Endereço é obrigatório.
           </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="addressNumber">Número</label>
+          <input
+            id="addressNumber"
+            type="text"
+            formControlName="addressNumber"
+            class="input"
+            placeholder="Número da residência"
+          />
+          <p *ngIf="beneficiaryForm.get('addressNumber')?.touched && beneficiaryForm.get('addressNumber')?.invalid" class="text-xs text-red-500">
+            Informe o número da residência.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="referencePoint">Ponto de referência</label>
+          <input
+            id="referencePoint"
+            type="text"
+            formControlName="referencePoint"
+            class="input"
+            placeholder="Próximo a..."
+          />
         </div>
 
         <div class="space-y-2">
@@ -202,15 +227,10 @@
 
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700" for="state">Estado</label>
-          <input
-            id="state"
-            type="text"
-            formControlName="state"
-            (input)="formatTitleCase('state')"
-            class="input uppercase"
-            placeholder="UF"
-            maxlength="2"
-          />
+          <select id="state" formControlName="state" class="input">
+            <option value="" disabled>Selecione</option>
+            <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+          </select>
         </div>
 
         <div class="space-y-2 md:col-span-2">
@@ -228,19 +248,25 @@
 
     <div class="card space-y-4">
       <div class="card__header">Documentos Obrigatórios</div>
-      <p class="text-sm text-slate-600">Anexar Documentos (RG, CPF, Comp. Residência, etc.)</p>
+      <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
       <input type="hidden" formControlName="documentFiles" />
-      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <input type="file" multiple (change)="onDocumentUpload($event)" class="file-input" />
-        <span class="text-sm text-slate-600" *ngIf="!uploadedDocuments.length">Nenhum arquivo selecionado.</span>
+
+      <div class="space-y-3">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-3 border border-slate-200 rounded-lg p-3 bg-slate-50"
+          *ngFor="let doc of requiredDocuments"
+        >
+          <div>
+            <p class="text-sm font-semibold text-slate-800">{{ doc.name }}</p>
+            <p class="text-xs text-slate-500">{{ doc.fileName ? 'Arquivo: ' + doc.fileName : 'Nenhum arquivo selecionado' }}</p>
+          </div>
+          <input type="file" (change)="onDocumentUpload($event, doc.name)" class="file-input" />
+        </div>
       </div>
+
       <p *ngIf="beneficiaryForm.get('documentFiles')?.touched && beneficiaryForm.get('documentFiles')?.invalid" class="text-xs text-red-500">
-        Selecione pelo menos um documento obrigatório.
+        Todos os documentos obrigatórios devem ser anexados.
       </p>
-      <ul class="text-sm text-slate-700 list-disc list-inside" *ngIf="uploadedDocuments.length">
-        <li *ngFor="let file of uploadedDocuments">{{ file.name }}</li>
-      </ul>
-      <p class="text-xs text-slate-500">Nenhum arquivo selecionado. O status será "Pendente" se salvar como "Ativo".</p>
 
       <div class="flex items-center gap-3 pt-2">
         <span class="text-sm font-medium text-slate-700">Status do cadastro:</span>
@@ -252,8 +278,37 @@
     </div>
 
     <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm">
-      <button type="reset" class="btn-outline">Limpar</button>
-      <button type="submit" class="btn-primary">Salvar cadastro</button>
+      <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
+      <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar cadastro' : 'Salvar cadastro' }}</button>
     </div>
   </form>
+
+  <div class="card space-y-4">
+    <div class="card__header">Beneficiários cadastrados</div>
+    <p class="text-sm text-slate-600" *ngIf="!beneficiaries.length">Nenhum beneficiário cadastrado.</p>
+    <div class="overflow-x-auto" *ngIf="beneficiaries.length">
+      <table class="min-w-full text-sm text-slate-700">
+        <thead>
+          <tr class="text-left border-b border-slate-200">
+            <th class="py-2 pr-4">Nome</th>
+            <th class="py-2 pr-4">CPF</th>
+            <th class="py-2 pr-4">Status</th>
+            <th class="py-2 pr-4">Cidade/UF</th>
+            <th class="py-2">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let beneficiary of beneficiaries" class="border-b border-slate-100">
+            <td class="py-2 pr-4 font-semibold">{{ beneficiary.fullName }}</td>
+            <td class="py-2 pr-4">{{ beneficiary.document }}</td>
+            <td class="py-2 pr-4">{{ beneficiary.status }}</td>
+            <td class="py-2 pr-4">{{ beneficiary.city }}/{{ beneficiary.state }}</td>
+            <td class="py-2">
+              <button type="button" class="btn-outline" (click)="startEdit(beneficiary)">Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

@@ -18,6 +18,7 @@ import {
   faWallet
 } from '@fortawesome/free-solid-svg-icons';
 import { environment } from '../../environments/environment';
+import { AssistanceUnitService } from '../services/assistance-unit.service';
 
 interface MenuChild {
   label: string;
@@ -58,7 +59,7 @@ export class LayoutComponent {
       icon: faUsers,
       children: [
         { label: 'Beneficiário', icon: faUserPlus, route: '/beneficiarios/cadastro' },
-        { label: 'Unidade Assistencial', icon: faHouseChimneyUser }
+        { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' }
       ]
     },
     {
@@ -90,10 +91,17 @@ export class LayoutComponent {
     }
   ];
 
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly assistanceUnitService: AssistanceUnitService
+  ) {}
 
   get username(): string {
     return this.auth.user()?.username ?? 'Admin';
+  }
+
+  get activeUnitName$() {
+    return this.assistanceUnitService.currentUnitName$;
   }
 
   toggleSection(label: string): void {

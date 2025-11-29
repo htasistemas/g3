@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { AppDataSource } from './data-source';
 import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
+import beneficiariesRoutes from './routes/beneficiaries.routes';
+import assistanceUnitsRoutes from './routes/assistance-units.routes';
 
 dotenv.config();
 
@@ -19,6 +21,8 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/beneficiaries', beneficiariesRoutes);
+app.use('/api/assistance-units', assistanceUnitsRoutes);
 
 async function start() {
   try {
