@@ -9,6 +9,7 @@ import { AssistanceUnitComponent } from './components/assistance-unit/assistance
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
+import { FamilyCompositionComponent } from './components/family-composition/family-composition.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -34,6 +35,7 @@ export const routes: Routes = [
         component: BeneficiaryFormComponent,
         data: { title: 'Beneficiários' }
       },
+      { path: 'familias', component: FamilyCompositionComponent, data: { title: 'Composição familiar' } },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       {
         path: 'configuracoes/sistema',
