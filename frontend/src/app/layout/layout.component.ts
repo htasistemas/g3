@@ -23,7 +23,6 @@ import {
   faWallet,
   faWrench
 } from '@fortawesome/free-solid-svg-icons';
-import { environment } from '../../environments/environment';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -55,7 +54,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly faUserCircle = faUserCircle;
   readonly faSun = faSun;
   readonly faMoon = faMoon;
-  readonly versionLabel = this.formatVersion(environment.version);
   pageTitle = 'Visão geral';
   private destroy$ = new Subject<void>();
   isSidebarCollapsed = true;
@@ -123,6 +121,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Documentos obrigatórios', icon: faClipboardList, route: '/configuracoes/sistema' },
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
+        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
         { label: 'Usuários e permissões', icon: faUserPlus, route: '/configuracoes/usuarios' },
         { label: 'Backup e restauração', icon: faClipboardList }
       ]
@@ -194,21 +193,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private formatVersion(version: string): string {
-    const cleaned = version.trim().replace(/^v/i, '');
-    const segments = cleaned.split('.').filter(Boolean);
-
-    if (!segments.length) {
-      return '0.000';
-    }
-
-    const [major = '0', minor = '0', patch = '0'] = segments;
-    const numericCombined = `${minor}${patch}`.replace(/\D/g, '');
-    const paddedValue = numericCombined.padStart(3, '0').slice(-3);
-
-    return `${major}.${paddedValue}`;
   }
 
   private findDeepestChild(route: ActivatedRoute): ActivatedRoute {

@@ -1,0 +1,42 @@
+<div class="version-page">
+  <header class="version-header">
+    <div>
+      <p class="eyebrow">Configuração do Sistema</p>
+      <h1>Versão do sistema</h1>
+      <p class="subtitle">Acompanhe a versão atual e o histórico das últimas entregas.</p>
+    </div>
+    <div class="version-chip">
+      <span>Versão atual</span>
+      <strong>{{ formattedVersion }}</strong>
+    </div>
+  </header>
+
+  <section class="version-card">
+    <div class="card__header">
+      <div>
+        <p class="card__eyebrow">Detalhes</p>
+        <h2>Informações da release</h2>
+        <p class="card__subtitle">Número da versão, origem e anotações rápidas.</p>
+      </div>
+      <div class="card__meta">
+        <p class="meta-label">Identificador técnico</p>
+        <p class="meta-value">{{ currentVersion }}</p>
+      </div>
+    </div>
+
+    <div class="release-grid">
+      <article class="release" *ngFor="let note of releaseNotes">
+        <div class="release__header">
+          <div>
+            <p class="release__label">Versão</p>
+            <h3>{{ note.version }}</h3>
+          </div>
+          <span class="release__date">{{ note.date }}</span>
+        </div>
+        <ul>
+          <li *ngFor="let highlight of note.highlights">{{ highlight }}</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+</div>

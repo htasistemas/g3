@@ -30,10 +30,13 @@
         <span class="pill">Obrigatório</span>
       </div>
       <div class="field-grid cols-2">
-        <label class="field">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
+        <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
         <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
         <label class="field">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
-        <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
+        <div class="field date-field">
+          <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
+          <p class="age-hint" *ngIf="beneficiaryAge !== null">{{ beneficiaryAge }} anos</p>
+        </div>
         <label class="field">Sexo biológico<select formControlName="sexo_biologico">
             <option value=""></option>
             <option value="MASCULINO">Masculino</option>
@@ -56,8 +59,8 @@
           <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
           <label class="field">UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
         </div>
-        <label class="field">Nome da mãe*<input formControlName="nome_mae" /></label>
-        <label class="field">Nome do pai<input formControlName="nome_pai" /></label>
+        <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
+        <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
       </div>
     </div>
 
