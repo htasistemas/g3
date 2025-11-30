@@ -5,8 +5,8 @@ export class AssistanceUnit {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ name: 'nome_fantasia', unique: true })
-  nomeFantasia!: string;
+  @Column({ name: 'nome_fantasia', unique: true, nullable: true })
+  nomeFantasia?: string;
 
   @Column({ name: 'razao_social', nullable: true })
   razaoSocial?: string;
