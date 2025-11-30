@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs';
+import { filter } from 'rxjs';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 
 interface ViaCepResponse {
@@ -63,8 +63,8 @@ export class AssistanceUnitComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       nomeFantasia: ['', [Validators.required, Validators.minLength(3)]],
-      razaoSocial: ['', [Validators.required, Validators.minLength(3)]],
-      cnpj: ['', [Validators.required]],
+      razaoSocial: ['', [Validators.minLength(3)]],
+      cnpj: [''],
       telefone: [''],
       email: ['', Validators.email],
       cep: [''],
@@ -82,7 +82,6 @@ export class AssistanceUnitComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUnit();
-    this.watchCepChanges();
   }
 
   save(): void {
@@ -128,6 +127,9 @@ export class AssistanceUnitComponent implements OnInit {
         this.unidade = unidade;
         if (unidade) {
           this.form.patchValue(unidade);
+          if (unidade.cep) {
+            this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
+          }
           this.unitService.setActiveUnit(unidade.nomeFantasia);
         }
       },
@@ -139,6 +141,18 @@ export class AssistanceUnitComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const formatted = this.formatPhone(input.value);
     this.form.get('telefone')?.setValue(formatted, { emitEvent: false });
+  }
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    const masked = this.formatCep(digits);
+
+    this.form.get('cep')?.setValue(masked, { emitEvent: false });
+
+    if (digits.length === 8) {
+      this.fetchAddress(digits);
+    }
   }
 
   private formatPhone(value: string): string {
@@ -157,27 +171,6 @@ export class AssistanceUnitComponent implements OnInit {
     }
 
     return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
-  }
-
-  private watchCepChanges(): void {
-    const cepControl = this.form.get('cep');
-
-    if (!cepControl) return;
-
-    cepControl.valueChanges
-      .pipe(
-        map((value: string) => value?.replace(/\D/g, '').slice(0, 8) ?? ''),
-        distinctUntilChanged(),
-        tap((numericCep) => {
-          const masked = this.formatCep(numericCep);
-          if (masked !== cepControl.value) {
-            cepControl.setValue(masked, { emitEvent: false });
-          }
-        }),
-        filter((numericCep) => numericCep.length === 8),
-        debounceTime(300)
-      )
-      .subscribe((numericCep) => this.fetchAddress(numericCep));
   }
 
   private formatCep(value: string): string {
