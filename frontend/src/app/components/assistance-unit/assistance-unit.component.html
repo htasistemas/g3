@@ -8,16 +8,37 @@
     <form [formGroup]="form" class="space-y-4" (ngSubmit)="save()">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="nome">Nome da unidade</label>
-          <input id="nome" type="text" formControlName="nome" class="input" placeholder="Ex.: Unidade Central" />
-          <p *ngIf="form.get('nome')?.touched && form.get('nome')?.invalid" class="text-xs text-red-500">
-            Informe um nome válido para a unidade.
+          <label class="text-sm font-medium text-slate-700" for="nomeFantasia">Nome fantasia</label>
+          <input id="nomeFantasia" type="text" formControlName="nomeFantasia" class="input" placeholder="Ex.: Unidade Central" />
+          <p *ngIf="form.get('nomeFantasia')?.touched && form.get('nomeFantasia')?.invalid" class="text-xs text-red-500">
+            Informe um nome fantasia válido para a unidade.
+          </p>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="razaoSocial">Razão social</label>
+          <input id="razaoSocial" type="text" formControlName="razaoSocial" class="input" placeholder="Nome empresarial" />
+          <p *ngIf="form.get('razaoSocial')?.touched && form.get('razaoSocial')?.invalid" class="text-xs text-red-500">
+            Informe a razão social da instituição.
           </p>
         </div>
 
         <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="cnpj">CNPJ</label>
+          <input id="cnpj" type="text" formControlName="cnpj" class="input" placeholder="00.000.000/0000-00" />
+          <p *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.invalid" class="text-xs text-red-500">Informe um CNPJ.</p>
+        </div>
+
+        <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700" for="telefone">Telefone</label>
-          <input id="telefone" type="text" formControlName="telefone" class="input" placeholder="(00) 0000-0000" />
+          <input
+            id="telefone"
+            type="text"
+            formControlName="telefone"
+            class="input"
+            placeholder="(00) 00000-0000"
+            (input)="onPhoneInput($event)"
+          />
         </div>
 
         <div class="space-y-2">
@@ -33,14 +54,16 @@
           <input id="cep" type="text" formControlName="cep" class="input" placeholder="00000-000" />
         </div>
 
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
-          <input id="numeroEndereco" type="text" formControlName="numeroEndereco" class="input" placeholder="Número" />
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
+          <div class="space-y-2 md:col-span-2">
+            <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
+            <input id="endereco" type="text" formControlName="endereco" class="input" placeholder="Rua, avenida..." />
+          </div>
 
-        <div class="space-y-2 md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
-          <input id="endereco" type="text" formControlName="endereco" class="input" placeholder="Rua, avenida..." />
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
+            <input id="numeroEndereco" type="text" formControlName="numeroEndereco" class="input" placeholder="Número" />
+          </div>
         </div>
 
         <div class="space-y-2">
@@ -55,7 +78,37 @@
 
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700" for="estado">Estado</label>
-          <input id="estado" type="text" formControlName="estado" class="input" placeholder="UF" />
+          <select id="estado" formControlName="estado" class="input">
+            <option value="">Selecione...</option>
+            <option *ngFor="let uf of estados" [value]="uf">{{ uf }}</option>
+          </select>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="responsavelNome">Diretor(a) / coordenador(a) / presidente</label>
+          <input
+            id="responsavelNome"
+            type="text"
+            formControlName="responsavelNome"
+            class="input"
+            placeholder="Nome completo do responsável"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="responsavelCpf">CPF do responsável</label>
+          <input id="responsavelCpf" type="text" formControlName="responsavelCpf" class="input" placeholder="000.000.000-00" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-700" for="responsavelPeriodoMandato">Período de mandato</label>
+          <input
+            id="responsavelPeriodoMandato"
+            type="text"
+            formControlName="responsavelPeriodoMandato"
+            class="input"
+            placeholder="Ex.: 2024 - 2026"
+          />
         </div>
 
         <div class="space-y-2 md:col-span-2">
@@ -84,13 +137,18 @@
     <div class="card__header">Dados atuais da unidade</div>
     <p class="text-sm text-slate-600" *ngIf="!unidade">Nenhuma unidade cadastrada até o momento.</p>
     <div *ngIf="unidade" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
-      <p><span class="font-semibold">Nome:</span> {{ unidade.nome }}</p>
+      <p><span class="font-semibold">Nome fantasia:</span> {{ unidade.nomeFantasia }}</p>
+      <p><span class="font-semibold">Razão social:</span> {{ unidade.razaoSocial || 'Não informada' }}</p>
+      <p><span class="font-semibold">CNPJ:</span> {{ unidade.cnpj || 'Não informado' }}</p>
       <p><span class="font-semibold">Telefone:</span> {{ unidade.telefone || 'Não informado' }}</p>
       <p><span class="font-semibold">E-mail:</span> {{ unidade.email || 'Não informado' }}</p>
       <p><span class="font-semibold">CEP:</span> {{ unidade.cep || 'Não informado' }}</p>
       <p class="md:col-span-2"><span class="font-semibold">Endereço:</span> {{ unidade.endereco }} {{ unidade.numeroEndereco }}</p>
       <p><span class="font-semibold">Bairro:</span> {{ unidade.bairro || 'Não informado' }}</p>
       <p><span class="font-semibold">Cidade/Estado:</span> {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}</p>
+      <p class="md:col-span-2"><span class="font-semibold">Responsável:</span> {{ unidade.responsavelNome || 'Não informado' }}</p>
+      <p><span class="font-semibold">CPF:</span> {{ unidade.responsavelCpf || 'Não informado' }}</p>
+      <p><span class="font-semibold">Período de mandato:</span> {{ unidade.responsavelPeriodoMandato || 'Não informado' }}</p>
       <p class="md:col-span-2"><span class="font-semibold">Observações:</span> {{ unidade.observacoes || 'Nenhuma' }}</p>
     </div>
   </div>

@@ -5,7 +5,9 @@ import { environment } from '../../environments/environment';
 
 export interface AssistanceUnitPayload {
   id?: number;
-  nome: string;
+  nomeFantasia: string;
+  razaoSocial?: string;
+  cnpj?: string;
   telefone?: string;
   email?: string;
   cep?: string;
@@ -15,6 +17,9 @@ export interface AssistanceUnitPayload {
   cidade?: string;
   estado?: string;
   observacoes?: string;
+  responsavelNome?: string;
+  responsavelCpf?: string;
+  responsavelPeriodoMandato?: string;
 }
 
 @Injectable({ providedIn: 'root' })
