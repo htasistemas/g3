@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Va
 import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { BeneficiarioPayload, BeneficiarioService } from '../../services/beneficiario.service';
 import {
   FamilyIncomeDetails,
   FamilyMemberPayload,
@@ -24,8 +24,8 @@ import {
 export class FamilyCompositionComponent implements OnInit, OnDestroy {
   activeTab: 'family' | 'address' | 'members' | 'income' | 'vulnerability' = 'family';
   familyForm = this.buildForm();
-  beneficiaries: BeneficiaryPayload[] = [];
-  filteredBeneficiaries: BeneficiaryPayload[] = [];
+  beneficiaries: BeneficiarioPayload[] = [];
+  filteredBeneficiaries: BeneficiarioPayload[] = [];
   memberSearchTerm = '';
   isSaving = false;
   feedback: { type: 'success' | 'error'; message: string } | null = null;
@@ -34,7 +34,7 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly beneficiaryService: BeneficiaryService,
+    private readonly beneficiaryService: BeneficiarioService,
     private readonly familyService: FamilyService,
     private readonly router: Router
   ) {}
@@ -138,7 +138,7 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
     });
   }
 
-  addMember(beneficiary: BeneficiaryPayload): void {
+  addMember(beneficiary: BeneficiarioPayload): void {
     if (!beneficiary.id) {
       return;
     }
@@ -150,7 +150,7 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
     this.updateIncomeTotals();
   }
 
-  createMemberGroup(beneficiary?: BeneficiaryPayload): FormGroup {
+  createMemberGroup(beneficiary?: BeneficiarioPayload): FormGroup {
     return this.fb.group({
       beneficiaryId: [beneficiary?.id ?? null, Validators.required],
       nome: [beneficiary?.nomeCompleto ?? '', Validators.required],

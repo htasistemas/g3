@@ -1,27 +1,27 @@
 import { Request, Response, Router } from 'express';
-import { ensureBeneficiaryDocumentConfig, getBeneficiaryDocumentRepository } from '../utils/document-config';
+import {
+  garantirConfiguracaoDocumentosBeneficiario,
+  obterRepositorioConfiguracaoDocumentosBeneficiario
+} from '../utils/document-config';
 
 const router = Router();
 
-router.get('/beneficiary-documents', async (_req, res) => {
-  const documents = await ensureBeneficiaryDocumentConfig();
-  res.json({ documents });
+router.get('/documentos-beneficiario', async (_req, res) => {
+  const documents = await garantirConfiguracaoDocumentosBeneficiario();
+  res.json({ documentos: documents });
 });
 
 const saveDocuments = async (req: Request, res: Response) => {
-  const repository = await getBeneficiaryDocumentRepository();
-  const payload = Array.isArray(req.body?.documents) ? req.body.documents : [];
+  const repository = await obterRepositorioConfiguracaoDocumentosBeneficiario();
+  const payload = Array.isArray(req.body?.documentos) ? req.body.documentos : [];
 
   if (!payload.length) {
     return res.status(400).json({ message: 'Nenhum documento enviado para atualização' });
   }
 
   try {
-    const existing = await ensureBeneficiaryDocumentConfig();
-    const updates = payload.map((doc: any) => ({
-      nome: String(doc.nome ?? doc.name),
-      obrigatorio: Boolean(doc.obrigatorio ?? doc.required)
-    }));
+    const existing = await garantirConfiguracaoDocumentosBeneficiario();
+    const updates = payload.map((doc: any) => ({ nome: String(doc.nome), obrigatorio: Boolean(doc.obrigatorio) }));
 
     for (const doc of updates) {
       const current = existing.find((item) => item.nome === doc.nome);
@@ -41,7 +41,7 @@ const saveDocuments = async (req: Request, res: Response) => {
   }
 };
 
-router.put('/beneficiary-documents', saveDocuments);
-router.post('/beneficiary-documents', saveDocuments);
+router.put('/documentos-beneficiario', saveDocuments);
+router.post('/documentos-beneficiario', saveDocuments);
 
 export default router;

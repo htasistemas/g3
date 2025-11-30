@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { UnidadeAssistencialPayload, UnidadeAssistencialService } from '../../services/unidade-assistencial.service';
 
 @Component({
   selector: 'app-assistance-unit',
@@ -10,14 +10,14 @@ import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/ass
   templateUrl: './assistance-unit.component.html',
   styleUrl: './assistance-unit.component.scss'
 })
-export class AssistanceUnitComponent implements OnInit {
-  unidade: AssistanceUnitPayload | null = null;
+export class UnidadeAssistencialComponent implements OnInit {
+  unidade: UnidadeAssistencialPayload | null = null;
 
   form!: FormGroup;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly unitService: AssistanceUnitService
+    private readonly unitService: UnidadeAssistencialService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
@@ -43,7 +43,7 @@ export class AssistanceUnitComponent implements OnInit {
       return;
     }
 
-    const payload: AssistanceUnitPayload = {
+    const payload: UnidadeAssistencialPayload = {
       ...this.form.value,
       id: this.unidade?.id,
     };

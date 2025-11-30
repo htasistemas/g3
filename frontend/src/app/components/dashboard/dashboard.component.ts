@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { of } from 'rxjs';
 import { catchError, finalize, retry } from 'rxjs/operators';
-import { BeneficiaryService } from '../../services/beneficiary.service';
+import { BeneficiarioService } from '../../services/beneficiario.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,7 +20,7 @@ export class DashboardComponent implements OnInit {
     pending: 0
   };
 
-  constructor(private readonly beneficiaryService: BeneficiaryService) {}
+  constructor(private readonly beneficiaryService: BeneficiarioService) {}
 
   ngOnInit(): void {
     this.loadBeneficiaryStats();

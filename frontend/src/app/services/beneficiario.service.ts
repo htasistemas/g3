@@ -12,7 +12,7 @@ export interface DocumentoObrigatorio {
   baseRequired?: boolean;
 }
 
-export interface BeneficiaryPayload {
+export interface BeneficiarioPayload {
   id?: number;
   cpf?: string;
   cep: string;
@@ -119,52 +119,36 @@ export interface BeneficiaryPayload {
 }
 
 @Injectable({ providedIn: 'root' })
-export class BeneficiaryService {
-  private readonly baseUrl = `${environment.apiUrl}/api/beneficiaries`;
+export class BeneficiarioService {
+  private readonly baseUrl = `${environment.apiUrl}/api/beneficiarios`;
 
   constructor(private readonly http: HttpClient) {}
 
-  getById(id: number): Observable<BeneficiaryPayload> {
-    return this.http.get<{ beneficiario: BeneficiaryPayload }>(`${this.baseUrl}/${id}`).pipe(map(({ beneficiario }) => beneficiario));
+  getById(id: number): Observable<BeneficiarioPayload> {
+    return this.http
+      .get<{ beneficiario: BeneficiarioPayload }>(`${this.baseUrl}/${id}`)
+      .pipe(map(({ beneficiario }) => beneficiario));
   }
 
   getRequiredDocuments(): Observable<{ documents: DocumentoObrigatorio[] }> {
-    return this.http.get<{ documents: DocumentoObrigatorio[] }>(`${this.baseUrl}/documents`);
+    return this.http.get<{ documents: DocumentoObrigatorio[] }>(`${this.baseUrl}/documentos`);
   }
 
-  list(): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
-    return this.http.get<
-      { beneficiarios?: BeneficiaryPayload[] } | { beneficiaries?: BeneficiaryPayload[] } | BeneficiaryPayload[]
-    >(this.baseUrl).pipe(
-      map((response) => {
-        if (Array.isArray(response)) {
-          return { beneficiarios: response };
-        }
-
-        if ('beneficiarios' in response) {
-          return { beneficiarios: response.beneficiarios ?? [] };
-        }
-
-        if ('beneficiaries' in response) {
-          return { beneficiarios: response.beneficiaries ?? [] };
-        }
-
-        return { beneficiarios: [] };
-      })
-    );
+  list(): Observable<{ beneficiarios: BeneficiarioPayload[] }> {
+    return this.http.get<{ beneficiarios: BeneficiarioPayload[] }>(this.baseUrl);
   }
 
-  save(payload: BeneficiaryPayload, photoFile?: File | null): Observable<BeneficiaryPayload> {
+  save(payload: BeneficiarioPayload, photoFile?: File | null): Observable<BeneficiarioPayload> {
     const formData = this.buildFormData(payload, photoFile);
 
     if (payload.id) {
-      return this.http.put<BeneficiaryPayload>(`${this.baseUrl}/${payload.id}`, formData);
+      return this.http.put<BeneficiarioPayload>(`${this.baseUrl}/${payload.id}`, formData);
     }
 
-    return this.http.post<BeneficiaryPayload>(this.baseUrl, formData);
+    return this.http.post<BeneficiarioPayload>(this.baseUrl, formData);
   }
 
-  private buildFormData(payload: BeneficiaryPayload, photoFile?: File | null): FormData {
+  private buildFormData(payload: BeneficiarioPayload, photoFile?: File | null): FormData {
     const formData = new FormData();
     const { documentosAnexos, foto, ...rest } = payload;
 
