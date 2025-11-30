@@ -5,8 +5,14 @@ export class AssistanceUnit {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ name: 'nome', unique: true })
-  nome!: string;
+  @Column({ name: 'nome_fantasia', unique: true })
+  nomeFantasia!: string;
+
+  @Column({ name: 'razao_social', nullable: true })
+  razaoSocial?: string;
+
+  @Column({ name: 'cnpj', nullable: true })
+  cnpj?: string;
 
   @Column({ name: 'telefone', nullable: true })
   telefone?: string;
@@ -34,6 +40,15 @@ export class AssistanceUnit {
 
   @Column({ name: 'observacoes', type: 'text', nullable: true })
   observacoes?: string;
+
+  @Column({ name: 'responsavel_nome', nullable: true })
+  responsavelNome?: string;
+
+  @Column({ name: 'responsavel_cpf', nullable: true })
+  responsavelCpf?: string;
+
+  @Column({ name: 'responsavel_periodo_mandato', nullable: true })
+  responsavelPeriodoMandato?: string;
 
   @CreateDateColumn({ name: 'criado_em' })
   criadoEm!: Date;
