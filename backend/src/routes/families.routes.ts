@@ -25,7 +25,7 @@ function validateMembers(members: FamilyMember[]): string | null {
 router.get('/:id', async (req, res) => {
   const id = Number(req.params.id);
   const repository = AppDataSource.getRepository(Family);
-  const family = await repository.findOne({ where: { id }, relations: ['membros'] });
+  const family = await repository.findOne({ where: { id }, relations: ['membros', 'membros.beneficiario'] });
 
   if (!family) {
     return res.status(404).json({ message: 'Família não encontrada' });
@@ -62,7 +62,10 @@ router.post('/', async (req, res) => {
     }
 
     await queryRunner.commitTransaction();
-    const created = await familyRepository.findOne({ where: { id: savedFamily.id }, relations: ['membros'] });
+    const created = await familyRepository.findOne({
+      where: { id: savedFamily.id },
+      relations: ['membros', 'membros.beneficiario']
+    });
     res.status(201).json(created);
   } catch (error) {
     console.error('Failed to save family', error);
@@ -113,7 +116,7 @@ router.put('/:id', async (req, res) => {
     }
 
     await queryRunner.commitTransaction();
-    const updated = await familyRepository.findOne({ where: { id }, relations: ['membros'] });
+    const updated = await familyRepository.findOne({ where: { id }, relations: ['membros', 'membros.beneficiario'] });
     res.json(updated);
   } catch (error) {
     console.error('Failed to update family', error);

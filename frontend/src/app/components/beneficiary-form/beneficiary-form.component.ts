@@ -33,6 +33,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   photoError: string | null = null;
   cameraActive = false;
   cameraReady = false;
+  cameraError: string | null = null;
   filteredBeneficiaries: BeneficiaryPayload[] = [];
   beneficiaries: BeneficiaryPayload[] = [];
   editingId: number | null = null;
@@ -471,41 +472,61 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   async startCamera(videoElement: HTMLVideoElement): Promise<void> {
+    this.cameraError = null;
+    this.photoError = null;
+    this.cameraReady = false;
+
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('MEDIA_NOT_SUPPORTED');
+      }
+
       this.stopCamera(videoElement);
       this.currentVideoElement = videoElement;
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      this.cameraActive = true;
       videoElement.srcObject = this.mediaStream;
       await videoElement.play();
-      await new Promise<void>((resolve) => {
-        if (videoElement.readyState >= 1) {
-          resolve();
-        } else {
-          videoElement.onloadedmetadata = () => resolve();
-        }
-      });
-      this.cameraActive = true;
+      await this.waitForVideoReady(videoElement);
       this.cameraReady = true;
     } catch (error) {
       console.error('Erro ao acessar a câmera', error);
       this.cameraActive = false;
       this.cameraReady = false;
+
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        this.cameraError = 'Permissão negada para acessar a câmera. Verifique as permissões do navegador.';
+      } else if (error instanceof Error && error.message === 'MEDIA_NOT_SUPPORTED') {
+        this.cameraError = 'Este dispositivo ou navegador não oferece suporte à captura por câmera.';
+      } else {
+        this.cameraError = 'Não foi possível inicializar a câmera. Confirme se há um dispositivo disponível.';
+      }
     }
   }
 
   capturePhoto(videoElement: HTMLVideoElement, canvasElement: HTMLCanvasElement): void {
+    this.cameraError = null;
+
     if (!this.cameraActive || !this.cameraReady) {
+      this.cameraError = 'A câmera ainda não está ativa para captura.';
       return;
     }
 
     const context = canvasElement.getContext('2d');
     if (!context) {
+      this.cameraError = 'Não foi possível preparar a captura da imagem.';
       return;
     }
 
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-    context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    const { videoWidth, videoHeight } = videoElement;
+    if (!videoWidth || !videoHeight) {
+      this.cameraError = 'A câmera ainda está carregando. Tente novamente em instantes.';
+      return;
+    }
+
+    canvasElement.width = videoWidth;
+    canvasElement.height = videoHeight;
+    context.drawImage(videoElement, 0, 0, videoWidth, videoHeight);
     this.photoPreview = canvasElement.toDataURL('image/png');
     this.photoFile = this.dataUrlToFile(this.photoPreview, 'foto.png');
     this.beneficiaryForm.get('foto')?.setValue(this.photoPreview);
@@ -522,6 +543,25 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     }
     this.cameraActive = false;
     this.cameraReady = false;
+  }
+
+  private waitForVideoReady(videoElement: HTMLVideoElement): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const handleReady = (): void => {
+        videoElement.onloadedmetadata = null;
+        videoElement.oncanplay = null;
+        videoElement.onerror = null;
+        resolve();
+      };
+
+      videoElement.onloadedmetadata = handleReady;
+      videoElement.oncanplay = handleReady;
+      videoElement.onerror = () => reject(new Error('FAILED_TO_START_CAMERA'));
+
+      if (videoElement.readyState >= 2) {
+        handleReady();
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -781,6 +821,36 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     }
 
     return new File([array], filename, { type: mime });
+  }
+
+  formatCpf(value: string | undefined | null): string {
+    const digits = (value ?? '').replace(/\D/g, '');
+
+    if (digits.length !== 11) {
+      return value ?? '—';
+    }
+
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  formatAddress(beneficiary: BeneficiaryPayload): string {
+    const cityState = [beneficiary.cidade, beneficiary.estado].filter(Boolean).join(' - ');
+    const addressParts = [
+      beneficiary.endereco,
+      beneficiary.numeroEndereco,
+      beneficiary.bairro,
+      cityState
+    ].filter((part) => Boolean(part && String(part).trim()));
+
+    return addressParts.length ? addressParts.join(', ') : '—';
+  }
+
+  formatContact(beneficiary: BeneficiaryPayload): string {
+    return beneficiary.telefone?.trim() || '—';
+  }
+
+  getParentesco(beneficiary: BeneficiaryPayload): string {
+    return beneficiary.parentesco?.trim() || '—';
   }
 
   private syncSanitationSelections(value: string | string[] | null | undefined): void {
