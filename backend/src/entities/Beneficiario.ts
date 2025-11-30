@@ -67,8 +67,8 @@ export class Beneficiario {
 
   // Documentos
   @Index('idx_beneficiario_cpf', { unique: true, where: 'cpf IS NOT NULL' })
-  @Column({ name: 'cpf', length: 11, nullable: true, unique: true })
-  cpf?: string | null;
+  @Column({ name: 'cpf', length: 11, nullable: true, unique: true, type: 'varchar' })
+  cpf?: string;
 
   @Column({ name: 'rg_numero', nullable: true })
   rgNumero?: string;
@@ -273,7 +273,7 @@ export class Beneficiario {
   @Column({ name: 'aceite_lgpd', default: false })
   aceiteLgpd!: boolean;
 
-  @Column({ name: 'data_aceite_lgpd', type: 'timestamp', nullable: true })
+  @Column({ name: 'data_aceite_lgpd', type: 'datetime', nullable: true })
   dataAceiteLgpd?: Date;
 
   @Column({ name: 'observacoes', type: 'text', nullable: true })
