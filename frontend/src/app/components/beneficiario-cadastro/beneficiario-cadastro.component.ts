@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
+import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 
 @Component({
   selector: 'app-beneficiario-cadastro',
@@ -17,6 +18,17 @@ export class BeneficiarioCadastroComponent implements OnInit {
   saving = false;
   feedback: string | null = null;
   beneficiarioId: string | null = null;
+  documentosObrigatorios: DocumentoObrigatorio[] = [];
+  availableBenefits: string[] = [
+    'Bolsa Família / PTR',
+    'BPC - Idoso',
+    'BPC - Pessoa com deficiência',
+    'Benefício eventual',
+    'Programa de moradia',
+    'Auxílio-doença',
+    'Seguro-desemprego',
+    'Outros'
+  ];
 
   tabs = [
     { id: 'dados', label: 'Dados Pessoais' },
@@ -33,6 +45,7 @@ export class BeneficiarioCadastroComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: BeneficiarioApiService,
+    private readonly beneficiaryService: BeneficiaryService,
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
@@ -100,13 +113,21 @@ export class BeneficiarioCadastroComponent implements OnInit {
         certidao_uf: [''],
         titulo_eleitor: [''],
         cnh: [''],
-        cartao_sus: ['']
+        cartao_sus: [''],
+        anexos: this.fb.array([])
       }),
       familiar: this.fb.group({
         mora_com_familia: [false],
         responsavel_legal: [false],
         vinculo_familiar: [''],
-        situacao_vulnerabilidade: ['']
+        situacao_vulnerabilidade: [''],
+        composicao_familiar: [''],
+        criancas_adolescentes: [''],
+        idosos: [''],
+        acompanhamento_cras: [false],
+        acompanhamento_saude: [false],
+        participa_comunidade: [''],
+        rede_apoio: ['']
       }),
       escolaridade: this.fb.group({
         sabe_ler_escrever: [false],
@@ -129,7 +150,8 @@ export class BeneficiarioCadastroComponent implements OnInit {
       beneficios: this.fb.group({
         recebe_beneficio: [false],
         beneficios_descricao: [''],
-        valor_total_beneficios: ['']
+        valor_total_beneficios: [''],
+        beneficios_recebidos: this.fb.control<string[]>([])
       }),
       observacoes: this.fb.group({
         aceite_lgpd: [false],
@@ -140,15 +162,21 @@ export class BeneficiarioCadastroComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRequiredDocuments();
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (id) {
         this.beneficiarioId = id;
         this.service.getById(id).subscribe(({ beneficiario }) => {
           this.form.patchValue(this.mapToForm(beneficiario));
+          this.applyLoadedDocuments(beneficiario.documentosObrigatorios);
         });
       }
     });
+  }
+
+  get anexos(): FormArray {
+    return this.form.get(['documentos', 'anexos']) as FormArray;
   }
 
   mapToForm(beneficiario: BeneficiarioApiPayload) {
@@ -222,7 +250,14 @@ export class BeneficiarioCadastroComponent implements OnInit {
         mora_com_familia: beneficiario.mora_com_familia,
         responsavel_legal: beneficiario.responsavel_legal,
         vinculo_familiar: beneficiario.vinculo_familiar,
-        situacao_vulnerabilidade: beneficiario.situacao_vulnerabilidade
+        situacao_vulnerabilidade: beneficiario.situacao_vulnerabilidade,
+        composicao_familiar: beneficiario.composicao_familiar,
+        criancas_adolescentes: beneficiario.criancas_adolescentes,
+        idosos: beneficiario.idosos,
+        acompanhamento_cras: beneficiario.acompanhamento_cras,
+        acompanhamento_saude: beneficiario.acompanhamento_saude,
+        participa_comunidade: beneficiario.participa_comunidade,
+        rede_apoio: beneficiario.rede_apoio
       },
       escolaridade: {
         sabe_ler_escrever: beneficiario.sabe_ler_escrever,
@@ -245,7 +280,8 @@ export class BeneficiarioCadastroComponent implements OnInit {
       beneficios: {
         recebe_beneficio: beneficiario.recebe_beneficio,
         beneficios_descricao: beneficiario.beneficios_descricao,
-        valor_total_beneficios: beneficiario.valor_total_beneficios
+        valor_total_beneficios: beneficiario.valor_total_beneficios,
+        beneficios_recebidos: beneficiario.beneficios_recebidos || []
       },
       observacoes: {
         aceite_lgpd: beneficiario.aceite_lgpd,
@@ -255,17 +291,176 @@ export class BeneficiarioCadastroComponent implements OnInit {
     };
   }
 
+  private loadRequiredDocuments(): void {
+    this.beneficiaryService.getRequiredDocuments().subscribe({
+      next: ({ documents }) => {
+        this.documentosObrigatorios = documents;
+        this.resetDocumentArray();
+      },
+      error: () => {
+        this.documentosObrigatorios = [];
+        this.resetDocumentArray();
+      }
+    });
+  }
+
+  private resetDocumentArray(existing?: DocumentoObrigatorio[]): void {
+    this.anexos.clear();
+    const baseDocs = existing?.length ? existing : this.documentosObrigatorios;
+
+    if (!baseDocs.length) {
+      this.anexos.push(this.buildDocumentControl({ nome: 'Documento de identificação', obrigatorio: true }));
+      this.anexos.push(this.buildDocumentControl({ nome: 'Comprovante de residência', obrigatorio: true }));
+      return;
+    }
+
+    baseDocs.forEach((doc) => {
+      this.anexos.push(
+        this.buildDocumentControl({
+          nome: doc.nome,
+          obrigatorio: doc.obrigatorio ?? doc.required ?? doc.baseRequired,
+          nomeArquivo: doc.nomeArquivo
+        })
+      );
+    });
+  }
+
+  private buildDocumentControl(doc: Partial<DocumentoObrigatorio>): FormGroup {
+    return this.fb.group({
+      nome: [doc.nome ?? '', Validators.required],
+      obrigatorio: [doc.obrigatorio ?? false],
+      nomeArquivo: [doc.nomeArquivo ?? ''],
+      file: [doc.file ?? null]
+    });
+  }
+
+  addOptionalDocument(): void {
+    this.anexos.push(this.buildDocumentControl({ nome: 'Documento adicional', obrigatorio: false }));
+  }
+
+  applyLoadedDocuments(documents?: DocumentoObrigatorio[]): void {
+    if (documents?.length) {
+      this.resetDocumentArray(documents);
+    }
+  }
+
+  onDocumentFileSelected(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const control = this.anexos.at(index) as FormGroup;
+
+    if (file) {
+      control.patchValue({ file, nomeArquivo: file.name });
+      control.markAsDirty();
+    }
+  }
+
+  private validateRequiredDocuments(): boolean {
+    const missing = this.anexos.controls
+      .filter((control) => control.get('obrigatorio')?.value && !control.get('nomeArquivo')?.value)
+      .map((control) => control.get('nome')?.value as string);
+
+    if (missing.length) {
+      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.changeTab('documentos');
+      return false;
+    }
+
+    return true;
+  }
+
+  toggleBenefit(option: string): void {
+    const control = this.form.get(['beneficios', 'beneficios_recebidos']);
+    const current = new Set(control?.value ?? []);
+
+    if (current.has(option)) {
+      current.delete(option);
+    } else {
+      current.add(option);
+    }
+
+    control?.setValue(Array.from(current));
+  }
+
+  selectionChecked(option: string): boolean {
+    const control = this.form.get(['beneficios', 'beneficios_recebidos']);
+    return (control?.value as string[] | undefined)?.includes(option) ?? false;
+  }
+
+  formatCurrency(event: Event, groupName = 'beneficios', controlName = 'valor_total_beneficios'): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '');
+    const numeric = Number(digits || '0') / 100;
+    const formatted = numeric
+      .toFixed(2)
+      .replace('.', ',')
+      .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    const control = this.form.get([groupName, controlName]);
+    control?.setValue(numeric ? numeric.toFixed(2) : '');
+    input.value = numeric ? `R$ ${formatted}` : '';
+  }
+
+  handleLgpdToggle(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.checked) {
+      this.printLgpdTerms();
+    }
+  }
+
+  private printLgpdTerms(): void {
+    const documentWindow = window.open('', '_blank', 'width=800,height=900');
+    if (!documentWindow) return;
+
+    documentWindow.document.write(`
+      <html>
+        <head>
+          <title>Termo de autorização</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; line-height: 1.6; }
+            h1 { color: #0f766e; }
+            h2 { margin-top: 24px; color: #0ea5e9; }
+            p { margin: 12px 0; }
+            ul { margin: 12px 0 24px; padding-left: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>Termo de autorização e consentimento</h1>
+          <h2>Autorização de imagem</h2>
+          <p>Autorizo a instituição a coletar, armazenar e utilizar imagem para fins institucionais e de registro de atendimento.</p>
+          <h2>Tratamento de dados pessoais (LGPD)</h2>
+          <ul>
+            <li>Confirmo o conhecimento sobre a finalidade do tratamento de dados.</li>
+            <li>Sei que posso solicitar revisão, correção ou exclusão dos meus dados pessoais.</li>
+            <li>Autorizo o compartilhamento estritamente necessário com órgãos públicos ou parceiros ligados às políticas sociais.</li>
+          </ul>
+          <h2>Autorização de envio de dados</h2>
+          <p>Autorizo o envio das informações para a instituição e sistemas integrados (e-SUS, OSCIP e assistência social) para fins de acompanhamento.</p>
+          <p>__________________________________________</p>
+          <p>Assinatura do beneficiário ou responsável</p>
+        </body>
+      </html>
+    `);
+
+    documentWindow.document.close();
+    documentWindow.focus();
+    documentWindow.print();
+  }
+
   changeTab(tab: string) {
     this.activeTab = tab;
   }
 
-  submit() {
+  async submit() {
     if (this.form.invalid) {
       this.feedback = 'Preencha os campos obrigatórios.';
       return;
     }
+    if (!this.validateRequiredDocuments()) {
+      return;
+    }
     this.saving = true;
-    const payload = this.toPayload();
+    const payload = await this.toPayload();
     const request = this.beneficiarioId
       ? this.service.update(this.beneficiarioId, payload)
       : this.service.create(payload);
@@ -283,8 +478,10 @@ export class BeneficiarioCadastroComponent implements OnInit {
     });
   }
 
-  private toPayload(): BeneficiarioApiPayload {
+  private async toPayload(): Promise<BeneficiarioApiPayload> {
     const value = this.form.value;
+    const documentosObrigatorios = await this.buildDocumentPayload();
+
     return {
       ...(value.dadosPessoais as any),
       ...(value.endereco as any),
@@ -294,7 +491,21 @@ export class BeneficiarioCadastroComponent implements OnInit {
       ...(value.escolaridade as any),
       ...(value.saude as any),
       ...(value.beneficios as any),
-      ...(value.observacoes as any)
+      ...(value.observacoes as any),
+      documentosObrigatorios
     };
+  }
+
+  private async buildDocumentPayload(): Promise<DocumentoObrigatorio[]> {
+    const documents = this.anexos.controls.map((control) => control.value as DocumentoObrigatorio & { file?: File | null });
+
+    return documents.map((doc) => {
+      const file = doc.file as File | undefined;
+      return {
+        nome: doc.nome,
+        obrigatorio: doc.obrigatorio,
+        nomeArquivo: file ? file.name : doc.nomeArquivo
+      } as DocumentoObrigatorio;
+    });
   }
 }
