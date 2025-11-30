@@ -13,6 +13,7 @@ import { FamilyCompositionComponent } from './components/family-composition/fami
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
 import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
+import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -44,6 +45,11 @@ export const routes: Routes = [
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
       { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Cadastro de Família' } },
       { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Editar Família' } },
+      {
+        path: 'administrativo/patrimonio',
+        component: PatrimonioComponent,
+        data: { title: 'Controle patrimonial' }
+      },
       {
         path: 'configuracoes/sistema',
         component: SystemSettingsComponent,

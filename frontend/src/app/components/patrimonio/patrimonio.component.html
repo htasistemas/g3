@@ -1,0 +1,352 @@
+<div class="p-6 space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-xs uppercase tracking-wide text-slate-500">Administrativo • Patrimônio</p>
+      <h1 class="text-3xl font-semibold text-slate-800">Gestão de controle patrimonial</h1>
+      <p class="text-slate-600 max-w-3xl">
+        Centralize entradas, saídas, baixas e depreciação dos bens com rastreabilidade completa por placa e número de patrimônio.
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button type="button" class="btn-outline">
+        <fa-icon [icon]="faPrint" class="mr-2"></fa-icon>
+        Imprimir termo de cessão
+      </button>
+      <button type="button" class="btn-primary" (click)="saveAsset()">
+        <fa-icon [icon]="faFloppyDisk" class="mr-2"></fa-icon>
+        Salvar patrimônio
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-slate-500">Entradas registradas</p>
+        <span class="badge badge--success">+18% vs mês anterior</span>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <fa-icon [icon]="faArrowDown" class="text-emerald-600"></fa-icon>
+        <p class="text-3xl font-semibold">72</p>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">Bens com nota fiscal lançada na unidade.</p>
+    </div>
+
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-slate-500">Saídas / empréstimos</p>
+        <span class="badge">6 ativos em empréstimo</span>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <fa-icon [icon]="faArrowUp" class="text-amber-500"></fa-icon>
+        <p class="text-3xl font-semibold">21</p>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">Movimentações com termo e responsável definido.</p>
+    </div>
+
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-slate-500">Baixas concluídas</p>
+        <span class="badge badge--muted">Requer senha</span>
+      </div>
+      <div class="flex items-baseline gap-2">
+        <fa-icon [icon]="faTrash" class="text-rose-600"></fa-icon>
+        <p class="text-3xl font-semibold">9</p>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">Itens baixados/inativos com documentação arquivada.</p>
+    </div>
+
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-slate-500">Valor e depreciação</p>
+        <span class="badge badge--success">{{ monthlyDepreciation | number: '1.0-1' }}% ao mês</span>
+      </div>
+      <p class="text-3xl font-semibold text-slate-800">{{ totalAcquisitionValue | currency:'BRL' }}</p>
+      <p class="text-xs text-slate-500 mt-1">Soma do valor de aquisição de todos os registros ativos.</p>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-3">
+    <div class="card lg:col-span-2">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Checklist de cadastro</p>
+          <h2 class="text-xl font-semibold text-slate-800">Dados do patrimônio</h2>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline">
+            <fa-icon [icon]="faCloudArrowUp" class="mr-2"></fa-icon>
+            Importar planilha
+          </button>
+          <button type="button" class="btn-outline">
+            <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+            Exportar relatório
+          </button>
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="form-group">
+          <label class="form-label">Número do patrimônio *</label>
+          <input class="input" [(ngModel)]="assetForm.patrimonyNumber" placeholder="PAT-2024-0001" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome do patrimônio *</label>
+          <input class="input" [(ngModel)]="assetForm.name" placeholder="Ex.: Notebook Dell Latitude" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoria *</label>
+          <select class="input" [(ngModel)]="assetForm.category">
+            <option value="" disabled>Selecione</option>
+            <option *ngFor="let category of categories" [value]="category.label">{{ category.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subcategoria</label>
+          <select class="input" [(ngModel)]="assetForm.subcategory">
+            <option value="" disabled>Selecione</option>
+            <ng-container *ngFor="let category of categories">
+              <option *ngFor="let sub of category.subcategories" [value]="sub">{{ sub }}</option>
+            </ng-container>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descrição detalhada</label>
+          <textarea class="input" [(ngModel)]="assetForm.description" rows="3" placeholder="Identifique marca, modelo e características"></textarea>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="form-group">
+            <label class="form-label">Estado de conservação *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label *ngFor="let option of conservationOptions" class="chip">
+                <input type="radio" [(ngModel)]="assetForm.conservation" [value]="option" />
+                <span>{{ option }}</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Situação atual *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label *ngFor="let status of statusOptions" class="chip">
+                <input type="radio" [(ngModel)]="assetForm.status" [value]="status" />
+                <span>{{ status }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quantidade</label>
+          <input type="number" min="1" class="input" [(ngModel)]="assetForm.quantity" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número(s) de patrimônio individual</label>
+          <input class="input" [(ngModel)]="assetForm.individualNumbers" placeholder="Separe por vírgula" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="form-group">
+          <label class="form-label">Data de aquisição *</label>
+          <input type="date" class="input" [(ngModel)]="assetForm.acquisitionDate" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor de aquisição *</label>
+          <input type="number" class="input" [(ngModel)]="assetForm.acquisitionValue" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Origem *</label>
+          <select class="input" [(ngModel)]="assetForm.origin">
+            <option *ngFor="let origin of origins" [value]="origin">{{ origin }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número da nota fiscal</label>
+          <input class="input" [(ngModel)]="assetForm.invoiceNumber" placeholder="NF-e" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fornecedor</label>
+          <input class="input" [(ngModel)]="assetForm.supplier" placeholder="Razão social" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vida útil estimada (meses)</label>
+          <input type="number" class="input" [(ngModel)]="assetForm.usefulLife" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data de início da depreciação</label>
+          <input type="date" class="input" [(ngModel)]="assetForm.depreciationStartDate" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Depreciação mensal (%)</label>
+          <input type="number" class="input" [(ngModel)]="assetForm.depreciationRate" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="form-group">
+          <label class="form-label">Unidade / Setor responsável *</label>
+          <input class="input" [(ngModel)]="assetForm.unit" placeholder="Ex.: TI" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ambiente / Sala</label>
+          <input class="input" [(ngModel)]="assetForm.room" placeholder="Ex.: Sala 12" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Endereço completo</label>
+          <input class="input" [(ngModel)]="assetForm.address" placeholder="Somente para outras unidades" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Responsável pelo item *</label>
+          <input class="input" [(ngModel)]="assetForm.responsibleName" placeholder="Nome" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contato do responsável</label>
+          <input class="input" [(ngModel)]="assetForm.responsibleContact" placeholder="Telefone ou e-mail" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Código interno</label>
+          <input class="input" [(ngModel)]="assetForm.internalCode" placeholder="Ex.: TAG-889" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card space-y-5">
+      <div>
+        <p class="text-sm text-slate-500">Identificação visual</p>
+        <h3 class="text-lg font-semibold text-slate-800">Foto e etiqueta</h3>
+      </div>
+      <div class="upload-box" [class.upload-box--empty]="!filePreview">
+        <ng-container *ngIf="filePreview; else emptyState">
+          <img [src]="filePreview" alt="Foto do patrimônio" class="rounded-lg w-full h-48 object-cover" />
+        </ng-container>
+        <ng-template #emptyState>
+          <div class="flex flex-col items-center justify-center text-slate-500 h-48">
+            <fa-icon [icon]="faCloudArrowUp" class="text-2xl mb-2"></fa-icon>
+            <p>Faça upload para visualizar a foto</p>
+          </div>
+        </ng-template>
+      </div>
+      <input type="file" (change)="handleFileInput($event)" class="file-input" />
+      <div class="flex gap-2">
+        <button type="button" class="btn-outline" (click)="generateQrCode()">
+          <fa-icon [icon]="faQrcode" class="mr-2"></fa-icon>
+          Gerar QR Code
+        </button>
+        <div class="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 flex-1">
+          <p class="font-semibold">Código interno</p>
+          <p>{{ qrCodeValue }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="form-group">
+          <label class="form-label">Observações gerais</label>
+          <textarea class="input" [(ngModel)]="assetForm.observations" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Condições de garantia</label>
+          <input class="input" [(ngModel)]="assetForm.warranty" placeholder="Prazo, cobertura e contato" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manual / Termo digital</label>
+          <div class="flex gap-2">
+            <input class="input" [(ngModel)]="assetForm.manualUrl" placeholder="Anexe ou cole o link" />
+            <button type="button" class="btn-outline">
+              <fa-icon [icon]="faFileInvoice" class="mr-2"></fa-icon>
+              Upload
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-2">
+        <div class="flex items-center gap-2 text-slate-600 text-sm">
+          <fa-icon [icon]="faTools"></fa-icon>
+          <div>
+            <p class="font-semibold text-slate-800">Histórico recente</p>
+            <p>Última movimentação: {{ assetForm.lastMovement }}</p>
+            <p>Último responsável: {{ assetForm.lastResponsible }}</p>
+            <p>Última manutenção: {{ assetForm.lastMaintenance }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div>
+        <p class="text-xs uppercase tracking-wide text-slate-500">Consulta e movimentações</p>
+        <h2 class="text-xl font-semibold text-slate-800">Controle por placa e patrimônio</h2>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="btn-outline">
+          <fa-icon [icon]="faTruck" class="mr-2"></fa-icon>
+          Registrar movimentação
+        </button>
+        <button type="button" class="btn-outline">
+          <fa-icon [icon]="faTools" class="mr-2"></fa-icon>
+          Enviar para manutenção
+        </button>
+        <button type="button" class="btn-outline">
+          <fa-icon [icon]="faTrash" class="mr-2"></fa-icon>
+          Baixar bem (senha)
+        </button>
+      </div>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-3 mb-4">
+      <div class="input-with-icon">
+        <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+        <input class="input" [(ngModel)]="searchTerm" placeholder="Buscar por número, placa ou responsável" />
+      </div>
+      <div class="input-with-icon">
+        <fa-icon [icon]="faTags"></fa-icon>
+        <input class="input" placeholder="Filtrar por categoria" />
+      </div>
+      <div class="input-with-icon">
+        <fa-icon [icon]="faBuilding"></fa-icon>
+        <input class="input" placeholder="Filtrar por unidade" />
+      </div>
+    </div>
+
+    <div class="overflow-hidden border border-slate-200 rounded-xl">
+      <table class="min-w-full">
+        <thead class="bg-slate-50 text-left text-xs font-semibold text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Número do patrimônio</th>
+            <th class="px-4 py-3">Nome</th>
+            <th class="px-4 py-3">Categoria</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3">Situação</th>
+            <th class="px-4 py-3">Data aquisição</th>
+            <th class="px-4 py-3">Valor</th>
+            <th class="px-4 py-3">Depreciação</th>
+            <th class="px-4 py-3">Responsável</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let asset of filteredAssets" class="border-t border-slate-200 text-sm">
+            <td class="px-4 py-3 font-semibold text-slate-800">{{ asset.patrimonyNumber }}</td>
+            <td class="px-4 py-3">{{ asset.name }}</td>
+            <td class="px-4 py-3">{{ asset.category }} <span *ngIf="asset.subcategory" class="text-slate-500">/ {{ asset.subcategory }}</span></td>
+            <td class="px-4 py-3">{{ asset.conservation }}</td>
+            <td class="px-4 py-3">
+              <span class="status-pill" [class.status-pill--warning]="asset.status === 'Em manutenção'" [class.status-pill--muted]="asset.status.includes('Inativo')">
+                {{ asset.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3">{{ asset.acquisitionDate | date: 'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-3">{{ asset.acquisitionValue | currency:'BRL' }}</td>
+            <td class="px-4 py-3">{{ asset.depreciationRate }}% / mês</td>
+            <td class="px-4 py-3">{{ asset.responsible }} ({{ asset.unit }})</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
