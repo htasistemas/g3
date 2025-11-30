@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -18,21 +18,7 @@ import {
   faTrash,
   faTruck
 } from '@fortawesome/free-solid-svg-icons';
-
-interface AssetRecord {
-  patrimonyNumber: string;
-  name: string;
-  category: string;
-  subcategory?: string;
-  conservation: string;
-  status: string;
-  acquisitionDate: string;
-  acquisitionValue: number;
-  origin: string;
-  responsible: string;
-  unit: string;
-  depreciationRate: number;
-}
+import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
 
 @Component({
   selector: 'app-patrimonio',
@@ -41,7 +27,7 @@ interface AssetRecord {
   templateUrl: './patrimonio.component.html',
   styleUrl: './patrimonio.component.scss'
 })
-export class PatrimonioComponent {
+export class PatrimonioComponent implements OnInit {
   readonly faArrowDown = faArrowDown;
   readonly faArrowUp = faArrowUp;
   readonly faDownload = faDownload;
@@ -99,58 +85,64 @@ export class PatrimonioComponent {
     lastMaintenance: 'Não registrada'
   };
 
-  assetLibrary: AssetRecord[] = [
-    {
-      patrimonyNumber: 'PAT-2024-001',
-      name: 'Notebook Dell Latitude',
-      category: 'Informática',
-      subcategory: 'Notebook',
-      conservation: 'Bom',
-      status: 'Ativo',
-      acquisitionDate: '2024-01-12',
-      acquisitionValue: 5200,
-      origin: 'Compra',
-      responsible: 'Marina Costa',
-      unit: 'TI',
-      depreciationRate: 2
-    },
-    {
-      patrimonyNumber: 'PAT-2023-143',
-      name: 'Mesa de Reunião',
-      category: 'Móveis',
-      subcategory: 'Mesa',
-      conservation: 'Regular',
-      status: 'Em manutenção',
-      acquisitionDate: '2023-08-05',
-      acquisitionValue: 1250,
-      origin: 'Transferência',
-      responsible: 'Carlos Lima',
-      unit: 'Administração',
-      depreciationRate: 1.2
-    }
-  ];
+  assetLibrary: Patrimonio[] = [];
+  movementForm = { tipo: 'MOVIMENTACAO' as 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA', destino: '', responsavel: '', observacao: '' };
+  selectedAsset: Patrimonio | null = null;
+  isSaving = false;
+  isLoading = false;
 
   filePreview: string | ArrayBuffer | null = null;
   qrCodeValue = 'QR-PATRIMONIO-001';
   searchTerm = '';
 
-  get filteredAssets(): AssetRecord[] {
+  constructor(private readonly patrimonioService: PatrimonioService) {}
+
+  ngOnInit(): void {
+    this.loadAssets();
+  }
+
+  get filteredAssets(): Patrimonio[] {
     const term = this.searchTerm.toLowerCase();
-    return this.assetLibrary.filter(
-      (asset) =>
-        asset.patrimonyNumber.toLowerCase().includes(term) ||
-        asset.name.toLowerCase().includes(term) ||
-        asset.responsible.toLowerCase().includes(term)
+    return this.assetLibrary.filter((asset) =>
+      [asset.numeroPatrimonio, asset.nome, asset.responsavel ?? ''].some((value) =>
+        (value || '').toLowerCase().includes(term)
+      )
     );
   }
 
   get totalAcquisitionValue(): number {
-    return this.assetLibrary.reduce((sum, asset) => sum + asset.acquisitionValue, 0);
+    return this.assetLibrary.reduce((sum, asset) => sum + Number(asset.valorAquisicao ?? 0), 0);
   }
 
   get monthlyDepreciation(): number {
-    const totalRate = this.assetLibrary.reduce((sum, asset) => sum + asset.depreciationRate, 0);
+    const totalRate = this.assetLibrary.reduce((sum, asset) => sum + Number(asset.taxaDepreciacao ?? 0), 0);
     return this.assetLibrary.length ? totalRate / this.assetLibrary.length : 0;
+  }
+
+  get activeAssets(): number {
+    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('ativo')).length;
+  }
+
+  get maintenanceAssets(): number {
+    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('manuten')).length;
+  }
+
+  get disposedAssets(): number {
+    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('baix')).length;
+  }
+
+  loadAssets(): void {
+    this.isLoading = true;
+    this.patrimonioService.list().subscribe({
+      next: (patrimonios) => {
+        this.assetLibrary = patrimonios;
+        this.isLoading = false;
+        this.selectedAsset = patrimonios[0] ?? null;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   handleFileInput(event: Event): void {
@@ -172,23 +164,34 @@ export class PatrimonioComponent {
   }
 
   saveAsset(): void {
-    const newAsset: AssetRecord = {
-      patrimonyNumber: this.assetForm.patrimonyNumber || `PAT-${Date.now()}`,
-      name: this.assetForm.name,
-      category: this.assetForm.category,
-      subcategory: this.assetForm.subcategory,
-      conservation: this.assetForm.conservation,
+    this.isSaving = true;
+    const payload = {
+      numeroPatrimonio: this.assetForm.patrimonyNumber || `PAT-${Date.now()}`,
+      nome: this.assetForm.name,
+      categoria: this.assetForm.category,
+      subcategoria: this.assetForm.subcategory,
+      conservacao: this.assetForm.conservation,
       status: this.assetForm.status,
-      acquisitionDate: this.assetForm.acquisitionDate,
-      acquisitionValue: this.assetForm.acquisitionValue,
-      origin: this.assetForm.origin,
-      responsible: this.assetForm.responsibleName,
-      unit: this.assetForm.unit,
-      depreciationRate: this.assetForm.depreciationRate
+      dataAquisicao: this.assetForm.acquisitionDate,
+      valorAquisicao: this.assetForm.acquisitionValue,
+      origem: this.assetForm.origin,
+      responsavel: this.assetForm.responsibleName,
+      unidade: this.assetForm.unit,
+      taxaDepreciacao: this.assetForm.depreciationRate,
+      observacoes: this.assetForm.observations
     };
 
-    this.assetLibrary = [newAsset, ...this.assetLibrary];
-    this.resetForm();
+    this.patrimonioService.create(payload).subscribe({
+      next: (patrimonio) => {
+        this.assetLibrary = [patrimonio, ...this.assetLibrary];
+        this.selectedAsset = patrimonio;
+        this.resetForm();
+        this.isSaving = false;
+      },
+      error: () => {
+        this.isSaving = false;
+      }
+    });
   }
 
   resetForm(): void {
@@ -224,5 +227,36 @@ export class PatrimonioComponent {
       lastMaintenance: 'Não registrada'
     };
     this.filePreview = null;
+  }
+
+  setSelected(asset: Patrimonio): void {
+    this.selectedAsset = asset;
+  }
+
+  quickMovement(asset: Patrimonio, tipo: 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA'): void {
+    this.movementForm = { tipo, destino: asset.unidade ?? '', responsavel: asset.responsavel ?? '', observacao: '' };
+    this.selectedAsset = asset;
+    this.registerMovement();
+  }
+
+  registerMovement(): void {
+    if (!this.selectedAsset) return;
+
+    this.patrimonioService
+      .registerMovement(this.selectedAsset.idPatrimonio, {
+        tipo: this.movementForm.tipo,
+        destino: this.movementForm.destino,
+        responsavel: this.movementForm.responsavel,
+        observacao: this.movementForm.observacao
+      })
+      .subscribe({
+        next: (patrimonio) => {
+          this.assetLibrary = this.assetLibrary.map((asset) =>
+            asset.idPatrimonio === patrimonio.idPatrimonio ? patrimonio : asset
+          );
+          this.selectedAsset = patrimonio;
+          this.movementForm.observacao = '';
+        }
+      });
   }
 }

@@ -9,6 +9,8 @@ import { AssistanceUnit } from './entities/AssistanceUnit';
 import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
 import { Familia } from './entities/Familia';
 import { FamiliaMembro } from './entities/FamiliaMembro';
+import { Patrimonio } from './entities/Patrimonio';
+import { PatrimonioMovimento } from './entities/PatrimonioMovimento';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 
 dotenv.config();
@@ -34,7 +36,16 @@ function resolveRelationalPort(): number {
 }
 
 const baseOptions = {
-  entities: [User, Beneficiario, AssistanceUnit, BeneficiaryDocumentConfig, Familia, FamiliaMembro],
+  entities: [
+    User,
+    Beneficiario,
+    AssistanceUnit,
+    BeneficiaryDocumentConfig,
+    Familia,
+    FamiliaMembro,
+    Patrimonio,
+    PatrimonioMovimento
+  ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;
 

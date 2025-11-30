@@ -14,6 +14,7 @@ import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastr
 import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
+import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -69,6 +70,11 @@ export const routes: Routes = [
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
         data: { title: 'Parâmetros do sistema' }
+      },
+      {
+        path: 'configuracoes/personalizacao',
+        component: PersonalizacaoComponent,
+        data: { title: 'Personalização' }
       }
     ]
   },
