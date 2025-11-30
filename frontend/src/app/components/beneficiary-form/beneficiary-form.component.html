@@ -271,6 +271,7 @@
                   </button>
                 </div>
                 <p class="text-xs text-slate-500 text-center">Aguarde a câmera inicializar para habilitar a captura.</p>
+                <p *ngIf="cameraError" class="text-xs text-red-500 text-center">{{ cameraError }}</p>
               </div>
 
               <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>
@@ -436,10 +437,13 @@
           <table class="min-w-full text-sm text-slate-700">
             <thead>
               <tr class="text-left border-b border-slate-200">
-                <th class="py-2 pr-4">Nome</th>
+                <th class="py-2 pr-4">Beneficiário</th>
                 <th class="py-2 pr-4">CPF</th>
+                <th class="py-2 pr-4">Nascimento</th>
+                <th class="py-2 pr-4">Contato</th>
+                <th class="py-2 pr-4">Endereço</th>
+                <th class="py-2 pr-4">Parentesco</th>
                 <th class="py-2 pr-4">Status</th>
-                <th class="py-2 pr-4">Bairro</th>
                 <th class="py-2">Ações</th>
               </tr>
             </thead>
@@ -457,9 +461,19 @@
                     </div>
                   </div>
                 </td>
-                <td class="py-2 pr-4">{{ beneficiary.documentos }}</td>
-                <td class="py-2 pr-4">{{ beneficiary.status }}</td>
-                <td class="py-2 pr-4">{{ beneficiary.bairro || '—' }}</td>
+                <td class="py-2 pr-4 whitespace-nowrap">{{ formatCpf(beneficiary.documentos) }}</td>
+                <td class="py-2 pr-4 whitespace-nowrap">{{ beneficiary.dataNascimento | date: 'dd/MM/yyyy' }}</td>
+                <td class="py-2 pr-4">
+                  <div class="flex flex-col">
+                    <span>{{ formatContact(beneficiary) }}</span>
+                    <span *ngIf="beneficiary.email" class="text-xs text-slate-500">{{ beneficiary.email }}</span>
+                  </div>
+                </td>
+                <td class="py-2 pr-4">{{ formatAddress(beneficiary) }}</td>
+                <td class="py-2 pr-4">{{ getParentesco(beneficiary) }}</td>
+                <td class="py-2 pr-4">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ beneficiary.status }}</span>
+                </td>
                 <td class="py-2">
                   <button type="button" class="btn-outline" (click)="startEdit(beneficiary)">Editar</button>
                 </td>

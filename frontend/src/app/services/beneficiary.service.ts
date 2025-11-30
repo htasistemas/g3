@@ -28,6 +28,7 @@ export interface BeneficiaryPayload {
   bairro?: string;
   cidade?: string;
   estado?: string;
+  parentesco?: string;
   observacoes?: string;
   status: string;
   motivoBloqueio?: string;
