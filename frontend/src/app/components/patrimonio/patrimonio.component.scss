@@ -1,0 +1,59 @@
+.badge {
+  @apply text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200;
+}
+
+.badge--success {
+  @apply bg-emerald-50 text-emerald-700 border-emerald-100;
+}
+
+.badge--muted {
+  @apply bg-slate-50 text-slate-500 border-slate-200;
+}
+
+.form-group {
+  @apply space-y-1;
+}
+
+.form-label {
+  @apply text-sm font-medium text-slate-700;
+}
+
+.divider {
+  @apply border-t border-slate-200 my-6;
+}
+
+.chip {
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-700;
+}
+
+.chip input[type='radio'] {
+  accent-color: #16a34a;
+}
+
+.upload-box {
+  @apply border border-slate-200 rounded-xl overflow-hidden bg-white;
+}
+
+.upload-box--empty {
+  @apply bg-slate-50;
+}
+
+.input-with-icon {
+  @apply flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3;
+}
+
+.input-with-icon fa-icon {
+  @apply text-slate-400;
+}
+
+.status-pill {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700;
+}
+
+.status-pill--warning {
+  @apply bg-amber-50 text-amber-700;
+}
+
+.status-pill--muted {
+  @apply bg-slate-100 text-slate-500;
+}
