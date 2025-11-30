@@ -3,7 +3,7 @@
     <div>
       <p class="text-sm font-semibold text-g3-green-700 uppercase">Beneficiários</p>
       <h1 class="text-3xl font-semibold text-slate-900">Cadastro de beneficiário</h1>
-      <p class="text-sm text-slate-600">Organize os dados em abas sem rolagem prolongada.</p>
+      <p class="text-sm text-slate-600">Organize as informações em abas temáticas para evitar rolagens longas.</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <button type="button" class="btn-outline" (click)="startNew()">Novo</button>
@@ -32,12 +32,25 @@
     <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'documents'" (click)="setActiveTab('documents')">
       Documentos
     </button>
-    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'socio'" (click)="setActiveTab('socio')">
-      Informações familiares e socioeconômicas
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'family'" (click)="setActiveTab('family')">
+      Situação Familiar e Social
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'education'" (click)="setActiveTab('education')">
+      Escolaridade & Trabalho
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'health'" (click)="setActiveTab('health')">
+      Saúde
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'benefits'" (click)="setActiveTab('benefits')">
+      Programas Sociais / Benefícios
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'notes'" (click)="setActiveTab('notes')">
+      Observações e Anexos
     </button>
   </nav>
 
   <form [formGroup]="beneficiaryForm" class="card tab-panel">
+    <!-- Dados pessoais -->
     <section *ngIf="activeTab === 'personal'" class="space-y-4">
       <h2 class="card__header">Dados pessoais</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -56,6 +69,14 @@
           </p>
         </div>
         <div class="field-group">
+          <label for="nomeSocial">Nome social</label>
+          <input id="nomeSocial" type="text" class="input" formControlName="nomeSocial" placeholder="Se houver" />
+        </div>
+        <div class="field-group">
+          <label for="apelido">Apelido / Como gosta de ser chamado</label>
+          <input id="apelido" type="text" class="input" formControlName="apelido" />
+        </div>
+        <div class="field-group">
           <label for="cpf">CPF *</label>
           <input
             id="cpf"
@@ -68,7 +89,7 @@
           <p *ngIf="beneficiaryForm.get('cpf')?.invalid && beneficiaryForm.get('cpf')?.touched" class="field-error">CPF inválido.</p>
         </div>
         <div class="field-group">
-          <label for="rg">RG</label>
+          <label for="rg">RG / Documento de identidade</label>
           <input id="rg" type="text" class="input" formControlName="rg" placeholder="Número do RG" />
         </div>
         <div class="grid grid-cols-[2fr_1fr] gap-3">
@@ -85,62 +106,114 @@
           </div>
         </div>
         <div class="field-group">
-          <label for="dataNascimento">Data de nascimento *</label>
-          <input id="dataNascimento" type="date" class="input" formControlName="dataNascimento" />
+          <label for="dataEmissaoRg">Data de emissão</label>
+          <input id="dataEmissaoRg" type="date" class="input" formControlName="dataEmissaoRg" />
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:col-span-2">
           <div class="field-group">
-            <label for="sexo">Sexo</label>
-            <select id="sexo" class="input" formControlName="sexo">
-              <option value="">Selecione</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Outro">Outro</option>
-            </select>
+            <label for="dataNascimento">Data de nascimento *</label>
+            <input id="dataNascimento" type="date" class="input" formControlName="dataNascimento" />
+          </div>
+          <div class="field-group">
+            <label for="idade">Idade (calculada)</label>
+            <input id="idade" type="number" class="input" formControlName="idade" readonly />
           </div>
           <div class="field-group">
             <label for="estadoCivil">Estado civil</label>
             <select id="estadoCivil" class="input" formControlName="estadoCivil">
               <option value="">Selecione</option>
               <option value="Solteiro(a)">Solteiro(a)</option>
-              <option value="Casado(a)">Casado(a)</option>
-              <option value="Divorciado(a)">Divorciado(a)</option>
+              <option value="Casado(a) / União Estável">Casado(a) / União Estável</option>
+              <option value="Separado(a) / Divorciado(a)">Separado(a) / Divorciado(a)</option>
               <option value="Viúvo(a)">Viúvo(a)</option>
-              <option value="União estável">União estável</option>
             </select>
           </div>
         </div>
-        <div class="field-group">
-          <label for="nomeMae">Nome da mãe</label>
-          <input
-            id="nomeMae"
-            type="text"
-            class="input"
-            formControlName="nomeMae"
-            (input)="formatTitleCase('nomeMae')"
-            placeholder="Digite o nome da mãe"
-          />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="field-group">
+            <label for="sexoBiologico">Sexo biológico</label>
+            <select id="sexoBiologico" class="input" formControlName="sexoBiologico">
+              <option value="">Selecione</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="identidadeGenero">Identidade de gênero</label>
+            <input id="identidadeGenero" type="text" class="input" formControlName="identidadeGenero" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="field-group">
+            <label for="corRaca">Cor/raça</label>
+            <select id="corRaca" class="input" formControlName="corRaca">
+              <option value="">Selecione</option>
+              <option value="Branca">Branca</option>
+              <option value="Preta">Preta</option>
+              <option value="Parda">Parda</option>
+              <option value="Amarela">Amarela</option>
+              <option value="Indígena">Indígena</option>
+              <option value="Prefere não informar">Prefere não informar</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="nacionalidade">Nacionalidade</label>
+            <input id="nacionalidade" type="text" class="input" formControlName="nacionalidade" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="field-group">
+            <label for="naturalidade">Naturalidade (cidade/UF de nascimento)</label>
+            <input id="naturalidade" type="text" class="input" formControlName="naturalidade" />
+          </div>
+          <div class="field-group">
+            <label for="nomeMae">Nome da mãe *</label>
+            <input id="nomeMae" type="text" class="input" formControlName="nomeMae" (input)="formatTitleCase('nomeMae')" />
+            <p *ngIf="beneficiaryForm.get('nomeMae')?.invalid && beneficiaryForm.get('nomeMae')?.touched" class="field-error">
+              Informe o nome da mãe.
+            </p>
+          </div>
         </div>
         <div class="field-group">
-          <label for="nis">NIS / Número do benefício</label>
-          <input id="nis" type="text" class="input" formControlName="nis" placeholder="Número do benefício" />
+          <label for="nomePai">Nome do pai</label>
+          <input id="nomePai" type="text" class="input" formControlName="nomePai" (input)="formatTitleCase('nomePai')" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
+          <div class="flex items-center gap-2">
+            <input id="responsavelLegal" type="checkbox" class="h-4 w-4" formControlName="responsavelLegal" />
+            <label for="responsavelLegal" class="text-sm font-medium text-slate-700">Responsável legal?</label>
+          </div>
+          <div class="field-group">
+            <label for="responsavelPor">Quem está sob sua responsabilidade</label>
+            <input id="responsavelPor" type="text" class="input" formControlName="responsavelPor" placeholder="Crianças, idosos" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
+          <div class="field-group">
+            <label for="situacaoEscolarCrianca">Situação escolar da criança/adolescente</label>
+            <select id="situacaoEscolarCrianca" class="input" formControlName="situacaoEscolarCrianca">
+              <option value="">Selecione</option>
+              <option value="Matriculado">Matriculado</option>
+              <option value="Fora da escola">Fora da escola</option>
+              <option value="Em EJA">Em EJA</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="responsavelLegalPor">Responsável legal (se menor)</label>
+            <input id="responsavelLegalPor" type="text" class="input" formControlName="responsavelLegalPor" placeholder="Vincular à composição familiar" />
+          </div>
         </div>
       </div>
     </section>
 
+    <!-- Endereço -->
     <section *ngIf="activeTab === 'address'" class="space-y-4">
       <h2 class="card__header">Endereço</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="field-group">
           <label for="cep">CEP</label>
-          <input
-            id="cep"
-            type="text"
-            class="input"
-            formControlName="cep"
-            (input)="handleCepInput($event)"
-            placeholder="00000-000"
-          />
+          <input id="cep" type="text" class="input" formControlName="cep" (input)="handleCepInput($event)" placeholder="00000-000" />
         </div>
         <div class="md:col-span-2 field-group">
           <label for="logradouro">Logradouro</label>
@@ -155,11 +228,11 @@
           <input id="complemento" type="text" class="input" formControlName="complemento" placeholder="Apartamento, bloco" />
         </div>
         <div class="field-group">
-          <label for="bairro">Bairro</label>
+          <label for="bairro">Bairro / Comunidade</label>
           <input id="bairro" type="text" class="input" formControlName="bairro" (input)="formatTitleCase('bairro')" />
         </div>
         <div class="field-group">
-          <label for="cidade">Cidade</label>
+          <label for="cidade">Município</label>
           <input id="cidade" type="text" class="input" formControlName="cidade" (input)="formatTitleCase('cidade')" />
         </div>
         <div class="field-group">
@@ -174,32 +247,125 @@
           <input id="pontoReferencia" type="text" class="input" formControlName="pontoReferencia" />
         </div>
       </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label class="block text-sm font-medium text-slate-700">Zona</label>
+          <div class="flex flex-wrap gap-3">
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input type="radio" value="Urbana" formControlName="zona" /> Urbana
+            </label>
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input type="radio" value="Rural" formControlName="zona" /> Rural
+            </label>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="situacaoImovel">Situação do imóvel</label>
+          <select id="situacaoImovel" class="input" formControlName="situacaoImovel">
+            <option value="">Selecione</option>
+            <option value="Próprio">Próprio</option>
+            <option value="Financiado">Financiado</option>
+            <option value="Alugado">Alugado</option>
+            <option value="Cedido">Cedido</option>
+            <option value="Ocupação/Irregular">Ocupação/Irregular</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="tipoMoradia">Tipo de moradia</label>
+          <select id="tipoMoradia" class="input" formControlName="tipoMoradia">
+            <option value="">Selecione</option>
+            <option value="Casa">Casa</option>
+            <option value="Apartamento">Apartamento</option>
+            <option value="Barraco">Barraco</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="block text-sm font-medium text-slate-700">Condições estruturais</label>
+          <div class="flex flex-wrap gap-3">
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('condicoesMoradia', 'Reboco / sem reboco')" (change)="toggleSelection('condicoesMoradia', 'Reboco / sem reboco')" />
+              <span>Reboco / sem reboco</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('condicoesMoradia', 'Cobertura adequada')" (change)="toggleSelection('condicoesMoradia', 'Cobertura adequada')" />
+              <span>Cobertura adequada</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('condicoesMoradia', 'Piso adequado')" (change)="toggleSelection('condicoesMoradia', 'Piso adequado')" />
+              <span>Piso adequado</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="acessoAgua">Água encanada?</label>
+          <select id="acessoAgua" class="input" formControlName="acessoAgua">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="esgoto">Esgoto</label>
+          <select id="esgoto" class="input" formControlName="esgoto">
+            <option value="">Selecione</option>
+            <option value="Rede">Rede</option>
+            <option value="Fossa">Fossa</option>
+            <option value="Céu aberto">Céu aberto</option>
+            <option value="Não possui">Não possui</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="coletaLixo">Coleta de lixo</label>
+          <select id="coletaLixo" class="input" formControlName="coletaLixo">
+            <option value="">Selecione</option>
+            <option value="Regular">Regular</option>
+            <option value="Irregular">Irregular</option>
+            <option value="Não possui">Não possui</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="energiaEletrica">Energia elétrica</label>
+          <select id="energiaEletrica" class="input" formControlName="energiaEletrica">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="internet">Internet</label>
+          <select id="internet" class="input" formControlName="internet">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+      </div>
     </section>
 
+    <!-- Contato -->
     <section *ngIf="activeTab === 'contact'" class="space-y-4">
       <h2 class="card__header">Contato</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="field-group">
-          <label for="telefoneFixo">Telefone fixo</label>
-          <input
-            id="telefoneFixo"
-            type="text"
-            class="input"
-            formControlName="telefoneFixo"
-            (input)="onPhoneInput('telefoneFixo', $event)"
-            placeholder="(00) 0000-0000"
-          />
+          <label for="telefoneFixo">Telefone principal</label>
+          <input id="telefoneFixo" type="text" class="input" formControlName="telefoneFixo" (input)="onPhoneInput('telefoneFixo', $event)" placeholder="(00) 0000-0000" />
         </div>
         <div class="field-group">
           <label for="celular">Celular / WhatsApp *</label>
-          <input
-            id="celular"
-            type="text"
-            class="input"
-            formControlName="celular"
-            (input)="onPhoneInput('celular', $event)"
-            placeholder="(00) 00000-0000"
-          />
+          <div class="flex items-center gap-3">
+            <input id="celular" type="text" class="input flex-1" formControlName="celular" (input)="onPhoneInput('celular', $event)" placeholder="(00) 00000-0000" />
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input type="checkbox" formControlName="contatoWhatsApp" /> É WhatsApp
+            </label>
+          </div>
           <p *ngIf="beneficiaryForm.get('celular')?.invalid && beneficiaryForm.get('celular')?.touched" class="field-error">
             Informe um celular válido.
           </p>
@@ -209,12 +375,118 @@
           <input id="email" type="email" class="input" formControlName="email" placeholder="email@exemplo.com" />
         </div>
       </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group md:col-span-2">
+          <label for="telefoneRecado">Telefone de recado</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              id="telefoneRecado"
+              type="text"
+              class="input"
+              formControlName="telefoneRecado"
+              (input)="onPhoneInput('telefoneRecado', $event)"
+              placeholder="(00) 00000-0000"
+            />
+            <input id="nomeRecado" type="text" class="input" formControlName="nomeRecado" placeholder="Pessoa para recado" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="block text-sm font-medium text-slate-700">Permite contato por:</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('contatoPreferencias', 'Telefone')" (change)="toggleSelection('contatoPreferencias', 'Telefone')" />
+              <span>Telefone</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('contatoPreferencias', 'WhatsApp')" (change)="toggleSelection('contatoPreferencias', 'WhatsApp')" />
+              <span>WhatsApp</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('contatoPreferencias', 'SMS')" (change)="toggleSelection('contatoPreferencias', 'SMS')" />
+              <span>SMS</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('contatoPreferencias', 'E-mail')" (change)="toggleSelection('contatoPreferencias', 'E-mail')" />
+              <span>E-mail</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="horarioContato">Horário preferencial de contato</label>
+          <input id="horarioContato" type="text" class="input" formControlName="horarioContato" placeholder="Manhã, tarde..." />
+        </div>
+        <div class="flex items-center gap-2 pt-6">
+          <input id="autorizacaoContato" type="checkbox" class="h-4 w-4" formControlName="autorizacaoContato" />
+          <label for="autorizacaoContato" class="text-sm font-medium text-slate-700">Autorização de contato (LGPD)</label>
+        </div>
+      </div>
     </section>
 
+    <!-- Documentos -->
     <section *ngIf="activeTab === 'documents'" class="space-y-4">
       <div class="flex flex-col gap-2">
         <h2 class="card__header">Documentos</h2>
-        <p class="text-sm text-slate-600">Adicione anexos e acompanhe os documentos obrigatórios definidos em Configurações.</p>
+        <p class="text-sm text-slate-600">Registre documentos pessoais e anexos. O CPF deve ser único no sistema.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="nis">NIS/PIS/PASEP</label>
+          <input id="nis" type="text" class="input" formControlName="nis" />
+        </div>
+        <div class="field-group">
+          <label for="nisBeneficio">NIS (benefício)</label>
+          <input id="nisBeneficio" type="text" class="input" formControlName="nisBeneficio" />
+        </div>
+        <div class="field-group">
+          <label for="cartaoSus">Cartão SUS</label>
+          <input id="cartaoSus" type="text" class="input" formControlName="cartaoSus" />
+        </div>
+        <div class="field-group">
+          <label for="certidaoTipo">Tipo de certidão</label>
+          <select id="certidaoTipo" class="input" formControlName="certidaoTipo">
+            <option value="">Selecione</option>
+            <option value="Nascimento">Nascimento</option>
+            <option value="Casamento">Casamento</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="certidaoLivro">Livro / folha / termo</label>
+          <input id="certidaoLivro" type="text" class="input" formControlName="certidaoLivro" placeholder="Livro" />
+        </div>
+        <div class="field-group">
+          <label for="certidaoTermo">Termo</label>
+          <input id="certidaoTermo" type="text" class="input" formControlName="certidaoTermo" />
+        </div>
+        <div class="field-group">
+          <label for="certidaoCartorio">Cartório / município / UF</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input id="certidaoCartorio" type="text" class="input" formControlName="certidaoCartorio" placeholder="Cartório" />
+            <input id="certidaoMunicipio" type="text" class="input" formControlName="certidaoMunicipio" placeholder="Município" />
+            <input id="certidaoUf" type="text" class="input" formControlName="certidaoUf" placeholder="UF" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="carteiraTrabalhoNumero">Carteira de trabalho</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input id="carteiraTrabalhoNumero" type="text" class="input" formControlName="carteiraTrabalhoNumero" placeholder="Número" />
+            <input id="carteiraTrabalhoSerie" type="text" class="input" formControlName="carteiraTrabalhoSerie" placeholder="Série" />
+            <input id="carteiraTrabalhoUf" type="text" class="input" formControlName="carteiraTrabalhoUf" placeholder="UF" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="tituloEleitor">Título de eleitor</label>
+          <input id="tituloEleitor" type="text" class="input" formControlName="tituloEleitor" />
+        </div>
+        <div class="field-group">
+          <label for="cnhNumero">CNH</label>
+          <input id="cnhNumero" type="text" class="input" formControlName="cnhNumero" />
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
@@ -283,19 +555,204 @@
       </div>
     </section>
 
-    <section *ngIf="activeTab === 'socio'" class="space-y-4">
-      <h2 class="card__header">Informações familiares e socioeconômicas</h2>
+    <!-- Situação familiar e social -->
+    <section *ngIf="activeTab === 'family'" class="space-y-4">
+      <h2 class="card__header">Situação familiar e social</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="field-group">
-          <label for="situacaoMoradia">Situação de moradia</label>
-          <select id="situacaoMoradia" class="input" formControlName="situacaoMoradia">
+          <label for="moraComFamilia">Mora com a família?</label>
+          <select id="moraComFamilia" class="input" formControlName="moraComFamilia">
             <option value="">Selecione</option>
-            <option value="Própria">Própria</option>
-            <option value="Alugada">Alugada</option>
-            <option value="Cedida">Cedida</option>
-            <option value="Outra">Outra</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
           </select>
         </div>
+        <div class="flex items-center gap-2 pt-6">
+          <input id="responsavelFamiliar" type="checkbox" class="h-4 w-4" formControlName="responsavelFamiliar" />
+          <label for="responsavelFamiliar" class="text-sm font-medium text-slate-700">É responsável pela família?</label>
+        </div>
+        <div class="field-group">
+          <label for="vinculoFamiliar">Vínculo familiar predominante</label>
+          <select id="vinculoFamiliar" class="input" formControlName="vinculoFamiliar">
+            <option value="">Selecione</option>
+            <option value="Mora com pais">Mora com pais</option>
+            <option value="Mora com cônjuge/companheiro">Mora com cônjuge/companheiro</option>
+            <option value="Mora sozinho">Mora sozinho</option>
+            <option value="Mora com parentes">Mora com parentes</option>
+            <option value="Mora com terceiros">Mora com terceiros</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="block text-sm font-medium text-slate-700">Situação de vulnerabilidade ou risco</label>
+        <div class="flex flex-wrap gap-2">
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Violência doméstica')" (change)="toggleSelection('situacoesVulnerabilidade', 'Violência doméstica')" />
+            <span>Violência doméstica</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Violência sexual')" (change)="toggleSelection('situacoesVulnerabilidade', 'Violência sexual')" />
+            <span>Violência sexual</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Trabalho infantil')" (change)="toggleSelection('situacoesVulnerabilidade', 'Trabalho infantil')" />
+            <span>Trabalho infantil</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Situação de rua')" (change)="toggleSelection('situacoesVulnerabilidade', 'Situação de rua')" />
+            <span>Situação de rua</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Uso abusivo de álcool/drogas')" (change)="toggleSelection('situacoesVulnerabilidade', 'Uso abusivo de álcool/drogas')" />
+            <span>Uso abusivo de álcool/drogas</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Exploração sexual')" (change)="toggleSelection('situacoesVulnerabilidade', 'Exploração sexual')" />
+            <span>Exploração sexual</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Desemprego de longa duração')" (change)="toggleSelection('situacoesVulnerabilidade', 'Desemprego de longa duração')" />
+            <span>Desemprego de longa duração</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('situacoesVulnerabilidade', 'Pessoa idosa/PCD sem suporte')" (change)="toggleSelection('situacoesVulnerabilidade', 'Pessoa idosa/PCD sem suporte')" />
+            <span>Pessoa idosa/PCD sem suporte</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="block text-sm font-medium text-slate-700">Acompanhamento por serviços socioassistenciais</label>
+        <div class="flex flex-wrap gap-2">
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'PAIF / CRAS')" (change)="toggleSelection('acompanhamentos', 'PAIF / CRAS')" />
+            <span>PAIF / CRAS</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'PAEFI / CREAS')" (change)="toggleSelection('acompanhamentos', 'PAEFI / CREAS')" />
+            <span>PAEFI / CREAS</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'Medidas socioeducativas')" (change)="toggleSelection('acompanhamentos', 'Medidas socioeducativas')" />
+            <span>Medidas socioeducativas</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'Serviço de Convivência')" (change)="toggleSelection('acompanhamentos', 'Serviço de Convivência')" />
+            <span>Serviço de Convivência</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'Acolhimento institucional')" (change)="toggleSelection('acompanhamentos', 'Acolhimento institucional')" />
+            <span>Acolhimento institucional</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentos', 'Outros')" (change)="toggleSelection('acompanhamentos', 'Outros')" />
+            <span>Outros</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="tempoAcompanhamento">Tempo de acompanhamento (meses/anos)</label>
+          <input id="tempoAcompanhamento" type="text" class="input" formControlName="tempoAcompanhamento" />
+        </div>
+        <div class="field-group">
+          <label for="origemEncaminhamento">Origem do encaminhamento</label>
+          <select id="origemEncaminhamento" class="input" formControlName="origemEncaminhamento">
+            <option value="">Selecione</option>
+            <option value="Escola">Escola</option>
+            <option value="Conselho Tutelar">Conselho Tutelar</option>
+            <option value="Judiciário">Judiciário</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Demanda espontânea">Demanda espontânea</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Escolaridade & Trabalho -->
+    <section *ngIf="activeTab === 'education'" class="space-y-4">
+      <h2 class="card__header">Escolaridade & Trabalho</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="alfabetizado">Sabe ler e escrever?</label>
+          <select id="alfabetizado" class="input" formControlName="alfabetizado">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="serieConcluida">Série/ano mais alto concluído</label>
+          <input id="serieConcluida" type="text" class="input" formControlName="serieConcluida" />
+        </div>
+        <div class="field-group">
+          <label for="situacaoEscolarAtual">Situação escolar atual</label>
+          <select id="situacaoEscolarAtual" class="input" formControlName="situacaoEscolarAtual">
+            <option value="">Selecione</option>
+            <option value="Estuda atualmente">Estuda atualmente</option>
+            <option value="Não estuda">Não estuda</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="nivelEnsino">Nível de ensino</label>
+          <select id="nivelEnsino" class="input" formControlName="nivelEnsino">
+            <option value="">Selecione</option>
+            <option value="Educação infantil">Educação infantil</option>
+            <option value="Fundamental incompleto">Fundamental incompleto</option>
+            <option value="Fundamental completo">Fundamental completo</option>
+            <option value="Médio incompleto">Médio incompleto</option>
+            <option value="Médio completo">Médio completo</option>
+            <option value="Superior incompleto">Superior incompleto</option>
+            <option value="Superior completo">Superior completo</option>
+            <option value="EJA">EJA</option>
+            <option value="Não alfabetizado">Não alfabetizado</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="situacaoTrabalho">Situação de trabalho</label>
+          <select id="situacaoTrabalho" class="input" formControlName="situacaoTrabalho">
+            <option value="">Selecione</option>
+            <option value="Empregado com carteira">Empregado com carteira</option>
+            <option value="Empregado sem carteira">Empregado sem carteira</option>
+            <option value="Autônomo">Autônomo</option>
+            <option value="Informal">Informal</option>
+            <option value="Desempregado">Desempregado</option>
+            <option value="Aposentado">Aposentado</option>
+            <option value="Pensionista">Pensionista</option>
+            <option value="Dona(o) de casa">Dona(o) de casa</option>
+            <option value="Estudante">Estudante</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="ocupacao">Profissão / Ocupação</label>
+          <input id="ocupacao" type="text" class="input" formControlName="ocupacao" />
+        </div>
+        <div class="field-group">
+          <label for="localTrabalho">Local de trabalho / empregador</label>
+          <input id="localTrabalho" type="text" class="input" formControlName="localTrabalho" />
+        </div>
+        <div class="field-group">
+          <label for="rendaIndividual">Renda individual mensal (R$)</label>
+          <input id="rendaIndividual" type="number" step="0.01" min="0" class="input" formControlName="rendaIndividual" />
+        </div>
+        <div class="field-group">
+          <label for="fonteRenda">Fonte da renda</label>
+          <select id="fonteRenda" class="input" formControlName="fonteRenda">
+            <option value="">Selecione</option>
+            <option value="Trabalho formal">Trabalho formal</option>
+            <option value="Trabalho informal">Trabalho informal</option>
+            <option value="Benefício previdenciário">Benefício previdenciário</option>
+            <option value="Benefício assistencial">Benefício assistencial</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="field-group">
           <label for="pessoasResidencia">Quantidade de pessoas na residência</label>
           <input id="pessoasResidencia" type="number" min="1" class="input" formControlName="pessoasResidencia" />
@@ -308,27 +765,170 @@
           <label for="rendaPerCapita">Renda per capita</label>
           <input id="rendaPerCapita" type="number" class="input" formControlName="rendaPerCapita" readonly />
         </div>
+      </div>
+    </section>
+
+    <!-- Saúde -->
+    <section *ngIf="activeTab === 'health'" class="space-y-4">
+      <h2 class="card__header">Saúde</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="field-group">
-          <label for="situacaoTrabalho">Situação de trabalho</label>
-          <select id="situacaoTrabalho" class="input" formControlName="situacaoTrabalho">
+          <label for="possuiDeficiencia">Possui alguma deficiência?</label>
+          <select id="possuiDeficiencia" class="input" formControlName="possuiDeficiencia">
             <option value="">Selecione</option>
-            <option value="Empregado">Empregado</option>
-            <option value="Desempregado">Desempregado</option>
-            <option value="Autônomo">Autônomo</option>
-            <option value="Aposentado">Aposentado</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
           </select>
         </div>
         <div class="field-group">
-          <label for="escolaridade">Escolaridade</label>
-          <input id="escolaridade" type="text" class="input" formControlName="escolaridade" />
+          <label class="block text-sm font-medium text-slate-700">Tipo de deficiência</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'Física')" (change)="toggleSelection('tiposDeficiencia', 'Física')" />
+              <span>Física</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'Intelectual')" (change)="toggleSelection('tiposDeficiencia', 'Intelectual')" />
+              <span>Intelectual</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'Auditiva')" (change)="toggleSelection('tiposDeficiencia', 'Auditiva')" />
+              <span>Auditiva</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'Visual')" (change)="toggleSelection('tiposDeficiencia', 'Visual')" />
+              <span>Visual</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'Múltipla')" (change)="toggleSelection('tiposDeficiencia', 'Múltipla')" />
+              <span>Múltipla</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('tiposDeficiencia', 'TEA')" (change)="toggleSelection('tiposDeficiencia', 'TEA')" />
+              <span>Transtorno do espectro autista</span>
+            </label>
+          </div>
         </div>
-        <div class="field-group md:col-span-2">
-          <label for="programasSociais">Programas sociais</label>
-          <input id="programasSociais" type="text" class="input" formControlName="programasSociais" placeholder="Bolsa Família, BPC..." />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="cidPrincipal">CID principal</label>
+          <input id="cidPrincipal" type="text" class="input" formControlName="cidPrincipal" />
         </div>
-        <div class="field-group md:col-span-3">
-          <label for="observacoes">Observações gerais</label>
-          <textarea id="observacoes" class="input" rows="3" formControlName="observacoes"></textarea>
+        <div class="field-group">
+          <label for="usaMedicacao">Uso contínuo de medicação?</label>
+          <select id="usaMedicacao" class="input" formControlName="usaMedicacao">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="medicacaoDescricao">Descreva a medicação</label>
+          <input id="medicacaoDescricao" type="text" class="input" formControlName="medicacaoDescricao" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="block text-sm font-medium text-slate-700">Acompanha em serviço de saúde específico?</label>
+        <div class="flex flex-wrap gap-2">
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentoSaude', 'CAPS')" (change)="toggleSelection('acompanhamentoSaude', 'CAPS')" />
+            <span>CAPS</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentoSaude', 'UBS')" (change)="toggleSelection('acompanhamentoSaude', 'UBS')" />
+            <span>UBS</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentoSaude', 'Hospital')" (change)="toggleSelection('acompanhamentoSaude', 'Hospital')" />
+            <span>Hospital</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentoSaude', 'Ambulatório especializado')" (change)="toggleSelection('acompanhamentoSaude', 'Ambulatório especializado')" />
+            <span>Ambulatório especializado</span>
+          </label>
+          <label class="pill-checkbox">
+            <input type="checkbox" [checked]="selectionChecked('acompanhamentoSaude', 'Outro')" (change)="toggleSelection('acompanhamentoSaude', 'Outro')" />
+            <span>Outro</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Programas sociais / Benefícios -->
+    <section *ngIf="activeTab === 'benefits'" class="space-y-4">
+      <h2 class="card__header">Programas sociais / Benefícios</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="recebeBeneficio">Recebe algum benefício social atualmente?</label>
+          <select id="recebeBeneficio" class="input" formControlName="recebeBeneficio">
+            <option value="">Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="valorBeneficios">Valor aproximado total dos benefícios (R$)</label>
+          <input id="valorBeneficios" type="number" step="0.01" min="0" class="input" formControlName="valorBeneficios" />
+        </div>
+        <div class="field-group">
+          <label class="block text-sm font-medium text-slate-700">Benefícios recebidos</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'Bolsa Família / PTR')" (change)="toggleSelection('beneficiosAtuais', 'Bolsa Família / PTR')" />
+              <span>Bolsa Família / PTR</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'BPC - Idoso')" (change)="toggleSelection('beneficiosAtuais', 'BPC - Idoso')" />
+              <span>BPC (Idoso)</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'BPC - Pessoa com deficiência')" (change)="toggleSelection('beneficiosAtuais', 'BPC - Pessoa com deficiência')" />
+              <span>BPC (PCD)</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'Benefício eventual')" (change)="toggleSelection('beneficiosAtuais', 'Benefício eventual')" />
+              <span>Benefício eventual</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'Programa de moradia')" (change)="toggleSelection('beneficiosAtuais', 'Programa de moradia')" />
+              <span>Programa de moradia</span>
+            </label>
+            <label class="pill-checkbox">
+              <input type="checkbox" [checked]="selectionChecked('beneficiosAtuais', 'Outros')" (change)="toggleSelection('beneficiosAtuais', 'Outros')" />
+              <span>Outros</span>
+            </label>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="tempoBeneficios">Tempo de recebimento</label>
+          <input id="tempoBeneficios" type="text" class="input" formControlName="tempoBeneficios" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="historicoBeneficio">Histórico de benefícios (suspenso/cancelado e motivo)</label>
+        <textarea id="historicoBeneficio" class="input" rows="3" formControlName="historicoBeneficio"></textarea>
+      </div>
+    </section>
+
+    <!-- Observações e anexos -->
+    <section *ngIf="activeTab === 'notes'" class="space-y-4">
+      <h2 class="card__header">Observações e anexos</h2>
+      <div class="field-group">
+        <label for="observacoes">Observações sociais</label>
+        <textarea id="observacoes" class="input" rows="4" formControlName="observacoes" placeholder="Registre informações relevantes"></textarea>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="foto">Foto do beneficiário</label>
+          <input id="foto" type="file" class="file-input" accept="image/*" (change)="onPhotoSelected($event)" />
+          <p class="text-xs text-slate-500 mt-1">A foto será enviada junto com o cadastro.</p>
+        </div>
+        <div class="field-group">
+          <label>Resumo dos anexos</label>
+          <p class="text-sm text-slate-600">Os documentos anexados estão listados na aba Documentos.</p>
         </div>
       </div>
     </section>
