@@ -1,566 +1,336 @@
-<div class="p-6 space-y-4 form-compact family-form">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+<div class="p-6 space-y-5">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
-      <p class="text-sm text-g3-green-600 font-semibold uppercase tracking-wide">Famílias</p>
-      <h1 class="text-2xl font-semibold text-slate-800">Cadastro de Família</h1>
-      <p class="text-sm text-slate-600">Organize os dados da família por abas para facilitar a navegação.</p>
+      <p class="text-sm font-semibold text-g3-green-700 uppercase">Beneficiários</p>
+      <h1 class="text-3xl font-semibold text-slate-900">Cadastro de beneficiário</h1>
+      <p class="text-sm text-slate-600">Organize os dados em abas sem rolagem prolongada.</p>
     </div>
-    <div class="flex items-center space-x-2 text-sm text-slate-600">
-      <span class="inline-flex items-center rounded-full bg-green-50 text-g3-green-700 px-3 py-1 font-medium">Formulário ativo</span>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn-outline" (click)="startNew()">Novo</button>
+      <button type="button" class="btn-primary" (click)="submit()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Salvando...' : 'Salvar' }}
+      </button>
+      <button type="button" class="btn-outline" (click)="cancel()">Cancelar</button>
+      <button type="button" class="btn-ghost" (click)="goBack()">Voltar para lista</button>
     </div>
   </div>
 
-  <nav class="tab-list" aria-label="Etapas do cadastro da família">
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'members'"
-      (click)="setActiveTab('members')"
-    >
-      Beneficiários
-      <span *ngIf="tabHasErrors('members')" class="tab-list__badge" aria-label="Aba com erros"></span>
+  <div *ngIf="feedback" class="alert" [class.alert-success]="feedback.type === 'success'" [class.alert-error]="feedback.type === 'error'">
+    {{ feedback.message }}
+  </div>
+
+  <nav class="tab-list" aria-label="Etapas do cadastro">
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'personal'" (click)="setActiveTab('personal')">
+      Dados pessoais
     </button>
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'family'"
-      (click)="setActiveTab('family')"
-    >
-      Composição familiar
-      <span *ngIf="tabHasErrors('family')" class="tab-list__badge" aria-label="Aba com erros"></span>
-    </button>
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'address'"
-      (click)="setActiveTab('address')"
-    >
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'address'" (click)="setActiveTab('address')">
       Endereço
-      <span *ngIf="tabHasErrors('address')" class="tab-list__badge" aria-label="Aba com erros"></span>
     </button>
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'documents'"
-      (click)="setActiveTab('documents')"
-    >
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'contact'" (click)="setActiveTab('contact')">
+      Contato
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'documents'" (click)="setActiveTab('documents')">
       Documentos
-      <span *ngIf="tabHasErrors('documents')" class="tab-list__badge" aria-label="Aba com erros"></span>
     </button>
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'notes'"
-      (click)="setActiveTab('notes')"
-    >
-      Observações
-      <span *ngIf="tabHasErrors('notes')" class="tab-list__badge" aria-label="Aba com erros"></span>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'socio'" (click)="setActiveTab('socio')">
+      Informações familiares e socioeconômicas
     </button>
   </nav>
 
-  <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-3">
-    <section *ngIf="activeTab === 'family'" class="tab-panel space-y-3">
-      <div class="card">
-        <div class="card__header">Composição familiar</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  <form [formGroup]="beneficiaryForm" class="card tab-panel">
+    <section *ngIf="activeTab === 'personal'" class="space-y-4">
+      <h2 class="card__header">Dados pessoais</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="nomeCompleto">Nome completo *</label>
+          <input
+            id="nomeCompleto"
+            type="text"
+            class="input"
+            formControlName="nomeCompleto"
+            (input)="formatTitleCase('nomeCompleto')"
+            placeholder="Digite o nome completo"
+          />
+          <p *ngIf="beneficiaryForm.get('nomeCompleto')?.invalid && beneficiaryForm.get('nomeCompleto')?.touched" class="field-error">
+            Informe um nome válido.
+          </p>
+        </div>
+        <div class="field-group">
+          <label for="cpf">CPF *</label>
+          <input
+            id="cpf"
+            type="text"
+            class="input"
+            formControlName="cpf"
+            (input)="onCpfInput($event)"
+            placeholder="000.000.000-00"
+          />
+          <p *ngIf="beneficiaryForm.get('cpf')?.invalid && beneficiaryForm.get('cpf')?.touched" class="field-error">CPF inválido.</p>
+        </div>
+        <div class="field-group">
+          <label for="rg">RG</label>
+          <input id="rg" type="text" class="input" formControlName="rg" placeholder="Número do RG" />
+        </div>
+        <div class="grid grid-cols-[2fr_1fr] gap-3">
           <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="nomeCompleto">Identificação da família</label>
-            <input
-              id="nomeCompleto"
-              type="text"
-              formControlName="nomeCompleto"
-              (input)="formatTitleCase('nomeCompleto')"
-              class="input"
-              placeholder="Nome da família ou responsável"
-            />
-            <p *ngIf="beneficiaryForm.get('nomeCompleto')?.touched && beneficiaryForm.get('nomeCompleto')?.invalid" class="text-xs text-red-500">
-              Informe um nome válido (mínimo 3 caracteres).
-            </p>
+            <label for="orgaoEmissor">Órgão emissor</label>
+            <input id="orgaoEmissor" type="text" class="input" formControlName="orgaoEmissor" placeholder="SSP" />
           </div>
-
           <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="documentos">CPF/Documento do responsável</label>
-            <input
-              id="documentos"
-              type="text"
-              formControlName="documentos"
-              (input)="onCpfInput($event)"
-              class="input"
-              placeholder="000.000.000-00"
-            />
-            <p *ngIf="beneficiaryForm.get('documentos')?.touched && beneficiaryForm.get('documentos')?.invalid" class="text-xs text-red-500">
-              CPF inválido ou ausente.
-            </p>
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="telefone">Telefone/WhatsApp</label>
-            <input
-              id="telefone"
-              type="text"
-              formControlName="telefone"
-              (input)="onPhoneInput($event)"
-              class="input"
-              placeholder="(00) 00000-0000"
-            />
-            <p *ngIf="beneficiaryForm.get('telefone')?.touched && beneficiaryForm.get('telefone')?.invalid" class="text-xs text-red-500">
-              Informe um telefone válido.
-            </p>
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="email">E-mail de contato</label>
-            <input id="email" type="email" formControlName="email" class="input" placeholder="email@dominio.com" />
-            <p *ngIf="beneficiaryForm.get('email')?.touched && beneficiaryForm.get('email')?.invalid" class="text-xs text-red-500">
-              E-mail inválido.
-            </p>
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="status">Situação da família</label>
-            <select id="status" formControlName="status" class="input">
-              <option value="Ativo">Ativo</option>
-              <option value="Inativo">Inativo</option>
-              <option value="Em análise">Em análise</option>
-              <option value="Bloqueado">Bloqueado</option>
+            <label for="ufEmissor">UF</label>
+            <select id="ufEmissor" class="input" formControlName="ufEmissor">
+              <option value="">Selecione</option>
+              <option *ngFor="let state of states" [value]="state">{{ state }}</option>
             </select>
           </div>
-
+        </div>
+        <div class="field-group">
+          <label for="dataNascimento">Data de nascimento *</label>
+          <input id="dataNascimento" type="date" class="input" formControlName="dataNascimento" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
           <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="nomeMae">Referência familiar</label>
-            <input
-              id="nomeMae"
-              type="text"
-              formControlName="nomeMae"
-              (input)="formatTitleCase('nomeMae')"
-              class="input"
-              placeholder="Outro responsável ou contato"
-            />
+            <label for="sexo">Sexo</label>
+            <select id="sexo" class="input" formControlName="sexo">
+              <option value="">Selecione</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Outro">Outro</option>
+            </select>
           </div>
-
-          <div class="field-group" *ngIf="beneficiaryForm.get('status')?.value === 'Bloqueado'">
-            <label class="text-sm font-medium text-slate-700" for="motivoBloqueio">Motivo do bloqueio</label>
-            <textarea id="motivoBloqueio" formControlName="motivoBloqueio" rows="3" class="input" placeholder="Descreva o motivo"></textarea>
-            <p *ngIf="beneficiaryForm.get('motivoBloqueio')?.touched && beneficiaryForm.get('motivoBloqueio')?.invalid" class="text-xs text-red-500">
-              Informe o motivo do bloqueio.
-            </p>
+          <div class="field-group">
+            <label for="estadoCivil">Estado civil</label>
+            <select id="estadoCivil" class="input" formControlName="estadoCivil">
+              <option value="">Selecione</option>
+              <option value="Solteiro(a)">Solteiro(a)</option>
+              <option value="Casado(a)">Casado(a)</option>
+              <option value="Divorciado(a)">Divorciado(a)</option>
+              <option value="Viúvo(a)">Viúvo(a)</option>
+              <option value="União estável">União estável</option>
+            </select>
           </div>
+        </div>
+        <div class="field-group">
+          <label for="nomeMae">Nome da mãe</label>
+          <input
+            id="nomeMae"
+            type="text"
+            class="input"
+            formControlName="nomeMae"
+            (input)="formatTitleCase('nomeMae')"
+            placeholder="Digite o nome da mãe"
+          />
+        </div>
+        <div class="field-group">
+          <label for="nis">NIS / Número do benefício</label>
+          <input id="nis" type="text" class="input" formControlName="nis" placeholder="Número do benefício" />
         </div>
       </div>
     </section>
 
-    <section *ngIf="activeTab === 'address'" class="tab-panel space-y-3">
-      <div class="card">
-        <div class="card__header">Endereço da família</div>
-        <div class="address-grid">
-          <div class="field-group address-grid__cep">
-            <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
-            <input
-              id="cep"
-              type="text"
-              formControlName="cep"
-              (input)="handleCepInput($event)"
-              class="input"
-              placeholder="00000-000"
-            />
-            <p *ngIf="beneficiaryForm.get('cep')?.touched && beneficiaryForm.get('cep')?.invalid" class="text-xs text-red-500">
-              <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['cep']">Informe um CEP com 8 dígitos.</ng-container>
-              <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['invalidCep']">CEP não encontrado.</ng-container>
-            </p>
-          </div>
-
-          <div class="field-group address-grid__bairro">
-            <label class="text-sm font-medium text-slate-700" for="bairro">Bairro</label>
-            <input id="bairro" type="text" formControlName="bairro" (input)="formatTitleCase('bairro')" class="input" placeholder="Digite o bairro" />
-          </div>
-
-          <div class="field-group address-grid__reference">
-            <label class="text-sm font-medium text-slate-700" for="pontoReferencia">Ponto de referência</label>
-            <input
-              id="pontoReferencia"
-              type="text"
-              formControlName="pontoReferencia"
-              class="input"
-              placeholder="Próximo a..."
-            />
-          </div>
-
-          <div class="md:col-span-2 field-group">
-            <label class="text-sm font-medium text-slate-700" for="endereco">Logradouro e número</label>
-            <div class="grid grid-cols-[2fr_1fr] gap-3 items-end">
-              <div class="field-group m-0">
-                <input
-                  id="endereco"
-                  type="text"
-                  formControlName="endereco"
-                  (input)="formatTitleCase('endereco')"
-                  class="input"
-                  placeholder="Rua ou avenida"
-                />
-                <p *ngIf="beneficiaryForm.get('endereco')?.touched && beneficiaryForm.get('endereco')?.invalid" class="text-xs text-red-500">Endereço é obrigatório.</p>
-              </div>
-              <div class="field-group m-0">
-                <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
-                <input id="numeroEndereco" type="text" formControlName="numeroEndereco" class="input" placeholder="Número" />
-                <p *ngIf="beneficiaryForm.get('numeroEndereco')?.touched && beneficiaryForm.get('numeroEndereco')?.invalid" class="text-xs text-red-500">Informe o número da residência.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="field-group md:col-span-2">
-            <label class="text-sm font-medium text-slate-700" for="cidade">Cidade e UF</label>
-            <div class="grid grid-cols-[2fr_1fr] gap-3">
-              <input id="cidade" type="text" formControlName="cidade" (input)="formatTitleCase('cidade')" class="input" placeholder="Informe a cidade" />
-              <select id="estado" formControlName="estado" class="input">
-                <option value="" disabled>UF</option>
-                <option *ngFor="let state of states" [value]="state">{{ state }}</option>
-              </select>
-            </div>
-          </div>
+    <section *ngIf="activeTab === 'address'" class="space-y-4">
+      <h2 class="card__header">Endereço</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="cep">CEP</label>
+          <input
+            id="cep"
+            type="text"
+            class="input"
+            formControlName="cep"
+            (input)="handleCepInput($event)"
+            placeholder="00000-000"
+          />
+        </div>
+        <div class="md:col-span-2 field-group">
+          <label for="logradouro">Logradouro</label>
+          <input id="logradouro" type="text" class="input" formControlName="logradouro" placeholder="Rua/Avenida" />
+        </div>
+        <div class="field-group">
+          <label for="numero">Número</label>
+          <input id="numero" type="text" class="input" formControlName="numero" placeholder="Número" />
+        </div>
+        <div class="field-group">
+          <label for="complemento">Complemento</label>
+          <input id="complemento" type="text" class="input" formControlName="complemento" placeholder="Apartamento, bloco" />
+        </div>
+        <div class="field-group">
+          <label for="bairro">Bairro</label>
+          <input id="bairro" type="text" class="input" formControlName="bairro" (input)="formatTitleCase('bairro')" />
+        </div>
+        <div class="field-group">
+          <label for="cidade">Cidade</label>
+          <input id="cidade" type="text" class="input" formControlName="cidade" (input)="formatTitleCase('cidade')" />
+        </div>
+        <div class="field-group">
+          <label for="uf">UF</label>
+          <select id="uf" class="input" formControlName="uf">
+            <option value="">Selecione</option>
+            <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+          </select>
+        </div>
+        <div class="md:col-span-2 field-group">
+          <label for="pontoReferencia">Ponto de referência</label>
+          <input id="pontoReferencia" type="text" class="input" formControlName="pontoReferencia" />
         </div>
       </div>
     </section>
 
-    <section *ngIf="activeTab === 'members'" class="tab-panel space-y-3">
-      <div class="card space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div class="card__header">Beneficiários</div>
-          <div class="tab-list tab-list--sub" role="tablist" aria-label="Detalhes do beneficiário">
-            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'data'" (click)="setBeneficiaryTab('data')">
-              Dados do beneficiário
-            </button>
-            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'family'" (click)="setBeneficiaryTab('family')">
-              Informações familiares
-            </button>
-            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'socio'" (click)="setBeneficiaryTab('socio')">
-              Informações socioeconômicas
-            </button>
-            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'documents'" (click)="setBeneficiaryTab('documents')">
-              Documentos
-            </button>
-          </div>
+    <section *ngIf="activeTab === 'contact'" class="space-y-4">
+      <h2 class="card__header">Contato</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="telefoneFixo">Telefone fixo</label>
+          <input
+            id="telefoneFixo"
+            type="text"
+            class="input"
+            formControlName="telefoneFixo"
+            (input)="onPhoneInput('telefoneFixo', $event)"
+            placeholder="(00) 0000-0000"
+          />
         </div>
-
-        <div *ngIf="beneficiaryTab === 'data'" class="beneficiary-grid gap-3">
-          <div class="card space-y-3 photo-card">
-            <div class="card__header">Foto do beneficiário</div>
-            <div class="space-y-3">
-              <div class="flex justify-center">
-                <div class="relative photo-card__preview rounded-lg bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center">
-                  <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
-                  <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
-                </div>
-              </div>
-              <p *ngIf="photoError" class="text-xs text-red-500 text-center">{{ photoError }}</p>
-
-              <label class="text-sm font-medium text-slate-700">Capturar pela webcam</label>
-              <div class="space-y-2">
-                <video
-                  #videoElement
-                  class="w-full rounded-lg border border-dashed border-slate-300 min-h-36 bg-black/30 object-cover"
-                  autoplay
-                  muted
-                  playsinline
-                  [class.opacity-0]="!cameraActive"
-                ></video>
-                <canvas #canvasElement class="hidden"></canvas>
-                <div class="flex gap-2 justify-center">
-                  <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
-                  <button type="button" class="btn-primary" [disabled]="!cameraReady" (click)="capturePhoto(videoElement, canvasElement)">
-                    Capturar
-                  </button>
-                </div>
-                <p class="text-xs text-slate-500 text-center">Aguarde a câmera inicializar para habilitar a captura.</p>
-                <p *ngIf="cameraError" class="text-xs text-red-500 text-center">{{ cameraError }}</p>
-              </div>
-
-              <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>
-              <input type="file" accept="image/*" (change)="handlePhotoUpload($event)" class="file-input" />
-            </div>
-          </div>
-
-          <div class="card space-y-3 beneficiary-data-card">
-            <div class="card__header">Dados do beneficiário</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="field-group">
-                <label class="text-sm font-medium text-slate-700" for="dataNascimento">Data de nascimento</label>
-                <input id="dataNascimento" type="date" formControlName="dataNascimento" class="input" />
-              </div>
-              <div class="field-group">
-                <label class="text-sm font-medium text-slate-700" for="idade">Idade</label>
-                <input id="idade" type="number" formControlName="idade" class="input" placeholder="Idade" readonly />
-              </div>
-
-              <div class="field-group">
-                <label class="text-sm font-medium text-slate-700" for="escolaridade">Escolaridade</label>
-                <input id="escolaridade" type="text" formControlName="escolaridade" class="input" placeholder="Ensino médio completo" />
-              </div>
-            </div>
-          </div>
+        <div class="field-group">
+          <label for="celular">Celular / WhatsApp *</label>
+          <input
+            id="celular"
+            type="text"
+            class="input"
+            formControlName="celular"
+            (input)="onPhoneInput('celular', $event)"
+            placeholder="(00) 00000-0000"
+          />
+          <p *ngIf="beneficiaryForm.get('celular')?.invalid && beneficiaryForm.get('celular')?.touched" class="field-error">
+            Informe um celular válido.
+          </p>
         </div>
-
-        <div *ngIf="beneficiaryTab === 'family'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
-            <label class="inline-flex items-center gap-3 text-sm text-slate-700 pl-px">
-              <input type="checkbox" id="possuiFilhosMenores" formControlName="possuiFilhosMenores" class="h-4 w-4" />
-              <span>Sim</span>
-            </label>
-            <p class="text-xs text-slate-500">Quando marcado, a certidão de nascimento passa a ser obrigatória.</p>
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="quantidadeFilhosMenores">Quantidade de filhos menores</label>
-            <input id="quantidadeFilhosMenores" type="number" formControlName="quantidadeFilhosMenores" class="input" placeholder="0" min="0" />
-            <p *ngIf="beneficiaryForm.get('quantidadeFilhosMenores')?.touched && beneficiaryForm.get('quantidadeFilhosMenores')?.invalid" class="text-xs text-red-500">
-              Informe a quantidade de filhos menores.
-            </p>
-          </div>
-
-          <div class="field-group md:col-span-2">
-            <label class="text-sm font-medium text-slate-700" for="possuiCnh">Beneficiário habilitado?</label>
-            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" id="possuiCnh" formControlName="possuiCnh" class="h-4 w-4" />
-              <span>Sim</span>
-            </label>
-            <p class="text-xs text-slate-500">Quando marcado, o envio da CNH torna-se obrigatório.</p>
-          </div>
+        <div class="field-group">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" class="input" formControlName="email" placeholder="email@exemplo.com" />
         </div>
+      </div>
+    </section>
 
-        <div *ngIf="beneficiaryTab === 'socio'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="rendaIndividual">Renda individual</label>
-            <input id="rendaIndividual" type="number" step="0.01" formControlName="rendaIndividual" class="input" placeholder="0,00" />
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="rendaFamiliar">Renda total da família</label>
-            <input id="rendaFamiliar" type="number" step="0.01" formControlName="rendaFamiliar" class="input" placeholder="0,00" />
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="situacaoEmprego">Situação de trabalho</label>
-            <input id="situacaoEmprego" type="text" formControlName="situacaoEmprego" class="input" placeholder="Empregado, autônomo, desempregado..." />
-          </div>
-
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="ocupacao">Ocupação</label>
-            <input id="ocupacao" type="text" formControlName="ocupacao" class="input" placeholder="Profissão ou atividade" />
-          </div>
-
-          <div class="field-group md:col-span-2">
-            <label class="text-sm font-medium text-slate-700" for="informacoesMoradia">Informações sobre a moradia</label>
-            <textarea id="informacoesMoradia" formControlName="informacoesMoradia" rows="3" class="input" placeholder="Condições gerais da moradia"></textarea>
-          </div>
-
-          <div class="field-group md:col-span-2">
-            <label class="text-sm font-medium text-slate-700">Condições de saneamento</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              <label
-                *ngFor="let option of sanitationOptions"
-                class="inline-flex items-center gap-2 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
-              >
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-slate-300"
-                  [checked]="selectedSanitationOptions.has(option)"
-                  (change)="toggleSanitationOption(option, $event.target.checked)"
-                />
-                <span>{{ option }}</span>
-              </label>
-            </div>
-            <p class="text-xs text-slate-500">Selecione todas as condições que se aplicam.</p>
-            <input id="condicoesSaneamento" type="hidden" formControlName="condicoesSaneamento" />
-          </div>
-        </div>
-
-        <ng-container *ngIf="beneficiaryTab === 'documents'">
-          <ng-container [ngTemplateOutlet]="documentsContent"></ng-container>
-        </ng-container>
+    <section *ngIf="activeTab === 'documents'" class="space-y-4">
+      <div class="flex flex-col gap-2">
+        <h2 class="card__header">Documentos</h2>
+        <p class="text-sm text-slate-600">Adicione anexos e acompanhe os documentos obrigatórios definidos em Configurações.</p>
       </div>
 
-      <div class="card space-y-3" [formGroup]="filterForm">
-        <div class="flex items-center justify-between gap-3">
-          <div class="card__header">Beneficiários vinculados à família</div>
-          <button type="button" class="btn-outline inline-flex items-center gap-2" (click)="resetForm()">
-            <span class="text-lg leading-none">＋</span>
-            <span>Adicionar beneficiário</span>
-          </button>
-        </div>
-        <p class="text-sm text-slate-600">Use os filtros para localizar e editar integrantes cadastrados.</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="filterNome">Nome</label>
-            <input id="filterNome" type="text" class="input" formControlName="nome" placeholder="Buscar por nome" />
-          </div>
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="filterCpf">CPF</label>
-            <input id="filterCpf" type="text" class="input" formControlName="cpf" placeholder="000.000.000-00" />
-          </div>
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="filterIdade">Idade</label>
-            <input id="filterIdade" type="number" class="input" formControlName="idade" placeholder="Idade" />
-          </div>
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="filterDataNascimento">Data de nascimento</label>
-            <input id="filterDataNascimento" type="date" class="input" formControlName="dataNascimento" />
-          </div>
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="filterBairro">Bairro</label>
-            <input id="filterBairro" type="text" class="input" formControlName="bairro" placeholder="Filtrar por bairro" />
-          </div>
-          <div class="field-group">
-            <p class="text-sm font-medium text-slate-700">Status</p>
-            <div class="flex flex-wrap gap-3">
-              <label
-                *ngFor="let status of statusOptions"
-                class="inline-flex items-center gap-2 text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1"
-              >
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-slate-300"
-                  [checked]="filterForm.get('status')?.value?.includes(status)"
-                  (change)="toggleStatusFilter(status, $event.target.checked)"
-                />
-                <span>{{ status }}</span>
-              </label>
+      <div class="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-4">
+        <div class="card card--sub" [formGroup]="documentForm">
+          <h3 class="card__header">Novo documento</h3>
+          <div class="space-y-3">
+            <div class="field-group">
+              <label for="tipo">Tipo *</label>
+              <input id="tipo" type="text" class="input" formControlName="tipo" placeholder="RG, CPF, Cartão SUS..." />
+              <p *ngIf="documentForm.get('tipo')?.invalid && documentForm.get('tipo')?.touched" class="field-error">
+                Informe o tipo do documento.
+              </p>
             </div>
+            <div class="field-group">
+              <label for="numeroDoc">Número</label>
+              <input id="numeroDoc" type="text" class="input" formControlName="numero" />
+            </div>
+            <div class="field-group">
+              <label for="dataEmissao">Data de emissão</label>
+              <input id="dataEmissao" type="date" class="input" formControlName="dataEmissao" />
+            </div>
+            <div class="field-group">
+              <label for="arquivo">Arquivo</label>
+              <input id="arquivo" type="file" class="file-input" (change)="onDocumentFileChange($event)" />
+            </div>
+            <button type="button" class="btn-primary w-full" (click)="addDocument()">Adicionar documento</button>
           </div>
         </div>
 
-        <div class="flex justify-end">
-          <button type="button" class="btn-outline" (click)="clearFilters()">Limpar filtros</button>
-        </div>
-
-        <p class="text-sm text-slate-600" *ngIf="!filteredBeneficiaries.length">Nenhum beneficiário encontrado.</p>
-        <div class="overflow-x-auto" *ngIf="filteredBeneficiaries.length">
-          <table class="min-w-full text-sm text-slate-700">
-            <thead>
-              <tr class="text-left border-b border-slate-200">
-                <th class="py-2 pr-4">Beneficiário</th>
-                <th class="py-2 pr-4">CPF</th>
-                <th class="py-2 pr-4">Nascimento</th>
-                <th class="py-2 pr-4">Contato</th>
-                <th class="py-2 pr-4">Endereço</th>
-                <th class="py-2 pr-4">Parentesco</th>
-                <th class="py-2 pr-4">Status</th>
-                <th class="py-2">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let beneficiary of filteredBeneficiaries" class="border-b border-slate-100">
-                <td class="py-2 pr-4">
-                  <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-full bg-slate-100 overflow-hidden flex-shrink-0">
-                      <img *ngIf="beneficiary.foto" [src]="beneficiary.foto" alt="Foto de {{ beneficiary.nomeCompleto }}" class="h-full w-full object-cover" />
-                      <div *ngIf="!beneficiary.foto" class="h-full w-full flex items-center justify-center text-xs text-slate-400">Sem foto</div>
+        <div class="card card--sub">
+          <div class="flex items-center justify-between">
+            <h3 class="card__header">Documentos anexados</h3>
+            <span class="text-xs text-slate-600">Obrigatórios: {{ requiredMandatoryCount }}</span>
+          </div>
+          <div class="overflow-hidden border border-slate-200 rounded-xl">
+            <table class="min-w-full divide-y divide-slate-200">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="table-head">Tipo</th>
+                  <th class="table-head">Arquivo</th>
+                  <th class="table-head">Emissão</th>
+                  <th class="table-head text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200" *ngIf="uploadedDocuments.length; else noDocuments">
+                <tr *ngFor="let doc of uploadedDocuments; index as i" class="hover:bg-slate-50">
+                  <td class="table-cell">
+                    <div class="flex items-center gap-2">
+                      <span>{{ doc.tipo }}</span>
+                      <span *ngIf="documentIsRequired(doc.tipo)" class="badge badge-required">Obrigatório</span>
                     </div>
-                    <div class="flex flex-col">
-                      <span class="font-semibold">{{ beneficiary.nomeCompleto }}</span>
-                      <span class="text-xs text-slate-500" *ngIf="beneficiary.idade">{{ beneficiary.idade }} anos</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="py-2 pr-4 whitespace-nowrap">{{ formatCpf(beneficiary.documentos) }}</td>
-                <td class="py-2 pr-4 whitespace-nowrap">{{ beneficiary.dataNascimento | date: 'dd/MM/yyyy' }}</td>
-                <td class="py-2 pr-4">
-                  <div class="flex flex-col">
-                    <span>{{ formatContact(beneficiary) }}</span>
-                    <span *ngIf="beneficiary.email" class="text-xs text-slate-500">{{ beneficiary.email }}</span>
-                  </div>
-                </td>
-                <td class="py-2 pr-4">{{ formatAddress(beneficiary) }}</td>
-                <td class="py-2 pr-4">{{ getParentesco(beneficiary) }}</td>
-                <td class="py-2 pr-4">
-                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ beneficiary.status }}</span>
-                </td>
-                <td class="py-2">
-                  <button type="button" class="btn-outline" (click)="startEdit(beneficiary)">Editar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section *ngIf="activeTab === 'documents'" class="tab-panel space-y-3">
-      <ng-container [ngTemplateOutlet]="documentsContent"></ng-container>
-    </section>
-
-    <section *ngIf="activeTab === 'notes'" class="tab-panel space-y-3">
-      <div class="card">
-        <div class="card__header">Observações e informações adicionais</div>
-        <div class="grid grid-cols-1 gap-3">
-          <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="observacoes">Observações gerais</label>
-            <textarea
-              id="observacoes"
-              formControlName="observacoes"
-              rows="5"
-              class="input"
-              placeholder="Anotações e pontos de atenção sobre a família"
-            ></textarea>
-            <p class="text-xs text-slate-500 text-right">{{ observacoesLength }} caracteres</p>
+                  </td>
+                  <td class="table-cell">{{ doc.nomeArquivo || 'Não enviado' }}</td>
+                  <td class="table-cell">{{ doc.dataEmissao || '-' }}</td>
+                  <td class="table-cell text-right">
+                    <button type="button" class="btn-ghost" (click)="removeDocument(i)">Remover</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #noDocuments>
+              <div class="text-center py-6 text-slate-600">Nenhum documento anexado.</div>
+            </ng-template>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="flex justify-end gap-3 px-6 py-4 border border-slate-200 bg-white rounded-xl shadow-sm sticky-actions">
-      <button type="button" class="btn-outline" (click)="resetForm()">Limpar</button>
-      <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar família' : 'Salvar família' }}</button>
-      <span
-        *ngIf="saveFeedback"
-        [ngClass]="{ 'text-g3-green-700': saveFeedback.type === 'success', 'text-red-600': saveFeedback.type === 'error' }"
-        class="text-sm font-medium"
-      >
-        {{ saveFeedback.message }}
-      </span>
-    </div>
+    <section *ngIf="activeTab === 'socio'" class="space-y-4">
+      <h2 class="card__header">Informações familiares e socioeconômicas</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="situacaoMoradia">Situação de moradia</label>
+          <select id="situacaoMoradia" class="input" formControlName="situacaoMoradia">
+            <option value="">Selecione</option>
+            <option value="Própria">Própria</option>
+            <option value="Alugada">Alugada</option>
+            <option value="Cedida">Cedida</option>
+            <option value="Outra">Outra</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="pessoasResidencia">Quantidade de pessoas na residência</label>
+          <input id="pessoasResidencia" type="number" min="1" class="input" formControlName="pessoasResidencia" />
+        </div>
+        <div class="field-group">
+          <label for="rendaFamiliar">Renda familiar total</label>
+          <input id="rendaFamiliar" type="number" step="0.01" min="0" class="input" formControlName="rendaFamiliar" />
+        </div>
+        <div class="field-group">
+          <label for="rendaPerCapita">Renda per capita</label>
+          <input id="rendaPerCapita" type="number" class="input" formControlName="rendaPerCapita" readonly />
+        </div>
+        <div class="field-group">
+          <label for="situacaoTrabalho">Situação de trabalho</label>
+          <select id="situacaoTrabalho" class="input" formControlName="situacaoTrabalho">
+            <option value="">Selecione</option>
+            <option value="Empregado">Empregado</option>
+            <option value="Desempregado">Desempregado</option>
+            <option value="Autônomo">Autônomo</option>
+            <option value="Aposentado">Aposentado</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="escolaridade">Escolaridade</label>
+          <input id="escolaridade" type="text" class="input" formControlName="escolaridade" />
+        </div>
+        <div class="field-group md:col-span-2">
+          <label for="programasSociais">Programas sociais</label>
+          <input id="programasSociais" type="text" class="input" formControlName="programasSociais" placeholder="Bolsa Família, BPC..." />
+        </div>
+        <div class="field-group md:col-span-3">
+          <label for="observacoes">Observações gerais</label>
+          <textarea id="observacoes" class="input" rows="3" formControlName="observacoes"></textarea>
+        </div>
+      </div>
+    </section>
   </form>
-
-  <ng-template #documentsContent>
-    <div class="card space-y-3">
-      <div class="card__header">Documentos / Anexos</div>
-      <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
-      <input type="hidden" formControlName="arquivosDocumentos" />
-
-      <div class="space-y-3">
-        <div
-          class="flex flex-col md:flex-row md:items-center justify-between gap-3 border border-slate-200 rounded-lg p-3 bg-slate-50"
-          *ngFor="let doc of requiredDocuments"
-        >
-          <div>
-            <div class="flex items-center gap-2">
-              <p class="text-sm font-semibold text-slate-800">{{ doc.nome }}</p>
-              <span
-                class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
-                [ngClass]="{
-                  'bg-amber-100 text-amber-700': doc.required,
-                  'bg-slate-100 text-slate-600': !doc.required
-                }"
-              >
-                {{ doc.required ? 'Obrigatório' : 'Opcional' }}
-              </span>
-            </div>
-            <p class="text-xs text-slate-500">{{ doc.nomeArquivo ? 'Arquivo: ' + doc.nomeArquivo : 'Nenhum arquivo selecionado' }}</p>
-          </div>
-          <input type="file" (change)="onDocumentUpload($event, doc.nome)" class="file-input" />
-        </div>
-      </div>
-
-      <p *ngIf="beneficiaryForm.get('arquivosDocumentos')?.touched && beneficiaryForm.get('arquivosDocumentos')?.invalid" class="text-xs text-red-500">
-        Documentos obrigatórios pendentes: {{ missingRequiredDocuments.join(', ') }}.
-      </p>
-
-      <div class="flex items-center gap-3 pt-2">
-        <span class="text-sm font-medium text-slate-700">Status do cadastro:</span>
-        <span class="inline-flex items-center rounded-full px-3 py-1 text-sm" [ngClass]="{
-          'bg-green-50 text-g3-green-700': documentStatus === 'Enviado',
-          'bg-orange-50 text-orange-700': documentStatus === 'Pendente'
-        }">{{ documentStatus }}</span>
-      </div>
-    </div>
-  </ng-template>
 </div>

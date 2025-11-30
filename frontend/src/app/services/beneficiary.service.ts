@@ -14,30 +14,50 @@ export interface DocumentoObrigatorio {
 
 export interface BeneficiaryPayload {
   id?: number;
+  cpf?: string;
   cep: string;
   nomeCompleto: string;
   nomeMae?: string;
+  rg?: string;
+  orgaoEmissor?: string;
+  ufEmissor?: string;
   documentos: string;
   dataNascimento: string;
   idade?: number;
-  telefone: string;
+  telefone?: string;
+  telefoneFixo?: string;
+  celular?: string;
   email: string;
-  endereco: string;
+  logradouro?: string;
+  endereco?: string;
+  numero?: string;
   numeroEndereco?: string;
+  complemento?: string;
   pontoReferencia?: string;
   bairro?: string;
   cidade?: string;
   estado?: string;
+  uf?: string;
   parentesco?: string;
   observacoes?: string;
-  status: string;
+  status?: string;
   motivoBloqueio?: string;
+  nis?: string;
+  nisBeneficio?: string;
+  sexo?: string;
+  estadoCivil?: string;
+  situacaoMoradia?: string;
+  pessoasResidencia?: number | string;
+  rendaFamiliar?: number | string;
+  rendaPerCapita?: number | string;
+  renda?: number | string;
+  situacaoTrabalho?: string;
+  programasSociais?: string;
   possuiFilhosMenores?: boolean;
   possuiCnh?: boolean;
   quantidadeFilhosMenores?: number;
   escolaridade?: string;
   rendaIndividual?: number | string;
-  rendaFamiliar?: number | string;
   informacoesMoradia?: string;
   condicoesSaneamento?: string;
   situacaoEmprego?: string;
@@ -104,7 +124,18 @@ export class BeneficiaryService {
       formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
     });
 
-    formData.append('documentosAnexos', JSON.stringify(documentosAnexos ?? []));
+    const documentsWithoutFiles = (documentosAnexos ?? []).map(({ file, ...doc }) => doc);
+    formData.append('documentosAnexos', JSON.stringify(documentsWithoutFiles));
+
+    documentosAnexos?.forEach((doc, index) => {
+      if (doc.file) {
+        formData.append(
+          `documentosArquivos[${index}]`,
+          doc.file,
+          doc.file.name || doc.nomeArquivo || `documento-${index + 1}`
+        );
+      }
+    });
 
     if (photoFile) {
       formData.append('fotoArquivo', photoFile, photoFile.name || 'foto.jpg');
