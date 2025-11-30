@@ -3,7 +3,6 @@
     class="sidebar hidden md:flex flex-col flex-shrink-0 overflow-y-auto"
     [class.sidebar--collapsed]="isSidebarCollapsed"
     (mouseenter)="handleSidebarEnter()"
-    (mouseleave)="handleSidebarLeave()"
   >
     <div class="sidebar__header">
       <div>
@@ -15,7 +14,6 @@
       <div
         *ngFor="let section of menuSections"
         class="menu-card"
-        (mouseleave)="closeSection(section.label)"
         (mouseenter)="openSection = section.label"
       >
         <button
