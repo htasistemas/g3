@@ -1,8 +1,8 @@
 import { In } from 'typeorm';
 import { AppDataSource } from '../data-source';
-import { BeneficiaryDocumentConfig } from '../entities/BeneficiaryDocumentConfig';
+import { ConfiguracaoDocumentoBeneficiario } from '../entities/ConfiguracaoDocumentoBeneficiario';
 
-export const DEFAULT_BENEFICIARY_DOCUMENTS: Array<Pick<BeneficiaryDocumentConfig, 'nome' | 'obrigatorio'>> = [
+export const DOCUMENTOS_BENEFICIARIO_PADRAO: Array<Pick<ConfiguracaoDocumentoBeneficiario, 'nome' | 'obrigatorio'>> = [
   { nome: 'RG', obrigatorio: true },
   { nome: 'CPF', obrigatorio: true },
   { nome: 'Comprovante de Endereço', obrigatorio: false },
@@ -10,18 +10,18 @@ export const DEFAULT_BENEFICIARY_DOCUMENTS: Array<Pick<BeneficiaryDocumentConfig
   { nome: 'CNH', obrigatorio: false }
 ];
 
-const REMOVED_DOCUMENTS = ['Foto 3x4'];
+const DOCUMENTOS_REMOVIDOS = ['Foto 3x4'];
 
-export async function getBeneficiaryDocumentRepository() {
-  return AppDataSource.getRepository(BeneficiaryDocumentConfig);
+export async function obterRepositorioConfiguracaoDocumentosBeneficiario() {
+  return AppDataSource.getRepository(ConfiguracaoDocumentoBeneficiario);
 }
 
-export async function ensureBeneficiaryDocumentConfig() {
-  const repository = await getBeneficiaryDocumentRepository();
+export async function garantirConfiguracaoDocumentosBeneficiario() {
+  const repository = await obterRepositorioConfiguracaoDocumentosBeneficiario();
   let documents = await repository.find();
 
   if (documents.length) {
-    const toRemove = documents.filter((doc) => REMOVED_DOCUMENTS.includes(doc.nome)).map((doc) => doc.nome);
+    const toRemove = documents.filter((doc) => DOCUMENTOS_REMOVIDOS.includes(doc.nome)).map((doc) => doc.nome);
 
     if (toRemove.length) {
       await repository.delete({ nome: In(toRemove) });
@@ -29,9 +29,7 @@ export async function ensureBeneficiaryDocumentConfig() {
     }
   }
 
-  const missingDefaults = DEFAULT_BENEFICIARY_DOCUMENTS.filter(
-    (defaultDoc) => !documents.some((doc) => doc.nome === defaultDoc.nome)
-  );
+  const missingDefaults = DOCUMENTOS_BENEFICIARIO_PADRAO.filter((defaultDoc) => !documents.some((doc) => doc.nome === defaultDoc.nome));
 
   if (!documents.length || missingDefaults.length) {
     const created = missingDefaults.map((doc) => repository.create(doc));

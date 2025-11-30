@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export interface AssistanceUnitPayload {
+export interface UnidadeAssistencialPayload {
   id?: number;
   nome: string;
   telefone?: string;
@@ -18,9 +18,9 @@ export interface AssistanceUnitPayload {
 }
 
 @Injectable({ providedIn: 'root' })
-export class AssistanceUnitService {
-  private readonly baseUrl = `${environment.apiUrl}/api/assistance-units`;
-  private readonly activeUnitKey = 'g3-active-assistance-unit';
+export class UnidadeAssistencialService {
+  private readonly baseUrl = `${environment.apiUrl}/api/unidades-assistenciais`;
+  private readonly activeUnitKey = 'g3-unidade-assistencial-ativa';
 
   private readonly currentUnitNameSubject = new BehaviorSubject<string>(
     localStorage.getItem(this.activeUnitKey) || 'Navegação'
@@ -30,16 +30,16 @@ export class AssistanceUnitService {
 
   constructor(private readonly http: HttpClient) {}
 
-  get(): Observable<{ unidade: AssistanceUnitPayload | null }> {
-    return this.http.get<{ unidade: AssistanceUnitPayload | null }>(this.baseUrl);
+  get(): Observable<{ unidade: UnidadeAssistencialPayload | null }> {
+    return this.http.get<{ unidade: UnidadeAssistencialPayload | null }>(this.baseUrl);
   }
 
-  save(payload: AssistanceUnitPayload): Observable<AssistanceUnitPayload> {
+  save(payload: UnidadeAssistencialPayload): Observable<UnidadeAssistencialPayload> {
     if (payload.id) {
-      return this.http.put<AssistanceUnitPayload>(`${this.baseUrl}/${payload.id}`, payload);
+      return this.http.put<UnidadeAssistencialPayload>(`${this.baseUrl}/${payload.id}`, payload);
     }
 
-    return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);
+    return this.http.post<UnidadeAssistencialPayload>(this.baseUrl, payload);
   }
 
   remove(id: number): Observable<void> {

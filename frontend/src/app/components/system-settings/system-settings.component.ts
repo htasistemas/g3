@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ConfigService, BeneficiaryDocumentConfig } from '../../services/config.service';
+import { ConfigService, ConfiguracaoDocumentoBeneficiario } from '../../services/config.service';
 
 @Component({
   selector: 'app-system-settings',
@@ -33,9 +33,9 @@ export class SystemSettingsComponent implements OnInit {
   }
 
   loadDocuments(): void {
-    this.configService.getBeneficiaryDocuments().subscribe({
-      next: ({ documents }) => {
-        const controls = documents.map((doc) =>
+    this.configService.obterDocumentosBeneficiario().subscribe({
+      next: ({ documentos }) => {
+        const controls = documentos.map((doc) =>
           this.fb.group({
             id: [doc.id],
             nome: [doc.nome],
@@ -60,9 +60,9 @@ export class SystemSettingsComponent implements OnInit {
     }
 
     this.saving = true;
-    const documents = (this.form.value.documents || []) as BeneficiaryDocumentConfig[];
+    const documents = (this.form.value.documents || []) as ConfiguracaoDocumentoBeneficiario[];
 
-    this.configService.updateBeneficiaryDocuments(documents).subscribe({
+    this.configService.atualizarDocumentosBeneficiario(documents).subscribe({
       next: () => {
         this.feedback = { type: 'success', message: 'Configurações salvas com sucesso.' };
       },

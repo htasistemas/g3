@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 
-export interface BeneficiaryDocumentConfig {
+export interface ConfiguracaoDocumentoBeneficiario {
   id?: number;
   nome: string;
   obrigatorio: boolean;
@@ -15,11 +15,15 @@ export class ConfigService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getBeneficiaryDocuments(): Observable<{ documents: BeneficiaryDocumentConfig[] }> {
-    return this.http.get<{ documents: BeneficiaryDocumentConfig[] }>(`${this.baseUrl}/beneficiary-documents`);
+  obterDocumentosBeneficiario(): Observable<{ documentos: ConfiguracaoDocumentoBeneficiario[] }> {
+    return this.http.get<{ documentos: ConfiguracaoDocumentoBeneficiario[] }>(`${this.baseUrl}/documentos-beneficiario`);
   }
 
-  updateBeneficiaryDocuments(documents: BeneficiaryDocumentConfig[]): Observable<{ documents: BeneficiaryDocumentConfig[] }> {
-    return this.http.put<{ documents: BeneficiaryDocumentConfig[] }>(`${this.baseUrl}/beneficiary-documents`, { documents });
+  atualizarDocumentosBeneficiario(
+    documentos: ConfiguracaoDocumentoBeneficiario[]
+  ): Observable<{ documentos: ConfiguracaoDocumentoBeneficiario[] }> {
+    return this.http.put<{ documentos: ConfiguracaoDocumentoBeneficiario[] }>(`${this.baseUrl}/documentos-beneficiario`, {
+      documentos
+    });
   }
 }

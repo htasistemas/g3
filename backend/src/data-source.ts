@@ -5,8 +5,8 @@ import dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './entities/User';
 import { Beneficiario } from './entities/Beneficiario';
-import { AssistanceUnit } from './entities/AssistanceUnit';
-import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
+import { UnidadeAssistencial } from './entities/UnidadeAssistencial';
+import { ConfiguracaoDocumentoBeneficiario } from './entities/ConfiguracaoDocumentoBeneficiario';
 import { Familia } from './entities/Familia';
 import { FamiliaMembro } from './entities/FamiliaMembro';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
@@ -34,7 +34,7 @@ function resolveRelationalPort(): number {
 }
 
 const baseOptions = {
-  entities: [User, Beneficiario, AssistanceUnit, BeneficiaryDocumentConfig, Familia, FamiliaMembro],
+  entities: [User, Beneficiario, UnidadeAssistencial, ConfiguracaoDocumentoBeneficiario, Familia, FamiliaMembro],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;
 

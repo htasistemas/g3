@@ -5,7 +5,7 @@ import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
-import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
+import { UnidadeAssistencialComponent } from './components/assistance-unit/assistance-unit.component';
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
@@ -38,7 +38,7 @@ export const routes: Routes = [
         data: { title: 'Beneficiários' }
       },
       { path: 'familias', component: FamilyCompositionComponent, data: { title: 'Composição familiar' } },
-      { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
+      { path: 'unidades/cadastro', component: UnidadeAssistencialComponent, data: { title: 'Unidades assistenciais' } },
       { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
       { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Cadastro de Família' } },

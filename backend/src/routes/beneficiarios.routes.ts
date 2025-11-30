@@ -1,6 +1,7 @@
 import { Request, Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { Beneficiario } from '../entities/Beneficiario';
+import { garantirConfiguracaoDocumentosBeneficiario } from '../utils/document-config';
 
 const router = Router();
 
@@ -154,6 +155,11 @@ router.get('/', async (req, res) => {
 
   const beneficiarios = await qb.orderBy('beneficiario.nome_completo', 'ASC').getMany();
   res.json({ beneficiarios });
+});
+
+router.get('/documentos', async (_req, res) => {
+  const documentos = await garantirConfiguracaoDocumentosBeneficiario();
+  res.json({ documentos });
 });
 
 router.get('/:id', async (req, res) => {

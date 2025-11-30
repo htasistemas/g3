@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { BeneficiarioPayload, BeneficiarioService } from '../../services/beneficiario.service';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -12,13 +12,13 @@ import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficia
   styleUrl: './beneficiary-list.component.scss'
 })
 export class BeneficiaryListComponent implements OnInit {
-  beneficiaries: BeneficiaryPayload[] = [];
-  filtered: BeneficiaryPayload[] = [];
+  beneficiaries: BeneficiarioPayload[] = [];
+  filtered: BeneficiarioPayload[] = [];
   searchTerm = '';
   loading = false;
   error: string | null = null;
 
-  constructor(private readonly beneficiaryService: BeneficiaryService, private readonly router: Router) {}
+  constructor(private readonly beneficiaryService: BeneficiarioService, private readonly router: Router) {}
 
   ngOnInit(): void {
     this.loadBeneficiaries();

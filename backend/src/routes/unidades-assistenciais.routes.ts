@@ -1,24 +1,24 @@
 import { Router } from 'express';
 import { AppDataSource } from '../data-source';
-import { AssistanceUnit } from '../entities/AssistanceUnit';
+import { UnidadeAssistencial } from '../entities/UnidadeAssistencial';
 
 const router = Router();
 
 router.get('/', async (_req, res) => {
-  const repository = AppDataSource.getRepository(AssistanceUnit);
+  const repository = AppDataSource.getRepository(UnidadeAssistencial);
   const unidade = await repository.findOne({ where: {}, order: { criadoEm: 'ASC' } });
   res.json({ unidade });
 });
 
 router.post('/', async (req, res) => {
-  const repository = AppDataSource.getRepository(AssistanceUnit);
+  const repository = AppDataSource.getRepository(UnidadeAssistencial);
   const existing = await repository.count();
 
   if (existing > 0) {
     return res.status(400).json({ message: 'Já existe uma unidade cadastrada.' });
   }
 
-  const unit = repository.create(req.body as AssistanceUnit);
+  const unit = repository.create(req.body as UnidadeAssistencial);
 
   try {
     const saved = await repository.save(unit);
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const repository = AppDataSource.getRepository(AssistanceUnit);
+  const repository = AppDataSource.getRepository(UnidadeAssistencial);
   const id = Number(req.params.id);
   const unidade = await repository.findOne({ where: { id } });
 
@@ -38,7 +38,7 @@ router.put('/:id', async (req, res) => {
     return res.status(404).json({ message: 'Unidade assistencial não encontrada.' });
   }
 
-  repository.merge(unidade, req.body as AssistanceUnit);
+  repository.merge(unidade, req.body as UnidadeAssistencial);
 
   try {
     const saved = await repository.save(unidade);
@@ -50,7 +50,7 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const repository = AppDataSource.getRepository(AssistanceUnit);
+  const repository = AppDataSource.getRepository(UnidadeAssistencial);
   const id = Number(req.params.id);
   const unidade = await repository.findOne({ where: { id } });
 

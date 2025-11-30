@@ -24,7 +24,7 @@ import {
   faWrench
 } from '@fortawesome/free-solid-svg-icons';
 import { environment } from '../../environments/environment';
-import { AssistanceUnitService } from '../services/assistance-unit.service';
+import { UnidadeAssistencialService } from '../services/unidade-assistencial.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -140,7 +140,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly auth: AuthService,
-    private readonly assistanceUnitService: AssistanceUnitService,
+    private readonly assistanceUnitService: UnidadeAssistencialService,
     public readonly themeService: ThemeService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute

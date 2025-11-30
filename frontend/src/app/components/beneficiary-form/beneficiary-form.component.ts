@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
+import { BeneficiarioPayload, BeneficiarioService, DocumentoObrigatorio } from '../../services/beneficiario.service';
 
 interface UploadedDocument {
   tipo: string;
@@ -73,7 +73,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly beneficiaryService: BeneficiaryService,
+    private readonly beneficiaryService: BeneficiarioService,
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
@@ -346,7 +346,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     }
 
     const formValue = this.beneficiaryForm.getRawValue();
-    const payload: BeneficiaryPayload = {
+    const payload: BeneficiarioPayload = {
       ...formValue,
       id: this.editingId ?? undefined,
       documentos: formValue.cpf,
@@ -502,7 +502,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       });
   }
 
-  private applyBeneficiary(beneficiary: BeneficiaryPayload): void {
+  private applyBeneficiary(beneficiary: BeneficiarioPayload): void {
     this.beneficiaryForm.patchValue({
       nomeCompleto: beneficiary.nomeCompleto || '',
       nomeSocial: beneficiary.nomeSocial || '',

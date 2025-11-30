@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('config_documentos_beneficiario')
-export class BeneficiaryDocumentConfig {
+export class ConfiguracaoDocumentoBeneficiario {
   @PrimaryGeneratedColumn()
   id!: number;
 
