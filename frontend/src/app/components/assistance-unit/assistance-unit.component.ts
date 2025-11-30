@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { filter } from 'rxjs';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
@@ -63,7 +63,7 @@ export class AssistanceUnitComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       nomeFantasia: ['', [Validators.required, Validators.minLength(3)]],
-      razaoSocial: ['', [Validators.minLength(3)]],
+      razaoSocial: ['', [this.optionalMinLength(3)]],
       cnpj: [''],
       telefone: [''],
       email: ['', Validators.email],
@@ -174,8 +174,27 @@ export class AssistanceUnitComponent implements OnInit {
   }
 
   private formatCep(value: string): string {
-    if (value.length <= 5) return value;
-    return `${value.slice(0, 5)}-${value.slice(5, 8)}`;
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+
+    if (digits.length <= 5) {
+      return digits;
+    }
+
+    return `${digits.slice(0, 5)}-${digits.slice(5, 8)}`;
+  }
+
+  private optionalMinLength(length: number) {
+    return (control: AbstractControl) => {
+      const value = (control.value || '').trim();
+
+      if (!value) {
+        return null;
+      }
+
+      return value.length >= length
+        ? null
+        : { minlength: { requiredLength: length, actualLength: value.length } };
+    };
   }
 
   private fetchAddress(cep: string): void {
