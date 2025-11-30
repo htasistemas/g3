@@ -24,6 +24,7 @@ interface ViaCepResponse {
 export class AssistanceUnitComponent implements OnInit {
   unidade: AssistanceUnitPayload | null = null;
   logoPreview: string | null = null;
+  reportLogoPreview: string | null = null;
 
   readonly estados = [
     'AC',
@@ -76,6 +77,7 @@ export class AssistanceUnitComponent implements OnInit {
       estado: [''],
       observacoes: [''],
       logomarca: [''],
+      logomarcaRelatorio: [''],
       responsavelNome: [''],
       responsavelCpf: [''],
       responsavelPeriodoMandato: ['']
@@ -102,6 +104,7 @@ export class AssistanceUnitComponent implements OnInit {
         this.unidade = created;
         this.form.patchValue(created);
         this.logoPreview = created.logomarca || null;
+        this.reportLogoPreview = created.logomarcaRelatorio || null;
         this.unitService.setActiveUnit(created.nomeFantasia);
       },
       error: (error) => {
@@ -131,6 +134,7 @@ export class AssistanceUnitComponent implements OnInit {
         if (unidade) {
           this.form.patchValue(unidade);
           this.logoPreview = unidade.logomarca || null;
+          this.reportLogoPreview = unidade.logomarcaRelatorio || null;
           if (unidade.cep) {
             this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
           }
@@ -164,13 +168,86 @@ export class AssistanceUnitComponent implements OnInit {
     this.logoPreview = null;
   }
 
+  onReportLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.form.get('logomarcaRelatorio')?.setValue(base64);
+      this.reportLogoPreview = base64;
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  clearReportLogo(): void {
+    this.form.get('logomarcaRelatorio')?.setValue('');
+    this.reportLogoPreview = null;
+  }
+
   resetForm(): void {
     this.form.reset(this.unidade || {});
     this.logoPreview = this.unidade?.logomarca || null;
+    this.reportLogoPreview = this.unidade?.logomarcaRelatorio || null;
   }
 
   printUnit(): void {
-    window.print();
+    if (!this.unidade) {
+      return;
+    }
+
+    const unidade = this.unidade;
+    const content = `
+      <html>
+        <head>
+          <title>Dados da unidade</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+            h1 { font-size: 20px; margin: 0 0 12px; }
+            .item { margin-bottom: 8px; line-height: 1.45; }
+            .label { font-weight: 600; }
+            .logo { margin: 12px 0 16px; max-height: 80px; }
+          </style>
+        </head>
+        <body>
+          <h1>${unidade.nomeFantasia || 'Unidade assistencial'}</h1>
+          ${unidade.logomarca ? `<img class="logo" src="${unidade.logomarca}" alt="Logomarca" />` : ''}
+          ${unidade.logomarcaRelatorio ? `<img class="logo" src="${unidade.logomarcaRelatorio}" alt="Imagem para relatórios" />` : ''}
+          <div class="item"><span class="label">Razão social:</span> ${unidade.razaoSocial || 'Não informada'}</div>
+          <div class="item"><span class="label">CNPJ:</span> ${unidade.cnpj || 'Não informado'}</div>
+          <div class="item"><span class="label">Telefone:</span> ${unidade.telefone || 'Não informado'}</div>
+          <div class="item"><span class="label">E-mail:</span> ${unidade.email || 'Não informado'}</div>
+          <div class="item"><span class="label">CEP:</span> ${unidade.cep || 'Não informado'}</div>
+          <div class="item"><span class="label">Endereço:</span> ${unidade.endereco || ''} ${unidade.numeroEndereco || ''}</div>
+          <div class="item"><span class="label">Bairro:</span> ${unidade.bairro || 'Não informado'}</div>
+          <div class="item"><span class="label">Cidade/Estado:</span> ${unidade.cidade || 'Sem cidade'} / ${unidade.estado || 'UF'}</div>
+          <div class="item"><span class="label">Diretor(a)/Coordenador(a)/Presidente:</span> ${unidade.responsavelNome || 'Não informado'}</div>
+          <div class="item"><span class="label">CPF do responsável:</span> ${unidade.responsavelCpf || 'Não informado'}</div>
+          <div class="item"><span class="label">Período de mandato:</span> ${unidade.responsavelPeriodoMandato || 'Não informado'}</div>
+          <div class="item"><span class="label">Observações:</span> ${unidade.observacoes || 'Nenhuma'}</div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+
+    if (!printWindow) {
+      return;
+    }
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   }
 
   onPhoneInput(event: Event): void {

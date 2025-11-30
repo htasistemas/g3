@@ -94,7 +94,17 @@
       <!-- Aside section -->
       <div class="login-hero text-white relative">
         <div class="grid-overlay" aria-hidden="true"></div>
-        <div class="absolute inset-0 flex flex-col justify-between p-8 lg:p-12">
+        <div class="hero-centered-logo" *ngIf="unidadeLogomarca; else fallbackMark" aria-hidden="true">
+          <div class="hero-centered-logo__badge">
+            <img [src]="unidadeLogomarca" [alt]="unidadeNome || 'Logomarca da unidade'" />
+          </div>
+        </div>
+        <ng-template #fallbackMark>
+          <div class="hero-centered-logo" aria-hidden="true">
+            <div class="hero-centered-logo__badge hero-centered-logo__badge--default">G3</div>
+          </div>
+        </ng-template>
+        <div class="hero-content absolute inset-0 flex flex-col justify-between p-8 lg:p-12">
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-center gap-3">
               <ng-container *ngIf="unidadeLogomarca; else defaultLogo">

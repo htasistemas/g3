@@ -22,6 +22,39 @@
   isolation: isolate;
 }
 
+.hero-centered-logo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: none;
+
+  &__badge {
+    @apply rounded-full flex items-center justify-center;
+    height: clamp(96px, 12vw, 140px);
+    width: clamp(96px, 12vw, 140px);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(3px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    img {
+      @apply h-full w-full object-contain rounded-full;
+    }
+  }
+
+  &__badge--default {
+    @apply text-2xl font-semibold text-white;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
 .grid-overlay {
   position: absolute;
   inset: 0;
@@ -31,6 +64,7 @@
   opacity: 0.25;
   pointer-events: none;
   mix-blend-mode: soft-light;
+  z-index: 0;
 }
 
 .logo-badge {
