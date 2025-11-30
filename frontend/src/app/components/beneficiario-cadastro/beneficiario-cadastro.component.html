@@ -161,6 +161,41 @@
         <label class="field">CNH<input formControlName="cnh" /></label>
         <label class="field">Cartão SUS<input formControlName="cartao_sus" /></label>
       </div>
+      <div class="document-section" formArrayName="anexos">
+        <div class="document-section__header">
+          <div>
+            <h4>Envio de comprovantes</h4>
+            <p>Os documentos obrigatórios são definidos em Configurações &gt; Documentos obrigatórios.</p>
+          </div>
+          <button type="button" class="ghost" (click)="addOptionalDocument()">Adicionar documento opcional</button>
+        </div>
+        <div class="document-grid">
+          <div
+            class="document-card"
+            *ngFor="let control of anexos.controls; index as i"
+            [formGroupName]="i"
+            [class.document-card--alert]="control.get('obrigatorio')?.value && !control.get('nomeArquivo')?.value"
+          >
+            <div class="document-card__header">
+              <div>
+                <p class="document-card__title">{{ control.get('nome')?.value }}</p>
+                <p class="document-card__subtitle" *ngIf="control.get('obrigatorio')?.value">Obrigatório para concluir o cadastro</p>
+              </div>
+              <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigatório</span>
+            </div>
+            <div class="document-card__body">
+              <label class="field">Nome do documento<input formControlName="nome" /></label>
+              <p class="doc-status">
+                {{ control.get('nomeArquivo')?.value || 'Nenhum arquivo selecionado' }}
+              </p>
+              <label class="upload-btn">
+                Enviar arquivo
+                <input type="file" (change)="onDocumentFileSelected($event, i)" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
@@ -175,6 +210,13 @@
         <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a família</span></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Responsável legal</span></label>
         <label class="field">Vínculo familiar<input formControlName="vinculo_familiar" /></label>
+        <label class="field">Composição familiar<textarea formControlName="composicao_familiar"></textarea></label>
+        <label class="field">Crianças/adolescentes no domicílio<input type="number" formControlName="criancas_adolescentes" /></label>
+        <label class="field">Idosos no domicílio<input type="number" formControlName="idosos" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela saúde (e-SUS)</span></label>
+        <label class="field">Participação comunitária<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
+        <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Instituições, vizinhos, familiares"></textarea></label>
         <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
       </div>
     </div>
@@ -227,7 +269,18 @@
       </div>
       <div class="field-grid cols-2">
         <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe benefício</span></label>
-        <label class="field">Valor total<input type="number" formControlName="valor_total_beneficios" /></label>
+        <label class="field">Valor total
+          <input type="text" formControlName="valor_total_beneficios" (input)="formatCurrency($event)" placeholder="R$ 0,00" />
+        </label>
+        <div class="field full">
+          <p class="field-title">Benefícios recebidos</p>
+          <div class="chips">
+            <label *ngFor="let benefit of availableBenefits" class="chip">
+              <input type="checkbox" [checked]="selectionChecked(benefit)" (change)="toggleBenefit(benefit)" />
+              <span>{{ benefit }}</span>
+            </label>
+          </div>
+        </div>
         <label class="field full">Descrição dos benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
       </div>
     </div>
@@ -241,7 +294,7 @@
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" /> <span>Aceite LGPD</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD</span></label>
         <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
         <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
       </div>

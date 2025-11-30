@@ -225,6 +225,128 @@
   font-weight: 600;
 }
 
+.document-section {
+  margin-top: 1rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.document-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.document-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.document-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.document-card--alert {
+  border-color: #f97316;
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.15);
+}
+
+.document-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.document-card__title {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.document-card__subtitle {
+  margin: 0;
+  color: #c2410c;
+  font-size: 0.85rem;
+}
+
+.document-card__body {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.doc-status {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: #f1f5f9;
+  border-radius: 10px;
+  color: #0f172a;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  border: 1px solid #16a34a;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.2);
+}
+
+.upload-btn input {
+  display: none;
+}
+
+.ghost {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.55rem 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.field-title {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { DocumentoObrigatorio } from './beneficiary.service';
 
 export interface BeneficiarioApiPayload {
   id_beneficiario?: string;
@@ -83,9 +84,18 @@ export interface BeneficiarioApiPayload {
   recebe_beneficio?: boolean;
   beneficios_descricao?: string;
   valor_total_beneficios?: number | string;
+  beneficios_recebidos?: string[];
   aceite_lgpd?: boolean;
   data_aceite_lgpd?: string;
   observacoes?: string;
+  documentosObrigatorios?: DocumentoObrigatorio[];
+  composicao_familiar?: string;
+  criancas_adolescentes?: number | string;
+  idosos?: number | string;
+  acompanhamento_cras?: boolean;
+  acompanhamento_saude?: boolean;
+  participa_comunidade?: string;
+  rede_apoio?: string;
 }
 
 @Injectable({ providedIn: 'root' })
