@@ -5,11 +5,11 @@ import dotenv from 'dotenv';
 import { AppDataSource } from './data-source';
 import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
-import beneficiariesRoutes from './routes/beneficiaries.routes';
+import beneficiariosRoutes from './routes/beneficiarios.routes';
 import assistanceUnitsRoutes from './routes/assistance-units.routes';
 import configRoutes from './routes/config.routes';
 import usersRoutes from './routes/users.routes';
-import familiesRoutes from './routes/families.routes';
+import familiasRoutes from './routes/familias.routes';
 
 dotenv.config();
 
@@ -28,11 +28,11 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/beneficiaries', beneficiariesRoutes);
+app.use('/api/beneficiarios', beneficiariosRoutes);
 app.use('/api/assistance-units', assistanceUnitsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/familias', familiesRoutes);
+app.use('/api/familias', familiasRoutes);
 
 async function start() {
   try {
