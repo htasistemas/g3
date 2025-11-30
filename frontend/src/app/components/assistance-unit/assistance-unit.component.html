@@ -1,13 +1,22 @@
-<div class="p-6 space-y-6">
-  <div class="card space-y-4">
+<div class="page-shell">
+  <div class="card hero-card">
+    <div>
+      <p class="eyebrow">Unidade assistencial</p>
+      <h2>Cadastro da unidade</h2>
+      <p class="subtitle">Organize as informações institucionais e mantenha os dados sempre atualizados.</p>
+    </div>
+    <div class="badge-pill">Dados institucionais</div>
+  </div>
+
+  <div class="card card--compact">
     <div class="card__header">Cadastro de Unidade Assistencial</div>
     <p class="text-sm text-slate-600">
       Apenas uma unidade pode ser cadastrada. Utilize os campos abaixo para manter os dados gerais atualizados.
     </p>
 
-    <form [formGroup]="form" class="space-y-4" (ngSubmit)="save()">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="space-y-2 md:col-span-2">
+    <form [formGroup]="form" class="compact-form" (ngSubmit)="save()">
+      <div class="grid grid-cols-1 md:grid-cols-2 compact-grid">
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="nomeFantasia">Nome fantasia</label>
           <input id="nomeFantasia" type="text" formControlName="nomeFantasia" class="input" placeholder="Ex.: Unidade Central" />
           <p *ngIf="form.get('nomeFantasia')?.touched && form.get('nomeFantasia')?.invalid" class="text-xs text-red-500">
@@ -15,9 +24,9 @@
           </p>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="logomarca">Logomarca (exibida na tela de login)</label>
-          <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="flex flex-col md:flex-row md:items-center gap-3">
             <div class="flex items-center gap-3">
               <input
                 id="logomarca"
@@ -36,7 +45,7 @@
           <p class="text-xs text-slate-500">Imagens quadradas funcionam melhor na tela de login.</p>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="razaoSocial">Razão social</label>
           <input id="razaoSocial" type="text" formControlName="razaoSocial" class="input" placeholder="Nome empresarial" />
           <p *ngIf="form.get('razaoSocial')?.touched && form.get('razaoSocial')?.invalid" class="text-xs text-red-500">
@@ -44,13 +53,13 @@
           </p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="cnpj">CNPJ</label>
           <input id="cnpj" type="text" formControlName="cnpj" class="input" placeholder="00.000.000/0000-00" />
           <p *ngIf="form.get('cnpj')?.touched && form.get('cnpj')?.invalid" class="text-xs text-red-500">Informe um CNPJ.</p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="telefone">Telefone</label>
           <input
             id="telefone"
@@ -62,7 +71,7 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="email">E-mail</label>
           <input id="email" type="email" formControlName="email" class="input" placeholder="contato@unidade.com" />
           <p *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-xs text-red-500">
@@ -70,7 +79,7 @@
           </p>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
           <input
             id="cep"
@@ -84,29 +93,29 @@
           />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
-          <div class="space-y-2 md:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 compact-grid md:col-span-2">
+          <div class="field-stack md:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="endereco">Endereço</label>
             <input id="endereco" type="text" formControlName="endereco" class="input" placeholder="Rua, avenida..." />
           </div>
 
-          <div class="space-y-2">
+          <div class="field-stack">
             <label class="text-sm font-medium text-slate-700" for="numeroEndereco">Número</label>
             <input id="numeroEndereco" type="text" formControlName="numeroEndereco" class="input" placeholder="Número" />
           </div>
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="bairro">Bairro</label>
           <input id="bairro" type="text" formControlName="bairro" class="input" placeholder="Bairro" />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="cidade">Cidade</label>
           <input id="cidade" type="text" formControlName="cidade" class="input" placeholder="Cidade" />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="estado">Estado</label>
           <select id="estado" formControlName="estado" class="input">
             <option value="">Selecione...</option>
@@ -114,7 +123,7 @@
           </select>
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="responsavelNome">Diretor(a) / coordenador(a) / presidente</label>
           <input
             id="responsavelNome"
@@ -125,12 +134,19 @@
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="responsavelCpf">CPF do responsável</label>
-          <input id="responsavelCpf" type="text" formControlName="responsavelCpf" class="input" placeholder="000.000.000-00" />
+          <input
+            id="responsavelCpf"
+            type="text"
+            formControlName="responsavelCpf"
+            class="input"
+            placeholder="000.000.000-00"
+            (input)="onCpfInput($event)"
+          />
         </div>
 
-        <div class="space-y-2">
+        <div class="field-stack">
           <label class="text-sm font-medium text-slate-700" for="responsavelPeriodoMandato">Período de mandato</label>
           <input
             id="responsavelPeriodoMandato"
@@ -141,7 +157,7 @@
           />
         </div>
 
-        <div class="space-y-2 md:col-span-2">
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="observacoes">Observações</label>
           <textarea
             id="observacoes"
@@ -155,7 +171,7 @@
 
       <div class="flex items-center justify-between gap-3">
         <button type="button" class="btn-outline" (click)="resetForm()">Cancelar</button>
-        <div class="flex gap-3">
+        <div class="flex gap-2.5">
           <button type="button" class="btn-outline" *ngIf="unidade?.id" (click)="delete()">Excluir unidade</button>
           <button type="submit" class="btn-primary">{{ unidade ? 'Atualizar unidade' : 'Salvar unidade' }}</button>
         </div>
@@ -163,11 +179,14 @@
     </form>
   </div>
 
-  <div class="card space-y-3">
-    <div class="card__header">Dados atuais da unidade</div>
+  <div class="card card--compact">
+    <div class="card__header-row">
+      <div class="card__header">Dados atuais da unidade</div>
+      <button type="button" class="btn-outline" *ngIf="unidade" (click)="printUnit()">Imprimir dados</button>
+    </div>
     <p class="text-sm text-slate-600" *ngIf="!unidade">Nenhuma unidade cadastrada até o momento.</p>
-    <div *ngIf="unidade" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
-      <div class="md:col-span-2 flex items-center gap-4" *ngIf="unidade.logomarca">
+    <div *ngIf="unidade" class="data-grid">
+      <div class="md:col-span-2 flex items-center gap-3" *ngIf="unidade.logomarca">
         <span class="font-semibold">Logomarca:</span>
         <img [src]="unidade.logomarca" alt="Logomarca da unidade" class="h-12 object-contain" />
       </div>
@@ -177,12 +196,12 @@
       <p><span class="font-semibold">Telefone:</span> {{ unidade.telefone || 'Não informado' }}</p>
       <p><span class="font-semibold">E-mail:</span> {{ unidade.email || 'Não informado' }}</p>
       <p><span class="font-semibold">CEP:</span> {{ unidade.cep || 'Não informado' }}</p>
+      <p><span class="font-semibold">Cidade/Estado:</span> {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}</p>
+      <p><span class="font-semibold">Período de mandato:</span> {{ unidade.responsavelPeriodoMandato || 'Não informado' }}</p>
       <p class="md:col-span-2"><span class="font-semibold">Endereço:</span> {{ unidade.endereco }} {{ unidade.numeroEndereco }}</p>
       <p><span class="font-semibold">Bairro:</span> {{ unidade.bairro || 'Não informado' }}</p>
-      <p><span class="font-semibold">Cidade/Estado:</span> {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}</p>
       <p class="md:col-span-2"><span class="font-semibold">Responsável:</span> {{ unidade.responsavelNome || 'Não informado' }}</p>
       <p><span class="font-semibold">CPF:</span> {{ unidade.responsavelCpf || 'Não informado' }}</p>
-      <p><span class="font-semibold">Período de mandato:</span> {{ unidade.responsavelPeriodoMandato || 'Não informado' }}</p>
       <p class="md:col-span-2"><span class="font-semibold">Observações:</span> {{ unidade.observacoes || 'Nenhuma' }}</p>
     </div>
   </div>

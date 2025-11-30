@@ -169,10 +169,20 @@ export class AssistanceUnitComponent implements OnInit {
     this.logoPreview = this.unidade?.logomarca || null;
   }
 
+  printUnit(): void {
+    window.print();
+  }
+
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const formatted = this.formatPhone(input.value);
     this.form.get('telefone')?.setValue(formatted, { emitEvent: false });
+  }
+
+  onCpfInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = this.formatCpf(input.value);
+    this.form.get('responsavelCpf')?.setValue(formatted, { emitEvent: false });
   }
 
   onCepInput(event: Event): void {
@@ -213,6 +223,24 @@ export class AssistanceUnitComponent implements OnInit {
     }
 
     return `${digits.slice(0, 5)}-${digits.slice(5, 8)}`;
+  }
+
+  private formatCpf(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+
+    if (digits.length <= 3) {
+      return digits;
+    }
+
+    if (digits.length <= 6) {
+      return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    }
+
+    if (digits.length <= 9) {
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    }
+
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9, 11)}`;
   }
 
   private optionalMinLength(length: number) {
