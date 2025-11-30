@@ -201,13 +201,14 @@ export class LayoutComponent implements OnInit, OnDestroy {
     const segments = cleaned.split('.').filter(Boolean);
 
     if (!segments.length) {
-      return '0.0.00';
+      return '0.000';
     }
 
     const [major = '0', minor = '0', patch = '0'] = segments;
-    const paddedPatch = patch.padStart(2, '0');
+    const numericCombined = `${minor}${patch}`.replace(/\D/g, '');
+    const paddedValue = numericCombined.padStart(3, '0').slice(-3);
 
-    return `${major}.${minor}.${paddedPatch}`;
+    return `${major}.${paddedValue}`;
   }
 
   private findDeepestChild(route: ActivatedRoute): ActivatedRoute {
