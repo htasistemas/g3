@@ -4,6 +4,7 @@ import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
+import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
@@ -17,15 +18,21 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', component: DashboardComponent, data: { title: 'Visão geral' } },
+      { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiários' } },
       {
         path: 'beneficiarios/editar/:id',
         component: BeneficiaryFormComponent,
-        data: { title: 'Cadastro de famílias' }
+        data: { title: 'Beneficiários' }
       },
       {
         path: 'beneficiarios/cadastro',
         component: BeneficiaryFormComponent,
-        data: { title: 'Cadastro de famílias' }
+        data: { title: 'Beneficiários' }
+      },
+      {
+        path: 'beneficiarios/novo',
+        component: BeneficiaryFormComponent,
+        data: { title: 'Beneficiários' }
       },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       {
