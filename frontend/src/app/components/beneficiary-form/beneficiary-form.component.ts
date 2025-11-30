@@ -26,9 +26,19 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   requiredDocuments: DocumentoObrigatorio[] = [];
   uploadedDocuments: UploadedDocument[] = [];
   feedback: { type: 'success' | 'error'; message: string } | null = null;
-  activeTab: 'personal' | 'address' | 'contact' | 'documents' | 'socio' = 'personal';
+  activeTab:
+    | 'personal'
+    | 'address'
+    | 'contact'
+    | 'documents'
+    | 'family'
+    | 'education'
+    | 'health'
+    | 'benefits'
+    | 'notes' = 'personal';
   editingId: number | null = null;
   isSubmitting = false;
+  photoFile: File | null = null;
   private destroy$ = new Subject<void>();
 
   readonly states = [
@@ -68,16 +78,31 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute
   ) {
     this.beneficiaryForm = this.fb.group({
+      // Dados pessoais
       nomeCompleto: ['', [Validators.required, Validators.minLength(3)]],
+      nomeSocial: [''],
+      apelido: [''],
       cpf: ['', [Validators.required, this.cpfValidator]],
       rg: [''],
       orgaoEmissor: [''],
       ufEmissor: [''],
+      dataEmissaoRg: [''],
       dataNascimento: ['', Validators.required],
-      sexo: [''],
+      idade: [{ value: null, disabled: true }],
+      sexoBiologico: [''],
+      identidadeGenero: [''],
+      corRaca: [''],
       estadoCivil: [''],
-      nomeMae: [''],
-      nis: [''],
+      nacionalidade: [''],
+      naturalidade: [''],
+      nomeMae: ['', Validators.required],
+      nomePai: [''],
+      responsavelLegal: [false],
+      responsavelPor: [''],
+      situacaoEscolarCrianca: [''],
+      responsavelLegalPor: [''],
+
+      // Endereço
       cep: [''],
       logradouro: [''],
       numero: [''],
@@ -86,16 +111,83 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       cidade: [''],
       uf: [''],
       pontoReferencia: [''],
+      zona: [''],
+      situacaoImovel: [''],
+      tipoMoradia: [''],
+      condicoesMoradia: this.fb.control<string[]>([]),
+      acessoAgua: [''],
+      esgoto: [''],
+      coletaLixo: [''],
+      energiaEletrica: [''],
+      internet: [''],
+
+      // Contato
       telefoneFixo: [''],
       celular: ['', [Validators.required, this.phoneValidator]],
+      contatoWhatsApp: [true],
+      telefoneRecado: [''],
+      nomeRecado: [''],
       email: ['', Validators.email],
-      situacaoMoradia: [''],
+      contatoPreferencias: this.fb.control<string[]>([]),
+      horarioContato: [''],
+      autorizacaoContato: [false],
+
+      // Documentos e identificação social
+      nis: [''],
+      nisBeneficio: [''],
+      certidaoTipo: [''],
+      certidaoLivro: [''],
+      certidaoFolha: [''],
+      certidaoTermo: [''],
+      certidaoCartorio: [''],
+      certidaoMunicipio: [''],
+      certidaoUf: [''],
+      carteiraTrabalhoNumero: [''],
+      carteiraTrabalhoSerie: [''],
+      carteiraTrabalhoUf: [''],
+      tituloEleitor: [''],
+      cnhNumero: [''],
+      cartaoSus: [''],
+
+      // Situação familiar e social
+      moraComFamilia: [''],
+      responsavelFamiliar: [false],
+      vinculoFamiliar: [''],
+      situacoesVulnerabilidade: this.fb.control<string[]>([]),
+      acompanhamentos: this.fb.control<string[]>([]),
+      tempoAcompanhamento: [''],
+      origemEncaminhamento: [''],
+
+      // Escolaridade e trabalho
+      alfabetizado: [''],
+      serieConcluida: [''],
+      situacaoEscolarAtual: [''],
+      nivelEnsino: [''],
+      situacaoTrabalho: [''],
+      ocupacao: [''],
+      localTrabalho: [''],
+      rendaIndividual: [null],
+      fonteRenda: [''],
       pessoasResidencia: [null],
       rendaFamiliar: [null],
       rendaPerCapita: [{ value: null, disabled: true }],
-      situacaoTrabalho: [''],
-      escolaridade: [''],
-      programasSociais: [''],
+
+      // Saúde
+      possuiDeficiencia: [''],
+      tiposDeficiencia: this.fb.control<string[]>([]),
+      cidPrincipal: [''],
+      usaMedicacao: [''],
+      medicacaoDescricao: [''],
+      acompanhamentoSaude: this.fb.control<string[]>([]),
+
+      // Programas sociais e benefícios
+      recebeBeneficio: [''],
+      beneficiosAtuais: this.fb.control<string[]>([]),
+      valorBeneficios: [null],
+      tempoBeneficios: [''],
+      historicoBeneficio: [''],
+
+      // Observações
       observacoes: ['']
     });
 
@@ -109,6 +201,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.listenToIncomeChanges();
+    this.listenToBirthDate();
     this.loadRequiredDocuments();
     this.listenToRouteParams();
   }
@@ -163,7 +256,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.beneficiaryForm.get('cpf')?.setValue(formatted, { emitEvent: false });
   }
 
-  onPhoneInput(controlName: 'telefoneFixo' | 'celular', event: Event): void {
+  onPhoneInput(controlName: 'telefoneFixo' | 'celular' | 'telefoneRecado', event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 11);
 
@@ -224,6 +317,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.documentForm.get('arquivo')?.setValue(file);
   }
 
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.photoFile = input.files?.[0] ?? null;
+  }
+
   submit(): void {
     this.feedback = null;
 
@@ -261,7 +359,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     };
 
     this.isSubmitting = true;
-    this.beneficiaryService.save(payload).subscribe({
+    this.beneficiaryService.save(payload, this.photoFile).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.feedback = { type: 'success', message: 'Beneficiário salvo com sucesso.' };
@@ -278,7 +376,24 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.editingId = null;
     this.feedback = null;
     this.uploadedDocuments = [];
-    this.beneficiaryForm.reset();
+    this.photoFile = null;
+    this.beneficiaryForm.reset({
+      contatoWhatsApp: true,
+      responsavelLegal: false,
+      responsavelFamiliar: false,
+      autorizacaoContato: false,
+      condicoesMoradia: [],
+      contatoPreferencias: [],
+      situacoesVulnerabilidade: [],
+      acompanhamentos: [],
+      tiposDeficiencia: [],
+      acompanhamentoSaude: [],
+      beneficiosAtuais: [],
+      idade: null,
+      rendaPerCapita: null,
+      rendaFamiliar: null,
+      pessoasResidencia: null
+    });
     this.activeTab = 'personal';
   }
 
@@ -296,11 +411,15 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   private findFirstInvalidTab(): typeof this.activeTab {
     const tabControlMap: Record<typeof this.activeTab, string[]> = {
-      personal: ['nomeCompleto', 'cpf', 'dataNascimento'],
+      personal: ['nomeCompleto', 'cpf', 'dataNascimento', 'nomeMae'],
       address: ['cep', 'logradouro', 'numero'],
-      contact: ['celular', 'email'],
+      contact: ['celular'],
       documents: [],
-      socio: ['rendaFamiliar', 'pessoasResidencia']
+      family: [],
+      education: [],
+      health: [],
+      benefits: [],
+      notes: []
     };
 
     const target = (Object.keys(tabControlMap) as Array<keyof typeof tabControlMap>).find((tab) =>
@@ -320,6 +439,13 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       .get('pessoasResidencia')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calculatePerCapita());
+  }
+
+  private listenToBirthDate(): void {
+    this.beneficiaryForm
+      .get('dataNascimento')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => this.calculateAge(value as string));
   }
 
   private calculatePerCapita(): void {
@@ -379,15 +505,29 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   private applyBeneficiary(beneficiary: BeneficiaryPayload): void {
     this.beneficiaryForm.patchValue({
       nomeCompleto: beneficiary.nomeCompleto || '',
+      nomeSocial: beneficiary.nomeSocial || '',
+      apelido: beneficiary.apelido || '',
       cpf: beneficiary.cpf || beneficiary.documentos || '',
       rg: beneficiary.rg || '',
       orgaoEmissor: beneficiary.orgaoEmissor || '',
       ufEmissor: beneficiary.ufEmissor || '',
+      dataEmissaoRg: beneficiary.dataEmissaoRg || '',
       dataNascimento: beneficiary.dataNascimento || '',
-      sexo: beneficiary.sexo || '',
+      idade: beneficiary.idade || '',
+      sexoBiologico: beneficiary.sexoBiologico || beneficiary.sexo || '',
+      identidadeGenero: beneficiary.identidadeGenero || '',
+      corRaca: beneficiary.corRaca || '',
       estadoCivil: beneficiary.estadoCivil || '',
+      nacionalidade: beneficiary.nacionalidade || '',
+      naturalidade: beneficiary.naturalidade || '',
       nomeMae: beneficiary.nomeMae || '',
+      nomePai: beneficiary.nomePai || '',
+      responsavelLegal: beneficiary.responsavelLegal || false,
+      responsavelPor: beneficiary.responsavelPor || '',
+      situacaoEscolarCrianca: beneficiary.situacaoEscolarCrianca || '',
+      responsavelLegalPor: beneficiary.responsavelLegalPor || '',
       nis: beneficiary.nis || beneficiary.nisBeneficio || '',
+      nisBeneficio: beneficiary.nisBeneficio || '',
       cep: beneficiary.cep || '',
       logradouro: beneficiary.logradouro || beneficiary.endereco || '',
       numero: beneficiary.numero || beneficiary.numeroEndereco || '',
@@ -396,16 +536,55 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       cidade: beneficiary.cidade || '',
       uf: beneficiary.uf || beneficiary.estado || '',
       pontoReferencia: beneficiary.pontoReferencia || '',
+      zona: beneficiary.zona || '',
+      situacaoImovel: beneficiary.situacaoImovel || beneficiary.situacaoMoradia || '',
+      tipoMoradia: beneficiary.tipoMoradia || '',
+      condicoesMoradia: beneficiary.condicoesMoradia || [],
+      acessoAgua: beneficiary.acessoAgua || '',
+      esgoto: beneficiary.esgoto || '',
+      coletaLixo: beneficiary.coletaLixo || '',
+      energiaEletrica: beneficiary.energiaEletrica || '',
+      internet: beneficiary.internet || '',
       telefoneFixo: beneficiary.telefoneFixo || '',
       celular: beneficiary.celular || beneficiary.telefone || '',
+      contatoWhatsApp: beneficiary.contatoWhatsApp ?? true,
+      telefoneRecado: beneficiary.telefoneRecado || '',
+      nomeRecado: beneficiary.nomeRecado || '',
       email: beneficiary.email || '',
-      situacaoMoradia: beneficiary.situacaoMoradia || '',
+      contatoPreferencias: beneficiary.contatoPreferencias || [],
+      horarioContato: beneficiary.horarioContato || '',
+      autorizacaoContato: beneficiary.autorizacaoContato || false,
       pessoasResidencia: beneficiary.pessoasResidencia || '',
       rendaFamiliar: beneficiary.rendaFamiliar || beneficiary.renda || '',
       rendaPerCapita: beneficiary.rendaPerCapita || '',
       situacaoTrabalho: beneficiary.situacaoTrabalho || '',
       escolaridade: beneficiary.escolaridade || '',
-      programasSociais: beneficiary.programasSociais || '',
+      ocupacao: beneficiary.ocupacao || '',
+      localTrabalho: beneficiary.localTrabalho || '',
+      rendaIndividual: beneficiary.rendaIndividual || '',
+      fonteRenda: beneficiary.fonteRenda || '',
+      alfabetizado: beneficiary.alfabetizado || '',
+      serieConcluida: beneficiary.serieConcluida || '',
+      situacaoEscolarAtual: beneficiary.situacaoEscolarAtual || '',
+      nivelEnsino: beneficiary.nivelEnsino || '',
+      moraComFamilia: beneficiary.moraComFamilia || '',
+      responsavelFamiliar: beneficiary.responsavelFamiliar || false,
+      vinculoFamiliar: beneficiary.vinculoFamiliar || '',
+      situacoesVulnerabilidade: beneficiary.situacoesVulnerabilidade || [],
+      acompanhamentos: beneficiary.acompanhamentos || [],
+      tempoAcompanhamento: beneficiary.tempoAcompanhamento || '',
+      origemEncaminhamento: beneficiary.origemEncaminhamento || '',
+      possuiDeficiencia: beneficiary.possuiDeficiencia || '',
+      tiposDeficiencia: beneficiary.tiposDeficiencia || [],
+      cidPrincipal: beneficiary.cidPrincipal || '',
+      usaMedicacao: beneficiary.usaMedicacao || '',
+      medicacaoDescricao: beneficiary.medicacaoDescricao || '',
+      acompanhamentoSaude: beneficiary.acompanhamentoSaude || [],
+      recebeBeneficio: beneficiary.recebeBeneficio || '',
+      beneficiosAtuais: beneficiary.beneficiosAtuais || [],
+      valorBeneficios: beneficiary.valorBeneficios || '',
+      tempoBeneficios: beneficiary.tempoBeneficios || '',
+      historicoBeneficio: beneficiary.historicoBeneficio || beneficiary.programasSociais || '',
       observacoes: beneficiary.observacoes || ''
     });
 
@@ -414,6 +593,50 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       nomeArquivo: doc.nomeArquivo
     }));
     this.calculatePerCapita();
+    this.calculateAge(beneficiary.dataNascimento || '');
+  }
+
+  toggleSelection(controlName: string, value: string): void {
+    const control = this.beneficiaryForm.get(controlName);
+    if (!control) {
+      return;
+    }
+
+    const current = (control.value as string[]) || [];
+    const exists = current.includes(value);
+    const updated = exists ? current.filter((item) => item !== value) : [...current, value];
+    control.setValue(updated);
+  }
+
+  selectionChecked(controlName: string, value: string): boolean {
+    const control = this.beneficiaryForm.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return ((control.value as string[]) || []).includes(value);
+  }
+
+  private calculateAge(dateString: string | null | undefined): void {
+    if (!dateString) {
+      this.beneficiaryForm.get('idade')?.setValue(null, { emitEvent: false });
+      return;
+    }
+
+    const birthDate = new Date(dateString);
+    if (Number.isNaN(birthDate.getTime())) {
+      this.beneficiaryForm.get('idade')?.setValue(null, { emitEvent: false });
+      return;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age -= 1;
+    }
+
+    this.beneficiaryForm.get('idade')?.setValue(age, { emitEvent: false });
   }
 
   private async fetchAddressByCep(cep: string): Promise<void> {
