@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faCircleHalfStroke, faPalette, faRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
@@ -19,15 +19,7 @@ export class PersonalizacaoComponent implements OnInit, OnDestroy {
   readonly faCircleHalfStroke = faCircleHalfStroke;
   readonly faRotateLeft = faRotateLeft;
 
-  form = this.fb.group({
-    primaryStrong: [''],
-    primaryGradient: [''],
-    background: [''],
-    surface: [''],
-    border: [''],
-    cardRadius: [''],
-    controlRadius: ['']
-  });
+  form!: FormGroup;
 
   previewTheme: 'light' | 'dark';
   private destroy$ = new Subject<void>();
@@ -38,6 +30,15 @@ export class PersonalizacaoComponent implements OnInit, OnDestroy {
     private readonly theme: ThemeService
   ) {
     this.previewTheme = this.theme.currentTheme();
+    this.form = this.fb.group({
+      primaryStrong: [''],
+      primaryGradient: [''],
+      background: [''],
+      surface: [''],
+      border: [''],
+      cardRadius: [''],
+      controlRadius: ['']
+    });
   }
 
   ngOnInit(): void {
