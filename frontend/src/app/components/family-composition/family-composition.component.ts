@@ -5,14 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BeneficiarioPayload, BeneficiarioService } from '../../services/beneficiario.service';
-import {
-  FamilyIncomeDetails,
-  FamilyMemberPayload,
-  FamilyPayload,
-  FamilySaneamento,
-  FamilyService,
-  FamilyVulnerability
-} from '../../services/family.service';
+import { FamilyService, FamiliaMembroPayload, FamiliaPayload } from '../../services/family.service';
 
 @Component({
   selector: 'app-family-composition',
@@ -239,7 +232,11 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
     this.isSaving = true;
     const payload = this.buildPayload();
 
-    this.familyService.save(payload).subscribe({
+    const request = payload.id_familia
+      ? this.familyService.update(payload.id_familia, payload)
+      : this.familyService.create(payload);
+
+    request.subscribe({
       next: () => {
         this.feedback = { type: 'success', message: 'Composição familiar salva com sucesso.' };
         this.isSaving = false;
@@ -344,47 +341,89 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
     return age;
   }
 
-  private buildPayload(): FamilyPayload {
+  private buildPayload(): FamiliaPayload {
     const formValue = this.familyForm.getRawValue();
     const address = formValue.address;
-    const income = formValue.income as FamilyIncomeDetails;
-    const vulnerability = formValue.vulnerability as FamilyVulnerability;
+    const income = formValue.income;
+    const vulnerability = formValue.vulnerability as {
+      violenciaDomestica: boolean | null;
+      trabalhoInfantil: boolean | null;
+      situacaoRua: boolean | null;
+      desempregoLongo: boolean | null;
+      moradiaPrecaria: boolean | null;
+      dependenciaQuimica: boolean | null;
+      outras: string | null;
+      programas: string | null;
+      historico: string | null;
+      tecnicoResponsavel: string | null;
+      periodicidade: string | null;
+      proximaVisita: string | null;
+      observacoes: string | null;
+    };
 
-    const membros: FamilyMemberPayload[] = this.members.controls.map((member) => ({
-      beneficiarioId: member.get('beneficiaryId')?.value,
+    const membros: FamiliaMembroPayload[] = this.members.controls.map((member) => ({
+      id_beneficiario: member.get('beneficiaryId')?.value,
       parentesco: member.get('parentesco')?.value,
-      ehResponsavelFamiliar: member.get('responsavel')?.value,
-      observacoes: member.get('observacoes')?.value,
-      situacaoTrabalho: member.get('condicaoTrabalho')?.value,
-      rendaIndividual: Number(member.get('rendaIndividual')?.value) || 0,
-      escolaridade: member.get('escolaridade')?.value,
-      possuiDeficiencia: member.get('possuiDeficiencia')?.value,
-      contribuiComRenda: member.get('contribuiRenda')?.value,
-      participaServicos: member.get('participaServicos')?.value
+      responsavel_familiar: member.get('responsavel')?.value,
+      contribui_renda: member.get('contribuiRenda')?.value,
+      renda_individual: Number(member.get('rendaIndividual')?.value) || 0,
+      participa_servicos: member.get('participaServicos')?.value,
+      observacoes: member.get('observacoes')?.value
     }));
 
-    const payload: FamilyPayload = {
-      id: formValue.id ?? undefined,
-      responsavelFamiliarId: formValue.responsavelFamiliarId ?? null,
-      beneficiarioReferenciaId: formValue.referenceBeneficiaryId ?? null,
-      nomeReferencia: formValue.referenceName || undefined,
-      tipoArranjo: formValue.arrangementType || undefined,
-      arranjoOutro: formValue.arrangementOther || undefined,
+    const fontes = income?.fontes as Record<string, boolean>;
+    const fontesSelecionadas = Object.entries(fontes || {})
+      .filter(([, selecionada]) => selecionada)
+      .map(([fonte]) => fonte)
+      .join(', ');
+
+    const vulnerabilidadesMarcadas = [
+      vulnerability?.violenciaDomestica ? 'Violência doméstica' : null,
+      vulnerability?.trabalhoInfantil ? 'Trabalho infantil' : null,
+      vulnerability?.situacaoRua ? 'Situação de rua' : null,
+      vulnerability?.desempregoLongo ? 'Desemprego prolongado' : null,
+      vulnerability?.moradiaPrecaria ? 'Moradia precária' : null,
+      vulnerability?.dependenciaQuimica ? 'Dependência química' : null,
+      vulnerability?.outras ? `Outras: ${vulnerability.outras}` : null
+    ].filter((item): item is string => Boolean(item));
+
+    const payload: FamiliaPayload = {
+      id_familia: formValue.id ?? undefined,
+      nome_familia: formValue.referenceName || '',
+      id_referencia_familiar: formValue.responsavelFamiliarId ?? formValue.referenceBeneficiaryId ?? undefined,
+      arranjo_familiar:
+        (formValue.arrangementType === 'outra'
+          ? formValue.arrangementOther || 'outro'
+          : formValue.arrangementType) || undefined,
+      cep: address?.cep ?? '',
       logradouro: address?.logradouro ?? '',
       numero: address?.numero ?? '',
-      bairro: address?.bairro ?? '',
-      cidade: address?.municipio ?? '',
-      uf: address?.uf ?? '',
-      cep: address?.cep ?? '',
       complemento: address?.complemento || undefined,
-      pontoReferencia: address?.pontoReferencia || undefined,
-      zona: address?.zona || undefined,
-      situacaoImovel: address?.situacaoImovel || undefined,
-      tipoMoradia: address?.tipoMoradia || undefined,
-      saneamento: address?.saneamento as FamilySaneamento,
-      membros,
-      rendaFamiliar: income,
-      vulnerabilidadeFamiliar: vulnerability
+      bairro: address?.bairro ?? '',
+      ponto_referencia: address?.pontoReferencia || undefined,
+      municipio: address?.municipio ?? '',
+      uf: address?.uf ?? '',
+      zona: address?.zona ?? '',
+      situacao_imovel: address?.situacaoImovel || undefined,
+      tipo_moradia: address?.tipoMoradia || undefined,
+      agua_encanada: address?.saneamento?.agua ?? false,
+      esgoto_tipo: address?.saneamento?.esgoto ? 'com_rede' : 'sem_rede',
+      coleta_lixo: address?.saneamento?.lixo ? 'coletado' : 'nao_coletado',
+      energia_eletrica: address?.saneamento?.energia ?? false,
+      renda_familiar_total: Number(income?.rendaTotal) || 0,
+      renda_per_capita: Number(income?.rendaPerCapita) || 0,
+      faixa_renda_per_capita: income?.faixaRenda || undefined,
+      principais_fontes_renda: fontesSelecionadas || undefined,
+      situacao_inseguranca_alimentar: income?.insegurancaAlimentar || undefined,
+      possui_dividas_relevantes: income?.possuiDividas ?? false,
+      descricao_dividas: income?.detalhesDividas || undefined,
+      vulnerabilidades_familia: vulnerabilidadesMarcadas.join('; ') || undefined,
+      servicos_acompanhamento: vulnerability?.programas || undefined,
+      tecnico_responsavel: vulnerability?.tecnicoResponsavel || undefined,
+      periodicidade_atendimento: vulnerability?.periodicidade || undefined,
+      proxima_visita_prevista: vulnerability?.proximaVisita || undefined,
+      observacoes: vulnerability?.observacoes || undefined,
+      membros
     };
 
     return payload;
