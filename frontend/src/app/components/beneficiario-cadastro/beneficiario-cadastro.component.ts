@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-beneficiario-cadastro',
@@ -12,13 +14,59 @@ import { BeneficiaryService, DocumentoObrigatorio } from '../../services/benefic
   templateUrl: './beneficiario-cadastro.component.html',
   styleUrl: './beneficiario-cadastro.component.scss'
 })
-export class BeneficiarioCadastroComponent implements OnInit {
+export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   form: FormGroup;
   activeTab = 'dados';
   saving = false;
   feedback: string | null = null;
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
+  beneficiaryAge: number | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private readonly sentenceCaseFields: (string | number)[][] = [
+    ['dadosPessoais', 'nome_completo'],
+    ['dadosPessoais', 'nome_social'],
+    ['dadosPessoais', 'apelido'],
+    ['dadosPessoais', 'identidade_genero'],
+    ['dadosPessoais', 'estado_civil'],
+    ['dadosPessoais', 'nacionalidade'],
+    ['dadosPessoais', 'naturalidade_cidade'],
+    ['dadosPessoais', 'nome_mae'],
+    ['dadosPessoais', 'nome_pai'],
+    ['endereco', 'logradouro'],
+    ['endereco', 'complemento'],
+    ['endereco', 'bairro'],
+    ['endereco', 'ponto_referencia'],
+    ['endereco', 'municipio'],
+    ['endereco', 'situacao_imovel'],
+    ['endereco', 'tipo_moradia'],
+    ['contato', 'telefone_recado_nome'],
+    ['contato', 'horario_preferencial_contato'],
+    ['documentos', 'certidao_tipo'],
+    ['documentos', 'certidao_livro'],
+    ['documentos', 'certidao_folha'],
+    ['documentos', 'certidao_termo'],
+    ['documentos', 'certidao_cartorio'],
+    ['documentos', 'certidao_municipio'],
+    ['documentos', 'titulo_eleitor'],
+    ['documentos', 'cnh'],
+    ['documentos', 'cartao_sus'],
+    ['familiar', 'vinculo_familiar'],
+    ['familiar', 'composicao_familiar'],
+    ['familiar', 'participa_comunidade'],
+    ['familiar', 'rede_apoio'],
+    ['familiar', 'situacao_vulnerabilidade'],
+    ['escolaridade', 'nivel_escolaridade'],
+    ['escolaridade', 'ocupacao'],
+    ['escolaridade', 'situacao_trabalho'],
+    ['escolaridade', 'local_trabalho'],
+    ['escolaridade', 'fonte_renda'],
+    ['saude', 'tipo_deficiencia'],
+    ['saude', 'descricao_medicacao'],
+    ['saude', 'servico_saude_referencia'],
+    ['beneficios', 'beneficios_descricao'],
+    ['observacoes', 'observacoes']
+  ];
   availableBenefits: string[] = [
     'Bolsa Família / PTR',
     'BPC - Idoso',
@@ -163,7 +211,9 @@ export class BeneficiarioCadastroComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadRequiredDocuments();
-    this.route.paramMap.subscribe((params) => {
+    this.watchBirthDate();
+    this.setupSentenceCaseFormatting();
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const id = params.get('id');
       if (id) {
         this.beneficiarioId = id;
@@ -173,6 +223,11 @@ export class BeneficiarioCadastroComponent implements OnInit {
         });
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get anexos(): FormArray {
@@ -507,5 +562,58 @@ export class BeneficiarioCadastroComponent implements OnInit {
         nomeArquivo: file ? file.name : doc.nomeArquivo
       } as DocumentoObrigatorio;
     });
+  }
+
+  private setupSentenceCaseFormatting(): void {
+    this.sentenceCaseFields.forEach((path) => {
+      const control = this.form.get(path);
+
+      control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+        if (typeof value !== 'string') return;
+
+        const formatted = this.toSentenceCase(value);
+        if (formatted !== value) {
+          control.setValue(formatted, { emitEvent: false });
+        }
+      });
+    });
+  }
+
+  private toSentenceCase(value: string): string {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return '';
+
+    return normalized.replace(/(^|\s)([A-Za-zÀ-ÿ])/g, (match) => match.toUpperCase());
+  }
+
+  private watchBirthDate(): void {
+    const control = this.form.get(['dadosPessoais', 'data_nascimento']);
+    control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      this.calculateAge(value as string);
+    });
+  }
+
+  private calculateAge(dateValue: string | null): void {
+    if (!dateValue) {
+      this.beneficiaryAge = null;
+      return;
+    }
+
+    const birthDate = new Date(dateValue);
+    if (isNaN(birthDate.getTime())) {
+      this.beneficiaryAge = null;
+      return;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    this.beneficiaryAge = Math.max(age, 0);
   }
 }

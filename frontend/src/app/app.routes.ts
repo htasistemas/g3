@@ -12,6 +12,7 @@ import { SystemParametersComponent } from './components/system-parameters/system
 import { FamilyCompositionComponent } from './components/family-composition/family-composition.component';
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
 import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-cadastro.component';
+import { SystemVersionComponent } from './components/system-version/system-version.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -47,6 +48,11 @@ export const routes: Routes = [
         path: 'configuracoes/sistema',
         component: SystemSettingsComponent,
         data: { title: 'Documentos obrigatórios' }
+      },
+      {
+        path: 'configuracoes/versao',
+        component: SystemVersionComponent,
+        data: { title: 'Versão do sistema' }
       },
       {
         path: 'configuracoes/usuarios',
