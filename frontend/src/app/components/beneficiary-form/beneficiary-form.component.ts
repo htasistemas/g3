@@ -13,6 +13,13 @@ interface UploadedDocument {
   file?: File;
 }
 
+interface AddressLookup {
+  logradouro?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+}
+
 @Component({
   selector: 'app-beneficiary-form',
   standalone: true,
@@ -640,22 +647,74 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private async fetchAddressByCep(cep: string): Promise<void> {
+    const normalizedCep = cep.replace(/\D/g, '');
+    if (normalizedCep.length !== 8) {
+      return;
+    }
+
+    const guiaCepData = await this.fetchFromGuiaCep(normalizedCep);
+    if (guiaCepData) {
+      this.applyAddressLookup(guiaCepData);
+      return;
+    }
+
+    const viaCepData = await this.fetchFromViaCep(normalizedCep);
+    if (viaCepData) {
+      this.applyAddressLookup(viaCepData);
+    }
+  }
+
+  private applyAddressLookup(data: AddressLookup): void {
+    this.beneficiaryForm.patchValue({
+      logradouro: data.logradouro ?? '',
+      bairro: data.bairro ?? '',
+      cidade: data.cidade ?? '',
+      uf: data.uf ?? ''
+    });
+  }
+
+  private async fetchFromGuiaCep(cep: string): Promise<AddressLookup | null> {
+    try {
+      const response = await fetch(`https://www.guiacep.com.br/ws/${cep}.json`);
+      if (!response.ok) {
+        throw new Error('Não foi possível consultar o GuiaCEP');
+      }
+
+      const data = await response.json();
+      if (data?.erro) {
+        return null;
+      }
+
+      return {
+        logradouro: data.logradouro ?? data.address ?? '',
+        bairro: data.bairro ?? data.district ?? '',
+        cidade: data.cidade ?? data.city ?? '',
+        uf: data.uf ?? data.state ?? ''
+      };
+    } catch (error) {
+      console.error('Erro ao consultar GuiaCEP', error);
+      return null;
+    }
+  }
+
+  private async fetchFromViaCep(cep: string): Promise<AddressLookup | null> {
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
       const data = await response.json();
 
       if (!response.ok || data?.erro) {
-        throw new Error('CEP não encontrado');
+        throw new Error('CEP não encontrado no ViaCEP');
       }
 
-      this.beneficiaryForm.patchValue({
+      return {
         logradouro: data.logradouro || '',
         bairro: data.bairro || '',
         cidade: data.localidade || '',
         uf: data.uf || ''
-      });
+      };
     } catch (error) {
-      console.error('Erro ao buscar CEP', error);
+      console.error('Erro ao consultar ViaCEP', error);
+      return null;
     }
   }
 

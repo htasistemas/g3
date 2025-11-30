@@ -3,7 +3,7 @@
     <div>
       <p class="text-sm font-semibold text-g3-green-700 uppercase">Beneficiários</p>
       <h1 class="text-3xl font-semibold text-slate-900">Cadastro de beneficiário</h1>
-      <p class="text-sm text-slate-600">Organize as informações em abas temáticas para evitar rolagens longas.</p>
+      <p class="text-sm text-slate-600">Preencha os dados essenciais do beneficiário em cada etapa.</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <button type="button" class="btn-outline" (click)="startNew()">Novo</button>
@@ -53,8 +53,8 @@
     <!-- Dados pessoais -->
     <section *ngIf="activeTab === 'personal'" class="space-y-4">
       <h2 class="card__header">Dados pessoais</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="field-group">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="field-group md:col-span-12">
           <label for="nomeCompleto">Nome completo *</label>
           <input
             id="nomeCompleto"
@@ -68,15 +68,15 @@
             Informe um nome válido.
           </p>
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-6">
           <label for="nomeSocial">Nome social</label>
           <input id="nomeSocial" type="text" class="input" formControlName="nomeSocial" placeholder="Se houver" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-6">
           <label for="apelido">Apelido / Como gosta de ser chamado</label>
           <input id="apelido" type="text" class="input" formControlName="apelido" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-4">
           <label for="cpf">CPF *</label>
           <input
             id="cpf"
@@ -88,12 +88,12 @@
           />
           <p *ngIf="beneficiaryForm.get('cpf')?.invalid && beneficiaryForm.get('cpf')?.touched" class="field-error">CPF inválido.</p>
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-4">
           <label for="rg">RG / Documento de identidade</label>
           <input id="rg" type="text" class="input" formControlName="rg" placeholder="Número do RG" />
         </div>
-        <div class="grid grid-cols-[2fr_1fr] gap-3">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:col-span-4">
+          <div class="field-group md:col-span-2">
             <label for="orgaoEmissor">Órgão emissor</label>
             <input id="orgaoEmissor" type="text" class="input" formControlName="orgaoEmissor" placeholder="SSP" />
           </div>
@@ -105,20 +105,20 @@
             </select>
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-3">
           <label for="dataEmissaoRg">Data de emissão</label>
           <input id="dataEmissaoRg" type="date" class="input" formControlName="dataEmissaoRg" />
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:col-span-2">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-9">
+          <div class="field-group md:col-span-4">
             <label for="dataNascimento">Data de nascimento *</label>
             <input id="dataNascimento" type="date" class="input" formControlName="dataNascimento" />
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-2">
             <label for="idade">Idade (calculada)</label>
             <input id="idade" type="number" class="input" formControlName="idade" readonly />
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-6">
             <label for="estadoCivil">Estado civil</label>
             <select id="estadoCivil" class="input" formControlName="estadoCivil">
               <option value="">Selecione</option>
@@ -129,8 +129,8 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-12">
+          <div class="field-group md:col-span-6">
             <label for="sexoBiologico">Sexo biológico</label>
             <select id="sexoBiologico" class="input" formControlName="sexoBiologico">
               <option value="">Selecione</option>
@@ -139,13 +139,13 @@
               <option value="Outro">Outro</option>
             </select>
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-6">
             <label for="identidadeGenero">Identidade de gênero</label>
             <input id="identidadeGenero" type="text" class="input" formControlName="identidadeGenero" />
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-12">
+          <div class="field-group md:col-span-6">
             <label for="corRaca">Cor/raça</label>
             <select id="corRaca" class="input" formControlName="corRaca">
               <option value="">Selecione</option>
@@ -157,17 +157,17 @@
               <option value="Prefere não informar">Prefere não informar</option>
             </select>
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-6">
             <label for="nacionalidade">Nacionalidade</label>
             <input id="nacionalidade" type="text" class="input" formControlName="nacionalidade" />
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-12">
+          <div class="field-group md:col-span-4">
             <label for="naturalidade">Naturalidade (cidade/UF de nascimento)</label>
             <input id="naturalidade" type="text" class="input" formControlName="naturalidade" />
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-8">
             <label for="nomeMae">Nome da mãe *</label>
             <input id="nomeMae" type="text" class="input" formControlName="nomeMae" (input)="formatTitleCase('nomeMae')" />
             <p *ngIf="beneficiaryForm.get('nomeMae')?.invalid && beneficiaryForm.get('nomeMae')?.touched" class="field-error">
@@ -175,22 +175,22 @@
             </p>
           </div>
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-8">
           <label for="nomePai">Nome do pai</label>
           <input id="nomePai" type="text" class="input" formControlName="nomePai" (input)="formatTitleCase('nomePai')" />
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
-          <div class="flex items-center gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-12">
+          <div class="flex items-center gap-2 md:col-span-4">
             <input id="responsavelLegal" type="checkbox" class="h-4 w-4" formControlName="responsavelLegal" />
             <label for="responsavelLegal" class="text-sm font-medium text-slate-700">Responsável legal?</label>
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-8">
             <label for="responsavelPor">Quem está sob sua responsabilidade</label>
             <input id="responsavelPor" type="text" class="input" formControlName="responsavelPor" placeholder="Crianças, idosos" />
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:col-span-2">
-          <div class="field-group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:col-span-12">
+          <div class="field-group md:col-span-6">
             <label for="situacaoEscolarCrianca">Situação escolar da criança/adolescente</label>
             <select id="situacaoEscolarCrianca" class="input" formControlName="situacaoEscolarCrianca">
               <option value="">Selecione</option>
@@ -199,7 +199,7 @@
               <option value="Em EJA">Em EJA</option>
             </select>
           </div>
-          <div class="field-group">
+          <div class="field-group md:col-span-6">
             <label for="responsavelLegalPor">Responsável legal (se menor)</label>
             <input id="responsavelLegalPor" type="text" class="input" formControlName="responsavelLegalPor" placeholder="Vincular à composição familiar" />
           </div>
@@ -210,39 +210,39 @@
     <!-- Endereço -->
     <section *ngIf="activeTab === 'address'" class="space-y-4">
       <h2 class="card__header">Endereço</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="field-group">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="field-group md:col-span-3">
           <label for="cep">CEP</label>
           <input id="cep" type="text" class="input" formControlName="cep" (input)="handleCepInput($event)" placeholder="00000-000" />
         </div>
-        <div class="md:col-span-2 field-group">
+        <div class="field-group md:col-span-7">
           <label for="logradouro">Logradouro</label>
           <input id="logradouro" type="text" class="input" formControlName="logradouro" placeholder="Rua/Avenida" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-2">
           <label for="numero">Número</label>
           <input id="numero" type="text" class="input" formControlName="numero" placeholder="Número" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-4">
           <label for="complemento">Complemento</label>
           <input id="complemento" type="text" class="input" formControlName="complemento" placeholder="Apartamento, bloco" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-5">
           <label for="bairro">Bairro / Comunidade</label>
           <input id="bairro" type="text" class="input" formControlName="bairro" (input)="formatTitleCase('bairro')" />
         </div>
-        <div class="field-group">
+        <div class="field-group md:col-span-3">
           <label for="cidade">Município</label>
           <input id="cidade" type="text" class="input" formControlName="cidade" (input)="formatTitleCase('cidade')" />
         </div>
-        <div class="field-group">
-          <label for="uf">UF</label>
-          <select id="uf" class="input" formControlName="uf">
+        <div class="field-group md:col-span-3">
+          <label for="estado">Estado</label>
+          <select id="estado" class="input" formControlName="uf">
             <option value="">Selecione</option>
             <option *ngFor="let state of states" [value]="state">{{ state }}</option>
           </select>
         </div>
-        <div class="md:col-span-2 field-group">
+        <div class="field-group md:col-span-9">
           <label for="pontoReferencia">Ponto de referência</label>
           <input id="pontoReferencia" type="text" class="input" formControlName="pontoReferencia" />
         </div>
