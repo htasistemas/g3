@@ -51,7 +51,16 @@
 
         <div class="space-y-2">
           <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
-          <input id="cep" type="text" formControlName="cep" class="input" placeholder="00000-000" />
+          <input
+            id="cep"
+            type="text"
+            formControlName="cep"
+            class="input"
+            placeholder="00000-000"
+            inputmode="numeric"
+            maxlength="9"
+            (input)="onCepInput($event)"
+          />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
