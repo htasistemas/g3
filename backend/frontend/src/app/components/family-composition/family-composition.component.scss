@@ -1,0 +1,31 @@
+.info-card {
+  @apply bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-1;
+
+  &__label {
+    @apply text-xs uppercase tracking-wide text-slate-500 font-semibold;
+  }
+
+  &__value {
+    @apply text-2xl font-bold text-slate-800;
+  }
+}
+
+.member-card {
+  @apply border border-slate-200 rounded-xl p-4 bg-white shadow-sm;
+
+  &__header {
+    @apply flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-slate-200;
+  }
+}
+
+.alert {
+  @apply border rounded-lg px-4 py-3 text-sm;
+
+  &-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  &-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+}

@@ -1,10 +1,5 @@
 <div class="h-screen flex app-shell overflow-hidden">
-  <aside
-    class="sidebar hidden md:flex flex-col flex-shrink-0 overflow-y-auto"
-    [class.sidebar--collapsed]="isSidebarCollapsed"
-    (mouseenter)="handleSidebarEnter()"
-    (mouseleave)="handleSidebarLeave()"
-  >
+  <aside class="sidebar w-72 hidden md:flex flex-col flex-shrink-0 overflow-y-auto">
     <div class="sidebar__header">
       <div>
         <p class="text-xs uppercase tracking-wide text-emerald-50">Unidade ativa</p>
@@ -22,23 +17,13 @@
         *ngFor="let section of menuSections"
         class="menu-card"
         (mouseleave)="closeSection(section.label)"
-        (mouseenter)="openSection = section.label"
       >
-        <button
-          type="button"
-          (click)="toggleSection(section.label)"
-          class="menu-card__trigger"
-          [attr.title]="isSidebarCollapsed ? section.label : null"
-        >
+        <button type="button" (click)="toggleSection(section.label)" class="menu-card__trigger">
           <span class="flex items-center space-x-3">
             <fa-icon [icon]="section.icon" class="text-emerald-100"></fa-icon>
-            <span class="menu-card__label">{{ section.label }}</span>
+            <span>{{ section.label }}</span>
           </span>
-          <fa-icon
-            [icon]="openSection === section.label ? faChevronUp : faChevronDown"
-            class="text-emerald-50"
-            *ngIf="!isSidebarCollapsed"
-          ></fa-icon>
+          <fa-icon [icon]="openSection === section.label ? faChevronUp : faChevronDown" class="text-emerald-50"></fa-icon>
         </button>
 
         <div *ngIf="openSection === section.label" class="menu-card__content">
