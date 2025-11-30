@@ -13,11 +13,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate SSH configuration
+        if: ${{ (secrets.SSH_HOST == '' && vars.SSH_HOST == '') || secrets.SSH_USER == '' || secrets.SSH_KEY == '' }}
+        run: |
+          echo "SSH_HOST (secret or variable), SSH_USER (secret), and SSH_KEY (secret) must be configured for deployment."
+          exit 1
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
+          username: ${{ secrets.SSH_USER || vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
