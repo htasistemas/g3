@@ -25,20 +25,12 @@ export const routes: Routes = [
       {
         path: 'beneficiarios/editar/:id',
         component: BeneficiaryFormComponent,
-<<<<<<< HEAD
         data: { title: 'Beneficiários' }
-=======
-        data: { title: 'Cadastro de beneficiários' }
->>>>>>> parent of 39d3a28 (Merge pull request #32 from htasistemas/codex/redesign-cadastro-de-familia-com-abas)
       },
       {
         path: 'beneficiarios/cadastro',
         component: BeneficiaryFormComponent,
-<<<<<<< HEAD
         data: { title: 'Beneficiários' }
-=======
-        data: { title: 'Cadastro de beneficiários' }
->>>>>>> parent of 39d3a28 (Merge pull request #32 from htasistemas/codex/redesign-cadastro-de-familia-com-abas)
       },
       {
         path: 'beneficiarios/novo',
