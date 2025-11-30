@@ -46,6 +46,27 @@
         </div>
 
         <div class="field-stack md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="logomarcaRelatorio">Imagem para relatórios (PDF)</label>
+          <div class="flex flex-col md:flex-row md:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <input
+                id="logomarcaRelatorio"
+                type="file"
+                accept="image/*"
+                class="input"
+                (change)="onReportLogoSelected($event)"
+              />
+              <button type="button" class="btn-outline" (click)="clearReportLogo()" *ngIf="reportLogoPreview">Remover</button>
+            </div>
+            <div *ngIf="reportLogoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
+              <img [src]="reportLogoPreview" alt="Pré-visualização da imagem para relatórios" class="h-16 object-contain" />
+            </div>
+          </div>
+          <p class="text-xs text-slate-500">Use uma versão horizontal ou em alta resolução para relatórios e PDFs.</p>
+        </div>
+
+        <div class="field-stack md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="razaoSocial">Razão social</label>
           <input id="razaoSocial" type="text" formControlName="razaoSocial" class="input" placeholder="Nome empresarial" />
           <p *ngIf="form.get('razaoSocial')?.touched && form.get('razaoSocial')?.invalid" class="text-xs text-red-500">
@@ -189,6 +210,10 @@
       <div class="md:col-span-2 flex items-center gap-3" *ngIf="unidade.logomarca">
         <span class="font-semibold">Logomarca:</span>
         <img [src]="unidade.logomarca" alt="Logomarca da unidade" class="h-12 object-contain" />
+      </div>
+      <div class="md:col-span-2 flex items-center gap-3" *ngIf="unidade.logomarcaRelatorio">
+        <span class="font-semibold">Imagem dos relatórios:</span>
+        <img [src]="unidade.logomarcaRelatorio" alt="Imagem utilizada em relatórios" class="h-12 object-contain" />
       </div>
       <p><span class="font-semibold">Nome fantasia:</span> {{ unidade.nomeFantasia }}</p>
       <p><span class="font-semibold">Razão social:</span> {{ unidade.razaoSocial || 'Não informada' }}</p>
