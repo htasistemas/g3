@@ -1,124 +1,254 @@
 <section class="cadastro">
-  <h2>Cadastro de Beneficiário</h2>
-  <nav class="tabs">
-    <button *ngFor="let tab of tabs" [class.active]="activeTab === tab.id" (click)="changeTab(tab.id)">
-      {{ tab.label }}
-    </button>
-  </nav>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Beneficiários</p>
+      <h2>Cadastro de Beneficiário</h2>
+      <p class="subtitle">Organize os dados em seções para preenchimento rápido e sem ruídos visuais.</p>
+    </div>
+    <div class="badge-pill">Formulário simplificado</div>
+  </header>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <nav class="tabs">
+      <button *ngFor="let tab of tabs" class="tabs__item" [class.active]="activeTab === tab.id" (click)="changeTab(tab.id)">
+        <span class="tabs__label">{{ tab.label }}</span>
+      </button>
+    </nav>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
-    <div class="tab-content" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
-      <label>Nome completo*<input formControlName="nome_completo" /></label>
-      <label>Nome social<input formControlName="nome_social" /></label>
-      <label>Apelido<input formControlName="apelido" /></label>
-      <label>Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
-      <label>Sexo biológico<select formControlName="sexo_biologico"><option value=""></option><option value="MASCULINO">Masculino</option><option value="FEMININO">Feminino</option><option value="OUTRO">Outro</option></select></label>
-      <label>Identidade de gênero<input formControlName="identidade_genero" /></label>
-      <label>Cor/Raça<select formControlName="cor_raca"><option value=""></option><option value="BRANCA">Branca</option><option value="PRETA">Preta</option><option value="PARDA">Parda</option><option value="AMARELA">Amarela</option><option value="INDIGENA">Indígena</option><option value="NAO_INFORMADO">Não informado</option></select></label>
-      <label>Estado civil<input formControlName="estado_civil" /></label>
-      <label>Nacionalidade<input formControlName="nacionalidade" /></label>
-      <label>Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
-      <label>UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
-      <label>Nome da mãe*<input formControlName="nome_mae" /></label>
-      <label>Nome do pai<input formControlName="nome_pai" /></label>
+    <div class="tab-card" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Dados pessoais</p>
+          <h3>Identificação do beneficiário</h3>
+          <p class="muted">Campos essenciais como nome, data de nascimento e responsáveis.</p>
+        </div>
+        <span class="pill">Obrigatório</span>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="field">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
+        <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
+        <label class="field">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
+        <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
+        <label class="field">Sexo biológico<select formControlName="sexo_biologico">
+            <option value=""></option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMININO">Feminino</option>
+            <option value="OUTRO">Outro</option>
+          </select></label>
+        <label class="field">Identidade de gênero<input formControlName="identidade_genero" /></label>
+        <label class="field">Cor/Raça<select formControlName="cor_raca">
+            <option value=""></option>
+            <option value="BRANCA">Branca</option>
+            <option value="PRETA">Preta</option>
+            <option value="PARDA">Parda</option>
+            <option value="AMARELA">Amarela</option>
+            <option value="INDIGENA">Indígena</option>
+            <option value="NAO_INFORMADO">Não informado</option>
+          </select></label>
+        <label class="field">Estado civil<input formControlName="estado_civil" /></label>
+        <label class="field">Nacionalidade<input formControlName="nacionalidade" /></label>
+        <div class="field-grid cols-2 compact">
+          <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
+          <label class="field">UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
+        </div>
+        <label class="field">Nome da mãe*<input formControlName="nome_mae" /></label>
+        <label class="field">Nome do pai<input formControlName="nome_pai" /></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
-      <label><input type="checkbox" formControlName="usa_endereco_familia" /> Usar endereço da família</label>
-      <label>CEP<input formControlName="cep" /></label>
-      <label>Logradouro<input formControlName="logradouro" /></label>
-      <label>Número<input formControlName="numero" /></label>
-      <label>Complemento<input formControlName="complemento" /></label>
-      <label>Bairro<input formControlName="bairro" /></label>
-      <label>Ponto de referência<input formControlName="ponto_referencia" /></label>
-      <label>Município<input formControlName="municipio" /></label>
-      <label>UF<input maxlength="2" formControlName="uf" /></label>
-      <label>Zona<select formControlName="zona"><option value=""></option><option value="URBANA">Urbana</option><option value="RURAL">Rural</option></select></label>
-      <label>Situação do imóvel<input formControlName="situacao_imovel" /></label>
-      <label>Tipo de moradia<input formControlName="tipo_moradia" /></label>
-      <label><input type="checkbox" formControlName="agua_encanada" /> Água encanada</label>
-      <label>Esgoto<select formControlName="esgoto_tipo"><option value=""></option><option value="REDE">Rede</option><option value="FOSSA">Fossa</option><option value="CEU_ABERTO">Céu aberto</option><option value="NAO_POSSUI">Não possui</option></select></label>
-      <label>Coleta de lixo<select formControlName="coleta_lixo"><option value=""></option><option value="REGULAR">Regular</option><option value="IRREGULAR">Irregular</option><option value="NAO_POSSUI">Não possui</option></select></label>
-      <label><input type="checkbox" formControlName="energia_eletrica" /> Energia elétrica</label>
-      <label><input type="checkbox" formControlName="internet" /> Internet</label>
+    <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Endereço</p>
+          <h3>Localização do beneficiário</h3>
+          <p class="muted">Preferencialmente utilize o endereço da família para evitar inconsistências.</p>
+        </div>
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="usa_endereco_familia" />
+          <span>Usar endereço da família</span>
+        </label>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">Logradouro<input formControlName="logradouro" /></label>
+        <label class="field">Número<input formControlName="numero" /></label>
+        <label class="field">Complemento<input formControlName="complemento" /></label>
+        <label class="field">Bairro<input formControlName="bairro" /></label>
+        <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
+        <label class="field">Município<input formControlName="municipio" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
+        <label class="field">Zona<select formControlName="zona">
+            <option value=""></option>
+            <option value="URBANA">Urbana</option>
+            <option value="RURAL">Rural</option>
+          </select></label>
+        <label class="field">Situação do imóvel<input formControlName="situacao_imovel" /></label>
+        <label class="field">Tipo de moradia<input formControlName="tipo_moradia" /></label>
+        <div class="feature-grid">
+          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
+          <label class="field">Esgoto<select formControlName="esgoto_tipo">
+              <option value=""></option>
+              <option value="REDE">Rede</option>
+              <option value="FOSSA">Fossa</option>
+              <option value="CEU_ABERTO">Céu aberto</option>
+              <option value="NAO_POSSUI">Não possui</option>
+            </select></label>
+          <label class="field">Coleta de lixo<select formControlName="coleta_lixo">
+              <option value=""></option>
+              <option value="REGULAR">Regular</option>
+              <option value="IRREGULAR">Irregular</option>
+              <option value="NAO_POSSUI">Não possui</option>
+            </select></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="energia_eletrica" /> <span>Energia elétrica</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
+        </div>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'contato'" formGroupName="contato">
-      <label>Telefone principal<input formControlName="telefone_principal" /></label>
-      <label><input type="checkbox" formControlName="telefone_principal_whatsapp" /> WhatsApp</label>
-      <label>Telefone secundário<input formControlName="telefone_secundario" /></label>
-      <label>Nome para recado<input formControlName="telefone_recado_nome" /></label>
-      <label>Telefone para recado<input formControlName="telefone_recado_numero" /></label>
-      <label>Email<input type="email" formControlName="email" /></label>
-      <label>Horário preferencial<input formControlName="horario_preferencial_contato" /></label>
-      <label><input type="checkbox" formControlName="permite_contato_tel" /> Permite contato telefônico</label>
-      <label><input type="checkbox" formControlName="permite_contato_whatsapp" /> Permite WhatsApp</label>
-      <label><input type="checkbox" formControlName="permite_contato_sms" /> Permite SMS</label>
-      <label><input type="checkbox" formControlName="permite_contato_email" /> Permite email</label>
+    <div class="tab-card" *ngIf="activeTab === 'contato'" formGroupName="contato">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Contato</p>
+          <h3>Canais de comunicação</h3>
+          <p class="muted">Cadastre diferentes formas de contato e preferências.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">Telefone principal<input formControlName="telefone_principal" /></label>
+        <label class="field">Telefone secundário<input formControlName="telefone_secundario" /></label>
+        <label class="field">Email<input type="email" formControlName="email" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="telefone_principal_whatsapp" /> <span>Telefone principal tem WhatsApp</span></label>
+        <label class="field">Nome para recado<input formControlName="telefone_recado_nome" /></label>
+        <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" /></label>
+        <label class="field">Horário preferencial<input formControlName="horario_preferencial_contato" /></label>
+        <div class="feature-grid">
+          <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_tel" /> <span>Permite contato telefônico</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_whatsapp" /> <span>Permite WhatsApp</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_sms" /> <span>Permite SMS</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_email" /> <span>Permite e-mail</span></label>
+        </div>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'documentos'" formGroupName="documentos">
-      <label>CPF<input formControlName="cpf" /></label>
-      <label>RG número<input formControlName="rg_numero" /></label>
-      <label>Órgão emissor<input formControlName="rg_orgao_emissor" /></label>
-      <label>UF<input maxlength="2" formControlName="rg_uf" /></label>
-      <label>Data emissão<input type="date" formControlName="rg_data_emissao" /></label>
-      <label>NIS<input formControlName="nis" /></label>
-      <label>Certidão tipo<input formControlName="certidao_tipo" /></label>
-      <label>Livro<input formControlName="certidao_livro" /></label>
-      <label>Folha<input formControlName="certidao_folha" /></label>
-      <label>Termo<input formControlName="certidao_termo" /></label>
-      <label>Cartório<input formControlName="certidao_cartorio" /></label>
-      <label>Município<input formControlName="certidao_municipio" /></label>
-      <label>UF<input maxlength="2" formControlName="certidao_uf" /></label>
-      <label>Título de eleitor<input formControlName="titulo_eleitor" /></label>
-      <label>CNH<input formControlName="cnh" /></label>
-      <label>Cartão SUS<input formControlName="cartao_sus" /></label>
+    <div class="tab-card" *ngIf="activeTab === 'documentos'" formGroupName="documentos">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Documentos</p>
+          <h3>Registros oficiais</h3>
+          <p class="muted">Organize CPF, RG, certidões e demais identificadores.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">CPF<input formControlName="cpf" /></label>
+        <label class="field">RG número<input formControlName="rg_numero" /></label>
+        <label class="field">Órgão emissor<input formControlName="rg_orgao_emissor" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="rg_uf" /></label>
+        <label class="field">Data emissão<input type="date" formControlName="rg_data_emissao" /></label>
+        <label class="field">NIS<input formControlName="nis" /></label>
+        <label class="field">Certidão tipo<input formControlName="certidao_tipo" /></label>
+        <label class="field">Livro<input formControlName="certidao_livro" /></label>
+        <label class="field">Folha<input formControlName="certidao_folha" /></label>
+        <label class="field">Termo<input formControlName="certidao_termo" /></label>
+        <label class="field">Cartório<input formControlName="certidao_cartorio" /></label>
+        <label class="field">Município<input formControlName="certidao_municipio" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="certidao_uf" /></label>
+        <label class="field">Título de eleitor<input formControlName="titulo_eleitor" /></label>
+        <label class="field">CNH<input formControlName="cnh" /></label>
+        <label class="field">Cartão SUS<input formControlName="cartao_sus" /></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
-      <label><input type="checkbox" formControlName="mora_com_familia" /> Mora com a família</label>
-      <label><input type="checkbox" formControlName="responsavel_legal" /> Responsável legal</label>
-      <label>Vínculo familiar<input formControlName="vinculo_familiar" /></label>
-      <label>Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+    <div class="tab-card" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Situação Familiar e Social</p>
+          <h3>Vínculos e responsabilidades</h3>
+          <p class="muted">Mapa da convivência familiar e condições de vulnerabilidade.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a família</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Responsável legal</span></label>
+        <label class="field">Vínculo familiar<input formControlName="vinculo_familiar" /></label>
+        <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'escolaridade'" formGroupName="escolaridade">
-      <label><input type="checkbox" formControlName="sabe_ler_escrever" /> Sabe ler e escrever</label>
-      <label>Nível de escolaridade<input formControlName="nivel_escolaridade" /></label>
-      <label><input type="checkbox" formControlName="estuda_atualmente" /> Estuda atualmente</label>
-      <label>Ocupação<input formControlName="ocupacao" /></label>
-      <label>Situação de trabalho<input formControlName="situacao_trabalho" /></label>
-      <label>Local de trabalho<input formControlName="local_trabalho" /></label>
-      <label>Renda mensal<input type="number" formControlName="renda_mensal" /></label>
-      <label>Fonte de renda<input formControlName="fonte_renda" /></label>
+    <div class="tab-card" *ngIf="activeTab === 'escolaridade'" formGroupName="escolaridade">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Escolaridade & Trabalho</p>
+          <h3>Formação e renda</h3>
+          <p class="muted">Entenda a escolaridade, ocupação e fontes de renda.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
+        <label class="field">Nível de escolaridade<input formControlName="nivel_escolaridade" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
+        <label class="field">Ocupação<input formControlName="ocupacao" /></label>
+        <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
+        <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
+        <label class="field">Renda mensal<input type="number" formControlName="renda_mensal" /></label>
+        <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'saude'" formGroupName="saude">
-      <label><input type="checkbox" formControlName="possui_deficiencia" /> Possui deficiência</label>
-      <label>Tipo de deficiência<input formControlName="tipo_deficiencia" /></label>
-      <label>CID principal<input formControlName="cid_principal" /></label>
-      <label><input type="checkbox" formControlName="usa_medicacao_continua" /> Usa medicação contínua</label>
-      <label>Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
-      <label>Serviço de saúde de referência<input formControlName="servico_saude_referencia" /></label>
+    <div class="tab-card" *ngIf="activeTab === 'saude'" formGroupName="saude">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Saúde</p>
+          <h3>Condições clínicas</h3>
+          <p class="muted">Registro de deficiências, medicações e referência de atendimento.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="checkbox-field"><input type="checkbox" formControlName="possui_deficiencia" /> <span>Possui deficiência</span></label>
+        <label class="field">Tipo de deficiência<input formControlName="tipo_deficiencia" /></label>
+        <label class="field">CID principal<input formControlName="cid_principal" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medicação contínua</span></label>
+        <label class="field full">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
+        <label class="field">Serviço de saúde de referência<input formControlName="servico_saude_referencia" /></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'beneficios'" formGroupName="beneficios">
-      <label><input type="checkbox" formControlName="recebe_beneficio" /> Recebe benefício</label>
-      <label>Descrição dos benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
-      <label>Valor total<input type="number" formControlName="valor_total_beneficios" /></label>
+    <div class="tab-card" *ngIf="activeTab === 'beneficios'" formGroupName="beneficios">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Programas Sociais</p>
+          <h3>Benefícios recebidos</h3>
+          <p class="muted">Indique benefícios ativos e valores aproximados.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe benefício</span></label>
+        <label class="field">Valor total<input type="number" formControlName="valor_total_beneficios" /></label>
+        <label class="field full">Descrição dos benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
+      </div>
     </div>
 
-    <div class="tab-content" *ngIf="activeTab === 'observacoes'" formGroupName="observacoes">
-      <label><input type="checkbox" formControlName="aceite_lgpd" /> Aceite LGPD</label>
-      <label>Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
-      <label>Observações<textarea formControlName="observacoes"></textarea></label>
+    <div class="tab-card" *ngIf="activeTab === 'observacoes'" formGroupName="observacoes">
+      <div class="tab-card__header">
+        <div>
+          <p class="eyebrow">Observações & Anexos</p>
+          <h3>Consentimentos e notas</h3>
+          <p class="muted">Últimos apontamentos para complementar o cadastro.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" /> <span>Aceite LGPD</span></label>
+        <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
+        <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
+      </div>
     </div>
 
     <div class="actions">
-      <button type="submit" [disabled]="saving">Salvar</button>
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
     </div>
   </form>
 </section>
