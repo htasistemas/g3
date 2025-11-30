@@ -41,6 +41,9 @@ export class AssistanceUnit {
   @Column({ name: 'observacoes', type: 'text', nullable: true })
   observacoes?: string;
 
+  @Column({ name: 'logomarca', type: 'text', nullable: true })
+  logomarca?: string;
+
   @Column({ name: 'responsavel_nome', nullable: true })
   responsavelNome?: string;
 

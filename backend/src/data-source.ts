@@ -14,6 +14,7 @@ import { PatrimonioMovimento } from './entities/PatrimonioMovimento';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
+import { AddLogoToAssistanceUnit1730200000000 } from './migrations/1730200000000-AddLogoToAssistanceUnit';
 
 dotenv.config();
 
@@ -73,7 +74,8 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
       migrations: [
         RenameSchemaToPortuguese1729700000000,
         CreateBeneficiarioFamiliaSchema1729800000000,
-        UpdateAssistanceUnitSchema1730100000000
+        UpdateAssistanceUnitSchema1730100000000,
+        AddLogoToAssistanceUnit1730200000000
       ],
       migrationsRun: true
     };

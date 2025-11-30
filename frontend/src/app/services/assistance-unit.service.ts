@@ -17,6 +17,7 @@ export interface AssistanceUnitPayload {
   cidade?: string;
   estado?: string;
   observacoes?: string;
+  logomarca?: string;
   responsavelNome?: string;
   responsavelCpf?: string;
   responsavelPeriodoMandato?: string;

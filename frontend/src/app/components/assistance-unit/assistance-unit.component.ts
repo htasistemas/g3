@@ -23,6 +23,7 @@ interface ViaCepResponse {
 })
 export class AssistanceUnitComponent implements OnInit {
   unidade: AssistanceUnitPayload | null = null;
+  logoPreview: string | null = null;
 
   readonly estados = [
     'AC',
@@ -74,6 +75,7 @@ export class AssistanceUnitComponent implements OnInit {
       cidade: [''],
       estado: [''],
       observacoes: [''],
+      logomarca: [''],
       responsavelNome: [''],
       responsavelCpf: [''],
       responsavelPeriodoMandato: ['']
@@ -99,6 +101,7 @@ export class AssistanceUnitComponent implements OnInit {
       next: (created) => {
         this.unidade = created;
         this.form.patchValue(created);
+        this.logoPreview = created.logomarca || null;
         this.unitService.setActiveUnit(created.nomeFantasia);
       },
       error: (error) => {
@@ -127,6 +130,7 @@ export class AssistanceUnitComponent implements OnInit {
         this.unidade = unidade;
         if (unidade) {
           this.form.patchValue(unidade);
+          this.logoPreview = unidade.logomarca || null;
           if (unidade.cep) {
             this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
           }
@@ -135,6 +139,34 @@ export class AssistanceUnitComponent implements OnInit {
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
     });
+  }
+
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      this.form.get('logomarca')?.setValue(base64);
+      this.logoPreview = base64;
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  clearLogo(): void {
+    this.form.get('logomarca')?.setValue('');
+    this.logoPreview = null;
+  }
+
+  resetForm(): void {
+    this.form.reset(this.unidade || {});
+    this.logoPreview = this.unidade?.logomarca || null;
   }
 
   onPhoneInput(event: Event): void {

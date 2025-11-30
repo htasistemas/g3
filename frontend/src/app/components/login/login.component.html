@@ -95,7 +95,23 @@
       <div class="login-hero text-white relative">
         <div class="grid-overlay" aria-hidden="true"></div>
         <div class="absolute inset-0 flex flex-col justify-between p-8 lg:p-12">
-          <div class="flex justify-end">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <ng-container *ngIf="unidadeLogomarca; else defaultLogo">
+                <div class="logo-badge bg-white">
+                  <img [src]="unidadeLogomarca" [alt]="unidadeNome || 'Logomarca da unidade'" />
+                </div>
+              </ng-container>
+              <ng-template #defaultLogo>
+                <div class="logo-badge bg-white/15 text-white">
+                  <span class="text-lg font-semibold">G3</span>
+                </div>
+              </ng-template>
+              <div>
+                <p class="text-sm font-medium">{{ unidadeNome || 'Unidade assistencial' }}</p>
+                <p class="text-xs text-white/70">Personalização da tela de acesso</p>
+              </div>
+            </div>
             <span class="px-4 py-2 rounded-full bg-white/15 text-sm font-medium">Ainda não possui uma conta?</span>
           </div>
 

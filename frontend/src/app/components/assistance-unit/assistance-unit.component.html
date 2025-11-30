@@ -16,6 +16,27 @@
         </div>
 
         <div class="space-y-2 md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="logomarca">Logomarca (exibida na tela de login)</label>
+          <div class="flex flex-col md:flex-row md:items-center gap-4">
+            <div class="flex items-center gap-3">
+              <input
+                id="logomarca"
+                type="file"
+                accept="image/*"
+                class="input"
+                (change)="onLogoSelected($event)"
+              />
+              <button type="button" class="btn-outline" (click)="clearLogo()" *ngIf="logoPreview">Remover</button>
+            </div>
+            <div *ngIf="logoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
+              <img [src]="logoPreview" alt="Pré-visualização da logomarca" class="h-16 object-contain" />
+            </div>
+          </div>
+          <p class="text-xs text-slate-500">Imagens quadradas funcionam melhor na tela de login.</p>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
           <label class="text-sm font-medium text-slate-700" for="razaoSocial">Razão social</label>
           <input id="razaoSocial" type="text" formControlName="razaoSocial" class="input" placeholder="Nome empresarial" />
           <p *ngIf="form.get('razaoSocial')?.touched && form.get('razaoSocial')?.invalid" class="text-xs text-red-500">
@@ -133,7 +154,7 @@
       </div>
 
       <div class="flex items-center justify-between gap-3">
-        <button type="button" class="btn-outline" (click)="form.reset(unidade || {})">Cancelar</button>
+        <button type="button" class="btn-outline" (click)="resetForm()">Cancelar</button>
         <div class="flex gap-3">
           <button type="button" class="btn-outline" *ngIf="unidade?.id" (click)="delete()">Excluir unidade</button>
           <button type="submit" class="btn-primary">{{ unidade ? 'Atualizar unidade' : 'Salvar unidade' }}</button>
@@ -146,6 +167,10 @@
     <div class="card__header">Dados atuais da unidade</div>
     <p class="text-sm text-slate-600" *ngIf="!unidade">Nenhuma unidade cadastrada até o momento.</p>
     <div *ngIf="unidade" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
+      <div class="md:col-span-2 flex items-center gap-4" *ngIf="unidade.logomarca">
+        <span class="font-semibold">Logomarca:</span>
+        <img [src]="unidade.logomarca" alt="Logomarca da unidade" class="h-12 object-contain" />
+      </div>
       <p><span class="font-semibold">Nome fantasia:</span> {{ unidade.nomeFantasia }}</p>
       <p><span class="font-semibold">Razão social:</span> {{ unidade.razaoSocial || 'Não informada' }}</p>
       <p><span class="font-semibold">CNPJ:</span> {{ unidade.cnpj || 'Não informado' }}</p>
