@@ -25,3 +25,7 @@ Este repositório contém o front-end em Angular e o back-end em Node/Express pa
 - Serviços:
   - `backend` exposto em `3000` (usa variáveis de ambiente para apontar para o banco em `72.60.156.202` por padrão).
   - `frontend` exposto em `4200`.
+
+## Git
+- O repositório local deve ter o remoto configurado como `origin` apontando para `https://github.com/htasistemas/g3.git`.
+- Caso o `git pull` retorne erro de rastreamento, rode `git checkout -B main origin/main` para garantir que o branch `main` esteja rastreando `origin/main`.
