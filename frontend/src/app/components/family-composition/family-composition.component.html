@@ -1,0 +1,456 @@
+<div class="p-6 space-y-5">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p class="text-sm font-semibold text-g3-green-700 uppercase">Famílias</p>
+      <h1 class="text-3xl font-semibold text-slate-900">Cadastro e composição familiar</h1>
+      <p class="text-sm text-slate-600">
+        Vincule beneficiários a um núcleo familiar, organize o endereço de referência e registre informações de renda e
+        vulnerabilidade.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn-outline" (click)="startNewFamily()">Nova família</button>
+      <button type="button" class="btn-primary" (click)="submit()" [disabled]="isSaving">
+        {{ isSaving ? 'Salvando...' : 'Salvar' }}
+      </button>
+      <button type="button" class="btn-ghost" routerLink="/beneficiarios">Voltar para beneficiários</button>
+    </div>
+  </div>
+
+  <div *ngIf="feedback" class="alert" [class.alert-success]="feedback.type === 'success'" [class.alert-error]="feedback.type === 'error'">
+    {{ feedback.message }}
+  </div>
+
+  <nav class="tab-list" aria-label="Etapas do cadastro de família">
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'family'" (click)="setActiveTab('family')">
+      Dados da Família
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'address'" (click)="setActiveTab('address')">
+      Endereço da Família
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'members'" (click)="setActiveTab('members')">
+      Composição Familiar
+    </button>
+    <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'income'" (click)="setActiveTab('income')">
+      Renda e Condições de Vida
+    </button>
+    <button
+      type="button"
+      class="tab-list__item"
+      [class.tab-list__item--active]="activeTab === 'vulnerability'"
+      (click)="setActiveTab('vulnerability')"
+    >
+      Vulnerabilidades e Encaminhamentos
+    </button>
+  </nav>
+
+  <form [formGroup]="familyForm" class="card tab-panel space-y-6">
+    <section *ngIf="activeTab === 'family'" class="space-y-4">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h2 class="card__header">Dados da família</h2>
+        <div class="text-sm text-slate-600">
+          <p>Uma família por endereço. Cadastre a pessoa de referência e defina o arranjo familiar.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field-group">
+          <label for="referenceName">Nome de referência da família *</label>
+          <input id="referenceName" type="text" class="input" formControlName="referenceName" placeholder="Ex: Família Silva - Maria de Souza" />
+        </div>
+        <div class="field-group">
+          <label for="referenceBeneficiaryId">Beneficiário referência (responsável)</label>
+          <select
+            id="referenceBeneficiaryId"
+            class="input"
+            formControlName="referenceBeneficiaryId"
+            (change)="selectReferenceBeneficiary(familyForm.get('referenceBeneficiaryId')?.value ?? null)"
+          >
+            <option [ngValue]="null">Selecione</option>
+            <option *ngFor="let beneficiary of beneficiaries" [ngValue]="beneficiary.id">{{ beneficiary.nomeCompleto }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="arrangementType">Tipo de arranjo familiar</label>
+          <select id="arrangementType" class="input" formControlName="arrangementType">
+            <option value="">Selecione</option>
+            <option value="nuclear">Nuclear (pais + filhos)</option>
+            <option value="monoparental">Monoparental</option>
+            <option value="extensa">Extensa</option>
+            <option value="reconstituida">Reconstituída</option>
+            <option value="outra">Outra</option>
+          </select>
+        </div>
+        <div class="field-group md:col-span-2" *ngIf="familyForm.get('arrangementType')?.value === 'outra'">
+          <label for="arrangementOther">Descreva o arranjo</label>
+          <input id="arrangementOther" type="text" class="input" formControlName="arrangementOther" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="info-card">
+          <p class="info-card__label">Total de membros</p>
+          <p class="info-card__value">{{ totalMembers }}</p>
+        </div>
+        <div class="info-card">
+          <p class="info-card__label">Crianças (0-12)</p>
+          <p class="info-card__value">{{ childrenCount }}</p>
+        </div>
+        <div class="info-card">
+          <p class="info-card__label">Adolescentes (13-17)</p>
+          <p class="info-card__value">{{ teensCount }}</p>
+        </div>
+        <div class="info-card">
+          <p class="info-card__label">Idosos (60+)</p>
+          <p class="info-card__value">{{ seniorsCount }}</p>
+        </div>
+        <div class="info-card md:col-span-2">
+          <p class="info-card__label">Pessoas com deficiência</p>
+          <p class="info-card__value">{{ disabledCount }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'address'" class="space-y-4" [formGroup]="addressGroup">
+      <h2 class="card__header">Endereço da família</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="field-group">
+          <label for="cep">CEP</label>
+          <input id="cep" type="text" class="input" formControlName="cep" />
+        </div>
+        <div class="field-group md:col-span-2">
+          <label for="logradouro">Logradouro</label>
+          <input id="logradouro" type="text" class="input" formControlName="logradouro" />
+        </div>
+        <div class="field-group">
+          <label for="numero">Número</label>
+          <input id="numero" type="text" class="input" formControlName="numero" />
+        </div>
+        <div class="field-group md:col-span-2">
+          <label for="complemento">Complemento</label>
+          <input id="complemento" type="text" class="input" formControlName="complemento" />
+        </div>
+        <div class="field-group">
+          <label for="bairro">Bairro</label>
+          <input id="bairro" type="text" class="input" formControlName="bairro" />
+        </div>
+        <div class="field-group">
+          <label for="municipio">Município</label>
+          <input id="municipio" type="text" class="input" formControlName="municipio" />
+        </div>
+        <div class="field-group">
+          <label for="uf">UF</label>
+          <input id="uf" type="text" class="input" formControlName="uf" />
+        </div>
+        <div class="field-group md:col-span-2">
+          <label for="pontoReferencia">Ponto de referência</label>
+          <input id="pontoReferencia" type="text" class="input" formControlName="pontoReferencia" />
+        </div>
+        <div class="field-group">
+          <label for="zona">Zona</label>
+          <select id="zona" class="input" formControlName="zona">
+            <option value="urbana">Urbana</option>
+            <option value="rural">Rural</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="situacaoImovel">Situação do imóvel</label>
+          <input id="situacaoImovel" type="text" class="input" formControlName="situacaoImovel" />
+        </div>
+        <div class="field-group">
+          <label for="tipoMoradia">Tipo de moradia</label>
+          <input id="tipoMoradia" type="text" class="input" formControlName="tipoMoradia" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4" formGroupName="saneamento">
+        <label class="checkbox">
+          <input type="checkbox" formControlName="agua" />
+          <span>Possui água tratada</span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="esgoto" />
+          <span>Rede de esgoto</span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="lixo" />
+          <span>Coleta de lixo</span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="energia" />
+          <span>Energia elétrica</span>
+        </label>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'members'" class="space-y-4">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h2 class="card__header">Composição familiar</h2>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="input"
+            placeholder="Buscar beneficiário por nome ou CPF"
+            [(ngModel)]="memberSearchTerm"
+            (ngModelChange)="filterBeneficiaries()"
+            name="memberSearch"
+            [ngModelOptions]="{ standalone: true }"
+          />
+          <button type="button" class="btn-outline" (click)="openBeneficiaryForm()">Cadastrar novo beneficiário</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border rounded-lg p-3 space-y-2">
+          <h3 class="font-semibold text-slate-800">Base de beneficiários</h3>
+          <p class="text-sm text-slate-500">Selecione um beneficiário já cadastrado para vinculá-lo à família.</p>
+          <div class="space-y-2 max-h-64 overflow-auto">
+            <button
+              *ngFor="let beneficiary of filteredBeneficiaries"
+              type="button"
+              class="w-full text-left px-3 py-2 rounded hover:bg-slate-100 border"
+              (click)="addMember(beneficiary)"
+            >
+              <span class="block font-medium">{{ beneficiary.nomeCompleto }}</span>
+              <span class="block text-xs text-slate-500">CPF: {{ beneficiary.cpf || '—' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="border rounded-lg p-3">
+          <h3 class="font-semibold text-slate-800">Resumo</h3>
+          <p class="text-sm text-slate-500">Defina o responsável familiar e marque quem contribui com a renda.</p>
+          <div class="grid grid-cols-2 gap-4 mt-3">
+            <div class="info-card">
+              <p class="info-card__label">Membros cadastrados</p>
+              <p class="info-card__value">{{ totalMembers }}</p>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Renda familiar calculada</p>
+              <p class="info-card__value">R$ {{ rendaTotalFromMembers | number: '1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="button" class="btn-outline" (click)="addEmptyMember()">Adicionar membro manualmente</button>
+      </div>
+
+      <div class="space-y-4">
+        <div *ngIf="members.length === 0" class="alert">Nenhum membro vinculado ainda.</div>
+        <div *ngFor="let member of members.controls; index as i" [formGroup]="member" class="member-card">
+          <div class="member-card__header">
+            <div>
+              <p class="text-sm text-slate-500">Beneficiário</p>
+              <p class="text-lg font-semibold text-slate-800">{{ member.get('nome')?.value || 'Novo membro' }}</p>
+              <p class="text-xs text-slate-500">CPF: {{ member.get('cpf')?.value || '—' }}</p>
+            </div>
+            <div class="flex gap-2">
+              <label class="checkbox">
+                <input type="checkbox" [checked]="member.get('responsavel')?.value" (change)="markAsResponsible(i)" />
+                <span>Responsável familiar</span>
+              </label>
+              <button type="button" class="btn-ghost" (click)="removeMember(i)">Remover</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="field-group">
+              <label>Parentesco</label>
+              <select class="input" formControlName="parentesco">
+                <option value="">Selecione</option>
+                <option value="conjuge">Cônjuge/companheiro(a)</option>
+                <option value="filho">Filho(a)</option>
+                <option value="enteado">Enteado(a)</option>
+                <option value="pai">Pai/Mãe</option>
+                <option value="avo">Avô/Avó</option>
+                <option value="neto">Neto(a)</option>
+                <option value="irmao">Irmão(ã)</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Data de nascimento</label>
+              <input type="date" class="input" formControlName="dataNascimento" />
+            </div>
+            <div class="field-group">
+              <label>Idade estimada</label>
+              <input type="number" class="input" [value]="ageFromMember(member)" readonly />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="field-group">
+              <label>Escolaridade</label>
+              <input type="text" class="input" formControlName="escolaridade" />
+            </div>
+            <div class="field-group">
+              <label>Situação de trabalho</label>
+              <input type="text" class="input" formControlName="condicaoTrabalho" />
+            </div>
+            <div class="field-group">
+              <label>Renda individual (R$)</label>
+              <input type="number" min="0" step="0.01" class="input" formControlName="rendaIndividual" (input)="updateIncomeTotals()" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <label class="checkbox">
+              <input type="checkbox" formControlName="contribuiRenda" (change)="updateIncomeTotals()" />
+              <span>Contribui com a renda</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" formControlName="participaServicos" />
+              <span>Participa dos serviços da instituição</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" formControlName="possuiDeficiencia" />
+              <span>Possui deficiência</span>
+            </label>
+          </div>
+
+          <div class="field-group">
+            <label>Observações</label>
+            <textarea class="input" rows="2" formControlName="observacoes" placeholder="Registro de condição na família, vínculos e observações"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'income'" class="space-y-4" [formGroup]="incomeGroup">
+      <h2 class="card__header">Renda e condições de vida</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="rendaTotal">Renda familiar total (calculada)</label>
+          <input id="rendaTotal" type="number" class="input" formControlName="rendaTotal" readonly />
+        </div>
+        <div class="field-group">
+          <label for="rendaPerCapita">Renda per capita</label>
+          <input id="rendaPerCapita" type="text" class="input" formControlName="rendaPerCapita" readonly />
+        </div>
+        <div class="field-group">
+          <label for="faixaRenda">Faixa de renda per capita</label>
+          <select id="faixaRenda" class="input" formControlName="faixaRenda">
+            <option value="">Selecione</option>
+            <option value="ate_quarto">Até 1/4 salário mínimo</option>
+            <option value="quarto_meio">Entre 1/4 e 1/2 salário mínimo</option>
+            <option value="meio_um">Entre 1/2 e 1 salário mínimo</option>
+            <option value="acima_um">Acima de 1 salário mínimo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="fontes">
+        <div class="field-group">
+          <p class="font-semibold text-slate-800">Fontes de renda</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            <label class="checkbox"><input type="checkbox" formControlName="trabalhoFormal" /> Trabalho formal</label>
+            <label class="checkbox"><input type="checkbox" formControlName="trabalhoInformal" /> Trabalho informal</label>
+            <label class="checkbox"><input type="checkbox" formControlName="previdenciario" /> Benefício previdenciário</label>
+            <label class="checkbox"><input type="checkbox" formControlName="assistencial" /> Benefício assistencial</label>
+            <label class="checkbox"><input type="checkbox" formControlName="doacoes" /> Doações / ajuda</label>
+            <label class="checkbox"><input type="checkbox" formControlName="outros" /> Outros</label>
+          </div>
+        </div>
+        <div class="field-group">
+          <p class="font-semibold text-slate-800">Despesas principais</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2" formGroupName="despesas">
+            <label class="field-group">
+              <span>Aluguel / financiamento</span>
+              <input type="text" class="input" formControlName="aluguel" />
+            </label>
+            <label class="field-group">
+              <span>Alimentação</span>
+              <input type="text" class="input" formControlName="alimentacao" />
+            </label>
+            <label class="field-group">
+              <span>Água / Luz</span>
+              <input type="text" class="input" formControlName="aguaLuz" />
+            </label>
+            <label class="field-group">
+              <span>Transporte</span>
+              <input type="text" class="input" formControlName="transporte" />
+            </label>
+            <label class="field-group">
+              <span>Medicamentos</span>
+              <input type="text" class="input" formControlName="medicamentos" />
+            </label>
+            <label class="field-group">
+              <span>Outros</span>
+              <input type="text" class="input" formControlName="outros" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="insegurancaAlimentar">Situação de insegurança alimentar</label>
+          <select id="insegurancaAlimentar" class="input" formControlName="insegurancaAlimentar">
+            <option value="">Selecione</option>
+            <option value="nao">Não apresenta</option>
+            <option value="moderada">Moderada</option>
+            <option value="grave">Grave</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="possuiDividas">Possui dívidas relevantes?</label>
+          <select id="possuiDividas" class="input" formControlName="possuiDividas">
+            <option [ngValue]="false">Não</option>
+            <option [ngValue]="true">Sim</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="detalhesDividas">Detalhes das dívidas</label>
+          <input id="detalhesDividas" type="text" class="input" formControlName="detalhesDividas" />
+        </div>
+      </div>
+    </section>
+
+    <section *ngIf="activeTab === 'vulnerability'" class="space-y-4" [formGroup]="vulnerabilityGroup">
+      <h2 class="card__header">Vulnerabilidades e encaminhamentos</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <label class="checkbox"><input type="checkbox" formControlName="violenciaDomestica" /> Violência doméstica</label>
+        <label class="checkbox"><input type="checkbox" formControlName="trabalhoInfantil" /> Trabalho infantil</label>
+        <label class="checkbox"><input type="checkbox" formControlName="situacaoRua" /> Situação de rua</label>
+        <label class="checkbox"><input type="checkbox" formControlName="desempregoLongo" /> Desemprego prolongado</label>
+        <label class="checkbox"><input type="checkbox" formControlName="moradiaPrecaria" /> Moradia precária</label>
+        <label class="checkbox"><input type="checkbox" formControlName="dependenciaQuimica" /> Dependência química</label>
+      </div>
+
+      <div class="field-group">
+        <label for="outras">Outras vulnerabilidades</label>
+        <textarea id="outras" class="input" rows="2" formControlName="outras"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="programas">Serviços e programas que acompanham a família</label>
+        <textarea id="programas" class="input" rows="2" formControlName="programas"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="historico">Histórico de atendimentos/resumo</label>
+        <textarea id="historico" class="input" rows="3" formControlName="historico"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="field-group">
+          <label for="tecnicoResponsavel">Técnico responsável</label>
+          <input id="tecnicoResponsavel" type="text" class="input" formControlName="tecnicoResponsavel" />
+        </div>
+        <div class="field-group">
+          <label for="periodicidade">Periodicidade de atendimento</label>
+          <input id="periodicidade" type="text" class="input" formControlName="periodicidade" />
+        </div>
+        <div class="field-group">
+          <label for="proximaVisita">Próxima visita domiciliar</label>
+          <input id="proximaVisita" type="date" class="input" formControlName="proximaVisita" />
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
