@@ -82,29 +82,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
       ]
     },
     {
-      label: 'Gestão Jurídica',
-      icon: faScaleBalanced,
-      children: [
-        { label: 'Termo de Fomento', icon: faScaleBalanced },
-        { label: 'Plano de Trabalho', icon: faClipboardList }
-      ]
-    },
-    {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [{ label: 'Registrar Doações', icon: faClipboardList }]
     },
     {
-      label: 'Gestão de Marketing',
-      icon: faBullhorn,
-      children: [
-        { label: 'Material publicitário', icon: faBullhorn },
-        { label: 'Fotos em geral', icon: faClipboardList },
-        { label: 'Arte final', icon: faClipboardList }
-      ]
-    },
-    {
-      label: 'Gestão Administrativa',
+      label: 'Administrativo',
       icon: faClipboardList,
       children: [
         { label: 'Ofícios', icon: faClipboardList },
@@ -114,11 +97,19 @@ export class LayoutComponent implements OnInit, OnDestroy {
       ]
     },
     {
-      label: 'Gestão Financeira',
+      label: 'Financeiro',
       icon: faWallet,
       children: [
         { label: 'Prestação de Contas', icon: faWallet },
         { label: 'Contabilidade', icon: faWallet }
+      ]
+    },
+    {
+      label: 'Jurídico',
+      icon: faScaleBalanced,
+      children: [
+        { label: 'Termo de Fomento', icon: faScaleBalanced },
+        { label: 'Plano de Trabalho', icon: faClipboardList }
       ]
     },
     {
