@@ -9,6 +9,7 @@ import beneficiariesRoutes from './routes/beneficiaries.routes';
 import assistanceUnitsRoutes from './routes/assistance-units.routes';
 import configRoutes from './routes/config.routes';
 import usersRoutes from './routes/users.routes';
+import familiesRoutes from './routes/families.routes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/beneficiaries', beneficiariesRoutes);
 app.use('/api/assistance-units', assistanceUnitsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/familias', familiesRoutes);
 
 async function start() {
   try {

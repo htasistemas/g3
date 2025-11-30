@@ -7,7 +7,10 @@ import { User } from './entities/User';
 import { Beneficiary } from './entities/Beneficiary';
 import { AssistanceUnit } from './entities/AssistanceUnit';
 import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
+import { Family } from './entities/Family';
+import { FamilyMember } from './entities/FamilyMember';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
+import { CreateFamiliesAndMembers1729750000000 } from './migrations/1729750000000-CreateFamiliesAndMembers';
 
 dotenv.config();
 
@@ -36,7 +39,7 @@ function resolveRelationalPort(): number {
 }
 
 const baseOptions = {
-  entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig],
+  entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig, Family, FamilyMember],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true',
 } satisfies Partial<DataSourceOptions>;
 
@@ -59,7 +62,7 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
       password: process.env.DB_PASSWORD || 'admin',
       database: process.env.DB_NAME || 'g3',
       synchronize: false,
-      migrations: [RenameSchemaToPortuguese1729700000000],
+      migrations: [RenameSchemaToPortuguese1729700000000, CreateFamiliesAndMembers1729750000000],
       migrationsRun: true,
     };
 
