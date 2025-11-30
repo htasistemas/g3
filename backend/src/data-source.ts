@@ -4,13 +4,12 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './entities/User';
-import { Beneficiary } from './entities/Beneficiary';
+import { Beneficiario } from './entities/Beneficiario';
 import { AssistanceUnit } from './entities/AssistanceUnit';
 import { BeneficiaryDocumentConfig } from './entities/BeneficiaryDocumentConfig';
-import { Family } from './entities/Family';
-import { FamilyMember } from './entities/FamilyMember';
-import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
-import { CreateFamiliesAndMembers1729750000000 } from './migrations/1729750000000-CreateFamiliesAndMembers';
+import { Familia } from './entities/Familia';
+import { FamiliaMembro } from './entities/FamiliaMembro';
+import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 
 dotenv.config();
 
@@ -20,13 +19,9 @@ type SupportedDrivers = SupportedRelational | 'sqlite';
 const dbType: SupportedDrivers = (process.env.DB_TYPE as SupportedDrivers) || 'sqlite';
 
 function resolveSqlitePath(): string {
-  const rawPath = process.env.DB_NAME && process.env.DB_NAME.trim() !== ''
-    ? process.env.DB_NAME.trim()
-    : path.join('data', 'g3.sqlite');
-
+  const rawPath = process.env.DB_NAME && process.env.DB_NAME.trim() !== '' ? process.env.DB_NAME.trim() : path.join('data', 'g3.sqlite');
   const absolutePath = path.isAbsolute(rawPath) ? rawPath : path.resolve(__dirname, '..', rawPath);
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-
   return absolutePath;
 }
 
@@ -39,8 +34,8 @@ function resolveRelationalPort(): number {
 }
 
 const baseOptions = {
-  entities: [User, Beneficiary, AssistanceUnit, BeneficiaryDocumentConfig, Family, FamilyMember],
-  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true',
+  entities: [User, Beneficiario, AssistanceUnit, BeneficiaryDocumentConfig, Familia, FamiliaMembro],
+  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;
 
 const sqliteOptions: DataSourceOptions = {
@@ -48,7 +43,7 @@ const sqliteOptions: DataSourceOptions = {
   type: 'sqlite',
   database: resolveSqlitePath(),
   synchronize: true,
-  migrationsRun: false,
+  migrationsRun: false
 };
 
 const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
@@ -62,8 +57,8 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
       password: process.env.DB_PASSWORD || 'admin',
       database: process.env.DB_NAME || 'g3',
       synchronize: false,
-      migrations: [RenameSchemaToPortuguese1729700000000, CreateFamiliesAndMembers1729750000000],
-      migrationsRun: true,
+      migrations: [CreateBeneficiarioFamiliaSchema1729800000000],
+      migrationsRun: true
     };
 
 export const AppDataSource = new DataSource(dbType === 'sqlite' ? sqliteOptions : relationalOptions!);

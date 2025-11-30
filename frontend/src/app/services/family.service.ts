@@ -1,94 +1,61 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
-import { BeneficiaryPayload } from './beneficiary.service';
+import { BeneficiarioApiPayload } from './beneficiario-api.service';
 
-export interface FamilyMemberPayload {
-  id?: number;
-  beneficiarioId: number;
+export interface FamiliaMembroPayload {
+  id_familia_membro?: string;
+  id_beneficiario: string;
   parentesco: string;
-  ehResponsavelFamiliar: boolean;
-  situacaoTrabalho?: string;
-  rendaIndividual?: number;
-  escolaridade?: string;
-  possuiDeficiencia?: boolean;
-  contribuiComRenda?: boolean;
-  participaServicos?: boolean;
-  dataEntradaFamilia?: string;
+  responsavel_familiar?: boolean;
+  contribui_renda?: boolean;
+  renda_individual?: number | string;
+  participa_servicos?: boolean;
   observacoes?: string;
-  beneficiario?: BeneficiaryPayload;
+  beneficiario?: BeneficiarioApiPayload;
 }
 
-export interface FamilySaneamento {
-  agua?: boolean;
-  esgoto?: boolean;
-  lixo?: boolean;
-  energia?: boolean;
-}
-
-export interface FamilyIncomeDetails {
-  rendaTotal?: number | string;
-  rendaPerCapita?: number | string;
-  faixaRenda?: string;
-  fontes?: {
-    trabalhoFormal?: boolean;
-    trabalhoInformal?: boolean;
-    previdenciario?: boolean;
-    assistencial?: boolean;
-    doacoes?: boolean;
-    outros?: boolean;
-  };
-  despesas?: {
-    aluguel?: string;
-    alimentacao?: string;
-    aguaLuz?: string;
-    transporte?: string;
-    medicamentos?: string;
-    outros?: string;
-  };
-  insegurancaAlimentar?: string;
-  possuiDividas?: boolean;
-  detalhesDividas?: string;
-}
-
-export interface FamilyVulnerability {
-  violenciaDomestica?: boolean;
-  trabalhoInfantil?: boolean;
-  situacaoRua?: boolean;
-  desempregoLongo?: boolean;
-  moradiaPrecaria?: boolean;
-  dependenciaQuimica?: boolean;
-  outras?: string;
-  programas?: string;
-  historico?: string;
-  tecnicoResponsavel?: string;
-  periodicidade?: string;
-  proximaVisita?: string;
-}
-
-export interface FamilyPayload {
-  id?: number;
-  responsavelFamiliarId?: number | null;
-  beneficiarioReferenciaId?: number | null;
-  nomeReferencia?: string;
-  tipoArranjo?: string;
-  arranjoOutro?: string;
-  logradouro: string;
-  numero: string;
-  bairro: string;
-  cidade: string;
-  uf: string;
-  cep: string;
+export interface FamiliaPayload {
+  id_familia?: string;
+  nome_familia: string;
+  id_referencia_familiar?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
   complemento?: string;
-  pontoReferencia?: string;
+  bairro?: string;
+  ponto_referencia?: string;
+  municipio?: string;
+  uf?: string;
   zona?: string;
-  situacaoImovel?: string;
-  tipoMoradia?: string;
-  saneamento?: FamilySaneamento;
-  membros: FamilyMemberPayload[];
-  rendaFamiliar?: FamilyIncomeDetails;
-  vulnerabilidadeFamiliar?: FamilyVulnerability;
+  situacao_imovel?: string;
+  tipo_moradia?: string;
+  agua_encanada?: boolean;
+  esgoto_tipo?: string;
+  coleta_lixo?: string;
+  energia_eletrica?: boolean;
+  internet?: boolean;
+  arranjo_familiar?: string;
+  qtd_membros?: number;
+  qtd_criancas?: number;
+  qtd_adolescentes?: number;
+  qtd_idosos?: number;
+  qtd_pessoas_deficiencia?: number;
+  renda_familiar_total?: number | string;
+  renda_per_capita?: number | string;
+  faixa_renda_per_capita?: string;
+  principais_fontes_renda?: string;
+  situacao_inseguranca_alimentar?: string;
+  possui_dividas_relevantes?: boolean;
+  descricao_dividas?: string;
+  vulnerabilidades_familia?: string;
+  servicos_acompanhamento?: string;
+  tecnico_responsavel?: string;
+  periodicidade_atendimento?: string;
+  proxima_visita_prevista?: string;
+  observacoes?: string;
+  membros?: FamiliaMembroPayload[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -97,15 +64,35 @@ export class FamilyService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getById(id: number): Observable<{ familia: FamilyPayload }> {
-    return this.http.get<{ familia: FamilyPayload }>(`${this.baseUrl}/${id}`);
+  list(params?: { nome_familia?: string; municipio?: string; referencia?: string }): Observable<{ familias: FamiliaPayload[] }> {
+    let httpParams = new HttpParams();
+    if (params?.nome_familia) httpParams = httpParams.set('nome_familia', params.nome_familia);
+    if (params?.municipio) httpParams = httpParams.set('municipio', params.municipio);
+    if (params?.referencia) httpParams = httpParams.set('referencia', params.referencia);
+    return this.http.get<{ familias: FamiliaPayload[] }>(this.baseUrl, { params: httpParams });
   }
 
-  save(payload: FamilyPayload): Observable<FamilyPayload> {
-    if (payload.id) {
-      return this.http.put<FamilyPayload>(`${this.baseUrl}/${payload.id}`, payload);
-    }
+  getById(id: string): Observable<{ familia: FamiliaPayload }> {
+    return this.http.get<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`);
+  }
 
-    return this.http.post<FamilyPayload>(this.baseUrl, payload);
+  create(payload: FamiliaPayload): Observable<{ familia: FamiliaPayload }> {
+    return this.http.post<{ familia: FamiliaPayload }>(this.baseUrl, payload);
+  }
+
+  update(id: string, payload: FamiliaPayload): Observable<{ familia: FamiliaPayload }> {
+    return this.http.put<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  addMember(familiaId: string, membro: FamiliaMembroPayload) {
+    return this.http.post(`${this.baseUrl}/${familiaId}/membros`, membro);
+  }
+
+  updateMember(familiaId: string, membroId: string, membro: FamiliaMembroPayload) {
+    return this.http.put(`${this.baseUrl}/${familiaId}/membros/${membroId}`, membro);
+  }
+
+  removeMember(familiaId: string, membroId: string) {
+    return this.http.delete(`${this.baseUrl}/${familiaId}/membros/${membroId}`);
   }
 }

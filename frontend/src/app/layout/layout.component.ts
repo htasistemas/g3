@@ -76,8 +76,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faUsers,
       children: [
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
-        { label: 'Beneficiários', icon: faUserPlus, route: '/beneficiarios' },
-        { label: 'Famílias', icon: faUsers, route: '/familias' },
+        { label: 'Beneficiários', icon: faUserPlus, route: '/cadastros/beneficiarios' },
+        { label: 'Famílias', icon: faUsers, route: '/cadastros/familias' },
         { label: 'Voluntariados', icon: faClipboardList }
       ]
     },
