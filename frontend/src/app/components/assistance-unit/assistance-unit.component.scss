@@ -1,1 +1,71 @@
-@import '../beneficiary-form/beneficiary-form.component.scss';
+:host {
+  display: block;
+}
+
+.page-shell {
+  @apply p-6 space-y-5;
+}
+
+.hero-card {
+  @apply flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-gradient-to-r from-emerald-50 to-white border border-emerald-100 rounded-2xl shadow-sm p-4;
+}
+
+.hero-card h2 {
+  @apply text-2xl font-semibold text-slate-900;
+}
+
+.eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.08em] text-emerald-700;
+}
+
+.subtitle {
+  @apply text-sm text-slate-600;
+}
+
+.badge-pill {
+  @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-sm p-4;
+}
+
+.card__header {
+  @apply text-lg font-semibold text-slate-900;
+}
+
+.card--compact {
+  @apply space-y-3;
+}
+
+.compact-form {
+  @apply space-y-3;
+}
+
+.compact-grid {
+  @apply gap-3;
+}
+
+.field-stack {
+  @apply space-y-1.5;
+}
+
+.card__header-row {
+  @apply flex items-center justify-between gap-3;
+}
+
+.data-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-2.5 text-sm text-slate-700;
+}
+
+.input {
+  @apply w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-inner focus:border-g3-green-500 focus:ring-g3-green-500;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white bg-g3-green-700 hover:bg-g3-green-800 transition;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 text-slate-800 bg-white hover:border-g3-green-500 hover:text-g3-green-700 transition;
+}
