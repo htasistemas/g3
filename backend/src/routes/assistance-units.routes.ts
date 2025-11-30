@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', async (_req, res) => {
   const repository = AppDataSource.getRepository(AssistanceUnit);
-  const unidade = await repository.findOne({ order: { criadoEm: 'ASC' } });
+  const unidade = await repository.findOne({ where: {}, order: { criadoEm: 'ASC' } });
   res.json({ unidade });
 });
 
