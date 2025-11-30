@@ -14,10 +14,19 @@
     <button
       type="button"
       class="tab-list__item"
+      [class.tab-list__item--active]="activeTab === 'members'"
+      (click)="setActiveTab('members')"
+    >
+      Beneficiários
+      <span *ngIf="tabHasErrors('members')" class="tab-list__badge" aria-label="Aba com erros"></span>
+    </button>
+    <button
+      type="button"
+      class="tab-list__item"
       [class.tab-list__item--active]="activeTab === 'family'"
       (click)="setActiveTab('family')"
     >
-      Dados da família
+      Composição familiar
       <span *ngIf="tabHasErrors('family')" class="tab-list__badge" aria-label="Aba com erros"></span>
     </button>
     <button
@@ -28,15 +37,6 @@
     >
       Endereço
       <span *ngIf="tabHasErrors('address')" class="tab-list__badge" aria-label="Aba com erros"></span>
-    </button>
-    <button
-      type="button"
-      class="tab-list__item"
-      [class.tab-list__item--active]="activeTab === 'members'"
-      (click)="setActiveTab('members')"
-    >
-      Beneficiários
-      <span *ngIf="tabHasErrors('members')" class="tab-list__badge" aria-label="Aba com erros"></span>
     </button>
     <button
       type="button"
@@ -61,7 +61,7 @@
   <form [formGroup]="beneficiaryForm" (ngSubmit)="submit()" class="space-y-3">
     <section *ngIf="activeTab === 'family'" class="tab-panel space-y-3">
       <div class="card">
-        <div class="card__header">Dados da família</div>
+        <div class="card__header">Composição familiar</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="nomeCompleto">Identificação da família</label>
@@ -152,42 +152,37 @@
     <section *ngIf="activeTab === 'address'" class="tab-panel space-y-3">
       <div class="card">
         <div class="card__header">Endereço da família</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="field-group">
+        <div class="address-grid">
+          <div class="field-group address-grid__cep">
             <label class="text-sm font-medium text-slate-700" for="cep">CEP</label>
-            <div class="grid grid-cols-[1fr_auto] gap-3 items-end">
-              <div>
-                <input
-                  id="cep"
-                  type="text"
-                  formControlName="cep"
-                  (input)="handleCepInput($event)"
-                  class="input"
-                  placeholder="00000-000"
-                />
-                <p *ngIf="beneficiaryForm.get('cep')?.touched && beneficiaryForm.get('cep')?.invalid" class="text-xs text-red-500">
-                  <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['cep']">Informe um CEP com 8 dígitos.</ng-container>
-                  <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['invalidCep']">CEP não encontrado.</ng-container>
-                </p>
-              </div>
-            </div>
+            <input
+              id="cep"
+              type="text"
+              formControlName="cep"
+              (input)="handleCepInput($event)"
+              class="input"
+              placeholder="00000-000"
+            />
+            <p *ngIf="beneficiaryForm.get('cep')?.touched && beneficiaryForm.get('cep')?.invalid" class="text-xs text-red-500">
+              <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['cep']">Informe um CEP com 8 dígitos.</ng-container>
+              <ng-container *ngIf="beneficiaryForm.get('cep')?.errors?.['invalidCep']">CEP não encontrado.</ng-container>
+            </p>
           </div>
 
-          <div class="field-group md:w-full">
+          <div class="field-group address-grid__bairro">
             <label class="text-sm font-medium text-slate-700" for="bairro">Bairro</label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input id="bairro" type="text" formControlName="bairro" (input)="formatTitleCase('bairro')" class="input" placeholder="Digite o bairro" />
-              <div>
-                <label class="text-sm font-medium text-slate-700" for="pontoReferencia">Ponto de referência</label>
-                <input
-                  id="pontoReferencia"
-                  type="text"
-                  formControlName="pontoReferencia"
-                  class="input"
-                  placeholder="Próximo a..."
-                />
-              </div>
-            </div>
+            <input id="bairro" type="text" formControlName="bairro" (input)="formatTitleCase('bairro')" class="input" placeholder="Digite o bairro" />
+          </div>
+
+          <div class="field-group address-grid__reference">
+            <label class="text-sm font-medium text-slate-700" for="pontoReferencia">Ponto de referência</label>
+            <input
+              id="pontoReferencia"
+              type="text"
+              formControlName="pontoReferencia"
+              class="input"
+              placeholder="Próximo a..."
+            />
           </div>
 
           <div class="md:col-span-2 field-group">
@@ -227,85 +222,83 @@
     </section>
 
     <section *ngIf="activeTab === 'members'" class="tab-panel space-y-3">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div class="card space-y-3 photo-card">
-          <div class="card__header">Foto do beneficiário</div>
-          <div class="space-y-3">
-            <div class="flex justify-center">
-              <div class="relative photo-card__preview rounded-lg bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center">
-                <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
-                <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
-              </div>
-            </div>
-
-            <label class="text-sm font-medium text-slate-700">Capturar pela webcam</label>
-            <div class="space-y-2">
-              <video
-                #videoElement
-                class="w-full rounded-lg border border-dashed border-slate-300 min-h-36 bg-black/30 object-cover"
-                autoplay
-                muted
-                playsinline
-                [class.opacity-0]="!cameraActive"
-              ></video>
-              <canvas #canvasElement class="hidden"></canvas>
-              <div class="flex gap-2 justify-center">
-                <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
-                <button type="button" class="btn-primary" [disabled]="!cameraReady" (click)="capturePhoto(videoElement, canvasElement)">
-                  Capturar
-                </button>
-              </div>
-              <p class="text-xs text-slate-500 text-center">Aguarde a câmera inicializar para habilitar a captura.</p>
-            </div>
-
-            <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>
-            <input type="file" accept="image/*" (change)="handlePhotoUpload($event)" class="file-input" />
+      <div class="card space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div class="card__header">Beneficiários</div>
+          <div class="tab-list tab-list--sub" role="tablist" aria-label="Detalhes do beneficiário">
+            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'data'" (click)="setBeneficiaryTab('data')">
+              Dados do beneficiário
+            </button>
+            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'family'" (click)="setBeneficiaryTab('family')">
+              Informações familiares
+            </button>
+            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'socio'" (click)="setBeneficiaryTab('socio')">
+              Informações socioeconômicas
+            </button>
+            <button type="button" class="tab-list__item" [class.tab-list__item--active]="beneficiaryTab === 'documents'" (click)="setBeneficiaryTab('documents')">
+              Documentos
+            </button>
           </div>
         </div>
 
-        <div class="card lg:col-span-2 space-y-3">
-          <div class="card__header">Dados do beneficiário</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="dataNascimento">Data de nascimento</label>
-              <input id="dataNascimento" type="date" formControlName="dataNascimento" class="input" />
-            </div>
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="idade">Idade</label>
-              <input id="idade" type="number" formControlName="idade" class="input" placeholder="Idade" readonly />
-            </div>
+        <div *ngIf="beneficiaryTab === 'data'" class="beneficiary-grid gap-3">
+          <div class="card space-y-3 photo-card">
+            <div class="card__header">Foto do beneficiário</div>
+            <div class="space-y-3">
+              <div class="flex justify-center">
+                <div class="relative photo-card__preview rounded-lg bg-slate-100 overflow-hidden shadow-inner flex items-center justify-center">
+                  <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do beneficiário" class="h-full w-full object-cover" />
+                  <div *ngIf="!photoPreview" class="h-full w-full flex items-center justify-center text-slate-400 text-sm">Prévia</div>
+                </div>
+              </div>
+              <p *ngIf="photoError" class="text-xs text-red-500 text-center">{{ photoError }}</p>
 
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="escolaridade">Escolaridade</label>
-              <input id="escolaridade" type="text" formControlName="escolaridade" class="input" placeholder="Ensino médio completo" />
-            </div>
+              <label class="text-sm font-medium text-slate-700">Capturar pela webcam</label>
+              <div class="space-y-2">
+                <video
+                  #videoElement
+                  class="w-full rounded-lg border border-dashed border-slate-300 min-h-36 bg-black/30 object-cover"
+                  autoplay
+                  muted
+                  playsinline
+                  [class.opacity-0]="!cameraActive"
+                ></video>
+                <canvas #canvasElement class="hidden"></canvas>
+                <div class="flex gap-2 justify-center">
+                  <button type="button" class="btn-outline" [disabled]="cameraActive" (click)="startCamera(videoElement)">Abrir câmera</button>
+                  <button type="button" class="btn-primary" [disabled]="!cameraReady" (click)="capturePhoto(videoElement, canvasElement)">
+                    Capturar
+                  </button>
+                </div>
+                <p class="text-xs text-slate-500 text-center">Aguarde a câmera inicializar para habilitar a captura.</p>
+              </div>
 
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="rendaIndividual">Renda individual</label>
-              <input id="rendaIndividual" type="number" step="0.01" formControlName="rendaIndividual" class="input" placeholder="0,00" />
+              <label class="text-sm font-medium text-slate-700">Ou enviar arquivo</label>
+              <input type="file" accept="image/*" (change)="handlePhotoUpload($event)" class="file-input" />
             </div>
+          </div>
 
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="rendaFamiliar">Renda total da família</label>
-              <input id="rendaFamiliar" type="number" step="0.01" formControlName="rendaFamiliar" class="input" placeholder="0,00" />
-            </div>
+          <div class="card space-y-3 beneficiary-data-card">
+            <div class="card__header">Dados do beneficiário</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="field-group">
+                <label class="text-sm font-medium text-slate-700" for="dataNascimento">Data de nascimento</label>
+                <input id="dataNascimento" type="date" formControlName="dataNascimento" class="input" />
+              </div>
+              <div class="field-group">
+                <label class="text-sm font-medium text-slate-700" for="idade">Idade</label>
+                <input id="idade" type="number" formControlName="idade" class="input" placeholder="Idade" readonly />
+              </div>
 
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="situacaoEmprego">Situação de trabalho</label>
-              <input id="situacaoEmprego" type="text" formControlName="situacaoEmprego" class="input" placeholder="Empregado, autônomo, desempregado..." />
-            </div>
-
-            <div class="field-group">
-              <label class="text-sm font-medium text-slate-700" for="ocupacao">Ocupação</label>
-              <input id="ocupacao" type="text" formControlName="ocupacao" class="input" placeholder="Profissão ou atividade" />
+              <div class="field-group">
+                <label class="text-sm font-medium text-slate-700" for="escolaridade">Escolaridade</label>
+                <input id="escolaridade" type="text" formControlName="escolaridade" class="input" placeholder="Ensino médio completo" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="card__header">Informações familiares e socioeconômicas</div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div *ngIf="beneficiaryTab === 'family'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div class="field-group">
             <label class="text-sm font-medium text-slate-700" for="possuiFilhosMenores">Possui filhos menores?</label>
             <label class="inline-flex items-center gap-3 text-sm text-slate-700 pl-px">
@@ -316,6 +309,14 @@
           </div>
 
           <div class="field-group">
+            <label class="text-sm font-medium text-slate-700" for="quantidadeFilhosMenores">Quantidade de filhos menores</label>
+            <input id="quantidadeFilhosMenores" type="number" formControlName="quantidadeFilhosMenores" class="input" placeholder="0" min="0" />
+            <p *ngIf="beneficiaryForm.get('quantidadeFilhosMenores')?.touched && beneficiaryForm.get('quantidadeFilhosMenores')?.invalid" class="text-xs text-red-500">
+              Informe a quantidade de filhos menores.
+            </p>
+          </div>
+
+          <div class="field-group md:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="possuiCnh">Beneficiário habilitado?</label>
             <label class="inline-flex items-center gap-2 text-sm text-slate-700">
               <input type="checkbox" id="possuiCnh" formControlName="possuiCnh" class="h-4 w-4" />
@@ -323,13 +324,27 @@
             </label>
             <p class="text-xs text-slate-500">Quando marcado, o envio da CNH torna-se obrigatório.</p>
           </div>
+        </div>
+
+        <div *ngIf="beneficiaryTab === 'socio'" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="field-group">
+            <label class="text-sm font-medium text-slate-700" for="rendaIndividual">Renda individual</label>
+            <input id="rendaIndividual" type="number" step="0.01" formControlName="rendaIndividual" class="input" placeholder="0,00" />
+          </div>
 
           <div class="field-group">
-            <label class="text-sm font-medium text-slate-700" for="quantidadeFilhosMenores">Quantidade de filhos menores</label>
-            <input id="quantidadeFilhosMenores" type="number" formControlName="quantidadeFilhosMenores" class="input" placeholder="0" min="0" />
-            <p *ngIf="beneficiaryForm.get('quantidadeFilhosMenores')?.touched && beneficiaryForm.get('quantidadeFilhosMenores')?.invalid" class="text-xs text-red-500">
-              Informe a quantidade de filhos menores.
-            </p>
+            <label class="text-sm font-medium text-slate-700" for="rendaFamiliar">Renda total da família</label>
+            <input id="rendaFamiliar" type="number" step="0.01" formControlName="rendaFamiliar" class="input" placeholder="0,00" />
+          </div>
+
+          <div class="field-group">
+            <label class="text-sm font-medium text-slate-700" for="situacaoEmprego">Situação de trabalho</label>
+            <input id="situacaoEmprego" type="text" formControlName="situacaoEmprego" class="input" placeholder="Empregado, autônomo, desempregado..." />
+          </div>
+
+          <div class="field-group">
+            <label class="text-sm font-medium text-slate-700" for="ocupacao">Ocupação</label>
+            <input id="ocupacao" type="text" formControlName="ocupacao" class="input" placeholder="Profissão ou atividade" />
           </div>
 
           <div class="field-group md:col-span-2">
@@ -357,6 +372,10 @@
             <input id="condicoesSaneamento" type="hidden" formControlName="condicoesSaneamento" />
           </div>
         </div>
+
+        <ng-container *ngIf="beneficiaryTab === 'documents'">
+          <ng-container [ngTemplateOutlet]="documentsContent"></ng-container>
+        </ng-container>
       </div>
 
       <div class="card space-y-3" [formGroup]="filterForm">
@@ -452,47 +471,7 @@
     </section>
 
     <section *ngIf="activeTab === 'documents'" class="tab-panel space-y-3">
-      <div class="card space-y-3">
-        <div class="card__header">Documentos / Anexos</div>
-        <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
-        <input type="hidden" formControlName="arquivosDocumentos" />
-
-        <div class="space-y-3">
-          <div
-            class="flex flex-col md:flex-row md:items-center justify-between gap-3 border border-slate-200 rounded-lg p-3 bg-slate-50"
-            *ngFor="let doc of requiredDocuments"
-          >
-            <div>
-              <div class="flex items-center gap-2">
-                <p class="text-sm font-semibold text-slate-800">{{ doc.nome }}</p>
-                <span
-                  class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
-                  [ngClass]="{
-                    'bg-amber-100 text-amber-700': doc.required,
-                    'bg-slate-100 text-slate-600': !doc.required
-                  }"
-                >
-                  {{ doc.required ? 'Obrigatório' : 'Opcional' }}
-                </span>
-              </div>
-              <p class="text-xs text-slate-500">{{ doc.nomeArquivo ? 'Arquivo: ' + doc.nomeArquivo : 'Nenhum arquivo selecionado' }}</p>
-            </div>
-            <input type="file" (change)="onDocumentUpload($event, doc.nome)" class="file-input" />
-          </div>
-        </div>
-
-        <p *ngIf="beneficiaryForm.get('arquivosDocumentos')?.touched && beneficiaryForm.get('arquivosDocumentos')?.invalid" class="text-xs text-red-500">
-          Documentos obrigatórios pendentes: {{ missingRequiredDocuments.join(', ') }}.
-        </p>
-
-        <div class="flex items-center gap-3 pt-2">
-          <span class="text-sm font-medium text-slate-700">Status do cadastro:</span>
-          <span class="inline-flex items-center rounded-full px-3 py-1 text-sm" [ngClass]="{
-            'bg-green-50 text-g3-green-700': documentStatus === 'Enviado',
-            'bg-orange-50 text-orange-700': documentStatus === 'Pendente'
-          }">{{ documentStatus }}</span>
-        </div>
-      </div>
+      <ng-container [ngTemplateOutlet]="documentsContent"></ng-container>
     </section>
 
     <section *ngIf="activeTab === 'notes'" class="tab-panel space-y-3">
@@ -526,4 +505,48 @@
       </span>
     </div>
   </form>
+
+  <ng-template #documentsContent>
+    <div class="card space-y-3">
+      <div class="card__header">Documentos / Anexos</div>
+      <p class="text-sm text-slate-600">Envie um arquivo para cada documento listado abaixo.</p>
+      <input type="hidden" formControlName="arquivosDocumentos" />
+
+      <div class="space-y-3">
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-3 border border-slate-200 rounded-lg p-3 bg-slate-50"
+          *ngFor="let doc of requiredDocuments"
+        >
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-semibold text-slate-800">{{ doc.nome }}</p>
+              <span
+                class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full"
+                [ngClass]="{
+                  'bg-amber-100 text-amber-700': doc.required,
+                  'bg-slate-100 text-slate-600': !doc.required
+                }"
+              >
+                {{ doc.required ? 'Obrigatório' : 'Opcional' }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">{{ doc.nomeArquivo ? 'Arquivo: ' + doc.nomeArquivo : 'Nenhum arquivo selecionado' }}</p>
+          </div>
+          <input type="file" (change)="onDocumentUpload($event, doc.nome)" class="file-input" />
+        </div>
+      </div>
+
+      <p *ngIf="beneficiaryForm.get('arquivosDocumentos')?.touched && beneficiaryForm.get('arquivosDocumentos')?.invalid" class="text-xs text-red-500">
+        Documentos obrigatórios pendentes: {{ missingRequiredDocuments.join(', ') }}.
+      </p>
+
+      <div class="flex items-center gap-3 pt-2">
+        <span class="text-sm font-medium text-slate-700">Status do cadastro:</span>
+        <span class="inline-flex items-center rounded-full px-3 py-1 text-sm" [ngClass]="{
+          'bg-green-50 text-g3-green-700': documentStatus === 'Enviado',
+          'bg-orange-50 text-orange-700': documentStatus === 'Pendente'
+        }">{{ documentStatus }}</span>
+      </div>
+    </div>
+  </ng-template>
 </div>
