@@ -2,13 +2,13 @@ version: '3.9'
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
+      dockerfile: Dockerfile
     env_file:
       - backend/.env.example
     environment:
       - DB_HOST=${DB_HOST:-72.60.156.202}
-      - DB_PORT=${DB_PORT:-5432}
+      - DB_PORT=${DB_PORT:-5434}
       - DB_TYPE=${DB_TYPE:-postgres}
       - DB_USER=${DB_USER:-g3}
       - DB_PASSWORD=${DB_PASSWORD:-admin}
@@ -18,8 +18,8 @@ services:
     depends_on: []
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./frontend
+      dockerfile: Dockerfile
     environment:
       - NG_CLI_ANALYTICS=false
     ports:
