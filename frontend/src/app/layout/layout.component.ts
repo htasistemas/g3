@@ -13,6 +13,7 @@ import {
   faHandshakeAngle,
   faHouseChimneyUser,
   faMapLocationDot,
+  faPalette,
   faRightFromBracket,
   faScaleBalanced,
   faSun,
@@ -54,6 +55,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly faUserCircle = faUserCircle;
   readonly faSun = faSun;
   readonly faMoon = faMoon;
+  readonly faPalette = faPalette;
   pageTitle = 'Visão geral';
   private destroy$ = new Subject<void>();
   isSidebarCollapsed = true;
@@ -123,6 +125,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
         { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
         { label: 'Usuários e permissões', icon: faUserPlus, route: '/configuracoes/usuarios' },
+        { label: 'Personalização', icon: faPalette, route: '/configuracoes/personalizacao' },
         { label: 'Backup e restauração', icon: faClipboardList }
       ]
     }

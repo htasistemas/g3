@@ -10,6 +10,7 @@ import assistanceUnitsRoutes from './routes/assistance-units.routes';
 import configRoutes from './routes/config.routes';
 import usersRoutes from './routes/users.routes';
 import familiasRoutes from './routes/familias.routes';
+import patrimoniosRoutes from './routes/patrimonios.routes';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/api/assistance-units', assistanceUnitsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/familias', familiasRoutes);
+app.use('/api/patrimonios', patrimoniosRoutes);
 
 async function start() {
   try {

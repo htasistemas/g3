@@ -64,10 +64,6 @@
         <h1 class="page-title">{{ pageTitle }}</h1>
       </div>
       <div class="flex items-center space-x-3 text-sm text-white">
-        <button type="button" class="btn-ghost" (click)="toggleTheme()">
-          <fa-icon [icon]="themeService.currentTheme() === 'dark' ? faSun : faMoon"></fa-icon>
-          <span>Tema {{ themeLabel }}</span>
-        </button>
         <span class="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg border border-white/30 backdrop-blur">
           <fa-icon [icon]="faUserCircle" class="text-white"></fa-icon>
           <span class="capitalize">{{ username }}</span>

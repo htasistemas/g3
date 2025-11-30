@@ -1,0 +1,75 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { map, Observable } from 'rxjs';
+
+export interface PatrimonioMovimento {
+  idMovimento: string;
+  tipo: 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA';
+  destino?: string;
+  responsavel?: string;
+  observacao?: string;
+  dataMovimento: string;
+}
+
+export interface Patrimonio {
+  idPatrimonio: string;
+  numeroPatrimonio: string;
+  nome: string;
+  categoria?: string;
+  subcategoria?: string;
+  conservacao?: string;
+  status?: string;
+  dataAquisicao?: string;
+  valorAquisicao?: number;
+  origem?: string;
+  responsavel?: string;
+  unidade?: string;
+  taxaDepreciacao?: number;
+  observacoes?: string;
+  movimentos?: PatrimonioMovimento[];
+}
+
+export interface PatrimonioPayload {
+  numeroPatrimonio: string;
+  nome: string;
+  categoria?: string;
+  subcategoria?: string;
+  conservacao?: string;
+  status?: string;
+  dataAquisicao?: string;
+  valorAquisicao?: number;
+  origem?: string;
+  responsavel?: string;
+  unidade?: string;
+  taxaDepreciacao?: number;
+  observacoes?: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class PatrimonioService {
+  private readonly baseUrl = `${environment.apiUrl}/api/patrimonios`;
+
+  constructor(private readonly http: HttpClient) {}
+
+  list(): Observable<Patrimonio[]> {
+    return this.http
+      .get<{ patrimonios: Patrimonio[] }>(this.baseUrl)
+      .pipe(map((response) => response.patrimonios));
+  }
+
+  create(payload: PatrimonioPayload): Observable<Patrimonio> {
+    return this.http
+      .post<{ patrimonio: Patrimonio }>(this.baseUrl, payload)
+      .pipe(map((response) => response.patrimonio));
+  }
+
+  registerMovement(
+    patrimonioId: string,
+    movement: { tipo: PatrimonioMovimento['tipo']; destino?: string; responsavel?: string; observacao?: string }
+  ): Observable<Patrimonio> {
+    return this.http
+      .post<{ patrimonio: Patrimonio }>(`${this.baseUrl}/${patrimonioId}/movimentos`, movement)
+      .pipe(map((response) => response.patrimonio));
+  }
+}

@@ -12,9 +12,9 @@
         <fa-icon [icon]="faPrint" class="mr-2"></fa-icon>
         Imprimir termo de cessão
       </button>
-      <button type="button" class="btn-primary" (click)="saveAsset()">
+      <button type="button" class="btn-primary" (click)="saveAsset()" [disabled]="isSaving">
         <fa-icon [icon]="faFloppyDisk" class="mr-2"></fa-icon>
-        Salvar patrimônio
+        {{ isSaving ? 'Salvando...' : 'Salvar patrimônio' }}
       </button>
     </div>
   </div>
@@ -27,7 +27,7 @@
       </div>
       <div class="flex items-baseline gap-2">
         <fa-icon [icon]="faArrowDown" class="text-emerald-600"></fa-icon>
-        <p class="text-3xl font-semibold">72</p>
+        <p class="text-3xl font-semibold">{{ assetLibrary.length }}</p>
       </div>
       <p class="text-xs text-slate-500 mt-1">Bens com nota fiscal lançada na unidade.</p>
     </div>
@@ -39,7 +39,7 @@
       </div>
       <div class="flex items-baseline gap-2">
         <fa-icon [icon]="faArrowUp" class="text-amber-500"></fa-icon>
-        <p class="text-3xl font-semibold">21</p>
+        <p class="text-3xl font-semibold">{{ maintenanceAssets }}</p>
       </div>
       <p class="text-xs text-slate-500 mt-1">Movimentações com termo e responsável definido.</p>
     </div>
@@ -51,7 +51,7 @@
       </div>
       <div class="flex items-baseline gap-2">
         <fa-icon [icon]="faTrash" class="text-rose-600"></fa-icon>
-        <p class="text-3xl font-semibold">9</p>
+        <p class="text-3xl font-semibold">{{ disposedAssets }}</p>
       </div>
       <p class="text-xs text-slate-500 mt-1">Itens baixados/inativos com documentação arquivada.</p>
     </div>
@@ -284,15 +284,15 @@
         <h2 class="text-xl font-semibold text-slate-800">Controle por placa e patrimônio</h2>
       </div>
       <div class="flex gap-2">
-        <button type="button" class="btn-outline">
+        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'MOVIMENTACAO')">
           <fa-icon [icon]="faTruck" class="mr-2"></fa-icon>
           Registrar movimentação
         </button>
-        <button type="button" class="btn-outline">
+        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'MANUTENCAO')">
           <fa-icon [icon]="faTools" class="mr-2"></fa-icon>
           Enviar para manutenção
         </button>
-        <button type="button" class="btn-outline">
+        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'BAIXA')">
           <fa-icon [icon]="faTrash" class="mr-2"></fa-icon>
           Baixar bem (senha)
         </button>
@@ -314,6 +314,37 @@
       </div>
     </div>
 
+    <div class="movement-form" *ngIf="selectedAsset; else noSelection">
+      <div class="space-y-1">
+        <p class="text-xs uppercase text-slate-500">Movimentar patrimônio</p>
+        <h3 class="text-lg font-semibold text-slate-800">{{ selectedAsset?.numeroPatrimonio }} • {{ selectedAsset?.nome }}</h3>
+      </div>
+      <div class="grid gap-3 md:grid-cols-4">
+        <label class="form-label">Tipo
+          <select class="input" [(ngModel)]="movementForm.tipo">
+            <option value="MOVIMENTACAO">Movimentação</option>
+            <option value="MANUTENCAO">Manutenção</option>
+            <option value="BAIXA">Baixa</option>
+          </select>
+        </label>
+        <label class="form-label">Destino/Unidade
+          <input class="input" [(ngModel)]="movementForm.destino" placeholder="Sala, setor ou unidade" />
+        </label>
+        <label class="form-label">Responsável
+          <input class="input" [(ngModel)]="movementForm.responsavel" placeholder="Quem autoriza" />
+        </label>
+        <label class="form-label">Observação
+          <input class="input" [(ngModel)]="movementForm.observacao" placeholder="Número de termo ou motivo" />
+        </label>
+      </div>
+      <div class="flex justify-end">
+        <button type="button" class="btn-primary" (click)="registerMovement()">Registrar</button>
+      </div>
+    </div>
+    <ng-template #noSelection>
+      <p class="text-sm text-slate-500 mb-3">Selecione um patrimônio para registrar movimentações.</p>
+    </ng-template>
+
     <div class="overflow-hidden border border-slate-200 rounded-xl">
       <table class="min-w-full">
         <thead class="bg-slate-50 text-left text-xs font-semibold text-slate-500">
@@ -327,23 +358,37 @@
             <th class="px-4 py-3">Valor</th>
             <th class="px-4 py-3">Depreciação</th>
             <th class="px-4 py-3">Responsável</th>
+            <th class="px-4 py-3 text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let asset of filteredAssets" class="border-t border-slate-200 text-sm">
-            <td class="px-4 py-3 font-semibold text-slate-800">{{ asset.patrimonyNumber }}</td>
-            <td class="px-4 py-3">{{ asset.name }}</td>
-            <td class="px-4 py-3">{{ asset.category }} <span *ngIf="asset.subcategory" class="text-slate-500">/ {{ asset.subcategory }}</span></td>
-            <td class="px-4 py-3">{{ asset.conservation }}</td>
+          <tr
+            *ngFor="let asset of filteredAssets"
+            class="border-t border-slate-200 text-sm hover:bg-slate-50 cursor-pointer"
+            (click)="setSelected(asset)"
+          >
+            <td class="px-4 py-3 font-semibold text-slate-800">{{ asset.numeroPatrimonio }}</td>
+            <td class="px-4 py-3">{{ asset.nome }}</td>
+            <td class="px-4 py-3">{{ asset.categoria }} <span *ngIf="asset.subcategoria" class="text-slate-500">/ {{ asset.subcategoria }}</span></td>
+            <td class="px-4 py-3">{{ asset.conservacao }}</td>
             <td class="px-4 py-3">
-              <span class="status-pill" [class.status-pill--warning]="asset.status === 'Em manutenção'" [class.status-pill--muted]="asset.status.includes('Inativo')">
-                {{ asset.status }}
+              <span
+                class="status-pill"
+                [class.status-pill--warning]="(asset.status ?? '').includes('manutenção')"
+                [class.status-pill--muted]="(asset.status ?? '').toLowerCase().includes('inativo')"
+              >
+                {{ asset.status || 'Não informado' }}
               </span>
             </td>
-            <td class="px-4 py-3">{{ asset.acquisitionDate | date: 'dd/MM/yyyy' }}</td>
-            <td class="px-4 py-3">{{ asset.acquisitionValue | currency:'BRL' }}</td>
-            <td class="px-4 py-3">{{ asset.depreciationRate }}% / mês</td>
-            <td class="px-4 py-3">{{ asset.responsible }} ({{ asset.unit }})</td>
+            <td class="px-4 py-3">{{ asset.dataAquisicao | date: 'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-3">{{ asset.valorAquisicao | currency:'BRL' }}</td>
+            <td class="px-4 py-3">{{ asset.taxaDepreciacao }}% / mês</td>
+            <td class="px-4 py-3">{{ asset.responsavel }} <span *ngIf="asset.unidade">({{ asset.unidade }})</span></td>
+            <td class="px-4 py-3 text-right space-x-2">
+              <button type="button" class="btn-outline" (click)="quickMovement(asset, 'MOVIMENTACAO'); $event.stopPropagation()">Mover</button>
+              <button type="button" class="btn-outline" (click)="quickMovement(asset, 'MANUTENCAO'); $event.stopPropagation()">Manutenção</button>
+              <button type="button" class="btn-outline" (click)="quickMovement(asset, 'BAIXA'); $event.stopPropagation()">Baixar</button>
+            </td>
           </tr>
         </tbody>
       </table>

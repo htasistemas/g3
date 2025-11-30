@@ -57,3 +57,7 @@
 .status-pill--muted {
   @apply bg-slate-100 text-slate-500;
 }
+
+.movement-form {
+  @apply bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mb-4;
+}

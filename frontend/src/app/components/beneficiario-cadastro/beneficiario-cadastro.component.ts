@@ -580,8 +580,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private toSentenceCase(value: string): string {
-    const normalized = value.trim().toLowerCase();
-    if (!normalized) return '';
+    const normalized = value.toLowerCase();
+    if (!normalized.trim()) return '';
 
     return normalized.replace(/(^|\s)([A-Za-zÀ-ÿ])/g, (match) => match.toUpperCase());
   }
