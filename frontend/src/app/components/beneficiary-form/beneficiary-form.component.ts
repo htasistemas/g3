@@ -30,6 +30,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   requiredDocuments: DocumentoObrigatorio[] = [];
   missingRequiredDocuments: string[] = [];
   photoPreview: string | null = null;
+  photoError: string | null = null;
   cameraActive = false;
   cameraReady = false;
   filteredBeneficiaries: BeneficiaryPayload[] = [];
@@ -37,7 +38,8 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   editingId: number | null = null;
   saveFeedback: { type: 'success' | 'error'; message: string } | null = null;
   photoFile: File | null = null;
-  activeTab: 'family' | 'address' | 'members' | 'documents' | 'notes' = 'family';
+  activeTab: 'family' | 'address' | 'members' | 'documents' | 'notes' = 'members';
+  beneficiaryTab: 'data' | 'family' | 'socio' | 'documents' = 'data';
   readonly statusOptions = ['Ativo', 'Inativo', 'Em análise', 'Bloqueado'];
   readonly sanitationOptions = [
     'Água tratada',
@@ -77,21 +79,24 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     'TO'
   ];
   readonly tabControlMap: Record<string, string[]> = {
-    family: ['nomeCompleto', 'nomeMae', 'documentos', 'telefone', 'email', 'status', 'motivoBloqueio'],
-    address: ['cep', 'endereco', 'numeroEndereco', 'bairro', 'cidade', 'estado'],
     members: [
+      'documentos',
+      'nomeCompleto',
       'dataNascimento',
       'idade',
-      'possuiFilhosMenores',
-      'quantidadeFilhosMenores',
       'escolaridade',
       'rendaIndividual',
       'rendaFamiliar',
       'situacaoEmprego',
       'ocupacao',
+      'possuiFilhosMenores',
+      'quantidadeFilhosMenores',
+      'possuiCnh',
       'informacoesMoradia',
       'condicoesSaneamento'
     ],
+    family: ['nomeCompleto', 'nomeMae', 'telefone', 'email', 'status', 'motivoBloqueio'],
+    address: ['cep', 'endereco', 'numeroEndereco', 'bairro', 'cidade', 'estado'],
     documents: ['arquivosDocumentos'],
     notes: ['observacoes']
   };
@@ -211,6 +216,10 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
 
   setActiveTab(tab: 'family' | 'address' | 'members' | 'documents' | 'notes'): void {
     this.activeTab = tab;
+  }
+
+  setBeneficiaryTab(tab: 'data' | 'family' | 'socio' | 'documents'): void {
+    this.beneficiaryTab = tab;
   }
 
   tabHasErrors(tab: 'family' | 'address' | 'members' | 'documents' | 'notes'): boolean {
@@ -432,9 +441,22 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       this.revokePhotoObjectUrl();
       this.photoPreview = null;
       this.photoFile = null;
+      this.photoError = null;
       this.beneficiaryForm.get('foto')?.setValue('');
       return;
     }
+
+    const isImage = /^image\//.test(file.type);
+    const maxSizeMb = 5;
+    const isSizeValid = file.size <= maxSizeMb * 1024 * 1024;
+
+    if (!isImage || !isSizeValid) {
+      this.photoError = !isImage ? 'Formato não suportado. Use JPG ou PNG.' : 'A foto deve ter no máximo 5MB.';
+      input.value = '';
+      return;
+    }
+
+    this.photoError = null;
 
     this.revokePhotoObjectUrl();
     this.photoObjectUrl = URL.createObjectURL(file);
