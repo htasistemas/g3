@@ -46,7 +46,7 @@
   }
 
   &__badge--default {
-    @apply text-2xl font-semibold text-white;
+    @apply bg-white/10 border-white/30;
   }
 }
 
@@ -72,6 +72,17 @@
   img {
     @apply h-full w-full object-contain rounded-full;
   }
+}
+
+.logo-badge--default {
+  @apply bg-white/15 text-white;
+  svg {
+    @apply h-6 w-6;
+  }
+}
+
+.hero-cta {
+  @apply pb-2;
 }
 
 @media (max-width: 1023px) {
