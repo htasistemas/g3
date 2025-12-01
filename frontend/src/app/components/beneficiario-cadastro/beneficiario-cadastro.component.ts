@@ -1,11 +1,30 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { Subject, firstValueFrom } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
+
+type ViaCepResponse = {
+  logradouro?: string;
+  complemento?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+};
 
 @Component({
   selector: 'app-beneficiario-cadastro',
@@ -42,6 +61,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   photoPreview: string | null = null;
   cameraActive = false;
   captureError: string | null = null;
+  cepLookupError: string | null = null;
   private videoStream?: MediaStream;
   private readonly destroy$ = new Subject<void>();
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
@@ -142,7 +162,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly service: BeneficiarioApiService,
     private readonly beneficiaryService: BeneficiaryService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly http: HttpClient
   ) {
     this.searchForm = this.fb.group({
       nome: [''],
@@ -171,7 +192,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       }),
       endereco: this.fb.group({
         usa_endereco_familia: [true],
-        cep: [''],
+        cep: ['', [this.cepValidator]],
         logradouro: [''],
         numero: [''],
         complemento: [''],
@@ -334,7 +355,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       },
       endereco: {
         usa_endereco_familia: beneficiario.usa_endereco_familia,
-        cep: beneficiario.cep,
+        cep: this.formatCep(beneficiario.cep),
         logradouro: beneficiario.logradouro,
         numero: beneficiario.numero,
         complemento: beneficiario.complemento,
@@ -627,13 +648,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private async toPayload(): Promise<BeneficiarioApiPayload> {
     const value = this.form.value;
     const documentosObrigatorios = await this.buildDocumentPayload();
+    const endereco = {
+      ...(value.endereco as any),
+      cep: this.normalizeCep(value.endereco?.cep as string)
+    };
 
     return {
       status: value.status,
       motivo_bloqueio: value.motivo_bloqueio,
       foto_3x4: value.foto_3x4,
       ...(value.dadosPessoais as any),
-      ...(value.endereco as any),
+      ...(endereco as any),
       ...(value.contato as any),
       ...(value.documentos as any),
       ...(value.familiar as any),
@@ -916,6 +941,80 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private normalizeString(value?: string | null): string {
     return (value ?? '').trim().toLowerCase();
   }
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+
+    if (digits.length > 5) {
+      formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    this.form.get(['endereco', 'cep'])?.setValue(formatted, { emitEvent: false });
+    this.cepLookupError = null;
+
+    if (digits.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  onCepBlur(): void {
+    const cepControl = this.form.get(['endereco', 'cep']);
+    if (!cepControl) return;
+
+    if (cepControl.invalid) {
+      this.cepLookupError = cepControl.value ? 'Informe um CEP válido para consultar o endereço.' : null;
+      return;
+    }
+
+    const digits = this.normalizeCep(cepControl.value as string);
+    if (digits?.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  private lookupAddressByCep(cep: string): void {
+    this.cepLookupError = null;
+    this.http
+      .get<ViaCepResponse>(`https://viacep.com.br/ws/${cep}/json/`)
+      .pipe(finalize(() => this.form.get(['endereco', 'cep'])?.markAsTouched()))
+      .subscribe({
+        next: (response) => {
+          if (response?.erro) {
+            this.cepLookupError = 'CEP não encontrado.';
+            return;
+          }
+
+          this.form.get('endereco')?.patchValue({
+            logradouro: response.logradouro ?? '',
+            bairro: response.bairro ?? '',
+            municipio: response.localidade ?? '',
+            uf: response.uf ?? ''
+          });
+        },
+        error: () => {
+          this.cepLookupError = 'Não foi possível consultar o CEP.';
+        }
+      });
+  }
+
+  private formatCep(value?: string | null): string {
+    const digits = this.normalizeCep(value ?? '');
+    if (!digits) return '';
+    return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+  }
+
+  private normalizeCep(value?: string | null): string | undefined {
+    const digits = (value ?? '').replace(/\D/g, '');
+    return digits || undefined;
+  }
+
+  private cepValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value as string | null | undefined)?.replace(/\D/g, '') ?? '';
+    if (!value) return null;
+    return value.length === 8 ? null : { cep: true };
+  };
 
   formatStatusLabel(status?: string | null): string {
     if (!status) return '—';

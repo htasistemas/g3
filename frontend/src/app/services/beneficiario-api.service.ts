@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { DocumentoObrigatorio } from './beneficiary.service';
 
@@ -112,7 +113,25 @@ export class BeneficiarioApiService {
     if (params?.nome) httpParams = httpParams.set('nome', params.nome);
     if (params?.cpf) httpParams = httpParams.set('cpf', params.cpf);
     if (params?.nis) httpParams = httpParams.set('nis', params.nis);
-    return this.http.get<{ beneficiarios: BeneficiarioApiPayload[] }>(this.baseUrl, { params: httpParams });
+    return this.http
+      .get<{ beneficiarios: BeneficiarioApiPayload[] } | BeneficiarioApiPayload[] | { beneficiario?: BeneficiarioApiPayload }>(
+        this.baseUrl,
+        { params: httpParams }
+      )
+      .pipe(
+        map((response) => {
+          if (Array.isArray(response)) {
+            return { beneficiarios: response };
+          }
+          if ('beneficiarios' in response) {
+            return { beneficiarios: response.beneficiarios ?? [] };
+          }
+          if ('beneficiario' in response) {
+            return { beneficiarios: response.beneficiario ? [response.beneficiario] : [] };
+          }
+          return { beneficiarios: [] };
+        })
+      );
   }
 
   getById(id: string): Observable<{ beneficiario: BeneficiarioApiPayload }> {
