@@ -1,0 +1,489 @@
+<div class="p-6 space-y-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">
+        Administrativo · Almoxarifado
+      </p>
+      <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Gestão de controle de estoque</h1>
+      <p class="text-sm text-slate-600 dark:text-slate-300">
+        Controle centralizado de itens, movimentações e níveis mínimos, com validações em tempo
+        real.
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-outline" type="button" (click)="resetItemForm()">
+        <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
+        Limpar formulário
+      </button>
+      <button class="btn-primary" type="button" (click)="openMovementModal()">
+        <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+        Nova movimentação
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="card flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg bg-emerald-100 text-emerald-600">
+        <fa-icon [icon]="faWarehouse"></fa-icon>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500">Total de itens cadastrados</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ indicatorTotals().totalItems }}</p>
+      </div>
+    </div>
+    <div class="card flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg bg-amber-100 text-amber-600">
+        <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500">Itens abaixo do estoque mínimo</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ indicatorTotals().belowMin }}</p>
+      </div>
+    </div>
+    <div class="card flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg bg-sky-100 text-sky-600">
+        <fa-icon [icon]="faMoneyBillTrendUp"></fa-icon>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500">Valor total em estoque</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">
+          {{ indicatorTotals().totalValue | currency:'BRL':'symbol':'1.0-2' }}
+        </p>
+      </div>
+    </div>
+    <div class="card flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg bg-indigo-100 text-indigo-600">
+        <fa-icon [icon]="faArrowTrendUp"></fa-icon>
+      </div>
+      <div>
+        <p class="text-sm text-slate-500">Movimentações nos últimos 30 dias</p>
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ indicatorTotals().recentMovements }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card space-y-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Cadastro de itens</p>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Cadastro e listagem</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-300">Valide campos obrigatórios e acompanhe estoque e localização.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="btn-primary" type="button" (click)="saveItem()">
+          <fa-icon [icon]="faCircleCheck" class="mr-2"></fa-icon>
+          {{ editingItemCode ? 'Atualizar item' : 'Salvar novo item' }}
+        </button>
+        <button class="btn-outline" type="button" (click)="openMovementModal()">
+          <fa-icon [icon]="faClipboardList" class="mr-2"></fa-icon>
+          Registrar movimentação
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div class="xl:col-span-2 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Código do item *</label>
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="itemForm.code"
+              placeholder="Ex: ALM-010"
+              required
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Descrição do item *</label>
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="itemForm.description"
+              placeholder="Ex: Máscara descartável tripla"
+              required
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Categoria *</label>
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="itemForm.category"
+              placeholder="Ex: EPI, Higiene, Escritório"
+              required
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Unidade de medida *</label>
+            <input class="input" type="text" [(ngModel)]="itemForm.unit" placeholder="Ex: Caixa, Unidade" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Localização</label>
+            <input class="input" type="text" [(ngModel)]="itemForm.location" placeholder="Setor / Sala" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Localização interna</label>
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="itemForm.locationDetail"
+              placeholder="Prateleira / Corredor"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Estoque atual</label>
+            <input class="input" type="number" min="0" [(ngModel)]="itemForm.currentStock" />
+            <p class="text-xs text-slate-500">Padrão zero para novos itens.</p>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Estoque mínimo *</label>
+            <input class="input" type="number" min="0" [(ngModel)]="itemForm.minStock" required />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Valor unitário estimado</label>
+            <input class="input" type="number" min="0" step="0.01" [(ngModel)]="itemForm.unitValue" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Situação</label>
+            <select class="input" [(ngModel)]="itemForm.status">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1 xl:col-span-3">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Observações gerais</label>
+            <textarea
+              class="input min-h-[96px]"
+              [(ngModel)]="itemForm.notes"
+              placeholder="Registro de fornecedores, prazos ou cuidados de armazenamento"
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3 items-center">
+          <button class="btn-primary" type="button" (click)="saveItem()">
+            <fa-icon [icon]="faCircleCheck" class="mr-2"></fa-icon>
+            {{ editingItemCode ? 'Atualizar item' : 'Salvar novo item' }}
+          </button>
+          <button class="btn-outline" type="button" (click)="resetItemForm()">
+            Cancelar / novo registro
+          </button>
+          <span class="text-sm text-red-600" *ngIf="formError">{{ formError }}</span>
+          <span class="text-sm text-emerald-600" *ngIf="successMessage">{{ successMessage }}</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Filtros rápidos</p>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Buscar itens</h3>
+          </div>
+          <fa-icon [icon]="faSliders" class="text-slate-400"></fa-icon>
+        </div>
+        <div class="space-y-3">
+          <div class="relative flex items-center gap-2">
+            <fa-icon [icon]="faMagnifyingGlass" class="absolute left-3 text-slate-400"></fa-icon>
+            <input
+              type="search"
+              class="input pl-9"
+              [(ngModel)]="itemFilters.term"
+              placeholder="Descrição ou código"
+            />
+          </div>
+          <div class="relative flex items-center gap-2">
+            <fa-icon [icon]="faFilter" class="absolute left-3 text-slate-400"></fa-icon>
+            <select class="input pl-9" [(ngModel)]="itemFilters.category">
+              <option value="all">Todas as categorias</option>
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </div>
+          <div class="relative flex items-center gap-2">
+            <fa-icon [icon]="faBoxArchive" class="absolute left-3 text-slate-400"></fa-icon>
+            <select class="input pl-9" [(ngModel)]="itemFilters.status">
+              <option value="all">Todas as situações</option>
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+            </select>
+          </div>
+          <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+            <input type="checkbox" [(ngModel)]="itemFilters.belowMinOnly" />
+            <span>Mostrar apenas itens abaixo do estoque mínimo</span>
+          </label>
+          <div class="flex gap-2">
+            <button class="btn-outline flex-1" type="button">
+              <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+              Exportar lista
+            </button>
+            <button class="btn-primary flex-1" type="button" (click)="openMovementModal()">
+              <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+              Nova movimentação
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold uppercase tracking-wide">Itens do almoxarifado</div>
+        <p class="text-sm text-slate-600 dark:text-slate-300">Ações rápidas: editar, movimentar, visualizar histórico.</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn-primary" type="button" (click)="saveItem()">
+          <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+          Novo item de almoxarifado
+        </button>
+        <button class="btn-outline" type="button">
+          <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+          Exportar lista
+        </button>
+      </div>
+    </div>
+    <div class="overflow-auto">
+      <table class="min-w-full text-sm border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900 text-left text-slate-700 dark:text-slate-200">
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Código</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Descrição</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Categoria</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Unidade</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Localização</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Estoque atual</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Estoque mínimo</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Situação</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredItems" class="border-b border-slate-200 dark:border-slate-700">
+            <td class="px-4 py-3 align-top">{{ item.code }}</td>
+            <td class="px-4 py-3 align-top">
+              <div class="font-semibold text-slate-900 dark:text-slate-100">{{ item.description }}</div>
+              <p class="text-sm text-slate-600 dark:text-slate-300">{{ item.locationDetail || '—' }}</p>
+            </td>
+            <td class="px-4 py-3 align-top">{{ item.category }}</td>
+            <td class="px-4 py-3 align-top">{{ item.unit }}</td>
+            <td class="px-4 py-3 align-top">{{ item.location || '—' }}</td>
+            <td class="px-4 py-3 align-top">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border"
+                [ngClass]="item.currentStock < item.minStock
+                  ? 'bg-red-50 text-red-700 border-red-100'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'"
+              >
+                {{ item.currentStock }}
+              </span>
+            </td>
+            <td class="px-4 py-3 align-top">{{ item.minStock }}</td>
+            <td class="px-4 py-3 align-top">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border"
+                [ngClass]="item.status === 'Inativo'
+                  ? 'bg-amber-50 text-amber-700 border-amber-100'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'"
+              >
+                {{ item.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 align-top">
+              <div class="flex flex-wrap gap-2">
+                <button
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                  type="button"
+                  (click)="editItem(item)"
+                >
+                  <fa-icon [icon]="faCircleCheck"></fa-icon>
+                  Editar
+                </button>
+                <button
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                  type="button"
+                  (click)="openMovementModal(item)"
+                >
+                  <fa-icon [icon]="faClipboardList"></fa-icon>
+                  Movimentar
+                </button>
+                <button
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 border-dashed"
+                  type="button"
+                >
+                  <fa-icon [icon]="faUser"></fa-icon>
+                  Histórico
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredItems.length === 0">
+            <td colspan="9" class="text-center py-6 text-slate-500">Nenhum item encontrado com os filtros atuais.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Movimentações</p>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Movimentações de estoque</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-300">Entradas, saídas e ajustes com saldo atualizado automaticamente.</p>
+      </div>
+      <button class="btn-primary" type="button" (click)="openMovementModal()">
+        <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+        Nova movimentação
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Data inicial</label>
+        <input class="input" type="date" [(ngModel)]="movementFilters.startDate" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Data final</label>
+        <input class="input" type="date" [(ngModel)]="movementFilters.endDate" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Tipo</label>
+        <select class="input" [(ngModel)]="movementFilters.type">
+          <option value="Todos">Todos</option>
+          <option value="Entrada">Entrada</option>
+          <option value="Saída">Saída</option>
+          <option value="Ajuste">Ajuste</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Item</label>
+        <input class="input" type="search" [(ngModel)]="movementFilters.itemSearch" placeholder="Código ou descrição" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Responsável</label>
+        <input class="input" type="text" [(ngModel)]="movementFilters.responsible" placeholder="Filtrar por responsável" />
+      </div>
+    </div>
+
+    <div class="overflow-auto">
+      <table class="min-w-full text-sm border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900 text-left text-slate-700 dark:text-slate-200">
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Data</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Tipo</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Item</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Quantidade</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Saldo após movimentação</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Documento / Referência</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Responsável</th>
+            <th class="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Observações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let movement of filteredMovements" class="border-b border-slate-200 dark:border-slate-700">
+            <td class="px-4 py-3 align-top">{{ movement.date | date:'dd/MM/yyyy' }}</td>
+            <td class="px-4 py-3 align-top">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border"
+                [ngClass]="movement.type === 'Saída'
+                  ? 'bg-amber-50 text-amber-700 border-amber-100'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'"
+              >
+                {{ movement.type }}
+              </span>
+            </td>
+            <td class="px-4 py-3 align-top">
+              <div class="font-semibold text-slate-900 dark:text-slate-100">{{ movement.itemDescription }}</div>
+              <p class="text-sm text-slate-600 dark:text-slate-300">{{ movement.itemCode }}</p>
+            </td>
+            <td class="px-4 py-3 align-top">{{ movement.quantity }}</td>
+            <td class="px-4 py-3 align-top">{{ movement.balanceAfter }}</td>
+            <td class="px-4 py-3 align-top">{{ movement.reference || '—' }}</td>
+            <td class="px-4 py-3 align-top">{{ movement.responsible || '—' }}</td>
+            <td class="px-4 py-3 align-top">{{ movement.notes || '—' }}</td>
+          </tr>
+          <tr *ngIf="filteredMovements.length === 0">
+            <td colspan="8" class="text-center py-6 text-slate-500">Nenhuma movimentação encontrada para os filtros.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div
+  class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+  *ngIf="showMovementModal"
+>
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 max-w-4xl w-full shadow-2xl space-y-4 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Nova movimentação</p>
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Registrar entrada, saída ou ajuste</h3>
+      </div>
+      <button class="btn-outline" type="button" (click)="showMovementModal = false">Fechar</button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Data *</label>
+        <input class="input" type="date" [(ngModel)]="movementForm.date" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Tipo *</label>
+        <select class="input" [(ngModel)]="movementForm.type">
+          <option value="Entrada">Entrada</option>
+          <option value="Saída">Saída</option>
+          <option value="Ajuste">Ajuste</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Seleção do item *</label>
+        <select class="input" [(ngModel)]="movementForm.itemCode">
+          <option value="">Selecione o item</option>
+          <option *ngFor="let item of items()" [value]="item.code">{{ item.code }} - {{ item.description }}</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Quantidade movimentada *</label>
+        <input class="input" type="number" min="1" [(ngModel)]="movementForm.quantity" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Documento / Referência</label>
+        <input class="input" type="text" [(ngModel)]="movementForm.reference" placeholder="Nota fiscal, requisição" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Responsável</label>
+        <input class="input" type="text" [(ngModel)]="movementForm.responsible" placeholder="Nome ou setor" />
+      </div>
+      <div class="flex flex-col gap-2 md:col-span-2" *ngIf="movementForm.type === 'Ajuste'">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Direção do ajuste</label>
+        <div class="flex gap-3">
+          <label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+            <input type="radio" name="adjust" value="increase" [(ngModel)]="movementForm.adjustmentDirection" />
+            Aumentar estoque
+          </label>
+          <label class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+            <input type="radio" name="adjust" value="decrease" [(ngModel)]="movementForm.adjustmentDirection" />
+            Reduzir estoque
+          </label>
+        </div>
+        <p class="text-xs text-slate-500">Ajustes solicitam confirmação para evitar lançamentos acidentais.</p>
+      </div>
+      <div class="flex flex-col gap-1 md:col-span-2">
+        <label class="text-sm font-medium text-slate-700 dark:text-slate-100">Observações</label>
+        <textarea class="input min-h-[96px]" [(ngModel)]="movementForm.notes" placeholder="Detalhes adicionais"></textarea>
+      </div>
+    </div>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="space-y-1">
+        <p class="text-sm text-red-600" *ngIf="movementError">{{ movementError }}</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300">Saída não permite quantidade maior que o estoque atual.</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn-outline" type="button" (click)="showMovementModal = false">Cancelar</button>
+        <button class="btn-primary" type="button" (click)="saveMovement()">Salvar movimentação</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -16,6 +16,7 @@ import { SystemVersionComponent } from './components/system-version/system-versi
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
 import { TextTemplatesComponent } from './components/text-templates/text-templates.component';
+import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -51,6 +52,11 @@ export const routes: Routes = [
         path: 'administrativo/patrimonio',
         component: PatrimonioComponent,
         data: { title: 'Controle patrimonial' }
+      },
+      {
+        path: 'administrativo/almoxarifado',
+        component: AlmoxarifadoComponent,
+        data: { title: 'Almoxarifado' }
       },
       {
         path: 'configuracoes/sistema',
