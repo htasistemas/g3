@@ -18,6 +18,7 @@ import { PersonalizacaoComponent } from './components/personalizacao/personaliza
 import { TextTemplatesComponent } from './components/text-templates/text-templates.component';
 import { DonationManagementComponent } from './components/donation-management/donation-management.component';
 import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
+import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastro/voluntariado-cadastro.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -49,6 +50,11 @@ export const routes: Routes = [
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
       { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Cadastro de Família' } },
       { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Editar Família' } },
+      {
+        path: 'cadastros/voluntariados',
+        component: VoluntariadoCadastroComponent,
+        data: { title: 'Cadastro de Voluntário' }
+      },
       {
         path: 'atendimentos/doacoes',
         component: DonationManagementComponent,

@@ -1,0 +1,183 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Voluntariado</p>
+    <p class="page-title__label">Cadastro de voluntário</p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Identifique o voluntário com dados essenciais e motivação para atuar.</p>
+        </div>
+        <span class="pill">Obrigatório</span>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="field full">Nome completo*<input formControlName="nomeCompleto" placeholder="Digite o nome completo" /></label>
+        <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
+        <label class="field">RG<input formControlName="rg" /></label>
+        <label class="field">Data de nascimento<input type="date" formControlName="dataNascimento" /></label>
+        <label class="field">Gênero<select formControlName="genero">
+            <option value=""></option>
+            <option value="Feminino">Feminino</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Outro">Outro</option>
+          </select></label>
+        <label class="field">Profissão<input formControlName="profissao" placeholder="Área de atuação" /></label>
+        <label class="field full">Motivação<textarea formControlName="motivacao" placeholder="Por que deseja atuar como voluntário?" rows="3"></textarea></label>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'contato'" formGroupName="contato">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Formas de contato e competências relevantes para a atuação.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">Telefone<input formControlName="telefone" placeholder="(00) 00000-0000" /></label>
+        <label class="field">E-mail*<input type="email" formControlName="email" placeholder="nome@email.com" /></label>
+        <label class="field">Cidade<input formControlName="cidade" /></label>
+        <label class="field">Estado<input maxlength="2" formControlName="estado" /></label>
+        <label class="field">Área de interesse<input formControlName="areaInteresse" placeholder="Ex.: Educação, Saúde" /></label>
+        <label class="field">Habilidades e experiências<textarea formControlName="habilidades" rows="3" placeholder="Atendimento, facilitação, gestão..."></textarea></label>
+        <label class="field">Idiomas<input formControlName="idiomas" placeholder="Português, Inglês..." /></label>
+        <label class="field">LinkedIn / Portfólio<input formControlName="linkedin" placeholder="Link para perfil profissional" /></label>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'disponibilidade'" formGroupName="disponibilidade">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Combine dias, períodos e formato de atuação para alocar o voluntário.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <div class="field full">
+          <p class="field-title">Dias da semana</p>
+          <div class="chips">
+            <label *ngFor="let dia of diasSemana" class="chip">
+              <input type="checkbox" [checked]="selectionChecked(['disponibilidade', 'dias'], dia)" (change)="toggleSelection(['disponibilidade', 'dias'], dia)" />
+              <span>{{ dia }}</span>
+            </label>
+          </div>
+        </div>
+        <div class="field full">
+          <p class="field-title">Períodos disponíveis</p>
+          <div class="chips">
+            <label *ngFor="let periodo of periodos" class="chip">
+              <input type="checkbox" [checked]="selectionChecked(['disponibilidade', 'periodos'], periodo)" (change)="toggleSelection(['disponibilidade', 'periodos'], periodo)" />
+              <span>{{ periodo }}</span>
+            </label>
+          </div>
+        </div>
+        <label class="field">Carga horária semanal<input formControlName="cargaHorariaSemanal" placeholder="Ex.: 4h/semana" /></label>
+        <label class="field">Início previsto<input type="date" formControlName="inicioPrevisto" /></label>
+        <div class="feature-grid">
+          <label class="checkbox-field"><input type="checkbox" formControlName="presencial" /> <span>Disponível para atuar presencialmente</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="remoto" /> <span>Pode atuar de forma remota</span></label>
+        </div>
+        <label class="field full">Observações<textarea formControlName="observacoes" rows="3" placeholder="Preferências de local, restrições e recursos necessários"></textarea></label>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'termos'" formGroupName="termos">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Formalize o aceite do termo de voluntariado e da autorização de uso de imagem.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="field">Documento de identificação<input formControlName="documentoIdentificacao" placeholder="RG ou CNH" /></label>
+        <label class="field">Comprovante de endereço<input formControlName="comprovanteEndereco" placeholder="Arquivo ou protocolo" /></label>
+        <div class="term-card full">
+          <div class="term-card__header">
+            <div>
+              <p class="term-card__title">Termo de voluntariado</p>
+              <p class="muted">Responsabilidades, ausência de vínculo empregatício e condições de saúde e segurança.</p>
+            </div>
+            <span class="pill">Obrigatório</span>
+          </div>
+          <ul>
+            <li>Atuação voluntária, sem remuneração, com liberdade para encerrar a qualquer momento.</li>
+            <li>Confidencialidade sobre dados atendidos e respeito às políticas internas.</li>
+            <li>Capacitação e materiais fornecidos conforme atividade acordada.</li>
+          </ul>
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="aceiteVoluntariado" />
+            <span>Li e aceito o termo de voluntariado</span>
+          </label>
+        </div>
+
+        <div class="term-card full">
+          <div class="term-card__header">
+            <div>
+              <p class="term-card__title">Autorização de uso de imagem</p>
+              <p class="muted">Permite divulgar imagem e voz em materiais institucionais ligados ao voluntariado.</p>
+            </div>
+            <span class="pill">Obrigatório</span>
+          </div>
+          <ul>
+            <li>Uso gratuito da imagem em mídias digitais, impressas e eventos.</li>
+            <li>Direito de revogação mediante comunicação formal, preservando materiais já publicados.</li>
+            <li>Tratamento de dados pessoais conforme LGPD.</li>
+          </ul>
+          <label class="checkbox-field">
+            <input type="checkbox" formControlName="aceiteImagem" />
+            <span>Autorizo o uso de imagem e voz para fins institucionais</span>
+          </label>
+        </div>
+
+        <label class="field full">Assinatura digital / observações para termo<textarea formControlName="assinaturaDigital" rows="3" placeholder="Registre informações complementares ou assinatura eletrônica"></textarea></label>
+        <div class="actions">
+          <button class="primary" type="button" (click)="openTermo()">Gerar termo para assinatura</button>
+        </div>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+  </form>
+</section>
