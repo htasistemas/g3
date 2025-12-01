@@ -1,6 +1,6 @@
 import { Request, Router } from 'express';
 import { AppDataSource } from '../data-source';
-import { Beneficiario } from '../entities/Beneficiario';
+import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
 
 const router = Router();
 
@@ -31,6 +31,53 @@ function sanitizeCpf(cpf?: string | null): string | undefined {
   return digits.length === 11 ? digits : undefined;
 }
 
+function getMissingRequiredDocuments(body: any): string[] {
+  const documents = Array.isArray(body?.documentosObrigatorios) ? body.documentosObrigatorios : [];
+
+  return documents
+    .filter((doc) => doc?.obrigatorio && !doc?.nomeArquivo)
+    .map((doc) => doc?.nome)
+    .filter(Boolean);
+}
+
+function hasPendingData(payload: Beneficiario, missingDocuments: string[]): boolean {
+  return !payload.nomeCompleto || !payload.dataNascimento || !payload.nomeMae || missingDocuments.length > 0;
+}
+
+function isOutdated(entity?: Beneficiario | null): boolean {
+  if (!entity) return false;
+
+  const referenceDate = entity.dataAtualizacao ?? entity.dataCadastro;
+  if (!referenceDate) return false;
+
+  const lastUpdate = new Date(referenceDate);
+  const oneYearMs = 1000 * 60 * 60 * 24 * 365;
+
+  return Date.now() - lastUpdate.getTime() > oneYearMs;
+}
+
+function resolveStatus(
+  payload: Beneficiario,
+  missingDocuments: string[],
+  options: { existing?: Beneficiario; requestedStatus?: BeneficiarioStatus }
+): BeneficiarioStatus {
+  const hasPending = hasPendingData(payload, missingDocuments);
+
+  if (!options.existing) {
+    return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
+  }
+
+  if (hasPending) {
+    return 'INCOMPLETO';
+  }
+
+  if (isOutdated(options.existing) && options.requestedStatus !== 'BLOQUEADO') {
+    return 'DESATUALIZADO';
+  }
+
+  return options.requestedStatus ?? options.existing.status ?? 'EM_ANALISE';
+}
+
 async function ensureCpfUnique(cpf: string, ignoreId?: string): Promise<boolean> {
   const repository = AppDataSource.getRepository(Beneficiario);
   const existing = await repository.findOne({ where: { cpf } });
@@ -42,6 +89,7 @@ async function ensureCpfUnique(cpf: string, ignoreId?: string): Promise<boolean>
 function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Beneficiario {
   const body = req.body as Record<string, any>;
   const cpf = sanitizeCpf(body.cpf ?? existing?.cpf ?? undefined);
+  const missingDocuments = getMissingRequiredDocuments(body);
 
   const payload: Beneficiario = {
     ...existing,
@@ -131,8 +179,15 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
     valorTotalBeneficios: parseNumber(body.valor_total_beneficios) ?? existing?.valorTotalBeneficios,
     aceiteLgpd: parseBoolean(body.aceite_lgpd, existing?.aceiteLgpd ?? false),
     dataAceiteLgpd: body.data_aceite_lgpd ?? existing?.dataAceiteLgpd,
-    observacoes: body.observacoes ?? existing?.observacoes
+    observacoes: body.observacoes ?? existing?.observacoes,
+    motivoBloqueio: body.motivo_bloqueio ?? existing?.motivoBloqueio,
+    status: existing?.status ?? 'EM_ANALISE'
   } as Beneficiario;
+
+  payload.status = resolveStatus(payload, missingDocuments, {
+    existing,
+    requestedStatus: body.status ?? existing?.status
+  });
 
   return payload;
 }
@@ -153,6 +208,16 @@ router.get('/', async (req, res) => {
   }
 
   const beneficiarios = await qb.orderBy('beneficiario.nome_completo', 'ASC').getMany();
+
+  const outdated = beneficiarios.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
+  if (outdated.length) {
+    await Promise.all(
+      outdated.map((record) => {
+        record.status = 'DESATUALIZADO';
+        return repository.save(record);
+      })
+    );
+  }
   res.json({ beneficiarios });
 });
 
@@ -164,12 +229,19 @@ router.get('/:id', async (req, res) => {
     return res.status(404).json({ message: 'Beneficiário não encontrado' });
   }
 
+  if (isOutdated(beneficiario) && beneficiario.status !== 'DESATUALIZADO') {
+    beneficiario.status = 'DESATUALIZADO';
+    await repository.save(beneficiario);
+  }
+
   res.json({ beneficiario });
 });
 
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
   const payload = buildBeneficiarioPayload(req);
+
+  payload.status = resolveStatus(payload, getMissingRequiredDocuments(req.body), { requestedStatus: 'EM_ANALISE' });
 
   if (!payload.nomeCompleto || !payload.dataNascimento || !payload.nomeMae) {
     return res.status(400).json({ message: 'Campos obrigatórios não preenchidos' });

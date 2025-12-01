@@ -100,6 +100,8 @@ export interface BeneficiarioApiPayload {
   acompanhamento_saude?: boolean;
   participa_comunidade?: string;
   rede_apoio?: string;
+  data_cadastro?: string;
+  data_atualizacao?: string;
 }
 
 @Injectable({ providedIn: 'root' })

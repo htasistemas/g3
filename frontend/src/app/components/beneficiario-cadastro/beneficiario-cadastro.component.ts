@@ -16,6 +16,9 @@ import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/b
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { Subject, firstValueFrom } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
+import cboData from '@nit-sst/cboservice/src/json/data.json';
+
+type CboEntry = { code: string; description: string };
 
 type ViaCepResponse = {
   logradouro?: string;
@@ -44,6 +47,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   beneficiaryAge: number | null = null;
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
+  createdAt: string | null = null;
+  lastUpdatedAt: string | null = null;
+  cboOptions: string[] = [];
+  filteredCboOptions: string[] = [];
   genderIdentityOptions = [
     'Mulher cisgênero',
     'Homem cisgênero',
@@ -134,8 +141,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   ];
   blockReasonModalOpen = false;
   blockReasonError: string | null = null;
-  lastStatus: BeneficiarioApiPayload['status'] | null = 'ATIVO';
-  previousStatusBeforeBlock: BeneficiarioApiPayload['status'] | null = 'ATIVO';
+  lastStatus: BeneficiarioApiPayload['status'] | null = 'EM_ANALISE';
+  previousStatusBeforeBlock: BeneficiarioApiPayload['status'] | null = 'EM_ANALISE';
   photoPreview: string | null = null;
   cameraActive = false;
   captureError: string | null = null;
@@ -254,7 +261,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       status: ['']
     });
     this.form = this.fb.group({
-      status: ['ATIVO', Validators.required],
+      status: ['EM_ANALISE', Validators.required],
       motivo_bloqueio: [''],
       foto_3x4: [''],
       dadosPessoais: this.fb.group({
@@ -274,7 +281,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       }),
       endereco: this.fb.group({
         usa_endereco_familia: [true],
-        cep: ['', [this.cepValidator]],
+        cep: ['', [Validators.required, this.cepValidator]],
         logradouro: [''],
         numero: [''],
         complemento: [''],
@@ -292,7 +299,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         internet: [false]
       }),
       contato: this.fb.group({
-        telefone_principal: [''],
+        telefone_principal: ['', Validators.required],
         telefone_principal_whatsapp: [false],
         telefone_secundario: [''],
         telefone_recado_nome: [''],
@@ -361,7 +368,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         beneficios_recebidos: this.fb.control<string[]>([])
       }),
       observacoes: this.fb.group({
-        aceite_lgpd: [false],
+        aceite_lgpd: [false, Validators.requiredTrue],
         data_aceite_lgpd: [''],
         observacoes: ['']
       })
@@ -369,9 +376,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   goToNextTab(): void {
-    if (this.hasNextTab) {
-      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
-    }
+    if (!this.hasNextTab) return;
+
+    const targetTab = this.tabs[this.activeTabIndex + 1].id;
+    if (!this.validateCurrentTabRequirements(targetTab)) return;
+
+    this.changeTab(targetTab);
   }
 
   goToPreviousTab(): void {
@@ -381,6 +391,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.buildCboOptions();
     this.loadRequiredDocuments();
     this.watchBirthDate();
     this.setupNationalityAutomation();
@@ -398,10 +409,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         this.service.getById(id).subscribe(({ beneficiario }) => {
           this.form.patchValue(this.mapToForm(beneficiario));
           this.photoPreview = beneficiario.foto_3x4 ?? null;
-          this.lastStatus = beneficiario.status ?? 'ATIVO';
+          this.lastStatus = beneficiario.status ?? 'EM_ANALISE';
           this.previousStatusBeforeBlock = this.lastStatus;
           this.nationalityManuallyChanged = !!beneficiario.nacionalidade;
           this.applyLoadedDocuments(beneficiario.documentosObrigatorios);
+          this.applyAutomaticStatusFromDates(beneficiario.status);
         });
       }
     });
@@ -418,8 +430,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   mapToForm(beneficiario: BeneficiarioApiPayload) {
+    this.createdAt = beneficiario.data_cadastro ?? null;
+    this.lastUpdatedAt = beneficiario.data_atualizacao ?? beneficiario.data_cadastro ?? null;
+
     return {
-      status: beneficiario.status ?? 'ATIVO',
+      status: beneficiario.status ?? 'EM_ANALISE',
       motivo_bloqueio: beneficiario.motivo_bloqueio,
       foto_3x4: beneficiario.foto_3x4,
       dadosPessoais: {
@@ -596,10 +611,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
-  private validateRequiredDocuments(): boolean {
-    const missing = this.anexos.controls
+  private getMissingRequiredDocuments(): string[] {
+    return this.anexos.controls
       .filter((control) => control.get('obrigatorio')?.value && !control.get('nomeArquivo')?.value)
       .map((control) => control.get('nome')?.value as string);
+  }
+
+  private validateRequiredDocuments(): boolean {
+    const missing = this.getMissingRequiredDocuments();
 
     if (missing.length) {
       this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
@@ -608,6 +627,60 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     return true;
+  }
+
+  private isOutdatedDate(dateValue?: string | null): boolean {
+    if (!dateValue) return false;
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return false;
+
+    const oneYearMs = 1000 * 60 * 60 * 24 * 365;
+    return Date.now() - date.getTime() > oneYearMs;
+  }
+
+  private applyAutomaticStatusFromDates(statusFromApi?: string | null): void {
+    const outdated = this.isOutdatedDate(this.lastUpdatedAt || this.createdAt);
+
+    if (outdated && statusFromApi !== 'BLOQUEADO' && statusFromApi !== 'INCOMPLETO') {
+      this.form.get('status')?.setValue('DESATUALIZADO');
+      this.lastStatus = 'DESATUALIZADO';
+    }
+  }
+
+  private determineStatusForSave(): BeneficiarioApiPayload['status'] {
+    const missingDocuments = this.getMissingRequiredDocuments();
+    const hasPending = this.form.invalid || missingDocuments.length > 0;
+
+    if (!this.beneficiarioId) {
+      return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
+    }
+
+    const manualStatus = (this.form.get('status')?.value as BeneficiarioApiPayload['status']) ?? 'EM_ANALISE';
+
+    if (hasPending) {
+      return 'INCOMPLETO';
+    }
+
+    if (this.isOutdatedDate(this.lastUpdatedAt || this.createdAt) && manualStatus !== 'BLOQUEADO') {
+      return 'DESATUALIZADO';
+    }
+
+    return manualStatus;
+  }
+
+  private buildCboOptions(): void {
+    const entries = (cboData as CboEntry[]).map((entry) => `${entry.code} - ${entry.description}`);
+    this.cboOptions = entries;
+    this.filteredCboOptions = entries.slice(0, 50);
+  }
+
+  filterCboOptions(event: Event): void {
+    const value = (event.target as HTMLInputElement).value?.toLowerCase?.() ?? '';
+    const matches = this.cboOptions
+      .filter((option) => option.toLowerCase().includes(value))
+      .slice(0, 50);
+
+    this.filteredCboOptions = matches.length ? matches : this.cboOptions.slice(0, 50);
   }
 
   toggleBenefit(option: string): void {
@@ -644,9 +717,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   handleLgpdToggle(event: Event): void {
     const input = event.target as HTMLInputElement;
+    const dateControl = this.form.get(['observacoes', 'data_aceite_lgpd']);
     if (input.checked) {
+      if (!dateControl?.value) {
+        dateControl?.setValue(this.getCurrentLocalDateTime());
+      }
       this.printLgpdTerms();
+    } else {
+      dateControl?.setValue('');
     }
+  }
+
+  private getCurrentLocalDateTime(): string {
+    const now = new Date();
+    const offsetMs = now.getTimezoneOffset() * 60000;
+    const local = new Date(now.getTime() - offsetMs);
+    return local.toISOString().slice(0, 16);
   }
 
   private printLgpdTerms(): void {
@@ -693,6 +779,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const targetIndex = this.tabs.findIndex((item) => item.id === tab);
     const cpfControl = this.form.get(['documentos', 'cpf']);
 
+    if (!this.validateCurrentTabRequirements(tab)) {
+      return;
+    }
+
     if (documentsIndex >= 0 && targetIndex > documentsIndex && (cpfControl?.invalid || !cpfControl?.value)) {
       this.feedback = 'Informe um CPF válido antes de continuar.';
       cpfControl?.markAsTouched();
@@ -701,15 +791,69 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.feedback === 'Informe um CPF válido antes de continuar.' && cpfControl?.valid) {
+      this.feedback = null;
+    }
+
     this.activeTab = tab;
   }
 
+  private validateCurrentTabRequirements(targetTab: string): boolean {
+    const currentIndex = this.activeTabIndex;
+    const targetIndex = this.tabs.findIndex((item) => item.id === targetTab);
+
+    if (targetIndex <= currentIndex) return true;
+
+    const tabId = this.tabs[currentIndex]?.id;
+    const requirements: Record<
+      string,
+      { controlPath: (string | number)[]; message: string; markGroup?: string }
+    > = {
+      endereco: {
+        controlPath: ['endereco', 'cep'],
+        message: 'Preencha o CEP (campo obrigatório) antes de avançar.',
+        markGroup: 'endereco'
+      },
+      contato: {
+        controlPath: ['contato', 'telefone_principal'],
+        message: 'Informe o telefone principal (campo obrigatório) antes de avançar.',
+        markGroup: 'contato'
+      },
+      observacoes: {
+        controlPath: ['observacoes', 'aceite_lgpd'],
+        message: 'Confirme o aceite LGPD antes de avançar.',
+        markGroup: 'observacoes'
+      }
+    };
+
+    const requirement = tabId ? requirements[tabId] : undefined;
+    if (!requirement) return true;
+
+    const control = this.form.get(requirement.controlPath);
+
+    if (control?.valid && this.feedback === requirement.message) {
+      this.feedback = null;
+    }
+
+    if (!control || control.valid) return true;
+
+    this.feedback = requirement.message;
+    if (requirement.markGroup) {
+      this.form.get(requirement.markGroup)?.markAllAsTouched();
+    }
+    return false;
+  }
+
   async submit() {
+    const statusForSave = this.determineStatusForSave();
+
     if (this.form.invalid) {
+      this.form.get('status')?.setValue(statusForSave);
       this.feedback = 'Preencha os campos obrigatórios.';
       return;
     }
     if (!this.validateRequiredDocuments()) {
+      this.form.get('status')?.setValue('INCOMPLETO');
       return;
     }
     if (this.form.get('status')?.value === 'BLOQUEADO' && !this.form.get('motivo_bloqueio')?.value) {
@@ -718,7 +862,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
     this.saving = true;
-    const payload = await this.toPayload();
+    const payload = await this.toPayload(statusForSave);
     const isDuplicate = await this.hasDuplicate(payload);
     if (isDuplicate) {
       this.saving = false;
@@ -741,7 +885,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async toPayload(): Promise<BeneficiarioApiPayload> {
+  private async toPayload(statusForSave: BeneficiarioApiPayload['status']): Promise<BeneficiarioApiPayload> {
     const value = this.form.value;
     const documentosObrigatorios = await this.buildDocumentPayload();
     const endereco = {
@@ -760,7 +904,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     };
 
     return {
-      status: value.status,
+      status: statusForSave,
       motivo_bloqueio: value.motivo_bloqueio,
       foto_3x4: value.foto_3x4,
       ...(value.dadosPessoais as any),
@@ -874,7 +1018,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   private watchStatusChanges(): void {
     const control = this.form.get('status');
-    this.lastStatus = control?.value ?? 'ATIVO';
+    this.lastStatus = control?.value ?? 'EM_ANALISE';
 
     control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((status) => {
       const previous = this.lastStatus;
@@ -904,7 +1048,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   cancelBlockReason(): void {
     this.blockReasonModalOpen = false;
     this.blockReasonError = null;
-    this.form.get('status')?.setValue(this.previousStatusBeforeBlock ?? 'ATIVO');
+    this.form.get('status')?.setValue(this.previousStatusBeforeBlock ?? 'EM_ANALISE');
     this.form.get('motivo_bloqueio')?.setValue('');
   }
 
@@ -942,9 +1086,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.service.getById(beneficiario.id_beneficiario).subscribe(({ beneficiario: details }) => {
       this.form.patchValue(this.mapToForm(details));
       this.photoPreview = details.foto_3x4 ?? null;
-      this.lastStatus = details.status ?? 'ATIVO';
+      this.lastStatus = details.status ?? 'EM_ANALISE';
       this.previousStatusBeforeBlock = this.lastStatus;
       this.applyLoadedDocuments(details.documentosObrigatorios);
+      this.applyAutomaticStatusFromDates(details.status);
     });
   }
 
@@ -959,9 +1104,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.service.delete(beneficiario.id_beneficiario).subscribe({
       next: () => {
         if (this.beneficiarioId === beneficiario.id_beneficiario) {
-          this.form.reset({ status: 'ATIVO', motivo_bloqueio: '', foto_3x4: '', endereco: { zona: 'URBANA' } });
+          this.form.reset({ status: 'EM_ANALISE', motivo_bloqueio: '', foto_3x4: '', endereco: { zona: 'URBANA' } });
           this.beneficiarioId = null;
           this.photoPreview = null;
+          this.createdAt = null;
+          this.lastUpdatedAt = null;
         }
         this.searchBeneficiaries();
       },
@@ -996,6 +1143,15 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       console.error('Erro ao iniciar câmera', error);
       this.captureError = 'Não foi possível acessar a câmera.';
     }
+  }
+
+  async handleCameraCapture(): Promise<void> {
+    if (this.cameraActive) {
+      this.capturePhoto();
+      return;
+    }
+
+    await this.startCamera();
   }
 
   capturePhoto(): void {
@@ -1085,6 +1241,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     this.form.get(['documentos', 'cpf'])?.setValue(formatted, { emitEvent: false });
     input.value = formatted;
+
+    if (this.feedback === 'Informe um CPF válido antes de continuar.' && this.form.get(['documentos', 'cpf'])?.valid) {
+      this.feedback = null;
+    }
   }
 
   onPhoneInput(event: Event, controlName: 'telefone_principal' | 'telefone_secundario' | 'telefone_recado_numero'): void {

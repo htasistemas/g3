@@ -83,8 +83,9 @@
             Enviar foto 3x4
             <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
           </label>
-          <button type="button" class="ghost" (click)="startCamera()" [disabled]="cameraActive">Capturar pela câmera</button>
-          <button type="button" class="ghost" *ngIf="cameraActive" (click)="capturePhoto()">Registrar foto</button>
+          <button type="button" class="ghost" (click)="handleCameraCapture()">
+            {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
+          </button>
           <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
           <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
           <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
@@ -230,7 +231,7 @@
         </label>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+        <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
             Informe um CEP válido com 8 dígitos.
           </p>
@@ -287,7 +288,15 @@
         </div>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">Telefone principal<input formControlName="telefone_principal" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_principal')" /></label>
+        <label class="field">Telefone principal*<input
+            formControlName="telefone_principal"
+            placeholder="(00) 00000-0000"
+            (input)="onPhoneInput($event, 'telefone_principal')"
+          />
+          <p class="field-error" *ngIf="form.get(['contato', 'telefone_principal'])?.invalid && form.get(['contato', 'telefone_principal'])?.touched">
+            Informe o telefone principal.
+          </p>
+        </label>
         <label class="field">Telefone secundário<input formControlName="telefone_secundario" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_secundario')" /></label>
         <label class="field">Email<input type="email" formControlName="email" />
           <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
@@ -412,12 +421,29 @@
         <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
         <label class="field">Nível de escolaridade<input formControlName="nivel_escolaridade" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
-        <label class="field">Ocupação<input formControlName="ocupacao" /></label>
+        <label class="field">Ocupação
+          <input
+            formControlName="ocupacao"
+            list="cbo-list"
+            (input)="filterCboOptions($event)"
+            placeholder="Busque pela ocupação na CBO"
+          />
+        </label>
         <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
         <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
-        <label class="field">Renda mensal<input type="number" formControlName="renda_mensal" /></label>
+        <label class="field">Renda mensal
+          <input
+            type="text"
+            formControlName="renda_mensal"
+            (input)="formatCurrency($event, 'escolaridade', 'renda_mensal')"
+            placeholder="R$ 0,00"
+          />
+        </label>
         <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
       </div>
+      <datalist id="cbo-list">
+        <option *ngFor="let option of filteredCboOptions" [value]="option"></option>
+      </datalist>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
@@ -473,9 +499,12 @@
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD</span></label>
         <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD*</span></label>
         <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
+        <p class="field-error full-span" *ngIf="form.get(['observacoes', 'aceite_lgpd'])?.invalid && form.get(['observacoes', 'aceite_lgpd'])?.touched">
+          Confirme o aceite LGPD para continuar.
+        </p>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
