@@ -113,7 +113,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
         this.form.patchValue(created);
         this.logoPreview = created.logomarca || null;
         this.reportLogoPreview = created.logomarcaRelatorio || null;
-        this.unitService.setActiveUnit(created.nomeFantasia);
+        this.unitService.setActiveUnit(created.nomeFantasia, created.logomarca || null);
         this.deleteConfirmation = false;
         this.setFeedback(
           {
@@ -190,7 +190,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               .get('responsavelCpf')
               ?.setValue(this.formatCpf(unidade.responsavelCpf), { emitEvent: false });
           }
-          this.unitService.setActiveUnit(unidade.nomeFantasia);
+          this.unitService.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
         }
       },
       error: (error) => console.error('Erro ao carregar unidade', error)

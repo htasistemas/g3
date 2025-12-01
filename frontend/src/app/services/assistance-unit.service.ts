@@ -29,12 +29,18 @@ export interface AssistanceUnitPayload {
 export class AssistanceUnitService {
   private readonly baseUrl = `${environment.apiUrl}/api/assistance-units`;
   private readonly activeUnitKey = 'g3-active-assistance-unit';
+  private readonly activeUnitLogoKey = 'g3-active-assistance-logo';
 
   private readonly currentUnitNameSubject = new BehaviorSubject<string>(
     localStorage.getItem(this.activeUnitKey) || 'Navegação'
   );
 
+  private readonly currentUnitLogoSubject = new BehaviorSubject<string | null>(
+    localStorage.getItem(this.activeUnitLogoKey)
+  );
+
   readonly currentUnitName$ = this.currentUnitNameSubject.asObservable();
+  readonly currentUnitLogo$ = this.currentUnitLogoSubject.asObservable();
 
   constructor(private readonly http: HttpClient) {}
 
@@ -51,11 +57,25 @@ export class AssistanceUnitService {
   }
 
   remove(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(tap(() => this.setActiveUnit('Navegação')));
+    return this.http
+      .delete<void>(`${this.baseUrl}/${id}`)
+      .pipe(tap(() => this.setActiveUnit('Navegação', null)));
   }
 
-  setActiveUnit(name: string): void {
+  setActiveUnit(name: string, logo?: string | null): void {
     this.currentUnitNameSubject.next(name);
     localStorage.setItem(this.activeUnitKey, name);
+    this.setActiveUnitLogo(logo ?? null);
+  }
+
+  private setActiveUnitLogo(logo: string | null): void {
+    this.currentUnitLogoSubject.next(logo);
+
+    if (logo) {
+      localStorage.setItem(this.activeUnitLogoKey, logo);
+      return;
+    }
+
+    localStorage.removeItem(this.activeUnitLogoKey);
   }
 }
