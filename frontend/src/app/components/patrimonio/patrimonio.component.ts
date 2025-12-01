@@ -19,6 +19,7 @@ import {
   faTruck
 } from '@fortawesome/free-solid-svg-icons';
 import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
+import { finalize, timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-patrimonio',
@@ -90,6 +91,7 @@ export class PatrimonioComponent implements OnInit {
   selectedAsset: Patrimonio | null = null;
   isSaving = false;
   isLoading = false;
+  errorMessage: string | null = null;
 
   filePreview: string | ArrayBuffer | null = null;
   qrCodeValue = 'QR-PATRIMONIO-001';
@@ -164,6 +166,14 @@ export class PatrimonioComponent implements OnInit {
   }
 
   saveAsset(): void {
+    if (this.isSaving) return;
+
+    if (!this.assetForm.patrimonyNumber.trim() || !this.assetForm.name.trim()) {
+      this.errorMessage = 'Informe o número e o nome do patrimônio para salvar.';
+      return;
+    }
+
+    this.errorMessage = null;
     this.isSaving = true;
     const payload = {
       numeroPatrimonio: this.assetForm.patrimonyNumber || `PAT-${Date.now()}`,
@@ -181,17 +191,24 @@ export class PatrimonioComponent implements OnInit {
       observacoes: this.assetForm.observations
     };
 
-    this.patrimonioService.create(payload).subscribe({
-      next: (patrimonio) => {
-        this.assetLibrary = [patrimonio, ...this.assetLibrary];
-        this.selectedAsset = patrimonio;
-        this.resetForm();
-        this.isSaving = false;
-      },
-      error: () => {
-        this.isSaving = false;
-      }
-    });
+    this.patrimonioService
+      .create(payload)
+      .pipe(
+        timeout(10000),
+        finalize(() => {
+          this.isSaving = false;
+        })
+      )
+      .subscribe({
+        next: (patrimonio) => {
+          this.assetLibrary = [patrimonio, ...this.assetLibrary];
+          this.selectedAsset = patrimonio;
+          this.resetForm();
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.message ?? 'Não foi possível salvar o patrimônio. Tente novamente.';
+        }
+      });
   }
 
   resetForm(): void {

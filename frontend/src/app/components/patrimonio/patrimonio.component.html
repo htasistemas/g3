@@ -19,6 +19,10 @@
     </div>
   </div>
 
+  <div *ngIf="errorMessage" class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg">
+    {{ errorMessage }}
+  </div>
+
   <div class="grid gap-4 md:grid-cols-4">
     <div class="card">
       <div class="flex items-center justify-between mb-2">
