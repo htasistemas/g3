@@ -1,0 +1,230 @@
+<div class="p-6 space-y-6">
+  <div class="header-card">
+    <div>
+      <p class="eyebrow"><fa-icon [icon]="faClipboardList" class="text-emerald-600"></fa-icon> Registrar doações</p>
+      <h1 class="title">Gestão de entrega de doações</h1>
+      <p class="subtitle">
+        Vincule um beneficiário, escolha itens disponíveis no almoxarifado e gere o termo de recebimento
+        com um clique.
+      </p>
+    </div>
+    <div class="badge">Fluxo assistencial</div>
+  </div>
+
+  <div class="grid gap-5 lg:grid-cols-3">
+    <form class="card lg:col-span-2" [formGroup]="donationForm" (ngSubmit)="registerDonation()">
+      <div class="card__header">
+        <div>
+          <p class="eyebrow"><fa-icon [icon]="faUserPlus"></fa-icon> Beneficiário</p>
+          <h2 class="card__title">Identificação do beneficiário</h2>
+          <p class="card__subtitle">Preencha os dados ou selecione um cadastro recente.</p>
+        </div>
+        <div class="pill">Dados obrigatórios para emissão do termo</div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4" formGroupName="beneficiary">
+        <label class="field">
+          <span>Nome completo / Razão social*</span>
+          <input formControlName="name" class="input" />
+        </label>
+        <label class="field">
+          <span>Documento (CPF/CNPJ)*</span>
+          <input formControlName="document" class="input" />
+        </label>
+        <label class="field">
+          <span>Data de nascimento</span>
+          <input type="date" formControlName="birthDate" class="input" />
+        </label>
+        <label class="field">
+          <span>Telefone</span>
+          <input formControlName="phone" class="input" />
+        </label>
+        <label class="field md:col-span-2">
+          <span>Endereço</span>
+          <input formControlName="address" class="input" />
+        </label>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="card__header">
+        <div>
+          <p class="eyebrow"><fa-icon [icon]="faBoxOpen"></fa-icon> Itens</p>
+          <h2 class="card__title">Itens em estoque</h2>
+          <p class="card__subtitle">Busque no almoxarifado e adicione os itens a serem entregues.</p>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <fa-icon [icon]="faMagnifyingGlass" class="text-slate-400"></fa-icon>
+        <input
+          class="input"
+          placeholder="Buscar item, código ou categoria"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mt-2" [formGroup]="itemForm">
+        <label class="field md:col-span-2">
+          <span>Item do estoque*</span>
+          <select class="input" formControlName="itemCode">
+            <option value="" disabled>Selecione</option>
+            <option *ngFor="let item of filteredStock()" [value]="item.code">
+              {{ item.code }} - {{ item.description }} ({{ item.currentStock }} em estoque)
+            </option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Quantidade*</span>
+          <input type="number" min="1" class="input" formControlName="quantity" />
+        </label>
+        <label class="field md:col-span-3">
+          <span>Observações do item</span>
+          <input class="input" formControlName="notes" placeholder="Ex.: Kit completo, lacrado" />
+        </label>
+        <div class="md:col-span-3 flex justify-end">
+          <button class="btn btn-secondary" type="button" (click)="addItem()">
+            <fa-icon [icon]="faClipboardList"></fa-icon>
+            Adicionar item
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper" *ngIf="items().length; else emptyItems">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item</th>
+              <th>Qtd</th>
+              <th>Observações</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of items(); index as i">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="font-semibold text-slate-800">{{ item.description }}</div>
+                <div class="muted">{{ item.itemCode }}</div>
+              </td>
+              <td>{{ item.quantity }} {{ item.unit }}</td>
+              <td>{{ item.notes || '-' }}</td>
+              <td class="text-right">
+                <button class="link" type="button" (click)="removeItem(i)">Remover</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #emptyItems>
+        <div class="empty">
+          <fa-icon [icon]="faClipboardList"></fa-icon>
+          <p>Adicione itens para esta doação.</p>
+        </div>
+      </ng-template>
+
+      <div class="divider"></div>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <label class="field">
+          <span>Data prevista de entrega*</span>
+          <input type="date" class="input" formControlName="deliveryDate" />
+        </label>
+        <label class="field">
+          <span>Observações gerais</span>
+          <input class="input" formControlName="notes" placeholder="Observações internas" />
+        </label>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <button class="btn" type="submit">
+          <fa-icon [icon]="faReceipt"></fa-icon>
+          Registrar doação
+        </button>
+      </div>
+    </form>
+
+    <div class="space-y-5">
+      <div class="card">
+        <div class="card__header">
+          <div>
+            <p class="eyebrow"><fa-icon [icon]="faTimeline"></fa-icon> Histórico</p>
+            <h2 class="card__title">Doações registradas</h2>
+            <p class="card__subtitle">Selecione um registro para gerar o termo atualizado.</p>
+          </div>
+        </div>
+
+        <div class="history-list">
+          <button
+            *ngFor="let record of donationHistory()"
+            type="button"
+            class="history-item"
+            [class.history-item--active]="selectedRecord() === record"
+            (click)="selectRecord(record)">
+            <div>
+              <p class="font-semibold text-slate-800">{{ record.beneficiary.name }}</p>
+              <p class="muted">{{ record.items.length }} item(s) · {{ record.deliveryDate | date: 'shortDate' }}</p>
+              <p class="text-xs text-slate-400">{{ record.id }}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-slate-500">{{ record.date | date: 'short' }}</p>
+              <p class="text-xs text-emerald-600" *ngIf="record.notes">{{ record.notes }}</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card" *ngIf="selectedRecord() as record">
+        <div class="card__header">
+          <div>
+            <p class="eyebrow"><fa-icon [icon]="faFilePdf"></fa-icon> Termo</p>
+            <h2 class="card__title">Termo de recebimento</h2>
+            <p class="card__subtitle">Resumo pronto para impressão.</p>
+          </div>
+          <button class="btn btn-secondary" type="button" (click)="printTerm(record)">
+            <fa-icon [icon]="faPrint"></fa-icon>
+            Imprimir termo
+          </button>
+        </div>
+
+        <div class="term-preview">
+          <p class="muted">Beneficiário</p>
+          <p class="font-semibold">{{ record.beneficiary.name }}</p>
+          <p class="muted">Documento: {{ record.beneficiary.document }}</p>
+          <div class="divider"></div>
+          <p class="muted">Itens</p>
+          <ul class="list-disc pl-5 text-slate-700 space-y-1">
+            <li *ngFor="let item of record.items">{{ item.description }} — {{ item.quantity }} {{ item.unit }}</li>
+          </ul>
+          <div class="divider"></div>
+          <p class="muted">Data de entrega: {{ record.deliveryDate | date: 'longDate' }}</p>
+          <p class="muted" *ngIf="record.notes">Observações: {{ record.notes }}</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <div>
+            <p class="eyebrow">Cadastros recentes</p>
+            <h2 class="card__title">Beneficiários conhecidos</h2>
+            <p class="card__subtitle">Use um cadastro existente para agilizar o preenchimento.</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <button
+            type="button"
+            class="beneficiary-pill"
+            *ngFor="let beneficiary of beneficiaries()"
+            (click)="populateBeneficiary(beneficiary)">
+            <span class="font-semibold">{{ beneficiary.name }}</span>
+            <span class="muted">{{ beneficiary.document }}</span>
+            <span class="muted">{{ beneficiary.phone || 'Sem contato' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
