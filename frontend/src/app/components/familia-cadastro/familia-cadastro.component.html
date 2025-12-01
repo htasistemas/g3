@@ -132,10 +132,10 @@
           <label class="field">Beneficiário*<input
               formControlName="beneficiario_nome"
               placeholder="Busque pelo nome do beneficiário"
-              (input)="buscarBeneficiarios(($event.target as HTMLInputElement).value, i)"
+              (input)="buscarBeneficiarios($any($event.target).value, i)"
             />
             <input type="hidden" formControlName="id_beneficiario" />
-            <div class="search-results" *ngIf="membrosFiltrados.length && (membrosFiltrados[0] as any)._membroIndex === i">
+            <div class="search-results" *ngIf="membrosFiltrados.length && membrosFiltrados[0]._membroIndex === i">
               <button type="button" *ngFor="let beneficiario of membrosFiltrados" (click)="selecionarMembro(i, beneficiario)">
                 <span class="strong">{{ beneficiario.nome_completo || beneficiario.nome_social }}</span>
                 <span class="muted">CPF: {{ beneficiario.cpf || 'Sem CPF' }} · ID: {{ beneficiario.id_beneficiario }}</span>
