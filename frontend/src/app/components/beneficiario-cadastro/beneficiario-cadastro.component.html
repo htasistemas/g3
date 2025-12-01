@@ -10,15 +10,41 @@
 
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
-    <nav class="tabs">
-      <button *ngFor="let tab of tabs" class="tabs__item" [class.active]="activeTab === tab.id" (click)="changeTab(tab.id)">
-        <span class="tabs__label">{{ tab.label }}</span>
-      </button>
-    </nav>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        </button>
+      </div>
+    </ng-template>
 
     <div class="tab-card" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
       <div class="tab-card__header">
@@ -62,6 +88,7 @@
         <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
         <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
@@ -111,6 +138,7 @@
           <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
         </div>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'contato'" formGroupName="contato">
@@ -136,6 +164,7 @@
           <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_email" /> <span>Permite e-mail</span></label>
         </div>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'documentos'" formGroupName="documentos">
@@ -198,6 +227,7 @@
             </div>
           </div>
         </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
       </div>
     </div>
 
@@ -222,6 +252,7 @@
         <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Instituições, vizinhos, familiares"></textarea></label>
         <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'escolaridade'" formGroupName="escolaridade">
@@ -242,6 +273,7 @@
         <label class="field">Renda mensal<input type="number" formControlName="renda_mensal" /></label>
         <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'saude'" formGroupName="saude">
@@ -260,6 +292,7 @@
         <label class="field full">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
         <label class="field">Serviço de saúde de referência<input formControlName="servico_saude_referencia" /></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'beneficios'" formGroupName="beneficios">
@@ -286,6 +319,7 @@
         </div>
         <label class="field full">Descrição dos benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'observacoes'" formGroupName="observacoes">
@@ -301,10 +335,7 @@
         <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
         <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
       </div>
-    </div>
-
-    <div class="actions">
-      <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
 </section>

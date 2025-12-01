@@ -90,6 +90,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     { id: 'observacoes', label: 'Observações & Anexos' }
   ];
 
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: BeneficiarioApiService,
@@ -207,6 +223,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         observacoes: ['']
       })
     });
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    }
   }
 
   ngOnInit(): void {
