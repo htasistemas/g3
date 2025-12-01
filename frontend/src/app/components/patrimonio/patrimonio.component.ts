@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -21,6 +21,8 @@ import {
 import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { finalize, timeout } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
 type AssetFormTextField =
   | 'patrimonyNumber'
@@ -85,7 +87,7 @@ interface AssetForm {
   templateUrl: './patrimonio.component.html',
   styleUrl: './patrimonio.component.scss'
 })
-export class PatrimonioComponent implements OnInit {
+export class PatrimonioComponent implements OnInit, OnDestroy {
   readonly faArrowDown = faArrowDown;
   readonly faArrowUp = faArrowUp;
   readonly faDownload = faDownload;
@@ -162,17 +164,29 @@ export class PatrimonioComponent implements OnInit {
   editingAssetId: string | null = null;
   isRegisteringMovement = false;
   movementError: string | null = null;
+  textTemplates!: TextTemplates;
+  private templatesSubscription?: Subscription;
 
   constructor(
     private readonly patrimonioService: PatrimonioService,
-    private readonly assistanceUnitService: AssistanceUnitService
+    private readonly assistanceUnitService: AssistanceUnitService,
+    private readonly textTemplateService: TextTemplateService
   ) {}
 
   ngOnInit(): void {
+    this.textTemplates = this.textTemplateService.getTemplates();
+    this.templatesSubscription = this.textTemplateService.templates$.subscribe((templates) => {
+      this.textTemplates = templates;
+      this.updateCessionTermPreview();
+    });
     this.loadAssets();
     this.loadAssistanceUnit();
     this.displayedAcquisitionValue = this.formatCurrency(this.assetForm.acquisitionValue);
     this.updateCessionTermPreview();
+  }
+
+  ngOnDestroy(): void {
+    this.templatesSubscription?.unsubscribe();
   }
 
   get filteredAssets(): Patrimonio[] {
@@ -194,15 +208,15 @@ export class PatrimonioComponent implements OnInit {
   }
 
   get activeAssets(): number {
-    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('ativo')).length;
+    return this.assetLibrary.filter((asset) => this.normalizeText(asset.status).includes('ativo')).length;
   }
 
-  get maintenanceAssets(): number {
-    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('manuten')).length;
+  get loanedAssets(): Patrimonio[] {
+    return this.assetLibrary.filter((asset) => this.normalizeText(asset.status).includes('emprest'));
   }
 
-  get disposedAssets(): number {
-    return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('baix')).length;
+  get overdueLoanedAssets(): Patrimonio[] {
+    return this.loanedAssets.filter((asset) => this.isLoanOverdue(asset));
   }
 
   get availableLocations(): string[] {
@@ -550,12 +564,7 @@ export class PatrimonioComponent implements OnInit {
 
   generateCessionTerm(): void {
     const asset = this.selectedAsset ?? this.buildAssetSnapshot();
-    const location = this.getLocationLabel(asset) || 'Local não informado';
-    const content = `Termo de cessão do bem ${asset.nome || 'Não identificado'} (patrimônio ${
-      asset.numeroPatrimonio || 'não informado'
-    }) localizado em ${location}, sob responsabilidade de ${
-      asset.responsavel || this.assetForm.responsibleName || 'Não informado'
-    }. Valor de aquisição: ${this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue)}.`;
+    const content = this.fillTemplate(this.textTemplates.cession, asset);
 
     this.cessionTermPreview = content;
     this.openPrintWindow('Termo de cessão', `<p style="font-size:14px; line-height:1.6">${content}</p>`);
@@ -563,13 +572,7 @@ export class PatrimonioComponent implements OnInit {
 
   generateLoanTerm(): void {
     const asset = this.selectedAsset ?? this.buildAssetSnapshot();
-    const location = this.getLocationLabel(asset) || 'Local não informado';
-    const responsible = asset.responsavel || this.assetForm.responsibleName || 'Não informado';
-    const content = `Eu, ${responsible}, assumo responsabilidade pelo empréstimo do bem ${
-      asset.nome || 'Não identificado'
-    } (patrimônio ${asset.numeroPatrimonio || 'não informado'}) a terceiros. O item está alocado em ${location} e deverá ser devolvido nas mesmas condições de conservação. Valor de referência: ${this.formatCurrency(
-      asset.valorAquisicao || this.assetForm.acquisitionValue
-    )}.`;
+    const content = this.fillTemplate(this.textTemplates.loan, asset);
 
     this.loanTermPreview = content;
     this.openPrintWindow(
@@ -603,14 +606,13 @@ export class PatrimonioComponent implements OnInit {
 
     const items = assets
       .map(
-        (asset) =>
-          `<p style="margin-bottom:10px;">
-            <strong>${asset.numeroPatrimonio || 'Sem número'}</strong> - ${asset.nome || 'Sem nome'}<br/>
-            Categoria: ${asset.categoria || 'Não informada'} ${asset.subcategoria ? ' / ' + asset.subcategoria : ''}<br/>
-            Local: ${this.getLocationLabel(asset) || 'Não informado'}<br/>
-            Responsável: ${asset.responsavel || 'Não informado'}<br/>
-            Valor de aquisição: ${this.formatCurrency(asset.valorAquisicao || 0)}
-          </p>`
+        (asset) => {
+          const location = this.getLocationLabel(asset) || 'Local não informado';
+          const value = this.formatCurrency(asset.valorAquisicao || 0);
+          return `<p style="margin-bottom:10px;">${
+            asset.numeroPatrimonio || 'Sem número'
+          } — ${asset.nome || 'Sem nome'} • ${location} • Valor: ${value}</p>`;
+        }
       )
       .join('');
 
@@ -619,6 +621,59 @@ export class PatrimonioComponent implements OnInit {
     }<p style="margin-top:0; margin-bottom:12px; font-weight:600;">Relação de bens patrimoniais</p></div>`;
 
     this.openPrintWindow('Bens patrimoniais', `${header}${items}`);
+  }
+
+  private fillTemplate(template: string, asset: Patrimonio): string {
+    const replacements: Record<string, string> = {
+      nome: asset.nome || 'Não identificado',
+      numeroPatrimonio: asset.numeroPatrimonio || 'não informado',
+      local: this.getLocationLabel(asset) || 'Local não informado',
+      responsavel: this.getResponsible(asset),
+      valor: this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue)
+    };
+
+    return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => replacements[key] ?? '');
+  }
+
+  private getResponsible(asset: Patrimonio): string {
+    return asset.responsavel || this.assetForm.responsibleName || 'Não informado';
+  }
+
+  private normalizeText(value?: string): string {
+    return (value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  private isLoanOverdue(asset: Patrimonio): boolean {
+    const dueDate = this.getLoanDueDate(asset);
+    if (!dueDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate < today;
+  }
+
+  private getLoanDueDate(asset: Patrimonio): Date | null {
+    const candidates = [asset.observacoes, ...(asset.movimentos ?? []).map((movement) => movement.observacao)];
+    for (const text of candidates) {
+      const parsed = this.parseDateFromText(text);
+      if (parsed) return parsed;
+    }
+    return null;
+  }
+
+  private parseDateFromText(text?: string | null): Date | null {
+    if (!text) return null;
+
+    const match = text.match(/(\d{4}-\d{2}-\d{2})|(\d{2}\/\d{2}\/\d{4})/);
+    if (!match) return null;
+
+    const value = match[0];
+    const parts = value.split(/[-\/]/).map(Number);
+    const date = value.includes('-')
+      ? new Date(parts[0], parts[1] - 1, parts[2])
+      : new Date(parts[2], parts[1] - 1, parts[0]);
+
+    return isNaN(date.getTime()) ? null : date;
   }
 
   private toProperCase(value: string): string {
@@ -656,15 +711,8 @@ export class PatrimonioComponent implements OnInit {
 
   private updateCessionTermPreview(): void {
     const asset = this.selectedAsset ?? this.buildAssetSnapshot();
-    const responsible = asset.responsavel || this.assetForm.responsibleName || 'Não informado';
-    const location = this.getLocationLabel(asset) || 'Local não informado';
-    this.cessionTermPreview = `Declaro que o bem ${asset.nome || 'Não identificado'} (patrimônio ${
-      asset.numeroPatrimonio || 'não informado'
-    }) está sob responsabilidade de ${responsible} no local ${location}.`;
-
-    this.loanTermPreview = `Comprometo-me a devolver em perfeitas condições o bem ${asset.nome || 'Não identificado'} (patrimônio ${
-      asset.numeroPatrimonio || 'não informado'
-    }) emprestado, mantendo-o em ${location} e comunicando qualquer movimentação.`;
+    this.cessionTermPreview = this.fillTemplate(this.textTemplates.cession, asset);
+    this.loanTermPreview = this.fillTemplate(this.textTemplates.loan, asset);
   }
 
   getLocationLabel(asset: Patrimonio): string {

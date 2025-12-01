@@ -15,6 +15,7 @@ import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-
 import { SystemVersionComponent } from './components/system-version/system-version.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
+import { TextTemplatesComponent } from './components/text-templates/text-templates.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -55,6 +56,11 @@ export const routes: Routes = [
         path: 'configuracoes/sistema',
         component: SystemSettingsComponent,
         data: { title: 'Documentos obrigatórios' }
+      },
+      {
+        path: 'configuracoes/modelos-texto',
+        component: TextTemplatesComponent,
+        data: { title: 'Modelos de textos' }
       },
       {
         path: 'configuracoes/versao',
