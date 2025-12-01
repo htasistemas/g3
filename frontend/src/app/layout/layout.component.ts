@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -139,7 +139,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private readonly assistanceUnitService: AssistanceUnitService,
     public readonly themeService: ThemeService,
     private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly elementRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -173,23 +174,22 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.isSidebarCollapsed = false;
   }
 
-  handleSidebarLeave(): void {
-    this.isSidebarCollapsed = true;
-    this.openSection = null;
-  }
-
-  closeSection(label: string): void {
-    if (this.openSection === label) {
-      this.openSection = null;
-    }
-  }
-
   logout(): void {
     this.auth.logout();
   }
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+
+    if (!clickedInside) {
+      this.isSidebarCollapsed = true;
+      this.openSection = null;
+    }
   }
 
   get themeLabel(): 'Claro' | 'Escuro' {
