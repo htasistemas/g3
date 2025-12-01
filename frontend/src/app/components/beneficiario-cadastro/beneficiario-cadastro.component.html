@@ -4,6 +4,84 @@
     <p class="page-title__label">Cadastro de beneficiário</p>
   </header>
 
+  <section class="list-panel">
+    <div class="list-panel__header">
+      <div>
+        <p class="list-panel__eyebrow">Base cadastrada</p>
+        <h2>Encontre beneficiários cadastrados</h2>
+        <p>Busque pelo nome, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
+      </div>
+      <div class="list-panel__actions">
+        <button type="button" class="ghost" (click)="searchForm.reset({ status: '' }); searchBeneficiaries()">
+          Limpar filtros
+        </button>
+        <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
+      </div>
+    </div>
+
+    <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
+      <label class="field">
+        Nome
+        <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+      </label>
+      <label class="field">
+        CPF
+        <input type="text" formControlName="cpf" placeholder="Somente números" />
+      </label>
+      <label class="field">
+        NIS
+        <input type="text" formControlName="nis" placeholder="Somente números" />
+      </label>
+      <label class="field">
+        Status
+        <select formControlName="status">
+          <option value="">Todos</option>
+          <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+        </select>
+      </label>
+      <div class="list-panel__filter-actions">
+        <button type="submit" class="primary">Aplicar filtros</button>
+      </div>
+    </form>
+
+    <div *ngIf="listError" class="feedback">{{ listError }}</div>
+    <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
+
+    <div class="list-panel__table" *ngIf="!listLoading">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Nascimento</th>
+            <th>Status</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
+          <tr *ngFor="let beneficiario of filteredBeneficiarios">
+            <td>{{ beneficiario.nome_completo || beneficiario.nomeCompleto }}</td>
+            <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
+            <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
+            <td><span class="pill pill--status">{{ formatStatusLabel(beneficiario.status) }}</span></td>
+            <td class="text-right actions">
+              <button type="button" class="ghost" (click)="selectBeneficiario(beneficiario)">Selecionar</button>
+              <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>
+              <button type="button" class="danger" (click)="deleteBeneficiario(beneficiario)">Excluir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <ng-template #emptyList>
+        <tbody>
+          <tr>
+            <td colspan="5" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
+          </tr>
+        </tbody>
+      </ng-template>
+    </div>
+  </section>
+
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
@@ -30,6 +108,29 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
+    <div class="status-strip">
+      <div>
+        <p class="status-strip__label">Status do beneficiário</p>
+        <div class="status-strip__current">
+          <span class="pill pill--status">{{ formatStatusLabel(form.get('status')?.value) }}</span>
+          <span class="status-strip__reason" *ngIf="form.get('motivo_bloqueio')?.value">
+            Motivo: {{ form.get('motivo_bloqueio')?.value }}
+          </span>
+        </div>
+      </div>
+      <div class="status-strip__controls">
+        <label class="field">
+          <span>Atualizar status</span>
+          <select formControlName="status">
+            <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+          </select>
+        </label>
+        <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
+          Editar motivo do bloqueio
+        </button>
+      </div>
+    </div>
+
     <ng-template #navigationControls>
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
@@ -50,6 +151,27 @@
         </div>
         <span class="pill">Obrigatório</span>
       </div>
+      <div class="photo-section">
+        <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
+          <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
+          <span *ngIf="!photoPreview">Foto 3x4 do beneficiário</span>
+        </div>
+        <div class="photo-actions">
+          <label class="upload-btn">
+            Enviar foto 3x4
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+          </label>
+          <button type="button" class="ghost" (click)="startCamera()" [disabled]="cameraActive">Capturar pela câmera</button>
+          <button type="button" class="ghost" *ngIf="cameraActive" (click)="capturePhoto()">Registrar foto</button>
+          <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
+          <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
+          <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
+        </div>
+      </div>
+      <div class="camera-view" *ngIf="cameraActive">
+        <video #videoElement autoplay muted playsinline></video>
+      </div>
+      <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="field-grid cols-2">
         <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
         <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
@@ -325,4 +447,18 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
+
+  <div class="modal" *ngIf="blockReasonModalOpen">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content">
+      <h3>Motivo do bloqueio</h3>
+      <p class="muted">Descreva o motivo para manter o registro bloqueado.</p>
+      <textarea [formControl]="form.get('motivo_bloqueio')" rows="4"></textarea>
+      <p *ngIf="blockReasonError" class="field-error">{{ blockReasonError }}</p>
+      <div class="modal__actions">
+        <button type="button" class="ghost" (click)="cancelBlockReason()">Cancelar</button>
+        <button type="button" class="primary" (click)="confirmBlockReason()">Salvar motivo</button>
+      </div>
+    </div>
+  </div>
 </section>

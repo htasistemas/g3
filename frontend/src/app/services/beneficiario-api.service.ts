@@ -6,6 +6,9 @@ import { DocumentoObrigatorio } from './beneficiary.service';
 
 export interface BeneficiarioApiPayload {
   id_beneficiario?: string;
+  status?: 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO' | string;
+  motivo_bloqueio?: string;
+  foto_3x4?: string;
   nome_completo: string;
   nome_social?: string;
   apelido?: string;
@@ -122,5 +125,9 @@ export class BeneficiarioApiService {
 
   update(id: string, payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
     return this.http.put<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
