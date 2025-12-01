@@ -181,6 +181,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private nationalityManuallyChanged = false;
   private videoStream?: MediaStream;
   private readonly destroy$ = new Subject<void>();
+  private hasLoadedExistingDocuments = false;
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
@@ -597,11 +598,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.beneficiaryService.getRequiredDocuments().subscribe({
       next: ({ documents }) => {
         this.documentosObrigatorios = documents;
-        this.resetDocumentArray();
+        if (this.hasLoadedExistingDocuments) {
+          this.mergeRequiredDocumentsWithExisting();
+        } else {
+          this.resetDocumentArray();
+        }
       },
       error: () => {
         this.documentosObrigatorios = [];
-        this.resetDocumentArray();
+        if (!this.hasLoadedExistingDocuments) {
+          this.resetDocumentArray();
+        }
       }
     });
   }
@@ -617,16 +624,63 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     baseDocs.forEach((doc) => {
+      const normalized = this.normalizeDocumentData(doc);
       this.anexos.push(
         this.buildDocumentControl({
-          nome: doc.nome,
-          obrigatorio: doc.obrigatorio ?? doc.required ?? doc.baseRequired,
-          nomeArquivo: doc.nomeArquivo,
-          conteudo: doc.conteudo,
-          contentType: doc.contentType
+          nome: normalized.nome,
+          obrigatorio: normalized.obrigatorio,
+          nomeArquivo: normalized.nomeArquivo,
+          conteudo: normalized.conteudo,
+          contentType: normalized.contentType
         })
       );
     });
+  }
+
+  private mergeRequiredDocumentsWithExisting(): void {
+    if (!this.documentosObrigatorios.length) return;
+
+    this.documentosObrigatorios.forEach((doc) => {
+      const normalized = this.normalizeDocumentData(doc);
+      const existingControl = this.anexos.controls.find(
+        (control) => control.get('nome')?.value === normalized.nome
+      ) as FormGroup | undefined;
+
+      if (existingControl) {
+        existingControl.patchValue(
+          {
+            obrigatorio: normalized.obrigatorio,
+            nomeArquivo: existingControl.get('nomeArquivo')?.value || normalized.nomeArquivo,
+            contentType: existingControl.get('contentType')?.value || normalized.contentType
+          },
+          { emitEvent: false }
+        );
+        return;
+      }
+
+      this.anexos.push(
+        this.buildDocumentControl({
+          nome: normalized.nome,
+          obrigatorio: normalized.obrigatorio,
+          nomeArquivo: normalized.nomeArquivo,
+          conteudo: normalized.conteudo,
+          contentType: normalized.contentType
+        })
+      );
+    });
+  }
+
+  private normalizeDocumentData(doc: Partial<DocumentoObrigatorio>): DocumentoObrigatorio {
+    const obrigatorio = doc.obrigatorio ?? doc.required ?? doc.baseRequired ?? false;
+    const nomeArquivo = doc.nomeArquivo ?? (doc.conteudo ? doc.nome : '');
+
+    return {
+      nome: doc.nome ?? '',
+      obrigatorio,
+      nomeArquivo: nomeArquivo ?? '',
+      conteudo: doc.conteudo,
+      contentType: doc.contentType
+    } as DocumentoObrigatorio;
   }
 
   private buildDocumentControl(doc: Partial<DocumentoObrigatorio>): FormGroup {
@@ -646,7 +700,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   applyLoadedDocuments(documents?: DocumentoObrigatorio[]): void {
     if (documents?.length) {
-      this.resetDocumentArray(documents);
+      this.hasLoadedExistingDocuments = true;
+      const normalizedDocuments = documents.map((doc) => this.normalizeDocumentData(doc));
+      this.resetDocumentArray(normalizedDocuments);
     }
   }
 
