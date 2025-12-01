@@ -44,7 +44,7 @@
 .tab-shell {
   background: #ffffff;
   border-radius: 14px;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1rem 1rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
 }
@@ -71,8 +71,8 @@
 
 .step-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.3rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
   padding: 0;
   margin: 0;
 }
@@ -85,30 +85,59 @@
   width: 100%;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.5rem;
-  border-radius: 9px;
-  border: 1px solid #e2e8f0;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid #d1d5db;
   background: #f8fafc;
   color: #0f172a;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 0.85rem;
-  min-height: 40px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+  font-weight: 800;
+  font-size: 0.9rem;
+  min-height: 48px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease, background-color 0.12s ease;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+}
+
+.step-tabs__item.completed .step-tabs__button {
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  color: #15803d;
+  box-shadow: 0 10px 22px rgba(21, 128, 61, 0.15);
 }
 
 .step-tabs__item.active .step-tabs__button {
   background: linear-gradient(135deg, #0f7a43, #16a34a);
   color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 12px 26px rgba(15, 122, 67, 0.18);
+  box-shadow: 0 12px 26px rgba(15, 122, 67, 0.24);
+}
+
+.step-tabs__item.active .step-tabs__index {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .step-tabs__button:hover {
   border-color: #cbd5e1;
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
+}
+
+.step-tabs__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .step-tabs__label {
@@ -389,6 +418,116 @@
   gap: 0.65rem;
   font-size: 0.95rem;
   color: #0f172a;
+}
+
+.unit-data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.unit-data-grid__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.unit-data-grid__item img {
+  max-height: 56px;
+  object-fit: contain;
+}
+
+.unit-data-grid__label {
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .unit-data-grid {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    grid-template-areas:
+      'logo logo report'
+      'fantasy cnpj phone'
+      'razao razao razao'
+      'email cep cidade'
+      'schedule schedule schedule'
+      'mandate mandate mandate'
+      'address address address'
+      'district responsavel responsavel'
+      'cpf observacoes observacoes';
+  }
+
+  .unit-data-grid__logo {
+    grid-area: logo;
+  }
+
+  .unit-data-grid__report {
+    grid-area: report;
+  }
+
+  .unit-data-grid__fantasy {
+    grid-area: fantasy;
+  }
+
+  .unit-data-grid__cnpj {
+    grid-area: cnpj;
+  }
+
+  .unit-data-grid__phone {
+    grid-area: phone;
+  }
+
+  .unit-data-grid__razao {
+    grid-area: razao;
+  }
+
+  .unit-data-grid__email {
+    grid-area: email;
+  }
+
+  .unit-data-grid__cep {
+    grid-area: cep;
+  }
+
+  .unit-data-grid__cidade {
+    grid-area: cidade;
+  }
+
+  .unit-data-grid__schedule {
+    grid-area: schedule;
+  }
+
+  .unit-data-grid__mandate {
+    grid-area: mandate;
+  }
+
+  .unit-data-grid__address {
+    grid-area: address;
+  }
+
+  .unit-data-grid__district {
+    grid-area: district;
+  }
+
+  .unit-data-grid__responsavel {
+    grid-area: responsavel;
+  }
+
+  .unit-data-grid__cpf {
+    grid-area: cpf;
+  }
+
+  .unit-data-grid__observacoes {
+    grid-area: observacoes;
+  }
 }
 
 @media (min-width: 900px) {
