@@ -22,27 +22,66 @@
         <div class="pill">Dados obrigatórios para emissão do termo</div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-4" formGroupName="beneficiary">
+      <div class="space-y-3" formGroupName="beneficiary">
         <label class="field">
-          <span>Nome completo / Razão social*</span>
-          <input formControlName="name" class="input" />
+          <span>Digite o nome do beneficiário*</span>
+          <div class="search-box">
+            <fa-icon [icon]="faMagnifyingGlass" class="text-slate-400"></fa-icon>
+            <input
+              class="input"
+              placeholder="Busque pelo nome do beneficiário cadastrado"
+              [ngModel]="beneficiarySearch()"
+              (ngModelChange)="onBeneficiaryNameInput($event)"
+            />
+          </div>
         </label>
-        <label class="field">
-          <span>Documento (CPF/CNPJ)*</span>
-          <input formControlName="document" class="input" />
-        </label>
-        <label class="field">
-          <span>Data de nascimento</span>
-          <input type="date" formControlName="birthDate" class="input" />
-        </label>
-        <label class="field">
-          <span>Telefone</span>
-          <input formControlName="phone" class="input" />
-        </label>
-        <label class="field md:col-span-2">
-          <span>Endereço</span>
-          <input formControlName="address" class="input" />
-        </label>
+
+        <div class="beneficiary-suggestions" *ngIf="filteredBeneficiaries().length">
+          <p class="muted text-sm">Cadastros encontrados</p>
+          <div class="suggestion-list">
+            <button
+              type="button"
+              class="suggestion"
+              *ngFor="let beneficiary of filteredBeneficiaries()"
+              (click)="populateBeneficiary(beneficiary)">
+              <div>
+                <p class="font-semibold text-slate-800">{{ beneficiary.name }}</p>
+                <p class="muted">{{ beneficiary.document }}</p>
+              </div>
+              <span class="tag">Selecionar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <label class="field">
+            <span>Documento (CPF/CNPJ)*</span>
+            <input formControlName="document" class="input" readonly />
+          </label>
+          <label class="field">
+            <span>Data de nascimento</span>
+            <input type="date" formControlName="birthDate" class="input" readonly />
+          </label>
+          <label class="field">
+            <span>Telefone</span>
+            <input formControlName="phone" class="input" readonly />
+          </label>
+          <label class="field">
+            <span>Endereço</span>
+            <input formControlName="address" class="input" readonly />
+          </label>
+        </div>
+
+        <div class="eligibility" *ngIf="donationForm.value['beneficiary'] as beneficiary">
+          <ng-container [ngSwitch]="beneficiaryEligibility(beneficiary).status">
+            <div *ngSwitchCase="'aguardo'" class="eligibility__status eligibility__status--waiting">
+              Em carência
+            </div>
+            <div *ngSwitchCase="'liberado'" class="eligibility__status eligibility__status--ready">Apto para retirada</div>
+          </ng-container>
+          <p class="muted text-sm">{{ beneficiaryEligibility(beneficiary).message }}</p>
+          <p class="muted text-xs" *ngIf="beneficiary.lastDonationDate">Última retirada: {{ beneficiary.lastDonationDate | date: 'shortDate' : undefined : 'pt-BR' }}</p>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -199,7 +238,7 @@
             <li *ngFor="let item of record.items">{{ item.description }} — {{ item.quantity }} {{ item.unit }}</li>
           </ul>
           <div class="divider"></div>
-          <p class="muted">Data de entrega: {{ record.deliveryDate | date: 'longDate' }}</p>
+          <p class="muted">Data de entrega: {{ record.deliveryDate | date: 'longDate' : undefined : 'pt-BR' }}</p>
           <p class="muted" *ngIf="record.notes">Observações: {{ record.notes }}</p>
         </div>
       </div>
