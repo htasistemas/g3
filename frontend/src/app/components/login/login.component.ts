@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AssistanceUnitService } from '../../services/assistance-unit.service';
 
 @Component({
   selector: 'app-login',
@@ -12,26 +11,16 @@ import { AssistanceUnitService } from '../../services/assistance-unit.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   nomeUsuario = 'admin';
   senha = '123';
   loading = false;
   error: string | null = null;
-  unidadeLogomarca: string | null = null;
-  unidadeNome: string | undefined;
 
   constructor(
     private readonly auth: AuthService,
-    private readonly router: Router,
-    private readonly assistanceUnitService: AssistanceUnitService
+    private readonly router: Router
   ) {}
-
-  ngOnInit(): void {
-    this.assistanceUnitService.get().subscribe(({ unidade }) => {
-      this.unidadeLogomarca = unidade?.logomarca || null;
-      this.unidadeNome = unidade?.nomeFantasia;
-    });
-  }
 
   submit(): void {
     this.error = null;

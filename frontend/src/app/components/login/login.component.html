@@ -89,54 +89,19 @@
       <!-- Aside section -->
       <div class="login-hero text-white relative">
         <div class="grid-overlay" aria-hidden="true"></div>
-        <div class="hero-centered-logo" aria-hidden="true">
-          <div
-            class="hero-centered-logo__badge"
-            [class.hero-centered-logo__badge--default]="!unidadeLogomarca"
-          >
-            <ng-container *ngIf="unidadeLogomarca; else defaultCenteredMark">
-              <img [src]="unidadeLogomarca" [alt]="unidadeNome || 'Logomarca da unidade'" />
-            </ng-container>
-            <ng-template #defaultCenteredMark>
-              <svg viewBox="0 0 24 24" aria-hidden="true" class="h-12 w-12 text-white/80">
-                <path
-                  fill="currentColor"
-                  d="M5.25 5.5A2.75 2.75 0 0 1 8 2.75h8A2.75 2.75 0 0 1 18.75 5.5v5.08a7 7 0 0 1-1.68 4.55l-3.6 4.14a1.75 1.75 0 0 1-2.54 0l-3.6-4.14A7 7 0 0 1 5.25 10.58Zm2.7 1.25a.75.75 0 0 0-1.2.9l1.16 1.54a2.5 2.5 0 0 0 3.7.4l.38-.34.36.34a2.5 2.5 0 0 0 3.7-.4l1.16-1.54a.75.75 0 1 0-1.2-.9l-1.16 1.53a1 1 0 0 1-1.47.16l-.73-.67a.75.75 0 0 0-1.02 0l-.73.67a1 1 0 0 1-1.47-.16Z"
-                />
-              </svg>
-            </ng-template>
-          </div>
-        </div>
-        <div class="hero-content absolute inset-0 flex flex-col justify-between p-8 lg:p-12">
-          <div class="flex items-start gap-4">
-            <div class="flex items-center gap-3">
-              <ng-container *ngIf="unidadeLogomarca; else defaultLogo">
-                <div class="logo-badge bg-white">
-                  <img [src]="unidadeLogomarca" [alt]="unidadeNome || 'Logomarca da unidade'" />
-                </div>
-              </ng-container>
-              <ng-template #defaultLogo>
-                <div class="logo-badge logo-badge--default">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" class="h-6 w-6">
-                    <path
-                      fill="currentColor"
-                      d="M12 3.5A3.5 3.5 0 0 0 8.5 7v1.19A4 4 0 0 0 6 12v2.8a3.7 3.7 0 0 0 2.2 3.37l2.9 1.28a3 3 0 0 0 2.4 0l2.3-.98a3.7 3.7 0 0 0 2.2-3.38V12a4 4 0 0 0-2.5-3.7V7A3.5 3.5 0 0 0 12 3.5Zm0 2a1.5 1.5 0 0 1 1.5 1.5v.65a3.99 3.99 0 0 0-3 0V7A1.5 1.5 0 0 1 12 5.5Zm-4 6.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2.05l-.44 1.77a1.7 1.7 0 0 1-1 .97L12 18.5l-3.3-1.35a1.7 1.7 0 0 1-1-.97L7 14.05Zm3.16 3.58 1.68-.73 1.7.73a.75.75 0 1 0 .6-1.37l-1.38-.59v-1.67a.75.75 0 1 0-1.5 0v1.67l-1.38.6a.75.75 0 0 0 .6 1.36Z"
-                    />
-                  </svg>
-                </div>
-              </ng-template>
-              <div>
-                <p class="text-sm font-medium">{{ unidadeNome || 'Unidade assistencial' }}</p>
-                <p class="text-xs text-white/70">Personalização da tela de acesso</p>
-              </div>
-            </div>
+        <div class="hero-content absolute inset-0 flex flex-col gap-6 p-8 lg:p-12">
+          <div class="hero-visual">
+            <img
+              src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80"
+              alt="Profissionais de assistência social apoiando uma família"
+            />
           </div>
 
           <div class="hero-cta text-center flex flex-col items-center gap-4">
             <div class="space-y-3">
-              <h2 class="text-3xl font-semibold leading-tight">Ainda não possui uma conta?</h2>
+              <h2 class="text-3xl font-semibold leading-tight">Cuidando das pessoas que importam</h2>
               <p class="text-sm text-white/80 leading-relaxed">
-                Crie agora mesmo sua conta. É rápido e fácil.
+                Acesse sua conta ou crie um acesso para acompanhar ações de assistência social.
               </p>
             </div>
             <button
