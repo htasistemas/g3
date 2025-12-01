@@ -128,7 +128,10 @@
       <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
     </div>
 
-    <section class="list-panel">
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+  </div>
+
+    <section class="list-panel" *ngIf="activeTab === 'dados'">
       <div class="list-panel__header">
         <div>
           <p class="list-panel__eyebrow">Base cadastrada</p>
@@ -205,9 +208,6 @@
         </ng-template>
       </div>
     </section>
-
-    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
-  </div>
 
     <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
       <div class="tab-card__header">
