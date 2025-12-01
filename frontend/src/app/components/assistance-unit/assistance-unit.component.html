@@ -2,16 +2,16 @@
   <header class="page-title">
     <p class="page-title__eyebrow">Unidade assistencial</p>
     <p class="page-title__label">Cadastro da unidade</p>
-    <p class="page-title__hint">Navegue pelas abas para preencher os dados institucionais.</p>
   </header>
 
   <div class="tab-shell">
     <p class="tab-shell__title">Navegação por etapas</p>
     <ol class="step-tabs" role="tablist">
       <li
-        *ngFor="let tab of tabs"
+        *ngFor="let tab of tabs; index as idx"
         class="step-tabs__item"
         [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
         [attr.data-tab]="tab.id"
       >
         <button
@@ -21,6 +21,7 @@
           [attr.aria-selected]="activeTab === tab.id"
           (click)="changeTab(tab.id)"
         >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
           <span class="step-tabs__label">{{ tab.label }}</span>
         </button>
       </li>
@@ -40,7 +41,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
-          <h3>Dados da unidade</h3>
           <p class="muted">Informações institucionais e contatos principais.</p>
         </div>
       </div>
@@ -106,7 +106,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
-          <h3>Endereço da unidade</h3>
           <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
@@ -153,7 +152,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('imagens') }}</p>
-          <h3>Imagens da unidade</h3>
           <p class="muted">Inclua logomarcas e versões para relatórios.</p>
         </div>
       </div>
@@ -205,7 +203,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('diretoria') }}</p>
-          <h3>Diretoria da unidade</h3>
           <p class="muted">Dados do responsável e período de mandato.</p>
         </div>
       </div>

@@ -104,6 +104,10 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     this.clearFeedbackTimeout();
   }
 
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
