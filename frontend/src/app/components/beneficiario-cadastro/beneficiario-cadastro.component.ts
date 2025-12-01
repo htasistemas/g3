@@ -14,6 +14,10 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
+import {
+  AssistanceUnitPayload,
+  AssistanceUnitService
+} from '../../services/assistance-unit.service';
 import { Subject, firstValueFrom } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 type ViaCepResponse = {
@@ -45,6 +49,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
+  assistanceUnit: AssistanceUnitPayload | null = null;
   genderIdentityOptions = [
     'Mulher cisgênero',
     'Homem cisgênero',
@@ -288,7 +293,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly beneficiaryService: BeneficiaryService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
+    private readonly assistanceUnitService: AssistanceUnitService
   ) {
     this.searchForm = this.fb.group({
       nome: [''],
@@ -411,6 +417,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadAssistanceUnit(): void {
+    this.assistanceUnitService.get().subscribe({
+      next: ({ unidade }) => {
+        this.assistanceUnit = unidade ?? null;
+      },
+      error: () => {
+        this.assistanceUnit = null;
+      }
+    });
+  }
+
   goToNextTab(): void {
     if (!this.hasNextTab) return;
 
@@ -428,6 +445,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadRequiredDocuments();
+    this.loadAssistanceUnit();
     this.watchBirthDate();
     this.setupNationalityAutomation();
     this.watchStatusChanges();
@@ -664,6 +682,16 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  saveStatusChange(): void {
+    if (this.saving) return;
+    if (!this.beneficiarioId) {
+      this.feedback = 'Selecione um beneficiário salvo para atualizar o status.';
+      return;
+    }
+
+    this.submit();
+  }
+
   private isOutdatedDate(dateValue?: string | null): boolean {
     if (!dateValue) return false;
     const date = new Date(dateValue);
@@ -742,7 +770,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       if (!dateControl?.value) {
         dateControl?.setValue(this.getCurrentLocalDateTime());
       }
-      this.printLgpdTerms();
+      this.printConsentDocument();
     } else {
       dateControl?.setValue('');
     }
@@ -755,36 +783,59 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return local.toISOString().slice(0, 16);
   }
 
-  private printLgpdTerms(): void {
-    const documentWindow = window.open('', '_blank', 'width=800,height=900');
+  printConsentDocument(): void {
+    const documentWindow = window.open('', '_blank', 'width=900,height=1100');
+    if (!documentWindow) return;
+
+    documentWindow.document.write(this.buildConsentHtml());
+    documentWindow.document.close();
+    documentWindow.focus();
+    documentWindow.print();
+  }
+
+  printBeneficiaryList(): void {
+    if (!this.filteredBeneficiarios.length) {
+      this.feedback = 'Nenhum beneficiário encontrado para imprimir.';
+      return;
+    }
+
+    const rows = this.filteredBeneficiarios
+      .map((beneficiario) => {
+        const birth = this.formatDate(beneficiario.data_nascimento);
+        return `
+          <tr>
+            <td>${beneficiario.nome_completo || beneficiario.nome_social || '---'}</td>
+            <td>${beneficiario.cpf || beneficiario.nis || '---'}</td>
+            <td>${birth}</td>
+            <td>${this.formatStatusLabel(beneficiario.status)}</td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    const documentWindow = window.open('', '_blank', 'width=1000,height=900');
     if (!documentWindow) return;
 
     documentWindow.document.write(`
       <html>
         <head>
-          <title>Termo de autorização</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; line-height: 1.6; }
-            h1 { color: #0f766e; }
-            h2 { margin-top: 24px; color: #0ea5e9; }
-            p { margin: 12px 0; }
-            ul { margin: 12px 0 24px; padding-left: 20px; }
-          </style>
+          <title>Relação de beneficiários</title>
+          ${this.printStyles()}
         </head>
         <body>
-          <h1>Termo de autorização e consentimento</h1>
-          <h2>Autorização de imagem</h2>
-          <p>Autorizo a instituição a coletar, armazenar e utilizar imagem para fins institucionais e de registro de atendimento.</p>
-          <h2>Tratamento de dados pessoais (LGPD)</h2>
-          <ul>
-            <li>Confirmo o conhecimento sobre a finalidade do tratamento de dados.</li>
-            <li>Sei que posso solicitar revisão, correção ou exclusão dos meus dados pessoais.</li>
-            <li>Autorizo o compartilhamento estritamente necessário com órgãos públicos ou parceiros ligados às políticas sociais.</li>
-          </ul>
-          <h2>Autorização de envio de dados</h2>
-          <p>Autorizo o envio das informações para a instituição e sistemas integrados (e-SUS, OSCIP e assistência social) para fins de acompanhamento.</p>
-          <p>__________________________________________</p>
-          <p>Assinatura do beneficiário ou responsável</p>
+          <h1>Relação de beneficiários</h1>
+          <p class="muted">Dados gerados em ${this.formatDate(new Date().toISOString())}</p>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Documento/NIS</th>
+                <th>Nascimento</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
         </body>
       </html>
     `);
@@ -792,6 +843,215 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     documentWindow.document.close();
     documentWindow.focus();
     documentWindow.print();
+  }
+
+  printIndividualRecord(): void {
+    const value = this.form.value as any;
+    const personal = value.dadosPessoais ?? {};
+    const address = value.endereco ?? {};
+    const contact = value.contato ?? {};
+    const documents = value.documentos ?? {};
+
+    const documentWindow = window.open('', '_blank', 'width=1000,height=1200');
+    if (!documentWindow) return;
+
+    documentWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha individual do beneficiário</title>
+          ${this.printStyles()}
+        </head>
+        <body>
+          <h1>Ficha individual do beneficiário</h1>
+          <section>
+            <h2>Dados pessoais</h2>
+            <ul class="detail-list">
+              <li><strong>Nome:</strong> ${personal.nome_completo || '---'}</li>
+              <li><strong>Nome social:</strong> ${personal.nome_social || '---'}</li>
+              <li><strong>Apelido:</strong> ${personal.apelido || '---'}</li>
+              <li><strong>Data de nascimento:</strong> ${this.formatDate(personal.data_nascimento)}</li>
+              <li><strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</li>
+              <li><strong>Nome do pai:</strong> ${personal.nome_pai || '---'}</li>
+              <li><strong>Sexo biológico:</strong> ${personal.sexo_biologico || '---'}</li>
+              <li><strong>Identidade de gênero:</strong> ${personal.identidade_genero || '---'}</li>
+              <li><strong>Estado civil:</strong> ${personal.estado_civil || '---'}</li>
+              <li><strong>Nacionalidade:</strong> ${personal.nacionalidade || '---'}</li>
+              <li><strong>Naturalidade:</strong> ${this.formatCity(personal.naturalidade_cidade, personal.naturalidade_uf)}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Documentos</h2>
+            <ul class="detail-list">
+              <li><strong>CPF:</strong> ${documents.cpf || '---'}</li>
+              <li><strong>RG:</strong> ${documents.rg_numero || '---'}</li>
+              <li><strong>Órgão emissor:</strong> ${documents.rg_orgao_emissor || '---'}</li>
+              <li><strong>UF emissor:</strong> ${documents.rg_uf || '---'}</li>
+              <li><strong>Data emissão RG:</strong> ${this.formatDate(documents.rg_data_emissao)}</li>
+              <li><strong>NIS:</strong> ${documents.nis || '---'}</li>
+              <li><strong>Certidão:</strong> ${documents.certidao_tipo || '---'} ${documents.certidao_livro || ''} ${documents.certidao_folha || ''} ${documents.certidao_termo || ''}</li>
+              <li><strong>Título de eleitor:</strong> ${documents.titulo_eleitor || '---'}</li>
+              <li><strong>CNH:</strong> ${documents.cnh || '---'}</li>
+              <li><strong>Cartão SUS:</strong> ${documents.cartao_sus || '---'}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Endereço</h2>
+            <p>${this.formatAddress(address)}</p>
+            <ul class="detail-list">
+              <li><strong>Zona:</strong> ${address.zona || '---'}</li>
+              <li><strong>Situação do imóvel:</strong> ${address.situacao_imovel || '---'}</li>
+              <li><strong>Tipo de moradia:</strong> ${address.tipo_moradia || '---'}</li>
+              <li><strong>Infraestrutura:</strong> Água encanada ${this.formatBoolean(address.agua_encanada)}, Esgoto ${address.esgoto_tipo || '---'}, Coleta de lixo ${address.coleta_lixo || '---'}, Energia elétrica ${this.formatBoolean(address.energia_eletrica)}, Internet ${this.formatBoolean(address.internet)}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Contato</h2>
+            <ul class="detail-list">
+              <li><strong>Telefone principal:</strong> ${contact.telefone_principal || '---'}</li>
+              <li><strong>WhatsApp:</strong> ${this.formatBoolean(contact.telefone_principal_whatsapp)}</li>
+              <li><strong>Telefone secundário:</strong> ${contact.telefone_secundario || '---'}</li>
+              <li><strong>Contato para recado:</strong> ${contact.telefone_recado_nome || '---'} (${contact.telefone_recado_numero || '---'})</li>
+              <li><strong>Email:</strong> ${contact.email || '---'}</li>
+              <li><strong>Preferência de contato:</strong> ${contact.horario_preferencial_contato || '---'}</li>
+              <li><strong>Autorizações:</strong> Tel ${this.formatBoolean(contact.permite_contato_tel)} | WhatsApp ${this.formatBoolean(contact.permite_contato_whatsapp)} | SMS ${this.formatBoolean(contact.permite_contato_sms)} | Email ${this.formatBoolean(contact.permite_contato_email)}</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Status e observações</h2>
+            <ul class="detail-list">
+              <li><strong>Status:</strong> ${this.formatStatusLabel(value.status)}</li>
+              <li><strong>Motivo do bloqueio:</strong> ${value.motivo_bloqueio || '---'}</li>
+              <li><strong>Observações:</strong> ${(value.observacoes?.observacoes || '---')}</li>
+            </ul>
+          </section>
+
+          <p class="muted">Gerado em ${this.formatDate(new Date().toISOString())}</p>
+        </body>
+      </html>
+    `);
+
+    documentWindow.document.close();
+    documentWindow.focus();
+    documentWindow.print();
+  }
+
+  private buildConsentHtml(): string {
+    const value = this.form.value as any;
+    const personal = value.dadosPessoais ?? {};
+    const documents = value.documentos ?? {};
+    const contact = value.contato ?? {};
+    const address = value.endereco ?? {};
+    const unit = this.assistanceUnit;
+
+    const today = this.formatDate(new Date().toISOString());
+    const beneficiaryName = personal.nome_completo || 'Beneficiário';
+
+    const institutionInfo = unit
+      ? `
+        <div class="card">
+          <h3>${unit.nomeFantasia || unit.razaoSocial || 'Instituição'}</h3>
+          <p><strong>CNPJ:</strong> ${unit.cnpj || '---'}</p>
+          <p><strong>Contato:</strong> ${unit.telefone || '---'} | ${unit.email || '---'}</p>
+          <p><strong>Endereço:</strong> ${this.formatInstitutionAddress(unit)}</p>
+          <p><strong>Responsável legal:</strong> ${unit.responsavelNome || '---'}</p>
+        </div>`
+      : '';
+
+    return `
+      <html>
+        <head>
+          <title>Termo de autorização e consentimento</title>
+          ${this.printStyles()}
+          <style>
+            .card { border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin: 12px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Termo de autorização, tratamento de dados e consentimento informado</h1>
+          <p class="muted">Documento emitido em ${today}</p>
+          ${institutionInfo}
+          <div class="card">
+            <h2>Identificação do beneficiário</h2>
+            <p><strong>Nome:</strong> ${beneficiaryName}</p>
+            <p><strong>CPF:</strong> ${documents.cpf || '---'} | <strong>RG:</strong> ${documents.rg_numero || '---'} | <strong>NIS:</strong> ${documents.nis || '---'}</p>
+            <p><strong>Data de nascimento:</strong> ${this.formatDate(personal.data_nascimento)} | <strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</p>
+            <p><strong>Endereço:</strong> ${this.formatAddress(address)}</p>
+            <p><strong>Contato:</strong> ${contact.telefone_principal || '---'} ${contact.email ? ' | ' + contact.email : ''}</p>
+          </div>
+          <h2>Objeto do consentimento</h2>
+          <p>Autorizo a coleta, utilização e armazenamento dos meus dados pessoais e sensíveis pela instituição acima identificada para fins de atendimento socioassistencial, registros administrativos, cumprimento de obrigações legais e prestação de contas junto a órgãos públicos.</p>
+          <h2>Cláusulas e esclarecimentos legais</h2>
+          <ul>
+            <li>Os dados serão tratados conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), respeitando princípios de finalidade, necessidade e transparência.</li>
+            <li>Imagens e registros poderão ser usados para identificação, segurança, comprovação de atendimento e divulgação institucional sem fins comerciais.</li>
+            <li>O compartilhamento de informações ocorrerá apenas quando indispensável para políticas públicas, programas sociais e convênios, garantindo sigilo e segurança.</li>
+            <li>Tenho ciência de que posso solicitar acesso, correção ou eliminação de dados, bem como revogar este consentimento a qualquer tempo, exceto quando houver fundamento legal para sua manutenção.</li>
+            <li>Declaro ter sido informado(a) sobre a guarda segura dos dados, prazos de retenção e canais para exercício dos meus direitos.</li>
+          </ul>
+          <h2>Autorização expressa</h2>
+          <p>Autorizo o tratamento descrito, assumindo responsabilidade pela veracidade das informações prestadas, e permito o uso da minha assinatura e identificação em registros físicos ou digitais necessários aos serviços prestados.</p>
+          <div class="signature">
+            <p>${beneficiaryName}</p>
+            <p class="muted">${today}</p>
+            <p class="muted">Assinatura do beneficiário ou responsável</p>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private printStyles(): string {
+    return `
+      <style>
+        body { font-family: Arial, sans-serif; padding: 24px; line-height: 1.6; color: #0f172a; }
+        h1 { color: #0f766e; margin-bottom: 8px; }
+        h2 { margin-top: 20px; color: #0ea5e9; }
+        h3 { margin: 8px 0; color: #0f172a; }
+        p { margin: 6px 0; }
+        .muted { color: #64748b; }
+        ul { padding-left: 18px; }
+        ul li { margin: 6px 0; }
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+        .detail-list { list-style: none; padding: 0; margin: 0; }
+        .detail-list li { margin: 6px 0; }
+        .signature { margin-top: 40px; text-align: center; }
+      </style>
+    `;
+  }
+
+  private formatInstitutionAddress(unit: AssistanceUnitPayload): string {
+    const parts = [unit.endereco, unit.numeroEndereco, unit.bairro, unit.cidade, unit.estado, unit.cep]
+      .filter(Boolean)
+      .join(', ');
+    return parts || '---';
+  }
+
+  private formatAddress(address: any): string {
+    const parts = [address.logradouro, address.numero, address.bairro, address.municipio, address.uf, address.cep]
+      .filter(Boolean)
+      .join(', ');
+    return parts || '---';
+  }
+
+  private formatCity(city?: string, uf?: string): string {
+    if (!city && !uf) return '---';
+    return [city, uf].filter(Boolean).join(' - ');
+  }
+
+  private formatBoolean(value?: boolean): string {
+    return value ? 'Sim' : 'Não';
+  }
+
+  private formatDate(value?: string | null): string {
+    if (!value) return '---';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '---';
+    return date.toLocaleDateString('pt-BR');
   }
 
   changeTab(tab: string) {
@@ -881,28 +1141,35 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.blockReasonModalOpen = true;
       return;
     }
-    this.saving = true;
-    const payload = await this.toPayload(statusForSave);
-    const isDuplicate = await this.hasDuplicate(payload);
-    if (isDuplicate) {
-      this.saving = false;
-      return;
-    }
-    const request = this.beneficiarioId
-      ? this.service.update(this.beneficiarioId, payload)
-      : this.service.create(payload);
 
-    request.subscribe({
-      next: () => {
-        this.feedback = 'Registro salvo com sucesso';
+    this.saving = true;
+
+    try {
+      const payload = await this.toPayload(statusForSave);
+      const isDuplicate = await this.hasDuplicate(payload);
+      if (isDuplicate) {
         this.saving = false;
-        this.router.navigate(['/cadastros/beneficiarios']);
-      },
-      error: (error) => {
-        this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
-        this.saving = false;
+        return;
       }
-    });
+
+      const request = this.beneficiarioId
+        ? this.service.update(this.beneficiarioId, payload)
+        : this.service.create(payload);
+
+      request.pipe(finalize(() => (this.saving = false))).subscribe({
+        next: () => {
+          this.feedback = 'Registro salvo com sucesso';
+          this.router.navigate(['/cadastros/beneficiarios']);
+        },
+        error: (error) => {
+          this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao preparar salvamento', error);
+      this.feedback = 'Não foi possível salvar o beneficiário. Tente novamente.';
+      this.saving = false;
+    }
   }
 
   private async toPayload(statusForSave: BeneficiarioApiPayload['status']): Promise<BeneficiarioApiPayload> {
@@ -1079,15 +1346,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     this.service
       .list({ nome: nome || undefined, cpf: cpf || undefined, nis: nis || undefined })
+      .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }) => {
           this.beneficiarios = beneficiarios ?? [];
           this.applyListFilters();
-          this.listLoading = false;
         },
         error: () => {
           this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
-          this.listLoading = false;
         }
       });
   }

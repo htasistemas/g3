@@ -37,6 +37,13 @@
   color: #0f172a;
 }
 
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .tab-shell {
   background: #fff;
   border-radius: 14px;
