@@ -44,8 +44,86 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   beneficiaryAge: number | null = null;
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
+  genderIdentityOptions = [
+    'Mulher cisgênero',
+    'Homem cisgênero',
+    'Mulher transgênero',
+    'Homem transgênero',
+    'Pessoa não binária',
+    'Travesti',
+    'Gênero fluido',
+    'Outro',
+    'Prefiro não informar'
+  ];
+  maritalStatusOptions = [
+    'Solteiro(a)',
+    'Casado(a)',
+    'União estável',
+    'Separado(a)',
+    'Divorciado(a)',
+    'Viúvo(a)'
+  ];
+  nationalityOptions = [
+    'Afegã(o)',
+    'Alemã(o)',
+    'Angolana(o)',
+    'Argentina(o)',
+    'Australiana(o)',
+    'Belga',
+    'Boliviana(o)',
+    'Brasileira',
+    'Brasileiro',
+    'Canadense',
+    'Chilena(o)',
+    'Chinesa(o)',
+    'Colombiana(o)',
+    'Coreana(o)',
+    'Costa-riquenha(o)',
+    'Cubana(o)',
+    'Dinamarquesa(o)',
+    'Egípcia(o)',
+    'Espanhola(o)',
+    'Estadunidense',
+    'Filipina(o)',
+    'Finlandesa(o)',
+    'Francesa(o)',
+    'Grega(o)',
+    'Haitiana(o)',
+    'Holandesa(o)',
+    'Indiana(o)',
+    'Inglesa(o)',
+    'Iraniana(o)',
+    'Iraquiana(o)',
+    'Irlandesa(o)',
+    'Israelense',
+    'Italiana(o)',
+    'Japonesa(e)',
+    'Marroquina(o)',
+    'Mexicana(o)',
+    'Moçambicana(o)',
+    'Norueguesa(o)',
+    'Paraguaia(o)',
+    'Peruana(o)',
+    'Polonesa(o)',
+    'Portuguesa(o)',
+    'Russa(o)',
+    'Senegalesa(o)',
+    'Sul-africana(o)',
+    'Sueca(o)',
+    'Suíça(o)',
+    'Turca(o)',
+    'Uruguaia(o)',
+    'Venezuelana(o)'
+  ];
   listLoading = false;
   listError: string | null = null;
+  preferredContactOptions = [
+    { value: 'MANHA', label: 'Manhã' },
+    { value: 'TARDE', label: 'Tarde' },
+    { value: 'NOITE', label: 'Noite' },
+    { value: 'COMERCIAL', label: 'Horário comercial' },
+    { value: 'QUALQUER', label: 'Qualquer horário' }
+  ];
   statusOptions: BeneficiarioApiPayload['status'][] = [
     'ATIVO',
     'INATIVO',
@@ -62,6 +140,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   cameraActive = false;
   captureError: string | null = null;
   cepLookupError: string | null = null;
+  situacaoImovelOptions = ['Próprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupação', 'Outro'];
+  tipoMoradiaOptions = ['Casa', 'Apartamento', 'Cômodo', 'Barraco', 'Casa de madeira', 'Sítio/Chácara', 'Outro'];
+  private isUpdatingNationality = false;
+  private nationalityManuallyChanged = false;
   private videoStream?: MediaStream;
   private readonly destroy$ = new Subject<void>();
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
@@ -200,7 +282,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         ponto_referencia: [''],
         municipio: [''],
         uf: [''],
-        zona: [''],
+        zona: ['URBANA'],
         situacao_imovel: [''],
         tipo_moradia: [''],
         agua_encanada: [false],
@@ -215,7 +297,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         telefone_secundario: [''],
         telefone_recado_nome: [''],
         telefone_recado_numero: [''],
-        email: [''],
+        email: ['', [Validators.email]],
         permite_contato_tel: [true],
         permite_contato_whatsapp: [true],
         permite_contato_sms: [false],
@@ -223,7 +305,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         horario_preferencial_contato: ['']
       }),
       documentos: this.fb.group({
-        cpf: [''],
+        cpf: ['', [Validators.required, this.cpfValidator]],
         rg_numero: [''],
         rg_orgao_emissor: [''],
         rg_uf: [''],
@@ -301,6 +383,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRequiredDocuments();
     this.watchBirthDate();
+    this.setupNationalityAutomation();
     this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
     this.searchBeneficiaries();
@@ -317,6 +400,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           this.photoPreview = beneficiario.foto_3x4 ?? null;
           this.lastStatus = beneficiario.status ?? 'ATIVO';
           this.previousStatusBeforeBlock = this.lastStatus;
+          this.nationalityManuallyChanged = !!beneficiario.nacionalidade;
           this.applyLoadedDocuments(beneficiario.documentosObrigatorios);
         });
       }
@@ -363,7 +447,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         ponto_referencia: beneficiario.ponto_referencia,
         municipio: beneficiario.municipio,
         uf: beneficiario.uf,
-        zona: beneficiario.zona,
+        zona: beneficiario.zona || 'URBANA',
         situacao_imovel: beneficiario.situacao_imovel,
         tipo_moradia: beneficiario.tipo_moradia,
         agua_encanada: beneficiario.agua_encanada,
@@ -373,11 +457,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         internet: beneficiario.internet
       },
       contato: {
-        telefone_principal: beneficiario.telefone_principal,
+        telefone_principal: this.formatPhoneValue(beneficiario.telefone_principal),
         telefone_principal_whatsapp: beneficiario.telefone_principal_whatsapp,
-        telefone_secundario: beneficiario.telefone_secundario,
+        telefone_secundario: this.formatPhoneValue(beneficiario.telefone_secundario),
         telefone_recado_nome: beneficiario.telefone_recado_nome,
-        telefone_recado_numero: beneficiario.telefone_recado_numero,
+        telefone_recado_numero: this.formatPhoneValue(beneficiario.telefone_recado_numero),
         email: beneficiario.email,
         permite_contato_tel: beneficiario.permite_contato_tel,
         permite_contato_whatsapp: beneficiario.permite_contato_whatsapp,
@@ -386,7 +470,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         horario_preferencial_contato: beneficiario.horario_preferencial_contato
       },
       documentos: {
-        cpf: beneficiario.cpf,
+        cpf: this.formatCpf(beneficiario.cpf),
         rg_numero: beneficiario.rg_numero,
         rg_orgao_emissor: beneficiario.rg_orgao_emissor,
         rg_uf: beneficiario.rg_uf,
@@ -605,6 +689,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   changeTab(tab: string) {
+    const documentsIndex = this.tabs.findIndex((item) => item.id === 'documentos');
+    const targetIndex = this.tabs.findIndex((item) => item.id === tab);
+    const cpfControl = this.form.get(['documentos', 'cpf']);
+
+    if (documentsIndex >= 0 && targetIndex > documentsIndex && (cpfControl?.invalid || !cpfControl?.value)) {
+      this.feedback = 'Informe um CPF válido antes de continuar.';
+      cpfControl?.markAsTouched();
+      this.form.get('documentos')?.markAllAsTouched();
+      this.activeTab = 'documentos';
+      return;
+    }
+
     this.activeTab = tab;
   }
 
@@ -652,6 +748,16 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       ...(value.endereco as any),
       cep: this.normalizeCep(value.endereco?.cep as string)
     };
+    const contato = {
+      ...(value.contato as any),
+      telefone_principal: this.normalizePhone(value.contato?.telefone_principal as string),
+      telefone_secundario: this.normalizePhone(value.contato?.telefone_secundario as string),
+      telefone_recado_numero: this.normalizePhone(value.contato?.telefone_recado_numero as string)
+    };
+    const documentos = {
+      ...(value.documentos as any),
+      cpf: this.normalizeCpf(value.documentos?.cpf as string)
+    };
 
     return {
       status: value.status,
@@ -659,8 +765,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       foto_3x4: value.foto_3x4,
       ...(value.dadosPessoais as any),
       ...(endereco as any),
-      ...(value.contato as any),
-      ...(value.documentos as any),
+      ...(contato as any),
+      ...(documentos as any),
       ...(value.familiar as any),
       ...(value.escolaridade as any),
       ...(value.saude as any),
@@ -710,6 +816,36 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
       this.calculateAge(value as string);
     });
+  }
+
+  private setupNationalityAutomation(): void {
+    const nationalityControl = this.form.get(['dadosPessoais', 'nacionalidade']);
+    const sexControl = this.form.get(['dadosPessoais', 'sexo_biologico']);
+
+    nationalityControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      if (this.isUpdatingNationality) return;
+      this.nationalityManuallyChanged = true;
+    });
+
+    sexControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((sex) => {
+      this.applyNationalityDefault(sex as string | null);
+    });
+
+    this.applyNationalityDefault(sexControl?.value as string | null);
+  }
+
+  private applyNationalityDefault(sex: string | null | undefined): void {
+    const nationalityControl = this.form.get(['dadosPessoais', 'nacionalidade']);
+    if (!nationalityControl) return;
+
+    if (this.nationalityManuallyChanged && nationalityControl.value) return;
+
+    const suggested =
+      sex === 'FEMININO' ? 'Brasileira' : sex === 'MASCULINO' ? 'Brasileiro' : nationalityControl.value || '';
+
+    this.isUpdatingNationality = true;
+    nationalityControl.setValue(suggested, { emitEvent: false });
+    this.isUpdatingNationality = false;
   }
 
   private calculateAge(dateValue: string | null): void {
@@ -823,7 +959,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.service.delete(beneficiario.id_beneficiario).subscribe({
       next: () => {
         if (this.beneficiarioId === beneficiario.id_beneficiario) {
-          this.form.reset({ status: 'ATIVO', motivo_bloqueio: '', foto_3x4: '' });
+          this.form.reset({ status: 'ATIVO', motivo_bloqueio: '', foto_3x4: '', endereco: { zona: 'URBANA' } });
           this.beneficiarioId = null;
           this.photoPreview = null;
         }
@@ -942,6 +1078,57 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return (value ?? '').trim().toLowerCase();
   }
 
+  onCpfInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 11);
+    const formatted = this.formatCpf(digits);
+
+    this.form.get(['documentos', 'cpf'])?.setValue(formatted, { emitEvent: false });
+    input.value = formatted;
+  }
+
+  onPhoneInput(event: Event, controlName: 'telefone_principal' | 'telefone_secundario' | 'telefone_recado_numero'): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 11);
+    const formatted = this.formatPhoneValue(digits);
+
+    this.form.get(['contato', controlName])?.setValue(formatted, { emitEvent: false });
+    input.value = formatted;
+  }
+
+  private formatPhoneValue(value?: string | null): string {
+    const digits = (value ?? '').replace(/\D/g, '').slice(0, 11);
+    if (!digits) return '';
+
+    const hasNineDigits = digits.length > 10;
+    const part1 = digits.slice(0, 2);
+    const part2 = digits.slice(2, hasNineDigits ? 7 : 6);
+    const part3 = digits.slice(hasNineDigits ? 7 : 6, hasNineDigits ? 11 : 10);
+
+    return part3 ? `(${part1}) ${part2}-${part3}` : part2 ? `(${part1}) ${part2}` : `(${part1}`;
+  }
+
+  private normalizePhone(value?: string | null): string | undefined {
+    const digits = (value ?? '').replace(/\D/g, '');
+    return digits || undefined;
+  }
+
+  private formatCpf(value?: string | null): string {
+    const digits = (value ?? '').replace(/\D/g, '').slice(0, 11);
+    if (!digits) return '';
+    const part1 = digits.slice(0, 3);
+    const part2 = digits.slice(3, 6);
+    const part3 = digits.slice(6, 9);
+    const part4 = digits.slice(9, 11);
+
+    return [part1, part2, part3].filter(Boolean).join('.') + (part4 ? `-${part4}` : '');
+  }
+
+  private normalizeCpf(value?: string | null): string | undefined {
+    const digits = (value ?? '').replace(/\D/g, '');
+    return digits || undefined;
+  }
+
   onCepInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 8);
@@ -1009,6 +1196,27 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const digits = (value ?? '').replace(/\D/g, '');
     return digits || undefined;
   }
+
+  private cpfValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value as string | null | undefined)?.replace(/\D/g, '') ?? '';
+
+    if (!value || value.length !== 11 || /^([0-9])\1*$/.test(value)) {
+      return { cpf: true };
+    }
+
+    const calculateDigit = (slice: number) => {
+      const numbers = value.slice(0, slice).split('').map(Number);
+      const factorStart = slice + 1;
+      const sum = numbers.reduce((acc, num, index) => acc + num * (factorStart - index), 0);
+      const remainder = (sum * 10) % 11;
+      return remainder === 10 ? 0 : remainder;
+    };
+
+    const digit1 = calculateDigit(9);
+    const digit2 = calculateDigit(10);
+
+    return digit1 === Number(value[9]) && digit2 === Number(value[10]) ? null : { cpf: true };
+  };
 
   private cepValidator = (control: AbstractControl): ValidationErrors | null => {
     const value = (control.value as string | null | undefined)?.replace(/\D/g, '') ?? '';

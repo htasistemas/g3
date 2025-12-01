@@ -108,7 +108,10 @@
             <option value="FEMININO">Feminino</option>
             <option value="OUTRO">Outro</option>
           </select></label>
-        <label class="field">Identidade de gênero<input formControlName="identidade_genero" /></label>
+        <label class="field">Identidade de gênero<select formControlName="identidade_genero">
+            <option value=""></option>
+            <option *ngFor="let option of genderIdentityOptions" [value]="option">{{ option }}</option>
+          </select></label>
         <label class="field">Cor/Raça<select formControlName="cor_raca">
             <option value=""></option>
             <option value="BRANCA">Branca</option>
@@ -118,12 +121,18 @@
             <option value="INDIGENA">Indígena</option>
             <option value="NAO_INFORMADO">Não informado</option>
           </select></label>
-        <label class="field">Estado civil<input formControlName="estado_civil" /></label>
-        <label class="field">Nacionalidade<input formControlName="nacionalidade" /></label>
-        <div class="field-grid cols-2 compact">
-        <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
-      </div>
+        <label class="field">Estado civil<select formControlName="estado_civil">
+            <option value=""></option>
+            <option *ngFor="let option of maritalStatusOptions" [value]="option">{{ option }}</option>
+          </select></label>
+        <div class="field-grid cols-3 compact full-span">
+          <label class="field">Nacionalidade<select formControlName="nacionalidade">
+              <option value=""></option>
+              <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
+            </select></label>
+          <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
+          <label class="field">Estado<input maxlength="2" formControlName="naturalidade_uf" /></label>
+        </div>
       <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
       <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
     </div>
@@ -233,16 +242,20 @@
         <label class="field">Bairro<input formControlName="bairro" /></label>
         <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
         <label class="field">Município<input formControlName="municipio" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
+        <label class="field">Estado<input maxlength="2" formControlName="uf" /></label>
         <label class="field">Zona<select formControlName="zona">
-            <option value=""></option>
             <option value="URBANA">Urbana</option>
             <option value="RURAL">Rural</option>
           </select></label>
-        <label class="field">Situação do imóvel<input formControlName="situacao_imovel" /></label>
-        <label class="field">Tipo de moradia<input formControlName="tipo_moradia" /></label>
-        <div class="feature-grid">
-          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
+        <label class="field">Situação do imóvel<select formControlName="situacao_imovel">
+            <option value=""></option>
+            <option *ngFor="let option of situacaoImovelOptions" [value]="option">{{ option }}</option>
+          </select></label>
+        <div class="field-grid cols-3 compact full-span">
+          <label class="field">Tipo de moradia<select formControlName="tipo_moradia">
+              <option value=""></option>
+              <option *ngFor="let option of tipoMoradiaOptions" [value]="option">{{ option }}</option>
+            </select></label>
           <label class="field">Esgoto<select formControlName="esgoto_tipo">
               <option value=""></option>
               <option value="REDE">Rede</option>
@@ -256,6 +269,9 @@
               <option value="IRREGULAR">Irregular</option>
               <option value="NAO_POSSUI">Não possui</option>
             </select></label>
+        </div>
+        <div class="feature-grid">
+          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="energia_eletrica" /> <span>Energia elétrica</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
         </div>
@@ -271,13 +287,20 @@
         </div>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">Telefone principal<input formControlName="telefone_principal" /></label>
-        <label class="field">Telefone secundário<input formControlName="telefone_secundario" /></label>
-        <label class="field">Email<input type="email" formControlName="email" /></label>
+        <label class="field">Telefone principal<input formControlName="telefone_principal" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_principal')" /></label>
+        <label class="field">Telefone secundário<input formControlName="telefone_secundario" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_secundario')" /></label>
+        <label class="field">Email<input type="email" formControlName="email" />
+          <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
+            Informe um e-mail válido.
+          </p>
+        </label>
         <label class="checkbox-field"><input type="checkbox" formControlName="telefone_principal_whatsapp" /> <span>Telefone principal tem WhatsApp</span></label>
         <label class="field">Nome para recado<input formControlName="telefone_recado_nome" /></label>
-        <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" /></label>
-        <label class="field">Horário preferencial<input formControlName="horario_preferencial_contato" /></label>
+        <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_recado_numero')" /></label>
+        <label class="field">Horário preferencial<select formControlName="horario_preferencial_contato">
+            <option value=""></option>
+            <option *ngFor="let option of preferredContactOptions" [value]="option.value">{{ option.label }}</option>
+          </select></label>
         <div class="feature-grid">
           <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_tel" /> <span>Permite contato telefônico</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_whatsapp" /> <span>Permite WhatsApp</span></label>
@@ -296,10 +319,14 @@
         </div>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CPF<input formControlName="cpf" /></label>
+        <label class="field">CPF*<input formControlName="cpf" (input)="onCpfInput($event)" />
+          <p class="field-error" *ngIf="form.get(['documentos', 'cpf'])?.invalid && form.get(['documentos', 'cpf'])?.touched">
+            Informe um CPF válido.
+          </p>
+        </label>
         <label class="field">RG número<input formControlName="rg_numero" /></label>
         <label class="field">Órgão emissor<input formControlName="rg_orgao_emissor" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="rg_uf" /></label>
+        <label class="field">Estado<input maxlength="2" formControlName="rg_uf" /></label>
         <label class="field">Data emissão<input type="date" formControlName="rg_data_emissao" /></label>
         <label class="field">NIS<input formControlName="nis" /></label>
         <label class="field">Certidão tipo<input formControlName="certidao_tipo" /></label>
@@ -308,7 +335,7 @@
         <label class="field">Termo<input formControlName="certidao_termo" /></label>
         <label class="field">Cartório<input formControlName="certidao_cartorio" /></label>
         <label class="field">Município<input formControlName="certidao_municipio" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="certidao_uf" /></label>
+        <label class="field">Estado<input maxlength="2" formControlName="certidao_uf" /></label>
         <label class="field">Título de eleitor<input formControlName="titulo_eleitor" /></label>
         <label class="field">CNH<input formControlName="cnh" /></label>
         <label class="field">Cartão SUS<input formControlName="cartao_sus" /></label>
