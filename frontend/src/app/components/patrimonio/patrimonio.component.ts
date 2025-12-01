@@ -21,6 +21,62 @@ import {
 import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
 import { finalize, timeout } from 'rxjs/operators';
 
+type AssetFormTextField =
+  | 'patrimonyNumber'
+  | 'name'
+  | 'category'
+  | 'subcategory'
+  | 'description'
+  | 'individualNumbers'
+  | 'acquisitionDate'
+  | 'origin'
+  | 'invoiceNumber'
+  | 'supplier'
+  | 'unit'
+  | 'room'
+  | 'address'
+  | 'responsibleName'
+  | 'responsibleContact'
+  | 'internalCode'
+  | 'observations'
+  | 'warranty'
+  | 'manualUrl'
+  | 'lastMovement'
+  | 'lastResponsible'
+  | 'lastMaintenance';
+
+interface AssetForm {
+  patrimonyNumber: string;
+  name: string;
+  category: string;
+  subcategory: string;
+  description: string;
+  conservation: string;
+  status: string;
+  quantity: number;
+  individualNumbers: string;
+  acquisitionDate: string;
+  acquisitionValue: number;
+  origin: string;
+  invoiceNumber: string;
+  supplier: string;
+  usefulLife: number;
+  depreciationStartDate: string;
+  depreciationRate: number;
+  unit: string;
+  room: string;
+  address: string;
+  responsibleName: string;
+  responsibleContact: string;
+  internalCode: string;
+  observations: string;
+  warranty: string;
+  manualUrl: string;
+  lastMovement: string;
+  lastResponsible: string;
+  lastMaintenance: string;
+}
+
 @Component({
   selector: 'app-patrimonio',
   standalone: true,
@@ -54,7 +110,7 @@ export class PatrimonioComponent implements OnInit {
     { label: 'Veículos', subcategories: ['Automóvel', 'Caminhão', 'Motocicleta'] }
   ];
 
-  assetForm = {
+  assetForm: AssetForm = {
     patrimonyNumber: '',
     name: '',
     category: '',
@@ -176,10 +232,10 @@ export class PatrimonioComponent implements OnInit {
     this.qrCodeValue = `QR-${this.assetForm.patrimonyNumber || 'PATRIMONIO'}-${uniqueSuffix}`;
   }
 
-  formatField(field: keyof typeof this.assetForm): void {
+  formatField(field: AssetFormTextField): void {
     const value = this.assetForm[field];
     if (typeof value === 'string') {
-      this.assetForm[field] = this.toProperCase(value) as typeof value;
+      this.assetForm[field] = this.toProperCase(value);
       this.updateCessionTermPreview();
     }
   }
@@ -419,7 +475,7 @@ export class PatrimonioComponent implements OnInit {
 
   private buildAssetSnapshot(): Patrimonio {
     return {
-      idPatrimonio: 0,
+      idPatrimonio: '',
       numeroPatrimonio: this.assetForm.patrimonyNumber,
       nome: this.assetForm.name,
       categoria: this.assetForm.category,
