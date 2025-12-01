@@ -44,6 +44,12 @@ export class AssistanceUnit {
   @Column({ name: 'logomarca', type: 'text', nullable: true })
   logomarca?: string;
 
+  @Column({ name: 'logomarca_relatorio', type: 'text', nullable: true })
+  logomarcaRelatorio?: string;
+
+  @Column({ name: 'horario_funcionamento', nullable: true })
+  horarioFuncionamento?: string;
+
   @Column({ name: 'responsavel_nome', nullable: true })
   responsavelNome?: string;
 

@@ -24,46 +24,48 @@
           </p>
         </div>
 
-        <div class="field-stack md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="logomarca">Logomarca (exibida na tela de login)</label>
-          <div class="flex flex-col md:flex-row md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <input
-                id="logomarca"
-                type="file"
-                accept="image/*"
-                class="input"
-                (change)="onLogoSelected($event)"
-              />
-              <button type="button" class="btn-outline" (click)="clearLogo()" *ngIf="logoPreview">Remover</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 compact-grid md:col-span-2">
+          <div class="field-stack">
+            <label class="text-sm font-medium text-slate-700" for="logomarca">Logomarca (exibida na tela de login)</label>
+            <div class="flex flex-col md:flex-row md:items-center gap-3">
+              <div class="flex items-center gap-3">
+                <input
+                  id="logomarca"
+                  type="file"
+                  accept="image/*"
+                  class="input"
+                  (change)="onLogoSelected($event)"
+                />
+                <button type="button" class="btn-outline" (click)="clearLogo()" *ngIf="logoPreview">Remover</button>
+              </div>
+              <div *ngIf="logoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
+                <img [src]="logoPreview" alt="Pré-visualização da logomarca" class="h-16 object-contain" />
+              </div>
             </div>
-            <div *ngIf="logoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-              <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
-              <img [src]="logoPreview" alt="Pré-visualização da logomarca" class="h-16 object-contain" />
-            </div>
+            <p class="text-xs text-slate-500">Imagens quadradas funcionam melhor na tela de login.</p>
           </div>
-          <p class="text-xs text-slate-500">Imagens quadradas funcionam melhor na tela de login.</p>
-        </div>
 
-        <div class="field-stack md:col-span-2">
-          <label class="text-sm font-medium text-slate-700" for="logomarcaRelatorio">Imagem para relatórios (PDF)</label>
-          <div class="flex flex-col md:flex-row md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <input
-                id="logomarcaRelatorio"
-                type="file"
-                accept="image/*"
-                class="input"
-                (change)="onReportLogoSelected($event)"
-              />
-              <button type="button" class="btn-outline" (click)="clearReportLogo()" *ngIf="reportLogoPreview">Remover</button>
+          <div class="field-stack">
+            <label class="text-sm font-medium text-slate-700" for="logomarcaRelatorio">Imagem para relatórios (PDF)</label>
+            <div class="flex flex-col md:flex-row md:items-center gap-3">
+              <div class="flex items-center gap-3">
+                <input
+                  id="logomarcaRelatorio"
+                  type="file"
+                  accept="image/*"
+                  class="input"
+                  (change)="onReportLogoSelected($event)"
+                />
+                <button type="button" class="btn-outline" (click)="clearReportLogo()" *ngIf="reportLogoPreview">Remover</button>
+              </div>
+              <div *ngIf="reportLogoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
+                <img [src]="reportLogoPreview" alt="Pré-visualização da imagem para relatórios" class="h-16 object-contain" />
+              </div>
             </div>
-            <div *ngIf="reportLogoPreview" class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-              <p class="text-xs text-slate-500 mb-2">Pré-visualização</p>
-              <img [src]="reportLogoPreview" alt="Pré-visualização da imagem para relatórios" class="h-16 object-contain" />
-            </div>
+            <p class="text-xs text-slate-500">Use uma versão horizontal ou em alta resolução para relatórios e PDFs.</p>
           </div>
-          <p class="text-xs text-slate-500">Use uma versão horizontal ou em alta resolução para relatórios e PDFs.</p>
         </div>
 
         <div class="field-stack md:col-span-2">
@@ -98,6 +100,17 @@
           <p *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-xs text-red-500">
             Informe um e-mail válido.
           </p>
+        </div>
+
+        <div class="field-stack md:col-span-2">
+          <label class="text-sm font-medium text-slate-700" for="horarioFuncionamento">Horário de funcionamento</label>
+          <input
+            id="horarioFuncionamento"
+            type="text"
+            formControlName="horarioFuncionamento"
+            class="input"
+            placeholder="Ex.: Segunda a sexta, das 8h às 17h"
+          />
         </div>
 
         <div class="field-stack">
@@ -163,8 +176,13 @@
             formControlName="responsavelCpf"
             class="input"
             placeholder="000.000.000-00"
+            inputmode="numeric"
+            maxlength="14"
             (input)="onCpfInput($event)"
           />
+          <p *ngIf="form.get('responsavelCpf')?.touched && form.get('responsavelCpf')?.invalid" class="text-xs text-red-500">
+            Informe um CPF válido.
+          </p>
         </div>
 
         <div class="field-stack">
@@ -220,6 +238,7 @@
       <p><span class="font-semibold">CNPJ:</span> {{ unidade.cnpj || 'Não informado' }}</p>
       <p><span class="font-semibold">Telefone:</span> {{ unidade.telefone || 'Não informado' }}</p>
       <p><span class="font-semibold">E-mail:</span> {{ unidade.email || 'Não informado' }}</p>
+      <p><span class="font-semibold">Horário de funcionamento:</span> {{ unidade.horarioFuncionamento || 'Não informado' }}</p>
       <p><span class="font-semibold">CEP:</span> {{ unidade.cep || 'Não informado' }}</p>
       <p><span class="font-semibold">Cidade/Estado:</span> {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}</p>
       <p><span class="font-semibold">Período de mandato:</span> {{ unidade.responsavelPeriodoMandato || 'Não informado' }}</p>

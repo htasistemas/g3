@@ -19,6 +19,7 @@ export interface AssistanceUnitPayload {
   observacoes?: string;
   logomarca?: string;
   logomarcaRelatorio?: string;
+  horarioFuncionamento?: string;
   responsavelNome?: string;
   responsavelCpf?: string;
   responsavelPeriodoMandato?: string;
