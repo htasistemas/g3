@@ -4,84 +4,6 @@
     <p class="page-title__label">Cadastro de beneficiário</p>
   </header>
 
-  <section class="list-panel">
-    <div class="list-panel__header">
-      <div>
-        <p class="list-panel__eyebrow">Base cadastrada</p>
-        <h2>Encontre beneficiários cadastrados</h2>
-        <p>Busque pelo nome, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
-      </div>
-      <div class="list-panel__actions">
-        <button type="button" class="ghost" (click)="searchForm.reset({ status: '' }); searchBeneficiaries()">
-          Limpar filtros
-        </button>
-        <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
-      </div>
-    </div>
-
-    <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
-      <label class="field">
-        Nome
-        <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
-      </label>
-      <label class="field">
-        CPF
-        <input type="text" formControlName="cpf" placeholder="Somente números" />
-      </label>
-      <label class="field">
-        NIS
-        <input type="text" formControlName="nis" placeholder="Somente números" />
-      </label>
-      <label class="field">
-        Status
-        <select formControlName="status">
-          <option value="">Todos</option>
-          <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
-        </select>
-      </label>
-      <div class="list-panel__filter-actions">
-        <button type="submit" class="primary">Aplicar filtros</button>
-      </div>
-    </form>
-
-    <div *ngIf="listError" class="feedback">{{ listError }}</div>
-    <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
-
-    <div class="list-panel__table" *ngIf="!listLoading">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Nascimento</th>
-            <th>Status</th>
-            <th class="text-right">Ações</th>
-          </tr>
-        </thead>
-        <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
-            <tr *ngFor="let beneficiario of filteredBeneficiarios">
-              <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
-            <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
-            <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
-            <td><span class="pill pill--status">{{ formatStatusLabel(beneficiario.status) }}</span></td>
-            <td class="text-right actions">
-              <button type="button" class="ghost" (click)="selectBeneficiario(beneficiario)">Selecionar</button>
-              <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>
-              <button type="button" class="danger" (click)="deleteBeneficiario(beneficiario)">Excluir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <ng-template #emptyList>
-        <tbody>
-          <tr>
-            <td colspan="5" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
-          </tr>
-        </tbody>
-      </ng-template>
-    </div>
-  </section>
-
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
@@ -199,14 +121,93 @@
         <label class="field">Estado civil<input formControlName="estado_civil" /></label>
         <label class="field">Nacionalidade<input formControlName="nacionalidade" /></label>
         <div class="field-grid cols-2 compact">
-          <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
-          <label class="field">UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
-        </div>
-        <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
-        <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
+        <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="naturalidade_uf" /></label>
       </div>
-      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
+      <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
     </div>
+
+    <section class="list-panel">
+      <div class="list-panel__header">
+        <div>
+          <p class="list-panel__eyebrow">Base cadastrada</p>
+          <h2>Encontre beneficiários cadastrados</h2>
+          <p>Busque pelo nome, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
+        </div>
+        <div class="list-panel__actions">
+          <button type="button" class="ghost" (click)="searchForm.reset({ status: '' }); searchBeneficiaries()">
+            Limpar filtros
+          </button>
+          <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
+        </div>
+      </div>
+
+      <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
+        <label class="field">
+          Nome
+          <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+        </label>
+        <label class="field">
+          CPF
+          <input type="text" formControlName="cpf" placeholder="Somente números" />
+        </label>
+        <label class="field">
+          NIS
+          <input type="text" formControlName="nis" placeholder="Somente números" />
+        </label>
+        <label class="field">
+          Status
+          <select formControlName="status">
+            <option value="">Todos</option>
+            <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+          </select>
+        </label>
+        <div class="list-panel__filter-actions">
+          <button type="submit" class="primary">Aplicar filtros</button>
+        </div>
+      </form>
+
+      <div *ngIf="listError" class="feedback">{{ listError }}</div>
+      <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
+
+      <div class="list-panel__table" *ngIf="!listLoading">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Nascimento</th>
+              <th>Status</th>
+              <th class="text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
+              <tr *ngFor="let beneficiario of filteredBeneficiarios">
+                <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
+              <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
+              <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
+              <td><span class="pill pill--status">{{ formatStatusLabel(beneficiario.status) }}</span></td>
+              <td class="text-right actions">
+                <button type="button" class="ghost" (click)="selectBeneficiario(beneficiario)">Selecionar</button>
+                <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>
+                <button type="button" class="danger" (click)="deleteBeneficiario(beneficiario)">Excluir</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #emptyList>
+          <tbody>
+            <tr>
+              <td colspan="5" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </div>
+    </section>
+
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+  </div>
 
     <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
       <div class="tab-card__header">
@@ -220,7 +221,12 @@
         </label>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+          <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
+            Informe um CEP válido com 8 dígitos.
+          </p>
+          <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
+        </label>
         <label class="field">Logradouro<input formControlName="logradouro" /></label>
         <label class="field">Número<input formControlName="numero" /></label>
         <label class="field">Complemento<input formControlName="complemento" /></label>
