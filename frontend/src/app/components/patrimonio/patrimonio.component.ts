@@ -24,6 +24,8 @@ import { finalize, timeout } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
+type AssetTabId = 'dados' | 'visual' | 'localizacao';
+
 type AssetFormTextField =
   | 'patrimonyNumber'
   | 'name'
@@ -103,6 +105,25 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   readonly faCloudArrowUp = faCloudArrowUp;
   readonly faTrash = faTrash;
 
+  assetTabs: { id: AssetTabId; label: string; description: string }[] = [
+    {
+      id: 'dados',
+      label: 'Dados do patrimônio',
+      description: 'Campos obrigatórios para identificação e classificação do bem.'
+    },
+    {
+      id: 'visual',
+      label: 'Identificação visual',
+      description: 'Foto, etiqueta e observações gerais para rastreabilidade.'
+    },
+    {
+      id: 'localizacao',
+      label: 'Localização e responsável',
+      description: 'Unidade, ambiente e responsável direto pelo patrimônio.'
+    }
+  ];
+
+  activeAssetTab: AssetTabId = 'dados';
   conservationOptions = ['Novo', 'Bom', 'Regular', 'Ruim', 'Inservível'];
   statusOptions = ['Ativo', 'Em manutenção', 'Em empréstimo', 'Baixado / Inativo'];
   origins = ['Compra', 'Doação', 'Convênio', 'Transferência'];
@@ -185,8 +206,41 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     this.updateCessionTermPreview();
   }
 
+  changeAssetTab(tabId: AssetTabId): void {
+    this.activeAssetTab = tabId;
+  }
+
+  goToNextAssetTab(): void {
+    if (this.hasNextAssetTab) {
+      this.activeAssetTab = this.assetTabs[this.activeAssetTabIndex + 1].id;
+    }
+  }
+
+  goToPreviousAssetTab(): void {
+    if (this.hasPreviousAssetTab) {
+      this.activeAssetTab = this.assetTabs[this.activeAssetTabIndex - 1].id;
+    }
+  }
+
   ngOnDestroy(): void {
     this.templatesSubscription?.unsubscribe();
+  }
+
+  get activeAssetTabIndex(): number {
+    return this.assetTabs.findIndex((tab) => tab.id === this.activeAssetTab);
+  }
+
+  get hasNextAssetTab(): boolean {
+    return this.activeAssetTabIndex < this.assetTabs.length - 1;
+  }
+
+  get hasPreviousAssetTab(): boolean {
+    return this.activeAssetTabIndex > 0;
+  }
+
+  get nextAssetTabLabel(): string {
+    const nextTab = this.assetTabs[this.activeAssetTabIndex + 1];
+    return nextTab ? nextTab.label : '';
   }
 
   get filteredAssets(): Patrimonio[] {
