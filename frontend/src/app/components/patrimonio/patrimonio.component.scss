@@ -26,6 +26,10 @@
   @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer bg-white text-slate-700;
 }
 
+.chip--compact {
+  @apply px-2 py-1 text-xs gap-1;
+}
+
 .chip input[type='radio'] {
   accent-color: #16a34a;
 }

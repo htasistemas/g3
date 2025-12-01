@@ -87,7 +87,12 @@ export class PatrimonioComponent implements OnInit {
   };
 
   assetLibrary: Patrimonio[] = [];
-  movementForm = { tipo: 'MOVIMENTACAO' as 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA', destino: '', responsavel: '', observacao: '' };
+  movementForm = {
+    tipo: 'MOVIMENTACAO' as 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA',
+    destino: '',
+    responsavel: '',
+    observacao: ''
+  };
   selectedAsset: Patrimonio | null = null;
   isSaving = false;
   isLoading = false;
@@ -96,11 +101,16 @@ export class PatrimonioComponent implements OnInit {
   filePreview: string | ArrayBuffer | null = null;
   qrCodeValue = 'QR-PATRIMONIO-001';
   searchTerm = '';
+  displayedAcquisitionValue = '';
+  cessionTermPreview = '';
+  printOrder: 'alphabetical' | 'patrimony' | 'value' | 'location' = 'alphabetical';
 
   constructor(private readonly patrimonioService: PatrimonioService) {}
 
   ngOnInit(): void {
     this.loadAssets();
+    this.displayedAcquisitionValue = this.formatCurrency(this.assetForm.acquisitionValue);
+    this.updateCessionTermPreview();
   }
 
   get filteredAssets(): Patrimonio[] {
@@ -140,6 +150,7 @@ export class PatrimonioComponent implements OnInit {
         this.assetLibrary = patrimonios;
         this.isLoading = false;
         this.selectedAsset = patrimonios[0] ?? null;
+        this.updateCessionTermPreview();
       },
       error: () => {
         this.isLoading = false;
@@ -163,6 +174,19 @@ export class PatrimonioComponent implements OnInit {
   generateQrCode(): void {
     const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     this.qrCodeValue = `QR-${this.assetForm.patrimonyNumber || 'PATRIMONIO'}-${uniqueSuffix}`;
+  }
+
+  formatField(field: keyof typeof this.assetForm): void {
+    const value = this.assetForm[field];
+    if (typeof value === 'string') {
+      this.assetForm[field] = this.toProperCase(value) as typeof value;
+      this.updateCessionTermPreview();
+    }
+  }
+
+  formatMovementField(field: 'destino' | 'responsavel'): void {
+    const value = this.movementForm[field];
+    this.movementForm[field] = this.toProperCase(value);
   }
 
   saveAsset(): void {
@@ -204,6 +228,7 @@ export class PatrimonioComponent implements OnInit {
           this.assetLibrary = [patrimonio, ...this.assetLibrary];
           this.selectedAsset = patrimonio;
           this.resetForm();
+          this.updateCessionTermPreview();
         },
         error: (error) => {
           this.errorMessage = error?.error?.message ?? 'Não foi possível salvar o patrimônio. Tente novamente.';
@@ -244,10 +269,12 @@ export class PatrimonioComponent implements OnInit {
       lastMaintenance: 'Não registrada'
     };
     this.filePreview = null;
+    this.displayedAcquisitionValue = this.formatCurrency(0);
   }
 
   setSelected(asset: Patrimonio): void {
     this.selectedAsset = asset;
+    this.updateCessionTermPreview();
   }
 
   quickMovement(asset: Patrimonio, tipo: 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA'): void {
@@ -275,5 +302,166 @@ export class PatrimonioComponent implements OnInit {
           this.movementForm.observacao = '';
         }
       });
+  }
+
+  onAcquisitionValueChange(rawValue: string): void {
+    const numericValue = Number(rawValue.replace(/\D/g, '')) / 100;
+    this.assetForm.acquisitionValue = numericValue;
+    this.displayedAcquisitionValue = this.formatCurrency(numericValue);
+  }
+
+  addCategory(): void {
+    const input = prompt('Informe o nome da nova categoria');
+    if (!input) return;
+
+    const formatted = this.toProperCase(input.trim());
+    if (!formatted) return;
+
+    const exists = this.categories.some((category) => category.label.toLowerCase() === formatted.toLowerCase());
+    if (!exists) {
+      this.categories = [...this.categories, { label: formatted, subcategories: [] }];
+    }
+    this.assetForm.category = formatted;
+    this.assetForm.subcategory = '';
+  }
+
+  addSubcategory(): void {
+    if (!this.assetForm.category) return;
+
+    const input = prompt('Informe o nome da nova subcategoria');
+    if (!input) return;
+
+    const formatted = this.toProperCase(input.trim());
+    if (!formatted) return;
+
+    this.categories = this.categories.map((category) => {
+      if (category.label === this.assetForm.category) {
+        const exists = category.subcategories.some((sub) => sub.toLowerCase() === formatted.toLowerCase());
+        if (!exists) {
+          return { ...category, subcategories: [...category.subcategories, formatted] };
+        }
+      }
+      return category;
+    });
+
+    this.assetForm.subcategory = formatted;
+  }
+
+  generateCessionTerm(): void {
+    const asset = this.selectedAsset ?? this.buildAssetSnapshot();
+    const content = `Termo de cessão do bem ${asset.nome || 'Não identificado'} (patrimônio ${
+      asset.numeroPatrimonio || 'não informado'
+    }) localizado na unidade ${asset.unidade || 'Não informada'}, sob responsabilidade de ${
+      asset.responsavel || this.assetForm.responsibleName || 'Não informado'
+    }. Valor de aquisição: ${this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue)}.`;
+
+    this.cessionTermPreview = content;
+    this.openPrintWindow('Termo de cessão', `<p style="font-size:14px; line-height:1.6">${content}</p>`);
+  }
+
+  printAssets(): void {
+    const assets = [...this.assetLibrary].sort((a, b) => {
+      switch (this.printOrder) {
+        case 'patrimony':
+          return (a.numeroPatrimonio || '').localeCompare(b.numeroPatrimonio || '');
+        case 'value':
+          return (Number(b.valorAquisicao) || 0) - (Number(a.valorAquisicao) || 0);
+        case 'location':
+          return (a.unidade || '').localeCompare(b.unidade || '');
+        default:
+          return (a.nome || '').localeCompare(b.nome || '');
+      }
+    });
+
+    const rows = assets
+      .map(
+        (asset) =>
+          `<tr>
+            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.numeroPatrimonio}</td>
+            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.nome}</td>
+            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.categoria || ''} ${
+            asset.subcategoria ? ' / ' + asset.subcategoria : ''
+          }</td>
+            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.unidade || ''}</td>
+            <td style="padding:8px; border:1px solid #e5e7eb;">${this.formatCurrency(asset.valorAquisicao || 0)}</td>
+          </tr>`
+      )
+      .join('');
+
+    const table = `<table style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif; font-size:12px;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Número</th>
+          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Nome</th>
+          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Categoria</th>
+          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Local</th>
+          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Valor</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+    this.openPrintWindow('Bens patrimoniais', table);
+  }
+
+  private toProperCase(value: string): string {
+    return value
+      .toLowerCase()
+      .split(' ')
+      .filter((word) => word.trim().length)
+      .map((word) => word[0].toUpperCase() + word.substring(1))
+      .join(' ');
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0);
+  }
+
+  private buildAssetSnapshot(): Patrimonio {
+    return {
+      idPatrimonio: 0,
+      numeroPatrimonio: this.assetForm.patrimonyNumber,
+      nome: this.assetForm.name,
+      categoria: this.assetForm.category,
+      subcategoria: this.assetForm.subcategory,
+      conservacao: this.assetForm.conservation,
+      status: this.assetForm.status,
+      dataAquisicao: this.assetForm.acquisitionDate,
+      valorAquisicao: this.assetForm.acquisitionValue,
+      origem: this.assetForm.origin,
+      unidade: this.assetForm.unit,
+      responsavel: this.assetForm.responsibleName,
+      taxaDepreciacao: this.assetForm.depreciationRate,
+      observacoes: this.assetForm.observations
+    } as Patrimonio;
+  }
+
+  private updateCessionTermPreview(): void {
+    const asset = this.selectedAsset ?? this.buildAssetSnapshot();
+    this.cessionTermPreview = `Declaro que o bem ${asset.nome || 'Não identificado'} (patrimônio ${
+      asset.numeroPatrimonio || 'não informado'
+    }) está sob responsabilidade de ${asset.responsavel || this.assetForm.responsibleName || 'Não informado'}.`;
+  }
+
+  private openPrintWindow(title: string, content: string): void {
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+
+    win.document.write(`<!doctype html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+            h1 { font-size: 20px; margin-bottom: 16px; }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          ${content}
+        </body>
+      </html>`);
+    win.document.close();
+    win.print();
   }
 }
