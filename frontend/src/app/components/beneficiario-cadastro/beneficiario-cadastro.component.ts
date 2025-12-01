@@ -281,7 +281,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       }),
       endereco: this.fb.group({
         usa_endereco_familia: [true],
-        cep: ['', [this.cepValidator]],
+        cep: ['', [Validators.required, this.cepValidator]],
         logradouro: [''],
         numero: [''],
         complemento: [''],
@@ -299,7 +299,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         internet: [false]
       }),
       contato: this.fb.group({
-        telefone_principal: [''],
+        telefone_principal: ['', Validators.required],
         telefone_principal_whatsapp: [false],
         telefone_secundario: [''],
         telefone_recado_nome: [''],
@@ -368,7 +368,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         beneficios_recebidos: this.fb.control<string[]>([])
       }),
       observacoes: this.fb.group({
-        aceite_lgpd: [false],
+        aceite_lgpd: [false, Validators.requiredTrue],
         data_aceite_lgpd: [''],
         observacoes: ['']
       })
@@ -376,9 +376,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   goToNextTab(): void {
-    if (this.hasNextTab) {
-      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
-    }
+    if (!this.hasNextTab) return;
+
+    const targetTab = this.tabs[this.activeTabIndex + 1].id;
+    if (!this.validateCurrentTabRequirements(targetTab)) return;
+
+    this.changeTab(targetTab);
   }
 
   goToPreviousTab(): void {
@@ -714,9 +717,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   handleLgpdToggle(event: Event): void {
     const input = event.target as HTMLInputElement;
+    const dateControl = this.form.get(['observacoes', 'data_aceite_lgpd']);
     if (input.checked) {
+      if (!dateControl?.value) {
+        dateControl?.setValue(this.getCurrentLocalDateTime());
+      }
       this.printLgpdTerms();
+    } else {
+      dateControl?.setValue('');
     }
+  }
+
+  private getCurrentLocalDateTime(): string {
+    const now = new Date();
+    const offsetMs = now.getTimezoneOffset() * 60000;
+    const local = new Date(now.getTime() - offsetMs);
+    return local.toISOString().slice(0, 16);
   }
 
   private printLgpdTerms(): void {
@@ -763,6 +779,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const targetIndex = this.tabs.findIndex((item) => item.id === tab);
     const cpfControl = this.form.get(['documentos', 'cpf']);
 
+    if (!this.validateCurrentTabRequirements(tab)) {
+      return;
+    }
+
     if (documentsIndex >= 0 && targetIndex > documentsIndex && (cpfControl?.invalid || !cpfControl?.value)) {
       this.feedback = 'Informe um CPF válido antes de continuar.';
       cpfControl?.markAsTouched();
@@ -771,7 +791,57 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.feedback === 'Informe um CPF válido antes de continuar.' && cpfControl?.valid) {
+      this.feedback = null;
+    }
+
     this.activeTab = tab;
+  }
+
+  private validateCurrentTabRequirements(targetTab: string): boolean {
+    const currentIndex = this.activeTabIndex;
+    const targetIndex = this.tabs.findIndex((item) => item.id === targetTab);
+
+    if (targetIndex <= currentIndex) return true;
+
+    const tabId = this.tabs[currentIndex]?.id;
+    const requirements: Record<
+      string,
+      { controlPath: (string | number)[]; message: string; markGroup?: string }
+    > = {
+      endereco: {
+        controlPath: ['endereco', 'cep'],
+        message: 'Preencha o CEP (campo obrigatório) antes de avançar.',
+        markGroup: 'endereco'
+      },
+      contato: {
+        controlPath: ['contato', 'telefone_principal'],
+        message: 'Informe o telefone principal (campo obrigatório) antes de avançar.',
+        markGroup: 'contato'
+      },
+      observacoes: {
+        controlPath: ['observacoes', 'aceite_lgpd'],
+        message: 'Confirme o aceite LGPD antes de avançar.',
+        markGroup: 'observacoes'
+      }
+    };
+
+    const requirement = tabId ? requirements[tabId] : undefined;
+    if (!requirement) return true;
+
+    const control = this.form.get(requirement.controlPath);
+
+    if (control?.valid && this.feedback === requirement.message) {
+      this.feedback = null;
+    }
+
+    if (!control || control.valid) return true;
+
+    this.feedback = requirement.message;
+    if (requirement.markGroup) {
+      this.form.get(requirement.markGroup)?.markAllAsTouched();
+    }
+    return false;
   }
 
   async submit() {
@@ -1075,6 +1145,15 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
+  async handleCameraCapture(): Promise<void> {
+    if (this.cameraActive) {
+      this.capturePhoto();
+      return;
+    }
+
+    await this.startCamera();
+  }
+
   capturePhoto(): void {
     const video = this.videoElement?.nativeElement;
     const canvas = this.canvasElement?.nativeElement;
@@ -1162,6 +1241,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     this.form.get(['documentos', 'cpf'])?.setValue(formatted, { emitEvent: false });
     input.value = formatted;
+
+    if (this.feedback === 'Informe um CPF válido antes de continuar.' && this.form.get(['documentos', 'cpf'])?.valid) {
+      this.feedback = null;
+    }
   }
 
   onPhoneInput(event: Event, controlName: 'telefone_principal' | 'telefone_secundario' | 'telefone_recado_numero'): void {
