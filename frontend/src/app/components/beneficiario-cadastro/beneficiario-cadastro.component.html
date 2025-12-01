@@ -30,29 +30,6 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
-    <div class="status-strip">
-      <div>
-        <p class="status-strip__label">Status do beneficiário</p>
-        <div class="status-strip__current">
-          <span class="pill pill--status">{{ formatStatusLabel(form.get('status')?.value) }}</span>
-          <span class="status-strip__reason" *ngIf="form.get('motivo_bloqueio')?.value">
-            Motivo: {{ form.get('motivo_bloqueio')?.value }}
-          </span>
-        </div>
-      </div>
-      <div class="status-strip__controls">
-        <label class="field">
-          <span>Atualizar status</span>
-          <select formControlName="status">
-            <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
-          </select>
-        </label>
-        <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
-          Editar motivo do bloqueio
-        </button>
-      </div>
-    </div>
-
     <ng-template #navigationControls>
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
@@ -73,6 +50,28 @@
         </div>
         <span class="pill">Obrigatório</span>
       </div>
+      <div class="status-strip status-strip--embedded">
+        <div>
+          <p class="status-strip__label">Status do beneficiário</p>
+          <div class="status-strip__current">
+            <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
+            <span class="status-strip__reason" *ngIf="form.get('motivo_bloqueio')?.value">
+              Motivo: {{ form.get('motivo_bloqueio')?.value }}
+            </span>
+          </div>
+        </div>
+        <div class="status-strip__controls">
+          <label class="field">
+            <span>Atualizar status</span>
+            <select formControlName="status">
+              <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+            </select>
+          </label>
+          <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
+            Editar motivo do bloqueio
+          </button>
+        </div>
+      </div>
       <div class="photo-section">
         <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
           <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
@@ -86,6 +85,7 @@
           <button type="button" class="ghost" (click)="handleCameraCapture()">
             {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
           </button>
+          <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
           <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
           <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
           <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
@@ -200,7 +200,7 @@
                 <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
               <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
               <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
-              <td><span class="pill pill--status">{{ formatStatusLabel(beneficiario.status) }}</span></td>
+              <td><span [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span></td>
               <td class="text-right actions">
                 <button type="button" class="ghost" (click)="selectBeneficiario(beneficiario)">Selecionar</button>
                 <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>

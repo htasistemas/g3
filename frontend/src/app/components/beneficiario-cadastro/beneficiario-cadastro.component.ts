@@ -1110,16 +1110,25 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     try {
+      this.cameraActive = true;
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
       this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
       const video = this.videoElement?.nativeElement;
+
       if (video) {
         video.srcObject = this.videoStream;
         await video.play();
-        this.cameraActive = true;
       }
     } catch (error) {
       console.error('Erro ao iniciar câmera', error);
       this.captureError = 'Não foi possível acessar a câmera.';
+      this.cameraActive = false;
+
+      if (this.videoStream) {
+        this.videoStream.getTracks().forEach((track) => track.stop());
+        this.videoStream = undefined;
+      }
     }
   }
 
@@ -1171,6 +1180,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.setPhotoPreview(dataUrl);
     };
     reader.readAsDataURL(file);
+  }
+
+  removePhoto(): void {
+    this.photoPreview = null;
+    this.form.get('foto_3x4')?.reset();
   }
 
   private setPhotoPreview(dataUrl: string): void {
@@ -1370,5 +1384,23 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .split('_')
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
+  }
+
+  getStatusClass(status?: string | null): string {
+    switch (status) {
+      case 'ATIVO':
+        return 'pill--status pill--status-ativo';
+      case 'INATIVO':
+        return 'pill--status pill--status-inativo';
+      case 'DESATUALIZADO':
+        return 'pill--status pill--status-desatualizado';
+      case 'BLOQUEADO':
+        return 'pill--status pill--status-bloqueado';
+      case 'INCOMPLETO':
+      case 'EM_ANALISE':
+        return 'pill--status pill--status-analise';
+      default:
+        return 'pill--status';
+    }
   }
 }
