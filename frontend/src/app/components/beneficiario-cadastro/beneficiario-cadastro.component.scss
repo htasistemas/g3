@@ -680,6 +680,46 @@
   border-color: #fecdd3;
 }
 
+.tab-card__hero {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 0.5rem 0 1rem;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.status-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.status-panel__title {
+  margin: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.status-panel__current {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.status-panel__reason {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .photo-section {
   display: grid;
   grid-template-columns: 160px 1fr;

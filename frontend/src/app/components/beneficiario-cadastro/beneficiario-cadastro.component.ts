@@ -116,6 +116,35 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     'Uruguaia(o)',
     'Venezuelana(o)'
   ];
+  brazilianStates = [
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO'
+  ];
   listLoading = false;
   listError: string | null = null;
   preferredContactOptions = [
@@ -192,6 +221,19 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     ['saude', 'servico_saude_referencia'],
     ['beneficios', 'beneficios_descricao'],
     ['observacoes', 'observacoes']
+  ];
+  educationLevelOptions: string[] = [
+    'Sem escolaridade formal',
+    'Ensino fundamental incompleto',
+    'Ensino fundamental completo',
+    'Ensino médio incompleto',
+    'Ensino médio completo',
+    'Ensino técnico',
+    'Ensino superior incompleto',
+    'Ensino superior completo',
+    'Pós-graduação',
+    'Mestrado',
+    'Doutorado'
   ];
   availableBenefits: string[] = [
     'Bolsa Família / PTR',
