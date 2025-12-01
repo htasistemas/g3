@@ -31,11 +31,15 @@ function sanitizeCpf(cpf?: string | null): string | undefined {
   return digits.length === 11 ? digits : undefined;
 }
 
-function getMissingRequiredDocuments(body: any): string[] {
-  const documents = Array.isArray(body?.documentosObrigatorios) ? body.documentosObrigatorios : [];
+function getMissingRequiredDocuments(body: any, documentsFromBody?: any[]): string[] {
+  const documents = Array.isArray(documentsFromBody)
+    ? documentsFromBody
+    : Array.isArray(body?.documentosObrigatorios)
+      ? body.documentosObrigatorios
+      : [];
 
   return documents
-    .filter((doc) => doc?.obrigatorio && !doc?.nomeArquivo)
+    .filter((doc) => doc?.obrigatorio && !doc?.nomeArquivo && !doc?.conteudo)
     .map((doc) => doc?.nome)
     .filter(Boolean);
 }
@@ -89,7 +93,12 @@ async function ensureCpfUnique(cpf: string, ignoreId?: string): Promise<boolean>
 function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Beneficiario {
   const body = req.body as Record<string, any>;
   const cpf = sanitizeCpf(body.cpf ?? existing?.cpf ?? undefined);
-  const missingDocuments = getMissingRequiredDocuments(body);
+  const documentosObrigatorios = Array.isArray(body?.documentosObrigatorios)
+    ? body.documentosObrigatorios
+    : existing?.documentosObrigatorios
+      ? [...existing.documentosObrigatorios]
+      : [];
+  const missingDocuments = getMissingRequiredDocuments(body, documentosObrigatorios);
 
   const payload: Beneficiario = {
     ...existing,
@@ -181,7 +190,8 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
     dataAceiteLgpd: body.data_aceite_lgpd ?? existing?.dataAceiteLgpd,
     observacoes: body.observacoes ?? existing?.observacoes,
     motivoBloqueio: body.motivo_bloqueio ?? existing?.motivoBloqueio,
-    status: existing?.status ?? 'EM_ANALISE'
+    status: existing?.status ?? 'EM_ANALISE',
+    documentosObrigatorios
   } as Beneficiario;
 
   payload.status = resolveStatus(payload, missingDocuments, {
@@ -240,8 +250,9 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
   const payload = buildBeneficiarioPayload(req);
+  const missingDocuments = getMissingRequiredDocuments(req.body, payload.documentosObrigatorios);
 
-  payload.status = resolveStatus(payload, getMissingRequiredDocuments(req.body), { requestedStatus: 'EM_ANALISE' });
+  payload.status = resolveStatus(payload, missingDocuments, { requestedStatus: 'EM_ANALISE' });
 
   if (!payload.nomeCompleto || !payload.dataNascimento || !payload.nomeMae) {
     return res.status(400).json({ message: 'Campos obrigatórios não preenchidos' });

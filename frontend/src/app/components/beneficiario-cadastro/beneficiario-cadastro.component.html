@@ -12,7 +12,7 @@
       Imprimir ficha individual
     </button>
     <button type="button" class="ghost" (click)="printConsentDocument()">
-      Reimprimir termo de consentimento
+      Reimprimir termo de autorização
     </button>
   </div>
 
@@ -397,6 +397,14 @@
                 Enviar arquivo
                 <input type="file" (change)="onDocumentFileSelected($event, i)" />
               </label>
+              <button
+                type="button"
+                class="ghost"
+                *ngIf="control.get('conteudo')?.value"
+                (click)="viewDocument(i)"
+              >
+                Visualizar / imprimir documento
+              </button>
             </div>
           </div>
         </div>

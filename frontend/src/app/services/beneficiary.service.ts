@@ -10,6 +10,8 @@ export interface DocumentoObrigatorio {
   obrigatorio?: boolean;
   required?: boolean;
   baseRequired?: boolean;
+  conteudo?: string;
+  contentType?: string;
 }
 
 export interface BeneficiaryPayload {
