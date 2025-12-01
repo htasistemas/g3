@@ -92,6 +92,22 @@
   transition: background-color 0.3s ease;
 }
 
+.app-header__context {
+  @apply flex items-center gap-3;
+}
+
+.app-header__logo {
+  @apply bg-white rounded-lg border border-white/30 shadow-lg shadow-black/10 flex items-center justify-center;
+  width: 56px;
+  height: 56px;
+  padding: 10px;
+  backdrop-filter: blur(4px);
+
+  img {
+    @apply h-full w-full object-contain;
+  }
+}
+
 .page-title {
   @apply text-xl font-semibold;
   color: #fff;
