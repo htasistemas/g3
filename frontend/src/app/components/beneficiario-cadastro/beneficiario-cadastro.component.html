@@ -424,9 +424,7 @@
         <label class="field">Ocupação
           <input
             formControlName="ocupacao"
-            list="cbo-list"
-            (input)="filterCboOptions($event)"
-            placeholder="Busque pela ocupação na CBO"
+            placeholder="Informe a ocupação"
           />
         </label>
         <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
@@ -441,9 +439,6 @@
         </label>
         <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
       </div>
-      <datalist id="cbo-list">
-        <option *ngFor="let option of filteredCboOptions" [value]="option"></option>
-      </datalist>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
