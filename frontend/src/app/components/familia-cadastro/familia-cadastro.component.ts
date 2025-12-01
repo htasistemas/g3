@@ -79,6 +79,26 @@ export class FamiliaCadastroComponent implements OnInit {
     });
   }
 
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  getTabLabel(id: string): string {
+    return this.tabs.find((tab) => tab.id === id)?.label ?? '';
+  }
+
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
@@ -116,6 +136,18 @@ export class FamiliaCadastroComponent implements OnInit {
 
   changeTab(tab: string) {
     this.activeTab = tab;
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    }
   }
 
   populateForm(familia: FamiliaPayload) {

@@ -1,37 +1,59 @@
 <section class="cadastro">
-  <header class="page-header">
-    <div>
-      <p class="eyebrow">Cadastros • Famílias</p>
-      <h2>Cadastro de Família</h2>
-      <p class="subtitle">Utilize o mesmo fluxo do beneficiário para manter a experiência padronizada.</p>
-    </div>
-    <div class="pill">Ficha integrada</div>
+  <header class="page-title">
+    <p class="page-title__eyebrow">Cadastros</p>
+    <p class="page-title__label">Cadastro de família</p>
   </header>
 
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
-    <nav class="tabs">
-      <button *ngFor="let tab of tabs" class="tabs__item" [class.active]="activeTab === tab.id" (click)="changeTab(tab.id)">
-        <span class="tabs__label">{{ tab.label }}</span>
-      </button>
-    </nav>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        </button>
+      </div>
+    </ng-template>
+
     <div class="tab-card" *ngIf="activeTab === 'familia'" formGroupName="familia">
       <div class="tab-card__header">
-        <div>
-          <p class="eyebrow">Identificação</p>
-          <h3>Dados básicos da família</h3>
-          <p class="muted">Nome, responsável de referência e composição.</p>
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('familia') }}</p>
+          <p class="muted">Identifique a família, referência principal e arranjo familiar.</p>
         </div>
+        <span class="pill">Obrigatório</span>
       </div>
       <div class="field-grid cols-2">
-        <label class="field">Nome da família*<input formControlName="nome_familia" class="input" /></label>
-        <label class="field">Referência familiar (ID do beneficiário)<input formControlName="id_referencia_familiar" class="input" /></label>
-        <label class="field">Arranjo familiar<select formControlName="arranjo_familiar" class="input">
+        <label class="field">Nome da família*<input formControlName="nome_familia" placeholder="Ex.: Família Silva" /></label>
+        <label class="field">Referência familiar (ID do beneficiário)<input formControlName="id_referencia_familiar" placeholder="ID do responsável" /></label>
+        <label class="field">Arranjo familiar<select formControlName="arranjo_familiar">
             <option value=""></option>
             <option value="NUCLEAR">Nuclear</option>
             <option value="MONOPARENTAL">Monoparental</option>
@@ -40,104 +62,103 @@
             <option value="OUTRO">Outro</option>
           </select></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
       <div class="tab-card__header">
-        <div>
-          <p class="eyebrow">Endereço</p>
-          <h3>Localização da família</h3>
-          <p class="muted">Preencha o endereço completo para visitas e deslocamentos.</p>
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
+          <p class="muted">Preencha o endereço completo para visitas, entregas e deslocamentos.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CEP<input formControlName="cep" class="input" /></label>
-        <label class="field">Logradouro<input formControlName="logradouro" class="input" /></label>
-        <label class="field">Número<input formControlName="numero" class="input" /></label>
-        <label class="field">Complemento<input formControlName="complemento" class="input" /></label>
-        <label class="field">Bairro<input formControlName="bairro" class="input" /></label>
-        <label class="field">Ponto de referência<input formControlName="ponto_referencia" class="input" /></label>
-        <label class="field">Município<input formControlName="municipio" class="input" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="uf" class="input" /></label>
-        <label class="field">Zona<select formControlName="zona" class="input"><option value=""></option><option value="URBANA">Urbana</option><option value="RURAL">Rural</option></select></label>
-        <label class="field">Situação do imóvel<input formControlName="situacao_imovel" class="input" /></label>
-        <label class="field">Tipo de moradia<input formControlName="tipo_moradia" class="input" /></label>
+        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">Logradouro<input formControlName="logradouro" placeholder="Rua, avenida..." /></label>
+        <label class="field">Número<input formControlName="numero" placeholder="Nº" /></label>
+        <label class="field">Complemento<input formControlName="complemento" placeholder="Apartamento, bloco" /></label>
+        <label class="field">Bairro<input formControlName="bairro" /></label>
+        <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
+        <label class="field">Município<input formControlName="municipio" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="uf" placeholder="UF" /></label>
+        <label class="field">Zona<select formControlName="zona"><option value=""></option><option value="URBANA">Urbana</option><option value="RURAL">Rural</option></select></label>
+        <label class="field">Situação do imóvel<input formControlName="situacao_imovel" placeholder="Próprio, alugado..." /></label>
+        <label class="field">Tipo de moradia<input formControlName="tipo_moradia" placeholder="Casa, apartamento..." /></label>
         <div class="feature-grid">
           <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
-          <label class="field">Esgoto<select formControlName="esgoto_tipo" class="input"><option value=""></option><option value="REDE">Rede</option><option value="FOSSA">Fossa</option><option value="CEU_ABERTO">Céu aberto</option><option value="NAO_POSSUI">Não possui</option></select></label>
-          <label class="field">Coleta de lixo<select formControlName="coleta_lixo" class="input"><option value=""></option><option value="REGULAR">Regular</option><option value="IRREGULAR">Irregular</option><option value="NAO_POSSUI">Não possui</option></select></label>
+          <label class="field">Esgoto<select formControlName="esgoto_tipo"><option value=""></option><option value="REDE">Rede</option><option value="FOSSA">Fossa</option><option value="CEU_ABERTO">Céu aberto</option><option value="NAO_POSSUI">Não possui</option></select></label>
+          <label class="field">Coleta de lixo<select formControlName="coleta_lixo"><option value=""></option><option value="REGULAR">Regular</option><option value="IRREGULAR">Irregular</option><option value="NAO_POSSUI">Não possui</option></select></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="energia_eletrica" /> <span>Energia elétrica</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
         </div>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'membros'">
       <div class="tab-card__header">
-        <div>
-          <p class="eyebrow">Composição</p>
-          <h3>Membros vinculados</h3>
-          <p class="muted">Inclua beneficiários, grau de parentesco e responsabilidades.</p>
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('membros') }}</p>
+          <p class="muted">Inclua beneficiários vinculados, responsabilidades e observações.</p>
         </div>
-        <button type="button" class="btn-outline" (click)="addMembro()">Adicionar membro</button>
+        <button type="button" class="ghost" (click)="addMembro()">Adicionar membro</button>
       </div>
       <div class="membro" *ngFor="let membro of membros.controls; let i = index" [formGroupName]="i">
         <div class="field-grid cols-3">
-          <label class="field">Beneficiário (ID)<input formControlName="id_beneficiario" class="input" /></label>
-          <label class="field">Parentesco<input formControlName="parentesco" class="input" /></label>
+          <label class="field">Beneficiário (ID)<input formControlName="id_beneficiario" placeholder="ID cadastrado" /></label>
+          <label class="field">Parentesco<input formControlName="parentesco" placeholder="Ex.: Filho, responsável" /></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_familiar" /> <span>Responsável familiar</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="contribui_renda" /> <span>Contribui renda</span></label>
-          <label class="field">Renda individual<input type="number" formControlName="renda_individual" class="input" /></label>
+          <label class="field">Renda individual<input type="number" formControlName="renda_individual" placeholder="0,00" /></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="participa_servicos" /> <span>Participa de serviços</span></label>
-          <label class="field full">Observações<textarea formControlName="observacoes" class="input"></textarea></label>
+          <label class="field full">Observações<textarea formControlName="observacoes" placeholder="Referências, notas importantes"></textarea></label>
         </div>
         <div class="flex justify-end">
-          <button type="button" class="btn-ghost" (click)="removeMembro(i)">Remover</button>
+          <button type="button" class="ghost" (click)="removeMembro(i)">Remover</button>
         </div>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'renda'" formGroupName="renda">
       <div class="tab-card__header">
-        <div>
-          <p class="eyebrow">Renda</p>
-          <h3>Fontes de renda e situação financeira</h3>
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('renda') }}</p>
+          <p class="muted">Registre a renda total, per capita e fontes que sustentam a família.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="field">Renda familiar total<input formControlName="renda_familiar_total" class="input" /></label>
-        <label class="field">Renda per capita<input formControlName="renda_per_capita" class="input" /></label>
-        <label class="field full">Principais fontes de renda<textarea formControlName="principais_fontes_renda" class="input"></textarea></label>
-        <label class="field">Situação de insegurança alimentar<select formControlName="situacao_inseguranca_alimentar" class="input">
+        <label class="field">Renda familiar total<input formControlName="renda_familiar_total" placeholder="Somatório mensal" /></label>
+        <label class="field">Renda per capita<input formControlName="renda_per_capita" placeholder="Valor por pessoa" /></label>
+        <label class="field full">Principais fontes de renda<textarea formControlName="principais_fontes_renda" placeholder="Salário, benefícios, outros"></textarea></label>
+        <label class="field">Situação de insegurança alimentar<select formControlName="situacao_inseguranca_alimentar">
             <option value=""></option>
             <option value="NAO_APRESENTA">Não apresenta</option>
             <option value="MODERADA">Moderada</option>
             <option value="GRAVE">Grave</option>
           </select></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="possui_dividas_relevantes" /> <span>Possui dívidas relevantes</span></label>
-        <label class="field full">Descrição das dívidas<textarea formControlName="descricao_dividas" class="input"></textarea></label>
+        <label class="field full">Descrição das dívidas<textarea formControlName="descricao_dividas" placeholder="Bancos, cartões, financiamentos"></textarea></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
     <div class="tab-card" *ngIf="activeTab === 'vulnerabilidades'" formGroupName="vulnerabilidades">
       <div class="tab-card__header">
-        <div>
-          <p class="eyebrow">Acompanhamento</p>
-          <h3>Vulnerabilidades e visitas</h3>
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('vulnerabilidades') }}</p>
+          <p class="muted">Registre riscos, acompanhamentos e próxima visita planejada.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="field full">Vulnerabilidades<textarea formControlName="vulnerabilidades_familia" class="input"></textarea></label>
-        <label class="field full">Serviços de acompanhamento<textarea formControlName="servicos_acompanhamento" class="input"></textarea></label>
-        <label class="field">Técnico responsável<input formControlName="tecnico_responsavel" class="input" /></label>
-        <label class="field">Periodicidade<input formControlName="periodicidade_atendimento" class="input" /></label>
-        <label class="field">Próxima visita<input type="date" formControlName="proxima_visita_prevista" class="input" /></label>
-        <label class="field full">Observações<textarea formControlName="observacoes" class="input"></textarea></label>
+        <label class="field full">Vulnerabilidades<textarea formControlName="vulnerabilidades_familia" placeholder="Insegurança alimentar, saúde, moradia..."></textarea></label>
+        <label class="field full">Serviços de acompanhamento<textarea formControlName="servicos_acompanhamento" placeholder="CRAS, saúde, rede de apoio"></textarea></label>
+        <label class="field">Técnico responsável<input formControlName="tecnico_responsavel" placeholder="Nome do profissional" /></label>
+        <label class="field">Periodicidade<input formControlName="periodicidade_atendimento" placeholder="Semanal, mensal..." /></label>
+        <label class="field">Próxima visita<input type="date" formControlName="proxima_visita_prevista" /></label>
+        <label class="field full">Observações<textarea formControlName="observacoes" placeholder="Notas adicionais"></textarea></label>
       </div>
-    </div>
-
-    <div class="actions">
-      <button type="submit" class="btn-primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar' }}</button>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
 </section>
