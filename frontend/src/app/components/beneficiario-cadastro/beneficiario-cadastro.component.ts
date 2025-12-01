@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -16,13 +16,36 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   form: FormGroup;
+  searchForm: FormGroup;
   activeTab = 'dados';
   saving = false;
   feedback: string | null = null;
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
+  beneficiarios: BeneficiarioApiPayload[] = [];
+  filteredBeneficiarios: BeneficiarioApiPayload[] = [];
+  listLoading = false;
+  listError: string | null = null;
+  statusOptions: BeneficiarioApiPayload['status'][] = [
+    'ATIVO',
+    'INATIVO',
+    'DESATUALIZADO',
+    'INCOMPLETO',
+    'EM_ANALISE',
+    'BLOQUEADO'
+  ];
+  blockReasonModalOpen = false;
+  blockReasonError: string | null = null;
+  lastStatus: BeneficiarioApiPayload['status'] | null = 'ATIVO';
+  previousStatusBeforeBlock: BeneficiarioApiPayload['status'] | null = 'ATIVO';
+  photoPreview: string | null = null;
+  cameraActive = false;
+  captureError: string | null = null;
+  private videoStream?: MediaStream;
   private readonly destroy$ = new Subject<void>();
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
     ['dadosPessoais', 'nome_completo'],
     ['dadosPessoais', 'nome_social'],
@@ -117,7 +140,16 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
+    this.searchForm = this.fb.group({
+      nome: [''],
+      cpf: [''],
+      nis: [''],
+      status: ['']
+    });
     this.form = this.fb.group({
+      status: ['ATIVO', Validators.required],
+      motivo_bloqueio: [''],
+      foto_3x4: [''],
       dadosPessoais: this.fb.group({
         nome_completo: ['', Validators.required],
         nome_social: [''],
@@ -244,13 +276,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRequiredDocuments();
     this.watchBirthDate();
+    this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
+    this.searchBeneficiaries();
+    this.searchForm
+      .get('status')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.applyListFilters());
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const id = params.get('id');
       if (id) {
         this.beneficiarioId = id;
         this.service.getById(id).subscribe(({ beneficiario }) => {
           this.form.patchValue(this.mapToForm(beneficiario));
+          this.photoPreview = beneficiario.foto_3x4 ?? null;
+          this.lastStatus = beneficiario.status ?? 'ATIVO';
+          this.previousStatusBeforeBlock = this.lastStatus;
           this.applyLoadedDocuments(beneficiario.documentosObrigatorios);
         });
       }
@@ -260,6 +301,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.stopCamera();
   }
 
   get anexos(): FormArray {
@@ -268,6 +310,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   mapToForm(beneficiario: BeneficiarioApiPayload) {
     return {
+      status: beneficiario.status ?? 'ATIVO',
+      motivo_bloqueio: beneficiario.motivo_bloqueio,
+      foto_3x4: beneficiario.foto_3x4,
       dadosPessoais: {
         nome_completo: beneficiario.nome_completo,
         nome_social: beneficiario.nome_social,
@@ -546,8 +591,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (!this.validateRequiredDocuments()) {
       return;
     }
+    if (this.form.get('status')?.value === 'BLOQUEADO' && !this.form.get('motivo_bloqueio')?.value) {
+      this.feedback = 'Informe o motivo do bloqueio antes de salvar.';
+      this.blockReasonModalOpen = true;
+      return;
+    }
     this.saving = true;
     const payload = await this.toPayload();
+    const isDuplicate = await this.hasDuplicate(payload);
+    if (isDuplicate) {
+      this.saving = false;
+      return;
+    }
     const request = this.beneficiarioId
       ? this.service.update(this.beneficiarioId, payload)
       : this.service.create(payload);
@@ -570,6 +625,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const documentosObrigatorios = await this.buildDocumentPayload();
 
     return {
+      status: value.status,
+      motivo_bloqueio: value.motivo_bloqueio,
+      foto_3x4: value.foto_3x4,
       ...(value.dadosPessoais as any),
       ...(value.endereco as any),
       ...(value.contato as any),
@@ -647,5 +705,221 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     this.beneficiaryAge = Math.max(age, 0);
+  }
+
+  private watchStatusChanges(): void {
+    const control = this.form.get('status');
+    this.lastStatus = control?.value ?? 'ATIVO';
+
+    control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((status) => {
+      const previous = this.lastStatus;
+      this.lastStatus = status ?? null;
+
+      if (status === 'BLOQUEADO') {
+        this.previousStatusBeforeBlock = previous;
+        this.blockReasonModalOpen = true;
+        this.blockReasonError = null;
+      } else {
+        this.form.get('motivo_bloqueio')?.setValue('');
+      }
+    });
+  }
+
+  confirmBlockReason(): void {
+    const reason = this.form.get('motivo_bloqueio')?.value as string | undefined;
+    if (!reason?.trim()) {
+      this.blockReasonError = 'Informe o motivo do bloqueio.';
+      return;
+    }
+
+    this.blockReasonModalOpen = false;
+    this.blockReasonError = null;
+  }
+
+  cancelBlockReason(): void {
+    this.blockReasonModalOpen = false;
+    this.blockReasonError = null;
+    this.form.get('status')?.setValue(this.previousStatusBeforeBlock ?? 'ATIVO');
+    this.form.get('motivo_bloqueio')?.setValue('');
+  }
+
+  searchBeneficiaries(): void {
+    const { nome, cpf, nis } = this.searchForm.value;
+    this.listLoading = true;
+    this.listError = null;
+
+    this.service
+      .list({ nome: nome || undefined, cpf: cpf || undefined, nis: nis || undefined })
+      .subscribe({
+        next: ({ beneficiarios }) => {
+          this.beneficiarios = beneficiarios ?? [];
+          this.applyListFilters();
+          this.listLoading = false;
+        },
+        error: () => {
+          this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
+          this.listLoading = false;
+        }
+      });
+  }
+
+  applyListFilters(): void {
+    const status = this.searchForm.get('status')?.value;
+    this.filteredBeneficiarios = (this.beneficiarios ?? []).filter(
+      (beneficiario) => !status || beneficiario.status === status
+    );
+  }
+
+  selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
+    if (!beneficiario.id_beneficiario) return;
+
+    this.beneficiarioId = beneficiario.id_beneficiario;
+    this.service.getById(beneficiario.id_beneficiario).subscribe(({ beneficiario: details }) => {
+      this.form.patchValue(this.mapToForm(details));
+      this.photoPreview = details.foto_3x4 ?? null;
+      this.lastStatus = details.status ?? 'ATIVO';
+      this.previousStatusBeforeBlock = this.lastStatus;
+      this.applyLoadedDocuments(details.documentosObrigatorios);
+    });
+  }
+
+  deleteBeneficiario(beneficiario: BeneficiarioApiPayload): void {
+    if (!beneficiario.id_beneficiario) return;
+    const confirmDelete = window.confirm(
+      `Excluir o beneficiário ${beneficiario.nome_completo || 'selecionado'}?`
+    );
+    if (!confirmDelete) return;
+
+    this.listLoading = true;
+    this.service.delete(beneficiario.id_beneficiario).subscribe({
+      next: () => {
+        if (this.beneficiarioId === beneficiario.id_beneficiario) {
+          this.form.reset({ status: 'ATIVO', motivo_bloqueio: '', foto_3x4: '' });
+          this.beneficiarioId = null;
+          this.photoPreview = null;
+        }
+        this.searchBeneficiaries();
+      },
+      error: () => {
+        this.listError = 'Não foi possível excluir o beneficiário.';
+        this.listLoading = false;
+      }
+    });
+  }
+
+  editBeneficiario(beneficiario: BeneficiarioApiPayload): void {
+    if (!beneficiario.id_beneficiario) return;
+    this.router.navigate(['/cadastros/beneficiarios', beneficiario.id_beneficiario]);
+  }
+
+  async startCamera(): Promise<void> {
+    this.captureError = null;
+    if (!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+      this.captureError = 'Seu navegador não permite capturar a câmera.';
+      return;
+    }
+
+    try {
+      this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = this.videoElement?.nativeElement;
+      if (video) {
+        video.srcObject = this.videoStream;
+        await video.play();
+        this.cameraActive = true;
+      }
+    } catch (error) {
+      console.error('Erro ao iniciar câmera', error);
+      this.captureError = 'Não foi possível acessar a câmera.';
+    }
+  }
+
+  capturePhoto(): void {
+    const video = this.videoElement?.nativeElement;
+    const canvas = this.canvasElement?.nativeElement;
+    if (!video || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    canvas.width = 480;
+    canvas.height = 640;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/png');
+    this.setPhotoPreview(dataUrl);
+    this.stopCamera();
+  }
+
+  stopCamera(): void {
+    if (this.videoStream) {
+      this.videoStream.getTracks().forEach((track) => track.stop());
+      this.videoStream = undefined;
+    }
+    const video = this.videoElement?.nativeElement;
+    if (video) {
+      video.srcObject = null;
+    }
+    this.cameraActive = false;
+  }
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.setPhotoPreview(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  private setPhotoPreview(dataUrl: string): void {
+    this.photoPreview = dataUrl;
+    this.form.get('foto_3x4')?.setValue(dataUrl);
+  }
+
+  private async hasDuplicate(payload: BeneficiarioApiPayload): Promise<boolean> {
+    try {
+      const { nome_completo, cpf, nis, data_nascimento, nome_mae } = payload;
+      const { beneficiarios } = await firstValueFrom(
+        this.service.list({ nome: nome_completo, cpf: cpf ?? undefined, nis: nis ?? undefined })
+      );
+      const duplicates = (beneficiarios ?? []).filter((item) => {
+        if (this.beneficiarioId && item.id_beneficiario === this.beneficiarioId) return false;
+
+        const sameCpf = cpf && item.cpf && item.cpf === cpf;
+        const sameIdentity =
+          this.normalizeString(item.nome_completo) === this.normalizeString(nome_completo) &&
+          item.data_nascimento === data_nascimento &&
+          this.normalizeString(item.nome_mae) === this.normalizeString(nome_mae);
+
+        return sameCpf || sameIdentity;
+      });
+
+      if (duplicates.length) {
+        this.feedback = 'Beneficiário já cadastrado. Utilize a lista para editar ou excluir.';
+        this.changeTab('dados');
+        return true;
+      }
+    } catch (error) {
+      console.warn('Não foi possível verificar duplicidade', error);
+    }
+
+    return false;
+  }
+
+  private normalizeString(value?: string | null): string {
+    return (value ?? '').trim().toLowerCase();
+  }
+
+  formatStatusLabel(status?: string | null): string {
+    if (!status) return '—';
+
+    return status
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 }
