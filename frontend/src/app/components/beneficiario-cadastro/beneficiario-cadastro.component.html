@@ -412,12 +412,29 @@
         <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
         <label class="field">Nível de escolaridade<input formControlName="nivel_escolaridade" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
-        <label class="field">Ocupação<input formControlName="ocupacao" /></label>
+        <label class="field">Ocupação
+          <input
+            formControlName="ocupacao"
+            list="cbo-list"
+            (input)="filterCboOptions($event)"
+            placeholder="Busque pela ocupação na CBO"
+          />
+        </label>
         <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
         <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
-        <label class="field">Renda mensal<input type="number" formControlName="renda_mensal" /></label>
+        <label class="field">Renda mensal
+          <input
+            type="text"
+            formControlName="renda_mensal"
+            (input)="formatCurrency($event, 'escolaridade', 'renda_mensal')"
+            placeholder="R$ 0,00"
+          />
+        </label>
         <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
       </div>
+      <datalist id="cbo-list">
+        <option *ngFor="let option of filteredCboOptions" [value]="option"></option>
+      </datalist>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 

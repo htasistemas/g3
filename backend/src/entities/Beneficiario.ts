@@ -18,6 +18,7 @@ export type TipoMoradia = 'CASA' | 'APARTAMENTO' | 'BARRACO' | 'OUTRO';
 export type EsgotoTipo = 'REDE' | 'FOSSA' | 'CEU_ABERTO' | 'NAO_POSSUI';
 export type ColetaLixo = 'REGULAR' | 'IRREGULAR' | 'NAO_POSSUI';
 export type TipoDeficiencia = 'FISICA' | 'INTELECTUAL' | 'AUDITIVA' | 'VISUAL' | 'MULTIPLA' | 'TEA';
+export type BeneficiarioStatus = 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO';
 
 @Entity('beneficiario')
 export class Beneficiario {
@@ -46,6 +47,12 @@ export class Beneficiario {
 
   @Column({ name: 'cor_raca', nullable: true })
   corRaca?: CorRaca;
+
+  @Column({ name: 'status', default: 'EM_ANALISE' })
+  status!: BeneficiarioStatus;
+
+  @Column({ name: 'motivo_bloqueio', type: 'text', nullable: true })
+  motivoBloqueio?: string;
 
   @Column({ name: 'estado_civil', nullable: true })
   estadoCivil?: string;
