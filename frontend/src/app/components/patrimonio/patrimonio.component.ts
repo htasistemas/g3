@@ -334,7 +334,8 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   formatField(field: AssetFormTextField): void {
     const value = this.assetForm[field];
     if (typeof value === 'string') {
-      this.assetForm[field] = this.toProperCase(value);
+      const formatted = this.toProperCase(value);
+      this.assetForm = { ...this.assetForm, [field]: formatted } as AssetForm;
       this.updateCessionTermPreview();
     }
   }
@@ -745,7 +746,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
 
   private buildAssetSnapshot(): Patrimonio {
     return {
-      idPatrimonio: '',
+      idPatrimonio: this.selectedAsset?.idPatrimonio ?? '',
       numeroPatrimonio: this.assetForm.patrimonyNumber,
       nome: this.assetForm.name,
       categoria: this.assetForm.category,

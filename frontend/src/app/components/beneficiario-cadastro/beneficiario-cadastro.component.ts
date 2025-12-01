@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
@@ -131,6 +131,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   getTabLabel(id: string): string {
     return this.tabs.find((tab) => tab.id === id)?.label ?? '';
+  }
+
+  get motivoBloqueioControl(): FormControl<string | null> {
+    return this.form.get('motivo_bloqueio') as FormControl<string | null>;
   }
 
   constructor(
