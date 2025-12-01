@@ -4,6 +4,18 @@
     <p class="page-title__label">Cadastro de beneficiário</p>
   </header>
 
+  <div class="page-actions">
+    <button type="button" class="ghost" (click)="printBeneficiaryList()">
+      Imprimir relação de beneficiários
+    </button>
+    <button type="button" class="ghost" (click)="printIndividualRecord()">
+      Imprimir ficha individual
+    </button>
+    <button type="button" class="ghost" (click)="printConsentDocument()">
+      Reimprimir termo de consentimento
+    </button>
+  </div>
+
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
@@ -85,6 +97,9 @@
               <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
             </select>
           </label>
+          <button type="button" class="primary" [disabled]="saving" (click)="saveStatusChange()">
+            {{ saving ? 'Salvando...' : 'Atualizar cadastro' }}
+          </button>
           <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
             Editar motivo do bloqueio
           </button>
