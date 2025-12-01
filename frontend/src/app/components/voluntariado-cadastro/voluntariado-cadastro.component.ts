@@ -1,32 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { VolunteerPayload, VolunteerService } from '../../services/volunteer.service';
 
 interface StepTab {
   id: string;
   label: string;
 }
 
-interface VolunteerRecord {
-  id: string;
-  nome: string;
-  cpf: string;
-  email: string;
-  telefone?: string;
-  cidade?: string;
-  estado?: string;
-  areaInteresse?: string;
-  habilidades?: string;
-  idiomas?: string;
-  disponibilidadeDias?: string[];
-  disponibilidadePeriodos?: string[];
-  cargaHoraria?: string;
-  presencial?: boolean;
-  remoto?: boolean;
-  inicioPrevisto?: string;
-  motivacao?: string;
-  observacoes?: string;
-}
+type VolunteerRecord = VolunteerPayload & { id: string };
 
 @Component({
   selector: 'app-voluntariado-cadastro',
@@ -40,6 +22,7 @@ export class VoluntariadoCadastroComponent {
   activeTab = 'dados';
   saving = false;
   feedback: string | null = null;
+  editingVolunteerId: string | null = null;
 
   tabs: StepTab[] = [
     { id: 'dados', label: 'Dados Pessoais' },
@@ -48,54 +31,21 @@ export class VoluntariadoCadastroComponent {
     { id: 'termos', label: 'Termos e Documentos' }
   ];
 
-  volunteers: VolunteerRecord[] = [
-    {
-      id: 'VOL-001',
-      nome: 'Ana Clara Martins',
-      cpf: '123.456.789-00',
-      email: 'ana.martins@email.com',
-      telefone: '(11) 98888-1122',
-      cidade: 'São Paulo',
-      estado: 'SP',
-      areaInteresse: 'Educação',
-      habilidades: 'Alfabetização, contação de histórias',
-      idiomas: 'Português, Inglês',
-      disponibilidadeDias: ['Terça-feira', 'Quinta-feira'],
-      disponibilidadePeriodos: ['Manhã'],
-      cargaHoraria: '4h semanais',
-      presencial: true,
-      remoto: false,
-      inicioPrevisto: '2024-09-01',
-      motivacao: 'Contribuir com reforço escolar',
-      observacoes: 'Disponível para deslocamentos próximos ao centro.'
-    },
-    {
-      id: 'VOL-002',
-      nome: 'Carlos Nogueira',
-      cpf: '987.654.321-00',
-      email: 'carlos.nogueira@email.com',
-      telefone: '(31) 97777-2211',
-      cidade: 'Belo Horizonte',
-      estado: 'MG',
-      areaInteresse: 'Captação de recursos',
-      habilidades: 'Planejamento de eventos, comunicação',
-      idiomas: 'Português',
-      disponibilidadeDias: ['Quarta-feira'],
-      disponibilidadePeriodos: ['Noite'],
-      cargaHoraria: '3h semanais',
-      presencial: false,
-      remoto: true,
-      inicioPrevisto: '2024-08-20',
-      motivacao: 'Ajudar com campanhas',
-      observacoes: 'Preferência por atividades online.'
-    }
-  ];
+  volunteers: VolunteerRecord[] = [];
 
   readonly diasSemana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   readonly periodos = ['Manhã', 'Tarde', 'Noite'];
   readonly habilidadesSugestao = ['Atendimento direto', 'Captação de recursos', 'Comunicação', 'Administrativo', 'Tecnologia', 'Eventos'];
 
-  constructor(private readonly fb: FormBuilder) {
+  readonly instituicao = {
+    razaoSocial: 'Agência Adventista de Desenvolvimento e Recursos Assistenciais',
+    cnpj: '60.974.622/0001-71',
+    endereco: 'Rua Domingos de Morais, 1765 - Vila Mariana, São Paulo/SP',
+    telefone: '(11) 2128-6225',
+    email: 'contato@adra.org.br'
+  };
+
+  constructor(private readonly fb: FormBuilder, private readonly volunteerService: VolunteerService) {
     this.form = this.fb.group({
       dadosPessoais: this.fb.group({
         nomeCompleto: ['', Validators.required],
@@ -133,6 +83,8 @@ export class VoluntariadoCadastroComponent {
         assinaturaDigital: ['']
       })
     });
+
+    this.loadVolunteers();
   }
 
   get activeTabIndex(): number {
@@ -194,7 +146,7 @@ export class VoluntariadoCadastroComponent {
     termoWindow.document.write(`
       <html>
         <head>
-          <title>Termo de Voluntariado</title>
+          <title>Termo de Voluntariado e Uso de Imagem</title>
           <style>
             ${this.abntStyles()}
           </style>
@@ -202,8 +154,9 @@ export class VoluntariadoCadastroComponent {
         <body>
           <header class="abnt-header">
             <div>
-              <p class="abnt-organization">Agência Adventista de Desenvolvimento e Recursos Assistenciais</p>
-              <h1>TERMO DE ADESÃO AO TRABALHO VOLUNTÁRIO</h1>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
+              <h1>RELATÓRIO DE ADESÃO AO VOLUNTARIADO E AUTORIZAÇÃO DE USO DE IMAGEM</h1>
             </div>
             <p class="abnt-subtitle">Documento emitido conforme diretrizes de relatório ABNT (margens e fonte 12 pt).</p>
           </header>
@@ -211,37 +164,50 @@ export class VoluntariadoCadastroComponent {
           <section class="abnt-section">
             <h2>1. IDENTIFICAÇÃO DO(A) VOLUNTÁRIO(A)</h2>
             <p><strong>Nome completo:</strong> ${value.dadosPessoais?.nomeCompleto || '_____________________'} </p>
-            <p><strong>CPF:</strong> ${value.dadosPessoais?.cpf || '_____________________'} | <strong>RG:</strong> ${value.dadosPessoais?.rg || '_____________________'} </p>
+            <p><strong>CPF:</strong> ${value.dadosPessoais?.cpf || '_____________________'} | <strong>RG:</strong> ${
+      value.dadosPessoais?.rg || '_____________________' }
+            </p>
             <p><strong>Contato:</strong> ${value.contato?.email || '_____________________'} | ${value.contato?.telefone || ''}</p>
             <p><strong>Área de interesse:</strong> ${value.contato?.areaInteresse || '_____________________'}</p>
           </section>
           <section class="abnt-section">
-            <h2>2. TERMO DE ADESÃO AO VOLUNTARIADO</h2>
-            <p>Declaro que atuarei de forma espontânea, sem vínculo empregatício, podendo encerrar minha participação a qualquer momento mediante aviso prévio à instituição.</p>
+            <h2>2. TERMO DE ADESÃO AO VOLUNTARIADO (Lei nº 9.608/1998)</h2>
+            <p>O(A) voluntário(a) adere, por livre iniciativa, ao serviço voluntário prestado à <strong>${this.instituicao.razaoSocial}</strong>, sem geração de vínculo empregatício, subordinação ou remuneração, podendo encerrar sua colaboração mediante aviso prévio.</p>
             <ul>
-              <li>Prestarei serviços alinhados à missão institucional, respeitando políticas internas e confidencialidade.</li>
-              <li>Receberei orientações de segurança, recursos e supervisão necessários para executar minhas atividades.</li>
-              <li>Autorizo o tratamento dos meus dados pessoais exclusivamente para fins de gestão de voluntariado, conforme LGPD.</li>
+              <li>Prestar atividades alinhadas à missão institucional, seguindo normas internas, protocolos de segurança e orientações da equipe técnica.</li>
+              <li>Manter confidencialidade sobre informações estratégicas ou sensíveis de beneficiários, parceiros e colaboradores.</li>
+              <li>Comunicar previamente ausências, zelar pelos materiais fornecidos e devolver equipamentos quando solicitado.</li>
+              <li>Permitir o tratamento de dados pessoais para fins de gestão do voluntariado, respeitando os princípios da LGPD e garantindo direito de acesso, correção e revogação.</li>
+              <li>Declarar estar em condições físicas e psicológicas para exercer as atividades indicadas, assumindo responsabilidade por informações prestadas.</li>
             </ul>
           </section>
           <section class="abnt-section">
-            <h2>3. AUTORIZAÇÃO DE USO DE IMAGEM</h2>
-            <p>Autorizo, de forma gratuita e por prazo indeterminado, a captação e utilização de minha imagem, voz e nome em materiais institucionais, digitais ou impressos, relacionados às ações de voluntariado.</p>
-            <p>Esta autorização é revogável mediante solicitação formal, preservando registros já publicados.</p>
+            <h2>3. AUTORIZAÇÃO DE USO DE IMAGEM E VOZ</h2>
+            <p>Autorizo, de forma gratuita, a captação, edição, reprodução e divulgação de minha imagem, voz e nome em fotos, vídeos, transmissões, materiais impressos ou digitais vinculados às ações institucionais.</p>
+            <ul>
+              <li>A autorização é válida por prazo indeterminado e em todo território nacional, podendo ser revogada mediante solicitação formal, preservando-se o uso de materiais já publicados.</li>
+              <li>Não haverá ônus financeiro, tampouco obrigação de contraprestação pela instituição.</li>
+              <li>As imagens poderão ser utilizadas em relatórios, campanhas, redes sociais, websites institucionais, peças gráficas e materiais de prestação de contas a financiadores.</li>
+            </ul>
           </section>
           <section class="abnt-section">
             <h2>4. SAÚDE E SEGURANÇA</h2>
-            <p>Comprometo-me a seguir as orientações de segurança fornecidas pela instituição e a comunicar qualquer condição que possa afetar minha participação.</p>
+            <p>Comprometo-me a seguir as orientações de segurança fornecidas, utilizar EPIs quando necessário, comunicar condições de saúde que possam impactar minha atuação e cumprir protocolos emergenciais definidos pela instituição.</p>
           </section>
           <section class="abnt-section">
             <h2>5. VIGÊNCIA E FORO</h2>
-            <p>O presente termo vigora enquanto durar a participação voluntária. Para dirimir controvérsias, fica eleito o foro da comarca da organização.</p>
+            <p>O presente termo vigora enquanto perdurar a participação voluntária. As partes elegem o foro da comarca da sede da instituição para dirimir eventuais controvérsias.</p>
           </section>
           <div class="signature">
             <p><strong>Local e data:</strong> ________________________________</p>
             <p><strong>Assinatura do(a) voluntário(a):</strong> _____________________________________________</p>
             <p><strong>Assinatura do(a) representante da instituição:</strong> _______________________________</p>
           </div>
+          <footer class="abnt-footer">
+            <p><strong>${this.instituicao.razaoSocial}</strong> · CNPJ ${this.instituicao.cnpj}</p>
+            <p>${this.instituicao.endereco}</p>
+            <p>Contato: ${this.instituicao.telefone} · ${this.instituicao.email}</p>
+          </footer>
         </body>
       </html>
     `);
@@ -260,13 +226,71 @@ export class VoluntariadoCadastroComponent {
 
     this.feedback = null;
     this.saving = true;
+    const record = this.buildVolunteerRecord();
 
-    setTimeout(() => {
-      this.saving = false;
-      const record = this.buildVolunteerRecord();
-      this.volunteers = [record, ...this.volunteers];
+    if (this.editingVolunteerId) {
+      this.volunteerService.update(this.editingVolunteerId, record);
+      this.feedback = 'Cadastro de voluntário atualizado com sucesso.';
+    } else {
+      this.volunteerService.create(record);
       this.feedback = 'Cadastro de voluntário salvo com sucesso. Termos registrados com formatação ABNT.';
-    }, 600);
+    }
+
+    this.loadVolunteers();
+    this.saving = false;
+    this.editingVolunteerId = null;
+    this.resetForm();
+  }
+
+  editVolunteer(volunteer: VolunteerRecord): void {
+    this.editingVolunteerId = volunteer.id;
+    this.changeTab('dados');
+    this.form.patchValue({
+      dadosPessoais: {
+        nomeCompleto: volunteer.nome,
+        cpf: volunteer.cpf,
+        rg: '',
+        dataNascimento: '',
+        genero: '',
+        profissao: '',
+        motivacao: volunteer.motivacao
+      },
+      contato: {
+        telefone: volunteer.telefone,
+        email: volunteer.email,
+        cidade: volunteer.cidade,
+        estado: volunteer.estado,
+        areaInteresse: volunteer.areaInteresse,
+        habilidades: volunteer.habilidades,
+        idiomas: volunteer.idiomas,
+        linkedin: ''
+      },
+      disponibilidade: {
+        dias: volunteer.disponibilidadeDias ?? [],
+        periodos: volunteer.disponibilidadePeriodos ?? [],
+        cargaHorariaSemanal: volunteer.cargaHoraria,
+        inicioPrevisto: volunteer.inicioPrevisto,
+        presencial: volunteer.presencial,
+        remoto: volunteer.remoto,
+        observacoes: volunteer.observacoes
+      },
+      termos: {
+        documentoIdentificacao: '',
+        comprovanteEndereco: '',
+        aceiteVoluntariado: true,
+        aceiteImagem: true,
+        assinaturaDigital: ''
+      }
+    });
+  }
+
+  deleteVolunteer(volunteer: VolunteerRecord): void {
+    this.volunteerService.delete(volunteer.id);
+    this.loadVolunteers();
+    if (this.editingVolunteerId === volunteer.id) {
+      this.editingVolunteerId = null;
+      this.resetForm();
+    }
   }
 
   printVolunteer(volunteer: VolunteerRecord): void {
@@ -282,7 +306,8 @@ export class VoluntariadoCadastroComponent {
         <body>
           <header class="abnt-header">
             <div>
-              <p class="abnt-organization">Agência Adventista de Desenvolvimento e Recursos Assistenciais</p>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
               <h1>FICHA DE VOLUNTÁRIO</h1>
             </div>
             <p class="abnt-subtitle">Registro completo do voluntário para controle interno.</p>
@@ -352,7 +377,8 @@ export class VoluntariadoCadastroComponent {
         <body>
           <header class="abnt-header">
             <div>
-              <p class="abnt-organization">Agência Adventista de Desenvolvimento e Recursos Assistenciais</p>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
               <h1>RELAÇÃO DE VOLUNTÁRIOS</h1>
             </div>
             <p class="abnt-subtitle">Lista de voluntários cadastrados para impressão.</p>
@@ -378,6 +404,60 @@ export class VoluntariadoCadastroComponent {
     printWindow.print();
   }
 
+  private loadVolunteers(): void {
+    let needsPersist = false;
+    this.volunteers = this.volunteerService.list().map((volunteer) => {
+      if (!volunteer.id) needsPersist = true;
+      return { ...volunteer, id: volunteer.id ?? crypto.randomUUID() } as VolunteerRecord;
+    });
+
+    if (needsPersist) {
+      this.volunteers.forEach((volunteer) => this.volunteerService.update(volunteer.id, volunteer));
+    }
+  }
+
+  private resetForm(): void {
+    this.form.reset({
+      dadosPessoais: {
+        nomeCompleto: '',
+        cpf: '',
+        rg: '',
+        dataNascimento: '',
+        genero: '',
+        profissao: '',
+        motivacao: ''
+      },
+      contato: {
+        telefone: '',
+        email: '',
+        cidade: '',
+        estado: '',
+        areaInteresse: '',
+        habilidades: '',
+        idiomas: '',
+        linkedin: ''
+      },
+      disponibilidade: {
+        dias: [],
+        periodos: [],
+        cargaHorariaSemanal: '',
+        inicioPrevisto: '',
+        presencial: false,
+        remoto: false,
+        observacoes: ''
+      },
+      termos: {
+        documentoIdentificacao: '',
+        comprovanteEndereco: '',
+        aceiteVoluntariado: false,
+        aceiteImagem: false,
+        assinaturaDigital: ''
+      }
+    });
+
+    this.activeTab = 'dados';
+  }
+
   private abntStyles(): string {
     return `
       @page { margin: 3cm 2cm 2cm 3cm; }
@@ -391,13 +471,14 @@ export class VoluntariadoCadastroComponent {
       .abnt-subtitle { margin: 0; font-size: 10pt; color: #475569; text-align: right; }
       .abnt-section { margin-top: 8px; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 8px; }
       .signature { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; display: grid; gap: 10px; }
+      .abnt-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #475569; font-size: 10pt; }
     `;
   }
 
   private buildVolunteerRecord(): VolunteerRecord {
     const value = this.form.value;
     return {
-      id: `VOL-${String(this.volunteers.length + 1).padStart(3, '0')}`,
+      id: this.editingVolunteerId ?? crypto.randomUUID(),
       nome: value.dadosPessoais?.nomeCompleto || 'Voluntário sem nome',
       cpf: value.dadosPessoais?.cpf || '---',
       email: value.contato?.email || '---',

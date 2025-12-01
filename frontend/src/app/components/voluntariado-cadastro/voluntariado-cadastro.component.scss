@@ -461,6 +461,20 @@
   margin-bottom: 0.25rem;
 }
 
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.table-actions .primary,
+.table-actions .ghost,
+.table-actions .danger {
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+}
+
 @media (max-width: 768px) {
   .page-header,
   .tab-card__header {
