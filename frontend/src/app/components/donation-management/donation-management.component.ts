@@ -19,6 +19,8 @@ interface Beneficiary {
   birthDate?: string;
   phone?: string;
   address?: string;
+  nextEligibilityDate?: string;
+  lastDonationDate?: string;
 }
 
 interface StockItem {
@@ -72,20 +74,26 @@ export class DonationManagementComponent {
       document: '123.456.789-00',
       birthDate: '1991-06-12',
       phone: '(34) 99999-1122',
-      address: 'Rua das Acácias, 210 - Bairro Primavera'
+      address: 'Rua das Acácias, 210 - Bairro Primavera',
+      nextEligibilityDate: this.addDaysToDate(this.todayIso, 5),
+      lastDonationDate: this.addDaysToDate(this.todayIso, -25)
     },
     {
       name: 'João Pedro Duarte',
       document: '987.654.321-00',
       birthDate: '1986-02-03',
       phone: '(34) 98888-3344',
-      address: 'Av. Goiás, 455 - Centro'
+      address: 'Av. Goiás, 455 - Centro',
+      nextEligibilityDate: this.addDaysToDate(this.todayIso, -2),
+      lastDonationDate: this.addDaysToDate(this.todayIso, -40)
     },
     {
       name: 'Associação Vila Nova',
       document: '11.111.111/0001-11',
       phone: '(34) 3232-9090',
-      address: 'Rua 7 de Setembro, 102'
+      address: 'Rua 7 de Setembro, 102',
+      nextEligibilityDate: this.addDaysToDate(this.todayIso, 12),
+      lastDonationDate: this.addDaysToDate(this.todayIso, -18)
     }
   ]);
 
@@ -138,6 +146,13 @@ export class DonationManagementComponent {
   selectedRecord = signal<DonationRecord | null>(null);
 
   searchTerm = signal('');
+  beneficiarySearch = signal('');
+
+  filteredBeneficiaries = computed(() => {
+    const term = this.beneficiarySearch().toLowerCase();
+    if (!term) return this.beneficiaries();
+    return this.beneficiaries().filter((beneficiary) => beneficiary.name.toLowerCase().includes(term));
+  });
 
   filteredStock = computed(() => {
     const term = this.searchTerm().toLowerCase();
@@ -155,6 +170,7 @@ export class DonationManagementComponent {
   constructor() {
     const firstBeneficiary = this.beneficiaries()[0];
     this.donationForm.patchValue({ beneficiary: firstBeneficiary });
+    this.beneficiarySearch.set(firstBeneficiary.name);
   }
 
   get selectedItem() {
@@ -162,8 +178,36 @@ export class DonationManagementComponent {
     return this.stockItems().find((item) => item.code === code);
   }
 
+  onBeneficiaryNameInput(value: string): void {
+    this.beneficiarySearch.set(value);
+    this.donationForm.get(['beneficiary', 'name'])?.setValue(value);
+    const match = this.filteredBeneficiaries()[0];
+    if (match) {
+      this.populateBeneficiary(match);
+    }
+  }
+
   populateBeneficiary(beneficiary: Beneficiary): void {
     this.donationForm.patchValue({ beneficiary });
+    this.beneficiarySearch.set(beneficiary.name);
+  }
+
+  beneficiaryEligibility(beneficiary: Beneficiary | null): { status: 'aguardo' | 'liberado'; message: string } {
+    if (!beneficiary || !beneficiary.nextEligibilityDate) {
+      return { status: 'aguardo', message: 'Selecione um beneficiário cadastrado para verificar carência.' };
+    }
+
+    const nextDate = new Date(beneficiary.nextEligibilityDate);
+    const today = new Date(this.todayIso);
+
+    if (nextDate > today) {
+      return {
+        status: 'aguardo',
+        message: `Em carência até ${nextDate.toLocaleDateString('pt-BR')} (aguarde ${this.daysBetween(today, nextDate)} dia(s)).`
+      };
+    }
+
+    return { status: 'liberado', message: 'Disponível para nova retirada de itens.' };
   }
 
   addItem(): void {
@@ -328,5 +372,16 @@ export class DonationManagementComponent {
         </body>
       </html>
     `;
+  }
+
+  private addDaysToDate(dateIso: string, days: number): string {
+    const base = new Date(dateIso);
+    base.setDate(base.getDate() + days);
+    return base.toISOString().substring(0, 10);
+  }
+
+  private daysBetween(start: Date, end: Date): number {
+    const diffMs = end.getTime() - start.getTime();
+    return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
   }
 }

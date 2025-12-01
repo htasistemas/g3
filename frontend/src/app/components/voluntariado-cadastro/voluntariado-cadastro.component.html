@@ -180,4 +180,48 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
+
+  <div class="list-card">
+    <div class="list-card__header">
+      <div>
+        <p class="page-title__eyebrow">Voluntários cadastrados</p>
+        <p class="page-title__label">Gestão e impressão</p>
+      </div>
+      <div class="list-card__actions">
+        <button class="ghost" type="button" (click)="printVolunteerList()">Imprimir relação</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Área de interesse</th>
+            <th>Disponibilidade</th>
+            <th>Contato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let volunteer of volunteers; index as i">
+            <td>{{ i + 1 }}</td>
+            <td>
+              <div class="strong">{{ volunteer.nome }}</div>
+              <div class="muted">{{ volunteer.cpf }}</div>
+            </td>
+            <td>{{ volunteer.areaInteresse || 'Não informado' }}</td>
+            <td>{{ volunteer.disponibilidadeDias?.join(', ') || 'Sem dias' }} — {{ volunteer.disponibilidadePeriodos?.join(', ') || 'Sem períodos' }}</td>
+            <td>
+              <div class="muted">{{ volunteer.email }}</div>
+              <div class="muted">{{ volunteer.telefone || 'Sem telefone' }}</div>
+            </td>
+            <td class="text-right">
+              <button class="primary" type="button" (click)="printVolunteer(volunteer)">Imprimir ficha</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>

@@ -369,6 +369,61 @@
   box-shadow: 0 18px 36px rgba(16, 185, 129, 0.28);
 }
 
+.list-card {
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+}
+
+.list-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.list-card__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.list-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.list-card th,
+.list-card td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.list-card th {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.text-right {
+  text-align: right;
+}
+
 .term-card {
   background: #f8fafc;
   border-radius: 14px;
