@@ -41,7 +41,15 @@ export class DashboardComponent implements OnInit {
         catchError((error) => {
           console.error('Falha ao carregar estatísticas de beneficiários', error);
           this.error = 'Não foi possível carregar os dados de beneficiários.';
-          this.stats = { total: 0, active: 0, pending: 0 };
+          this.stats = {
+            total: 0,
+            active: 0,
+            pending: 0,
+            blocked: 0,
+            inAnalysis: 0,
+            updated: 0,
+            withBenefits: 0
+          };
           return of({ beneficiarios: [] });
         }),
         finalize(() => {
@@ -51,7 +59,7 @@ export class DashboardComponent implements OnInit {
       .subscribe(({ beneficiarios }) => this.calculateStats(beneficiarios));
   }
 
-  private calculateStats(beneficiarios: Array<{ status?: string; recebeBeneficio?: boolean }>): void {
+  private calculateStats(beneficiarios: Array<{ status?: string; recebeBeneficio?: string | boolean }>): void {
     const normalized = beneficiarios.map((beneficiary) => (beneficiary.status ?? '').toUpperCase());
 
     const active = normalized.filter((status) => status === 'ATIVO').length;
@@ -59,7 +67,7 @@ export class DashboardComponent implements OnInit {
     const blocked = normalized.filter((status) => status === 'BLOQUEADO').length;
     const inAnalysis = normalized.filter((status) => status === 'EM_ANALISE').length;
     const updated = normalized.filter((status) => status === 'DESATUALIZADO' || status === 'INCOMPLETO').length;
-    const withBenefits = beneficiarios.filter((beneficiary) => Boolean(beneficiary.recebeBeneficio)).length;
+    const withBenefits = beneficiarios.filter((beneficiary) => this.hasBenefits(beneficiary.recebeBeneficio)).length;
 
     this.stats = {
       total: beneficiarios.length,
@@ -70,6 +78,14 @@ export class DashboardComponent implements OnInit {
       updated,
       withBenefits
     };
+  }
+
+  private hasBenefits(recebeBeneficio?: string | boolean): boolean {
+    if (typeof recebeBeneficio === 'string') {
+      return recebeBeneficio.toLowerCase() === 'true' || recebeBeneficio === '1';
+    }
+
+    return Boolean(recebeBeneficio);
   }
 
   private hasPendingStatus(status?: string): boolean {
