@@ -22,11 +22,19 @@ interface ViaCepResponse {
   styleUrl: './assistance-unit.component.scss'
 })
 export class AssistanceUnitComponent implements OnInit, OnDestroy {
+  readonly tabs = [
+    { id: 'dados', label: 'Dados da Unidade' },
+    { id: 'endereco', label: 'Endereço da Unidade' },
+    { id: 'imagens', label: 'Imagens da Unidade' },
+    { id: 'diretoria', label: 'Diretoria da Unidade' }
+  ] as const;
+
   unidade: AssistanceUnitPayload | null = null;
   logoPreview: string | null = null;
   reportLogoPreview: string | null = null;
   feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
   deleteConfirmation = false;
+  activeTab: (typeof this.tabs)[number]['id'] = 'dados';
   private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly estados = [
@@ -195,6 +203,14 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
     });
+  }
+
+  changeTab(tabId: (typeof this.tabs)[number]['id']): void {
+    this.activeTab = tabId;
+  }
+
+  getTabLabel(tabId: (typeof this.tabs)[number]['id']): string {
+    return this.tabs.find((tab) => tab.id === tabId)?.label ?? '';
   }
 
   onLogoSelected(event: Event): void {
