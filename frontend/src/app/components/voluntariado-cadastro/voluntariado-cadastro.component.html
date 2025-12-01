@@ -138,14 +138,15 @@
           <div class="term-card__header">
             <div>
               <p class="term-card__title">Termo de voluntariado</p>
-              <p class="muted">Responsabilidades, ausência de vínculo empregatício e condições de saúde e segurança.</p>
+              <p class="muted">Responsabilidades, ausência de vínculo empregatício e cuidados com segurança e confidencialidade.</p>
             </div>
             <span class="pill">Obrigatório</span>
           </div>
           <ul>
-            <li>Atuação voluntária, sem remuneração, com liberdade para encerrar a qualquer momento.</li>
-            <li>Confidencialidade sobre dados atendidos e respeito às políticas internas.</li>
-            <li>Capacitação e materiais fornecidos conforme atividade acordada.</li>
+            <li>Atuação espontânea e não remunerada, regida pela Lei nº 9.608/1998, sem vínculo empregatício.</li>
+            <li>Dever de confidencialidade sobre beneficiários, relatórios e informações estratégicas.</li>
+            <li>Direito a capacitação, orientações de segurança e materiais necessários para a atividade.</li>
+            <li>Responsabilidade de comunicar ausências, zelar por equipamentos e cumprir protocolos internos.</li>
           </ul>
           <label class="checkbox-field">
             <input type="checkbox" formControlName="aceiteVoluntariado" />
@@ -157,14 +158,14 @@
           <div class="term-card__header">
             <div>
               <p class="term-card__title">Autorização de uso de imagem</p>
-              <p class="muted">Permite divulgar imagem e voz em materiais institucionais ligados ao voluntariado.</p>
+              <p class="muted">Autorização detalhada para captação e divulgação de imagem e voz em materiais institucionais.</p>
             </div>
             <span class="pill">Obrigatório</span>
           </div>
           <ul>
-            <li>Uso gratuito da imagem em mídias digitais, impressas e eventos.</li>
-            <li>Direito de revogação mediante comunicação formal, preservando materiais já publicados.</li>
-            <li>Tratamento de dados pessoais conforme LGPD.</li>
+            <li>Uso gratuito da imagem e voz em mídias digitais, impressas, transmissões e relatórios.</li>
+            <li>Possibilidade de revogação futura, sem efeito retroativo sobre peças já divulgadas.</li>
+            <li>Tratamento de dados pessoais em conformidade com a LGPD e políticas internas de privacidade.</li>
           </ul>
           <label class="checkbox-field">
             <input type="checkbox" formControlName="aceiteImagem" />
@@ -217,7 +218,11 @@
               <div class="muted">{{ volunteer.telefone || 'Sem telefone' }}</div>
             </td>
             <td class="text-right">
-              <button class="primary" type="button" (click)="printVolunteer(volunteer)">Imprimir ficha</button>
+              <div class="table-actions">
+                <button class="ghost" type="button" (click)="editVolunteer(volunteer)">Editar</button>
+                <button class="danger" type="button" (click)="deleteVolunteer(volunteer)">Excluir</button>
+                <button class="primary" type="button" (click)="printVolunteer(volunteer)">Imprimir ficha</button>
+              </div>
             </td>
           </tr>
         </tbody>

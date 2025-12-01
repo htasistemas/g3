@@ -269,6 +269,75 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
+.search-results {
+  margin-top: 0.35rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.search-results button {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid transparent;
+  background: #f8fafc;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.search-results button:hover {
+  border-color: #0f7a43;
+  background: #ecfdf3;
+}
+
+.list-card {
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.05);
+}
+
+.list-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-wrapper {
+  overflow: auto;
+}
+
+.list-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.list-card th,
+.list-card td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.list-card th:last-child,
+.list-card td:last-child {
+  text-align: right;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

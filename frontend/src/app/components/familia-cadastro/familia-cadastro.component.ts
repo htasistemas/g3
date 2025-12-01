@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { FamilyService, FamiliaMembroPayload, FamiliaPayload } from '../../services/family.service';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-familia-cadastro',
@@ -19,6 +21,8 @@ export class FamiliaCadastroComponent implements OnInit {
   feedback: string | null = null;
   saving = false;
   membrosFiltrados: BeneficiarioApiPayload[] = [];
+  referenciaResultados: BeneficiarioApiPayload[] = [];
+  cepLookupError: string | null = null;
 
   tabs = [
     { id: 'familia', label: 'Dados da Família' },
@@ -32,17 +36,19 @@ export class FamiliaCadastroComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly service: FamilyService,
     private readonly beneficiarioService: BeneficiarioApiService,
+    private readonly http: HttpClient,
     private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {
     this.form = this.fb.group({
       familia: this.fb.group({
         nome_familia: ['', Validators.required],
-        id_referencia_familiar: [''],
+        referencia_familiar_nome: [''],
+        id_referencia_familiar: ['', Validators.required],
         arranjo_familiar: ['']
       }),
       endereco: this.fb.group({
-        cep: [''],
+        cep: ['', [Validators.required, this.cepValidator]],
         logradouro: [''],
         numero: [''],
         complemento: [''],
@@ -50,7 +56,7 @@ export class FamiliaCadastroComponent implements OnInit {
         ponto_referencia: [''],
         municipio: [''],
         uf: [''],
-        zona: [''],
+        zona: ['URBANA'],
         situacao_imovel: [''],
         tipo_moradia: [''],
         agua_encanada: [false],
@@ -125,7 +131,13 @@ export class FamiliaCadastroComponent implements OnInit {
       renda_individual: [membro?.renda_individual || ''],
       participa_servicos: [membro?.participa_servicos || false],
       observacoes: [membro?.observacoes || ''],
-      beneficiario: [membro?.beneficiario]
+      beneficiario: [membro?.beneficiario],
+      beneficiario_nome: [
+        membro?.beneficiario?.nome_completo ||
+          membro?.beneficiario?.nome_social ||
+          (membro as any)?.beneficiario_nome ||
+          ''
+      ]
     });
     this.membros.push(group);
   }
@@ -154,6 +166,7 @@ export class FamiliaCadastroComponent implements OnInit {
     this.form.patchValue({
       familia: {
         nome_familia: familia.nome_familia,
+        referencia_familiar_nome: (familia as any)?.referencia_familiar_nome,
         id_referencia_familiar: familia.id_referencia_familiar,
         arranjo_familiar: familia.arranjo_familiar
       },
@@ -195,16 +208,51 @@ export class FamiliaCadastroComponent implements OnInit {
 
     this.membros.clear();
     (familia.membros || []).forEach((m) => this.addMembro(m));
+
+    if (familia.id_referencia_familiar && !this.form.get(['familia', 'referencia_familiar_nome'])?.value) {
+      this.beneficiarioService.getById(familia.id_referencia_familiar).subscribe(({ beneficiario }) => {
+        this.form
+          .get(['familia', 'referencia_familiar_nome'])
+          ?.setValue(beneficiario.nome_completo || beneficiario.nome_social || '');
+      });
+    }
   }
 
-  buscarBeneficiarios(term: string) {
+  buscarBeneficiarios(term: string, index?: number) {
+    if (!term?.trim()) {
+      this.membrosFiltrados = [];
+      return;
+    }
+
     this.beneficiarioService.list({ nome: term }).subscribe(({ beneficiarios }) => {
-      this.membrosFiltrados = beneficiarios;
+      this.membrosFiltrados = beneficiarios.map((beneficiario) => ({
+        ...beneficiario,
+        _membroIndex: index
+      })) as any;
     });
+  }
+
+  selecionarReferencia(beneficiario: BeneficiarioApiPayload) {
+    this.form.get(['familia', 'id_referencia_familiar'])?.setValue(beneficiario.id_beneficiario || '');
+    this.form
+      .get(['familia', 'referencia_familiar_nome'])
+      ?.setValue(beneficiario.nome_completo || beneficiario.nome_social || '');
+    this.referenciaResultados = [];
+  }
+
+  selecionarMembro(index: number, beneficiario: BeneficiarioApiPayload) {
+    const grupo = this.membros.at(index) as FormGroup;
+    grupo.patchValue({
+      id_beneficiario: beneficiario.id_beneficiario || '',
+      beneficiario,
+      beneficiario_nome: beneficiario.nome_completo || beneficiario.nome_social || ''
+    });
+    this.membrosFiltrados = [];
   }
 
   submit() {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       this.feedback = 'Preencha os campos obrigatórios';
       return;
     }
@@ -229,8 +277,10 @@ export class FamiliaCadastroComponent implements OnInit {
 
   private toPayload(): FamiliaPayload {
     const value = this.form.value;
+    const { referencia_familiar_nome, ...familiaDados } = value.familia as any;
+
     return {
-      ...(value.familia as any),
+      ...(familiaDados as any),
       ...(value.endereco as any),
       ...(value.renda as any),
       ...(value.vulnerabilidades as any),
@@ -245,5 +295,96 @@ export class FamiliaCadastroComponent implements OnInit {
         observacoes: m.observacoes
       }))
     } as FamiliaPayload;
+  }
+
+  onReferenciaInput(term: string) {
+    this.form.get(['familia', 'referencia_familiar_nome'])?.setValue(term);
+    this.form.get(['familia', 'id_referencia_familiar'])?.setValue('');
+
+    if (term.trim().length < 2) {
+      this.referenciaResultados = [];
+      return;
+    }
+
+    this.beneficiarioService.list({ nome: term }).subscribe(({ beneficiarios }) => {
+      this.referenciaResultados = beneficiarios;
+    });
+  }
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+
+    if (digits.length > 5) {
+      formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    this.form.get(['endereco', 'cep'])?.setValue(formatted, { emitEvent: false });
+    this.cepLookupError = null;
+
+    if (digits.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  onCepBlur(): void {
+    const cepControl = this.form.get(['endereco', 'cep']);
+    if (!cepControl) return;
+
+    if (cepControl.invalid) {
+      this.cepLookupError = cepControl.value ? 'Informe um CEP válido para consultar o endereço.' : null;
+      return;
+    }
+
+    const digits = this.normalizeCep(cepControl.value as string);
+    if (digits?.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  cepValidator(control: AbstractControl) {
+    const digits = this.normalizeCep(control.value);
+    return digits && digits.length === 8 ? null : { cepInvalido: true };
+  }
+
+  private lookupAddressByCep(cep: string): void {
+    this.cepLookupError = null;
+    this.http
+      .get<{ logradouro?: string; bairro?: string; localidade?: string; uf?: string; erro?: boolean }>(
+        `https://viacep.com.br/ws/${cep}/json/`
+      )
+      .pipe(finalize(() => this.form.get(['endereco', 'cep'])?.markAsTouched()))
+      .subscribe({
+        next: (response) => {
+          if (response?.erro) {
+            this.cepLookupError = 'CEP não encontrado.';
+            return;
+          }
+
+          this.form.get('endereco')?.patchValue({
+            logradouro: response.logradouro ?? '',
+            bairro: response.bairro ?? '',
+            municipio: response.localidade ?? '',
+            uf: response.uf ?? ''
+          });
+        },
+        error: () => {
+          this.cepLookupError = 'Não foi possível consultar o CEP.';
+        }
+      });
+  }
+
+  private normalizeCep(value?: string | null): string {
+    return (value ?? '').replace(/\D/g, '');
+  }
+
+  getNomeBeneficiario(index: number): string {
+    const grupo = this.membros.at(index) as FormGroup;
+    const nome =
+      grupo.get('beneficiario_nome')?.value ||
+      (grupo.get('beneficiario')?.value as BeneficiarioApiPayload)?.nome_completo ||
+      (grupo.get('beneficiario')?.value as BeneficiarioApiPayload)?.nome_social;
+    return nome || 'Beneficiário não selecionado';
   }
 }

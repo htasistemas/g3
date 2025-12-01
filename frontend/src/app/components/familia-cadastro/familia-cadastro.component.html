@@ -52,7 +52,24 @@
       </div>
       <div class="field-grid cols-2">
         <label class="field">Nome da família*<input formControlName="nome_familia" placeholder="Ex.: Família Silva" /></label>
-        <label class="field">Referência familiar (ID do beneficiário)<input formControlName="id_referencia_familiar" placeholder="ID do responsável" /></label>
+        <div class="field">
+          <p class="field-title">Referência familiar (beneficiário)*</p>
+          <input
+            formControlName="referencia_familiar_nome"
+            placeholder="Busque pelo nome do beneficiário"
+            (input)="onReferenciaInput($event.target.value)"
+          />
+          <input type="hidden" formControlName="id_referencia_familiar" />
+          <div class="search-results" *ngIf="referenciaResultados.length">
+            <button type="button" *ngFor="let beneficiario of referenciaResultados" (click)="selecionarReferencia(beneficiario)">
+              <span class="strong">{{ beneficiario.nome_completo || beneficiario.nome_social }}</span>
+              <span class="muted">CPF: {{ beneficiario.cpf || 'Sem CPF' }} · ID: {{ beneficiario.id_beneficiario }}</span>
+            </button>
+          </div>
+          <p class="field-error" *ngIf="form.get(['familia', 'id_referencia_familiar'])?.invalid && form.get(['familia', 'id_referencia_familiar'])?.touched">
+            Selecione um beneficiário como referência familiar.
+          </p>
+        </div>
         <label class="field">Arranjo familiar<select formControlName="arranjo_familiar">
             <option value=""></option>
             <option value="NUCLEAR">Nuclear</option>
@@ -73,21 +90,28 @@
         </div>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+          <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
+            Informe um CEP válido com 8 dígitos.
+          </p>
+          <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
+        </label>
         <label class="field">Logradouro<input formControlName="logradouro" placeholder="Rua, avenida..." /></label>
         <label class="field">Número<input formControlName="numero" placeholder="Nº" /></label>
         <label class="field">Complemento<input formControlName="complemento" placeholder="Apartamento, bloco" /></label>
         <label class="field">Bairro<input formControlName="bairro" /></label>
         <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
         <label class="field">Município<input formControlName="municipio" /></label>
-        <label class="field">UF<input maxlength="2" formControlName="uf" placeholder="UF" /></label>
-        <label class="field">Zona<select formControlName="zona"><option value=""></option><option value="URBANA">Urbana</option><option value="RURAL">Rural</option></select></label>
-        <label class="field">Situação do imóvel<input formControlName="situacao_imovel" placeholder="Próprio, alugado..." /></label>
-        <label class="field">Tipo de moradia<input formControlName="tipo_moradia" placeholder="Casa, apartamento..." /></label>
-        <div class="feature-grid">
-          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
+        <label class="field">Estado<input maxlength="2" formControlName="uf" placeholder="UF" /></label>
+        <label class="field">Zona<select formControlName="zona"><option value="URBANA">Urbana</option><option value="RURAL">Rural</option></select></label>
+        <label class="field">Situação do imóvel<select formControlName="situacao_imovel"><option value=""></option><option value="PRÓPRIO">Próprio</option><option value="ALUGADO">Alugado</option><option value="CEDIDO">Cedido</option><option value="OCUPAÇÃO">Ocupação</option><option value="OUTRO">Outro</option></select></label>
+        <div class="field-grid cols-3 compact full-span">
+          <label class="field">Tipo de moradia<select formControlName="tipo_moradia"><option value=""></option><option value="CASA">Casa</option><option value="APARTAMENTO">Apartamento</option><option value="COMODATO">Comodato</option><option value="ABRIGO">Abrigo</option><option value="SITUACAO_RUA">Situação de rua</option></select></label>
           <label class="field">Esgoto<select formControlName="esgoto_tipo"><option value=""></option><option value="REDE">Rede</option><option value="FOSSA">Fossa</option><option value="CEU_ABERTO">Céu aberto</option><option value="NAO_POSSUI">Não possui</option></select></label>
           <label class="field">Coleta de lixo<select formControlName="coleta_lixo"><option value=""></option><option value="REGULAR">Regular</option><option value="IRREGULAR">Irregular</option><option value="NAO_POSSUI">Não possui</option></select></label>
+        </div>
+        <div class="feature-grid">
+          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="energia_eletrica" /> <span>Energia elétrica</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
         </div>
@@ -105,8 +129,23 @@
       </div>
       <div class="membro" *ngFor="let membro of membros.controls; let i = index" [formGroupName]="i">
         <div class="field-grid cols-3">
-          <label class="field">Beneficiário (ID)<input formControlName="id_beneficiario" placeholder="ID cadastrado" /></label>
-          <label class="field">Parentesco<input formControlName="parentesco" placeholder="Ex.: Filho, responsável" /></label>
+          <label class="field">Beneficiário*<input
+              formControlName="beneficiario_nome"
+              placeholder="Busque pelo nome do beneficiário"
+              (input)="buscarBeneficiarios(($event.target as HTMLInputElement).value, i)"
+            />
+            <input type="hidden" formControlName="id_beneficiario" />
+            <div class="search-results" *ngIf="membrosFiltrados.length && (membrosFiltrados[0] as any)._membroIndex === i">
+              <button type="button" *ngFor="let beneficiario of membrosFiltrados" (click)="selecionarMembro(i, beneficiario)">
+                <span class="strong">{{ beneficiario.nome_completo || beneficiario.nome_social }}</span>
+                <span class="muted">CPF: {{ beneficiario.cpf || 'Sem CPF' }} · ID: {{ beneficiario.id_beneficiario }}</span>
+              </button>
+            </div>
+            <p class="field-error" *ngIf="membro.get('id_beneficiario')?.invalid && membro.get('id_beneficiario')?.touched">
+              Selecione um beneficiário para compor a família.
+            </p>
+          </label>
+          <label class="field">Parentesco*<input formControlName="parentesco" placeholder="Ex.: Filho, responsável" /></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_familiar" /> <span>Responsável familiar</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="contribui_renda" /> <span>Contribui renda</span></label>
           <label class="field">Renda individual<input type="number" formControlName="renda_individual" placeholder="0,00" /></label>
@@ -115,6 +154,38 @@
         </div>
         <div class="flex justify-end">
           <button type="button" class="ghost" (click)="removeMembro(i)">Remover</button>
+        </div>
+      </div>
+      <div class="list-card" *ngIf="membros.length">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Resumo</p>
+            <p class="page-title__label">Membros adicionados</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Beneficiário</th>
+                <th>Parentesco</th>
+                <th>Responsável</th>
+                <th>Contribui renda</th>
+                <th>Observações</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let membro of membros.controls; let i = index">
+                <td>{{ getNomeBeneficiario(i) }}</td>
+                <td>{{ membro.get('parentesco')?.value || '---' }}</td>
+                <td>{{ membro.get('responsavel_familiar')?.value ? 'Sim' : 'Não' }}</td>
+                <td>{{ membro.get('contribui_renda')?.value ? 'Sim' : 'Não' }}</td>
+                <td class="muted">{{ membro.get('observacoes')?.value || '---' }}</td>
+                <td class="text-right"><button type="button" class="ghost" (click)="removeMembro(i)">Excluir</button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
