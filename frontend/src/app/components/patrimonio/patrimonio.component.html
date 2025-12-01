@@ -46,25 +46,36 @@
     <div class="card">
       <div class="flex items-center justify-between mb-2">
         <p class="text-sm text-slate-500">Saídas / empréstimos</p>
-        <span class="badge">6 ativos em empréstimo</span>
+        <span class="badge">{{ loanedAssets.length }} em empréstimo</span>
       </div>
       <div class="flex items-baseline gap-2">
         <fa-icon [icon]="faArrowUp" class="text-amber-500"></fa-icon>
-        <p class="text-3xl font-semibold">{{ maintenanceAssets }}</p>
+        <p class="text-3xl font-semibold">{{ loanedAssets.length }}</p>
       </div>
-      <p class="text-xs text-slate-500 mt-1">Movimentações com termo e responsável definido.</p>
+      <p class="text-xs text-slate-500 mt-1">Apenas bens emprestados com termo gerado.</p>
+      <div *ngIf="overdueLoanedAssets.length" class="mt-2 space-y-2">
+        <p class="text-xs font-semibold text-rose-700">{{ overdueLoanedAssets.length }} atrasado(s) para devolução</p>
+        <div class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let asset of overdueLoanedAssets"
+            class="px-3 py-1 text-xs rounded-full bg-rose-50 border border-rose-200 text-rose-700"
+          >
+            {{ asset.numeroPatrimonio }} • {{ asset.nome }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <div class="flex items-center justify-between mb-2">
-        <p class="text-sm text-slate-500">Baixas concluídas</p>
-        <span class="badge badge--muted">Requer senha</span>
+        <p class="text-sm text-slate-500">Bens ativos</p>
+        <span class="badge badge--success">Uso corrente</span>
       </div>
       <div class="flex items-baseline gap-2">
-        <fa-icon [icon]="faTrash" class="text-rose-600"></fa-icon>
-        <p class="text-3xl font-semibold">{{ disposedAssets }}</p>
+        <fa-icon [icon]="faFileInvoice" class="text-emerald-600"></fa-icon>
+        <p class="text-3xl font-semibold">{{ activeAssets }}</p>
       </div>
-      <p class="text-xs text-slate-500 mt-1">Itens baixados/inativos com documentação arquivada.</p>
+      <p class="text-xs text-slate-500 mt-1">Soma de patrimônios disponíveis e em uso.</p>
     </div>
 
     <div class="card">
@@ -356,17 +367,9 @@
             <button type="button" class="btn-outline" (click)="generateLoanTerm()">Termo de empréstimo</button>
           </div>
         </div>
-        <div class="grid gap-3 md:grid-cols-2">
-          <div class="space-y-2">
-            <p class="text-sm font-semibold text-slate-700">Termo de cessão</p>
-            <textarea class="input text-sm" [value]="cessionTermPreview" rows="4" readonly></textarea>
-          </div>
-          <div class="space-y-2">
-            <p class="text-sm font-semibold text-slate-700">Termo de empréstimo de bens a terceiros</p>
-            <textarea class="input text-sm" [value]="loanTermPreview" rows="4" readonly></textarea>
-          </div>
-        </div>
-        <p class="text-xs text-slate-500">Os textos são atualizados automaticamente conforme os dados do patrimônio.</p>
+        <p class="text-sm text-slate-600">
+          Os textos são definidos em Configurações Gerais &rsaquo; Modelo de textos e serão aplicados automaticamente na impressão.
+        </p>
       </div>
     </div>
   </div>

@@ -126,6 +126,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Documentos obrigatórios', icon: faClipboardList, route: '/configuracoes/sistema' },
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
+        { label: 'Modelo de textos', icon: faClipboardList, route: '/configuracoes/modelos-texto' },
         { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
         { label: 'Usuários e permissões', icon: faUserPlus, route: '/configuracoes/usuarios' },
         { label: 'Personalização', icon: faPalette, route: '/configuracoes/personalizacao' },
