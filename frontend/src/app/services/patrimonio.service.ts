@@ -25,6 +25,7 @@ export interface Patrimonio {
   origem?: string;
   responsavel?: string;
   unidade?: string;
+  sala?: string;
   taxaDepreciacao?: number;
   observacoes?: string;
   movimentos?: PatrimonioMovimento[];
@@ -42,6 +43,7 @@ export interface PatrimonioPayload {
   origem?: string;
   responsavel?: string;
   unidade?: string;
+  sala?: string;
   taxaDepreciacao?: number;
   observacoes?: string;
 }
@@ -61,6 +63,12 @@ export class PatrimonioService {
   create(payload: PatrimonioPayload): Observable<Patrimonio> {
     return this.http
       .post<{ patrimonio: Patrimonio }>(this.baseUrl, payload)
+      .pipe(map((response) => response.patrimonio));
+  }
+
+  update(id: string, payload: PatrimonioPayload): Observable<Patrimonio> {
+    return this.http
+      .put<{ patrimonio: Patrimonio }>(`${this.baseUrl}/${id}`, payload)
       .pipe(map((response) => response.patrimonio));
   }
 

@@ -19,6 +19,7 @@ import {
   faTruck
 } from '@fortawesome/free-solid-svg-icons';
 import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { finalize, timeout } from 'rxjs/operators';
 
 type AssetFormTextField =
@@ -143,12 +144,7 @@ export class PatrimonioComponent implements OnInit {
   };
 
   assetLibrary: Patrimonio[] = [];
-  movementForm = {
-    tipo: 'MOVIMENTACAO' as 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA',
-    destino: '',
-    responsavel: '',
-    observacao: ''
-  };
+  movementForm = this.createMovementForm();
   selectedAsset: Patrimonio | null = null;
   isSaving = false;
   isLoading = false;
@@ -159,12 +155,22 @@ export class PatrimonioComponent implements OnInit {
   searchTerm = '';
   displayedAcquisitionValue = '';
   cessionTermPreview = '';
+  loanTermPreview = '';
   printOrder: 'alphabetical' | 'patrimony' | 'value' | 'location' = 'alphabetical';
+  printLocationFilter: string = 'all';
+  assistanceUnit: AssistanceUnitPayload | null = null;
+  editingAssetId: string | null = null;
+  isRegisteringMovement = false;
+  movementError: string | null = null;
 
-  constructor(private readonly patrimonioService: PatrimonioService) {}
+  constructor(
+    private readonly patrimonioService: PatrimonioService,
+    private readonly assistanceUnitService: AssistanceUnitService
+  ) {}
 
   ngOnInit(): void {
     this.loadAssets();
+    this.loadAssistanceUnit();
     this.displayedAcquisitionValue = this.formatCurrency(this.assetForm.acquisitionValue);
     this.updateCessionTermPreview();
   }
@@ -199,6 +205,16 @@ export class PatrimonioComponent implements OnInit {
     return this.assetLibrary.filter((asset) => (asset.status ?? '').toLowerCase().includes('baix')).length;
   }
 
+  get availableLocations(): string[] {
+    const unique = new Set(
+      this.assetLibrary
+        .map((asset) => this.getLocationLabel(asset))
+        .filter((location) => location.trim().length > 0)
+    );
+
+    return Array.from(unique);
+  }
+
   loadAssets(): void {
     this.isLoading = true;
     this.patrimonioService.list().subscribe({
@@ -212,6 +228,21 @@ export class PatrimonioComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadAssistanceUnit(): void {
+    this.assistanceUnitService.get().subscribe(({ unidade }) => {
+      this.assistanceUnit = unidade ?? null;
+    });
+  }
+
+  private createMovementForm(asset?: Patrimonio) {
+    return {
+      tipo: 'MOVIMENTACAO' as 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA',
+      destino: asset?.unidade ?? '',
+      responsavel: asset?.responsavel ?? '',
+      observacao: ''
+    };
   }
 
   handleFileInput(event: Event): void {
@@ -267,12 +298,16 @@ export class PatrimonioComponent implements OnInit {
       origem: this.assetForm.origin,
       responsavel: this.assetForm.responsibleName,
       unidade: this.assetForm.unit,
+      sala: this.assetForm.room,
       taxaDepreciacao: this.assetForm.depreciationRate,
       observacoes: this.assetForm.observations
     };
 
-    this.patrimonioService
-      .create(payload)
+    const save$ = this.editingAssetId
+      ? this.patrimonioService.update(this.editingAssetId, payload)
+      : this.patrimonioService.create(payload);
+
+    save$
       .pipe(
         timeout(10000),
         finalize(() => {
@@ -281,13 +316,17 @@ export class PatrimonioComponent implements OnInit {
       )
       .subscribe({
         next: (patrimonio) => {
-          this.assetLibrary = [patrimonio, ...this.assetLibrary];
+          this.assetLibrary = this.editingAssetId
+            ? this.assetLibrary.map((asset) => (asset.idPatrimonio === patrimonio.idPatrimonio ? patrimonio : asset))
+            : [patrimonio, ...this.assetLibrary];
           this.selectedAsset = patrimonio;
           this.resetForm();
           this.updateCessionTermPreview();
         },
         error: (error) => {
-          this.errorMessage = error?.error?.message ?? 'Não foi possível salvar o patrimônio. Tente novamente.';
+          this.errorMessage =
+            error?.error?.message ??
+            `Não foi possível ${this.editingAssetId ? 'atualizar' : 'salvar'} o patrimônio. Tente novamente.`;
         }
       });
   }
@@ -326,21 +365,75 @@ export class PatrimonioComponent implements OnInit {
     };
     this.filePreview = null;
     this.displayedAcquisitionValue = this.formatCurrency(0);
+    this.editingAssetId = null;
   }
 
   setSelected(asset: Patrimonio): void {
     this.selectedAsset = asset;
+    this.movementForm = this.createMovementForm(asset);
     this.updateCessionTermPreview();
   }
 
+  startEditingSelected(): void {
+    if (!this.selectedAsset) return;
+    this.populateFormFromAsset(this.selectedAsset);
+    this.editingAssetId = this.selectedAsset.idPatrimonio;
+    this.errorMessage = null;
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
+  }
+
   quickMovement(asset: Patrimonio, tipo: 'MOVIMENTACAO' | 'MANUTENCAO' | 'BAIXA'): void {
-    this.movementForm = { tipo, destino: asset.unidade ?? '', responsavel: asset.responsavel ?? '', observacao: '' };
+    this.movementForm = { ...this.createMovementForm(asset), tipo };
     this.selectedAsset = asset;
+    this.movementError = null;
     this.registerMovement();
   }
 
+  private populateFormFromAsset(asset: Patrimonio): void {
+    this.assetForm = {
+      patrimonyNumber: asset.numeroPatrimonio,
+      name: asset.nome,
+      category: asset.categoria || '',
+      subcategory: asset.subcategoria || '',
+      description: asset.observacoes || '',
+      conservation: asset.conservacao || this.conservationOptions[0],
+      status: asset.status || this.statusOptions[0],
+      quantity: 1,
+      individualNumbers: '',
+      acquisitionDate: asset.dataAquisicao || '',
+      acquisitionValue: Number(asset.valorAquisicao ?? 0),
+      origin: asset.origem || this.origins[0],
+      invoiceNumber: '',
+      supplier: '',
+      usefulLife: 0,
+      depreciationStartDate: '',
+      depreciationRate: Number(asset.taxaDepreciacao ?? 0),
+      unit: asset.unidade || '',
+      room: asset.sala || '',
+      address: '',
+      responsibleName: asset.responsavel || '',
+      responsibleContact: '',
+      internalCode: '',
+      observations: asset.observacoes || '',
+      warranty: '',
+      manualUrl: '',
+      lastMovement: asset.movimentos?.[0]?.dataMovimento || 'Não registrado',
+      lastResponsible: asset.movimentos?.[0]?.responsavel || 'Não registrado',
+      lastMaintenance: asset.movimentos?.find((m) => m.tipo === 'MANUTENCAO')?.dataMovimento || 'Não registrada'
+    };
+
+    this.displayedAcquisitionValue = this.formatCurrency(this.assetForm.acquisitionValue);
+    this.updateCessionTermPreview();
+  }
+
   registerMovement(): void {
-    if (!this.selectedAsset) return;
+    if (!this.selectedAsset || this.isRegisteringMovement) return;
+
+    this.isRegisteringMovement = true;
+    this.movementError = null;
 
     this.patrimonioService
       .registerMovement(this.selectedAsset.idPatrimonio, {
@@ -349,13 +442,17 @@ export class PatrimonioComponent implements OnInit {
         responsavel: this.movementForm.responsavel,
         observacao: this.movementForm.observacao
       })
+      .pipe(finalize(() => (this.isRegisteringMovement = false)))
       .subscribe({
         next: (patrimonio) => {
           this.assetLibrary = this.assetLibrary.map((asset) =>
             asset.idPatrimonio === patrimonio.idPatrimonio ? patrimonio : asset
           );
           this.selectedAsset = patrimonio;
-          this.movementForm.observacao = '';
+          this.movementForm = this.createMovementForm(patrimonio);
+        },
+        error: (error) => {
+          this.movementError = error?.error?.message ?? 'Não foi possível registrar a movimentação';
         }
       });
   }
@@ -403,11 +500,60 @@ export class PatrimonioComponent implements OnInit {
     this.assetForm.subcategory = formatted;
   }
 
+  editCategories(): void {
+    const current = this.categories.map((category) => category.label).join(', ');
+    const input = prompt('Edite as categorias separadas por vírgula', current);
+    if (input === null) return;
+
+    const existingSubcategories = new Map(this.categories.map((category) => [category.label, category.subcategories]));
+    const formatted = input
+      .split(',')
+      .map((item) => this.toProperCase(item.trim()))
+      .filter((item) => item.length > 0);
+
+    if (!formatted.length) return;
+
+    this.categories = formatted.map((label) => ({
+      label,
+      subcategories: existingSubcategories.get(label) ?? []
+    }));
+
+    if (!formatted.includes(this.assetForm.category)) {
+      this.assetForm.category = '';
+      this.assetForm.subcategory = '';
+    }
+  }
+
+  editSubcategories(): void {
+    if (!this.assetForm.category) return;
+
+    const currentCategory = this.categories.find((category) => category.label === this.assetForm.category);
+    const input = prompt(
+      'Edite as subcategorias separadas por vírgula',
+      (currentCategory?.subcategories || []).join(', ')
+    );
+    if (input === null) return;
+
+    const formatted = input
+      .split(',')
+      .map((item) => this.toProperCase(item.trim()))
+      .filter((item) => item.length > 0);
+
+    this.categories = this.categories.map((category) =>
+      category.label === this.assetForm.category ? { ...category, subcategories: formatted } : category
+    );
+
+    if (!formatted.includes(this.assetForm.subcategory)) {
+      this.assetForm.subcategory = '';
+    }
+  }
+
   generateCessionTerm(): void {
     const asset = this.selectedAsset ?? this.buildAssetSnapshot();
+    const location = this.getLocationLabel(asset) || 'Local não informado';
     const content = `Termo de cessão do bem ${asset.nome || 'Não identificado'} (patrimônio ${
       asset.numeroPatrimonio || 'não informado'
-    }) localizado na unidade ${asset.unidade || 'Não informada'}, sob responsabilidade de ${
+    }) localizado em ${location}, sob responsabilidade de ${
       asset.responsavel || this.assetForm.responsibleName || 'Não informado'
     }. Valor de aquisição: ${this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue)}.`;
 
@@ -415,49 +561,64 @@ export class PatrimonioComponent implements OnInit {
     this.openPrintWindow('Termo de cessão', `<p style="font-size:14px; line-height:1.6">${content}</p>`);
   }
 
+  generateLoanTerm(): void {
+    const asset = this.selectedAsset ?? this.buildAssetSnapshot();
+    const location = this.getLocationLabel(asset) || 'Local não informado';
+    const responsible = asset.responsavel || this.assetForm.responsibleName || 'Não informado';
+    const content = `Eu, ${responsible}, assumo responsabilidade pelo empréstimo do bem ${
+      asset.nome || 'Não identificado'
+    } (patrimônio ${asset.numeroPatrimonio || 'não informado'}) a terceiros. O item está alocado em ${location} e deverá ser devolvido nas mesmas condições de conservação. Valor de referência: ${this.formatCurrency(
+      asset.valorAquisicao || this.assetForm.acquisitionValue
+    )}.`;
+
+    this.loanTermPreview = content;
+    this.openPrintWindow(
+      'Termo de responsabilidade de empréstimo de bens a terceiros',
+      `<p style="font-size:14px; line-height:1.6">${content}</p>`
+    );
+  }
+
   printAssets(): void {
-    const assets = [...this.assetLibrary].sort((a, b) => {
+    const filtered = this.assetLibrary.filter((asset) => {
+      if (this.printLocationFilter === 'all') return true;
+      return this.getLocationLabel(asset) === this.printLocationFilter;
+    });
+
+    const assets = [...filtered].sort((a, b) => {
       switch (this.printOrder) {
         case 'patrimony':
           return (a.numeroPatrimonio || '').localeCompare(b.numeroPatrimonio || '');
         case 'value':
           return (Number(b.valorAquisicao) || 0) - (Number(a.valorAquisicao) || 0);
         case 'location':
-          return (a.unidade || '').localeCompare(b.unidade || '');
+          return this.getLocationLabel(a).localeCompare(this.getLocationLabel(b));
         default:
           return (a.nome || '').localeCompare(b.nome || '');
       }
     });
 
-    const rows = assets
+    const unitTitle = [this.assistanceUnit?.nomeFantasia, this.assistanceUnit?.cidade]
+      .filter(Boolean)
+      .join(' • ');
+
+    const items = assets
       .map(
         (asset) =>
-          `<tr>
-            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.numeroPatrimonio}</td>
-            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.nome}</td>
-            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.categoria || ''} ${
-            asset.subcategoria ? ' / ' + asset.subcategoria : ''
-          }</td>
-            <td style="padding:8px; border:1px solid #e5e7eb;">${asset.unidade || ''}</td>
-            <td style="padding:8px; border:1px solid #e5e7eb;">${this.formatCurrency(asset.valorAquisicao || 0)}</td>
-          </tr>`
+          `<p style="margin-bottom:10px;">
+            <strong>${asset.numeroPatrimonio || 'Sem número'}</strong> - ${asset.nome || 'Sem nome'}<br/>
+            Categoria: ${asset.categoria || 'Não informada'} ${asset.subcategoria ? ' / ' + asset.subcategoria : ''}<br/>
+            Local: ${this.getLocationLabel(asset) || 'Não informado'}<br/>
+            Responsável: ${asset.responsavel || 'Não informado'}<br/>
+            Valor de aquisição: ${this.formatCurrency(asset.valorAquisicao || 0)}
+          </p>`
       )
       .join('');
 
-    const table = `<table style="border-collapse:collapse; width:100%; font-family:Arial, sans-serif; font-size:12px;">
-      <thead>
-        <tr style="background:#f8fafc;">
-          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Número</th>
-          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Nome</th>
-          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Categoria</th>
-          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Local</th>
-          <th style="padding:8px; border:1px solid #e5e7eb; text-align:left;">Valor</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    const header = `<div style="font-family:Arial,sans-serif; color:#0f172a;">${
+      unitTitle ? `<h1 style="font-size:20px; margin-bottom:4px;">${unitTitle}</h1>` : ''
+    }<p style="margin-top:0; margin-bottom:12px; font-weight:600;">Relação de bens patrimoniais</p></div>`;
 
-    this.openPrintWindow('Bens patrimoniais', table);
+    this.openPrintWindow('Bens patrimoniais', `${header}${items}`);
   }
 
   private toProperCase(value: string): string {
@@ -486,6 +647,7 @@ export class PatrimonioComponent implements OnInit {
       valorAquisicao: this.assetForm.acquisitionValue,
       origem: this.assetForm.origin,
       unidade: this.assetForm.unit,
+      sala: this.assetForm.room,
       responsavel: this.assetForm.responsibleName,
       taxaDepreciacao: this.assetForm.depreciationRate,
       observacoes: this.assetForm.observations
@@ -494,9 +656,19 @@ export class PatrimonioComponent implements OnInit {
 
   private updateCessionTermPreview(): void {
     const asset = this.selectedAsset ?? this.buildAssetSnapshot();
+    const responsible = asset.responsavel || this.assetForm.responsibleName || 'Não informado';
+    const location = this.getLocationLabel(asset) || 'Local não informado';
     this.cessionTermPreview = `Declaro que o bem ${asset.nome || 'Não identificado'} (patrimônio ${
       asset.numeroPatrimonio || 'não informado'
-    }) está sob responsabilidade de ${asset.responsavel || this.assetForm.responsibleName || 'Não informado'}.`;
+    }) está sob responsabilidade de ${responsible} no local ${location}.`;
+
+    this.loanTermPreview = `Comprometo-me a devolver em perfeitas condições o bem ${asset.nome || 'Não identificado'} (patrimônio ${
+      asset.numeroPatrimonio || 'não informado'
+    }) emprestado, mantendo-o em ${location} e comunicando qualquer movimentação.`;
+  }
+
+  getLocationLabel(asset: Patrimonio): string {
+    return [asset.unidade, asset.sala].filter((value) => (value ?? '').trim().length > 0).join(' - ');
   }
 
   private openPrintWindow(title: string, content: string): void {
