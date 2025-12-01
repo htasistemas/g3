@@ -69,3 +69,51 @@
 .movement-form {
   @apply bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mb-4;
 }
+
+.tab-shell {
+  @apply space-y-6;
+}
+
+.tab-shell__header {
+  @apply flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between;
+}
+
+.tab-shell__steps {
+  @apply grid gap-2 md:grid-cols-3;
+}
+
+.step {
+  @apply flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left shadow-sm transition;
+}
+
+.step__index {
+  @apply flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-sm font-semibold text-emerald-700;
+}
+
+.step__content {
+  @apply flex flex-col gap-0.5;
+}
+
+.step__label {
+  @apply text-sm font-semibold text-slate-800;
+}
+
+.step__description {
+  @apply text-xs text-slate-500;
+}
+
+.step.active {
+  @apply border-emerald-200 bg-emerald-50;
+}
+
+.step.completed {
+  @apply border-emerald-100 bg-white;
+}
+
+.tab-panel {
+  @apply space-y-4;
+}
+
+.tab-actions {
+  @apply flex items-center justify-end gap-3 pt-2;
+}

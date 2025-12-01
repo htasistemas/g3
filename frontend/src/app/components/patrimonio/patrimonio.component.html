@@ -88,12 +88,36 @@
     </div>
   </div>
 
-  <div class="grid gap-4 lg:grid-cols-3">
-    <div class="card lg:col-span-2">
+  <div class="card tab-shell">
+    <div class="tab-shell__header">
+      <div>
+        <p class="text-xs uppercase tracking-wide text-slate-500">Checklist de cadastro</p>
+        <h2 class="text-xl font-semibold text-slate-800">Fluxo guiado por abas</h2>
+        <p class="text-sm text-slate-600">Avance pelas etapas sem precisar rolar toda a tela.</p>
+      </div>
+      <div class="tab-shell__steps">
+        <button
+          *ngFor="let tab of assetTabs; index as idx"
+          type="button"
+          class="step"
+          [class.active]="activeAssetTab === tab.id"
+          [class.completed]="idx < activeAssetTabIndex"
+          (click)="changeAssetTab(tab.id)"
+        >
+          <span class="step__index">{{ idx + 1 }}</span>
+          <span class="step__content">
+            <span class="step__label">{{ tab.label }}</span>
+            <span class="step__description">{{ tab.description }}</span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-panel" *ngIf="activeAssetTab === 'dados'">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500">Checklist de cadastro</p>
-          <h2 class="text-xl font-semibold text-slate-800">Dados do patrimônio</h2>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Informações principais</p>
+          <h3 class="text-lg font-semibold text-slate-800">Dados do patrimônio</h3>
         </div>
         <div class="flex gap-2">
           <button type="button" class="btn-outline">
@@ -241,7 +265,102 @@
         </div>
       </div>
 
-      <div class="divider"></div>
+      <div class="tab-actions">
+        <button type="button" class="btn-outline" (click)="goToNextAssetTab()">Próximo: {{ nextAssetTabLabel }}</button>
+      </div>
+    </div>
+
+    <div class="tab-panel" *ngIf="activeAssetTab === 'visual'">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Identificação visual</p>
+          <h3 class="text-lg font-semibold text-slate-800">Foto, etiqueta e garantia</h3>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline" (click)="goToPreviousAssetTab()">Voltar</button>
+          <button type="button" class="btn-primary" (click)="goToNextAssetTab()">Próximo: {{ nextAssetTabLabel }}</button>
+        </div>
+      </div>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="upload-box" [class.upload-box--empty]="!filePreview">
+          <ng-container *ngIf="filePreview; else emptyState">
+            <img [src]="filePreview" alt="Foto do patrimônio" class="rounded-lg w-full h-48 object-cover" />
+          </ng-container>
+          <ng-template #emptyState>
+            <div class="flex flex-col items-center justify-center text-slate-500 h-48">
+              <fa-icon [icon]="faCloudArrowUp" class="text-2xl mb-2"></fa-icon>
+              <p>Faça upload para visualizar a foto</p>
+            </div>
+          </ng-template>
+        </div>
+        <div class="space-y-3">
+          <input type="file" (change)="handleFileInput($event)" class="file-input" />
+          <div class="flex gap-2">
+            <button type="button" class="btn-outline" (click)="generateQrCode()">
+              <fa-icon [icon]="faQrcode" class="mr-2"></fa-icon>
+              Gerar QR Code
+            </button>
+            <div class="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 flex-1">
+              <p class="font-semibold">Código interno</p>
+              <p>{{ qrCodeValue }}</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Manual / Termo digital</label>
+            <div class="flex gap-2">
+              <input class="input" [(ngModel)]="assetForm.manualUrl" placeholder="Anexe ou cole o link" />
+              <button type="button" class="btn-outline">
+                <fa-icon [icon]="faFileInvoice" class="mr-2"></fa-icon>
+                Upload
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 mt-6">
+        <div class="form-group">
+          <label class="form-label">Observações gerais</label>
+          <textarea class="input" [(ngModel)]="assetForm.observations" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Condições de garantia</label>
+          <input class="input" [(ngModel)]="assetForm.warranty" placeholder="Prazo, cobertura e contato" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Última movimentação</label>
+          <input class="input" [(ngModel)]="assetForm.lastMovement" placeholder="Não registrada" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Último responsável</label>
+          <input class="input" [(ngModel)]="assetForm.lastResponsible" placeholder="Não registrado" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Última manutenção</label>
+          <input class="input" [(ngModel)]="assetForm.lastMaintenance" placeholder="Não registrada" />
+        </div>
+      </div>
+
+      <div class="tab-actions">
+        <button type="button" class="btn-outline" (click)="goToPreviousAssetTab()">Voltar</button>
+        <button type="button" class="btn-primary" (click)="goToNextAssetTab()">Próximo: {{ nextAssetTabLabel }}</button>
+      </div>
+    </div>
+
+    <div class="tab-panel" *ngIf="activeAssetTab === 'localizacao'">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Localização e guarda</p>
+          <h3 class="text-lg font-semibold text-slate-800">Responsáveis e endereços</h3>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline" (click)="goToPreviousAssetTab()">Voltar</button>
+          <button type="button" class="btn-primary" (click)="saveAsset()" [disabled]="isSaving">
+            {{ isSaving ? 'Salvando...' : editingAssetId ? 'Atualizar patrimônio' : 'Salvar patrimônio' }}
+          </button>
+        </div>
+      </div>
 
       <div class="grid gap-4 md:grid-cols-2">
         <div class="form-group">
@@ -293,110 +412,16 @@
           <input class="input" [(ngModel)]="assetForm.internalCode" placeholder="Ex.: TAG-889" />
         </div>
       </div>
-    </div>
 
-    <div class="card space-y-5">
-      <div>
-        <p class="text-sm text-slate-500">Identificação visual</p>
-        <h3 class="text-lg font-semibold text-slate-800">Foto e etiqueta</h3>
-      </div>
-      <div class="upload-box" [class.upload-box--empty]="!filePreview">
-        <ng-container *ngIf="filePreview; else emptyState">
-          <img [src]="filePreview" alt="Foto do patrimônio" class="rounded-lg w-full h-48 object-cover" />
-        </ng-container>
-        <ng-template #emptyState>
-          <div class="flex flex-col items-center justify-center text-slate-500 h-48">
-            <fa-icon [icon]="faCloudArrowUp" class="text-2xl mb-2"></fa-icon>
-            <p>Faça upload para visualizar a foto</p>
-          </div>
-        </ng-template>
-      </div>
-      <input type="file" (change)="handleFileInput($event)" class="file-input" />
-      <div class="flex gap-2">
-        <button type="button" class="btn-outline" (click)="generateQrCode()">
-          <fa-icon [icon]="faQrcode" class="mr-2"></fa-icon>
-          Gerar QR Code
+      <div class="tab-actions">
+        <button type="button" class="btn-outline" (click)="goToPreviousAssetTab()">Voltar</button>
+        <button type="button" class="btn-primary" (click)="saveAsset()" [disabled]="isSaving">
+          {{ isSaving ? 'Salvando...' : editingAssetId ? 'Atualizar patrimônio' : 'Salvar patrimônio' }}
         </button>
-        <div class="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 flex-1">
-          <p class="font-semibold">Código interno</p>
-          <p>{{ qrCodeValue }}</p>
-        </div>
-      </div>
-
-      <div class="space-y-3">
-        <div class="form-group">
-          <label class="form-label">Observações gerais</label>
-          <textarea class="input" [(ngModel)]="assetForm.observations" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Condições de garantia</label>
-          <input class="input" [(ngModel)]="assetForm.warranty" placeholder="Prazo, cobertura e contato" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Manual / Termo digital</label>
-          <div class="flex gap-2">
-            <input class="input" [(ngModel)]="assetForm.manualUrl" placeholder="Anexe ou cole o link" />
-            <button type="button" class="btn-outline">
-              <fa-icon [icon]="faFileInvoice" class="mr-2"></fa-icon>
-              Upload
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 space-y-2">
-        <div class="flex items-center gap-2 text-slate-600 text-sm">
-          <fa-icon [icon]="faTools"></fa-icon>
-          <div>
-            <p class="font-semibold text-slate-800">Histórico recente</p>
-            <p>Última movimentação: {{ assetForm.lastMovement }}</p>
-            <p>Último responsável: {{ assetForm.lastResponsible }}</p>
-            <p>Última manutenção: {{ assetForm.lastMaintenance }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-lg border border-slate-200 p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs uppercase tracking-wide text-slate-500">Termos e documentos</p>
-            <h3 class="text-lg font-semibold text-slate-800">Termos de responsabilidade</h3>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" class="btn-outline" (click)="generateCessionTerm()">Termo de cessão</button>
-            <button type="button" class="btn-outline" (click)="generateLoanTerm()">Termo de empréstimo</button>
-          </div>
-        </div>
-        <p class="text-sm text-slate-600">
-          Os textos são definidos em Configurações Gerais &rsaquo; Modelo de textos e serão aplicados automaticamente na impressão.
-        </p>
       </div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-      <div>
-        <p class="text-xs uppercase tracking-wide text-slate-500">Consulta e movimentações</p>
-        <h2 class="text-xl font-semibold text-slate-800">Controle por placa e patrimônio</h2>
-      </div>
-      <div class="flex gap-2">
-        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'MOVIMENTACAO')">
-          <fa-icon [icon]="faTruck" class="mr-2"></fa-icon>
-          Registrar movimentação
-        </button>
-        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'MANUTENCAO')">
-          <fa-icon [icon]="faTools" class="mr-2"></fa-icon>
-          Enviar para manutenção
-        </button>
-        <button type="button" class="btn-outline" [disabled]="!selectedAsset" (click)="quickMovement(selectedAsset!, 'BAIXA')">
-          <fa-icon [icon]="faTrash" class="mr-2"></fa-icon>
-          Baixar bem (senha)
-        </button>
-      </div>
-    </div>
-
-    <div class="grid gap-3 md:grid-cols-3 mb-4">
+  <div class="grid gap-3 md:grid-cols-3 mb-4">
       <div class="input-with-icon">
         <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
         <input class="input" [(ngModel)]="searchTerm" placeholder="Buscar por número, placa ou responsável" />
