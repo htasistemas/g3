@@ -54,6 +54,9 @@ export class Beneficiario {
   @Column({ name: 'motivo_bloqueio', type: 'text', nullable: true })
   motivoBloqueio?: string;
 
+  @Column({ name: 'documentos_obrigatorios', type: 'simple-json', nullable: true })
+  documentosObrigatorios?: { nome: string; nomeArquivo?: string; obrigatorio?: boolean; conteudo?: string; contentType?: string }[];
+
   @Column({ name: 'estado_civil', nullable: true })
   estadoCivil?: string;
 

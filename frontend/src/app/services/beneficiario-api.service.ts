@@ -93,6 +93,7 @@ export interface BeneficiarioApiPayload {
   data_aceite_lgpd?: string;
   observacoes?: string;
   documentosObrigatorios?: DocumentoObrigatorio[];
+  documentos_obrigatorios?: DocumentoObrigatorio[];
   composicao_familiar?: string;
   criancas_adolescentes?: number | string;
   idosos?: number | string;

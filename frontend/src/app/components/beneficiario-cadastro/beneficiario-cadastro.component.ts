@@ -187,9 +187,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     ['dadosPessoais', 'nome_completo'],
     ['dadosPessoais', 'nome_social'],
     ['dadosPessoais', 'apelido'],
-    ['dadosPessoais', 'identidade_genero'],
-    ['dadosPessoais', 'estado_civil'],
-    ['dadosPessoais', 'nacionalidade'],
     ['dadosPessoais', 'naturalidade_cidade'],
     ['dadosPessoais', 'nome_mae'],
     ['dadosPessoais', 'nome_pai'],
@@ -198,10 +195,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     ['endereco', 'bairro'],
     ['endereco', 'ponto_referencia'],
     ['endereco', 'municipio'],
-    ['endereco', 'situacao_imovel'],
-    ['endereco', 'tipo_moradia'],
     ['contato', 'telefone_recado_nome'],
-    ['contato', 'horario_preferencial_contato'],
     ['documentos', 'certidao_tipo'],
     ['documentos', 'certidao_livro'],
     ['documentos', 'certidao_folha'],
@@ -216,11 +210,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     ['familiar', 'participa_comunidade'],
     ['familiar', 'rede_apoio'],
     ['familiar', 'situacao_vulnerabilidade'],
-    ['escolaridade', 'nivel_escolaridade'],
     ['escolaridade', 'ocupacao'],
     ['escolaridade', 'situacao_trabalho'],
     ['escolaridade', 'local_trabalho'],
-    ['escolaridade', 'fonte_renda'],
     ['saude', 'tipo_deficiencia'],
     ['saude', 'descricao_medicacao'],
     ['saude', 'servico_saude_referencia'],
@@ -448,6 +440,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.loadAssistanceUnit();
     this.watchBirthDate();
     this.setupNationalityAutomation();
+    this.setupEducationControls();
     this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
     this.searchBeneficiaries();
@@ -465,7 +458,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           this.lastStatus = beneficiario.status ?? 'EM_ANALISE';
           this.previousStatusBeforeBlock = this.lastStatus;
           this.nationalityManuallyChanged = !!beneficiario.nacionalidade;
-          this.applyLoadedDocuments(beneficiario.documentosObrigatorios);
+          this.applyLoadedDocuments(this.getDocumentList(beneficiario));
           this.applyAutomaticStatusFromDates(beneficiario.status);
         });
       }
@@ -628,7 +621,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         this.buildDocumentControl({
           nome: doc.nome,
           obrigatorio: doc.obrigatorio ?? doc.required ?? doc.baseRequired,
-          nomeArquivo: doc.nomeArquivo
+          nomeArquivo: doc.nomeArquivo,
+          conteudo: doc.conteudo,
+          contentType: doc.contentType
         })
       );
     });
@@ -639,6 +634,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       nome: [doc.nome ?? '', Validators.required],
       obrigatorio: [doc.obrigatorio ?? false],
       nomeArquivo: [doc.nomeArquivo ?? ''],
+      conteudo: [doc.conteudo ?? ''],
+      contentType: [doc.contentType ?? ''],
       file: [doc.file ?? null]
     });
   }
@@ -653,20 +650,68 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
+  private getDocumentList(beneficiario: BeneficiarioApiPayload): DocumentoObrigatorio[] | undefined {
+    return (beneficiario as any).documentos_obrigatorios ?? beneficiario.documentosObrigatorios;
+  }
+
   onDocumentFileSelected(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     const control = this.anexos.at(index) as FormGroup;
 
     if (file) {
-      control.patchValue({ file, nomeArquivo: file.name });
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        control.patchValue({
+          file,
+          nomeArquivo: file.name,
+          conteudo: result,
+          contentType: file.type
+        });
+      };
+      reader.readAsDataURL(file);
       control.markAsDirty();
     }
   }
 
+  viewDocument(index: number): void {
+    const control = this.anexos.at(index) as FormGroup;
+    const content = control.get('conteudo')?.value as string;
+    const contentType = (control.get('contentType')?.value as string) || 'application/octet-stream';
+    const fileName = (control.get('nomeArquivo')?.value as string) || (control.get('nome')?.value as string) || 'documento';
+
+    if (!content) {
+      this.feedback = 'Nenhum arquivo disponível para este documento.';
+      return;
+    }
+
+    const dataUrl = content.startsWith('data:') ? content : `data:${contentType};base64,${content}`;
+    const documentWindow = window.open('', '_blank', 'width=900,height=1100');
+    if (!documentWindow) return;
+
+    documentWindow.document.write(`
+      <html>
+        <head>
+          <title>${fileName}</title>
+        </head>
+        <body style="margin:0; padding:0;">
+          <iframe src="${dataUrl}" style="border:0; width:100%; height:100%;"></iframe>
+        </body>
+      </html>
+    `);
+    documentWindow.document.close();
+    documentWindow.focus();
+  }
+
   private getMissingRequiredDocuments(): string[] {
     return this.anexos.controls
-      .filter((control) => control.get('obrigatorio')?.value && !control.get('nomeArquivo')?.value)
+      .filter(
+        (control) =>
+          control.get('obrigatorio')?.value &&
+          !control.get('nomeArquivo')?.value &&
+          !control.get('conteudo')?.value
+      )
       .map((control) => control.get('nome')?.value as string);
   }
 
@@ -949,56 +994,65 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     const today = this.formatDate(new Date().toISOString());
     const beneficiaryName = personal.nome_completo || 'Beneficiário';
-
-    const institutionInfo = unit
+    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
+    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
+    const footer = unit
       ? `
-        <div class="card">
-          <h3>${unit.nomeFantasia || unit.razaoSocial || 'Instituição'}</h3>
-          <p><strong>CNPJ:</strong> ${unit.cnpj || '---'}</p>
-          <p><strong>Contato:</strong> ${unit.telefone || '---'} | ${unit.email || '---'}</p>
-          <p><strong>Endereço:</strong> ${this.formatInstitutionAddress(unit)}</p>
-          <p><strong>Responsável legal:</strong> ${unit.responsavelNome || '---'}</p>
-        </div>`
+        <footer class="report-footer">
+          <p>${socialName}</p>
+          <p>CNPJ: ${unit.cnpj || '---'} | ${this.formatInstitutionAddress(unit)}</p>
+          <p>Contato: ${unit.telefone || '---'}${unit.email ? ' | ' + unit.email : ''}</p>
+        </footer>
+      `
       : '';
+    const header = `
+      <header class="report-header">
+        ${logo ? `<img class="report-header__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
+        <div class="report-header__identity">
+          <p class="report-header__name">${socialName}</p>
+          ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="report-header__fantasy">${unit.nomeFantasia}</p>` : ''}
+        </div>
+      </header>
+    `;
 
     return `
       <html>
         <head>
           <title>Termo de autorização e consentimento</title>
           ${this.printStyles()}
-          <style>
-            .card { border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin: 12px 0; }
-          </style>
         </head>
         <body>
-          <h1>Termo de autorização, tratamento de dados e consentimento informado</h1>
-          <p class="muted">Documento emitido em ${today}</p>
-          ${institutionInfo}
-          <div class="card">
-            <h2>Identificação do beneficiário</h2>
+          ${header}
+          <h1>Termo de Autorização</h1>
+          <p class="muted">Emitido em ${today}</p>
+          <section class="report-section">
+            <h2>1. Identificação do(a) beneficiário(a)</h2>
             <p><strong>Nome:</strong> ${beneficiaryName}</p>
             <p><strong>CPF:</strong> ${documents.cpf || '---'} | <strong>RG:</strong> ${documents.rg_numero || '---'} | <strong>NIS:</strong> ${documents.nis || '---'}</p>
-            <p><strong>Data de nascimento:</strong> ${this.formatDate(personal.data_nascimento)} | <strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</p>
+            <p><strong>Nascimento:</strong> ${this.formatDate(personal.data_nascimento)} | <strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</p>
             <p><strong>Endereço:</strong> ${this.formatAddress(address)}</p>
-            <p><strong>Contato:</strong> ${contact.telefone_principal || '---'} ${contact.email ? ' | ' + contact.email : ''}</p>
-          </div>
-          <h2>Objeto do consentimento</h2>
-          <p>Autorizo a coleta, utilização e armazenamento dos meus dados pessoais e sensíveis pela instituição acima identificada para fins de atendimento socioassistencial, registros administrativos, cumprimento de obrigações legais e prestação de contas junto a órgãos públicos.</p>
-          <h2>Cláusulas e esclarecimentos legais</h2>
-          <ul>
-            <li>Os dados serão tratados conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), respeitando princípios de finalidade, necessidade e transparência.</li>
-            <li>Imagens e registros poderão ser usados para identificação, segurança, comprovação de atendimento e divulgação institucional sem fins comerciais.</li>
-            <li>O compartilhamento de informações ocorrerá apenas quando indispensável para políticas públicas, programas sociais e convênios, garantindo sigilo e segurança.</li>
-            <li>Tenho ciência de que posso solicitar acesso, correção ou eliminação de dados, bem como revogar este consentimento a qualquer tempo, exceto quando houver fundamento legal para sua manutenção.</li>
-            <li>Declaro ter sido informado(a) sobre a guarda segura dos dados, prazos de retenção e canais para exercício dos meus direitos.</li>
-          </ul>
-          <h2>Autorização expressa</h2>
-          <p>Autorizo o tratamento descrito, assumindo responsabilidade pela veracidade das informações prestadas, e permito o uso da minha assinatura e identificação em registros físicos ou digitais necessários aos serviços prestados.</p>
-          <div class="signature">
+            <p><strong>Contato:</strong> ${contact.telefone_principal || '---'}${contact.email ? ' | ' + contact.email : ''}</p>
+          </section>
+          <section class="report-section">
+            <h2>2. Objeto</h2>
+            <p>Autorizo a coleta, o uso, o armazenamento e o compartilhamento controlado de meus dados pessoais e sensíveis pela instituição acima identificada para fins de atendimento socioassistencial, registros administrativos, cumprimento de obrigações legais e prestação de contas.</p>
+          </section>
+          <section class="report-section">
+            <h2>3. Termos e condições</h2>
+            <p>O tratamento observará a Lei nº 13.709/2018 (LGPD), com base em finalidade, necessidade e transparência. As informações poderão ser utilizadas para identificação, segurança, comprovação de atendimento e registros institucionais, vedado o uso comercial.</p>
+            <p>O compartilhamento ocorrerá apenas quando necessário à execução de políticas públicas, convênios ou exigências legais, assegurando sigilo e segurança da informação.</p>
+            <p>Sei que posso solicitar acesso, correção ou eliminação dos dados, bem como revogar esta autorização, exceto quando houver fundamento legal para sua manutenção.</p>
+          </section>
+          <section class="report-section">
+            <h2>4. Declaração</h2>
+            <p>Declaro ciência sobre a guarda segura dos dados, prazos de retenção e canais para exercício de direitos, assumindo a veracidade das informações prestadas. Autorizo a utilização da minha assinatura em registros físicos ou digitais necessários aos serviços prestados.</p>
+          </section>
+          <section class="signature">
             <p>${beneficiaryName}</p>
             <p class="muted">${today}</p>
-            <p class="muted">Assinatura do beneficiário ou responsável</p>
-          </div>
+            <p class="muted">Assinatura do beneficiário ou responsável legal</p>
+          </section>
+          ${footer}
         </body>
       </html>
     `;
@@ -1007,19 +1061,27 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private printStyles(): string {
     return `
       <style>
-        body { font-family: Arial, sans-serif; padding: 24px; line-height: 1.6; color: #0f172a; }
-        h1 { color: #0f766e; margin-bottom: 8px; }
-        h2 { margin-top: 20px; color: #0ea5e9; }
+        body { font-family: 'Times New Roman', serif; padding: 3cm 2.5cm; line-height: 1.5; color: #0f172a; font-size: 12pt; }
+        h1 { text-align: center; text-transform: uppercase; margin-bottom: 18pt; letter-spacing: 0.5pt; }
+        h2 { margin-top: 16pt; font-size: 12pt; }
         h3 { margin: 8px 0; color: #0f172a; }
-        p { margin: 6px 0; }
-        .muted { color: #64748b; }
+        p { margin: 8pt 0; text-align: justify; }
+        .muted { color: #475569; font-size: 11pt; }
         ul { padding-left: 18px; }
         ul li { margin: 6px 0; }
         .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
         .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
         .detail-list { list-style: none; padding: 0; margin: 0; }
         .detail-list li { margin: 6px 0; }
-        .signature { margin-top: 40px; text-align: center; }
+        .signature { margin-top: 36pt; text-align: center; }
+        .signature p { text-align: center; }
+        .report-header { display: flex; gap: 12pt; align-items: center; justify-content: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 12pt; margin-bottom: 12pt; }
+        .report-header__logo { max-height: 64px; object-fit: contain; }
+        .report-header__identity { text-align: center; }
+        .report-header__name { font-weight: bold; font-size: 14pt; margin: 0; }
+        .report-header__fantasy { margin: 0; font-size: 12pt; color: #1f2937; }
+        .report-section { margin-top: 10pt; }
+        .report-footer { border-top: 1px solid #cbd5e1; padding-top: 10pt; margin-top: 18pt; font-size: 11pt; text-align: center; }
       </style>
     `;
   }
@@ -1215,7 +1277,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return {
         nome: doc.nome,
         obrigatorio: doc.obrigatorio,
-        nomeArquivo: file ? file.name : doc.nomeArquivo
+        nomeArquivo: file ? file.name : doc.nomeArquivo,
+        conteudo: doc.conteudo,
+        contentType: doc.contentType
       } as DocumentoObrigatorio;
     });
   }
@@ -1232,6 +1296,30 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           control.setValue(formatted, { emitEvent: false });
         }
       });
+    });
+  }
+
+  private setupEducationControls(): void {
+    const literacyControl = this.form.get(['escolaridade', 'sabe_ler_escrever']);
+    const levelControl = this.form.get(['escolaridade', 'nivel_escolaridade']);
+
+    const setNoEducation = () => {
+      levelControl?.setValue('Sem escolaridade formal', { emitEvent: false });
+      levelControl?.disable({ emitEvent: false });
+    };
+
+    if (!literacyControl?.value) {
+      setNoEducation();
+    }
+
+    literacyControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((canRead) => {
+      if (canRead) {
+        levelControl?.enable({ emitEvent: false });
+        levelControl?.markAsUntouched();
+        return;
+      }
+
+      setNoEducation();
     });
   }
 
@@ -1374,7 +1462,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.photoPreview = details.foto_3x4 ?? null;
       this.lastStatus = details.status ?? 'EM_ANALISE';
       this.previousStatusBeforeBlock = this.lastStatus;
-      this.applyLoadedDocuments(details.documentosObrigatorios);
+      this.applyLoadedDocuments(this.getDocumentList(details));
       this.applyAutomaticStatusFromDates(details.status);
     });
   }
