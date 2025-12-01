@@ -59,8 +59,8 @@
           </tr>
         </thead>
         <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
-          <tr *ngFor="let beneficiario of filteredBeneficiarios">
-            <td>{{ beneficiario.nome_completo || beneficiario.nomeCompleto }}</td>
+            <tr *ngFor="let beneficiario of filteredBeneficiarios">
+              <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
             <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
             <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
             <td><span class="pill pill--status">{{ formatStatusLabel(beneficiario.status) }}</span></td>
@@ -453,7 +453,7 @@
     <div class="modal__content">
       <h3>Motivo do bloqueio</h3>
       <p class="muted">Descreva o motivo para manter o registro bloqueado.</p>
-      <textarea [formControl]="form.get('motivo_bloqueio')" rows="4"></textarea>
+        <textarea [formControl]="motivoBloqueioControl" rows="4"></textarea>
       <p *ngIf="blockReasonError" class="field-error">{{ blockReasonError }}</p>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="cancelBlockReason()">Cancelar</button>

@@ -30,6 +30,9 @@ export class PersonalizacaoComponent implements OnInit, OnDestroy {
     private readonly theme: ThemeService
   ) {
     this.previewTheme = this.theme.currentTheme();
+  }
+
+  ngOnInit(): void {
     this.form = this.fb.group({
       primaryStrong: [''],
       primaryGradient: [''],
@@ -39,9 +42,7 @@ export class PersonalizacaoComponent implements OnInit, OnDestroy {
       cardRadius: [''],
       controlRadius: ['']
     });
-  }
 
-  ngOnInit(): void {
     this.form.patchValue(this.personalization.palette(), { emitEvent: false });
     this.form.valueChanges.pipe(debounceTime(150), takeUntil(this.destroy$)).subscribe((value) => {
       this.personalization.updatePalette(value as Partial<PaletteSettings>);
