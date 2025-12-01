@@ -59,23 +59,15 @@
 
   <div class="flex-1 flex flex-col min-w-0 h-screen">
     <header class="app-header">
-      <div class="app-header__context">
-        <div class="app-header__logo" *ngIf="activeUnitLogo$ | async as unitLogo">
-          <img [src]="unitLogo" alt="Logomarca da unidade ativa" />
-        </div>
-        <div class="space-y-1">
-          <p class="text-[11px] uppercase tracking-wide text-emerald-50">Você está em</p>
-          <h1 class="page-title">{{ pageTitle }}</h1>
-        </div>
-      </div>
-      <div class="flex items-center space-x-3 text-sm text-white">
-        <span class="flex items-center space-x-2 bg-white/10 px-3 py-2 rounded-lg border border-white/30 backdrop-blur">
+      <div class="app-header__spacer" aria-hidden="true"></div>
+      <div class="app-header__actions">
+        <span class="user-chip">
           <fa-icon [icon]="faUserCircle" class="text-white"></fa-icon>
           <span class="capitalize">{{ username }}</span>
         </span>
         <button
           (click)="logout()"
-          class="inline-flex items-center space-x-2 px-3 py-2 rounded-lg border border-white/40 bg-white/10 hover:bg-white/20 text-white"
+          class="logout-button"
         >
           <fa-icon [icon]="faRightFromBracket"></fa-icon>
           <span>Sair</span>
