@@ -78,8 +78,9 @@ export class AssistanceUnitComponent implements OnInit {
       observacoes: [''],
       logomarca: [''],
       logomarcaRelatorio: [''],
+      horarioFuncionamento: [''],
       responsavelNome: [''],
-      responsavelCpf: [''],
+      responsavelCpf: ['', [this.optionalCpfValidator()]],
       responsavelPeriodoMandato: ['']
     });
   }
@@ -137,6 +138,11 @@ export class AssistanceUnitComponent implements OnInit {
           this.reportLogoPreview = unidade.logomarcaRelatorio || null;
           if (unidade.cep) {
             this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
+          }
+          if (unidade.responsavelCpf) {
+            this.form
+              .get('responsavelCpf')
+              ?.setValue(this.formatCpf(unidade.responsavelCpf), { emitEvent: false });
           }
           this.unitService.setActiveUnit(unidade.nomeFantasia);
         }
@@ -203,6 +209,7 @@ export class AssistanceUnitComponent implements OnInit {
     }
 
     const unidade = this.unidade;
+    const printLogo = unidade.logomarcaRelatorio || unidade.logomarca;
     const content = `
       <html>
         <head>
@@ -217,12 +224,12 @@ export class AssistanceUnitComponent implements OnInit {
         </head>
         <body>
           <h1>${unidade.nomeFantasia || 'Unidade assistencial'}</h1>
-          ${unidade.logomarca ? `<img class="logo" src="${unidade.logomarca}" alt="Logomarca" />` : ''}
-          ${unidade.logomarcaRelatorio ? `<img class="logo" src="${unidade.logomarcaRelatorio}" alt="Imagem para relatórios" />` : ''}
+          ${printLogo ? `<img class="logo" src="${printLogo}" alt="Imagem institucional" />` : ''}
           <div class="item"><span class="label">Razão social:</span> ${unidade.razaoSocial || 'Não informada'}</div>
           <div class="item"><span class="label">CNPJ:</span> ${unidade.cnpj || 'Não informado'}</div>
           <div class="item"><span class="label">Telefone:</span> ${unidade.telefone || 'Não informado'}</div>
           <div class="item"><span class="label">E-mail:</span> ${unidade.email || 'Não informado'}</div>
+          <div class="item"><span class="label">Horário de funcionamento:</span> ${unidade.horarioFuncionamento || 'Não informado'}</div>
           <div class="item"><span class="label">CEP:</span> ${unidade.cep || 'Não informado'}</div>
           <div class="item"><span class="label">Endereço:</span> ${unidade.endereco || ''} ${unidade.numeroEndereco || ''}</div>
           <div class="item"><span class="label">Bairro:</span> ${unidade.bairro || 'Não informado'}</div>
@@ -331,6 +338,37 @@ export class AssistanceUnitComponent implements OnInit {
       return value.length >= length
         ? null
         : { minlength: { requiredLength: length, actualLength: value.length } };
+    };
+  }
+
+  private optionalCpfValidator() {
+    return (control: AbstractControl) => {
+      const digits = (control.value || '').replace(/\D/g, '');
+
+      if (!digits) {
+        return null;
+      }
+
+      if (digits.length !== 11 || /^([0-9])\1{10}$/.test(digits)) {
+        return { cpfInvalid: true };
+      }
+
+      const calculateVerifier = (base: string, factor: number) => {
+        let total = 0;
+        for (let i = 0; i < base.length; i += 1) {
+          total += parseInt(base.charAt(i), 10) * (factor - i);
+        }
+
+        const remainder = (total * 10) % 11;
+        return remainder === 10 ? 0 : remainder;
+      };
+
+      const firstVerifier = calculateVerifier(digits.slice(0, 9), 10);
+      const secondVerifier = calculateVerifier(digits.slice(0, 10), 11);
+
+      const isValid = firstVerifier === Number(digits.charAt(9)) && secondVerifier === Number(digits.charAt(10));
+
+      return isValid ? null : { cpfInvalid: true };
     };
   }
 

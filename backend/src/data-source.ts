@@ -15,6 +15,7 @@ import { RenameSchemaToPortuguese1729700000000 } from './migrations/172970000000
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
 import { AddLogoToAssistanceUnit1730200000000 } from './migrations/1730200000000-AddLogoToAssistanceUnit';
+import { AddReportLogoAndScheduleToAssistanceUnit1730300000000 } from './migrations/1730300000000-AddReportLogoAndScheduleToAssistanceUnit';
 
 dotenv.config();
 
@@ -75,7 +76,8 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
         RenameSchemaToPortuguese1729700000000,
         CreateBeneficiarioFamiliaSchema1729800000000,
         UpdateAssistanceUnitSchema1730100000000,
-        AddLogoToAssistanceUnit1730200000000
+        AddLogoToAssistanceUnit1730200000000,
+        AddReportLogoAndScheduleToAssistanceUnit1730300000000
       ],
       migrationsRun: true
     };
