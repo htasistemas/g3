@@ -7,6 +7,8 @@ import { FamilyService, FamiliaMembroPayload, FamiliaPayload } from '../../servi
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { finalize } from 'rxjs/operators';
 
+type MembroSearchResult = BeneficiarioApiPayload & { _membroIndex?: number };
+
 @Component({
   selector: 'app-familia-cadastro',
   standalone: true,
@@ -20,7 +22,7 @@ export class FamiliaCadastroComponent implements OnInit {
   familiaId: string | null = null;
   feedback: string | null = null;
   saving = false;
-  membrosFiltrados: BeneficiarioApiPayload[] = [];
+  membrosFiltrados: MembroSearchResult[] = [];
   referenciaResultados: BeneficiarioApiPayload[] = [];
   cepLookupError: string | null = null;
 
@@ -228,7 +230,7 @@ export class FamiliaCadastroComponent implements OnInit {
       this.membrosFiltrados = beneficiarios.map((beneficiario) => ({
         ...beneficiario,
         _membroIndex: index
-      })) as any;
+      }));
     });
   }
 

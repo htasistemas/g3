@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { of } from 'rxjs';
 import { catchError, finalize, retry } from 'rxjs/operators';
-import { BeneficiaryService } from '../../services/beneficiary.service';
+import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -59,7 +59,7 @@ export class DashboardComponent implements OnInit {
       .subscribe(({ beneficiarios }) => this.calculateStats(beneficiarios));
   }
 
-  private calculateStats(beneficiarios: Array<{ status?: string; recebeBeneficio?: string | boolean }>): void {
+  private calculateStats(beneficiarios: BeneficiaryPayload[] = []): void {
     const normalized = beneficiarios.map((beneficiary) => (beneficiary.status ?? '').toUpperCase());
 
     const active = normalized.filter((status) => status === 'ATIVO').length;
@@ -80,7 +80,7 @@ export class DashboardComponent implements OnInit {
     };
   }
 
-  private hasBenefits(recebeBeneficio?: string | boolean): boolean {
+  private hasBenefits(recebeBeneficio?: string | boolean | null): boolean {
     if (typeof recebeBeneficio === 'string') {
       return recebeBeneficio.toLowerCase() === 'true' || recebeBeneficio === '1';
     }
