@@ -14,18 +14,6 @@
       Apenas uma unidade pode ser cadastrada. Utilize os campos abaixo para manter os dados gerais atualizados.
     </p>
 
-    <div
-      *ngIf="feedback"
-      class="alert"
-      [ngClass]="{
-        'alert-success': feedback.type === 'success',
-        'alert-error': feedback.type === 'error',
-        'alert-warning': feedback.type === 'warning'
-      }"
-    >
-      {{ feedback.message }}
-    </div>
-
     <form [formGroup]="form" class="compact-form" (ngSubmit)="save()">
       <div class="grid grid-cols-1 md:grid-cols-2 compact-grid">
         <div class="field-stack md:col-span-2">
@@ -220,13 +208,26 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between gap-3">
+      <div class="action-bar">
         <button type="button" class="btn-outline" (click)="resetForm()">Cancelar</button>
-        <div class="flex gap-2.5">
-          <button type="button" class="btn-outline" *ngIf="unidade?.id" (click)="requestDeletion()">
-            Excluir unidade
-          </button>
-          <button type="submit" class="btn-primary">{{ unidade ? 'Atualizar unidade' : 'Salvar unidade' }}</button>
+        <div class="action-bar__right">
+          <div
+            *ngIf="feedback"
+            class="alert alert-inline"
+            [ngClass]="{
+              'alert-success': feedback.type === 'success',
+              'alert-error': feedback.type === 'error',
+              'alert-warning': feedback.type === 'warning'
+            }"
+          >
+            {{ feedback.message }}
+          </div>
+          <div class="flex gap-2.5 action-buttons">
+            <button type="button" class="btn-outline" *ngIf="unidade?.id" (click)="requestDeletion()">
+              Excluir unidade
+            </button>
+            <button type="submit" class="btn-primary">{{ unidade ? 'Atualizar unidade' : 'Salvar unidade' }}</button>
+          </div>
         </div>
       </div>
 

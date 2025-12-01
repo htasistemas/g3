@@ -93,3 +93,19 @@
 .delete-warning {
   @apply mt-3;
 }
+
+.alert-inline {
+  @apply flex-row items-center px-3 py-2 rounded-lg shadow-sm;
+}
+
+.action-bar {
+  @apply flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-2;
+}
+
+.action-bar__right {
+  @apply flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto justify-end;
+}
+
+.action-buttons {
+  @apply flex gap-2.5;
+}

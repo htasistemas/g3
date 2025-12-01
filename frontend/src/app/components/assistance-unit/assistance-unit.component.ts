@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { filter } from 'rxjs';
@@ -21,12 +21,13 @@ interface ViaCepResponse {
   templateUrl: './assistance-unit.component.html',
   styleUrl: './assistance-unit.component.scss'
 })
-export class AssistanceUnitComponent implements OnInit {
+export class AssistanceUnitComponent implements OnInit, OnDestroy {
   unidade: AssistanceUnitPayload | null = null;
   logoPreview: string | null = null;
   reportLogoPreview: string | null = null;
   feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
   deleteConfirmation = false;
+  private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly estados = [
     'AC',
@@ -91,6 +92,10 @@ export class AssistanceUnitComponent implements OnInit {
     this.loadUnit();
   }
 
+  ngOnDestroy(): void {
+    this.clearFeedbackTimeout();
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -110,17 +115,20 @@ export class AssistanceUnitComponent implements OnInit {
         this.reportLogoPreview = created.logomarcaRelatorio || null;
         this.unitService.setActiveUnit(created.nomeFantasia);
         this.deleteConfirmation = false;
-        this.feedback = {
-          type: 'success',
-          message: payload.id ? 'Unidade atualizada com sucesso.' : 'Unidade salva com sucesso.'
-        };
+        this.setFeedback(
+          {
+            type: 'success',
+            message: payload.id ? 'Unidade atualizada com sucesso.' : 'Unidade salva com sucesso.'
+          },
+          true
+        );
       },
       error: (error) => {
         console.error('Erro ao salvar unidade', error);
-        this.feedback = {
+        this.setFeedback({
           type: 'error',
           message: 'Não foi possível salvar a unidade. Tente novamente.'
-        };
+        });
       }
     });
   }
@@ -131,15 +139,15 @@ export class AssistanceUnitComponent implements OnInit {
     }
 
     this.deleteConfirmation = true;
-    this.feedback = {
+    this.setFeedback({
       type: 'warning',
       message: 'Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.'
-    };
+    });
   }
 
   cancelDeletion(): void {
     this.deleteConfirmation = false;
-    this.feedback = null;
+    this.dismissFeedback();
   }
 
   confirmDeletion(): void {
@@ -154,14 +162,14 @@ export class AssistanceUnitComponent implements OnInit {
         this.logoPreview = null;
         this.reportLogoPreview = null;
         this.deleteConfirmation = false;
-        this.feedback = { type: 'success', message: 'Unidade excluída com sucesso.' };
+        this.setFeedback({ type: 'success', message: 'Unidade excluída com sucesso.' }, true);
       },
       error: (error) => {
         console.error('Erro ao excluir unidade', error);
-        this.feedback = {
+        this.setFeedback({
           type: 'error',
           message: 'Não foi possível excluir a unidade. Tente novamente.'
-        };
+        });
       }
     });
   }
@@ -239,7 +247,7 @@ export class AssistanceUnitComponent implements OnInit {
     this.form.reset(this.unidade || {});
     this.logoPreview = this.unidade?.logomarca || null;
     this.reportLogoPreview = this.unidade?.logomarcaRelatorio || null;
-    this.feedback = null;
+    this.dismissFeedback();
     this.deleteConfirmation = false;
   }
 
@@ -410,6 +418,33 @@ export class AssistanceUnitComponent implements OnInit {
 
       return isValid ? null : { cpfInvalid: true };
     };
+  }
+
+  private setFeedback(
+    feedback: { type: 'success' | 'error' | 'warning'; message: string },
+    autoDismiss = false
+  ): void {
+    this.clearFeedbackTimeout();
+    this.feedback = feedback;
+
+    if (autoDismiss) {
+      this.feedbackTimeout = setTimeout(() => {
+        this.feedback = null;
+        this.feedbackTimeout = null;
+      }, 3500);
+    }
+  }
+
+  private clearFeedbackTimeout(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = null;
+    }
+  }
+
+  private dismissFeedback(): void {
+    this.clearFeedbackTimeout();
+    this.feedback = null;
   }
 
   private fetchAddress(cep: string): void {
