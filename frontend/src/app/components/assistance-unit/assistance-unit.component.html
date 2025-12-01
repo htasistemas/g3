@@ -21,7 +21,7 @@
           [attr.aria-selected]="activeTab === tab.id"
           (click)="changeTab(tab.id)"
         >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__index" aria-hidden="true">{{ idx + 1 }}</span>
           <span class="step-tabs__label">{{ tab.label }}</span>
         </button>
       </li>
@@ -284,29 +284,71 @@
       <button type="button" class="btn-outline" *ngIf="unidade" (click)="printUnit()">Imprimir dados</button>
     </div>
     <p class="text-sm text-slate-600" *ngIf="!unidade">Nenhuma unidade cadastrada até o momento.</p>
-    <div *ngIf="unidade" class="data-grid">
-      <div class="md:col-span-2 flex items-center gap-3" *ngIf="unidade.logomarca">
-        <span class="font-semibold">Logomarca:</span>
-        <img [src]="unidade.logomarca" alt="Logomarca da unidade" class="h-12 object-contain" />
+    <div *ngIf="unidade" class="unit-data-grid">
+      <div class="unit-data-grid__item unit-data-grid__logo" *ngIf="unidade.logomarca">
+        <p class="unit-data-grid__label">Logomarca</p>
+        <img [src]="unidade.logomarca" alt="Logomarca da unidade" />
       </div>
-      <div class="md:col-span-2 flex items-center gap-3" *ngIf="unidade.logomarcaRelatorio">
-        <span class="font-semibold">Imagem dos relatórios:</span>
-        <img [src]="unidade.logomarcaRelatorio" alt="Imagem utilizada em relatórios" class="h-12 object-contain" />
+      <div class="unit-data-grid__item unit-data-grid__report" *ngIf="unidade.logomarcaRelatorio">
+        <p class="unit-data-grid__label">Imagem dos relatórios</p>
+        <img [src]="unidade.logomarcaRelatorio" alt="Imagem utilizada em relatórios" />
       </div>
-      <p><span class="font-semibold">Nome fantasia:</span> {{ unidade.nomeFantasia }}</p>
-      <p><span class="font-semibold">Razão social:</span> {{ unidade.razaoSocial || 'Não informada' }}</p>
-      <p><span class="font-semibold">CNPJ:</span> {{ unidade.cnpj || 'Não informado' }}</p>
-      <p><span class="font-semibold">Telefone:</span> {{ unidade.telefone || 'Não informado' }}</p>
-      <p><span class="font-semibold">E-mail:</span> {{ unidade.email || 'Não informado' }}</p>
-      <p><span class="font-semibold">Horário de funcionamento:</span> {{ unidade.horarioFuncionamento || 'Não informado' }}</p>
-      <p><span class="font-semibold">CEP:</span> {{ unidade.cep || 'Não informado' }}</p>
-      <p><span class="font-semibold">Cidade/Estado:</span> {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}</p>
-      <p><span class="font-semibold">Período de mandato:</span> {{ unidade.responsavelPeriodoMandato || 'Não informado' }}</p>
-      <p class="md:col-span-2"><span class="font-semibold">Endereço:</span> {{ unidade.endereco }} {{ unidade.numeroEndereco }}</p>
-      <p><span class="font-semibold">Bairro:</span> {{ unidade.bairro || 'Não informado' }}</p>
-      <p class="md:col-span-2"><span class="font-semibold">Responsável:</span> {{ unidade.responsavelNome || 'Não informado' }}</p>
-      <p><span class="font-semibold">CPF:</span> {{ unidade.responsavelCpf || 'Não informado' }}</p>
-      <p class="md:col-span-2"><span class="font-semibold">Observações:</span> {{ unidade.observacoes || 'Nenhuma' }}</p>
+      <p class="unit-data-grid__item unit-data-grid__fantasy">
+        <span class="unit-data-grid__label">Nome fantasia:</span>
+        {{ unidade.nomeFantasia }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__cnpj">
+        <span class="unit-data-grid__label">CNPJ:</span>
+        {{ unidade.cnpj || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__phone">
+        <span class="unit-data-grid__label">Telefone:</span>
+        {{ unidade.telefone || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__razao">
+        <span class="unit-data-grid__label">Razão social:</span>
+        {{ unidade.razaoSocial || 'Não informada' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__email">
+        <span class="unit-data-grid__label">E-mail:</span>
+        {{ unidade.email || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__cep">
+        <span class="unit-data-grid__label">CEP:</span>
+        {{ unidade.cep || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__cidade">
+        <span class="unit-data-grid__label">Cidade/Estado:</span>
+        {{ unidade.cidade || 'Sem cidade' }} / {{ unidade.estado || 'UF' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__schedule">
+        <span class="unit-data-grid__label">Horário de funcionamento:</span>
+        {{ unidade.horarioFuncionamento || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__mandate">
+        <span class="unit-data-grid__label">Período de mandato:</span>
+        {{ unidade.responsavelPeriodoMandato || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__address">
+        <span class="unit-data-grid__label">Endereço:</span>
+        {{ unidade.endereco }} {{ unidade.numeroEndereco }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__district">
+        <span class="unit-data-grid__label">Bairro:</span>
+        {{ unidade.bairro || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__responsavel">
+        <span class="unit-data-grid__label">Responsável:</span>
+        {{ unidade.responsavelNome || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__cpf">
+        <span class="unit-data-grid__label">CPF:</span>
+        {{ unidade.responsavelCpf || 'Não informado' }}
+      </p>
+      <p class="unit-data-grid__item unit-data-grid__observacoes">
+        <span class="unit-data-grid__label">Observações:</span>
+        {{ unidade.observacoes || 'Nenhuma' }}
+      </p>
     </div>
   </div>
 </section>
