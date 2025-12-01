@@ -57,7 +57,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly faMoon = faMoon;
   readonly faPalette = faPalette;
   pageTitle = 'Visão geral';
-  readonly activeUnitLogo$ = this.assistanceUnitService.currentUnitLogo$;
+  get activeUnitLogo$() {
+    return this.assistanceUnitService.currentUnitLogo$;
+  }
   private destroy$ = new Subject<void>();
   isSidebarCollapsed = true;
 
