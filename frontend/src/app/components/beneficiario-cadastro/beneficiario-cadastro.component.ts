@@ -106,6 +106,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
   }
 
+  getTabLabel(id: string): string {
+    return this.tabs.find((tab) => tab.id === id)?.label ?? '';
+  }
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: BeneficiarioApiService,
