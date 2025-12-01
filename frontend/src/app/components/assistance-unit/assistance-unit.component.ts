@@ -25,6 +25,8 @@ export class AssistanceUnitComponent implements OnInit {
   unidade: AssistanceUnitPayload | null = null;
   logoPreview: string | null = null;
   reportLogoPreview: string | null = null;
+  feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
+  deleteConfirmation = false;
 
   readonly estados = [
     'AC',
@@ -107,14 +109,40 @@ export class AssistanceUnitComponent implements OnInit {
         this.logoPreview = created.logomarca || null;
         this.reportLogoPreview = created.logomarcaRelatorio || null;
         this.unitService.setActiveUnit(created.nomeFantasia);
+        this.deleteConfirmation = false;
+        this.feedback = {
+          type: 'success',
+          message: payload.id ? 'Unidade atualizada com sucesso.' : 'Unidade salva com sucesso.'
+        };
       },
       error: (error) => {
         console.error('Erro ao salvar unidade', error);
+        this.feedback = {
+          type: 'error',
+          message: 'Não foi possível salvar a unidade. Tente novamente.'
+        };
       }
     });
   }
 
-  delete(): void {
+  requestDeletion(): void {
+    if (!this.unidade?.id) {
+      return;
+    }
+
+    this.deleteConfirmation = true;
+    this.feedback = {
+      type: 'warning',
+      message: 'Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.'
+    };
+  }
+
+  cancelDeletion(): void {
+    this.deleteConfirmation = false;
+    this.feedback = null;
+  }
+
+  confirmDeletion(): void {
     if (!this.unidade?.id) {
       return;
     }
@@ -123,8 +151,18 @@ export class AssistanceUnitComponent implements OnInit {
       next: () => {
         this.unidade = null;
         this.form.reset();
+        this.logoPreview = null;
+        this.reportLogoPreview = null;
+        this.deleteConfirmation = false;
+        this.feedback = { type: 'success', message: 'Unidade excluída com sucesso.' };
       },
-      error: (error) => console.error('Erro ao excluir unidade', error)
+      error: (error) => {
+        console.error('Erro ao excluir unidade', error);
+        this.feedback = {
+          type: 'error',
+          message: 'Não foi possível excluir a unidade. Tente novamente.'
+        };
+      }
     });
   }
 
@@ -201,6 +239,8 @@ export class AssistanceUnitComponent implements OnInit {
     this.form.reset(this.unidade || {});
     this.logoPreview = this.unidade?.logomarca || null;
     this.reportLogoPreview = this.unidade?.logomarcaRelatorio || null;
+    this.feedback = null;
+    this.deleteConfirmation = false;
   }
 
   printUnit(): void {
