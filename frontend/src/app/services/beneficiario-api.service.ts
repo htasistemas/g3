@@ -108,6 +108,17 @@ export class BeneficiarioApiService {
 
   constructor(private readonly http: HttpClient) {}
 
+  private normalizePayload(payload: any): BeneficiarioApiPayload {
+    const normalized: any = {};
+
+    Object.entries(payload ?? {}).forEach(([key, value]) => {
+      const snakeKey = key.includes('_') ? key : key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      normalized[snakeKey] = value;
+    });
+
+    return normalized as BeneficiarioApiPayload;
+  }
+
   list(params?: { nome?: string; cpf?: string; nis?: string }): Observable<{ beneficiarios: BeneficiarioApiPayload[] }> {
     let httpParams = new HttpParams();
     if (params?.nome) httpParams = httpParams.set('nome', params.nome);
@@ -120,22 +131,22 @@ export class BeneficiarioApiService {
       )
       .pipe(
         map((response) => {
-          if (Array.isArray(response)) {
-            return { beneficiarios: response };
-          }
-          if ('beneficiarios' in response) {
-            return { beneficiarios: response.beneficiarios ?? [] };
-          }
-          if ('beneficiario' in response) {
-            return { beneficiarios: response.beneficiario ? [response.beneficiario] : [] };
-          }
-          return { beneficiarios: [] };
+          const beneficiarios = (() => {
+            if (Array.isArray(response)) return response;
+            if ('beneficiarios' in response) return response.beneficiarios ?? [];
+            if ('beneficiario' in response) return response.beneficiario ? [response.beneficiario] : [];
+            return [];
+          })();
+
+          return { beneficiarios: beneficiarios.map((item) => this.normalizePayload(item)) };
         })
       );
   }
 
   getById(id: string): Observable<{ beneficiario: BeneficiarioApiPayload }> {
-    return this.http.get<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`);
+    return this.http
+      .get<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`)
+      .pipe(map(({ beneficiario }) => ({ beneficiario: this.normalizePayload(beneficiario) })));
   }
 
   create(payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
