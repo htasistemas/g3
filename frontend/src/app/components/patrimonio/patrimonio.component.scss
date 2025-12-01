@@ -30,6 +30,10 @@
   @apply px-2 py-1 text-xs gap-1;
 }
 
+.chip--small-text {
+  font-size: 0.75rem;
+}
+
 .chip input[type='radio'] {
   accent-color: #16a34a;
 }

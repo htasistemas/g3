@@ -19,6 +19,7 @@ function buildPayload(body: any, existing?: Patrimonio): Patrimonio {
     origem: body.origem ?? existing?.origem,
     responsavel: body.responsavel ?? existing?.responsavel,
     unidade: body.unidade ?? existing?.unidade,
+    sala: body.sala ?? body.room ?? existing?.sala,
     taxaDepreciacao: normalizeNumber(body.taxaDepreciacao ?? body.taxa_depreciacao, existing?.taxaDepreciacao),
     observacoes: body.observacoes ?? existing?.observacoes
   } as Patrimonio;
@@ -56,6 +57,29 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Erro ao salvar patrimônio', error);
     res.status(500).json({ message: 'Não foi possível salvar o patrimônio' });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  const repository = AppDataSource.getRepository(Patrimonio);
+  const existing = await repository.findOne({ where: { idPatrimonio: req.params.id } });
+
+  if (!existing) {
+    return res.status(404).json({ message: 'Patrimônio não encontrado' });
+  }
+
+  const payload = buildPayload(req.body, existing);
+
+  if (!payload.nome || !payload.numeroPatrimonio) {
+    return res.status(400).json({ message: 'Número do patrimônio e nome são obrigatórios' });
+  }
+
+  try {
+    const saved = await repository.save(payload);
+    res.json({ patrimonio: saved });
+  } catch (error) {
+    console.error('Erro ao atualizar patrimônio', error);
+    res.status(500).json({ message: 'Não foi possível atualizar o patrimônio' });
   }
 });
 

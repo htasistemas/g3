@@ -8,13 +8,20 @@
       </p>
     </div>
     <div class="flex items-center gap-3">
+      <button type="button" class="btn-outline" (click)="startEditingSelected()" [disabled]="!selectedAsset">
+        <fa-icon [icon]="faFileInvoice" class="mr-2"></fa-icon>
+        Editar patrimônio selecionado
+      </button>
       <button type="button" class="btn-outline" (click)="generateCessionTerm()">
         <fa-icon [icon]="faPrint" class="mr-2"></fa-icon>
         Imprimir termo de cessão
       </button>
       <button type="button" class="btn-primary" (click)="saveAsset()" [disabled]="isSaving">
         <fa-icon [icon]="faFloppyDisk" class="mr-2"></fa-icon>
-        {{ isSaving ? 'Salvando...' : 'Salvar patrimônio' }}
+        {{ isSaving ? 'Salvando...' : editingAssetId ? 'Atualizar patrimônio' : 'Salvar patrimônio' }}
+      </button>
+      <button *ngIf="editingAssetId" type="button" class="btn-outline" (click)="cancelEdit()">
+        Cancelar edição
       </button>
     </div>
   </div>
@@ -107,7 +114,10 @@
         <div class="form-group">
           <div class="flex items-center justify-between gap-2">
             <label class="form-label">Categoria *</label>
-            <button type="button" class="text-xs btn-outline" (click)="addCategory()">+ Incluir categoria</button>
+            <div class="flex gap-2">
+              <button type="button" class="text-xs btn-outline" (click)="editCategories()">Alterar categorias</button>
+              <button type="button" class="text-xs btn-outline" (click)="addCategory()">+ Incluir categoria</button>
+            </div>
           </div>
           <select class="input" [(ngModel)]="assetForm.category">
             <option value="" disabled>Selecione</option>
@@ -117,9 +127,14 @@
         <div class="form-group">
           <div class="flex items-center justify-between gap-2">
             <label class="form-label">Subcategoria</label>
-            <button type="button" class="text-xs btn-outline" (click)="addSubcategory()" [disabled]="!assetForm.category">
-              + Incluir subcategoria
-            </button>
+            <div class="flex gap-2">
+              <button type="button" class="text-xs btn-outline" (click)="editSubcategories()" [disabled]="!assetForm.category">
+                Alterar subcategorias
+              </button>
+              <button type="button" class="text-xs btn-outline" (click)="addSubcategory()" [disabled]="!assetForm.category">
+                + Incluir subcategoria
+              </button>
+            </div>
           </div>
           <select class="input" [(ngModel)]="assetForm.subcategory">
             <option value="" disabled>Selecione</option>
@@ -145,7 +160,7 @@
           <div class="form-group">
             <label class="form-label">Situação atual *</label>
             <div class="grid grid-cols-2 gap-2">
-              <label *ngFor="let status of statusOptions" class="chip">
+              <label *ngFor="let status of statusOptions" class="chip chip--compact chip--small-text">
                 <input type="radio" [(ngModel)]="assetForm.status" [value]="status" />
                 <span>{{ status }}</span>
               </label>
@@ -334,12 +349,24 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs uppercase tracking-wide text-slate-500">Termos e documentos</p>
-            <h3 class="text-lg font-semibold text-slate-800">Termo de cessão</h3>
+            <h3 class="text-lg font-semibold text-slate-800">Termos de responsabilidade</h3>
           </div>
-          <button type="button" class="btn-outline" (click)="generateCessionTerm()">Gerar termo</button>
+          <div class="flex gap-2">
+            <button type="button" class="btn-outline" (click)="generateCessionTerm()">Termo de cessão</button>
+            <button type="button" class="btn-outline" (click)="generateLoanTerm()">Termo de empréstimo</button>
+          </div>
         </div>
-        <textarea class="input text-sm" [value]="cessionTermPreview" rows="4" readonly></textarea>
-        <p class="text-xs text-slate-500">O texto é atualizado automaticamente conforme os dados do patrimônio.</p>
+        <div class="grid gap-3 md:grid-cols-2">
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-slate-700">Termo de cessão</p>
+            <textarea class="input text-sm" [value]="cessionTermPreview" rows="4" readonly></textarea>
+          </div>
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-slate-700">Termo de empréstimo de bens a terceiros</p>
+            <textarea class="input text-sm" [value]="loanTermPreview" rows="4" readonly></textarea>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500">Os textos são atualizados automaticamente conforme os dados do patrimônio.</p>
       </div>
     </div>
   </div>
@@ -382,14 +409,23 @@
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <div class="flex items-center gap-2">
-        <label class="text-sm text-slate-600">Imprimir bens por</label>
-        <select class="input" [(ngModel)]="printOrder">
-          <option value="alphabetical">Ordem alfabética</option>
-          <option value="patrimony">Número de patrimônio</option>
-          <option value="value">Valor</option>
-          <option value="location">Local</option>
-        </select>
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-slate-600">Imprimir bens por</label>
+          <select class="input" [(ngModel)]="printOrder">
+            <option value="alphabetical">Ordem alfabética</option>
+            <option value="patrimony">Número de patrimônio</option>
+            <option value="value">Valor</option>
+            <option value="location">Local</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-slate-600">Filtrar por local</label>
+          <select class="input" [(ngModel)]="printLocationFilter">
+            <option value="all">Todos os locais</option>
+            <option *ngFor="let location of availableLocations" [value]="location">{{ location }}</option>
+          </select>
+        </div>
       </div>
       <button type="button" class="btn-outline" (click)="printAssets()">
         <fa-icon [icon]="faPrint" class="mr-2"></fa-icon>
@@ -432,8 +468,16 @@
           <input class="input" [(ngModel)]="movementForm.observacao" placeholder="Número de termo ou motivo" />
         </label>
       </div>
-      <div class="flex justify-end">
-        <button type="button" class="btn-primary" (click)="registerMovement()">Registrar</button>
+      <div class="flex items-center justify-between">
+        <p *ngIf="movementError" class="text-sm text-rose-600">{{ movementError }}</p>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="registerMovement()"
+          [disabled]="isRegisteringMovement"
+        >
+          {{ isRegisteringMovement ? 'Registrando...' : 'Registrar' }}
+        </button>
       </div>
     </div>
     <ng-template #noSelection>
@@ -449,6 +493,7 @@
             <th class="px-4 py-3">Categoria</th>
             <th class="px-4 py-3">Estado</th>
             <th class="px-4 py-3">Situação</th>
+            <th class="px-4 py-3">Local</th>
             <th class="px-4 py-3">Data aquisição</th>
             <th class="px-4 py-3">Valor</th>
             <th class="px-4 py-3">Depreciação</th>
@@ -475,6 +520,7 @@
                 {{ asset.status || 'Não informado' }}
               </span>
             </td>
+            <td class="px-4 py-3">{{ getLocationLabel(asset) || 'Não informado' }}</td>
             <td class="px-4 py-3">{{ asset.dataAquisicao | date: 'dd/MM/yyyy' }}</td>
             <td class="px-4 py-3">{{ asset.valorAquisicao | currency:'BRL' }}</td>
             <td class="px-4 py-3">{{ asset.taxaDepreciacao }}% / mês</td>

@@ -46,6 +46,9 @@ export class Patrimonio {
   @Column({ nullable: true })
   unidade?: string;
 
+  @Column({ nullable: true })
+  sala?: string;
+
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   taxaDepreciacao?: string;
 
