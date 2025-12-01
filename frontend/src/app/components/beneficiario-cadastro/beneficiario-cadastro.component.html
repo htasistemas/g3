@@ -50,17 +50,35 @@
         </div>
         <span class="pill">Obrigatório</span>
       </div>
-      <div class="status-strip status-strip--embedded">
-        <div>
-          <p class="status-strip__label">Status do beneficiário</p>
-          <div class="status-strip__current">
+      <div class="tab-card__hero">
+        <div class="photo-section">
+          <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
+            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
+            <span *ngIf="!photoPreview">Foto 3x4 do beneficiário</span>
+          </div>
+          <div class="photo-actions">
+            <label class="upload-btn">
+              Enviar foto 3x4
+              <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+            </label>
+            <button type="button" class="ghost" (click)="handleCameraCapture()">
+              {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
+            </button>
+            <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
+            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
+            <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
+            <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
+          </div>
+        </div>
+
+        <div class="status-panel">
+          <p class="status-panel__title">Status do beneficiário</p>
+          <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
-            <span class="status-strip__reason" *ngIf="form.get('motivo_bloqueio')?.value">
+            <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
               Motivo: {{ form.get('motivo_bloqueio')?.value }}
             </span>
           </div>
-        </div>
-        <div class="status-strip__controls">
           <label class="field">
             <span>Atualizar status</span>
             <select formControlName="status">
@@ -70,25 +88,6 @@
           <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
             Editar motivo do bloqueio
           </button>
-        </div>
-      </div>
-      <div class="photo-section">
-        <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
-          <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
-          <span *ngIf="!photoPreview">Foto 3x4 do beneficiário</span>
-        </div>
-        <div class="photo-actions">
-          <label class="upload-btn">
-            Enviar foto 3x4
-            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
-          </label>
-          <button type="button" class="ghost" (click)="handleCameraCapture()">
-            {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
-          </button>
-          <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
-          <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
-          <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
-          <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
         </div>
       </div>
       <div class="camera-view" *ngIf="cameraActive">
@@ -104,13 +103,13 @@
           <p class="age-hint" *ngIf="beneficiaryAge !== null">{{ beneficiaryAge }} anos</p>
         </div>
         <label class="field">Sexo biológico<select formControlName="sexo_biologico">
-            <option value=""></option>
+            <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
             <option value="OUTRO">Outro</option>
           </select></label>
         <label class="field">Identidade de gênero<select formControlName="identidade_genero">
-            <option value=""></option>
+            <option value="">Selecione</option>
             <option *ngFor="let option of genderIdentityOptions" [value]="option">{{ option }}</option>
           </select></label>
         <label class="field">Cor/Raça<select formControlName="cor_raca">
@@ -132,7 +131,10 @@
               <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
             </select></label>
           <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
-          <label class="field">Estado<input maxlength="2" formControlName="naturalidade_uf" /></label>
+          <label class="field">Estado<select formControlName="naturalidade_uf">
+              <option value="">Selecione o estado</option>
+              <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
+            </select></label>
         </div>
       <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
       <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
@@ -307,7 +309,7 @@
         <label class="field">Nome para recado<input formControlName="telefone_recado_nome" /></label>
         <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_recado_numero')" /></label>
         <label class="field">Horário preferencial<select formControlName="horario_preferencial_contato">
-            <option value=""></option>
+            <option value="">Selecione um horário</option>
             <option *ngFor="let option of preferredContactOptions" [value]="option.value">{{ option.label }}</option>
           </select></label>
         <div class="feature-grid">
@@ -419,7 +421,10 @@
       </div>
       <div class="field-grid cols-3">
         <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
-        <label class="field">Nível de escolaridade<input formControlName="nivel_escolaridade" /></label>
+        <label class="field">Nível de escolaridade<select formControlName="nivel_escolaridade">
+            <option value="">Selecione</option>
+            <option *ngFor="let option of educationLevelOptions" [value]="option">{{ option }}</option>
+          </select></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
         <label class="field">Ocupação
           <input

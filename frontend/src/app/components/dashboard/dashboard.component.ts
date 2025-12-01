@@ -17,7 +17,11 @@ export class DashboardComponent implements OnInit {
   stats = {
     total: 0,
     active: 0,
-    pending: 0
+    pending: 0,
+    blocked: 0,
+    inAnalysis: 0,
+    updated: 0,
+    withBenefits: 0
   };
 
   constructor(private readonly beneficiaryService: BeneficiaryService) {}
@@ -44,24 +48,32 @@ export class DashboardComponent implements OnInit {
           this.loading = false;
         })
       )
-      .subscribe(({ beneficiarios }) => {
-        const active = beneficiarios.filter((beneficiary) => this.isActive(beneficiary.status)).length;
-        const pending = beneficiarios.filter((beneficiary) => this.hasPendingStatus(beneficiary.status)).length;
-
-        this.stats = {
-          total: beneficiarios.length,
-          active,
-          pending
-        };
-      });
+      .subscribe(({ beneficiarios }) => this.calculateStats(beneficiarios));
   }
 
-  private isActive(status?: string): boolean {
-    return (status ?? '').toLowerCase() === 'ativo';
+  private calculateStats(beneficiarios: Array<{ status?: string; recebeBeneficio?: boolean }>): void {
+    const normalized = beneficiarios.map((beneficiary) => (beneficiary.status ?? '').toUpperCase());
+
+    const active = normalized.filter((status) => status === 'ATIVO').length;
+    const pending = normalized.filter((status) => this.hasPendingStatus(status)).length;
+    const blocked = normalized.filter((status) => status === 'BLOQUEADO').length;
+    const inAnalysis = normalized.filter((status) => status === 'EM_ANALISE').length;
+    const updated = normalized.filter((status) => status === 'DESATUALIZADO' || status === 'INCOMPLETO').length;
+    const withBenefits = beneficiarios.filter((beneficiary) => Boolean(beneficiary.recebeBeneficio)).length;
+
+    this.stats = {
+      total: beneficiarios.length,
+      active,
+      pending,
+      blocked,
+      inAnalysis,
+      updated,
+      withBenefits
+    };
   }
 
   private hasPendingStatus(status?: string): boolean {
-    const normalized = (status ?? '').toLowerCase();
-    return normalized.includes('pend') || normalized.includes('análise') || normalized.includes('analise');
+    const normalized = (status ?? '').toUpperCase();
+    return normalized.includes('PEND') || normalized.includes('ANÁLISE') || normalized.includes('ANALISE');
   }
 }

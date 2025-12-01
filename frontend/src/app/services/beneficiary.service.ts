@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 
 export interface DocumentoObrigatorio {
   nome: string;
@@ -120,34 +120,39 @@ export interface BeneficiaryPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BeneficiaryService {
-  private readonly baseUrl = `${environment.apiUrl}/api/beneficiaries`;
+  private readonly baseUrls = [
+    `${environment.apiUrl}/api/beneficiarios`,
+    `${environment.apiUrl}/api/beneficiaries`
+  ];
 
   constructor(private readonly http: HttpClient) {}
 
   getById(id: number): Observable<BeneficiaryPayload> {
-    return this.http.get<{ beneficiario: BeneficiaryPayload }>(`${this.baseUrl}/${id}`).pipe(map(({ beneficiario }) => beneficiario));
+    return this.requestWithFallback((baseUrl) =>
+      this.http.get<{ beneficiario: BeneficiaryPayload }>(`${baseUrl}/${id}`)
+    ).pipe(map(({ beneficiario }) => beneficiario));
   }
 
   getRequiredDocuments(): Observable<{ documents: DocumentoObrigatorio[] }> {
-    return this.http.get<{ documents: DocumentoObrigatorio[] }>(`${this.baseUrl}/documents`);
+    return this.requestWithFallback((baseUrl) =>
+      this.http.get<{ documents: DocumentoObrigatorio[] }>(`${baseUrl}/documents`)
+    );
   }
 
   list(): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
-    return this.http.get<
-      { beneficiarios?: BeneficiaryPayload[] } | { beneficiaries?: BeneficiaryPayload[] } | BeneficiaryPayload[]
-    >(this.baseUrl).pipe(
+    return this.requestWithFallback((baseUrl) =>
+      this.http.get<
+        { beneficiarios?: BeneficiaryPayload[] } | { beneficiaries?: BeneficiaryPayload[] } | { data?: BeneficiaryPayload[] } | BeneficiaryPayload[]
+      >(baseUrl)
+    ).pipe(
       map((response) => {
-        if (Array.isArray(response)) {
-          return { beneficiarios: response };
-        }
+        if (Array.isArray(response)) return { beneficiarios: response };
 
-        if ('beneficiarios' in response) {
-          return { beneficiarios: response.beneficiarios ?? [] };
-        }
+        if ('beneficiarios' in response) return { beneficiarios: response.beneficiarios ?? [] };
 
-        if ('beneficiaries' in response) {
-          return { beneficiarios: response.beneficiaries ?? [] };
-        }
+        if ('beneficiaries' in response) return { beneficiarios: response.beneficiaries ?? [] };
+
+        if ('data' in response) return { beneficiarios: response.data ?? [] };
 
         return { beneficiarios: [] };
       })
@@ -158,10 +163,12 @@ export class BeneficiaryService {
     const formData = this.buildFormData(payload, photoFile);
 
     if (payload.id) {
-      return this.http.put<BeneficiaryPayload>(`${this.baseUrl}/${payload.id}`, formData);
+      return this.requestWithFallback((baseUrl) =>
+        this.http.put<BeneficiaryPayload>(`${baseUrl}/${payload.id}`, formData)
+      );
     }
 
-    return this.http.post<BeneficiaryPayload>(this.baseUrl, formData);
+    return this.requestWithFallback((baseUrl) => this.http.post<BeneficiaryPayload>(baseUrl, formData));
   }
 
   private buildFormData(payload: BeneficiaryPayload, photoFile?: File | null): FormData {
@@ -196,5 +203,17 @@ export class BeneficiaryService {
     }
 
     return formData;
+  }
+
+  private requestWithFallback<T>(requestFactory: (baseUrl: string) => Observable<T>): Observable<T> {
+    const [primaryUrl, secondaryUrl] = this.baseUrls;
+
+    return requestFactory(primaryUrl).pipe(
+      catchError((primaryError) =>
+        requestFactory(secondaryUrl).pipe(
+          catchError((secondaryError) => throwError(() => secondaryError ?? primaryError))
+        )
+      )
+    );
   }
 }
