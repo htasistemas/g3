@@ -13,43 +13,6 @@
   gap: 1rem;
 }
 
-.page-header {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border: 1px solid #e2e8f0;
-}
-
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
-  color: #2f855a;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-}
-
-.subtitle {
-  margin: 0.35rem 0 0;
-  color: #55607a;
-}
-
-.badge-pill {
-  background: linear-gradient(135deg, #4f46e5, #06b6d4);
-  color: #fff;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
-  white-space: nowrap;
-}
-
 .tab-shell {
   background: #fff;
   border-radius: 14px;

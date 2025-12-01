@@ -85,45 +85,39 @@
 }
 
 .app-header {
-  @apply px-6 py-3 flex items-center justify-between shadow-md flex-shrink-0;
+  @apply px-4 py-2 flex items-center justify-between shadow-sm flex-shrink-0;
   background: linear-gradient(90deg, var(--primary-stronger) 0%, var(--primary-gradient-end) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   color: #fff;
+  min-height: 44px;
   transition: background-color 0.3s ease;
 }
 
-.app-header__context {
-  @apply flex items-center gap-3;
+.app-header__actions {
+  @apply flex items-center gap-2;
+  font-size: 0.85rem;
 }
 
-.app-header__logo {
-  @apply bg-white rounded-lg border border-white/30 shadow-lg shadow-black/10 flex items-center justify-center;
-  width: 56px;
-  height: 56px;
-  padding: 10px;
-  backdrop-filter: blur(4px);
-
-  img {
-    @apply h-full w-full object-contain;
-  }
+.app-header__spacer {
+  flex: 1;
 }
 
-.page-title {
-  @apply text-xl font-semibold;
+.user-chip {
+  @apply inline-flex items-center gap-2 rounded-full border border-white/30 backdrop-blur;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+}
+
+.logout-button {
+  @apply inline-flex items-center gap-2 rounded-md border border-white/30 text-xs font-semibold;
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
-  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 0.35rem 0.75rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.btn-ghost {
-  @apply inline-flex items-center space-x-2 px-3 py-2 rounded-lg;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  backdrop-filter: blur(4px);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.5);
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
 }
