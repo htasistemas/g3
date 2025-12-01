@@ -163,14 +163,16 @@ router.get('/', async (req, res) => {
   const qb = repository.createQueryBuilder('familia');
 
   if (nome_familia) {
-    qb.andWhere('familia.nome_familia ILIKE :nome', { nome: `%${nome_familia}%` });
+    qb.andWhere('LOWER(familia.nome_familia) LIKE LOWER(:nome)', { nome: `%${nome_familia}%` });
   }
   if (municipio) {
-    qb.andWhere('familia.municipio ILIKE :municipio', { municipio: `%${municipio}%` });
+    qb.andWhere('LOWER(familia.municipio) LIKE LOWER(:municipio)', { municipio: `%${municipio}%` });
   }
   if (referencia) {
     qb.leftJoin(Beneficiario, 'ref', 'ref.id_beneficiario = familia.id_referencia_familiar');
-    qb.andWhere('ref.nome_completo ILIKE :ref OR ref.cpf = :ref', { ref: `%${referencia}%` });
+    qb.andWhere('LOWER(ref.nome_completo) LIKE LOWER(:ref) OR ref.cpf = :ref', {
+      ref: `%${referencia}%`
+    });
   }
 
   const familias = await qb.orderBy('familia.nome_familia', 'ASC').getMany();

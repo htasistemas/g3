@@ -143,7 +143,7 @@ router.get('/', async (req, res) => {
   const qb = repository.createQueryBuilder('beneficiario');
 
   if (nome) {
-    qb.andWhere('unaccent(beneficiario.nome_completo) ILIKE unaccent(:nome)', { nome: `%${nome}%` });
+    qb.andWhere('LOWER(beneficiario.nome_completo) LIKE LOWER(:nome)', { nome: `%${nome}%` });
   }
   if (cpf) {
     qb.andWhere('beneficiario.cpf = :cpf', { cpf: onlyDigits(String(cpf)) });
