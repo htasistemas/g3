@@ -16,6 +16,7 @@ import { SystemVersionComponent } from './components/system-version/system-versi
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
 import { TextTemplatesComponent } from './components/text-templates/text-templates.component';
+import { DonationManagementComponent } from './components/donation-management/donation-management.component';
 import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
 
 export const routes: Routes = [
@@ -48,6 +49,11 @@ export const routes: Routes = [
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
       { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Cadastro de Família' } },
       { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Editar Família' } },
+      {
+        path: 'atendimentos/doacoes',
+        component: DonationManagementComponent,
+        data: { title: 'Registrar doações' }
+      },
       {
         path: 'administrativo/patrimonio',
         component: PatrimonioComponent,
