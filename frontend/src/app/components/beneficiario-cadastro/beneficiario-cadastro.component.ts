@@ -16,10 +16,6 @@ import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/b
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { Subject, firstValueFrom } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
-import cboData from '@nit-sst/cboservice/src/json/data.json';
-
-type CboEntry = { code: string; description: string };
-
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -49,8 +45,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
-  cboOptions: string[] = [];
-  filteredCboOptions: string[] = [];
   genderIdentityOptions = [
     'Mulher cisgênero',
     'Homem cisgênero',
@@ -391,7 +385,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.buildCboOptions();
     this.loadRequiredDocuments();
     this.watchBirthDate();
     this.setupNationalityAutomation();
@@ -666,21 +659,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     return manualStatus;
-  }
-
-  private buildCboOptions(): void {
-    const entries = (cboData as CboEntry[]).map((entry) => `${entry.code} - ${entry.description}`);
-    this.cboOptions = entries;
-    this.filteredCboOptions = entries.slice(0, 50);
-  }
-
-  filterCboOptions(event: Event): void {
-    const value = (event.target as HTMLInputElement).value?.toLowerCase?.() ?? '';
-    const matches = this.cboOptions
-      .filter((option) => option.toLowerCase().includes(value))
-      .slice(0, 50);
-
-    this.filteredCboOptions = matches.length ? matches : this.cboOptions.slice(0, 50);
   }
 
   toggleBenefit(option: string): void {
