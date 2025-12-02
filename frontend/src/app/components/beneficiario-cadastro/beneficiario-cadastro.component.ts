@@ -1263,16 +1263,46 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       </html>
     `);
 
+    documentWindow.document.close();
+
     const triggerPrint = () => {
       documentWindow.focus();
       documentWindow.print();
     };
 
-    documentWindow.addEventListener('load', () => setTimeout(triggerPrint, 150), { once: true });
-    documentWindow.document.close();
+    const waitForImagesToLoad = (): Promise<void> => {
+      const images = Array.from(documentWindow.document.images || []);
+      const pending = images.filter((image) => !image.complete);
+
+      if (!pending.length) return Promise.resolve();
+
+      return new Promise((resolve) => {
+        let resolved = 0;
+        const tryResolve = () => {
+          resolved += 1;
+          if (resolved === pending.length) resolve();
+        };
+
+        pending.forEach((image) => {
+          image.addEventListener('load', tryResolve, { once: true });
+          image.addEventListener('error', tryResolve, { once: true });
+        });
+      });
+    };
+
+    const waitForFontsToLoad = (): Promise<void> =>
+      documentWindow.document.fonts?.ready?.catch(() => undefined) ?? Promise.resolve();
+
+    const handleLoad = () => {
+      Promise.all([waitForImagesToLoad(), waitForFontsToLoad()])
+        .catch(() => undefined)
+        .finally(() => setTimeout(triggerPrint, 200));
+    };
+
+    documentWindow.addEventListener('load', handleLoad, { once: true });
 
     if (documentWindow.document.readyState === 'complete') {
-      setTimeout(triggerPrint, 150);
+      handleLoad();
     }
   }
 
