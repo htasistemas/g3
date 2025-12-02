@@ -1,32 +1,84 @@
-<div class="p-6 space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <p class="section-kicker">Parâmetros</p>
-      <h1 class="page-heading">Parâmetros do sistema</h1>
-      <p class="section-subtitle">Ajuste preferências gerais como o tema da interface.</p>
+<section class="parameters-shell">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Configurações gerais</p>
+    <p class="page-title__label">Parâmetros do sistema</p>
+    <p class="page-title__description">
+      Centralize a configuração de documentos, textos, usuários e personalização em um único fluxo.
+    </p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas configurações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'documentos'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ currentTab.label }}</p>
+        <p class="muted">{{ currentTab.description }}</p>
+      </div>
+      <span class="pill">{{ currentTab.badge }}</span>
+    </div>
+    <div class="tab-card__content">
+      <app-system-settings></app-system-settings>
     </div>
   </div>
 
-  <div class="card space-y-4">
-    <div class="card__header">Aparência</div>
-    <p class="section-subtitle">Alterne entre tema claro e escuro para todos os usuários.</p>
-
-    <div class="flex flex-wrap items-center gap-3">
-      <button type="button" class="btn-primary" (click)="toggleTheme()">
-        Alternar para tema {{ themeService.currentTheme() === 'dark' ? 'claro' : 'escuro' }}
-      </button>
-      <span class="text-sm text-slate-600 dark:text-slate-300">
-        Tema atual: <strong class="capitalize">{{ themeService.currentTheme() }}</strong>
-      </span>
+  <div class="tab-card" *ngIf="activeTab === 'modelos'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ currentTab.label }}</p>
+        <p class="muted">{{ currentTab.description }}</p>
+      </div>
+      <span class="pill">{{ currentTab.badge }}</span>
+    </div>
+    <div class="tab-card__content">
+      <app-text-templates></app-text-templates>
     </div>
   </div>
 
-  <div class="card space-y-3">
-    <div class="card__header">Orientações rápidas</div>
-    <ul class="list-disc pl-5 space-y-2 text-sm text-slate-700 dark:text-slate-200">
-      <li>As preferências de tema são salvas automaticamente neste dispositivo.</li>
-      <li>Todos os cartões, menus e botões seguem as cores do tema escolhido.</li>
-      <li>O cabeçalho e o menu lateral utilizam um gradiente em verde mais intenso.</li>
-    </ul>
+  <div class="tab-card" *ngIf="activeTab === 'usuarios'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ currentTab.label }}</p>
+        <p class="muted">{{ currentTab.description }}</p>
+      </div>
+      <span class="pill">{{ currentTab.badge }}</span>
+    </div>
+    <div class="tab-card__content">
+      <app-user-management></app-user-management>
+    </div>
   </div>
-</div>
+
+  <div class="tab-card" *ngIf="activeTab === 'personalizacao'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ currentTab.label }}</p>
+        <p class="muted">{{ currentTab.description }}</p>
+      </div>
+      <span class="pill">{{ currentTab.badge }}</span>
+    </div>
+    <div class="tab-card__content">
+      <app-personalizacao></app-personalizacao>
+    </div>
+  </div>
+</section>
