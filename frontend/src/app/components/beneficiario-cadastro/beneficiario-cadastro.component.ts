@@ -991,6 +991,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const health = value.saude ?? {};
     const benefits = value.beneficios ?? {};
     const unit = this.assistanceUnit;
+    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
     const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
     const generatedAt = new Date();
     const formattedGeneratedAt = `${generatedAt.toLocaleDateString('pt-BR')} às ${generatedAt.toLocaleTimeString('pt-BR')}`;
@@ -1065,14 +1066,19 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
             .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #f3f4f6; }
             .section-header { display: flex; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f3f4f6; }
             .section-title { font-size: 1.125rem; font-weight: 700; color: #0c4a6e; margin-left: 0.5rem; }
+            .logo-image { width: 100%; height: 100%; object-fit: contain; }
           </style>
         </head>
         <body class="text-slate-800 p-4 md:p-8">
           <div class="max-w-5xl mx-auto bg-white p-0 md:p-0 shadow-none md:shadow-none rounded-none print:shadow-none">
             <header class="bg-white p-6 rounded-t-xl border-b-4 border-brand-600 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 page-break card mt-0">
               <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-lg flex items-center justify-center border border-brand-100">
-                  <i class="fa-solid fa-building-columns text-3xl"></i>
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-lg flex items-center justify-center border border-brand-100 overflow-hidden">
+                  ${
+                    logo
+                      ? `<img src="${logo}" alt="Logomarca da unidade" class="logo-image" />`
+                      : '<i class="fa-solid fa-building-columns text-3xl"></i>'
+                  }
                 </div>
                 <div>
                   <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">${socialName}</h1>
@@ -1257,9 +1263,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       </html>
     `);
 
+    const triggerPrint = () => {
+      documentWindow.focus();
+      documentWindow.print();
+    };
+
+    documentWindow.addEventListener('load', () => setTimeout(triggerPrint, 150), { once: true });
     documentWindow.document.close();
-    documentWindow.focus();
-    documentWindow.print();
+
+    if (documentWindow.document.readyState === 'complete') {
+      setTimeout(triggerPrint, 150);
+    }
   }
 
   private buildConsentHtml(): string {
