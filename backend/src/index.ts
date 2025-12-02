@@ -30,6 +30,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/beneficiarios', beneficiariosRoutes);
+app.use('/api/beneficiaries', beneficiariosRoutes);
 app.use('/api/assistance-units', assistanceUnitsRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/users', usersRoutes);
