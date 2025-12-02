@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -18,6 +18,9 @@ import {
   faUserCheck,
   faUserPlus
 } from '@fortawesome/free-solid-svg-icons';
+import { firstValueFrom } from 'rxjs';
+import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
+import { FamilyService, FamiliaPayload } from '../../services/family.service';
 
 interface Beneficiary {
   id: string;
@@ -26,6 +29,7 @@ interface Beneficiary {
   phone?: string;
   address?: string;
   family?: string;
+  type: 'beneficiario' | 'familia';
 }
 
 interface StockItem {
@@ -101,6 +105,8 @@ export class DonationManagementComponent {
   readonly Math = Math;
 
   private readonly fb = new FormBuilder();
+  private readonly beneficiaryService = inject(BeneficiarioApiService);
+  private readonly familyService = inject(FamilyService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
   tabs: { id: TabId; label: string }[] = [
@@ -120,31 +126,7 @@ export class DonationManagementComponent {
   itemError = signal<string | null>(null);
   plannedError = signal<string | null>(null);
 
-  beneficiaries = signal<Beneficiary[]>([
-    {
-      id: 'B-001',
-      name: 'Maria Fernanda Alves',
-      document: '123.456.789-00',
-      phone: '(34) 99999-1122',
-      address: 'Rua das Acácias, 210 - Bairro Primavera',
-      family: 'Família Alves'
-    },
-    {
-      id: 'B-002',
-      name: 'João Pedro Duarte',
-      document: '987.654.321-00',
-      phone: '(34) 98888-3344',
-      address: 'Av. Goiás, 455 - Centro',
-      family: 'Família Duarte'
-    },
-    {
-      id: 'B-003',
-      name: 'Associação Vila Nova',
-      document: '11.111.111/0001-11',
-      phone: '(34) 3232-9090',
-      address: 'Rua 7 de Setembro, 102'
-    }
-  ]);
+  beneficiaries = signal<Beneficiary[]>([]);
 
   stockItems = signal<StockItem[]>([
     { code: 'ALM-001', description: 'Álcool em gel 70% 500ml', unit: 'Frasco', currentStock: 85, category: 'Higiene', status: 'Ativo' },
@@ -249,6 +231,8 @@ export class DonationManagementComponent {
   deliveredItems = signal<DonationItem[]>([]);
   selectedBeneficiary = signal<Beneficiary | null>(null);
   beneficiarySearch = signal('');
+  beneficiarySearchError = signal<string | null>(null);
+  searchingBeneficiaries = signal(false);
   editingPlanId: string | null = null;
 
   filteredBeneficiaries = computed(() => {
@@ -327,8 +311,6 @@ export class DonationManagementComponent {
   });
 
   constructor() {
-    const firstBeneficiary = this.beneficiaries()[0];
-    this.populateBeneficiary(firstBeneficiary);
   }
 
   get selectedDeliveryItem() {
@@ -352,12 +334,91 @@ export class DonationManagementComponent {
     this.identificationForm.patchValue({ beneficiaryName: beneficiary.name });
   }
 
-  onBeneficiaryInput(value: string): void {
+  async onBeneficiaryInput(value: string): Promise<void> {
     this.beneficiarySearch.set(value);
     this.identificationForm.get('beneficiaryName')?.setValue(value);
-    const match = this.filteredBeneficiaries()[0];
-    if (match) {
-      this.populateBeneficiary(match);
+    await this.lookupBeneficiaries(value);
+  }
+
+  private mapBeneficiary(payload: BeneficiarioApiPayload): Beneficiary {
+    const address = this.buildAddress([
+      payload.logradouro,
+      payload.numero,
+      payload.bairro,
+      payload.municipio,
+      payload.uf
+    ]);
+
+    return {
+      id: payload.id_beneficiario ?? '',
+      name: payload.nome_completo || payload.nome_social || 'Beneficiário',
+      document: payload.cpf || payload.nis || 'Documento não informado',
+      phone: payload.telefone_principal,
+      address,
+      family: payload.composicao_familiar,
+      type: 'beneficiario'
+    };
+  }
+
+  private mapFamily(payload: FamiliaPayload): Beneficiary {
+    const address = this.buildAddress([
+      payload.logradouro,
+      payload.numero,
+      payload.bairro,
+      payload.municipio,
+      payload.uf
+    ]);
+
+    return {
+      id: payload.id_familia ?? '',
+      name: payload.nome_familia,
+      document: payload.municipio ? `Município: ${payload.municipio}` : 'Família cadastrada',
+      phone: undefined,
+      address,
+      family: payload.nome_familia,
+      type: 'familia'
+    };
+  }
+
+  private buildAddress(parts: (string | undefined)[]): string | undefined {
+    const formatted = parts.filter(Boolean).join(', ');
+    return formatted || undefined;
+  }
+
+  private async lookupBeneficiaries(term: string): Promise<void> {
+    const query = term.trim();
+    this.beneficiarySearchError.set(null);
+
+    if (!query) {
+      this.beneficiaries.set([]);
+      this.selectedBeneficiary.set(null);
+      return;
+    }
+
+    this.searchingBeneficiaries.set(true);
+    try {
+      const [beneficiaryResponse, familyResponse] = await Promise.all([
+        firstValueFrom(this.beneficiaryService.list({ nome: query })),
+        firstValueFrom(this.familyService.list({ nome_familia: query }))
+      ]);
+
+      const beneficiaryResults = (beneficiaryResponse.beneficiarios ?? []).map((item) => this.mapBeneficiary(item));
+      const familyResults = (familyResponse.familias ?? []).map((item) => this.mapFamily(item));
+      const merged = [...beneficiaryResults, ...familyResults];
+
+      this.beneficiaries.set(merged);
+
+      const exactMatch = merged.find((item) => item.name.toLowerCase() === query.toLowerCase());
+      if (exactMatch) {
+        this.populateBeneficiary(exactMatch);
+      } else if (merged.length === 1) {
+        this.populateBeneficiary(merged[0]);
+      }
+    } catch (error) {
+      console.error('Failed to search beneficiaries', error);
+      this.beneficiarySearchError.set('Não foi possível buscar beneficiários no momento.');
+    } finally {
+      this.searchingBeneficiaries.set(false);
     }
   }
 
@@ -448,6 +509,9 @@ export class DonationManagementComponent {
     this.donationHistory.update((history) => [record, ...history]);
     this.deliveredItems.set([]);
     this.identificationForm.patchValue({ notes: '' });
+    if (record.donationType?.toLowerCase().includes('cesta')) {
+      this.scheduleNextBasicBasket(record);
+    }
     this.changeTab('historico');
   }
 
@@ -587,4 +651,36 @@ export class DonationManagementComponent {
     base.setDate(base.getDate() + days);
     return base.toISOString().substring(0, 10);
   }
+
+  private scheduleNextBasicBasket(record: DonationRecord): void {
+    if (!this.selectedBeneficiary()) return;
+    const templateItem = record.items[0];
+    if (!templateItem) return;
+
+    const payload: PlannedDonation = {
+      id: `PLAN-${String(this.plannedDonations().length + 1).padStart(3, '0')}`,
+      beneficiaryId: this.selectedBeneficiary()!.id,
+      beneficiaryName: this.selectedBeneficiary()!.name,
+      beneficiaryDocument: this.selectedBeneficiary()!.document,
+      itemCode: templateItem.stockCode,
+      itemDescription: templateItem.description,
+      unit: templateItem.unit,
+      quantity: templateItem.quantity,
+      dueDate: this.offsetDate(30),
+      priority: 'media',
+      status: 'pendente',
+      notes: 'Próxima cesta básica programada automaticamente após a entrega.'
+    };
+
+    this.plannedDonations.update((plans) => [payload, ...plans]);
+    this.plannedForm.patchValue({
+      itemCode: payload.itemCode,
+      quantity: payload.quantity,
+      dueDate: payload.dueDate,
+      priority: payload.priority,
+      status: payload.status,
+      notes: ''
+    });
+  }
+
 }
