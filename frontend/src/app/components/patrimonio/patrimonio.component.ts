@@ -24,7 +24,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
-type AssetTabId = 'dados' | 'visual' | 'localizacao';
+type AssetTabId = 'dados' | 'visual' | 'localizacao' | 'dashboard' | 'movimentacao';
 
 type AssetFormTextField =
   | 'patrimonyNumber'
@@ -120,6 +120,16 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       id: 'localizacao',
       label: 'Localização e responsável',
       description: 'Unidade, ambiente e responsável direto pelo patrimônio.'
+    },
+    {
+      id: 'dashboard',
+      label: 'Dashboards',
+      description: 'Indicadores de uso, depreciação e status dos bens.'
+    },
+    {
+      id: 'movimentacao',
+      label: 'Movimentação',
+      description: 'Tabela geral de bens, filtros e registro de movimentações.'
     }
   ];
 

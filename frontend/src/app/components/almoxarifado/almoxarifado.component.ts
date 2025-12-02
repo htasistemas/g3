@@ -20,6 +20,8 @@ import {
   faWarehouse
 } from '@fortawesome/free-solid-svg-icons';
 
+type AlmoxTabId = 'cadastro' | 'itens' | 'movimentacoes' | 'dashboards';
+
 type MovementType = 'Entrada' | 'Saída' | 'Ajuste';
 
 type StockItemStatus = 'Ativo' | 'Inativo';
@@ -115,6 +117,15 @@ export class AlmoxarifadoComponent {
   readonly faCircleCheck = faCircleCheck;
   readonly faCircleExclamation = faCircleExclamation;
   readonly faUser = faUser;
+
+  readonly tabs: { id: AlmoxTabId; label: string; description: string }[] = [
+    { id: 'cadastro', label: 'Cadastros de itens', description: 'Estruture o item com campos obrigatórios e validações.' },
+    { id: 'itens', label: 'Itens do almoxarifado', description: 'Consulte rapidamente os itens ativos e críticos.' },
+    { id: 'movimentacoes', label: 'Movimentações', description: 'Registre e acompanhe entradas, saídas e ajustes.' },
+    { id: 'dashboards', label: 'Dashboards', description: 'Indicadores operacionais e visão consolidada do estoque.' }
+  ];
+
+  activeTab: AlmoxTabId = 'cadastro';
 
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
@@ -240,6 +251,39 @@ export class AlmoxarifadoComponent {
   };
 
   showMovementModal = false;
+
+  changeTab(tabId: AlmoxTabId): void {
+    this.activeTab = tabId;
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.activeTab = this.tabs[this.activeTabIndex + 1].id;
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.activeTab = this.tabs[this.activeTabIndex - 1].id;
+    }
+  }
+
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get nextTabLabel(): string {
+    const nextTab = this.tabs[this.activeTabIndex + 1];
+    return nextTab ? nextTab.label : '';
+  }
 
   readonly indicatorTotals = computed(() => {
     const allItems = this.items();
