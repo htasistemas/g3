@@ -31,7 +31,9 @@ function sanitizeCpf(cpf?: string | null): string | undefined {
   return digits.length === 11 ? digits : undefined;
 }
 
-function getMissingRequiredDocuments(body: any, documentsFromBody?: any[]): string[] {
+type IncomingDocumento = { nome?: string; nomeArquivo?: string; obrigatorio?: boolean; conteudo?: string };
+
+function getMissingRequiredDocuments(body: any, documentsFromBody?: IncomingDocumento[]): string[] {
   const documents = Array.isArray(documentsFromBody)
     ? documentsFromBody
     : Array.isArray(body?.documentosObrigatorios)
@@ -39,8 +41,8 @@ function getMissingRequiredDocuments(body: any, documentsFromBody?: any[]): stri
       : [];
 
   return documents
-    .filter((doc) => doc?.obrigatorio && !doc?.nomeArquivo && !doc?.conteudo)
-    .map((doc) => doc?.nome)
+    .filter((doc: IncomingDocumento) => doc?.obrigatorio && !doc?.nomeArquivo && !doc?.conteudo)
+    .map((doc: IncomingDocumento) => doc?.nome)
     .filter(Boolean);
 }
 
