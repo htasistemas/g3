@@ -44,6 +44,24 @@
   align-items: center;
 }
 
+.print-order {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.print-order select {
+  min-width: 180px;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  font-weight: 600;
+}
+
 .tab-shell {
   background: #fff;
   border-radius: 14px;
