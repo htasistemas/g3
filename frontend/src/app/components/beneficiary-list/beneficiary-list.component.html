@@ -20,7 +20,7 @@
         <input
           type="text"
           class="input w-full md:w-64"
-          placeholder="Buscar por nome ou CPF"
+          placeholder="Buscar por nome, CPF ou código"
           [(ngModel)]="searchTerm"
           (ngModelChange)="applyFilter()"
         />
@@ -37,6 +37,7 @@
         <thead class="bg-slate-50">
           <tr>
             <th class="table-head">Nome completo</th>
+            <th class="table-head">Código</th>
             <th class="table-head">CPF</th>
             <th class="table-head">Data de nascimento</th>
             <th class="table-head">Cidade/UF</th>
@@ -46,6 +47,7 @@
         <tbody class="divide-y divide-slate-200" *ngIf="filtered.length; else emptyState">
           <tr *ngFor="let beneficiary of filtered" class="hover:bg-slate-50">
             <td class="table-cell">{{ beneficiary.nomeCompleto || 'Não informado' }}</td>
+            <td class="table-cell">{{ beneficiary.codigo || '---' }}</td>
             <td class="table-cell">{{ beneficiary.cpf || beneficiary.documentos || '---' }}</td>
             <td class="table-cell">
               {{ beneficiary.dataNascimento ? (beneficiary.dataNascimento | date : 'dd/MM/yyyy') : '---' }}
@@ -59,7 +61,7 @@
       </table>
       <ng-template #emptyState>
         <tr>
-          <td colspan="5" class="text-center py-6 text-slate-600">Nenhum beneficiário encontrado.</td>
+          <td colspan="6" class="text-center py-6 text-slate-600">Nenhum beneficiário encontrado.</td>
         </tr>
       </ng-template>
     </div>

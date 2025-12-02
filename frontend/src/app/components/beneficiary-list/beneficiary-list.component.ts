@@ -51,7 +51,8 @@ export class BeneficiaryListComponent implements OnInit {
     this.filtered = this.beneficiaries.filter((beneficiary) => {
       const name = beneficiary.nomeCompleto?.toLowerCase() ?? '';
       const cpf = beneficiary.cpf?.toLowerCase() ?? beneficiary.documentos?.toLowerCase() ?? '';
-      return name.includes(term) || cpf.includes(term);
+      const code = beneficiary.codigo?.toLowerCase() ?? '';
+      return name.includes(term) || cpf.includes(term) || code.includes(term);
     });
   }
 

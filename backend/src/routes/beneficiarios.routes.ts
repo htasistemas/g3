@@ -102,6 +102,7 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
   const payload: Beneficiario = {
     ...existing,
+    codigo: existing?.codigo ?? Beneficiario.generateCodigo(),
     nomeCompleto: body.nome_completo ?? body.nomeCompleto ?? existing?.nomeCompleto ?? '',
     nomeSocial: body.nome_social ?? body.nomeSocial ?? existing?.nomeSocial,
     apelido: body.apelido ?? existing?.apelido,
@@ -205,11 +206,19 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
 router.get('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
-  const { nome, cpf, nis } = req.query as { nome?: string; cpf?: string; nis?: string };
+  const { nome, cpf, nis, codigo } = req.query as {
+    nome?: string;
+    cpf?: string;
+    nis?: string;
+    codigo?: string;
+  };
   const qb = repository.createQueryBuilder('beneficiario');
 
   if (nome) {
-    qb.andWhere('LOWER(beneficiario.nome_completo) LIKE LOWER(:nome)', { nome: `%${nome}%` });
+    qb.andWhere(
+      '(LOWER(beneficiario.nome_completo) LIKE LOWER(:nome) OR LOWER(beneficiario.codigo) LIKE LOWER(:codigoBusca))',
+      { nome: `%${nome}%`, codigoBusca: `%${nome}%` }
+    );
   }
   if (cpf) {
     qb.andWhere('beneficiario.cpf = :cpf', { cpf: onlyDigits(String(cpf)) });
@@ -217,8 +226,21 @@ router.get('/', async (req, res) => {
   if (nis) {
     qb.andWhere('beneficiario.nis = :nis', { nis });
   }
+  if (codigo) {
+    qb.andWhere('LOWER(beneficiario.codigo) LIKE LOWER(:codigo)', { codigo: `%${codigo}%` });
+  }
 
   const beneficiarios = await qb.orderBy('beneficiario.nome_completo', 'ASC').getMany();
+
+  const withoutCodigo = beneficiarios.filter((item) => !item.codigo);
+  if (withoutCodigo.length) {
+    await Promise.all(
+      withoutCodigo.map((record) => {
+        record.codigo = Beneficiario.generateCodigo();
+        return repository.save(record);
+      })
+    );
+  }
 
   const outdated = beneficiarios.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
   if (outdated.length) {
@@ -238,6 +260,11 @@ router.get('/:id', async (req, res) => {
 
   if (!beneficiario) {
     return res.status(404).json({ message: 'Beneficiário não encontrado' });
+  }
+
+  if (!beneficiario.codigo) {
+    beneficiario.codigo = Beneficiario.generateCodigo();
+    await repository.save(beneficiario);
   }
 
   if (isOutdated(beneficiario) && beneficiario.status !== 'DESATUALIZADO') {

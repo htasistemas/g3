@@ -1,5 +1,6 @@
 import {
   Column,
+  BeforeInsert,
   CreateDateColumn,
   Entity,
   Index,
@@ -24,6 +25,10 @@ export type BeneficiarioStatus = 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMP
 export class Beneficiario {
   @PrimaryGeneratedColumn('uuid', { name: 'id_beneficiario' })
   idBeneficiario!: string;
+
+  @Index('idx_beneficiario_codigo', { unique: true })
+  @Column({ name: 'codigo', unique: true })
+  codigo!: string;
 
   // Identificação
   @Index('idx_beneficiario_nome')
@@ -301,4 +306,17 @@ export class Beneficiario {
 
   @OneToMany(() => FamiliaMembro, (membro) => membro.beneficiario)
   familias?: FamiliaMembro[];
+
+  static generateCodigo(): string {
+    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const timestamp = Date.now().toString(36).toUpperCase();
+    return `B-${timestamp}-${random}`;
+  }
+
+  @BeforeInsert()
+  assignCodigo(): void {
+    if (!this.codigo) {
+      this.codigo = Beneficiario.generateCodigo();
+    }
+  }
 }
