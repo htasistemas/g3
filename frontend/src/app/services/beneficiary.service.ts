@@ -16,6 +16,7 @@ export interface DocumentoObrigatorio {
 
 export interface BeneficiaryPayload {
   id?: number;
+  codigo?: string;
   cpf?: string;
   cep: string;
   nomeCompleto: string;

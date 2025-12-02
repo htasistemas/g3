@@ -18,6 +18,7 @@ import { AddLogoToAssistanceUnit1730200000000 } from './migrations/1730200000000
 import { AddReportLogoAndScheduleToAssistanceUnit1730300000000 } from './migrations/1730300000000-AddReportLogoAndScheduleToAssistanceUnit';
 import { AddBeneficiarioDocuments1730400000000 } from './migrations/1730400000000-AddBeneficiarioDocuments';
 import { AddBeneficiarioPhoto1730500000000 } from './migrations/1730500000000-AddBeneficiarioPhoto';
+import { AddBeneficiarioCodigo1730600000000 } from './migrations/1730600000000-AddBeneficiarioCodigo';
 
 dotenv.config();
 
@@ -81,7 +82,8 @@ const relationalOptions: DataSourceOptions | null = dbType === 'sqlite'
         AddLogoToAssistanceUnit1730200000000,
         AddReportLogoAndScheduleToAssistanceUnit1730300000000,
         AddBeneficiarioDocuments1730400000000,
-        AddBeneficiarioPhoto1730500000000
+        AddBeneficiarioPhoto1730500000000,
+        AddBeneficiarioCodigo1730600000000
       ],
       migrationsRun: true
     };

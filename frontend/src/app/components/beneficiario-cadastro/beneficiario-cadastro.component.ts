@@ -47,6 +47,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
+  beneficiaryCode: string | null = null;
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
@@ -300,6 +301,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   ) {
     this.searchForm = this.fb.group({
       nome: [''],
+      codigo: [''],
       cpf: [''],
       nis: [''],
       status: ['']
@@ -488,6 +490,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   mapToForm(beneficiario: BeneficiarioApiPayload) {
     this.createdAt = beneficiario.data_cadastro ?? null;
     this.lastUpdatedAt = beneficiario.data_atualizacao ?? beneficiario.data_cadastro ?? null;
+    this.beneficiaryCode = beneficiario.codigo ?? null;
 
     return {
       status: beneficiario.status ?? 'EM_ANALISE',
@@ -914,22 +917,23 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
 
     const sorted = [...this.filteredBeneficiarios].sort((a, b) => this.sortBeneficiariesForPrint(a, b));
-    const unit = this.assistanceUnit;
-    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
-    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
-    const orderLabel = this.printOrderOptions.find((option) => option.value === this.printOrderBy)?.label ?? 'Nome';
-    const today = this.formatDate(new Date().toISOString());
+        const unit = this.assistanceUnit;
+        const logo = unit?.logomarcaRelatorio || unit?.logomarca;
+        const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
+        const orderLabel = this.printOrderOptions.find((option) => option.value === this.printOrderBy)?.label ?? 'Nome';
+        const today = this.formatDate(new Date().toISOString());
 
-    const rows = sorted
-      .map((beneficiario) => {
-        return `
-          <tr>
-            <td>${beneficiario.nome_completo || beneficiario.nome_social || '---'}</td>
-            <td>${this.formatDate(beneficiario.data_nascimento)}</td>
-            <td>${this.formatAge(beneficiario.data_nascimento)}</td>
-            <td>${beneficiario.cpf || beneficiario.nis || '---'}</td>
-            <td>${this.formatStatusLabel(beneficiario.status)}</td>
-            <td>${beneficiario.bairro || '---'}</td>
+        const rows = sorted
+          .map((beneficiario) => {
+            return `
+              <tr>
+                <td>${beneficiario.nome_completo || beneficiario.nome_social || '---'}</td>
+                <td>${beneficiario.codigo || '---'}</td>
+                <td>${this.formatDate(beneficiario.data_nascimento)}</td>
+                <td>${this.formatAge(beneficiario.data_nascimento)}</td>
+                <td>${beneficiario.cpf || beneficiario.nis || '---'}</td>
+                <td>${this.formatStatusLabel(beneficiario.status)}</td>
+                <td>${beneficiario.bairro || '---'}</td>
           </tr>
         `;
       })
@@ -962,6 +966,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
             <thead>
               <tr>
                 <th>Nome completo</th>
+                <th>Código</th>
                 <th>Data de nascimento</th>
                 <th>Idade</th>
                 <th>CPF/NIS</th>
@@ -998,6 +1003,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const age = this.getAgeFromDate(personal.data_nascimento);
     const beneficiaryName = personal.nome_completo || personal.nome_social || 'Beneficiário';
     const statusLabel = value.status ? this.formatStatusLabel(value.status) : '---';
+    const codigo = this.beneficiaryCode || '---';
     const formattedBirthDate = this.formatDate(personal.data_nascimento);
     const formattedInclusionDate = this.formatDate(this.createdAt ?? null);
     const formattedNaturalidade =
@@ -1109,7 +1115,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
                     <div class="text-2xl font-bold text-slate-900 uppercase">${beneficiaryName}</div>
                   </div>
 
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div>
+                      <label class="data-label">Código do beneficiário</label>
+                      <div class="data-value font-mono text-brand-700">${codigo}</div>
+                    </div>
                     <div>
                       <label class="data-label">CPF</label>
                       <div class="data-value font-mono text-brand-700">${displayValue(documents.cpf)}</div>
@@ -1834,12 +1844,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   searchBeneficiaries(): void {
-    const { nome, cpf, nis } = this.searchForm.value;
+    const { nome, cpf, nis, codigo } = this.searchForm.value;
     this.listLoading = true;
     this.listError = null;
 
     this.service
-      .list({ nome: nome || undefined, cpf: cpf || undefined, nis: nis || undefined })
+      .list({ nome: nome || undefined, cpf: cpf || undefined, nis: nis || undefined, codigo: codigo || undefined })
       .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }) => {
@@ -1889,6 +1899,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           this.photoPreview = null;
           this.createdAt = null;
           this.lastUpdatedAt = null;
+          this.beneficiaryCode = null;
         }
         this.searchBeneficiaries();
       },

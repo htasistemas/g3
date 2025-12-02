@@ -92,6 +92,7 @@
 
         <div class="status-panel">
           <p class="status-panel__title">Status do beneficiário</p>
+          <p class="muted" aria-live="polite">Código: {{ beneficiaryCode || 'Gerado ao salvar' }}</p>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -170,10 +171,14 @@
         <div>
           <p class="list-panel__eyebrow">Base cadastrada</p>
           <h2>Encontre beneficiários cadastrados</h2>
-          <p>Busque pelo nome, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
+          <p>Busque pelo nome, código, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
         </div>
         <div class="list-panel__actions">
-          <button type="button" class="ghost" (click)="searchForm.reset({ status: '' }); searchBeneficiaries()">
+          <button
+            type="button"
+            class="ghost"
+            (click)="searchForm.reset({ nome: '', codigo: '', cpf: '', nis: '', status: '' }); searchBeneficiaries()"
+          >
             Limpar filtros
           </button>
           <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
@@ -182,8 +187,12 @@
 
       <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
         <label class="field">
-          Nome
-          <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+          Nome ou código
+          <input type="text" formControlName="nome" placeholder="Digite parte do nome ou código" />
+        </label>
+        <label class="field">
+          Código
+          <input type="text" formControlName="codigo" placeholder="Ex.: B-000123" />
         </label>
         <label class="field">
           CPF
@@ -213,6 +222,7 @@
           <thead>
             <tr>
               <th>Nome</th>
+              <th>Código</th>
               <th>CPF</th>
               <th>Nascimento</th>
               <th>Status</th>
@@ -222,6 +232,7 @@
           <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
               <tr *ngFor="let beneficiario of filteredBeneficiarios">
                 <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
+              <td>{{ beneficiario.codigo || '---' }}</td>
               <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
               <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
               <td><span [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span></td>
@@ -236,7 +247,7 @@
         <ng-template #emptyList>
           <tbody>
             <tr>
-              <td colspan="5" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
+              <td colspan="6" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
             </tr>
           </tbody>
         </ng-template>
