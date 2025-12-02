@@ -27,8 +27,8 @@ export class Beneficiario {
   idBeneficiario!: string;
 
   @Index('idx_beneficiario_codigo', { unique: true })
-  @Column({ name: 'codigo', unique: true })
-  codigo!: string;
+  @Column({ name: 'codigo', unique: true, length: 32, nullable: true })
+  codigo?: string;
 
   // Identificação
   @Index('idx_beneficiario_nome')
