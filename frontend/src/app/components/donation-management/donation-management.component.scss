@@ -330,6 +330,13 @@
   gap: 0.35rem;
 }
 
+.suggestions--status {
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: #f8fafc;
+}
+
 .suggestion {
   display: flex;
   align-items: center;

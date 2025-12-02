@@ -66,7 +66,10 @@
             />
           </div>
         </label>
-        <div class="suggestions" *ngIf="filteredBeneficiaries().length">
+        <div class="suggestions suggestions--status" *ngIf="searchingBeneficiaries()">
+          <p class="muted">Buscando beneficiários e famílias...</p>
+        </div>
+        <div class="suggestions" *ngIf="!searchingBeneficiaries() && filteredBeneficiaries().length">
           <button
             type="button"
             class="suggestion"
@@ -77,9 +80,16 @@
               <p class="suggestion__name">{{ beneficiary.name }}</p>
               <p class="muted">{{ beneficiary.document }}</p>
             </div>
-            <span class="tag">Selecionar</span>
+            <span class="tag">{{ beneficiary.type === 'familia' ? 'Família' : 'Beneficiário' }}</span>
           </button>
         </div>
+        <p
+          class="muted"
+          *ngIf="!searchingBeneficiaries() && beneficiarySearch().trim() && !filteredBeneficiaries().length"
+        >
+          Nenhum beneficiário ou família encontrado.
+        </p>
+        <p class="field-error" *ngIf="beneficiarySearchError()">{{ beneficiarySearchError() }}</p>
 
         <div class="field-grid cols-2 compact">
           <label class="field">Tipo de doação*
