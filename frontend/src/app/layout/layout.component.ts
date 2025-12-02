@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -49,6 +49,8 @@ interface MenuItem {
   styleUrl: './layout.component.scss'
 })
 export class LayoutComponent implements OnInit, OnDestroy {
+  @ViewChild('sidebar') sidebarRef?: ElementRef<HTMLElement>;
+
   readonly faChevronDown = faChevronDown;
   readonly faChevronUp = faChevronUp;
   readonly faRightFromBracket = faRightFromBracket;
@@ -173,23 +175,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     if (!route) return;
 
     this.router.navigateByUrl(route);
-    this.isSidebarCollapsed = true;
-    this.openSection = null;
   }
 
   handleSidebarEnter(): void {
     this.isSidebarCollapsed = false;
-  }
-
-  handleSidebarLeave(): void {
-    this.isSidebarCollapsed = true;
-    this.openSection = null;
-  }
-
-  closeSection(label: string): void {
-    if (this.openSection === label) {
-      this.openSection = null;
-    }
   }
 
   logout(): void {
@@ -217,5 +206,19 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }
 
     return child;
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    const sidebarElement = this.sidebarRef?.nativeElement;
+
+    if (!sidebarElement) {
+      return;
+    }
+
+    if (!sidebarElement.contains(event.target as Node)) {
+      this.isSidebarCollapsed = true;
+      this.openSection = null;
+    }
   }
 }
