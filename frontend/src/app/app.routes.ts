@@ -20,6 +20,7 @@ import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.co
 import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastro/voluntariado-cadastro.component';
 import { ContabilidadeComponent } from './components/contabilidade/contabilidade.component';
 import { PrestacaoContasComponent } from './components/prestacao-contas/prestacao-contas.component';
+import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -65,6 +66,11 @@ export const routes: Routes = [
         path: 'administrativo/patrimonio',
         component: PatrimonioComponent,
         data: { title: 'Controle patrimonial' }
+      },
+      {
+        path: 'administrativo/oficios',
+        component: OficiosGestaoComponent,
+        data: { title: 'Gestão de ofícios' }
       },
       {
         path: 'administrativo/almoxarifado',

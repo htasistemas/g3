@@ -1,0 +1,319 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Administrativo • Ofícios</p>
+    <p class="page-title__label">Gestão de criação, envio, recebimento e tramitação</p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas etapas do ofício</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar ofício' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'identificacao'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Defina quem emite, quem recebe e registre protocolos de envio e recebimento.</p>
+        </div>
+        <span class="pill">Controle de fluxo</span>
+      </div>
+
+      <div formGroupName="identificacao">
+        <div class="field-grid cols-3">
+          <label class="field">Tipo de registro*
+            <select formControlName="tipo">
+              <option value="emissao">Emissão</option>
+              <option value="recebimento">Recebimento</option>
+            </select>
+          </label>
+          <label class="field">Número do ofício*
+            <input formControlName="numero" placeholder="Ex.: 013/2025" />
+          </label>
+          <label class="field">Data*
+            <input type="date" formControlName="data" />
+          </label>
+          <label class="field">Setor/Unidade de origem*
+            <input formControlName="setorOrigem" />
+          </label>
+          <label class="field">Responsável pela emissão*
+            <input formControlName="responsavel" />
+          </label>
+          <label class="field">Destinatário*
+            <input formControlName="destinatario" />
+          </label>
+          <label class="field">Meio de envio*
+            <select formControlName="meioEnvio">
+              <option *ngFor="let meio of meiosEnvio" [value]="meio">{{ meio }}</option>
+            </select>
+          </label>
+          <label class="field">Prazo de resposta
+            <input formControlName="prazoResposta" placeholder="Ex.: 10 dias" />
+          </label>
+          <label class="field">Classificação
+            <input formControlName="classificacao" placeholder="Solicitação, Resposta, Circular..." />
+          </label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div formGroupName="protocolo" class="field-grid cols-3">
+        <label class="field">Situação do ofício*
+          <select formControlName="status">
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </label>
+        <label class="field">Protocolo de envio
+          <input formControlName="protocoloEnvio" placeholder="Gerado automaticamente ou informado" />
+        </label>
+        <label class="field">Data de envio
+          <input type="date" formControlName="dataEnvio" />
+        </label>
+        <label class="field">Protocolo de recebimento
+          <input formControlName="protocoloRecebimento" placeholder="Gerado automaticamente ou informado" />
+        </label>
+        <label class="field">Data de recebimento
+          <input type="date" formControlName="dataRecebimento" />
+        </label>
+        <label class="field">Próximo destino
+          <input formControlName="proximoDestino" placeholder="Quem receberá o próximo passo" />
+        </label>
+        <label class="field full">Observações
+          <textarea rows="2" formControlName="observacoes" placeholder="Instruções de protocolo ou pendências"></textarea>
+        </label>
+        <div class="feature-grid">
+          <button type="button" class="primary" (click)="registrarEnvio()">Registrar envio</button>
+          <button type="button" class="ghost" (click)="registrarRecebimento()">Registrar recebimento</button>
+        </div>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'conteudo'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Estruture o texto conforme o modelo institucional apresentado.</p>
+        </div>
+        <span class="pill">Layout do ofício</span>
+      </div>
+
+      <div formGroupName="conteudo" class="field-grid cols-2">
+        <label class="field">Razão social com logomarca*
+          <input formControlName="razaoSocial" placeholder="Título com razão social" />
+        </label>
+        <label class="field">URL da logomarca (opcional)
+          <input formControlName="logoUrl" placeholder="Cole o endereço da imagem da logomarca" />
+        </label>
+        <label class="field">Título do documento
+          <input formControlName="titulo" placeholder="OFÍCIO ..." />
+        </label>
+        <label class="field">Saudação
+          <input formControlName="saudacao" placeholder="Prezado(a)," />
+        </label>
+        <label class="field full">Assunto*
+          <input formControlName="assunto" placeholder="Assunto em destaque" />
+        </label>
+        <label class="field full">Corpo do ofício*
+          <textarea rows="6" formControlName="corpo" placeholder="Texto principal escrito pelo usuário"></textarea>
+        </label>
+        <label class="field full">Finalização
+          <textarea rows="2" formControlName="finalizacao" placeholder="Agradecimento e considerações finais"></textarea>
+        </label>
+        <label class="field">Assinatura - Nome
+          <input formControlName="assinaturaNome" />
+        </label>
+        <label class="field">Assinatura - Cargo
+          <input formControlName="assinaturaCargo" />
+        </label>
+        <label class="field full">Rodapé com dados da instituição
+          <textarea rows="2" formControlName="rodape" placeholder="Endereço, CNPJ, contatos e site"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="primary" (click)="imprimirRascunho()">Visualizar modelo</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'tramitacao'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Controle a trilha do ofício: onde está, quem assinou e qual o próximo passo.</p>
+        </div>
+      </div>
+
+      <div class="field-grid cols-3" formGroupName="tramitacao">
+        <label class="field">Data do registro
+          <input type="date" formControlName="data" />
+        </label>
+        <label class="field">Origem
+          <input formControlName="origem" placeholder="De onde vem esta etapa" />
+        </label>
+        <label class="field">Destino
+          <input formControlName="destino" placeholder="Para onde segue" />
+        </label>
+        <label class="field">Responsável
+          <input formControlName="responsavel" placeholder="Quem movimentou" />
+        </label>
+        <label class="field full">Ação realizada*
+          <input formControlName="acao" placeholder="Envio, Análise, Assinatura, Devolução..." />
+        </label>
+        <label class="field full">Observações
+          <textarea rows="2" formControlName="observacoes" placeholder="Pendências, documentos anexos ou prazos"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitação</button>
+      </div>
+
+      <div class="timeline" *ngIf="tramites.length > 0">
+        <div class="timeline__header">
+          <div>
+            <p class="page-title__eyebrow">Histórico de tramitação</p>
+            <p class="page-title__label">Controle de onde parou e para onde vai</p>
+          </div>
+        </div>
+        <ol class="timeline__list">
+          <li *ngFor="let tramite of tramites">
+            <div class="timeline__bullet"></div>
+            <div class="timeline__content">
+              <p class="timeline__title">{{ tramite.acao }}</p>
+              <p class="muted">{{ tramite.data | date: 'dd/MM/yyyy' }} • {{ tramite.origem || 'Origem não informada' }} → {{ tramite.destino || 'Destino não informado' }}</p>
+              <p class="muted">Responsável: {{ tramite.responsavel || 'Sem responsável' }}</p>
+              <p class="muted" *ngIf="tramite.observacoes">Notas: {{ tramite.observacoes }}</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'confirmacao'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Revise os dados, confirme protocolos e gere o documento.</p>
+        </div>
+      </div>
+
+      <div class="field-grid cols-2">
+        <div class="summary-card">
+          <p class="summary-card__title">Dados principais</p>
+          <ul>
+            <li><strong>Nº do ofício:</strong> {{ form.value.identificacao?.numero || '—' }}</li>
+            <li><strong>Origem:</strong> {{ form.value.identificacao?.setorOrigem }}</li>
+            <li><strong>Destinatário:</strong> {{ form.value.identificacao?.destinatario }}</li>
+            <li><strong>Meio:</strong> {{ form.value.identificacao?.meioEnvio }}</li>
+            <li><strong>Status:</strong> {{ form.value.protocolo?.status }}</li>
+          </ul>
+        </div>
+        <div class="summary-card">
+          <p class="summary-card__title">Protocolos</p>
+          <ul>
+            <li><strong>Envio:</strong> {{ form.value.protocolo?.protocoloEnvio || '—' }} {{ form.value.protocolo?.dataEnvio ? '(' + (form.value.protocolo?.dataEnvio | date:'dd/MM/yyyy') + ')' : '' }}</li>
+            <li><strong>Recebimento:</strong> {{ form.value.protocolo?.protocoloRecebimento || '—' }} {{ form.value.protocolo?.dataRecebimento ? '(' + (form.value.protocolo?.dataRecebimento | date:'dd/MM/yyyy') + ')' : '' }}</li>
+            <li><strong>Próximo destino:</strong> {{ form.value.protocolo?.proximoDestino || '—' }}</li>
+            <li><strong>Observações:</strong> {{ form.value.protocolo?.observacoes || 'Sem observações' }}</li>
+          </ul>
+        </div>
+        <div class="summary-card full">
+          <p class="summary-card__title">Conteúdo</p>
+          <p><strong>Assunto:</strong> {{ form.value.conteudo?.assunto }}</p>
+          <p><strong>Corpo:</strong> {{ form.value.conteudo?.corpo }}</p>
+          <p><strong>Finalização:</strong> {{ form.value.conteudo?.finalizacao }}</p>
+          <p><strong>Assinatura:</strong> {{ form.value.conteudo?.assinaturaNome }} • {{ form.value.conteudo?.assinaturaCargo }}</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="ghost" (click)="imprimirRascunho()">Gerar ofício para impressão</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+  </form>
+
+  <div class="list-card">
+    <div class="list-card__header">
+      <div>
+        <p class="page-title__eyebrow">Ofícios registrados</p>
+        <p class="page-title__label">Acompanhe a situação, local atual e protocolos</p>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Assunto</th>
+            <th>Status</th>
+            <th>Local atual</th>
+            <th>Destino</th>
+            <th>Protocolos</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let oficio of oficios">
+            <td>{{ oficio.identificacao.numero }}</td>
+            <td>{{ oficio.conteudo.assunto }}</td>
+            <td><span class="status-pill">{{ oficio.protocolo.status }}</span></td>
+            <td>{{ getLocalAtual(oficio) }}</td>
+            <td>{{ oficio.protocolo.proximoDestino || oficio.identificacao.destinatario }}</td>
+            <td>
+              <div class="muted">Envio: {{ oficio.protocolo.protocoloEnvio || '—' }}</div>
+              <div class="muted">Receb.: {{ oficio.protocolo.protocoloRecebimento || '—' }}</div>
+            </td>
+            <td>
+              <div class="table-actions">
+                <button type="button" class="ghost" (click)="edit(oficio)">Editar</button>
+                <button type="button" class="ghost" (click)="imprimirModelo(oficio)">Visualizar</button>
+                <button type="button" class="ghost" (click)="delete(oficio.id)">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
