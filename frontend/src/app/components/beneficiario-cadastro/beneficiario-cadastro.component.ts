@@ -1290,8 +1290,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       });
     };
 
-    const waitForFontsToLoad = (): Promise<void> =>
-      documentWindow.document.fonts?.ready?.catch(() => undefined) ?? Promise.resolve();
+    const waitForFontsToLoad = (): Promise<void> => {
+      const fontsReady = documentWindow.document.fonts?.ready;
+      if (!fontsReady) return Promise.resolve();
+
+      return fontsReady
+        .then(() => undefined)
+        .catch(() => undefined);
+    };
 
     const handleLoad = () => {
       Promise.all([waitForImagesToLoad(), waitForFontsToLoad()])
