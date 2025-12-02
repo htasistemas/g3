@@ -12,7 +12,7 @@ import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficia
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  loading = false;
+  loading = true;
   error: string | null = null;
   stats = {
     total: 0,
