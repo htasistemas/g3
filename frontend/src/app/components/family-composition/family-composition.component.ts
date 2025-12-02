@@ -16,6 +16,13 @@ import { FamilyService, FamiliaMembroPayload, FamiliaPayload } from '../../servi
 })
 export class FamilyCompositionComponent implements OnInit, OnDestroy {
   activeTab: 'family' | 'address' | 'members' | 'income' | 'vulnerability' = 'family';
+  readonly tabs: { id: FamilyCompositionComponent['activeTab']; label: string }[] = [
+    { id: 'family', label: 'Identificação da família' },
+    { id: 'address', label: 'Endereço' },
+    { id: 'members', label: 'Composição familiar' },
+    { id: 'income', label: 'Renda e condições de vida' },
+    { id: 'vulnerability', label: 'Vulnerabilidades e encaminhamentos' }
+  ];
   familyForm = this.buildForm();
   beneficiaries: BeneficiaryPayload[] = [];
   filteredBeneficiaries: BeneficiaryPayload[] = [];
@@ -42,12 +49,24 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setActiveTab(tab: FamilyCompositionComponent['activeTab']): void {
-    this.activeTab = tab;
-  }
-
   get members(): FormArray<FormGroup> {
     return this.familyForm.get('members') as FormArray<FormGroup>;
+  }
+
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get nextTabLabel(): string {
+    return this.tabs[this.activeTabIndex + 1]?.label ?? '';
   }
 
   get incomeGroup(): FormGroup {
@@ -115,6 +134,22 @@ export class FamilyCompositionComponent implements OnInit, OnDestroy {
         };
       }
     });
+  }
+
+  changeTab(tab: FamilyCompositionComponent['activeTab']): void {
+    this.activeTab = tab;
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.activeTab = this.tabs[this.activeTabIndex + 1].id;
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.activeTab = this.tabs[this.activeTabIndex - 1].id;
+    }
   }
 
   filterBeneficiaries(): void {
