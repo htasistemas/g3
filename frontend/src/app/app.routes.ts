@@ -10,7 +10,6 @@ import { SystemSettingsComponent } from './components/system-settings/system-set
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
-import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
@@ -21,6 +20,7 @@ import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastr
 import { ContabilidadeComponent } from './components/contabilidade/contabilidade.component';
 import { PrestacaoContasComponent } from './components/prestacao-contas/prestacao-contas.component';
 import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
+import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -46,12 +46,9 @@ export const routes: Routes = [
         component: BeneficiaryFormComponent,
         data: { title: 'Beneficiários' }
       },
-      { path: 'familias', redirectTo: 'cadastros/familias', pathMatch: 'full' },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
-      { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Composição familiar' } },
-      { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Composição familiar' } },
       {
         path: 'cadastros/voluntariados',
         component: VoluntariadoCadastroComponent,
@@ -71,6 +68,11 @@ export const routes: Routes = [
         path: 'administrativo/oficios',
         component: OficiosGestaoComponent,
         data: { title: 'Gestão de ofícios' }
+      },
+      {
+        path: 'administrativo/documentos',
+        component: DocumentosInstitucionaisComponent,
+        data: { title: 'Gestão de Documentos da Instituição' }
       },
       {
         path: 'administrativo/almoxarifado',
