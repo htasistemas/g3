@@ -1,0 +1,166 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Financeiro · Prestação de contas</p>
+    <p class="page-title__label">Transparência de recursos e destino das doações</p>
+    <p class="muted">Demonstração pensada para organizações do terceiro setor e comunicação direta com doadores.</p>
+  </header>
+
+  <div class="page-actions">
+    <button class="ghost" type="button">
+      <fa-icon [icon]="faHandHoldingHeart"></fa-icon>
+      Publicar resumo aos doadores
+    </button>
+    <button class="ghost" type="button">
+      <fa-icon [icon]="faShareNodes"></fa-icon>
+      Compartilhar evidências
+    </button>
+  </div>
+
+  <div class="card-grid">
+    <article class="summary-card" *ngFor="let card of resumoCards">
+      <div class="summary-card__header">
+        <p class="summary-card__label">{{ card.label }}</p>
+        <fa-icon *ngIf="card.emphasis" [icon]="faChartPie" class="summary-card__icon"></fa-icon>
+      </div>
+      <p class="summary-card__value">{{ card.value }}</p>
+      <p class="muted">
+        <fa-icon [icon]="faArrowTrendUp"></fa-icon>
+        {{ card.helper }}
+      </p>
+    </article>
+  </div>
+
+  <div class="panel-grid">
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Doações recebidas</p>
+          <p class="panel__title">Fontes e recorrência</p>
+        </div>
+        <span class="pill">Atualizado</span>
+      </header>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fonte</th>
+              <th>Valor</th>
+              <th>Periodicidade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of recebimentos">
+              <td>{{ item.fonte }}</td>
+              <td class="strong">{{ item.valor }}</td>
+              <td>{{ item.periodicidade }}</td>
+              <td>
+                <span class="status" [class.status--warning]="item.status !== 'OK'">
+                  <fa-icon [icon]="item.status === 'OK' ? faCircleCheck : faCircleExclamation"></fa-icon>
+                  {{ item.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Destinação dos recursos</p>
+          <p class="panel__title">Percentual aplicado por frente</p>
+        </div>
+        <span class="pill pill--success">Impacto social</span>
+      </header>
+      <ul class="destinacoes">
+        <li *ngFor="let item of destinacoes">
+          <div>
+            <p class="strong">{{ item.title }}</p>
+            <p class="muted">{{ item.description }}</p>
+          </div>
+          <div class="progress">
+            <div class="progress__bar" [style.width.%]="item.percentage"></div>
+            <span>{{ item.percentage }}%</span>
+          </div>
+        </li>
+      </ul>
+    </article>
+  </div>
+
+  <div class="panel-grid three-cols">
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Linhas do tempo</p>
+          <p class="panel__title">Prestação detalhada</p>
+        </div>
+      </header>
+      <ul class="timeline">
+        <li *ngFor="let step of timelines" [class.is-complete]="step.status === 'concluido'" [class.is-active]="step.status === 'andamento'">
+          <div class="timeline__marker"></div>
+          <div>
+            <p class="strong">{{ step.title }}</p>
+            <p class="muted">{{ step.detail }}</p>
+          </div>
+        </li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Comprovantes e evidências</p>
+          <p class="panel__title">Arquivos prontos para auditoria</p>
+        </div>
+        <button class="ghost" type="button">
+          <fa-icon [icon]="faCloudArrowUp"></fa-icon>
+          Enviar novo arquivo
+        </button>
+      </header>
+      <div class="report-cards">
+        <button class="report-card" type="button" *ngFor="let item of comprovantes">
+          <fa-icon [icon]="item.icon"></fa-icon>
+          <div>
+            <p class="strong">{{ item.title }}</p>
+            <p class="muted">{{ item.description }}</p>
+          </div>
+        </button>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Checklist</p>
+          <p class="panel__title">Documentos obrigatórios</p>
+        </div>
+        <span class="pill">Conformidade</span>
+      </header>
+      <ul class="checklist">
+        <li>
+          <fa-icon [icon]="faCircleCheck"></fa-icon>
+          <div>
+            <p class="strong">Plano de trabalho assinado</p>
+            <p class="muted">Com metas e indicadores pactuados</p>
+          </div>
+        </li>
+        <li>
+          <fa-icon [icon]="faCircleCheck"></fa-icon>
+          <div>
+            <p class="strong">Relatório financeiro consolidado</p>
+            <p class="muted">Notas fiscais anexadas por despesa</p>
+          </div>
+        </li>
+        <li>
+          <fa-icon [icon]="faCircleExclamation"></fa-icon>
+          <div>
+            <p class="strong">Recibos de doadores</p>
+            <p class="muted">Pendentes de assinatura digital</p>
+          </div>
+        </li>
+      </ul>
+    </article>
+  </div>
+</section>

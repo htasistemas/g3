@@ -1,0 +1,200 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Financeiro · Contabilidade</p>
+    <p class="page-title__label">Gestão de contas a pagar e a receber</p>
+    <p class="muted">Painel consolidado com fluxo de caixa, obrigações e previsões para o terceiro setor.</p>
+  </header>
+
+  <div class="page-actions">
+    <button type="button" class="ghost">
+      <fa-icon [icon]="faPrint"></fa-icon>
+      Imprimir resumo
+    </button>
+    <button type="button" class="ghost">
+      <fa-icon [icon]="faBell"></fa-icon>
+      Alertas e notificações
+    </button>
+  </div>
+
+  <div class="card-grid">
+    <article class="metric-card" *ngFor="let card of summaryCards">
+      <div class="metric-card__icon" [class.positive]="card.trend === 'up'" [class.negative]="card.trend === 'down'">
+        <fa-icon [icon]="card.icon"></fa-icon>
+      </div>
+      <div class="metric-card__content">
+        <p class="eyebrow">{{ card.label }}</p>
+        <p class="metric-card__value">{{ card.value }}</p>
+        <p class="muted" [class.positive]="card.trend === 'up'" [class.negative]="card.trend === 'down'">
+          <fa-icon *ngIf="card.trend === 'up'" [icon]="faArrowTrendUp"></fa-icon>
+          <fa-icon *ngIf="card.trend === 'down'" [icon]="faArrowTrendDown"></fa-icon>
+          {{ card.helper }}
+        </p>
+      </div>
+    </article>
+  </div>
+
+  <div class="panel-grid">
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Fluxo financeiro</p>
+          <p class="panel__title">Projeção semanal de caixa</p>
+        </div>
+        <span class="pill">Relatórios e fluxos</span>
+      </header>
+      <div class="flow-chart">
+        <div class="flow-chart__bars" *ngFor="let item of cashFlow">
+          <div class="flow-chart__label">{{ item.period }}</div>
+          <div class="flow-chart__bar bar-positive" [style.width.%]="item.receivable / 650">
+            <span>A receber</span>
+            <strong>R$ {{ item.receivable | number:'1.0-0' }}</strong>
+          </div>
+          <div class="flow-chart__bar bar-negative" [style.width.%]="item.payable / 650">
+            <span>A pagar</span>
+            <strong>R$ {{ item.payable | number:'1.0-0' }}</strong>
+          </div>
+          <div class="flow-chart__projection">
+            <fa-icon [icon]="faFileInvoice"></fa-icon>
+            <div>
+              <p class="strong">Projeção</p>
+              <p class="muted">Saldo estimado de R$ {{ item.projection | number:'1.0-0' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Agenda crítica</p>
+          <p class="panel__title">Contas a pagar e receber</p>
+        </div>
+        <div class="panel__actions">
+          <button class="ghost" type="button">Registrar despesa</button>
+          <button class="ghost" type="button">Registrar recebimento</button>
+        </div>
+      </header>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Descrição</th>
+              <th>Contraparte</th>
+              <th>Vencimento</th>
+              <th>Valor</th>
+              <th>Situação</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of agenda; index as i">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <p class="strong">{{ item.title }}</p>
+                <p class="muted">{{ item.type === 'receber' ? 'Entrada programada' : 'Saída programada' }}</p>
+              </td>
+              <td>{{ item.counterparty }}</td>
+              <td>{{ item.dueDate }}</td>
+              <td>{{ item.amount }}</td>
+              <td>
+                <span
+                  class="status"
+                  [class.status--positive]="item.status === 'pago' || item.type === 'receber'"
+                  [class.status--warning]="item.status === 'atrasado'"
+                >
+                  <fa-icon
+                    [icon]="
+                      item.status === 'pago'
+                        ? faCircleCheck
+                        : item.status === 'atrasado'
+                          ? faCircleExclamation
+                          : faCircleDot
+                    "
+                  ></fa-icon>
+                  {{ getStatusLabel(item) }}
+                </span>
+              </td>
+              <td class="text-right">
+                <button class="link" type="button">Detalhar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+
+  <div class="panel-grid three-cols">
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Pipeline de recebimentos</p>
+          <p class="panel__title">Recursos com entrada prevista</p>
+        </div>
+        <span class="pill">Terceiro setor</span>
+      </header>
+      <ul class="pillars">
+        <li *ngFor="let item of receivablePipeline">
+          <div>
+            <p class="strong">{{ item.title }}</p>
+            <p class="muted">{{ item.due }}</p>
+          </div>
+          <span class="tag positive">{{ item.amount }}</span>
+        </li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Pipeline de pagamentos</p>
+          <p class="panel__title">Compromissos prioritários</p>
+        </div>
+        <span class="pill pill--warning">Prioridade</span>
+      </header>
+      <ul class="pillars">
+        <li *ngFor="let item of payablePipeline">
+          <div>
+            <p class="strong">{{ item.title }}</p>
+            <p class="muted">{{ item.due }}</p>
+          </div>
+          <span class="tag">{{ item.amount }}</span>
+        </li>
+      </ul>
+    </article>
+
+    <article class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Relatórios</p>
+          <p class="panel__title">Fluxos e demonstrativos</p>
+        </div>
+      </header>
+      <div class="report-cards">
+        <button type="button" class="report-card">
+          <fa-icon [icon]="faFileInvoice"></fa-icon>
+          <div>
+            <p class="strong">DRE simplificada</p>
+            <p class="muted">Receitas x despesas por projeto</p>
+          </div>
+        </button>
+        <button type="button" class="report-card">
+          <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
+          <div>
+            <p class="strong">Fluxo de caixa projetado</p>
+            <p class="muted">12 semanas com cenários</p>
+          </div>
+        </button>
+        <button type="button" class="report-card">
+          <fa-icon [icon]="faChartLine"></fa-icon>
+          <div>
+            <p class="strong">Custeio administrativo</p>
+            <p class="muted">Gastos fixos e variáveis</p>
+          </div>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

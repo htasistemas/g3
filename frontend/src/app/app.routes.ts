@@ -18,6 +18,8 @@ import { TextTemplatesComponent } from './components/text-templates/text-templat
 import { DonationManagementComponent } from './components/donation-management/donation-management.component';
 import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
 import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastro/voluntariado-cadastro.component';
+import { ContabilidadeComponent } from './components/contabilidade/contabilidade.component';
+import { PrestacaoContasComponent } from './components/prestacao-contas/prestacao-contas.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -98,6 +100,16 @@ export const routes: Routes = [
         path: 'configuracoes/personalizacao',
         component: PersonalizacaoComponent,
         data: { title: 'Personalização' }
+      },
+      {
+        path: 'financeiro/contabilidade',
+        component: ContabilidadeComponent,
+        data: { title: 'Contabilidade' }
+      },
+      {
+        path: 'financeiro/prestacao-contas',
+        component: PrestacaoContasComponent,
+        data: { title: 'Prestação de contas' }
       }
     ]
   },

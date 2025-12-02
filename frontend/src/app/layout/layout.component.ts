@@ -103,8 +103,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Financeiro',
       icon: faWallet,
       children: [
-        { label: 'Prestação de Contas', icon: faWallet },
-        { label: 'Contabilidade', icon: faWallet }
+        { label: 'Prestação de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
+        { label: 'Contabilidade', icon: faWallet, route: '/financeiro/contabilidade' }
       ]
     },
     {
