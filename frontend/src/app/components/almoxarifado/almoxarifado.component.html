@@ -1,81 +1,119 @@
-<div class="p-6 space-y-6 almox-shell">
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div>
-        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Administrativo · Almoxarifado</p>
-        <h1 class="text-2xl font-semibold text-slate-900">Gestão de controle de estoque</h1>
-      <p class="text-sm text-slate-700">
-        Controle centralizado de itens, movimentações e níveis mínimos, com validações em tempo
-        real.
-      </p>
-    </div>
-    <div class="flex gap-2">
-      <button class="btn-outline" type="button" (click)="resetItemForm()">
-        <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
-        Limpar formulário
-      </button>
-      <button class="btn-primary" type="button" (click)="openMovementModal()">
-        <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
-        Nova movimentação
-      </button>
-    </div>
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Administrativo · Almoxarifado</p>
+    <p class="page-title__label">Gestão de controle de estoque</p>
+    <p class="page-title__description">
+      Controle centralizado de itens, movimentações e níveis mínimos, com validações em tempo real.
+    </p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+        <p class="step-tabs__description">{{ tab.description }}</p>
+      </li>
+    </ol>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-    <div class="card flex items-center gap-3 metric-card">
-      <div class="metric-icon metric-icon--primary">
-        <fa-icon [icon]="faWarehouse"></fa-icon>
+  <ng-template #navigationControls>
+    <div class="tab-actions">
+      <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+      <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">Próximo: {{ nextTabLabel }}</button>
+    </div>
+  </ng-template>
+
+  <div class="tab-card" *ngIf="activeTab === 'dashboards'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        <p class="muted">Indicadores consolidados para acompanhar estoque, valores e alertas.</p>
       </div>
-      <div>
-        <p class="text-sm text-slate-500">Total de itens cadastrados</p>
-        <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().totalItems }}</p>
+      <div class="tab-card__actions">
+        <button class="ghost" type="button" (click)="resetItemForm()">
+          <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
+          Limpar formulário
+        </button>
+        <button class="primary" type="button" (click)="openMovementModal()">
+          <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+          Nova movimentação
+        </button>
       </div>
     </div>
-    <div class="card flex items-center gap-3 metric-card">
-      <div class="metric-icon metric-icon--alert">
-        <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="card flex items-center gap-3 metric-card">
+        <div class="metric-icon metric-icon--primary">
+          <fa-icon [icon]="faWarehouse"></fa-icon>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Total de itens cadastrados</p>
+          <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().totalItems }}</p>
+        </div>
       </div>
-      <div>
-        <p class="text-sm text-slate-500">Itens abaixo do estoque mínimo</p>
-        <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().belowMin }}</p>
+      <div class="card flex items-center gap-3 metric-card">
+        <div class="metric-icon metric-icon--alert">
+          <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Itens abaixo do estoque mínimo</p>
+          <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().belowMin }}</p>
+        </div>
+      </div>
+      <div class="card flex items-center gap-3 metric-card">
+        <div class="metric-icon metric-icon--info">
+          <fa-icon [icon]="faMoneyBillTrendUp"></fa-icon>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Valor total em estoque</p>
+          <p class="text-2xl font-bold text-slate-900">
+            {{ indicatorTotals().totalValue | currency:'BRL':'symbol':'1.0-2' }}
+          </p>
+        </div>
+      </div>
+      <div class="card flex items-center gap-3 metric-card">
+        <div class="metric-icon metric-icon--muted">
+          <fa-icon [icon]="faArrowTrendUp"></fa-icon>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Movimentações nos últimos 30 dias</p>
+          <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().recentMovements }}</p>
+        </div>
       </div>
     </div>
-    <div class="card flex items-center gap-3 metric-card">
-      <div class="metric-icon metric-icon--info">
-        <fa-icon [icon]="faMoneyBillTrendUp"></fa-icon>
-      </div>
-      <div>
-        <p class="text-sm text-slate-500">Valor total em estoque</p>
-        <p class="text-2xl font-bold text-slate-900">
-          {{ indicatorTotals().totalValue | currency:'BRL':'symbol':'1.0-2' }}
-        </p>
-      </div>
-    </div>
-    <div class="card flex items-center gap-3 metric-card">
-      <div class="metric-icon metric-icon--muted">
-        <fa-icon [icon]="faArrowTrendUp"></fa-icon>
-      </div>
-      <div>
-        <p class="text-sm text-slate-500">Movimentações nos últimos 30 dias</p>
-        <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().recentMovements }}</p>
-      </div>
-    </div>
+
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
-  <div class="card space-y-6">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Cadastro de itens</p>
-        <h2 class="text-lg font-semibold text-slate-900">Cadastro e listagem</h2>
-        <p class="text-sm text-slate-700">Valide campos obrigatórios e acompanhe estoque e localização.</p>
+  <div class="tab-card" *ngIf="activeTab === 'cadastro'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        <p class="muted">Valide campos obrigatórios e acompanhe estoque e localização.</p>
       </div>
-      <div class="flex flex-wrap items-center gap-3">
-        <button class="btn-primary" type="button" (click)="saveItem()">
+      <div class="tab-card__actions">
+        <button class="ghost" type="button" (click)="resetItemForm()">
+          <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
+          Limpar formulário
+        </button>
+        <button class="primary" type="button" (click)="saveItem()">
           <fa-icon [icon]="faCircleCheck" class="mr-2"></fa-icon>
           {{ editingItemCode ? 'Atualizar item' : 'Salvar novo item' }}
-        </button>
-        <button class="btn-outline" type="button" (click)="openMovementModal()">
-          <fa-icon [icon]="faClipboardList" class="mr-2"></fa-icon>
-          Registrar movimentação
         </button>
       </div>
     </div>
@@ -159,14 +197,7 @@
             ></textarea>
           </div>
         </div>
-        <div class="flex flex-wrap gap-3 items-center">
-          <button class="btn-primary" type="button" (click)="saveItem()">
-            <fa-icon [icon]="faCircleCheck" class="mr-2"></fa-icon>
-            {{ editingItemCode ? 'Atualizar item' : 'Salvar novo item' }}
-          </button>
-          <button class="btn-outline" type="button" (click)="resetItemForm()">
-            Cancelar / novo registro
-          </button>
+        <div class="form-feedback">
           <span class="text-sm text-red-600" *ngIf="formError">{{ formError }}</span>
           <span class="text-sm text-emerald-600" *ngIf="successMessage">{{ successMessage }}</span>
         </div>
@@ -222,26 +253,28 @@
         </div>
       </div>
     </div>
+
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
-  <div class="card space-y-4">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="section-pill">Itens do almoxarifado</div>
-        <p class="text-sm text-slate-700">Ações rápidas: editar, movimentar, visualizar histórico.</p>
+  <div class="tab-card" *ngIf="activeTab === 'itens'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        <p class="muted">Ações rápidas: editar, movimentar e visualizar histórico de cada item.</p>
       </div>
-      <div class="flex gap-2">
-        <button class="btn-primary" type="button" (click)="saveItem()">
+      <div class="tab-card__actions">
+        <button class="ghost" type="button" (click)="saveItem()">
           <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
           Novo item de almoxarifado
         </button>
-        <button class="btn-outline" type="button">
+        <button class="primary" type="button">
           <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
           Exportar lista
         </button>
       </div>
     </div>
-    <div class="overflow-auto">
+    <div class="table-wrapper">
       <table class="min-w-full text-sm border border-emerald-200 rounded-xl overflow-hidden">
         <thead>
           <tr class="bg-emerald-50 text-left text-slate-800">
@@ -317,19 +350,22 @@
         </tbody>
       </table>
     </div>
+
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
-  <div class="card space-y-4">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-      <div>
-        <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Movimentações</p>
-        <h2 class="text-lg font-semibold text-slate-900">Movimentações de estoque</h2>
-        <p class="text-sm text-slate-700">Entradas, saídas e ajustes com saldo atualizado automaticamente.</p>
+  <div class="tab-card" *ngIf="activeTab === 'movimentacoes'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        <p class="muted">Entradas, saídas e ajustes com saldo atualizado automaticamente.</p>
       </div>
-      <button class="btn-primary" type="button" (click)="openMovementModal()">
-        <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
-        Nova movimentação
-      </button>
+      <div class="tab-card__actions">
+        <button class="ghost" type="button" (click)="openMovementModal()">
+          <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+          Nova movimentação
+        </button>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -360,7 +396,7 @@
       </div>
     </div>
 
-    <div class="overflow-auto">
+    <div class="table-wrapper">
       <table class="min-w-full text-sm border border-emerald-200 rounded-xl overflow-hidden">
         <thead>
           <tr class="bg-emerald-50 text-left text-slate-800">
@@ -401,8 +437,10 @@
         </tbody>
       </table>
     </div>
+
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
-</div>
+</section>
 
 <div
   class="fixed inset-0 bg-emerald-900/25 backdrop-blur-sm flex items-center justify-center z-50 p-4"
