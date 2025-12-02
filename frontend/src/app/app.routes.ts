@@ -6,14 +6,10 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
-import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
-import { UserManagementComponent } from './components/user-management/user-management.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
-import { PersonalizacaoComponent } from './components/personalizacao/personalizacao.component';
-import { TextTemplatesComponent } from './components/text-templates/text-templates.component';
 import { DonationManagementComponent } from './components/donation-management/donation-management.component';
 import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
 import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastro/voluntariado-cadastro.component';
@@ -80,34 +76,26 @@ export const routes: Routes = [
         data: { title: 'Almoxarifado' }
       },
       {
-        path: 'configuracoes/sistema',
-        component: SystemSettingsComponent,
-        data: { title: 'Documentos obrigatórios' }
-      },
-      {
-        path: 'configuracoes/modelos-texto',
-        component: TextTemplatesComponent,
-        data: { title: 'Modelos de textos' }
-      },
-      {
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
         data: { title: 'Versão do sistema' }
-      },
-      {
-        path: 'configuracoes/usuarios',
-        component: UserManagementComponent,
-        data: { title: 'Usuários e permissões' }
       },
       {
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
         data: { title: 'Parâmetros do sistema' }
       },
+      { path: 'configuracoes/sistema', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
+      {
+        path: 'configuracoes/modelos-texto',
+        redirectTo: 'configuracoes/parametros',
+        pathMatch: 'full'
+      },
+      { path: 'configuracoes/usuarios', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
       {
         path: 'configuracoes/personalizacao',
-        component: PersonalizacaoComponent,
-        data: { title: 'Personalização' }
+        redirectTo: 'configuracoes/parametros',
+        pathMatch: 'full'
       },
       {
         path: 'financeiro/contabilidade',
