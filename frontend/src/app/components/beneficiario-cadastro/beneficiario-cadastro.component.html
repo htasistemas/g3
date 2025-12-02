@@ -5,6 +5,12 @@
   </header>
 
   <div class="page-actions">
+    <label class="print-order">
+      <span>Ordenar relação por</span>
+      <select [value]="printOrderBy" (change)="onPrintOrderChange($any($event.target).value)">
+        <option *ngFor="let option of printOrderOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+    </label>
     <button type="button" class="ghost" (click)="printBeneficiaryList()">
       Imprimir relação de beneficiários
     </button>

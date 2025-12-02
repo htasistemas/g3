@@ -29,6 +29,8 @@ type ViaCepResponse = {
   erro?: boolean;
 };
 
+type PrintOrder = 'nome' | 'data_nascimento' | 'idade' | 'bairro';
+
 @Component({
   selector: 'app-beneficiario-cadastro',
   standalone: true,
@@ -50,6 +52,13 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
   assistanceUnit: AssistanceUnitPayload | null = null;
+  printOrderBy: PrintOrder = 'nome';
+  readonly printOrderOptions: { value: PrintOrder; label: string }[] = [
+    { value: 'nome', label: 'Nome' },
+    { value: 'data_nascimento', label: 'Data de nascimento' },
+    { value: 'idade', label: 'Idade' },
+    { value: 'bairro', label: 'Bairro' }
+  ];
   genderIdentityOptions = [
     'Mulher cisgênero',
     'Homem cisgênero',
@@ -904,19 +913,37 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const rows = this.filteredBeneficiarios
+    const sorted = [...this.filteredBeneficiarios].sort((a, b) => this.sortBeneficiariesForPrint(a, b));
+    const unit = this.assistanceUnit;
+    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
+    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
+    const orderLabel = this.printOrderOptions.find((option) => option.value === this.printOrderBy)?.label ?? 'Nome';
+    const today = this.formatDate(new Date().toISOString());
+
+    const rows = sorted
       .map((beneficiario) => {
-        const birth = this.formatDate(beneficiario.data_nascimento);
         return `
           <tr>
             <td>${beneficiario.nome_completo || beneficiario.nome_social || '---'}</td>
+            <td>${this.formatDate(beneficiario.data_nascimento)}</td>
+            <td>${this.formatAge(beneficiario.data_nascimento)}</td>
             <td>${beneficiario.cpf || beneficiario.nis || '---'}</td>
-            <td>${birth}</td>
             <td>${this.formatStatusLabel(beneficiario.status)}</td>
+            <td>${beneficiario.bairro || '---'}</td>
           </tr>
         `;
       })
       .join('');
+
+    const header = `
+      <header class="report-header report-header--center">
+        ${logo ? `<img class="report-header__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
+        <div class="report-header__identity">
+          <p class="report-header__name">${socialName}</p>
+          ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="report-header__fantasy">${unit.nomeFantasia}</p>` : ''}
+        </div>
+      </header>
+    `;
 
     const documentWindow = window.open('', '_blank', 'width=1000,height=900');
     if (!documentWindow) return;
@@ -928,15 +955,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           ${this.printStyles()}
         </head>
         <body>
+          ${header}
           <h1>Relação de beneficiários</h1>
-          <p class="muted">Dados gerados em ${this.formatDate(new Date().toISOString())}</p>
+          <p class="muted">Dados gerados em ${today} | Ordenado por ${orderLabel.toLowerCase()}</p>
           <table class="print-table">
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Documento/NIS</th>
-                <th>Nascimento</th>
+                <th>Nome completo</th>
+                <th>Data de nascimento</th>
+                <th>Idade</th>
+                <th>CPF/NIS</th>
                 <th>Status</th>
+                <th>Bairro</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -1140,8 +1170,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         .report-header__identity { text-align: center; }
         .report-header__name { font-weight: bold; font-size: 14pt; margin: 0; }
         .report-header__fantasy { margin: 0; font-size: 12pt; color: #1f2937; }
+        .report-header--center { justify-content: center; }
         .report-section { margin-top: 10pt; }
         .report-footer { border-top: 1px solid #cbd5e1; padding-top: 10pt; margin-top: 18pt; font-size: 11pt; text-align: center; }
+        .print-table th:nth-child(3), .print-table td:nth-child(3) { text-align: center; }
+        .print-table th:nth-child(2), .print-table th:nth-child(4) { width: 18%; }
       </style>
     `;
   }
@@ -1151,6 +1184,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .filter(Boolean)
       .join(', ');
     return parts || '---';
+  }
+
+  onPrintOrderChange(order: PrintOrder): void {
+    this.printOrderBy = order;
   }
 
   private formatAddress(address: any): string {
@@ -1174,6 +1211,56 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const date = new Date(value);
     if (isNaN(date.getTime())) return '---';
     return date.toLocaleDateString('pt-BR');
+  }
+
+  private formatAge(value?: string | null): string {
+    const age = this.getAgeFromDate(value ?? null);
+    if (age === null) return '---';
+    return `${age} anos`;
+  }
+
+  private getAgeFromDate(dateValue: string | null): number | null {
+    if (!dateValue) return null;
+
+    const birthDate = new Date(dateValue);
+    if (isNaN(birthDate.getTime())) return null;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    return Math.max(age, 0);
+  }
+
+  private normalizeSortString(value?: string | null): string {
+    return (value ?? '').toString().toLowerCase().trim();
+  }
+
+  private sortBeneficiariesForPrint(a: BeneficiarioApiPayload, b: BeneficiarioApiPayload): number {
+    switch (this.printOrderBy) {
+      case 'bairro':
+        return this.normalizeSortString(a.bairro).localeCompare(this.normalizeSortString(b.bairro));
+      case 'data_nascimento': {
+        const aTime = new Date(a.data_nascimento ?? '').getTime();
+        const bTime = new Date(b.data_nascimento ?? '').getTime();
+        return (isNaN(aTime) ? Infinity : aTime) - (isNaN(bTime) ? Infinity : bTime);
+      }
+      case 'idade': {
+        const ageA = this.getAgeFromDate(a.data_nascimento);
+        const ageB = this.getAgeFromDate(b.data_nascimento);
+        return (ageB ?? -1) - (ageA ?? -1);
+      }
+      case 'nome':
+      default:
+        return this.normalizeSortString(a.nome_completo || a.nome_social).localeCompare(
+          this.normalizeSortString(b.nome_completo || b.nome_social)
+        );
+    }
   }
 
   changeTab(tab: string) {
@@ -1428,27 +1515,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private calculateAge(dateValue: string | null): void {
-    if (!dateValue) {
-      this.beneficiaryAge = null;
-      return;
-    }
-
-    const birthDate = new Date(dateValue);
-    if (isNaN(birthDate.getTime())) {
-      this.beneficiaryAge = null;
-      return;
-    }
-
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const dayDiff = today.getDate() - birthDate.getDate();
-
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-      age--;
-    }
-
-    this.beneficiaryAge = Math.max(age, 0);
+    this.beneficiaryAge = this.getAgeFromDate(dateValue);
   }
 
   private watchStatusChanges(): void {
