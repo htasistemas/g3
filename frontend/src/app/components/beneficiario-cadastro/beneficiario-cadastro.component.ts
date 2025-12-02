@@ -815,11 +815,15 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const missingDocuments = allowStatusOnlyUpdate ? [] : this.getMissingRequiredDocuments();
     const hasPending = (!allowStatusOnlyUpdate && this.form.invalid) || missingDocuments.length > 0;
 
+    const manualStatus = (this.form.get('status')?.value as BeneficiarioApiPayload['status']) ?? 'EM_ANALISE';
+
     if (!this.beneficiarioId) {
       return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
     }
 
-    const manualStatus = (this.form.get('status')?.value as BeneficiarioApiPayload['status']) ?? 'EM_ANALISE';
+    if (allowStatusOnlyUpdate) {
+      return manualStatus;
+    }
 
     if (hasPending) {
       return 'INCOMPLETO';
