@@ -991,13 +991,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const health = value.saude ?? {};
     const benefits = value.beneficios ?? {};
     const unit = this.assistanceUnit;
-    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
     const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
-    const fantasyName =
-      unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? unit.nomeFantasia : '';
-    const today = this.formatDate(new Date().toISOString());
+    const generatedAt = new Date();
+    const formattedGeneratedAt = `${generatedAt.toLocaleDateString('pt-BR')} às ${generatedAt.toLocaleTimeString('pt-BR')}`;
     const age = this.getAgeFromDate(personal.data_nascimento);
-
+    const beneficiaryName = personal.nome_completo || personal.nome_social || 'Beneficiário';
+    const statusLabel = value.status ? this.formatStatusLabel(value.status) : '---';
+    const formattedBirthDate = this.formatDate(personal.data_nascimento);
+    const formattedInclusionDate = this.formatDate(this.createdAt ?? null);
     const formattedNaturalidade =
       this.hasValue(personal.naturalidade_cidade) || this.hasValue(personal.naturalidade_uf)
         ? this.formatCity(personal.naturalidade_cidade, personal.naturalidade_uf)
@@ -1006,273 +1007,251 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.hasValue(address.municipio) || this.hasValue(address.uf)
         ? this.formatCity(address.municipio, address.uf)
         : null;
-    const formattedCertidaoCity =
-      this.hasValue(documents.certidao_municipio) || this.hasValue(documents.certidao_uf)
-        ? this.formatCity(documents.certidao_municipio, documents.certidao_uf)
-        : null;
 
-    const renderCard = (
-      title: string,
-      items: { label: string; value: string | null }[]
-    ): string => {
-      const visible = items.filter((item) => this.hasValue(item.value));
-      if (!visible.length) return '';
+    const displayValue = (val?: string | number | null, placeholder = '---'): string =>
+      this.hasValue(val) ? String(val) : placeholder;
 
-      const rows = visible
-        .map(
-          (item) => `
-            <div class="info-row">
-              <p class="info-label">${item.label}</p>
-              <p class="info-value">${item.value}</p>
-            </div>
-          `
-        )
-        .join('');
+    const photoUrl =
+      this.photoPreview ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(beneficiaryName)}&background=0284c7&color=fff&size=256`;
 
-      return `
-        <section class="info-card">
-          <div class="info-card__title">${title}</div>
-          <div class="info-card__content">${rows}</div>
-        </section>
-      `;
-    };
+    const rendaFamiliar = this.formatCurrencyValue(benefits.renda_familiar);
+    const rendaPerCapita = this.formatCurrencyValue(benefits.renda_per_capita);
+    const familyMembers = family.composicao_familiar || family.total_moradores;
+    const institutionAddress = unit ? this.formatInstitutionAddress(unit) : '---';
 
-    const joinCards = (cards: string[]): string => cards.filter(Boolean).join('');
-
-    const personalCard = renderCard('Dados pessoais', [
-      { label: 'Nome completo', value: personal.nome_completo || null },
-      { label: 'Nome social', value: personal.nome_social || null },
-      { label: 'Apelido', value: personal.apelido || null },
-      { label: 'Data de nascimento', value: personal.data_nascimento ? this.formatDate(personal.data_nascimento) : null },
-      { label: 'Idade', value: age !== null ? `${age} anos` : null },
-      { label: 'Sexo biológico', value: personal.sexo_biologico || null },
-      { label: 'Identidade de gênero', value: personal.identidade_genero || null },
-      { label: 'Cor/Raça', value: personal.cor_raca || null },
-      { label: 'Estado civil', value: personal.estado_civil || null },
-      { label: 'Nacionalidade', value: personal.nacionalidade || null },
-      { label: 'Naturalidade', value: formattedNaturalidade },
-      { label: 'Nome da mãe', value: personal.nome_mae || null },
-      { label: 'Nome do pai', value: personal.nome_pai || null }
-    ]);
-
-    const documentsCard = renderCard('Documentos', [
-      { label: 'CPF', value: documents.cpf || null },
-      { label: 'RG', value: documents.rg_numero || null },
-      { label: 'Órgão emissor', value: documents.rg_orgao_emissor || null },
-      { label: 'UF emissor', value: documents.rg_uf || null },
-      {
-        label: 'Data de emissão do RG',
-        value: documents.rg_data_emissao ? this.formatDate(documents.rg_data_emissao) : null
-      },
-      { label: 'NIS', value: documents.nis || null },
-      {
-        label: 'Certidão',
-        value: this.joinParts([
-          documents.certidao_tipo,
-          documents.certidao_livro,
-          documents.certidao_folha,
-          documents.certidao_termo,
-          documents.certidao_cartorio,
-          formattedCertidaoCity
-        ])
-      },
-      { label: 'Título de eleitor', value: documents.titulo_eleitor || null },
-      { label: 'CNH', value: documents.cnh || null },
-      { label: 'Cartão SUS', value: documents.cartao_sus || null }
-    ]);
-
-    const addressCard = renderCard('Endereço', [
-      {
-        label: 'Endereço completo',
-        value: this.joinParts([
-          this.joinParts([address.logradouro, address.numero], ', '),
-          address.complemento,
-          address.bairro,
-          formattedCity,
-          address.cep
-        ])
-      },
-      { label: 'Ponto de referência', value: address.ponto_referencia || null },
-      { label: 'Zona', value: address.zona || null },
-      { label: 'Situação do imóvel', value: address.situacao_imovel || null },
-      { label: 'Tipo de moradia', value: address.tipo_moradia || null },
-      {
-        label: 'Infraestrutura',
-        value: this.joinParts(
-          [
-            address.agua_encanada ? 'Água encanada' : null,
-            address.esgoto_tipo ? `Esgoto: ${address.esgoto_tipo}` : null,
-            address.coleta_lixo ? `Coleta de lixo: ${address.coleta_lixo}` : null,
-            address.energia_eletrica ? 'Energia elétrica' : null,
-            address.internet ? 'Internet' : null
-          ],
-          ' | '
-        )
-      }
-    ]);
-
-    const contactCard = renderCard('Contato', [
-      { label: 'Telefone principal', value: contact.telefone_principal || null },
-      { label: 'WhatsApp principal', value: contact.telefone_principal_whatsapp ? 'Sim' : null },
-      { label: 'Telefone secundário', value: contact.telefone_secundario || null },
-      {
-        label: 'Contato para recado',
-        value: this.joinParts([
-          contact.telefone_recado_nome,
-          contact.telefone_recado_numero
-        ])
-      },
-      { label: 'Email', value: contact.email || null },
-      { label: 'Preferência de contato', value: contact.horario_preferencial_contato || null },
-      {
-        label: 'Canais autorizados',
-        value: this.joinParts(
-          [
-            contact.permite_contato_tel ? 'Telefone' : null,
-            contact.permite_contato_whatsapp ? 'WhatsApp' : null,
-            contact.permite_contato_sms ? 'SMS' : null,
-            contact.permite_contato_email ? 'Email' : null
-          ],
-          ' | '
-        )
-      }
-    ]);
-
-    const familyCard = renderCard('Situação familiar e social', [
-      { label: 'Mora com a família', value: family.mora_com_familia ? 'Sim' : null },
-      { label: 'Responsável legal', value: family.responsavel_legal ? 'Sim' : null },
-      { label: 'Vínculo familiar', value: family.vinculo_familiar || null },
-      { label: 'Situação de vulnerabilidade', value: family.situacao_vulnerabilidade || null },
-      { label: 'Composição familiar', value: family.composicao_familiar || null },
-      { label: 'Crianças/adolescentes', value: family.criancas_adolescentes || null },
-      { label: 'Idosos', value: family.idosos || null },
-      { label: 'Acompanhamento no CRAS', value: family.acompanhamento_cras ? 'Sim' : null },
-      { label: 'Acompanhamento de saúde', value: family.acompanhamento_saude ? 'Sim' : null },
-      { label: 'Participa da comunidade', value: family.participa_comunidade || null },
-      { label: 'Rede de apoio', value: family.rede_apoio || null }
-    ]);
-
-    const educationCard = renderCard('Escolaridade e trabalho', [
-      { label: 'Sabe ler e escrever', value: education.sabe_ler_escrever ? 'Sim' : null },
-      { label: 'Nível de escolaridade', value: education.nivel_escolaridade || null },
-      { label: 'Estuda atualmente', value: education.estuda_atualmente ? 'Sim' : null },
-      { label: 'Ocupação', value: education.ocupacao || null },
-      { label: 'Situação de trabalho', value: education.situacao_trabalho || null },
-      { label: 'Local de trabalho', value: education.local_trabalho || null },
-      { label: 'Renda mensal', value: this.formatCurrencyValue(education.renda_mensal) },
-      { label: 'Fonte de renda', value: education.fonte_renda || null }
-    ]);
-
-    const healthCard = renderCard('Saúde', [
-      { label: 'Possui deficiência', value: health.possui_deficiencia ? 'Sim' : null },
-      { label: 'Tipo de deficiência', value: health.tipo_deficiencia || null },
-      { label: 'CID principal', value: health.cid_principal || null },
-      { label: 'Usa medicação contínua', value: health.usa_medicacao_continua ? 'Sim' : null },
-      { label: 'Descrição da medicação', value: health.descricao_medicacao || null },
-      { label: 'Serviço de saúde de referência', value: health.servico_saude_referencia || null }
-    ]);
-
-    const benefitsCard = renderCard('Benefícios', [
-      { label: 'Recebe benefício', value: benefits.recebe_beneficio ? 'Sim' : null },
-      { label: 'Descrição dos benefícios', value: benefits.beneficios_descricao || null },
-      {
-        label: 'Valor total',
-        value: this.formatCurrencyValue(benefits.valor_total_beneficios)
-      },
-      {
-        label: 'Benefícios recebidos',
-        value: Array.isArray(benefits.beneficios_recebidos)
-          ? this.joinParts(benefits.beneficios_recebidos)
-          : null
-      }
-    ]);
-
-    const statusCard = renderCard('Status e observações', [
-      { label: 'Status', value: value.status ? this.formatStatusLabel(value.status) : null },
-      { label: 'Motivo do bloqueio', value: value.motivo_bloqueio || null },
-      { label: 'Observações', value: value.observacoes?.observacoes || null }
-    ]);
-
-    const institutionAddress = unit ? this.formatInstitutionAddress(unit) : null;
-
-    const header = `
-      <header class="report-header">
-        <div class="report-brand">
-          ${logo ? `<img class="report-brand__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
-          <div>
-            <p class="report-brand__name">${socialName}</p>
-            ${fantasyName ? `<p class="report-brand__fantasy">${fantasyName}</p>` : ''}
-            ${unit?.cnpj ? `<p class="report-brand__cnpj">CNPJ: ${unit.cnpj}</p>` : ''}
-          </div>
-        </div>
-      </header>
-    `;
-
-    const footer = unit
-      ? `
-        <footer class="report-footer">
-          <p class="report-footer__name">${socialName}${
-            fantasyName ? ' • ' + fantasyName : ''
-          }</p>
-          ${
-            institutionAddress && institutionAddress !== '---'
-              ? `<p>${institutionAddress}</p>`
-              : ''
-          }
-          ${
-            this.joinParts([unit.telefone ? `Telefone: ${unit.telefone}` : null, unit.email], ' • ')
-              ? `<p>${this.joinParts(
-                  [unit.telefone ? `Telefone: ${unit.telefone}` : null, unit.email],
-                  ' • '
-                )}</p>`
-              : ''
-          }
-        </footer>
-      `
-      : '';
-
-
-    const documentWindow = window.open('', '_blank', 'width=1000,height=1200');
+    const documentWindow = window.open('', '_blank', 'width=1080,height=1400');
     if (!documentWindow) return;
 
     documentWindow.document.write(`
-      <html>
+      <html lang="pt-BR">
         <head>
-          <title>Ficha individual do beneficiário</title>
-          ${this.printStyles()}
-        </head>
-        <body>
-          <div class="report-wrapper">
-            ${header}
-            <div class="report-meta">
-              <h1 class="report-title">Ficha do beneficiário</h1>
-              <p class="muted">Emitido em ${today}</p>
-            </div>
-            <div class="profile">
-              <div>
-                ${personal.nome_completo ? `<h2 class="profile__name">${personal.nome_completo}</h2>` : ''}
-                ${value.status ? `<p class="profile__status">${this.formatStatusLabel(value.status)}</p>` : ''}
-              </div>
-              ${
-                this.photoPreview
-                  ? `<div class="profile__photo"><img src="${this.photoPreview}" alt="Foto do beneficiário" /></div>`
-                  : ''
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Ficha Individual do Beneficiário - Sistema G3</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <script>
+            tailwind.config = {
+              theme: {
+                extend: {
+                  fontFamily: { sans: ['Inter', 'sans-serif'] },
+                  colors: {
+                    brand: {
+                      50: '#f0f9ff',
+                      100: '#e0f2fe',
+                      500: '#0ea5e9',
+                      600: '#0284c7',
+                      700: '#0369a1',
+                      900: '#0c4a6e'
+                    }
+                  }
+                }
               }
+            };
+          </script>
+          <style>
+            body { background-color: #f3f4f6; -webkit-print-color-adjust: exact; }
+            @media print {
+              body { background-color: white; }
+              .no-print { display: none !important; }
+              .page-break { page-break-inside: avoid; }
+              .shadow-lg, .shadow-md { box-shadow: none !important; border: 1px solid #e5e7eb; }
+              .container { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            }
+            .data-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
+            .data-value { font-size: 0.95rem; color: #1f2937; font-weight: 500; min-height: 1.5rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 2px; }
+            .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #f3f4f6; }
+            .section-header { display: flex; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f3f4f6; }
+            .section-title { font-size: 1.125rem; font-weight: 700; color: #0c4a6e; margin-left: 0.5rem; }
+          </style>
+        </head>
+        <body class="text-slate-800 p-4 md:p-8">
+          <div class="max-w-5xl mx-auto bg-white p-0 md:p-0 shadow-none md:shadow-none rounded-none print:shadow-none">
+            <header class="bg-white p-6 rounded-t-xl border-b-4 border-brand-600 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 page-break card mt-0">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-lg flex items-center justify-center border border-brand-100">
+                  <i class="fa-solid fa-building-columns text-3xl"></i>
+                </div>
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">${socialName}</h1>
+                  ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="text-sm text-slate-500">${unit.nomeFantasia}</p>` : ''}
+                  <p class="text-sm text-slate-500">${unit?.cnpj ? `CNPJ: ${unit.cnpj}` : ''}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <h2 class="text-lg font-bold text-brand-700">FICHA INDIVIDUAL</h2>
+                <p class="text-xs text-slate-400">Gerado em: ${formattedGeneratedAt}</p>
+              </div>
+            </header>
+
+            <div class="card page-break">
+              <div class="flex flex-col md:flex-row gap-6 items-start">
+                <div class="w-full md:w-48 flex-shrink-0 flex flex-col items-center">
+                  <div class="w-40 h-40 rounded-lg overflow-hidden border-4 border-slate-100 shadow-inner mb-3">
+                    <img src="${photoUrl}" alt="Foto do Beneficiário" class="w-full h-full object-cover" />
+                  </div>
+                  <span class="px-3 py-1 ${value.status === 'BLOQUEADO' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} rounded-full text-xs font-bold uppercase border">
+                    <i class="fa-solid fa-circle-info mr-1"></i> ${statusLabel}
+                  </span>
+                </div>
+
+                <div class="flex-grow w-full">
+                  <div class="mb-4">
+                    <label class="data-label">Nome Completo do Beneficiário</label>
+                    <div class="text-2xl font-bold text-slate-900 uppercase">${beneficiaryName}</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="data-label">CPF</label>
+                      <div class="data-value font-mono text-brand-700">${displayValue(documents.cpf)}</div>
+                    </div>
+                    <div>
+                      <label class="data-label">Data de Inclusão</label>
+                      <div class="data-value">${formattedInclusionDate}</div>
+                    </div>
+                    <div>
+                      <label class="data-label">Categoria</label>
+                      <div class="data-value">${displayValue(personal.categoria || personal.tipo_cadastro)}</div>
+                    </div>
+                  </div>
+                  <div class="mt-4 p-3 bg-slate-50 rounded border border-slate-100">
+                    <label class="data-label text-xs">Programa Vinculado</label>
+                    <div class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-people-roof mr-2 text-brand-500"></i>${displayValue(personal.programa_vinculado)}</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="info-grid">
-              ${joinCards([
-                personalCard,
-                documentsCard,
-                addressCard,
-                contactCard,
-                familyCard,
-                educationCard,
-                healthCard,
-                benefitsCard,
-                statusCard
-              ])}
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="card page-break">
+                <div class="section-header">
+                  <i class="fa-regular fa-id-card text-brand-500 text-lg"></i>
+                  <h3 class="section-title">Dados Pessoais</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">RG / Órgão Emissor</label>
+                    <div class="data-value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</div>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">UF emissor</label>
+                    <div class="data-value">${displayValue(documents.rg_uf)}</div>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">Data de Nascimento</label>
+                    <div class="data-value">${formattedBirthDate}${age !== null ? ` (${age} anos)` : ''}</div>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">Sexo</label>
+                    <div class="data-value">${displayValue(personal.sexo_biologico)}</div>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="data-label">Nome da Mãe</label>
+                    <div class="data-value">${displayValue(personal.nome_mae)}</div>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="data-label">Nome do Pai</label>
+                    <div class="data-value">${displayValue(personal.nome_pai)}</div>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">Estado Civil</label>
+                    <div class="data-value">${displayValue(personal.estado_civil)}</div>
+                  </div>
+                  <div class="col-span-2 sm:col-span-1">
+                    <label class="data-label">Naturalidade</label>
+                    <div class="data-value">${displayValue(formattedNaturalidade)}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card page-break">
+                <div class="section-header">
+                  <i class="fa-solid fa-map-location-dot text-brand-500 text-lg"></i>
+                  <h3 class="section-title">Endereço & Contato</h3>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                  <div>
+                    <label class="data-label">Endereço</label>
+                    <div class="data-value">${this.joinParts([
+                      this.joinParts([address.logradouro, address.numero], ', '),
+                      address.complemento,
+                      address.bairro,
+                      formattedCity,
+                      address.cep
+                    ]) || '---'}</div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="data-label">Ponto de referência</label>
+                      <div class="data-value">${displayValue(address.ponto_referencia)}</div>
+                    </div>
+                    <div>
+                      <label class="data-label">Zona</label>
+                      <div class="data-value">${displayValue(address.zona)}</div>
+                    </div>
+                  </div>
+                  <div class="mt-2 pt-2 border-t border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label class="data-label"><i class="fa-solid fa-phone-flip mr-1"></i> Celular</label>
+                        <div class="data-value">${displayValue(contact.telefone_principal)}</div>
+                      </div>
+                      <div>
+                        <label class="data-label"><i class="fa-regular fa-envelope mr-1"></i> E-mail</label>
+                        <div class="data-value text-sm lowercase">${displayValue(contact.email)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            ${footer}
+
+            <div class="card page-break">
+              <div class="section-header">
+                <i class="fa-solid fa-chart-line text-brand-500 text-lg"></i>
+                <h3 class="section-title">Dados Socioeconômicos (Sistema G3)</h3>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                  <label class="data-label">Renda Familiar</label>
+                  <div class="data-value">${displayValue(rendaFamiliar)}</div>
+                </div>
+                <div>
+                  <label class="data-label">Renda Per Capita</label>
+                  <div class="data-value">${displayValue(rendaPerCapita)}</div>
+                </div>
+                <div>
+                  <label class="data-label">Nº Membros Família</label>
+                  <div class="data-value">${displayValue(familyMembers)}</div>
+                </div>
+                <div>
+                  <label class="data-label">Benefício Gov.</label>
+                  <div class="data-value">${benefits.recebe_beneficio ? displayValue(benefits.beneficios_descricao, 'Sim') : 'Não'}</div>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <label class="data-label mb-2 block">Observações do Assistente Social</label>
+                <div class="w-full p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-slate-700 leading-relaxed text-justify">
+                  ${displayValue(value.observacoes?.observacoes, 'Sem observações registradas.')}
+                </div>
+              </div>
+            </div>
+
+            <footer class="mt-8 pt-8 border-t-2 border-slate-200 text-center pb-8 no-break-inside">
+              <div class="flex flex-col items-center justify-center text-slate-500 space-y-2">
+                <h4 class="font-bold text-slate-700 uppercase tracking-widest text-sm">${socialName}</h4>
+                ${unit?.cnpj ? `<p class="text-xs">CNPJ: ${unit.cnpj}</p>` : ''}
+                <p class="text-xs">${institutionAddress}</p>
+                <p class="text-xs">${this.joinParts([unit?.telefone, unit?.email], ' | ') || ''}</p>
+                <div class="pt-4 text-[10px] text-slate-300">
+                  Documento gerado eletronicamente pelo Sistema G3 em ${formattedGeneratedAt}.
+                </div>
+              </div>
+            </footer>
           </div>
         </body>
       </html>
