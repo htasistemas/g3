@@ -80,7 +80,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
         { label: 'Beneficiários', icon: faUserPlus, route: '/cadastros/beneficiarios' },
-        { label: 'Composição familiar', icon: faUsers, route: '/cadastros/familias' },
         { label: 'Voluntariados', icon: faClipboardList, route: '/cadastros/voluntariados' }
       ]
     },
@@ -94,7 +93,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faClipboardList,
       children: [
         { label: 'Ofícios', icon: faClipboardList, route: '/administrativo/oficios' },
-        { label: 'Documentos Internos', icon: faClipboardList },
+        { label: 'Documentos da Instituição', icon: faClipboardList, route: '/administrativo/documentos' },
         { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
         { label: 'Patrimônio', icon: faClipboardList, route: '/administrativo/patrimonio' }
       ]
