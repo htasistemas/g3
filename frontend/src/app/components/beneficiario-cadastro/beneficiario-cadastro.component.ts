@@ -790,7 +790,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.submit();
+    this.submit(true);
   }
 
   private isOutdatedDate(dateValue?: string | null): boolean {
@@ -811,9 +811,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
-  private determineStatusForSave(): BeneficiarioApiPayload['status'] {
-    const missingDocuments = this.getMissingRequiredDocuments();
-    const hasPending = this.form.invalid || missingDocuments.length > 0;
+  private determineStatusForSave(allowStatusOnlyUpdate = false): BeneficiarioApiPayload['status'] {
+    const missingDocuments = allowStatusOnlyUpdate ? [] : this.getMissingRequiredDocuments();
+    const hasPending = (!allowStatusOnlyUpdate && this.form.invalid) || missingDocuments.length > 0;
 
     if (!this.beneficiarioId) {
       return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
@@ -1242,15 +1242,15 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  async submit() {
-    const statusForSave = this.determineStatusForSave();
+  async submit(skipValidation = false) {
+    const statusForSave = this.determineStatusForSave(skipValidation);
 
-    if (this.form.invalid) {
+    if (!skipValidation && this.form.invalid) {
       this.form.get('status')?.setValue(statusForSave);
       this.feedback = 'Preencha os campos obrigatórios.';
       return;
     }
-    if (!this.validateRequiredDocuments()) {
+    if (!skipValidation && !this.validateRequiredDocuments()) {
       this.form.get('status')?.setValue('INCOMPLETO');
       return;
     }
