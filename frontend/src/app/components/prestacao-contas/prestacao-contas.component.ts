@@ -27,6 +27,12 @@ interface DestinacaoItem {
   percentage: number;
 }
 
+interface PrestacaoTab {
+  id: 'resumo' | 'fluxo' | 'transparencia';
+  label: string;
+  helper: string;
+}
+
 @Component({
   selector: 'app-prestacao-contas',
   standalone: true,
@@ -45,6 +51,26 @@ export class PrestacaoContasComponent {
   readonly faCircleExclamation = faCircleExclamation;
   readonly faArrowTrendUp = faArrowTrendUp;
   readonly faChartPie = faChartPie;
+
+  tabs: PrestacaoTab[] = [
+    {
+      id: 'resumo',
+      label: 'Resumo financeiro',
+      helper: 'Visão geral dos recursos recebidos, aplicados e saldo disponível.'
+    },
+    {
+      id: 'fluxo',
+      label: 'Entradas e destinação',
+      helper: 'Detalhamento das fontes de recursos e o percentual aplicado em cada frente.'
+    },
+    {
+      id: 'transparencia',
+      label: 'Transparência e evidências',
+      helper: 'Linha do tempo das entregas, checklist e comprovantes anexados.'
+    }
+  ];
+
+  activeTab: PrestacaoTab['id'] = this.tabs[0].id;
 
   resumoCards: PrestacaoResumo[] = [
     { label: 'Total recebido', value: 'R$ 326.500,00', helper: 'Somatório dos doadores ativos', emphasis: true },
@@ -123,4 +149,16 @@ export class PrestacaoContasComponent {
       status: 'pendente'
     }
   ];
+
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get activeTabHelper(): string {
+    return this.tabs[this.activeTabIndex]?.helper ?? '';
+  }
+
+  changeTab(tabId: PrestacaoTab['id']): void {
+    this.activeTab = tabId;
+  }
 }
