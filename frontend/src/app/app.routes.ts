@@ -9,7 +9,6 @@ import { AssistanceUnitComponent } from './components/assistance-unit/assistance
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
-import { FamilyCompositionComponent } from './components/family-composition/family-composition.component';
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
 import { FamiliaCadastroComponent } from './components/familia-cadastro/familia-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
@@ -44,12 +43,12 @@ export const routes: Routes = [
         component: BeneficiaryFormComponent,
         data: { title: 'Beneficiários' }
       },
-      { path: 'familias', component: FamilyCompositionComponent, data: { title: 'Composição familiar' } },
+      { path: 'familias', redirectTo: 'cadastros/familias', pathMatch: 'full' },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
-      { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Cadastro de Família' } },
-      { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Editar Família' } },
+      { path: 'cadastros/familias', component: FamiliaCadastroComponent, data: { title: 'Composição familiar' } },
+      { path: 'cadastros/familias/:id', component: FamiliaCadastroComponent, data: { title: 'Composição familiar' } },
       {
         path: 'cadastros/voluntariados',
         component: VoluntariadoCadastroComponent,
