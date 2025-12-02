@@ -40,6 +40,13 @@ interface AgendaEntry {
   status: 'aberto' | 'pago' | 'atrasado';
 }
 
+interface FinanceTab {
+  id: 'visao-geral' | 'fluxo' | 'relatorios';
+  label: string;
+  helper: string;
+  badge?: string;
+}
+
 @Component({
   selector: 'app-contabilidade',
   standalone: true,
@@ -60,6 +67,29 @@ export class ContabilidadeComponent {
   readonly faPiggyBank = faPiggyBank;
   readonly faArrowTrendUp = faArrowTrendUp;
   readonly faArrowTrendDown = faArrowTrendDown;
+
+  tabs: FinanceTab[] = [
+    {
+      id: 'visao-geral',
+      label: 'Visão geral financeira',
+      helper: 'Indicadores e obrigações imediatas',
+      badge: 'Resumo'
+    },
+    {
+      id: 'fluxo',
+      label: 'Fluxo de caixa e projeções',
+      helper: 'Entradas, saídas e saldo esperado',
+      badge: 'Planejamento'
+    },
+    {
+      id: 'relatorios',
+      label: 'Relatórios e documentos',
+      helper: 'Demonstrativos e materiais de apoio',
+      badge: 'Exportar'
+    }
+  ];
+
+  activeTab: FinanceTab['id'] = 'visao-geral';
 
   summaryCards: MetricCard[] = [
     {
@@ -151,6 +181,14 @@ export class ContabilidadeComponent {
     { title: 'Logística e combustível', amount: 'R$ 11.700', due: 'Roteiros urbanos e rurais' },
     { title: 'Projetos educacionais', amount: 'R$ 18.600', due: 'Execução do cronograma Q3' }
   ];
+
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  changeTab(tabId: FinanceTab['id']): void {
+    this.activeTab = tabId;
+  }
 
   getStatusLabel(entry: AgendaEntry): string {
     switch (entry.status) {
