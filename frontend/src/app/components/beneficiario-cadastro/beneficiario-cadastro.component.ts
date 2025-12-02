@@ -986,6 +986,251 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const address = value.endereco ?? {};
     const contact = value.contato ?? {};
     const documents = value.documentos ?? {};
+    const family = value.familiar ?? {};
+    const education = value.escolaridade ?? {};
+    const health = value.saude ?? {};
+    const benefits = value.beneficios ?? {};
+    const unit = this.assistanceUnit;
+    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
+    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
+    const fantasyName =
+      unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? unit.nomeFantasia : '';
+    const today = this.formatDate(new Date().toISOString());
+    const age = this.getAgeFromDate(personal.data_nascimento);
+
+    const formattedNaturalidade =
+      this.hasValue(personal.naturalidade_cidade) || this.hasValue(personal.naturalidade_uf)
+        ? this.formatCity(personal.naturalidade_cidade, personal.naturalidade_uf)
+        : null;
+    const formattedCity =
+      this.hasValue(address.municipio) || this.hasValue(address.uf)
+        ? this.formatCity(address.municipio, address.uf)
+        : null;
+    const formattedCertidaoCity =
+      this.hasValue(documents.certidao_municipio) || this.hasValue(documents.certidao_uf)
+        ? this.formatCity(documents.certidao_municipio, documents.certidao_uf)
+        : null;
+
+    const renderCard = (
+      title: string,
+      items: { label: string; value: string | null }[]
+    ): string => {
+      const visible = items.filter((item) => this.hasValue(item.value));
+      if (!visible.length) return '';
+
+      const rows = visible
+        .map(
+          (item) => `
+            <div class="info-row">
+              <p class="info-label">${item.label}</p>
+              <p class="info-value">${item.value}</p>
+            </div>
+          `
+        )
+        .join('');
+
+      return `
+        <section class="info-card">
+          <div class="info-card__title">${title}</div>
+          <div class="info-card__content">${rows}</div>
+        </section>
+      `;
+    };
+
+    const joinCards = (cards: string[]): string => cards.filter(Boolean).join('');
+
+    const personalCard = renderCard('Dados pessoais', [
+      { label: 'Nome completo', value: personal.nome_completo || null },
+      { label: 'Nome social', value: personal.nome_social || null },
+      { label: 'Apelido', value: personal.apelido || null },
+      { label: 'Data de nascimento', value: personal.data_nascimento ? this.formatDate(personal.data_nascimento) : null },
+      { label: 'Idade', value: age !== null ? `${age} anos` : null },
+      { label: 'Sexo biológico', value: personal.sexo_biologico || null },
+      { label: 'Identidade de gênero', value: personal.identidade_genero || null },
+      { label: 'Cor/Raça', value: personal.cor_raca || null },
+      { label: 'Estado civil', value: personal.estado_civil || null },
+      { label: 'Nacionalidade', value: personal.nacionalidade || null },
+      { label: 'Naturalidade', value: formattedNaturalidade },
+      { label: 'Nome da mãe', value: personal.nome_mae || null },
+      { label: 'Nome do pai', value: personal.nome_pai || null }
+    ]);
+
+    const documentsCard = renderCard('Documentos', [
+      { label: 'CPF', value: documents.cpf || null },
+      { label: 'RG', value: documents.rg_numero || null },
+      { label: 'Órgão emissor', value: documents.rg_orgao_emissor || null },
+      { label: 'UF emissor', value: documents.rg_uf || null },
+      {
+        label: 'Data de emissão do RG',
+        value: documents.rg_data_emissao ? this.formatDate(documents.rg_data_emissao) : null
+      },
+      { label: 'NIS', value: documents.nis || null },
+      {
+        label: 'Certidão',
+        value: this.joinParts([
+          documents.certidao_tipo,
+          documents.certidao_livro,
+          documents.certidao_folha,
+          documents.certidao_termo,
+          documents.certidao_cartorio,
+          formattedCertidaoCity
+        ])
+      },
+      { label: 'Título de eleitor', value: documents.titulo_eleitor || null },
+      { label: 'CNH', value: documents.cnh || null },
+      { label: 'Cartão SUS', value: documents.cartao_sus || null }
+    ]);
+
+    const addressCard = renderCard('Endereço', [
+      {
+        label: 'Endereço completo',
+        value: this.joinParts([
+          this.joinParts([address.logradouro, address.numero], ', '),
+          address.complemento,
+          address.bairro,
+          formattedCity,
+          address.cep
+        ])
+      },
+      { label: 'Ponto de referência', value: address.ponto_referencia || null },
+      { label: 'Zona', value: address.zona || null },
+      { label: 'Situação do imóvel', value: address.situacao_imovel || null },
+      { label: 'Tipo de moradia', value: address.tipo_moradia || null },
+      {
+        label: 'Infraestrutura',
+        value: this.joinParts(
+          [
+            address.agua_encanada ? 'Água encanada' : null,
+            address.esgoto_tipo ? `Esgoto: ${address.esgoto_tipo}` : null,
+            address.coleta_lixo ? `Coleta de lixo: ${address.coleta_lixo}` : null,
+            address.energia_eletrica ? 'Energia elétrica' : null,
+            address.internet ? 'Internet' : null
+          ],
+          ' | '
+        )
+      }
+    ]);
+
+    const contactCard = renderCard('Contato', [
+      { label: 'Telefone principal', value: contact.telefone_principal || null },
+      { label: 'WhatsApp principal', value: contact.telefone_principal_whatsapp ? 'Sim' : null },
+      { label: 'Telefone secundário', value: contact.telefone_secundario || null },
+      {
+        label: 'Contato para recado',
+        value: this.joinParts([
+          contact.telefone_recado_nome,
+          contact.telefone_recado_numero
+        ])
+      },
+      { label: 'Email', value: contact.email || null },
+      { label: 'Preferência de contato', value: contact.horario_preferencial_contato || null },
+      {
+        label: 'Canais autorizados',
+        value: this.joinParts(
+          [
+            contact.permite_contato_tel ? 'Telefone' : null,
+            contact.permite_contato_whatsapp ? 'WhatsApp' : null,
+            contact.permite_contato_sms ? 'SMS' : null,
+            contact.permite_contato_email ? 'Email' : null
+          ],
+          ' | '
+        )
+      }
+    ]);
+
+    const familyCard = renderCard('Situação familiar e social', [
+      { label: 'Mora com a família', value: family.mora_com_familia ? 'Sim' : null },
+      { label: 'Responsável legal', value: family.responsavel_legal ? 'Sim' : null },
+      { label: 'Vínculo familiar', value: family.vinculo_familiar || null },
+      { label: 'Situação de vulnerabilidade', value: family.situacao_vulnerabilidade || null },
+      { label: 'Composição familiar', value: family.composicao_familiar || null },
+      { label: 'Crianças/adolescentes', value: family.criancas_adolescentes || null },
+      { label: 'Idosos', value: family.idosos || null },
+      { label: 'Acompanhamento no CRAS', value: family.acompanhamento_cras ? 'Sim' : null },
+      { label: 'Acompanhamento de saúde', value: family.acompanhamento_saude ? 'Sim' : null },
+      { label: 'Participa da comunidade', value: family.participa_comunidade || null },
+      { label: 'Rede de apoio', value: family.rede_apoio || null }
+    ]);
+
+    const educationCard = renderCard('Escolaridade e trabalho', [
+      { label: 'Sabe ler e escrever', value: education.sabe_ler_escrever ? 'Sim' : null },
+      { label: 'Nível de escolaridade', value: education.nivel_escolaridade || null },
+      { label: 'Estuda atualmente', value: education.estuda_atualmente ? 'Sim' : null },
+      { label: 'Ocupação', value: education.ocupacao || null },
+      { label: 'Situação de trabalho', value: education.situacao_trabalho || null },
+      { label: 'Local de trabalho', value: education.local_trabalho || null },
+      { label: 'Renda mensal', value: this.formatCurrencyValue(education.renda_mensal) },
+      { label: 'Fonte de renda', value: education.fonte_renda || null }
+    ]);
+
+    const healthCard = renderCard('Saúde', [
+      { label: 'Possui deficiência', value: health.possui_deficiencia ? 'Sim' : null },
+      { label: 'Tipo de deficiência', value: health.tipo_deficiencia || null },
+      { label: 'CID principal', value: health.cid_principal || null },
+      { label: 'Usa medicação contínua', value: health.usa_medicacao_continua ? 'Sim' : null },
+      { label: 'Descrição da medicação', value: health.descricao_medicacao || null },
+      { label: 'Serviço de saúde de referência', value: health.servico_saude_referencia || null }
+    ]);
+
+    const benefitsCard = renderCard('Benefícios', [
+      { label: 'Recebe benefício', value: benefits.recebe_beneficio ? 'Sim' : null },
+      { label: 'Descrição dos benefícios', value: benefits.beneficios_descricao || null },
+      {
+        label: 'Valor total',
+        value: this.formatCurrencyValue(benefits.valor_total_beneficios)
+      },
+      {
+        label: 'Benefícios recebidos',
+        value: Array.isArray(benefits.beneficios_recebidos)
+          ? this.joinParts(benefits.beneficios_recebidos)
+          : null
+      }
+    ]);
+
+    const statusCard = renderCard('Status e observações', [
+      { label: 'Status', value: value.status ? this.formatStatusLabel(value.status) : null },
+      { label: 'Motivo do bloqueio', value: value.motivo_bloqueio || null },
+      { label: 'Observações', value: value.observacoes?.observacoes || null }
+    ]);
+
+    const institutionAddress = unit ? this.formatInstitutionAddress(unit) : null;
+
+    const header = `
+      <header class="report-header">
+        <div class="report-brand">
+          ${logo ? `<img class="report-brand__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
+          <div>
+            <p class="report-brand__name">${socialName}</p>
+            ${fantasyName ? `<p class="report-brand__fantasy">${fantasyName}</p>` : ''}
+            ${unit?.cnpj ? `<p class="report-brand__cnpj">CNPJ: ${unit.cnpj}</p>` : ''}
+          </div>
+        </div>
+      </header>
+    `;
+
+    const footer = unit
+      ? `
+        <footer class="report-footer">
+          <p class="report-footer__name">${socialName}${
+            fantasyName ? ' • ' + fantasyName : ''
+          }</p>
+          ${
+            institutionAddress && institutionAddress !== '---'
+              ? `<p>${institutionAddress}</p>`
+              : ''
+          }
+          ${
+            this.joinParts([unit.telefone ? `Telefone: ${unit.telefone}` : null, unit.email], ' • ')
+              ? `<p>${this.joinParts(
+                  [unit.telefone ? `Telefone: ${unit.telefone}` : null, unit.email],
+                  ' • '
+                )}</p>`
+              : ''
+          }
+        </footer>
+      `
+      : '';
+
 
     const documentWindow = window.open('', '_blank', 'width=1000,height=1200');
     if (!documentWindow) return;
@@ -997,74 +1242,38 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           ${this.printStyles()}
         </head>
         <body>
-          <h1>Ficha individual do beneficiário</h1>
-          <section>
-            <h2>Dados pessoais</h2>
-            <ul class="detail-list">
-              <li><strong>Nome:</strong> ${personal.nome_completo || '---'}</li>
-              <li><strong>Nome social:</strong> ${personal.nome_social || '---'}</li>
-              <li><strong>Apelido:</strong> ${personal.apelido || '---'}</li>
-              <li><strong>Data de nascimento:</strong> ${this.formatDate(personal.data_nascimento)}</li>
-              <li><strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</li>
-              <li><strong>Nome do pai:</strong> ${personal.nome_pai || '---'}</li>
-              <li><strong>Sexo biológico:</strong> ${personal.sexo_biologico || '---'}</li>
-              <li><strong>Identidade de gênero:</strong> ${personal.identidade_genero || '---'}</li>
-              <li><strong>Estado civil:</strong> ${personal.estado_civil || '---'}</li>
-              <li><strong>Nacionalidade:</strong> ${personal.nacionalidade || '---'}</li>
-              <li><strong>Naturalidade:</strong> ${this.formatCity(personal.naturalidade_cidade, personal.naturalidade_uf)}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Documentos</h2>
-            <ul class="detail-list">
-              <li><strong>CPF:</strong> ${documents.cpf || '---'}</li>
-              <li><strong>RG:</strong> ${documents.rg_numero || '---'}</li>
-              <li><strong>Órgão emissor:</strong> ${documents.rg_orgao_emissor || '---'}</li>
-              <li><strong>UF emissor:</strong> ${documents.rg_uf || '---'}</li>
-              <li><strong>Data emissão RG:</strong> ${this.formatDate(documents.rg_data_emissao)}</li>
-              <li><strong>NIS:</strong> ${documents.nis || '---'}</li>
-              <li><strong>Certidão:</strong> ${documents.certidao_tipo || '---'} ${documents.certidao_livro || ''} ${documents.certidao_folha || ''} ${documents.certidao_termo || ''}</li>
-              <li><strong>Título de eleitor:</strong> ${documents.titulo_eleitor || '---'}</li>
-              <li><strong>CNH:</strong> ${documents.cnh || '---'}</li>
-              <li><strong>Cartão SUS:</strong> ${documents.cartao_sus || '---'}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Endereço</h2>
-            <p>${this.formatAddress(address)}</p>
-            <ul class="detail-list">
-              <li><strong>Zona:</strong> ${address.zona || '---'}</li>
-              <li><strong>Situação do imóvel:</strong> ${address.situacao_imovel || '---'}</li>
-              <li><strong>Tipo de moradia:</strong> ${address.tipo_moradia || '---'}</li>
-              <li><strong>Infraestrutura:</strong> Água encanada ${this.formatBoolean(address.agua_encanada)}, Esgoto ${address.esgoto_tipo || '---'}, Coleta de lixo ${address.coleta_lixo || '---'}, Energia elétrica ${this.formatBoolean(address.energia_eletrica)}, Internet ${this.formatBoolean(address.internet)}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Contato</h2>
-            <ul class="detail-list">
-              <li><strong>Telefone principal:</strong> ${contact.telefone_principal || '---'}</li>
-              <li><strong>WhatsApp:</strong> ${this.formatBoolean(contact.telefone_principal_whatsapp)}</li>
-              <li><strong>Telefone secundário:</strong> ${contact.telefone_secundario || '---'}</li>
-              <li><strong>Contato para recado:</strong> ${contact.telefone_recado_nome || '---'} (${contact.telefone_recado_numero || '---'})</li>
-              <li><strong>Email:</strong> ${contact.email || '---'}</li>
-              <li><strong>Preferência de contato:</strong> ${contact.horario_preferencial_contato || '---'}</li>
-              <li><strong>Autorizações:</strong> Tel ${this.formatBoolean(contact.permite_contato_tel)} | WhatsApp ${this.formatBoolean(contact.permite_contato_whatsapp)} | SMS ${this.formatBoolean(contact.permite_contato_sms)} | Email ${this.formatBoolean(contact.permite_contato_email)}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Status e observações</h2>
-            <ul class="detail-list">
-              <li><strong>Status:</strong> ${this.formatStatusLabel(value.status)}</li>
-              <li><strong>Motivo do bloqueio:</strong> ${value.motivo_bloqueio || '---'}</li>
-              <li><strong>Observações:</strong> ${(value.observacoes?.observacoes || '---')}</li>
-            </ul>
-          </section>
-
-          <p class="muted">Gerado em ${this.formatDate(new Date().toISOString())}</p>
+          <div class="report-wrapper">
+            ${header}
+            <div class="report-meta">
+              <h1 class="report-title">Ficha do beneficiário</h1>
+              <p class="muted">Emitido em ${today}</p>
+            </div>
+            <div class="profile">
+              <div>
+                ${personal.nome_completo ? `<h2 class="profile__name">${personal.nome_completo}</h2>` : ''}
+                ${value.status ? `<p class="profile__status">${this.formatStatusLabel(value.status)}</p>` : ''}
+              </div>
+              ${
+                this.photoPreview
+                  ? `<div class="profile__photo"><img src="${this.photoPreview}" alt="Foto do beneficiário" /></div>`
+                  : ''
+              }
+            </div>
+            <div class="info-grid">
+              ${joinCards([
+                personalCard,
+                documentsCard,
+                addressCard,
+                contactCard,
+                familyCard,
+                educationCard,
+                healthCard,
+                benefitsCard,
+                statusCard
+              ])}
+            </div>
+            ${footer}
+          </div>
         </body>
       </html>
     `);
@@ -1151,28 +1360,45 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private printStyles(): string {
     return `
       <style>
-        body { font-family: 'Times New Roman', serif; padding: 3cm 2.5cm; line-height: 1.5; color: #0f172a; font-size: 12pt; }
-        h1 { text-align: center; text-transform: uppercase; margin-bottom: 18pt; letter-spacing: 0.5pt; }
-        h2 { margin-top: 16pt; font-size: 12pt; }
-        h3 { margin: 8px 0; color: #0f172a; }
-        p { margin: 8pt 0; text-align: justify; }
-        .muted { color: #475569; font-size: 11pt; }
-        ul { padding-left: 18px; }
-        ul li { margin: 6px 0; }
-        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 28px; line-height: 1.6; color: #0f172a; background: #f8fafc; }
+        h1 { margin: 0; }
+        h2 { margin: 0; }
+        p { margin: 0; }
+        .muted { color: #475569; font-size: 12px; }
+        .report-wrapper { max-width: 1024px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); }
+        .report-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
+        .report-brand { display: flex; align-items: center; gap: 12px; }
+        .report-brand__logo { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; border: 1px solid #e2e8f0; padding: 6px; }
+        .report-brand__name { font-weight: 700; font-size: 18px; color: #0f172a; }
+        .report-brand__fantasy { font-size: 14px; color: #1f2937; }
+        .report-brand__cnpj { font-size: 12px; color: #475569; }
+        .report-meta { text-align: center; margin-bottom: 16px; }
+        .report-title { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #0f172a; }
+        .profile { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f8fafc, #eef2ff); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e2e8f0; }
+        .profile__name { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+        .profile__status { font-size: 13px; color: #1e3a8a; margin: 0; text-transform: uppercase; letter-spacing: 0.3px; }
+        .profile__photo { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08); }
+        .profile__photo img { width: 100%; height: 100%; object-fit: cover; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .info-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04); }
+        .info-card__title { font-weight: 700; color: #0f172a; margin-bottom: 10px; font-size: 15px; letter-spacing: 0.2px; }
+        .info-card__content { display: grid; gap: 8px; }
+        .info-row { padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+        .info-label { font-size: 12px; color: #475569; margin: 0 0 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .info-value { font-size: 14px; color: #0f172a; margin: 0; word-break: break-word; }
+        .report-footer { border-top: 1px solid #e2e8f0; margin-top: 20px; padding-top: 12px; text-align: center; color: #475569; font-size: 13px; }
+        .report-footer__name { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
         .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
-        .detail-list { list-style: none; padding: 0; margin: 0; }
-        .detail-list li { margin: 6px 0; }
-        .signature { margin-top: 36pt; text-align: center; }
+        .signature { margin-top: 36px; text-align: center; }
         .signature p { text-align: center; }
-        .report-header { display: flex; gap: 12pt; align-items: center; justify-content: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 12pt; margin-bottom: 12pt; }
+        .report-section { margin-top: 10px; }
+        .report-header--center { justify-content: center; }
         .report-header__logo { max-height: 64px; object-fit: contain; }
         .report-header__identity { text-align: center; }
         .report-header__name { font-weight: bold; font-size: 14pt; margin: 0; }
         .report-header__fantasy { margin: 0; font-size: 12pt; color: #1f2937; }
-        .report-header--center { justify-content: center; }
-        .report-section { margin-top: 10pt; }
-        .report-footer { border-top: 1px solid #cbd5e1; padding-top: 10pt; margin-top: 18pt; font-size: 11pt; text-align: center; }
         .print-table th:nth-child(3), .print-table td:nth-child(3) { text-align: center; }
         .print-table th:nth-child(2), .print-table th:nth-child(4) { width: 18%; }
       </style>
@@ -1195,6 +1421,30 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .filter(Boolean)
       .join(', ');
     return parts || '---';
+  }
+
+  private joinParts(parts: (string | number | null | undefined)[], separator = ', '): string | null {
+    const filtered = parts
+      .filter((part) => this.hasValue(part))
+      .map((part) => part?.toString().trim() ?? '')
+      .filter((part) => part && part !== '---');
+    if (!filtered.length) return null;
+    return filtered.join(separator);
+  }
+
+  private hasValue(value: any): boolean {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'boolean') return value === true;
+    return true;
+  }
+
+  private formatCurrencyValue(value: any): string | null {
+    if (value === null || value === undefined || value === '') return null;
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) return null;
+    return numeric.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
   private formatCity(city?: string, uf?: string): string {
