@@ -45,6 +45,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
   beneficiaryCode: string | null = null;
+  selectedBeneficiary: BeneficiarioApiPayload | null = null;
+  nextSequentialCode = '0001';
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
@@ -283,6 +285,40 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return this.tabs.find((tab) => tab.id === id)?.label ?? '';
   }
 
+  private normalizeBeneficiaryCode(code?: string | null): string | null {
+    const numericCode = this.extractNumericCode(code);
+    if (numericCode === null) return code ?? null;
+
+    return this.formatSequentialCode(numericCode);
+  }
+
+  private extractNumericCode(code?: string | null): number | null {
+    if (!code) return null;
+    const numericPart = (code.match(/\d+/g) ?? []).join('');
+    if (!numericPart) return null;
+
+    const parsed = Number.parseInt(numericPart, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private formatSequentialCode(value: number): string {
+    const clamped = Number.isFinite(value) && value > 0 ? value : 1;
+    return clamped.toString().padStart(4, '0').slice(-4);
+  }
+
+  private updateSequentialCode(): void {
+    const numericCodes = (this.beneficiarios ?? [])
+      .map((beneficiario) => this.extractNumericCode(beneficiario.codigo))
+      .filter((value): value is number => value !== null);
+
+    const highestCode = Math.max(0, ...numericCodes);
+    this.nextSequentialCode = this.formatSequentialCode(highestCode + 1);
+
+    if (!this.beneficiarioId) {
+      this.beneficiaryCode = this.nextSequentialCode;
+    }
+  }
+
   get motivoBloqueioControl(): FormControl<string | null> {
     return this.form.get('motivo_bloqueio') as FormControl<string | null>;
   }
@@ -300,7 +336,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       nome: [''],
       codigo: [''],
       cpf: [''],
-      nis: [''],
       data_nascimento: [''],
       status: ['']
     });
@@ -463,13 +498,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       if (id) {
         this.beneficiarioId = id;
         this.service.getById(id).subscribe(({ beneficiario }) => {
-          this.form.patchValue(this.mapToForm(beneficiario));
-          this.photoPreview = beneficiario.foto_3x4 ?? null;
-          this.lastStatus = beneficiario.status ?? 'EM_ANALISE';
+          const normalizedBeneficiary = {
+            ...beneficiario,
+            codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
+          };
+          this.selectedBeneficiary = normalizedBeneficiary;
+          this.form.patchValue(this.mapToForm(normalizedBeneficiary));
+          this.photoPreview = normalizedBeneficiary.foto_3x4 ?? null;
+          this.lastStatus = normalizedBeneficiary.status ?? 'EM_ANALISE';
           this.previousStatusBeforeBlock = this.lastStatus;
-          this.nationalityManuallyChanged = !!beneficiario.nacionalidade;
-          this.applyLoadedDocuments(this.getDocumentList(beneficiario));
-          this.applyAutomaticStatusFromDates(beneficiario.status);
+          this.nationalityManuallyChanged = !!normalizedBeneficiary.nacionalidade;
+          this.applyLoadedDocuments(this.getDocumentList(normalizedBeneficiary));
+          this.applyAutomaticStatusFromDates(normalizedBeneficiary.status);
         });
       }
     });
@@ -488,7 +528,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   mapToForm(beneficiario: BeneficiarioApiPayload) {
     this.createdAt = beneficiario.data_cadastro ?? null;
     this.lastUpdatedAt = beneficiario.data_atualizacao ?? beneficiario.data_cadastro ?? null;
-    this.beneficiaryCode = beneficiario.codigo ?? null;
+    this.beneficiaryCode = this.normalizeBeneficiaryCode(beneficiario.codigo);
 
     return {
       status: beneficiario.status ?? 'EM_ANALISE',
@@ -1762,6 +1802,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     };
 
     return {
+      codigo: this.beneficiaryCode || this.nextSequentialCode,
       status: statusForSave,
       motivo_bloqueio: value.motivo_bloqueio,
       foto_3x4: value.foto_3x4,
@@ -1921,9 +1962,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.photoPreview = null;
     this.createdAt = null;
     this.lastUpdatedAt = null;
-    this.beneficiaryCode = null;
+    this.selectedBeneficiary = null;
+    this.beneficiaryCode = this.nextSequentialCode;
     this.lastStatus = 'EM_ANALISE';
     this.previousStatusBeforeBlock = 'EM_ANALISE';
+    this.activeTab = 'dados';
     this.form.reset();
     this.form.patchValue({
       status: 'EM_ANALISE',
@@ -1936,12 +1979,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   clearSearchFilters(): void {
-    this.searchForm.reset({ nome: '', codigo: '', cpf: '', nis: '', data_nascimento: '', status: '' });
+    this.searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' });
     this.searchBeneficiaries();
   }
 
   searchBeneficiaries(): void {
-    const { nome, cpf, nis, codigo, data_nascimento } = this.searchForm.value;
+    const { nome, cpf, codigo, data_nascimento } = this.searchForm.value;
     this.listLoading = true;
     this.listError = null;
 
@@ -1949,15 +1992,19 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .list({
         nome: nome || undefined,
         cpf: cpf || undefined,
-        nis: nis || undefined,
         codigo: codigo || undefined,
         data_nascimento: data_nascimento || undefined
       })
       .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }) => {
-          this.beneficiarios = beneficiarios ?? [];
+          this.beneficiarios = (beneficiarios ?? []).map((beneficiario) => ({
+            ...beneficiario,
+            codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
+          }));
+          this.selectedBeneficiary = null;
           this.applyListFilters();
+          this.updateSequentialCode();
         },
         error: () => {
           this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
@@ -1975,14 +2022,23 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     if (!beneficiario.id_beneficiario) return;
 
+    this.selectedBeneficiary = {
+      ...beneficiario,
+      codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
+    };
     this.beneficiarioId = beneficiario.id_beneficiario;
     this.service.getById(beneficiario.id_beneficiario).subscribe(({ beneficiario: details }) => {
-      this.form.patchValue(this.mapToForm(details));
-      this.photoPreview = details.foto_3x4 ?? null;
-      this.lastStatus = details.status ?? 'EM_ANALISE';
+      const normalizedDetails = {
+        ...details,
+        codigo: this.normalizeBeneficiaryCode(details.codigo) || undefined
+      };
+      this.selectedBeneficiary = normalizedDetails;
+      this.form.patchValue(this.mapToForm(normalizedDetails));
+      this.photoPreview = normalizedDetails.foto_3x4 ?? null;
+      this.lastStatus = normalizedDetails.status ?? 'EM_ANALISE';
       this.previousStatusBeforeBlock = this.lastStatus;
-      this.applyLoadedDocuments(this.getDocumentList(details));
-      this.applyAutomaticStatusFromDates(details.status);
+      this.applyLoadedDocuments(this.getDocumentList(normalizedDetails));
+      this.applyAutomaticStatusFromDates(normalizedDetails.status);
     });
   }
 
@@ -2003,6 +2059,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           this.createdAt = null;
           this.lastUpdatedAt = null;
           this.beneficiaryCode = null;
+          this.selectedBeneficiary = null;
         }
         this.searchBeneficiaries();
       },
@@ -2011,6 +2068,25 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         this.listLoading = false;
       }
     });
+  }
+
+  handleEditSelected(): void {
+    if (this.selectedBeneficiary?.id_beneficiario) {
+      this.editBeneficiario(this.selectedBeneficiary);
+    }
+  }
+
+  handleDeleteSelected(): void {
+    if (this.selectedBeneficiary?.id_beneficiario) {
+      this.deleteBeneficiario(this.selectedBeneficiary);
+    }
+  }
+
+  handleAlterSelected(): void {
+    if (this.selectedBeneficiary?.id_beneficiario) {
+      this.selectBeneficiario(this.selectedBeneficiary);
+      this.changeTab('dados');
+    }
   }
 
   editBeneficiario(beneficiario: BeneficiarioApiPayload): void {
