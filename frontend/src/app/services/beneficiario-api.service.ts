@@ -128,12 +128,14 @@ export class BeneficiarioApiService {
     cpf?: string;
     nis?: string;
     codigo?: string;
+    data_nascimento?: string;
   }): Observable<{ beneficiarios: BeneficiarioApiPayload[] }> {
     let httpParams = new HttpParams();
     if (params?.nome) httpParams = httpParams.set('nome', params.nome);
     if (params?.cpf) httpParams = httpParams.set('cpf', params.cpf);
     if (params?.nis) httpParams = httpParams.set('nis', params.nis);
     if (params?.codigo) httpParams = httpParams.set('codigo', params.codigo);
+    if (params?.data_nascimento) httpParams = httpParams.set('data_nascimento', params.data_nascimento);
     return this.http
       .get<{ beneficiarios: BeneficiarioApiPayload[] } | BeneficiarioApiPayload[] | { beneficiario?: BeneficiarioApiPayload }>(
         this.baseUrl,

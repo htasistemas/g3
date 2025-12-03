@@ -304,6 +304,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       codigo: [''],
       cpf: [''],
       nis: [''],
+      data_nascimento: [''],
       status: ['']
     });
     this.form = this.fb.group({
@@ -1843,13 +1844,43 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.form.get('motivo_bloqueio')?.setValue('');
   }
 
+  startNewBeneficiario(): void {
+    this.beneficiarioId = null;
+    this.photoPreview = null;
+    this.createdAt = null;
+    this.lastUpdatedAt = null;
+    this.beneficiaryCode = null;
+    this.lastStatus = 'EM_ANALISE';
+    this.previousStatusBeforeBlock = 'EM_ANALISE';
+    this.form.reset();
+    this.form.patchValue({
+      status: 'EM_ANALISE',
+      motivo_bloqueio: '',
+      foto_3x4: '',
+      endereco: { usa_endereco_familia: true, zona: 'URBANA' },
+      beneficios: { beneficios_recebidos: [] }
+    });
+    this.resetDocumentArray();
+  }
+
+  clearSearchFilters(): void {
+    this.searchForm.reset({ nome: '', codigo: '', cpf: '', nis: '', data_nascimento: '', status: '' });
+    this.searchBeneficiaries();
+  }
+
   searchBeneficiaries(): void {
-    const { nome, cpf, nis, codigo } = this.searchForm.value;
+    const { nome, cpf, nis, codigo, data_nascimento } = this.searchForm.value;
     this.listLoading = true;
     this.listError = null;
 
     this.service
-      .list({ nome: nome || undefined, cpf: cpf || undefined, nis: nis || undefined, codigo: codigo || undefined })
+      .list({
+        nome: nome || undefined,
+        cpf: cpf || undefined,
+        nis: nis || undefined,
+        codigo: codigo || undefined,
+        data_nascimento: data_nascimento || undefined
+      })
       .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }) => {
