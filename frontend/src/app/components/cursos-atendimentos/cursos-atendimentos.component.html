@@ -1,0 +1,341 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Atendimentos</p>
+    <p class="page-title__label">Cursos & Atendimentos</p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <form [formGroup]="courseForm" class="form-shell" (ngSubmit)="submit()">
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'dados'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Cadastre ou edite cursos e atendimentos com as mesmas interações do voluntariado.</p>
+        </div>
+        <span class="pill">Obrigatório</span>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">
+          Tipo*
+          <select formControlName="tipo">
+            <option value=""></option>
+            <option value="Curso">Curso</option>
+            <option value="Atendimento">Atendimento</option>
+          </select>
+        </label>
+        <label class="field full">Nome do curso/atendimento*<input formControlName="nome" /></label>
+        <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field">
+          Quantidade de vagas totais*
+          <input type="number" formControlName="vagasTotais" min="1" />
+        </label>
+        <label class="field">
+          Vagas disponíveis
+          <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
+        </label>
+        <label class="field">
+          Carga horária total (horas)
+          <input type="number" formControlName="cargaHoraria" min="0" />
+        </label>
+        <label class="field">
+          Horário inicial*
+          <input type="time" formControlName="horarioInicial" />
+        </label>
+        <label class="field">
+          Duração (horas)*
+          <input type="number" formControlName="duracaoHoras" min="1" />
+        </label>
+        <div class="field full">
+          <p class="field-title">Dias da semana*</p>
+          <div class="chips">
+            <label *ngFor="let dia of diasSemana" class="chip">
+              <input
+                type="checkbox"
+                [checked]="selectionChecked(['diasSemana'], dia)"
+                (change)="toggleSelection(['diasSemana'], dia)"
+              />
+              <span>{{ dia }}</span>
+            </label>
+          </div>
+        </div>
+        <label class="field full">
+          Profissional responsável*
+          <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
+        </label>
+        <label class="field">
+          Foto / Imagem ilustrativa
+          <input type="file" accept="image/*" (change)="handleImage($event)" />
+        </label>
+        <div class="upload-preview" *ngIf="courseForm.value.imagem">
+          <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'inscricoes'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Controle de matrículas e lista de espera seguindo as regras de vagas.</p>
+        </div>
+        <span class="pill">Inscrições</span>
+      </div>
+
+      <div class="field-grid cols-3" [formGroup]="enrollmentForm">
+        <label class="field full">Beneficiário (nome ou CPF)*<input formControlName="beneficiaryName" placeholder="Buscar beneficiário" /></label>
+        <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
+        <div class="actions align-end">
+          <button class="primary" type="button" (click)="enroll()">Inscrever</button>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Matrículas</p>
+            <p class="page-title__label">Beneficiários vinculados</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Situação</th>
+                <th>Data de inscrição</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let enrollment of currentCourse?.enrollments">
+                <td>{{ enrollment.beneficiaryName }}</td>
+                <td>{{ enrollment.cpf }}</td>
+                <td>
+                  <select [ngModel]="enrollment.status" (ngModelChange)="updateEnrollmentStatus(enrollment, $event)">
+                    <option value="Ativo">Ativo</option>
+                    <option value="Concluído">Concluído</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </td>
+                <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
+                <td class="table-actions">
+                  <button type="button" class="ghost" (click)="emitDocument(enrollment)" [disabled]="!eligibleForDocument(enrollment)">
+                    {{ currentCourse?.tipo === 'Curso' ? 'Certificado' : 'Atestado' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!currentCourse?.enrollments?.length">
+                <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Lista de espera</p>
+            <p class="page-title__label">Ordem de chegada</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Data de entrada</th>
+                <th>Posição</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of currentCourse?.waitlist; index as idx">
+                <td>{{ item.beneficiaryName }}</td>
+                <td>{{ item.cpf }}</td>
+                <td>{{ item.joinedAt | date: 'shortDate' }}</td>
+                <td>{{ idx + 1 }}</td>
+                <td class="table-actions">
+                  <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
+                    Converter para matrícula
+                  </button>
+                  <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
+                </td>
+              </tr>
+              <tr *ngIf="!currentCourse?.waitlist?.length">
+                <td colspan="5" class="muted">Nenhum beneficiário em fila.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'documentos'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Emita certificados para cursos concluídos ou atestados para atendimentos.</p>
+        </div>
+        <span class="pill">PDF</span>
+      </div>
+
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Registros elegíveis</p>
+            <p class="page-title__label">{{ currentCourse?.tipo === 'Curso' ? 'Certificados de conclusão' : 'Atestados de comparecimento' }}</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Beneficiário</th>
+                <th>CPF</th>
+                <th>Situação</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let enrollment of currentCourse?.enrollments">
+                <td>{{ enrollment.beneficiaryName }}</td>
+                <td>{{ enrollment.cpf }}</td>
+                <td>{{ enrollment.status }}</td>
+                <td>
+                  <button type="button" class="primary" (click)="emitDocument(enrollment)" [disabled]="!eligibleForDocument(enrollment)">
+                    {{ currentCourse?.tipo === 'Curso' ? 'Emitir certificado' : 'Emitir atestado' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!currentCourse?.enrollments?.length">
+                <td colspan="4" class="muted">Cadastre matrículas para liberar a emissão de documentos.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'dashboard'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Indicadores consolidados de cursos e atendimentos.</p>
+        </div>
+        <span class="pill">Resumo</span>
+      </div>
+
+      <div class="cards-grid">
+        <article class="summary-card" aria-label="Cursos ativos">
+          <p class="summary-card__label">Cursos ativos</p>
+          <p class="summary-card__value">{{ dashboardTotals().ativosCurso }}</p>
+        </article>
+        <article class="summary-card" aria-label="Atendimentos ativos">
+          <p class="summary-card__label">Atendimentos ativos</p>
+          <p class="summary-card__value">{{ dashboardTotals().ativosAtendimento }}</p>
+        </article>
+        <article class="summary-card" aria-label="Beneficiários inscritos">
+          <p class="summary-card__label">Beneficiários inscritos</p>
+          <p class="summary-card__value">{{ dashboardTotals().totalMatriculas }}</p>
+        </article>
+        <article class="summary-card" aria-label="Vagas ofertadas">
+          <p class="summary-card__label">Vagas ofertadas</p>
+          <p class="summary-card__value">{{ dashboardTotals().totalVagas }}</p>
+        </article>
+        <article class="summary-card" aria-label="Vagas disponíveis">
+          <p class="summary-card__label">Vagas disponíveis</p>
+          <p class="summary-card__value">{{ dashboardTotals().vagasDisponiveis }}</p>
+        </article>
+        <article class="summary-card" aria-label="Lista de espera">
+          <p class="summary-card__label">Beneficiários na espera</p>
+          <p class="summary-card__value">{{ dashboardTotals().listaEspera }}</p>
+        </article>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+  </form>
+
+  <div class="list-card">
+    <div class="list-card__header">
+      <div>
+        <p class="page-title__eyebrow">Registros</p>
+        <p class="page-title__label">Cursos & Atendimentos cadastrados</p>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Nome</th>
+            <th>Vagas</th>
+            <th>Profissional</th>
+            <th>Início</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let course of records">
+            <td>{{ course.tipo }}</td>
+            <td>{{ course.nome }}</td>
+            <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
+            <td>{{ course.profissional }}</td>
+            <td>{{ course.horarioInicial }}</td>
+            <td class="table-actions">
+              <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
+              <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscrições</button>
+            </td>
+          </tr>
+          <tr *ngIf="!records.length">
+            <td colspan="6" class="muted">Nenhum curso ou atendimento cadastrado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
