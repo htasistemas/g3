@@ -1,0 +1,203 @@
+<div class="p-6 space-y-6">
+  <div class="bg-gradient-to-r from-emerald-900 to-emerald-600 text-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="bg-white/15 rounded-lg p-3">
+        <span class="material-icons">monitoring</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-semibold">Indicadores Assistência Social</h1>
+        <p class="text-white/80">Painel dedicado aos indicadores consolidados implementados recentemente.</p>
+      </div>
+    </div>
+
+    <form class="grid gap-3 md:grid-cols-3" (ngSubmit)="refresh()">
+      <label class="filter-field">
+        <span>Data inicial</span>
+        <input type="date" [(ngModel)]="filters.startDate" name="startDate" />
+      </label>
+      <label class="filter-field">
+        <span>Data final</span>
+        <input type="date" [(ngModel)]="filters.endDate" name="endDate" />
+      </label>
+      <div class="flex items-end">
+        <button class="btn" type="button" (click)="refresh()" [disabled]="loading">
+          <span class="material-icons text-base">refresh</span>
+          Atualizar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <ng-container *ngIf="!loading && dashboardService.data(); else loadingState">
+    <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
+      <div class="stat-card" *ngFor="let card of [
+          { label: 'Beneficiários atendidos', value: top12?.beneficiariosAtendidosPeriodo, icon: 'groups' },
+          { label: 'Famílias extrema pobreza', value: top12?.familiasExtremaPobreza, icon: 'diversity_3' },
+          { label: 'Renda média familiar', value: (top12?.rendaMediaFamiliar || 0) | currency: 'BRL', icon: 'savings' },
+          { label: 'Termos vencendo', value: top12?.termosVencendo, icon: 'warning' }
+        ]">
+        <div class="stat-card__icon bg-white text-g3-green-700">
+          <span class="material-icons">{{ card.icon }}</span>
+        </div>
+        <div>
+          <p class="stat-card__label">{{ card.label }}</p>
+          <p class="stat-card__value">{{ card.value ?? '-' }}</p>
+          <p class="stat-card__hint">Monitoramento consolidado.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-3">
+      <div class="panel-card xl:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <p class="panel-card__label">Atendimentos e cadastros</p>
+            <p class="panel-card__hint">Volume de beneficiários e situação cadastral.</p>
+          </div>
+          <span class="badge badge-info">Beneficiários</span>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="mini-card">
+            <p class="mini-card__label">Total</p>
+            <p class="mini-card__value">{{ atendimento?.totalBeneficiarios ?? 0 }}</p>
+            <p class="mini-card__hint">Cadastros existentes.</p>
+          </div>
+          <div class="mini-card">
+            <p class="mini-card__label">Ativos</p>
+            <p class="mini-card__value text-emerald-700">{{ atendimento?.ativos ?? 0 }}</p>
+            <p class="mini-card__hint">Aptos para atendimento.</p>
+          </div>
+          <div class="mini-card">
+            <p class="mini-card__label">Pendentes</p>
+            <p class="mini-card__value text-amber-600">{{ atendimento?.pendentes ?? 0 }}</p>
+            <p class="mini-card__hint">Em análise ou com pendências.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 grid md:grid-cols-2 gap-4">
+          <div>
+            <p class="panel-card__label">Cadastro completo</p>
+            <div class="progress">
+              <div class="progress__bar bg-emerald-500" [style.width]="(atendimento?.cadastroCompletoPercentual ?? 0) + '%'">
+              </div>
+            </div>
+            <p class="panel-card__hint">{{ atendimento?.cadastroCompletoPercentual | number: '1.0-1' }}% dos cadastros.</p>
+          </div>
+          <div>
+            <p class="panel-card__label">Novos no período</p>
+            <p class="panel-card__value text-indigo-700">{{ atendimento?.novosBeneficiarios ?? 0 }}</p>
+            <p class="panel-card__hint">Filtrados pelo intervalo selecionado.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 grid md:grid-cols-2 gap-3">
+          <div class="chip-card">
+            <p class="chip-card__title">Faixa etária</p>
+            <div class="chip-list">
+              <span class="chip" *ngFor="let item of atendimento?.faixaEtaria | keyvalue">
+                {{ item.key }}<strong>{{ item.value }}</strong>
+              </span>
+            </div>
+          </div>
+          <div class="chip-card">
+            <p class="chip-card__title">Vulnerabilidades</p>
+            <div class="chip-list">
+              <span class="chip" *ngFor="let item of atendimento?.vulnerabilidades | keyvalue">
+                {{ item.key }}<strong>{{ item.value }}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <p class="panel-card__label">Famílias e perfil socioeconômico</p>
+            <p class="panel-card__hint">Distribuição por renda e insegurança alimentar.</p>
+          </div>
+          <span class="badge badge-success">Famílias</span>
+        </div>
+
+        <div class="mini-card">
+          <p class="mini-card__label">Total de famílias</p>
+          <p class="mini-card__value">{{ familias?.total ?? 0 }}</p>
+          <p class="mini-card__hint">Registradas no sistema.</p>
+        </div>
+
+        <div class="mini-card">
+          <p class="mini-card__label">Média de pessoas</p>
+          <p class="mini-card__value">{{ familias?.mediaPessoas | number: '1.1-1' }}</p>
+          <p class="mini-card__hint">Por família cadastrada.</p>
+        </div>
+
+        <div class="mini-card">
+          <p class="mini-card__label">Renda média</p>
+          <p class="mini-card__value">{{ familias?.rendaMediaFamiliar | currency: 'BRL' }}</p>
+          <p class="mini-card__hint">Valor mensal consolidado.</p>
+        </div>
+
+        <div class="chip-card mt-3">
+          <p class="chip-card__title">Faixa de renda per capita</p>
+          <div class="chip-list">
+            <span class="chip" *ngFor="let item of familias?.faixaRenda | keyvalue">
+              {{ item.key }}<strong>{{ item.value }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="chip-card mt-3">
+          <p class="chip-card__title">Insegurança alimentar</p>
+          <div class="chip-list">
+            <span class="chip" *ngFor="let item of familias?.insegurancaAlimentar | keyvalue">
+              {{ item.key }}<strong>{{ item.value }}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <p class="panel-card__label">Termos de fomento</p>
+          <p class="panel-card__hint">Situação de vigência e alertas de vencimento.</p>
+        </div>
+        <span class="badge badge-info">Projetos</span>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-3">
+        <div class="mini-card">
+          <p class="mini-card__label">Ativos</p>
+          <p class="mini-card__value">{{ termos?.ativos ?? 0 }}</p>
+        </div>
+        <div class="mini-card">
+          <p class="mini-card__label">Valor global</p>
+          <p class="mini-card__value">{{ termos?.valorTotal | currency: 'BRL' }}</p>
+        </div>
+        <div class="mini-card">
+          <p class="mini-card__label">Alertas (60 dias)</p>
+          <p class="mini-card__value text-amber-600">{{ termos?.alertas?.length ?? 0 }}</p>
+        </div>
+      </div>
+
+      <div class="alert-table" *ngIf="termos?.alertas?.length">
+        <div class="alert-row" *ngFor="let alerta of termos?.alertas ?? []">
+          <div>
+            <p class="panel-card__label">Termo {{ alerta.numero }}</p>
+            <p class="panel-card__hint">Vence em {{ alerta.vigenciaFim | date: 'dd/MM/yyyy' }}</p>
+          </div>
+          <span class="badge badge-warn">{{ alerta.status || 'A vencer' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingState>
+    <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex items-center gap-3 text-slate-700">
+      <span class="material-icons animate-spin">refresh</span>
+      <p>Carregando indicadores atualizados...</p>
+    </div>
+  </ng-template>
+</div>

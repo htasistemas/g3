@@ -3,6 +3,7 @@ import { LoginComponent } from './components/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardIndicatorsComponent } from './components/dashboard-indicators/dashboard-indicators.component';
 import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
@@ -29,7 +30,9 @@ export const routes: Routes = [
     component: LayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', component: DashboardComponent, data: { title: 'Visão geral' } },
+      { path: '', redirectTo: 'dashboard/visao-geral', pathMatch: 'full' },
+      { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visão geral' } },
+      { path: 'dashboard/indicadores', component: DashboardIndicatorsComponent, data: { title: 'Indicadores' } },
       { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiários' } },
       {
         path: 'beneficiarios/editar/:id',
