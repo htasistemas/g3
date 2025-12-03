@@ -114,6 +114,19 @@ export class TermosFomentoGestaoComponent {
     this.applyFilters();
   }
 
+  onSearchInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.search = target?.value ?? '';
+    this.applyFilters();
+  }
+
+  onSituacaoFiltroChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value ?? '';
+    this.situacaoFiltro = (value as SituacaoTermo) || '';
+    this.applyFilters();
+  }
+
   applyFilters(): void {
     const query = this.search.toLowerCase();
     this.filteredTermos = this.termos.filter((termo) => {
