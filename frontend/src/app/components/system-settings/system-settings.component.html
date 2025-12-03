@@ -30,23 +30,6 @@
         </div>
       </div>
 
-      <div class="border border-slate-200 rounded-lg p-4 bg-white space-y-2">
-        <p class="text-sm font-semibold text-slate-800">Parâmetros gerais</p>
-        <p class="text-xs text-slate-500">Ative módulos adicionais do sistema.</p>
-
-        <label class="flex items-start gap-3 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            formControlName="habilitarModuloBiblioteca"
-            class="mt-1 rounded border-slate-300 text-g3-green-600"
-          />
-          <span>
-            <span class="block font-semibold">Habilitar módulo de Biblioteca (menu Administrativo &gt; Biblioteca)</span>
-            <span class="block text-xs text-slate-500">Quando desabilitado, o menu e as rotas da Biblioteca ficam ocultos.</span>
-          </span>
-        </label>
-      </div>
-
       <div class="flex items-center gap-3">
         <button type="submit" class="btn-primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar configurações' }}</button>
         <span *ngIf="feedback" [ngClass]="{ 'text-g3-green-700': feedback.type === 'success', 'text-red-600': feedback.type === 'error' }" class="text-sm font-medium">

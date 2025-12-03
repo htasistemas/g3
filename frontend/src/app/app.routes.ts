@@ -22,9 +22,6 @@ import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cu
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
 import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
-import { BibliotecaCadastroLivrosComponent } from './components/biblioteca-cadastro-livros/biblioteca-cadastro-livros.component';
-import { BibliotecaEmprestimosComponent } from './components/biblioteca-emprestimos/biblioteca-emprestimos.component';
-import { libraryEnabledGuard } from './guards/library-enabled.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -79,25 +76,6 @@ export const routes: Routes = [
         path: 'administrativo/patrimonio',
         component: PatrimonioComponent,
         data: { title: 'Controle patrimonial' }
-      },
-      {
-        path: 'administrativo/biblioteca',
-        canActivate: [libraryEnabledGuard],
-        children: [
-          { path: '', redirectTo: 'livros', pathMatch: 'full' },
-          {
-            path: 'livros',
-            component: BibliotecaCadastroLivrosComponent,
-            data: { title: 'Biblioteca – Cadastro de Livros' },
-            canActivate: [libraryEnabledGuard]
-          },
-          {
-            path: 'emprestimos',
-            component: BibliotecaEmprestimosComponent,
-            data: { title: 'Biblioteca – Empréstimo de Livros' },
-            canActivate: [libraryEnabledGuard]
-          }
-        ]
       },
       {
         path: 'administrativo/oficios',
