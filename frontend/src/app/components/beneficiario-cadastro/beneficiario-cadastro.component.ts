@@ -16,7 +16,7 @@ import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/b
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { Subject, firstValueFrom } from 'rxjs';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs/operators';
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -300,7 +300,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       nome: [''],
       codigo: [''],
       cpf: [''],
-      nis: [''],
       data_nascimento: [''],
       status: ['']
     });
@@ -454,6 +453,13 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
     this.searchBeneficiaries();
+    this.searchForm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged((previous, current) => JSON.stringify(previous) === JSON.stringify(current)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => this.searchBeneficiaries());
     this.searchForm
       .get('status')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -1763,6 +1769,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     return {
       status: statusForSave,
+      codigo: this.beneficiaryCode || undefined,
       motivo_bloqueio: value.motivo_bloqueio,
       foto_3x4: value.foto_3x4,
       ...(value.dadosPessoais as any),
@@ -1837,6 +1844,20 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (!normalized.trim()) return '';
 
     return normalized.replace(/(^|\s)([A-Za-zÀ-ÿ])/g, (match) => match.toUpperCase());
+  }
+
+  private extractCodeNumber(code?: string | null): number {
+    if (!code) return 0;
+    const numeric = parseInt(code.replace(/\D/g, ''), 10);
+    return isNaN(numeric) ? 0 : numeric;
+  }
+
+  private generateNextBeneficiaryCode(): string {
+    const highest = (this.beneficiarios ?? [])
+      .map((item) => this.extractCodeNumber(item.codigo))
+      .reduce((max, current) => Math.max(max, current), 0);
+
+    return String(highest + 1).padStart(5, '0');
   }
 
   private watchBirthDate(): void {
@@ -1933,15 +1954,16 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       beneficios: { beneficios_recebidos: [] }
     });
     this.resetDocumentArray();
+    this.beneficiaryCode = this.generateNextBeneficiaryCode();
   }
 
   clearSearchFilters(): void {
-    this.searchForm.reset({ nome: '', codigo: '', cpf: '', nis: '', data_nascimento: '', status: '' });
+    this.searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' });
     this.searchBeneficiaries();
   }
 
   searchBeneficiaries(): void {
-    const { nome, cpf, nis, codigo, data_nascimento } = this.searchForm.value;
+    const { nome, cpf, codigo, data_nascimento } = this.searchForm.value;
     this.listLoading = true;
     this.listError = null;
 
@@ -1949,7 +1971,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .list({
         nome: nome || undefined,
         cpf: cpf || undefined,
-        nis: nis || undefined,
         codigo: codigo || undefined,
         data_nascimento: data_nascimento || undefined
       })
@@ -1958,6 +1979,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         next: ({ beneficiarios }) => {
           this.beneficiarios = beneficiarios ?? [];
           this.applyListFilters();
+          this.beneficiaryCode = this.generateNextBeneficiaryCode();
         },
         error: () => {
           this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
@@ -1976,6 +1998,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (!beneficiario.id_beneficiario) return;
 
     this.beneficiarioId = beneficiario.id_beneficiario;
+    this.changeTab('dados');
     this.service.getById(beneficiario.id_beneficiario).subscribe(({ beneficiario: details }) => {
       this.form.patchValue(this.mapToForm(details));
       this.photoPreview = details.foto_3x4 ?? null;
@@ -2015,6 +2038,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   editBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     if (!beneficiario.id_beneficiario) return;
+    this.changeTab('dados');
     this.router.navigate(['/cadastros/beneficiarios', beneficiario.id_beneficiario]);
   }
 
