@@ -17,6 +17,7 @@ import { ContabilidadeComponent } from './components/contabilidade/contabilidade
 import { PrestacaoContasComponent } from './components/prestacao-contas/prestacao-contas.component';
 import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
 import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
+import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -54,6 +55,11 @@ export const routes: Routes = [
         path: 'atendimentos/doacoes',
         component: DonationManagementComponent,
         data: { title: 'Registrar doações' }
+      },
+      {
+        path: 'atendimentos/cursos',
+        component: CursosAtendimentosComponent,
+        data: { title: 'Cursos e atendimentos' }
       },
       {
         path: 'administrativo/patrimonio',
