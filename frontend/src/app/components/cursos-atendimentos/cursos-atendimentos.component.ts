@@ -7,6 +7,7 @@ import {
   CursosAtendimentosService,
   Enrollment,
   Enrollment as EnrollmentRecord,
+  EnrollmentStatus,
   WaitlistEntry
 } from '../../services/cursos-atendimentos.service';
 
