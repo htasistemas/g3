@@ -29,6 +29,94 @@
   </div>
 
   <ng-container *ngIf="!loading && dashboardService.data(); else loadingState">
+    <div class="realtime-panel">
+      <div class="realtime-header">
+        <div>
+          <p class="realtime-label">Painel em tempo real</p>
+          <p class="realtime-hint">Indicadores principais sempre atualizados, sem depender do filtro de data.</p>
+        </div>
+        <div class="pulse">
+          <span class="pulse-dot"></span>
+          <span>Atualização automática a cada 30s</span>
+        </div>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
+        <div class="pulse-card" *ngFor="let card of realtimeHighlights">
+          <div class="pulse-card__icon" [class]="'accent-' + card.accent">
+            <span class="material-icons">{{ card.icon }}</span>
+          </div>
+          <div>
+            <p class="pulse-card__label">{{ card.label }}</p>
+            <p class="pulse-card__value">{{ card.value }}{{ card.suffix || '' }}</p>
+            <p class="pulse-card__hint">Monitoramento instantâneo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-grid">
+        <div class="panel-card live-card">
+          <div class="flex items-center justify-between mb-2">
+            <p class="panel-card__label">Execução e ocupação</p>
+            <span class="badge badge-info">Tempo real</span>
+          </div>
+          <p class="panel-card__hint">Cobertura financeira e engajamento das turmas.</p>
+
+          <div class="chart-bar">
+            <div class="chart-bar__fill bg-emerald-500" [style.width]="(top12?.execucaoFinanceira || 0) + '%'">
+            </div>
+          </div>
+          <p class="chart-bar__label">Execução financeira: {{ top12?.execucaoFinanceira | number: '1.0-1' }}%</p>
+
+          <div class="chart-bar mt-3">
+            <div class="chart-bar__fill bg-indigo-500" [style.width]="(top12?.taxaMediaOcupacaoCursos || 0) + '%'">
+            </div>
+          </div>
+          <p class="chart-bar__label">Ocupação média das turmas: {{ top12?.taxaMediaOcupacaoCursos | number: '1.0-1' }}%</p>
+        </div>
+
+        <div class="panel-card live-card">
+          <div class="flex items-center justify-between mb-2">
+            <p class="panel-card__label">Doações e distribuição</p>
+            <span class="badge badge-success">Solidariedade</span>
+          </div>
+          <p class="panel-card__value text-emerald-700">{{ top12?.doacoesPeriodo | currency: 'BRL' }}</p>
+          <p class="panel-card__hint">Entradas financeiras no período atual.</p>
+
+          <div class="chip-list mt-2" *ngIf="top12?.itensDoadoResumo | keyvalue as itens">
+            <span class="chip" *ngFor="let item of itens">{{ item.key }}<strong>{{ item.value }}</strong></span>
+          </div>
+
+          <div class="chart-bar mt-3">
+            <div class="chart-bar__fill bg-amber-500" [style.width]="(top12?.itensDoadoResumo?.['cestas'] || 0) + '%'">
+            </div>
+          </div>
+          <p class="chart-bar__label">Cestas e insumos entregues</p>
+        </div>
+
+        <div class="panel-card live-card">
+          <div class="flex items-center justify-between mb-2">
+            <p class="panel-card__label">Qualidade de atendimento</p>
+            <span class="badge badge-warn">Operação</span>
+          </div>
+          <p class="panel-card__hint">Variação dinâmica das visitas e absenteísmo.</p>
+
+          <div class="mini-card mb-2">
+            <p class="mini-card__label">Visitas em andamento</p>
+            <p class="mini-card__value text-indigo-700">{{ top12?.visitasDomiciliares ?? 0 }}</p>
+          </div>
+
+          <div class="chart-bar">
+            <div class="chart-bar__fill bg-rose-500" [style.width]="(top12?.absenteismo || 0) + '%'">
+            </div>
+          </div>
+          <p class="chart-bar__label">Absenteísmo médio: {{ top12?.absenteismo | number: '1.0-1' }}%</p>
+
+          <div class="pill mt-2">Certificados emitidos: {{ top12?.certificadosEmitidos ?? 0 }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
       <div class="stat-card" *ngFor="let card of [
           { label: 'Beneficiários atendidos', value: top12?.beneficiariosAtendidosPeriodo, icon: 'groups' },
