@@ -84,6 +84,12 @@
   color: var(--primary-strong);
 }
 
+.menu-link--active {
+  background: var(--surface-hover);
+  color: var(--primary-strong);
+  font-weight: 600;
+}
+
 .menu-link--static {
   cursor: default;
 }

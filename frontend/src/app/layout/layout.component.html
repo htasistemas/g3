@@ -36,15 +36,16 @@
 
         <div *ngIf="openSection === section.label" class="menu-card__content">
           <ng-container *ngFor="let child of section.children">
-            <button
+            <a
               *ngIf="child.route; else staticChild"
-              type="button"
               class="menu-link"
-              (click)="navigate(child.route)"
+              [routerLink]="child.route"
+              routerLinkActive="menu-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
             >
               <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
               <span>{{ child.label }}</span>
-            </button>
+            </a>
             <ng-template #staticChild>
               <div class="menu-link menu-link--static">
                 <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
