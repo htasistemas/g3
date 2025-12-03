@@ -13,7 +13,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
-import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
+import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { AuthorizationTermPayload, ReportService } from '../../services/report.service';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -1984,16 +1984,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }) => {
-          this.beneficiarios = (beneficiarios ?? []).map((beneficiario) => ({
-            ...beneficiario,
-            codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
-          }));
-          this.selectedBeneficiary = null;
-          this.applyListFilters();
-          this.updateSequentialCode();
+          this.handleBeneficiaryResponse(beneficiarios ?? []);
         },
         error: () => {
-          this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
+          this.loadBeneficiariesFromFallback({ nome, cpf, codigo, data_nascimento });
         }
       });
   }
@@ -2026,6 +2020,55 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.applyLoadedDocuments(this.getDocumentList(normalizedDetails));
       this.applyAutomaticStatusFromDates(normalizedDetails.status);
     });
+  }
+
+  private loadBeneficiariesFromFallback(filters: {
+    nome?: string;
+    cpf?: string;
+    codigo?: string;
+    data_nascimento?: string;
+  }): void {
+    this.beneficiaryService
+      .list({
+        nome: filters.nome || undefined,
+        cpf: filters.cpf || undefined,
+        codigo: filters.codigo || undefined,
+        data_nascimento: filters.data_nascimento || undefined
+      })
+      .pipe(finalize(() => (this.listLoading = false)))
+      .subscribe({
+        next: ({ beneficiarios }) => {
+          const normalized = (beneficiarios ?? []).map((beneficiario) =>
+            this.mapBeneficiaryPayload(beneficiario)
+          );
+          this.handleBeneficiaryResponse(normalized);
+        },
+        error: () => {
+          this.listError = 'Não foi possível carregar os beneficiários. Tente novamente.';
+        }
+      });
+  }
+
+  private handleBeneficiaryResponse(beneficiarios: BeneficiarioApiPayload[]): void {
+    this.beneficiarios = (beneficiarios ?? []).map((beneficiario) => ({
+      ...beneficiario,
+      codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
+    }));
+    this.selectedBeneficiary = null;
+    this.applyListFilters();
+    this.updateSequentialCode();
+  }
+
+  private mapBeneficiaryPayload(beneficiary: BeneficiaryPayload): BeneficiarioApiPayload {
+    return {
+      id_beneficiario: beneficiary.id ? String(beneficiary.id) : undefined,
+      codigo: beneficiary.codigo,
+      nome_completo: beneficiary.nomeCompleto,
+      nome_mae: beneficiary.nomeMae ?? '',
+      data_nascimento: beneficiary.dataNascimento,
+      cpf: beneficiary.cpf ?? beneficiary.documentos ?? null,
+      status: (beneficiary.status as BeneficiarioApiPayload['status']) || 'EM_ANALISE'
+    };
   }
 
   deleteBeneficiario(beneficiario: BeneficiarioApiPayload): void {

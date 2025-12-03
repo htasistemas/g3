@@ -1,49 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
+import {
+  CourseRecord,
+  CursosAtendimentosService,
+  Enrollment,
+  Enrollment as EnrollmentRecord,
+  WaitlistEntry
+} from '../../services/cursos-atendimentos.service';
 
 interface StepTab {
   id: string;
   label: string;
 }
 
-type CourseType = 'Curso' | 'Atendimento';
-
-type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
-
-interface Enrollment {
-  id: string;
-  beneficiaryName: string;
-  cpf: string;
-  status: EnrollmentStatus;
-  enrolledAt: Date;
-}
-
-interface WaitlistEntry {
-  id: string;
-  beneficiaryName: string;
-  cpf: string;
-  joinedAt: Date;
-}
-
-interface CourseRecord {
-  id: string;
-  tipo: CourseType;
-  nome: string;
-  descricao: string;
-  imagem?: string;
-  vagasTotais: number;
-  vagasDisponiveis: number;
-  cargaHoraria?: number;
-  horarioInicial: string;
-  duracaoHoras: number;
-  diasSemana: string[];
-  profissional: string;
-  createdAt: Date;
-  enrollments: Enrollment[];
-  waitlist: WaitlistEntry[];
-}
+type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
 
 @Component({
   selector: 'app-cursos-atendimentos',
@@ -52,9 +24,9 @@ interface CourseRecord {
   templateUrl: './cursos-atendimentos.component.html',
   styleUrl: './cursos-atendimentos.component.scss'
 })
-export class CursosAtendimentosComponent {
+export class CursosAtendimentosComponent implements OnInit {
   readonly tabs: StepTab[] = [
-    { id: 'dados', label: 'Dados do Curso/Atendimento' },
+    { id: 'dados', label: 'Dados do Curso/Atendimento/Oficinas' },
     { id: 'inscricoes', label: 'Inscrições & Lista de Espera' },
     { id: 'documentos', label: 'Certificados & Atestados' },
     { id: 'dashboard', label: 'Dashboard' }
@@ -80,7 +52,10 @@ export class CursosAtendimentosComponent {
 
   records: CourseRecord[] = [];
 
-  constructor(private readonly fb: FormBuilder) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly service: CursosAtendimentosService
+  ) {
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
       nome: ['', Validators.required],
@@ -98,46 +73,24 @@ export class CursosAtendimentosComponent {
       beneficiaryName: ['', Validators.required],
       cpf: ['', Validators.required]
     });
-
-    this.seedData();
   }
 
-  seedData(): void {
-    const initial: CourseRecord = {
-      id: crypto.randomUUID(),
-      tipo: 'Curso',
-      nome: 'Oficina de Inclusão Digital',
-      descricao: 'Curso introdutório com foco em uso de ferramentas online para empregabilidade.',
-      vagasTotais: 12,
-      vagasDisponiveis: 8,
-      cargaHoraria: 20,
-      horarioInicial: '09:00',
-      duracaoHoras: 2,
-      diasSemana: ['Terça-feira', 'Quinta-feira'],
-      profissional: 'Maria Silva',
-      createdAt: new Date(),
-      enrollments: [
-        {
-          id: crypto.randomUUID(),
-          beneficiaryName: 'João Pereira',
-          cpf: '000.111.222-33',
-          status: 'Ativo',
-          enrolledAt: new Date()
-        },
-        {
-          id: crypto.randomUUID(),
-          beneficiaryName: 'Ana Costa',
-          cpf: '999.888.777-66',
-          status: 'Concluído',
-          enrolledAt: new Date()
-        }
-      ],
-      waitlist: []
-    };
+  ngOnInit(): void {
+    this.fetchRecords();
+  }
 
-    initial.vagasDisponiveis = this.calculateAvailable(initial);
-    this.records = [initial];
-    this.loadCourse(initial.id);
+  fetchRecords(): void {
+    this.service.list().subscribe({
+      next: (records) => {
+        this.records = records.map((record) => this.normalizeRecord(record));
+        if (this.records.length) {
+          this.loadCourse(this.records[0].id);
+        }
+      },
+      error: () => {
+        this.feedback = 'Não foi possível carregar os registros. Tente novamente.';
+      }
+    });
   }
 
   get activeTabIndex(): number {
@@ -195,48 +148,46 @@ export class CursosAtendimentosComponent {
     const payload = this.courseForm.value;
     this.saving = true;
 
-    setTimeout(() => {
-      if (this.editingId) {
-        const course = this.records.find((c) => c.id === this.editingId);
-        if (course) {
-          course.tipo = payload.tipo;
-          course.nome = payload.nome;
-          course.descricao = payload.descricao;
-          course.imagem = payload.imagem;
-          course.vagasTotais = payload.vagasTotais;
-          course.cargaHoraria = payload.cargaHoraria ?? undefined;
-          course.horarioInicial = payload.horarioInicial;
-          course.duracaoHoras = payload.duracaoHoras;
-          course.diasSemana = payload.diasSemana ?? [];
-          course.profissional = payload.profissional;
-          course.vagasDisponiveis = this.calculateAvailable(course);
-        }
-      } else {
-        const newCourse: CourseRecord = {
-          id: crypto.randomUUID(),
-          tipo: payload.tipo,
-          nome: payload.nome,
-          descricao: payload.descricao,
-          imagem: payload.imagem,
-          vagasTotais: payload.vagasTotais,
-          vagasDisponiveis: payload.vagasTotais,
-          cargaHoraria: payload.cargaHoraria ?? undefined,
-          horarioInicial: payload.horarioInicial,
-          duracaoHoras: payload.duracaoHoras,
+    if (this.editingId) {
+      this.service
+        .update(this.editingId, {
+          ...payload,
           diasSemana: payload.diasSemana ?? [],
-          profissional: payload.profissional,
-          createdAt: new Date(),
+          enrollments: this.currentCourse?.enrollments ?? [],
+          waitlist: this.currentCourse?.waitlist ?? []
+        })
+        .subscribe({
+          next: (updated) => {
+            this.replaceRecord(updated);
+            this.feedback = 'Cadastro salvo com sucesso!';
+            this.saving = false;
+          },
+          error: () => {
+            this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
+            this.saving = false;
+          }
+        });
+    } else {
+      this.service
+        .create({
+          ...payload,
+          diasSemana: payload.diasSemana ?? [],
           enrollments: [],
           waitlist: []
-        };
-        newCourse.vagasDisponiveis = this.calculateAvailable(newCourse);
-        this.records = [newCourse, ...this.records];
-        this.editingId = newCourse.id;
-      }
-
-      this.feedback = 'Cadastro salvo com sucesso!';
-      this.saving = false;
-    }, 400);
+        })
+        .subscribe({
+          next: (created) => {
+            this.records = [this.normalizeRecord(created), ...this.records];
+            this.editingId = created.id;
+            this.feedback = 'Cadastro salvo com sucesso!';
+            this.saving = false;
+          },
+          error: () => {
+            this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
+            this.saving = false;
+          }
+        });
+    }
   }
 
   loadCourse(courseId: string): void {
@@ -299,15 +250,16 @@ export class CursosAtendimentosComponent {
     const { beneficiaryName, cpf } = this.enrollmentForm.value;
 
     if (this.currentCourse.vagasDisponiveis > 0) {
-      const enrollment: Enrollment = {
+      const enrollment: EnrollmentRecord = {
         id: crypto.randomUUID(),
         beneficiaryName,
         cpf,
         status: 'Ativo',
-        enrolledAt: new Date()
+        enrolledAt: new Date().toISOString()
       };
       this.currentCourse.enrollments.push(enrollment);
       this.currentCourse.vagasDisponiveis = this.calculateAvailable(this.currentCourse);
+      this.persistCurrentCourse();
       this.enrollmentForm.reset();
       this.enrollmentForm.patchValue({ beneficiaryName: '', cpf: '' });
     } else {
@@ -319,9 +271,10 @@ export class CursosAtendimentosComponent {
           id: crypto.randomUUID(),
           beneficiaryName,
           cpf,
-          joinedAt: new Date()
+          joinedAt: new Date().toISOString()
         };
         this.currentCourse.waitlist.push(entry);
+        this.persistCurrentCourse();
         this.enrollmentForm.reset();
         this.enrollmentForm.patchValue({ beneficiaryName: '', cpf: '' });
       }
@@ -351,11 +304,13 @@ export class CursosAtendimentosComponent {
     }
 
     this.tryPromoteWaitlist();
+    this.persistCurrentCourse();
   }
 
   removeFromWaitlist(entry: WaitlistEntry): void {
     if (!this.currentCourse) return;
     this.currentCourse.waitlist = this.currentCourse.waitlist.filter((item) => item.id !== entry.id);
+    this.persistCurrentCourse();
   }
 
   tryPromoteWaitlist(): void {
@@ -364,31 +319,33 @@ export class CursosAtendimentosComponent {
     if (this.currentCourse.waitlist.length === 0) return;
 
     const [first, ...rest] = this.currentCourse.waitlist;
-    const enrollment: Enrollment = {
+    const enrollment: EnrollmentRecord = {
       id: crypto.randomUUID(),
       beneficiaryName: first.beneficiaryName,
       cpf: first.cpf,
       status: 'Ativo',
-      enrolledAt: new Date()
+      enrolledAt: new Date().toISOString()
     };
     this.currentCourse.waitlist = rest;
     this.currentCourse.enrollments.push(enrollment);
     this.currentCourse.vagasDisponiveis = this.calculateAvailable(this.currentCourse);
+    this.persistCurrentCourse();
   }
 
   convertWaitlist(entry: WaitlistEntry): void {
     if (!this.currentCourse || this.currentCourse.vagasDisponiveis <= 0) return;
 
     this.removeFromWaitlist(entry);
-    const enrollment: Enrollment = {
+    const enrollment: EnrollmentRecord = {
       id: crypto.randomUUID(),
       beneficiaryName: entry.beneficiaryName,
       cpf: entry.cpf,
       status: 'Ativo',
-      enrolledAt: new Date()
+      enrolledAt: new Date().toISOString()
     };
     this.currentCourse.enrollments.push(enrollment);
     this.currentCourse.vagasDisponiveis = this.calculateAvailable(this.currentCourse);
+    this.persistCurrentCourse();
   }
 
   calculateAvailable(course: CourseRecord): number {
@@ -477,5 +434,37 @@ export class CursosAtendimentosComponent {
   fillFromCourse(course: CourseRecord): void {
     this.loadCourse(course.id);
     this.changeTab('dados');
+  }
+
+  private normalizeRecord(record: CourseRecord): CourseRecord {
+    return {
+      ...record,
+      imagem: record.imagem ?? null,
+      diasSemana: record.diasSemana ?? [],
+      enrollments: (record.enrollments ?? []).map((enrollment) => ({
+        ...enrollment,
+        enrolledAt: enrollment.enrolledAt ?? new Date().toISOString()
+      })),
+      waitlist: (record.waitlist ?? []).map((entry) => ({
+        ...entry,
+        joinedAt: entry.joinedAt ?? new Date().toISOString()
+      }))
+    };
+  }
+
+  private replaceRecord(updated: CourseRecord): void {
+    const normalized = this.normalizeRecord(updated);
+    this.records = this.records.map((record) => (record.id === normalized.id ? normalized : record));
+    this.loadCourse(normalized.id);
+  }
+
+  private persistCurrentCourse(): void {
+    if (!this.currentCourse) return;
+    this.service.update(this.currentCourse.id, this.currentCourse).subscribe({
+      next: (record) => this.replaceRecord(record),
+      error: () => {
+        this.feedback = 'Não foi possível salvar as alterações. Tente novamente.';
+      }
+    });
   }
 }

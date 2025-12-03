@@ -18,6 +18,7 @@ import { PlanoAtividade } from './entities/PlanoAtividade';
 import { PlanoEtapa } from './entities/PlanoEtapa';
 import { PlanoCronogramaItem } from './entities/PlanoCronogramaItem';
 import { PlanoEquipe } from './entities/PlanoEquipe';
+import { CursoAtendimento } from './entities/CursoAtendimento';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -65,7 +66,8 @@ const baseOptions = {
     PlanoAtividade,
     PlanoEtapa,
     PlanoCronogramaItem,
-    PlanoEquipe
+    PlanoEquipe,
+    CursoAtendimento
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;

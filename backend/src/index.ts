@@ -15,6 +15,7 @@ import planosTrabalhoRoutes from './routes/planos-trabalho.routes';
 import termosFomentoRoutes from './routes/termos-fomento.routes';
 import dashboardAssistenciaRoutes from './routes/dashboard-assistencia.routes';
 import reportsRoutes from './routes/reports.routes';
+import cursosAtendimentosRoutes from './routes/cursos-atendimentos.routes';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use('/api/planos-trabalho', planosTrabalhoRoutes);
 app.use('/api/termos-fomento', termosFomentoRoutes);
 app.use('/api/dashboard', dashboardAssistenciaRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/cursos-atendimentos', cursosAtendimentosRoutes);
 
 async function start() {
   try {
