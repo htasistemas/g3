@@ -1031,248 +1031,34 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const documentWindow = window.open('', '_blank', 'width=1080,height=1400');
     if (!documentWindow) return;
 
-    documentWindow.document.write(`
-      <html lang="pt-BR">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Ficha Individual do Beneficiário - Sistema G3</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-          <script>
-            tailwind.config = {
-              theme: {
-                extend: {
-                  fontFamily: { sans: ['Inter', 'sans-serif'] },
-                  colors: {
-                    brand: {
-                      50: '#f0f9ff',
-                      100: '#e0f2fe',
-                      500: '#0ea5e9',
-                      600: '#0284c7',
-                      700: '#0369a1',
-                      900: '#0c4a6e'
-                    }
-                  }
-                }
-              }
-            };
-          </script>
-          <style>
-            body { background-color: #f3f4f6; -webkit-print-color-adjust: exact; }
-            @media print {
-              body { background-color: white; }
-              .no-print { display: none !important; }
-              .page-break { page-break-inside: avoid; }
-              .shadow-lg, .shadow-md { box-shadow: none !important; border: 1px solid #e5e7eb; }
-              .container { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
-            }
-            .data-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 600; margin-bottom: 0.25rem; }
-            .data-value { font-size: 0.95rem; color: #1f2937; font-weight: 500; min-height: 1.5rem; border-bottom: 1px dashed #e5e7eb; padding-bottom: 2px; }
-            .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #f3f4f6; }
-            .section-header { display: flex; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f3f4f6; }
-            .section-title { font-size: 1.125rem; font-weight: 700; color: #0c4a6e; margin-left: 0.5rem; }
-            .logo-image { width: 100%; height: 100%; object-fit: contain; }
-          </style>
-        </head>
-        <body class="text-slate-800 p-4 md:p-8">
-          <div class="max-w-5xl mx-auto bg-white p-0 md:p-0 shadow-none md:shadow-none rounded-none print:shadow-none">
-            <header class="bg-white p-6 rounded-t-xl border-b-4 border-brand-600 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 page-break card mt-0">
-              <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-lg flex items-center justify-center border border-brand-100 overflow-hidden">
-                  ${
-                    logo
-                      ? `<img src="${logo}" alt="Logomarca da unidade" class="logo-image" />`
-                      : '<i class="fa-solid fa-building-columns text-3xl"></i>'
-                  }
-                </div>
-                <div>
-                  <h1 class="text-2xl font-bold text-slate-900 uppercase tracking-tight">${socialName}</h1>
-                  ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="text-sm text-slate-500">${unit.nomeFantasia}</p>` : ''}
-                  <p class="text-sm text-slate-500">${unit?.cnpj ? `CNPJ: ${unit.cnpj}` : ''}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <h2 class="text-lg font-bold text-brand-700">FICHA INDIVIDUAL</h2>
-                <p class="text-xs text-slate-400">Gerado em: ${formattedGeneratedAt}</p>
-              </div>
-            </header>
+    const html = this.buildIndividualReportTemplate({
+      age,
+      address,
+      beneficiaryName,
+      benefits,
+      city: formattedCity,
+      codigo,
+      contact,
+      documents,
+      familyMembers,
+      formattedBirthDate,
+      formattedGeneratedAt,
+      formattedInclusionDate,
+      formattedNaturalidade,
+      institutionAddress,
+      logo,
+      observacoes: value.observacoes?.observacoes,
+      personal,
+      photoUrl,
+      rendaFamiliar,
+      rendaPerCapita,
+      socialName,
+      status: value.status,
+      statusLabel,
+      unit
+    });
 
-            <div class="card page-break">
-              <div class="flex flex-col md:flex-row gap-6 items-start">
-                <div class="w-full md:w-48 flex-shrink-0 flex flex-col items-center">
-                  <div class="w-40 h-40 rounded-lg overflow-hidden border-4 border-slate-100 shadow-inner mb-3">
-                    <img src="${photoUrl}" alt="Foto do Beneficiário" class="w-full h-full object-cover" />
-                  </div>
-                  <span class="px-3 py-1 ${value.status === 'BLOQUEADO' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} rounded-full text-xs font-bold uppercase border">
-                    <i class="fa-solid fa-circle-info mr-1"></i> ${statusLabel}
-                  </span>
-                </div>
-
-                <div class="flex-grow w-full">
-                  <div class="mb-4">
-                    <label class="data-label">Nome Completo do Beneficiário</label>
-                    <div class="text-2xl font-bold text-slate-900 uppercase">${beneficiaryName}</div>
-                  </div>
-
-                  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                    <div>
-                      <label class="data-label">Código do beneficiário</label>
-                      <div class="data-value font-mono text-brand-700">${codigo}</div>
-                    </div>
-                    <div>
-                      <label class="data-label">CPF</label>
-                      <div class="data-value font-mono text-brand-700">${displayValue(documents.cpf)}</div>
-                    </div>
-                    <div>
-                      <label class="data-label">Data de Inclusão</label>
-                      <div class="data-value">${formattedInclusionDate}</div>
-                    </div>
-                    <div>
-                      <label class="data-label">Categoria</label>
-                      <div class="data-value">${displayValue(personal.categoria || personal.tipo_cadastro)}</div>
-                    </div>
-                  </div>
-                  <div class="mt-4 p-3 bg-slate-50 rounded border border-slate-100">
-                    <label class="data-label text-xs">Programa Vinculado</label>
-                    <div class="text-sm font-semibold text-slate-700"><i class="fa-solid fa-people-roof mr-2 text-brand-500"></i>${displayValue(personal.programa_vinculado)}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="card page-break">
-                <div class="section-header">
-                  <i class="fa-regular fa-id-card text-brand-500 text-lg"></i>
-                  <h3 class="section-title">Dados Pessoais</h3>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">RG / Órgão Emissor</label>
-                    <div class="data-value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</div>
-                  </div>
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">UF emissor</label>
-                    <div class="data-value">${displayValue(documents.rg_uf)}</div>
-                  </div>
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">Data de Nascimento</label>
-                    <div class="data-value">${formattedBirthDate}${age !== null ? ` (${age} anos)` : ''}</div>
-                  </div>
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">Sexo</label>
-                    <div class="data-value">${displayValue(personal.sexo_biologico)}</div>
-                  </div>
-                  <div class="col-span-2">
-                    <label class="data-label">Nome da Mãe</label>
-                    <div class="data-value">${displayValue(personal.nome_mae)}</div>
-                  </div>
-                  <div class="col-span-2">
-                    <label class="data-label">Nome do Pai</label>
-                    <div class="data-value">${displayValue(personal.nome_pai)}</div>
-                  </div>
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">Estado Civil</label>
-                    <div class="data-value">${displayValue(personal.estado_civil)}</div>
-                  </div>
-                  <div class="col-span-2 sm:col-span-1">
-                    <label class="data-label">Naturalidade</label>
-                    <div class="data-value">${displayValue(formattedNaturalidade)}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="card page-break">
-                <div class="section-header">
-                  <i class="fa-solid fa-map-location-dot text-brand-500 text-lg"></i>
-                  <h3 class="section-title">Endereço & Contato</h3>
-                </div>
-                <div class="grid grid-cols-1 gap-4">
-                  <div>
-                    <label class="data-label">Endereço</label>
-                    <div class="data-value">${this.joinParts([
-                      this.joinParts([address.logradouro, address.numero], ', '),
-                      address.complemento,
-                      address.bairro,
-                      formattedCity,
-                      address.cep
-                    ]) || '---'}</div>
-                  </div>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div>
-                      <label class="data-label">Ponto de referência</label>
-                      <div class="data-value">${displayValue(address.ponto_referencia)}</div>
-                    </div>
-                    <div>
-                      <label class="data-label">Zona</label>
-                      <div class="data-value">${displayValue(address.zona)}</div>
-                    </div>
-                  </div>
-                  <div class="mt-2 pt-2 border-t border-slate-100">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label class="data-label"><i class="fa-solid fa-phone-flip mr-1"></i> Celular</label>
-                        <div class="data-value">${displayValue(contact.telefone_principal)}</div>
-                      </div>
-                      <div>
-                        <label class="data-label"><i class="fa-regular fa-envelope mr-1"></i> E-mail</label>
-                        <div class="data-value text-sm lowercase">${displayValue(contact.email)}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card page-break">
-              <div class="section-header">
-                <i class="fa-solid fa-chart-line text-brand-500 text-lg"></i>
-                <h3 class="section-title">Dados Socioeconômicos (Sistema G3)</h3>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <label class="data-label">Renda Familiar</label>
-                  <div class="data-value">${displayValue(rendaFamiliar)}</div>
-                </div>
-                <div>
-                  <label class="data-label">Renda Per Capita</label>
-                  <div class="data-value">${displayValue(rendaPerCapita)}</div>
-                </div>
-                <div>
-                  <label class="data-label">Nº Membros Família</label>
-                  <div class="data-value">${displayValue(familyMembers)}</div>
-                </div>
-                <div>
-                  <label class="data-label">Benefício Gov.</label>
-                  <div class="data-value">${benefits.recebe_beneficio ? displayValue(benefits.beneficios_descricao, 'Sim') : 'Não'}</div>
-                </div>
-              </div>
-
-              <div class="mt-6">
-                <label class="data-label mb-2 block">Observações do Assistente Social</label>
-                <div class="w-full p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-slate-700 leading-relaxed text-justify">
-                  ${displayValue(value.observacoes?.observacoes, 'Sem observações registradas.')}
-                </div>
-              </div>
-            </div>
-
-            <footer class="mt-8 pt-8 border-t-2 border-slate-200 text-center pb-8 no-break-inside">
-              <div class="flex flex-col items-center justify-center text-slate-500 space-y-2">
-                <h4 class="font-bold text-slate-700 uppercase tracking-widest text-sm">${socialName}</h4>
-                ${unit?.cnpj ? `<p class="text-xs">CNPJ: ${unit.cnpj}</p>` : ''}
-                <p class="text-xs">${institutionAddress}</p>
-                <p class="text-xs">${this.joinParts([unit?.telefone, unit?.email], ' | ') || ''}</p>
-                <div class="pt-4 text-[10px] text-slate-300">
-                  Documento gerado eletronicamente pelo Sistema G3 em ${formattedGeneratedAt}.
-                </div>
-              </div>
-            </footer>
-          </div>
-        </body>
-      </html>
-    `);
+    documentWindow.document.write(html);
 
     documentWindow.document.close();
 
@@ -1322,6 +1108,297 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (documentWindow.document.readyState === 'complete') {
       handleLoad();
     }
+  }
+
+  private buildIndividualReportTemplate(options: {
+    age: number | null;
+    address: any;
+    beneficiaryName: string;
+    benefits: any;
+    city: string | null;
+    codigo: string;
+    contact: any;
+    documents: any;
+    familyMembers: any;
+    formattedBirthDate: string;
+    formattedGeneratedAt: string;
+    formattedInclusionDate: string;
+    formattedNaturalidade: string | null;
+    institutionAddress: string;
+    logo?: string | null;
+    observacoes?: string;
+    personal: any;
+    photoUrl: string;
+    rendaFamiliar: string | null;
+    rendaPerCapita: string | null;
+    socialName: string;
+    status?: string;
+    statusLabel: string;
+    unit?: AssistanceUnitPayload;
+  }): string {
+    const {
+      age,
+      address,
+      beneficiaryName,
+      benefits,
+      city,
+      codigo,
+      contact,
+      documents,
+      familyMembers,
+      formattedBirthDate,
+      formattedGeneratedAt,
+      formattedInclusionDate,
+      formattedNaturalidade,
+      institutionAddress,
+      logo,
+      observacoes,
+      personal,
+      photoUrl,
+      rendaFamiliar,
+      rendaPerCapita,
+      socialName,
+      status,
+      statusLabel,
+      unit
+    } = options;
+
+    const displayValue = (val?: string | number | null, placeholder = '---'): string =>
+      this.hasValue(val) ? String(val) : placeholder;
+
+    const addressLabel =
+      this.joinParts([
+        this.joinParts([address.logradouro, address.numero], ', '),
+        address.complemento,
+        address.bairro,
+        city,
+        address.cep
+      ]) || '---';
+
+    const statusClass = status === 'BLOQUEADO' ? 'status status--blocked' : 'status status--active';
+    const benefitsLabel = benefits.recebe_beneficio
+      ? displayValue(benefits.beneficios_descricao, 'Sim')
+      : 'Não';
+
+    const programaVinculado = displayValue(personal.programa_vinculado);
+
+    return `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Ficha Individual do Beneficiário - Sistema G3</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            :root {
+              --brand-50: #f0f7ff;
+              --brand-100: #d9e9ff;
+              --brand-500: #1d7ed2;
+              --brand-700: #0d4d8c;
+              --slate-700: #334155;
+              --slate-500: #64748b;
+              --slate-300: #cbd5e1;
+              --accent: #fbbf24;
+            }
+
+            * { box-sizing: border-box; }
+            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
+            .report { max-width: 1080px; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); overflow: hidden; }
+            .report__inner { padding: 28px; }
+            .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 16px; }
+            .identity { display: flex; align-items: center; gap: 14px; }
+            .logo { width: 72px; height: 72px; border: 1px solid var(--slate-300); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-50); overflow: hidden; }
+            .logo img { width: 100%; height: 100%; object-fit: contain; }
+            .unit-name { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--slate-700); }
+            .unit-meta { margin: 2px 0; color: var(--slate-500); font-size: 12px; }
+            .header__title { text-align: right; }
+            .header__title h1 { margin: 0; font-size: 18px; color: var(--brand-700); letter-spacing: 0.3px; }
+            .header__title p { margin: 2px 0 0; font-size: 12px; color: var(--slate-500); }
+
+            .hero { display: grid; grid-template-columns: 220px 1fr; gap: 20px; margin: 20px 0 12px; }
+            .photo { width: 100%; height: 220px; border-radius: 14px; overflow: hidden; border: 2px solid var(--slate-300); box-shadow: inset 0 0 0 1px #e2e8f0; background: #fff; }
+            .photo img { width: 100%; height: 100%; object-fit: cover; }
+            .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; margin-top: 10px; border: 1px solid #cbd5e1; }
+            .status.status--blocked { color: #b91c1c; background: #fee2e2; border-color: #fecdd3; }
+            .status.status--active { color: #166534; background: #dcfce7; border-color: #bbf7d0; }
+            .headline { padding: 14px 16px; border-radius: 12px; background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 1px solid #e2e8f0; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04); }
+            .headline__name { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #0f172a; }
+            .chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+            .chip { padding: 10px 12px; border: 1px dashed #e2e8f0; border-radius: 10px; background: #fff; font-size: 13px; }
+            .chip strong { display: block; font-size: 12px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.3px; }
+
+            .grid { display: grid; gap: 16px; margin: 14px 0; }
+            .grid--two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+            .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); }
+            .card__title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+            .card__title h2 { margin: 0; font-size: 15px; color: var(--brand-700); letter-spacing: 0.3px; }
+            .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+            .field { padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+            .field__label { margin: 0 0 4px; font-size: 11px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.25px; }
+            .field__value { margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; word-break: break-word; }
+
+            .note { margin-top: 10px; padding: 12px; background: #fef9c3; border: 1px solid #fef08a; border-radius: 10px; font-size: 13px; color: #713f12; line-height: 1.5; }
+            footer { text-align: center; padding: 18px; border-top: 1px solid #e2e8f0; margin-top: 8px; font-size: 12px; color: var(--slate-500); }
+            footer .footer-name { font-weight: 800; letter-spacing: 0.3px; color: #0f172a; }
+            @media print {
+              body { background: #fff; padding: 0; }
+              .report { box-shadow: none; border: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <article class="report">
+            <div class="report__inner">
+              <header class="header">
+                <div class="identity">
+                  <div class="logo">${
+                    logo
+                      ? `<img src="${logo}" alt="Logomarca da unidade" />`
+                      : '<span aria-hidden="true">🏛️</span>'
+                  }</div>
+                  <div>
+                    <p class="unit-name">${socialName}</p>
+                    ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="unit-meta">${unit.nomeFantasia}</p>` : ''}
+                    ${unit?.cnpj ? `<p class="unit-meta">CNPJ: ${unit.cnpj}</p>` : ''}
+                  </div>
+                </div>
+                <div class="header__title">
+                  <h1>Ficha Individual</h1>
+                  <p>Gerado em ${formattedGeneratedAt}</p>
+                </div>
+              </header>
+
+              <section class="hero">
+                <div>
+                  <div class="photo">
+                    <img src="${photoUrl}" alt="Foto do beneficiário" />
+                  </div>
+                  <div class="${statusClass}" aria-label="Status do beneficiário">${statusLabel}</div>
+                </div>
+                <div class="headline">
+                  <p class="headline__name">${beneficiaryName}</p>
+                  <div class="chips">
+                    <div class="chip"><strong>Código</strong>${codigo}</div>
+                    <div class="chip"><strong>CPF</strong>${displayValue(documents.cpf)}</div>
+                    <div class="chip"><strong>Data de inclusão</strong>${formattedInclusionDate}</div>
+                    <div class="chip"><strong>Categoria</strong>${displayValue(personal.categoria || personal.tipo_cadastro)}</div>
+                  </div>
+                  <div class="chip" style="margin-top: 10px; border-style: solid; border-color: #e0f2fe; background: #f0f9ff;">
+                    <strong>Programa vinculado</strong>${programaVinculado}
+                  </div>
+                </div>
+              </section>
+
+              <section class="grid grid--two">
+                <div class="card">
+                  <div class="card__title">
+                    <h2>Dados pessoais</h2>
+                  </div>
+                  <div class="fields">
+                    <div class="field">
+                      <p class="field__label">RG / Órgão emissor</p>
+                      <p class="field__value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">UF emissor</p>
+                      <p class="field__value">${displayValue(documents.rg_uf)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Nascimento</p>
+                      <p class="field__value">${formattedBirthDate}${age !== null ? ` (${age} anos)` : ''}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Sexo</p>
+                      <p class="field__value">${displayValue(personal.sexo_biologico)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Nome da mãe</p>
+                      <p class="field__value">${displayValue(personal.nome_mae)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Nome do pai</p>
+                      <p class="field__value">${displayValue(personal.nome_pai)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Estado civil</p>
+                      <p class="field__value">${displayValue(personal.estado_civil)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Naturalidade</p>
+                      <p class="field__value">${displayValue(formattedNaturalidade)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card__title">
+                    <h2>Endereço & contato</h2>
+                  </div>
+                  <div class="fields">
+                    <div class="field" style="grid-column: span 2;">
+                      <p class="field__label">Endereço</p>
+                      <p class="field__value">${addressLabel}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Ponto de referência</p>
+                      <p class="field__value">${displayValue(address.ponto_referencia)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Zona</p>
+                      <p class="field__value">${displayValue(address.zona)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">Celular</p>
+                      <p class="field__value">${displayValue(contact.telefone_principal)}</p>
+                    </div>
+                    <div class="field">
+                      <p class="field__label">E-mail</p>
+                      <p class="field__value">${displayValue(contact.email)}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <div class="card__title">
+                  <h2>Dados socioeconômicos</h2>
+                </div>
+                <div class="fields" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+                  <div class="field">
+                    <p class="field__label">Renda familiar</p>
+                    <p class="field__value">${displayValue(rendaFamiliar)}</p>
+                  </div>
+                  <div class="field">
+                    <p class="field__label">Renda per capita</p>
+                    <p class="field__value">${displayValue(rendaPerCapita)}</p>
+                  </div>
+                  <div class="field">
+                    <p class="field__label">Membros da família</p>
+                    <p class="field__value">${displayValue(familyMembers)}</p>
+                  </div>
+                  <div class="field">
+                    <p class="field__label">Benefício governamental</p>
+                    <p class="field__value">${benefitsLabel}</p>
+                  </div>
+                </div>
+                <div class="note">
+                  <strong>Observações do assistente social:</strong><br />
+                  ${displayValue(observacoes, 'Sem observações registradas.')}
+                </div>
+              </section>
+            </div>
+            <footer>
+              <p class="footer-name">${socialName}</p>
+              ${unit?.cnpj ? `<p>CNPJ: ${unit.cnpj}</p>` : ''}
+              <p>${institutionAddress}</p>
+              ${this.joinParts([unit?.telefone, unit?.email], ' | ') || ''}
+              <div style="margin-top: 10px; font-size: 11px; color: var(--slate-300);">Documento gerado eletronicamente pelo Sistema G3 em ${formattedGeneratedAt}.</div>
+            </footer>
+          </article>
+        </body>
+      </html>
+    `;
   }
 
   private buildConsentHtml(): string {
