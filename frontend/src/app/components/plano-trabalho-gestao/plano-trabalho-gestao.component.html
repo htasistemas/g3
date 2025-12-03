@@ -83,7 +83,7 @@
           <select formControlName="termoFomentoId">
             <option value=""></option>
             <option *ngFor="let termo of termos" [value]="termo.id">
-              {{ termo.numero }} - {{ termo.objeto || 'Objeto não informado' }}
+              {{ termo.numeroTermo }} - {{ termo.descricaoObjeto || 'Objeto não informado' }}
             </option>
           </select>
         </label>
@@ -95,7 +95,10 @@
       <div class="info-card" *ngIf="selectedTermo">
         <div>
           <p class="muted">Resumo do Termo selecionado</p>
-          <p><strong>Vigência:</strong> {{ selectedTermo.vigenciaInicio || '-' }} até {{ selectedTermo.vigenciaFim || '-' }}</p>
+          <p>
+            <strong>Vigência:</strong>
+            {{ selectedTermo.dataInicioVigencia || '-' }} até {{ selectedTermo.dataFimVigencia || '-' }}
+          </p>
           <p><strong>Órgão concedente:</strong> {{ selectedTermo.orgaoConcedente || '—' }}</p>
           <p><strong>Valor global:</strong> {{ selectedTermo.valorGlobal || '—' }}</p>
         </div>

@@ -17,11 +17,15 @@
     <div class="toolbar__filters">
       <label class="filter">
         <span>Pesquisa</span>
-        <input type="search" placeholder="Número, órgão ou responsável" (input)="search = ($event.target as HTMLInputElement).value; applyFilters()" />
+        <input
+          type="search"
+          placeholder="Número, órgão ou responsável"
+          (input)="onSearchInput($event)"
+        />
       </label>
       <label class="filter">
         <span>Situação</span>
-        <select (change)="situacaoFiltro = ($event.target as HTMLSelectElement).value as any; applyFilters()">
+        <select (change)="onSituacaoFiltroChange($event)">
           <option value="">Todas</option>
           <option value="Ativo">Ativo</option>
           <option value="Aditivado">Aditivado</option>
@@ -236,13 +240,20 @@
               <tr *ngFor="let aditivo of termoEmEdicao?.aditivos">
                 <td>{{ formatDate(aditivo.dataAditivo) }}</td>
                 <td>{{ aditivo.tipoAditivo }}</td>
-                <td>{{ formatDate(aditivo.novaDataFim) }}</td>
-                <td>{{ formatCurrency(aditivo.novoValor) }}</td>
-                <td>{{ aditivo.observacoes || '—' }}</td>
-                <td class="text-right">
-                  <a class="primary" *ngIf="aditivo.anexo?.dataUrl" [href]="aditivo.anexo.dataUrl" target="_blank">Abrir PDF</a>
-                </td>
-              </tr>
+              <td>{{ formatDate(aditivo.novaDataFim) }}</td>
+              <td>{{ formatCurrency(aditivo.novoValor) }}</td>
+              <td>{{ aditivo.observacoes || '—' }}</td>
+              <td class="text-right">
+                  <a
+                    class="primary"
+                    *ngIf="aditivo.anexo?.dataUrl"
+                    [href]="aditivo.anexo?.dataUrl"
+                    target="_blank"
+                  >
+                    Abrir PDF
+                  </a>
+              </td>
+            </tr>
               <tr *ngIf="!(termoEmEdicao?.aditivos?.length)">
                 <td colspan="6" class="muted">Nenhum aditivo cadastrado.</td>
               </tr>

@@ -1,8 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PlanoTrabalhoService, PlanoTrabalho, PlanoTrabalhoPayload, PlanoStatus } from '../../services/plano-trabalho.service';
-import { TermoFomento, TermoFomentoService } from '../../services/termo-fomento.service';
+import {
+  PlanoTrabalhoService,
+  PlanoTrabalho,
+  PlanoTrabalhoPayload,
+  PlanoStatus
+} from '../../services/plano-trabalho.service';
+import { TermoFomentoPayload, TermoFomentoService } from '../../services/termo-fomento.service';
 
 interface StepTab {
   id: string;
@@ -46,7 +51,7 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
   fonteRecursos = ['União', 'Estado', 'Município', 'Contrapartida', 'Outros'];
 
   planos: PlanoTrabalho[] = [];
-  termos: TermoFomento[] = [];
+  termos: TermoFomentoPayload[] = [];
 
   constructor(
     private readonly fb: FormBuilder,
@@ -89,7 +94,7 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
     return this.form.get('equipe') as FormArray;
   }
 
-  get selectedTermo(): TermoFomento | undefined {
+  get selectedTermo(): TermoFomentoPayload | undefined {
     const termoId = this.form.get('vinculo.termoFomentoId')?.value;
     return this.termos.find((t) => t.id === termoId);
   }
@@ -397,7 +402,7 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
   }
 
   loadTermos(): void {
-    this.termoService.list().subscribe((termos) => (this.termos = termos));
+    this.termos = this.termoService.list();
   }
 
   totalCronogramaPorFonte(): Record<string, number> {
