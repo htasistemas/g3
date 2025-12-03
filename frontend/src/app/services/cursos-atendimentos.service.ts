@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
-type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
+export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
+export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
 
 export interface Enrollment {
   id: string;
