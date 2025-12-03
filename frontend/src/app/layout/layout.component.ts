@@ -72,8 +72,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Dashboard',
       icon: faGauge,
       children: [
-        { label: 'Visão Geral', icon: faGauge, route: '/' },
-        { label: 'Indicadores', icon: faGauge }
+        { label: 'Visão Geral', icon: faGauge, route: '/dashboard/visao-geral' },
+        { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' }
       ]
     },
     {
