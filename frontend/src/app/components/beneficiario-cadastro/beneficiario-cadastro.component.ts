@@ -1091,10 +1091,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       const fontsReady = documentWindow.document.fonts?.ready;
       if (!fontsReady) return Promise.resolve();
 
-      return fontsReady.then(
-        () => undefined,
-        () => undefined
-      );
+      return fontsReady.then(() => undefined).catch(() => undefined);
     };
 
     const handleLoad = () => {
@@ -1134,7 +1131,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     socialName: string;
     status?: string;
     statusLabel: string;
-    unit?: AssistanceUnitPayload;
+    unit?: AssistanceUnitPayload | null;
   }): string {
     const {
       age,
