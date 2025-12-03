@@ -24,7 +24,7 @@ import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
 import { BibliotecaCadastroLivrosComponent } from './components/biblioteca-cadastro-livros/biblioteca-cadastro-livros.component';
 import { BibliotecaEmprestimosComponent } from './components/biblioteca-emprestimos/biblioteca-emprestimos.component';
-import { libraryEnabledGuard } from './guards/library-enabled.guard';
+import { libraryEnabledCanActivate, libraryEnabledCanMatch } from './guards/library-enabled.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -82,21 +82,21 @@ export const routes: Routes = [
       },
       {
         path: 'administrativo/biblioteca',
-        canMatch: [libraryEnabledGuard],
-        canActivate: [libraryEnabledGuard],
+        canMatch: [libraryEnabledCanMatch],
+        canActivate: [libraryEnabledCanActivate],
         children: [
           { path: '', redirectTo: 'livros', pathMatch: 'full' },
           {
             path: 'livros',
             component: BibliotecaCadastroLivrosComponent,
             data: { title: 'Biblioteca – Cadastro de Livros' },
-            canActivate: [libraryEnabledGuard]
+            canActivate: [libraryEnabledCanActivate]
           },
           {
             path: 'emprestimos',
             component: BibliotecaEmprestimosComponent,
             data: { title: 'Biblioteca – Empréstimo de Livros' },
-            canActivate: [libraryEnabledGuard]
+            canActivate: [libraryEnabledCanActivate]
           }
         ]
       },

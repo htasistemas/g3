@@ -68,6 +68,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   openSection: string | null = null;
 
+  private readonly libraryRoute = '/administrativo/biblioteca/livros';
+
   private readonly baseMenuSections: MenuItem[] = [
     {
       label: 'Dashboard',
@@ -178,15 +180,13 @@ export class LayoutComponent implements OnInit, OnDestroy {
         };
       }
 
-      const adminChildren = (section.children ?? []).filter(
-        (child) => !this.isLibraryRoute(child.route)
-      );
+      const adminChildren = [...(section.children ?? [])];
 
       if (this.libraryEnabled) {
         adminChildren.push({
           label: 'Biblioteca',
           icon: faClipboardList,
-          route: '/administrativo/biblioteca/livros'
+          route: this.libraryRoute
         });
       }
 
@@ -195,10 +195,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
         children: adminChildren
       };
     });
-  }
-
-  private isLibraryRoute(route?: string): boolean {
-    return route?.startsWith('/administrativo/biblioteca') ?? false;
   }
 
   get username(): string {
