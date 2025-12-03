@@ -8,6 +8,7 @@ import { DocumentoObrigatorio } from './beneficiary.service';
 export interface BeneficiarioApiPayload {
   id_beneficiario?: string;
   codigo?: string;
+  codigo_barras?: string;
   status?: 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO' | string;
   motivo_bloqueio?: string;
   foto_3x4?: string;
@@ -126,13 +127,13 @@ export class BeneficiarioApiService {
   list(params?: {
     nome?: string;
     cpf?: string;
-    nis?: string;
+    data_nascimento?: string;
     codigo?: string;
   }): Observable<{ beneficiarios: BeneficiarioApiPayload[] }> {
     let httpParams = new HttpParams();
     if (params?.nome) httpParams = httpParams.set('nome', params.nome);
     if (params?.cpf) httpParams = httpParams.set('cpf', params.cpf);
-    if (params?.nis) httpParams = httpParams.set('nis', params.nis);
+    if (params?.data_nascimento) httpParams = httpParams.set('data_nascimento', params.data_nascimento);
     if (params?.codigo) httpParams = httpParams.set('codigo', params.codigo);
     return this.http
       .get<{ beneficiarios: BeneficiarioApiPayload[] } | BeneficiarioApiPayload[] | { beneficiario?: BeneficiarioApiPayload }>(

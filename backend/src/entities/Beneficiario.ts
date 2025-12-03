@@ -307,16 +307,10 @@ export class Beneficiario {
   @OneToMany(() => FamiliaMembro, (membro) => membro.beneficiario)
   familias?: FamiliaMembro[];
 
-  static generateCodigo(): string {
-    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const timestamp = Date.now().toString(36).toUpperCase();
-    return `B-${timestamp}-${random}`;
-  }
+  private static codigoSequence = 0;
 
-  @BeforeInsert()
-  assignCodigo(): void {
-    if (!this.codigo) {
-      this.codigo = Beneficiario.generateCodigo();
-    }
+  static generateCodigo(): string {
+    Beneficiario.codigoSequence = (Beneficiario.codigoSequence % 99999) + 1;
+    return Beneficiario.codigoSequence.toString().padStart(5, '0');
   }
 }

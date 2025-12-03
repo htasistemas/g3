@@ -1,6 +1,7 @@
 import { Request, Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
+import { generateCodigoBarras, generateSequentialCodigo } from '../utils/beneficiary-code';
 
 const router = Router();
 
@@ -65,12 +66,16 @@ function isOutdated(entity?: Beneficiario | null): boolean {
 function resolveStatus(
   payload: Beneficiario,
   missingDocuments: string[],
-  options: { existing?: Beneficiario; requestedStatus?: BeneficiarioStatus }
+  options: { existing?: Beneficiario; requestedStatus?: BeneficiarioStatus; force?: boolean }
 ): BeneficiarioStatus {
   const hasPending = hasPendingData(payload, missingDocuments);
 
   if (!options.existing) {
     return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
+  }
+
+  if (options.force && options.requestedStatus) {
+    return options.requestedStatus;
   }
 
   if (hasPending) {
@@ -95,6 +100,7 @@ async function ensureCpfUnique(cpf: string, ignoreId?: string): Promise<boolean>
 function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Beneficiario {
   const body = req.body as Record<string, any>;
   const cpf = sanitizeCpf(body.cpf ?? existing?.cpf ?? undefined);
+  const forceStatusUpdate = parseBoolean(body.statusOnly ?? body.status_only, false);
   const documentosObrigatorios = Array.isArray(body?.documentosObrigatorios)
     ? body.documentosObrigatorios
     : existing?.documentosObrigatorios
@@ -104,7 +110,7 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
   const payload: Beneficiario = {
     ...existing,
-    codigo: existing?.codigo ?? Beneficiario.generateCodigo(),
+    codigo: existing?.codigo ?? body.codigo,
     nomeCompleto: body.nome_completo ?? body.nomeCompleto ?? existing?.nomeCompleto ?? '',
     nomeSocial: body.nome_social ?? body.nomeSocial ?? existing?.nomeSocial,
     apelido: body.apelido ?? existing?.apelido,
@@ -200,18 +206,37 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
   payload.status = resolveStatus(payload, missingDocuments, {
     existing,
-    requestedStatus: body.status ?? existing?.status
+    requestedStatus: body.status ?? existing?.status,
+    force: forceStatusUpdate
   });
 
   return payload;
 }
 
+async function ensureCodigo(
+  repository: ReturnType<typeof AppDataSource.getRepository>,
+  payload: Beneficiario
+): Promise<Beneficiario> {
+  if (payload.codigo) return payload;
+
+  const nextCodigo = await generateSequentialCodigo(repository);
+  payload.codigo = nextCodigo;
+  return payload;
+}
+
+async function addBarcode<T extends { codigo?: string | null }>(
+  beneficiario: T
+): Promise<T & { codigo_barras?: string }> {
+  const codigo_barras = await generateCodigoBarras(beneficiario.codigo);
+  return { ...beneficiario, codigo_barras };
+}
+
 router.get('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
-  const { nome, cpf, nis, codigo } = req.query as {
+  const { nome, cpf, data_nascimento, codigo } = req.query as {
     nome?: string;
     cpf?: string;
-    nis?: string;
+    data_nascimento?: string;
     codigo?: string;
   };
   const qb = repository.createQueryBuilder('beneficiario');
@@ -225,8 +250,8 @@ router.get('/', async (req, res) => {
   if (cpf) {
     qb.andWhere('beneficiario.cpf = :cpf', { cpf: onlyDigits(String(cpf)) });
   }
-  if (nis) {
-    qb.andWhere('beneficiario.nis = :nis', { nis });
+  if (data_nascimento) {
+    qb.andWhere('beneficiario.data_nascimento = :data_nascimento', { data_nascimento });
   }
   if (codigo) {
     qb.andWhere('LOWER(beneficiario.codigo) LIKE LOWER(:codigo)', { codigo: `%${codigo}%` });
@@ -236,12 +261,10 @@ router.get('/', async (req, res) => {
 
   const withoutCodigo = beneficiarios.filter((item) => !item.codigo);
   if (withoutCodigo.length) {
-    await Promise.all(
-      withoutCodigo.map((record) => {
-        record.codigo = Beneficiario.generateCodigo();
-        return repository.save(record);
-      })
-    );
+    for (const record of withoutCodigo) {
+      record.codigo = await generateSequentialCodigo(repository);
+      await repository.save(record);
+    }
   }
 
   const outdated = beneficiarios.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
@@ -253,7 +276,9 @@ router.get('/', async (req, res) => {
       })
     );
   }
-  res.json({ beneficiarios });
+  const beneficiariosComCodigo = await Promise.all(beneficiarios.map((item) => addBarcode(item)));
+
+  res.json({ beneficiarios: beneficiariosComCodigo });
 });
 
 router.get('/:id', async (req, res) => {
@@ -265,7 +290,7 @@ router.get('/:id', async (req, res) => {
   }
 
   if (!beneficiario.codigo) {
-    beneficiario.codigo = Beneficiario.generateCodigo();
+    beneficiario.codigo = await generateSequentialCodigo(repository);
     await repository.save(beneficiario);
   }
 
@@ -274,12 +299,14 @@ router.get('/:id', async (req, res) => {
     await repository.save(beneficiario);
   }
 
-  res.json({ beneficiario });
+  const beneficiarioComCodigo = await addBarcode(beneficiario);
+
+  res.json({ beneficiario: beneficiarioComCodigo });
 });
 
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
-  const payload = buildBeneficiarioPayload(req);
+  const payload = await ensureCodigo(repository, buildBeneficiarioPayload(req));
   const missingDocuments = getMissingRequiredDocuments(req.body, payload.documentosObrigatorios);
 
   payload.status = resolveStatus(payload, missingDocuments, { requestedStatus: 'EM_ANALISE' });
@@ -298,7 +325,8 @@ router.post('/', async (req, res) => {
   try {
     const created = repository.create(payload);
     const saved = await repository.save(created);
-    res.status(201).json({ beneficiario: saved });
+    const beneficiarioComCodigo = await addBarcode(saved);
+    res.status(201).json({ beneficiario: beneficiarioComCodigo });
   } catch (error) {
     console.error('Erro ao salvar beneficiário', error);
     res.status(500).json({ message: 'Erro ao salvar beneficiário' });
@@ -313,7 +341,7 @@ router.put('/:id', async (req, res) => {
     return res.status(404).json({ message: 'Beneficiário não encontrado' });
   }
 
-  const payload = buildBeneficiarioPayload(req, existing);
+  const payload = await ensureCodigo(repository, buildBeneficiarioPayload(req, existing));
 
   if (payload.cpf) {
     const unique = await ensureCpfUnique(payload.cpf, existing.idBeneficiario);
@@ -325,7 +353,8 @@ router.put('/:id', async (req, res) => {
   try {
     repository.merge(existing, payload);
     const saved = await repository.save(existing);
-    res.json({ beneficiario: saved });
+    const beneficiarioComCodigo = await addBarcode(saved);
+    res.json({ beneficiario: beneficiarioComCodigo });
   } catch (error) {
     console.error('Erro ao atualizar beneficiário', error);
     res.status(500).json({ message: 'Erro ao atualizar beneficiário' });
