@@ -49,7 +49,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
-  assistanceUnit: AssistanceUnitPayload | undefined;
+  assistanceUnit: AssistanceUnitPayload | undefined | null = null;
   printOrderBy: PrintOrder = 'nome';
   readonly printOrderOptions: { value: PrintOrder; label: string }[] = [
     { value: 'nome', label: 'Nome' },

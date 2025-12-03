@@ -209,7 +209,7 @@
         </div>
       </div>
 
-      <div class="list-card compact" *ngIf="(visitForm.get('anexos')?.value as any[])?.length">
+      <div class="list-card compact" *ngIf="(visitForm.get('anexos')?.value?.length ?? 0) > 0">
         <div class="list-card__header">
           <div>
             <p class="page-title__eyebrow">Lista de anexos</p>
