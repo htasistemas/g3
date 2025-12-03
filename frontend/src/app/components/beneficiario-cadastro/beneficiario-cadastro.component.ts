@@ -15,6 +15,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { AuthorizationTermPayload, ReportService } from '../../services/report.service';
 import { Subject, firstValueFrom } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 type ViaCepResponse = {
@@ -191,6 +192,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private videoStream?: MediaStream;
   private readonly destroy$ = new Subject<void>();
   private hasLoadedExistingDocuments = false;
+  private feedbackTimeout?: ReturnType<typeof setTimeout>;
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
@@ -330,7 +332,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly http: HttpClient,
-    private readonly assistanceUnitService: AssistanceUnitService
+    private readonly assistanceUnitService: AssistanceUnitService,
+    private readonly reportService: ReportService
   ) {
     this.searchForm = this.fb.group({
       nome: [''],
@@ -519,6 +522,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.stopCamera();
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+    }
   }
 
   get anexos(): FormArray {
@@ -833,6 +839,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  private showTemporaryFeedback(message: string): void {
+    this.feedback = message;
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+    }
+
+    this.feedbackTimeout = setTimeout(() => {
+      this.feedback = null;
+    }, 4000);
+  }
+
   saveStatusChange(): void {
     if (this.saving) return;
     if (!this.beneficiarioId) {
@@ -918,14 +935,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     input.value = numeric ? `R$ ${formatted}` : '';
   }
 
-  handleLgpdToggle(event: Event): void {
+  async handleLgpdToggle(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const dateControl = this.form.get(['observacoes', 'data_aceite_lgpd']);
     if (input.checked) {
       if (!dateControl?.value) {
         dateControl?.setValue(this.getCurrentLocalDateTime());
       }
-      this.printConsentDocument();
+      await this.printConsentDocument();
     } else {
       dateControl?.setValue('');
     }
@@ -938,14 +955,57 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return local.toISOString().slice(0, 16);
   }
 
-  printConsentDocument(): void {
-    const documentWindow = window.open('', '_blank', 'width=900,height=1100');
-    if (!documentWindow) return;
+  async printConsentDocument(): Promise<void> {
+    const payload = this.buildAuthorizationTermPayload();
 
-    documentWindow.document.write(this.buildConsentHtml());
-    documentWindow.document.close();
-    documentWindow.focus();
-    documentWindow.print();
+    try {
+      const blob = await firstValueFrom(this.reportService.generateAuthorizationTerm(payload));
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar termo de autorização', error);
+      this.feedback = 'Não foi possível gerar o termo de autorização.';
+    }
+  }
+
+  private buildAuthorizationTermPayload(): AuthorizationTermPayload {
+    const value = this.form.value as any;
+    const personal = value.dadosPessoais ?? {};
+    const documents = value.documentos ?? {};
+    const contact = value.contato ?? {};
+    const address = value.endereco ?? {};
+    const today = this.formatDate(new Date().toISOString());
+
+    return {
+      beneficiaryName: personal.nome_completo || personal.nome_social || 'Beneficiário',
+      birthDate: this.formatDate(personal.data_nascimento),
+      motherName: personal.nome_mae,
+      cpf: documents.cpf,
+      rg: documents.rg_numero,
+      nis: documents.nis,
+      address: this.formatAddress(address),
+      contact: this.joinParts([contact.telefone_principal, contact.email], ' | '),
+      issueDate: today,
+      unit: this.assistanceUnit
+    };
+  }
+
+  private openPdfInNewWindow(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
+    if (!documentWindow) {
+      this.feedback = 'Permita a abertura de pop-ups para visualizar o termo.';
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    const triggerPrint = () => {
+      documentWindow.focus();
+      documentWindow.print();
+    };
+
+    documentWindow.addEventListener('load', triggerPrint, { once: true });
+
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   printBeneficiaryList(): void {
@@ -1435,80 +1495,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     `;
   }
 
-  private buildConsentHtml(): string {
-    const value = this.form.value as any;
-    const personal = value.dadosPessoais ?? {};
-    const documents = value.documentos ?? {};
-    const contact = value.contato ?? {};
-    const address = value.endereco ?? {};
-    const unit = this.assistanceUnit;
-
-    const today = this.formatDate(new Date().toISOString());
-    const beneficiaryName = personal.nome_completo || 'Beneficiário';
-    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
-    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
-    const footer = unit
-      ? `
-        <footer class="report-footer">
-          <p>${socialName}</p>
-          <p>CNPJ: ${unit.cnpj || '---'} | ${this.formatInstitutionAddress(unit)}</p>
-          <p>Contato: ${unit.telefone || '---'}${unit.email ? ' | ' + unit.email : ''}</p>
-        </footer>
-      `
-      : '';
-    const header = `
-      <header class="report-header">
-        ${logo ? `<img class="report-header__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
-        <div class="report-header__identity">
-          <p class="report-header__name">${socialName}</p>
-          ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="report-header__fantasy">${unit.nomeFantasia}</p>` : ''}
-        </div>
-      </header>
-    `;
-
-    return `
-      <html>
-        <head>
-          <title>Termo de autorização e consentimento</title>
-          ${this.printStyles()}
-        </head>
-        <body>
-          ${header}
-          <h1>Termo de Autorização</h1>
-          <p class="muted">Emitido em ${today}</p>
-          <section class="report-section">
-            <h2>1. Identificação do(a) beneficiário(a)</h2>
-            <p><strong>Nome:</strong> ${beneficiaryName}</p>
-            <p><strong>CPF:</strong> ${documents.cpf || '---'} | <strong>RG:</strong> ${documents.rg_numero || '---'} | <strong>NIS:</strong> ${documents.nis || '---'}</p>
-            <p><strong>Nascimento:</strong> ${this.formatDate(personal.data_nascimento)} | <strong>Nome da mãe:</strong> ${personal.nome_mae || '---'}</p>
-            <p><strong>Endereço:</strong> ${this.formatAddress(address)}</p>
-            <p><strong>Contato:</strong> ${contact.telefone_principal || '---'}${contact.email ? ' | ' + contact.email : ''}</p>
-          </section>
-          <section class="report-section">
-            <h2>2. Objeto</h2>
-            <p>Autorizo a coleta, o uso, o armazenamento e o compartilhamento controlado de meus dados pessoais e sensíveis pela instituição acima identificada para fins de atendimento socioassistencial, registros administrativos, cumprimento de obrigações legais e prestação de contas.</p>
-          </section>
-          <section class="report-section">
-            <h2>3. Termos e condições</h2>
-            <p>O tratamento observará a Lei nº 13.709/2018 (LGPD), com base em finalidade, necessidade e transparência. As informações poderão ser utilizadas para identificação, segurança, comprovação de atendimento e registros institucionais, vedado o uso comercial.</p>
-            <p>O compartilhamento ocorrerá apenas quando necessário à execução de políticas públicas, convênios ou exigências legais, assegurando sigilo e segurança da informação.</p>
-            <p>Sei que posso solicitar acesso, correção ou eliminação dos dados, bem como revogar esta autorização, exceto quando houver fundamento legal para sua manutenção.</p>
-          </section>
-          <section class="report-section">
-            <h2>4. Declaração</h2>
-            <p>Declaro ciência sobre a guarda segura dos dados, prazos de retenção e canais para exercício de direitos, assumindo a veracidade das informações prestadas. Autorizo a utilização da minha assinatura em registros físicos ou digitais necessários aos serviços prestados.</p>
-          </section>
-          <section class="signature">
-            <p>${beneficiaryName}</p>
-            <p class="muted">${today}</p>
-            <p class="muted">Assinatura do beneficiário ou responsável legal</p>
-          </section>
-          ${footer}
-        </body>
-      </html>
-    `;
-  }
-
   private printStyles(): string {
     return `
       <style>
@@ -1769,8 +1755,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
       request.pipe(finalize(() => (this.saving = false))).subscribe({
         next: () => {
-          this.feedback = 'Registro salvo com sucesso';
-          this.router.navigate(['/cadastros/beneficiarios']);
+          this.showTemporaryFeedback('Registro salvo com sucesso');
+          setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
         },
         error: (error) => {
           this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
