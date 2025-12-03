@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
@@ -142,11 +142,17 @@ export class BeneficiaryService {
     );
   }
 
-  list(): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
+  list(filters?: { nome?: string; cpf?: string; codigo?: string; data_nascimento?: string }): Observable<{ beneficiarios: BeneficiaryPayload[] }> {
+    let params = new HttpParams();
+    if (filters?.nome) params = params.set('nome', filters.nome);
+    if (filters?.cpf) params = params.set('cpf', filters.cpf);
+    if (filters?.codigo) params = params.set('codigo', filters.codigo);
+    if (filters?.data_nascimento) params = params.set('data_nascimento', filters.data_nascimento);
+
     return this.requestWithFallback((baseUrl) =>
       this.http.get<
         { beneficiarios?: BeneficiaryPayload[] } | { beneficiaries?: BeneficiaryPayload[] } | { data?: BeneficiaryPayload[] } | BeneficiaryPayload[]
-      >(baseUrl)
+      >(baseUrl, { params })
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) return { beneficiarios: response };
