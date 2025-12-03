@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ConfigService, BeneficiaryDocumentConfig } from '../../services/config.service';
+import { SystemParameterService } from '../../services/system-parameter.service';
 
 @Component({
   selector: 'app-system-settings',
@@ -17,10 +18,12 @@ export class SystemSettingsComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly systemParameters: SystemParameterService
   ) {
     this.form = this.fb.group({
-      documents: this.fb.array([])
+      documents: this.fb.array([]),
+      habilitarModuloBiblioteca: [false]
     });
   }
 
@@ -30,6 +33,7 @@ export class SystemSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDocuments();
+    this.loadParameters();
   }
 
   loadDocuments(): void {
@@ -51,6 +55,11 @@ export class SystemSettingsComponent implements OnInit {
     });
   }
 
+  loadParameters(): void {
+    const params = this.systemParameters.current();
+    this.form.patchValue({ habilitarModuloBiblioteca: params.habilitarModuloBiblioteca }, { emitEvent: false });
+  }
+
   save(): void {
     this.feedback = null;
 
@@ -61,6 +70,7 @@ export class SystemSettingsComponent implements OnInit {
 
     this.saving = true;
     const documents = (this.form.value.documents || []) as BeneficiaryDocumentConfig[];
+    this.systemParameters.update({ habilitarModuloBiblioteca: Boolean(this.form.value.habilitarModuloBiblioteca) });
 
     this.configService.updateBeneficiaryDocuments(documents).subscribe({
       next: () => {

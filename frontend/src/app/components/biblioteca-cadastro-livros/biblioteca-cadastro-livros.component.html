@@ -1,0 +1,192 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Biblioteca</p>
+    <p class="page-title__label">Cadastro de Livros</p>
+    <p class="page-title__description">Cadastre aqui os livros disponíveis na biblioteca da instituição.</p>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <div class="tab-card">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex]?.label }}</p>
+        <p class="muted">Preencha os dados do livro e avance pelas etapas.</p>
+      </div>
+      <div class="pill-group">
+        <span class="pill" *ngIf="editingId">Editando</span>
+        <span class="pill" *ngIf="!editingId">Novo registro</span>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="tab-card__content">
+      <ng-container *ngIf="activeTab === 'dados'">
+        <div class="tab-grid" formGroupName="dados">
+          <label class="field">
+            <span>Código interno *</span>
+            <input formControlName="codigoInterno" type="text" placeholder="Ex.: LIV-001" />
+          </label>
+          <label class="field">
+            <span>Título *</span>
+            <input formControlName="titulo" type="text" placeholder="Nome do livro" />
+          </label>
+          <label class="field">
+            <span>Subtítulo</span>
+            <input formControlName="subtitulo" type="text" />
+          </label>
+          <label class="field">
+            <span>Autor(es) *</span>
+            <input formControlName="autores" type="text" placeholder="Separe por vírgula" />
+          </label>
+          <label class="field">
+            <span>Editora</span>
+            <input formControlName="editora" type="text" />
+          </label>
+          <label class="field">
+            <span>Ano de publicação</span>
+            <input formControlName="anoPublicacao" type="number" />
+          </label>
+          <label class="field">
+            <span>Edição</span>
+            <input formControlName="edicao" type="text" />
+          </label>
+          <label class="field">
+            <span>ISBN</span>
+            <input formControlName="isbn" type="text" />
+          </label>
+          <label class="field">
+            <span>Categoria / Assunto</span>
+            <input formControlName="categoria" type="text" placeholder="Infantil, técnico, romance..." />
+          </label>
+          <label class="field">
+            <span>Palavras-chave</span>
+            <input formControlName="palavrasChave" type="text" placeholder="Separe por vírgulas" />
+          </label>
+          <label class="field">
+            <span>Quantidade de exemplares *</span>
+            <input formControlName="quantidadeExemplares" type="number" min="1" />
+          </label>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'localizacao'">
+        <div class="tab-grid" formGroupName="localizacao">
+          <label class="field">
+            <span>Unidade/Filial</span>
+            <input formControlName="unidade" type="text" />
+          </label>
+          <label class="field">
+            <span>Setor/Sala</span>
+            <input formControlName="setor" type="text" />
+          </label>
+          <label class="field">
+            <span>Estante</span>
+            <input formControlName="estante" type="text" />
+          </label>
+          <label class="field">
+            <span>Prateleira</span>
+            <input formControlName="prateleira" type="text" />
+          </label>
+          <label class="field field--full">
+            <span>Observações de localização</span>
+            <textarea formControlName="observacoesLocalizacao" rows="3"></textarea>
+          </label>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeTab === 'controle'">
+        <div class="tab-grid" formGroupName="controle">
+          <label class="field">
+            <span>Situação</span>
+            <select formControlName="situacao">
+              <option *ngFor="let situacao of situacoes" [value]="situacao">{{ situacao }}</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Permite empréstimo?</span>
+            <select formControlName="permiteEmprestimo">
+              <option [ngValue]="true">Sim</option>
+              <option [ngValue]="false">Não</option>
+            </select>
+          </label>
+          <label class="field field--full">
+            <span>Observações gerais</span>
+            <textarea formControlName="observacoesGerais" rows="4"></textarea>
+          </label>
+        </div>
+      </ng-container>
+
+      <div class="tab-actions">
+        <div class="tab-actions__nav">
+          <button type="button" class="btn-secondary" (click)="goToPreviousTab()" [disabled]="!hasPreviousTab">Voltar</button>
+          <button type="button" class="btn-secondary" (click)="goToNextTab()" [disabled]="!hasNextTab">Próxima etapa</button>
+        </div>
+
+        <div class="tab-actions__save">
+          <button type="button" class="btn-tertiary" (click)="resetForm()">Novo cadastro</button>
+          <button type="submit" class="btn-primary">{{ editingId ? 'Atualizar' : 'Salvar' }} livro</button>
+        </div>
+      </div>
+      <p class="feedback" *ngIf="feedback" [class.error]="feedback.type === 'error'">{{ feedback.message }}</p>
+    </form>
+  </div>
+
+  <div class="list-card">
+    <div class="list-card__header">
+      <div>
+        <p class="list-card__title">Livros cadastrados</p>
+        <p class="muted">Código interno, título, autor, categoria, quantidade, situação e permissão de empréstimo.</p>
+      </div>
+    </div>
+
+    <div class="list-table" *ngIf="books.length; else emptyState">
+      <div class="list-table__row list-table__row--head">
+        <span>Código interno</span>
+        <span>Título</span>
+        <span>Autor</span>
+        <span>Categoria</span>
+        <span>Exemplares</span>
+        <span>Situação</span>
+        <span>Permite empréstimo</span>
+        <span>Ações</span>
+      </div>
+      <div class="list-table__row" *ngFor="let book of books">
+        <span>{{ book.codigoInterno }}</span>
+        <span>{{ book.titulo }}</span>
+        <span>{{ book.autores }}</span>
+        <span>{{ book.categoria || '-' }}</span>
+        <span>{{ book.quantidadeExemplares }}</span>
+        <span>{{ book.situacao }}</span>
+        <span>{{ book.permiteEmprestimo ? 'Sim' : 'Não' }}</span>
+        <div class="list-table__actions">
+          <button type="button" (click)="edit(book)">Editar</button>
+          <button type="button" class="danger" (click)="remove(book)">Excluir</button>
+        </div>
+      </div>
+    </div>
+    <ng-template #emptyState>
+      <p class="muted">Nenhum livro cadastrado ainda.</p>
+    </ng-template>
+  </div>
+</section>
