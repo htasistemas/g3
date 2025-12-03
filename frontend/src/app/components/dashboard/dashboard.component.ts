@@ -1,95 +1,57 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { of } from 'rxjs';
-import { catchError, finalize, retry } from 'rxjs/operators';
-import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { FormsModule } from '@angular/forms';
+import {
+  DashboardAssistenciaResponse,
+  DashboardAssistenciaService,
+  DashboardAtendimento,
+  DashboardFamilias,
+  DashboardTop12
+} from '../../services/dashboard-assistencia.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  loading = true;
-  error: string | null = null;
-  stats = {
-    total: 0,
-    active: 0,
-    pending: 0,
-    blocked: 0,
-    inAnalysis: 0,
-    updated: 0,
-    withBenefits: 0
+  filters = {
+    startDate: '',
+    endDate: ''
   };
 
-  constructor(private readonly beneficiaryService: BeneficiaryService) {}
+  constructor(public readonly dashboardService: DashboardAssistenciaService) {}
 
   ngOnInit(): void {
-    this.loadBeneficiaryStats();
+    this.dashboardService.fetch();
   }
 
-  private loadBeneficiaryStats(): void {
-    this.loading = true;
-    this.error = null;
-
-    this.beneficiaryService
-      .list()
-      .pipe(
-        retry(1),
-        catchError((error) => {
-          console.error('Falha ao carregar estatísticas de beneficiários', error);
-          this.error = 'Não foi possível carregar os dados de beneficiários.';
-          this.stats = {
-            total: 0,
-            active: 0,
-            pending: 0,
-            blocked: 0,
-            inAnalysis: 0,
-            updated: 0,
-            withBenefits: 0
-          };
-          return of({ beneficiarios: [] });
-        }),
-        finalize(() => {
-          this.loading = false;
-        })
-      )
-      .subscribe(({ beneficiarios }) => this.calculateStats(beneficiarios));
+  get loading(): boolean {
+    return this.dashboardService.loading();
   }
 
-  private calculateStats(beneficiarios: BeneficiaryPayload[] = []): void {
-    const normalized = beneficiarios.map((beneficiary) => (beneficiary.status ?? '').toUpperCase());
-
-    const active = normalized.filter((status) => status === 'ATIVO').length;
-    const pending = normalized.filter((status) => this.hasPendingStatus(status)).length;
-    const blocked = normalized.filter((status) => status === 'BLOQUEADO').length;
-    const inAnalysis = normalized.filter((status) => status === 'EM_ANALISE').length;
-    const updated = normalized.filter((status) => status === 'DESATUALIZADO' || status === 'INCOMPLETO').length;
-    const withBenefits = beneficiarios.filter((beneficiary) => this.hasBenefits(beneficiary.recebeBeneficio)).length;
-
-    this.stats = {
-      total: beneficiarios.length,
-      active,
-      pending,
-      blocked,
-      inAnalysis,
-      updated,
-      withBenefits
-    };
+  get top12(): DashboardTop12 | null {
+    return this.dashboardService.data()?.top12 ?? null;
   }
 
-  private hasBenefits(recebeBeneficio?: string | boolean | null): boolean {
-    if (typeof recebeBeneficio === 'string') {
-      return recebeBeneficio.toLowerCase() === 'true' || recebeBeneficio === '1';
-    }
-
-    return Boolean(recebeBeneficio);
+  get atendimento(): DashboardAtendimento | null {
+    return this.dashboardService.data()?.atendimento ?? null;
   }
 
-  private hasPendingStatus(status?: string): boolean {
-    const normalized = (status ?? '').toUpperCase();
-    return normalized.includes('PEND') || normalized.includes('ANÁLISE') || normalized.includes('ANALISE');
+  get familias(): DashboardFamilias | null {
+    return this.dashboardService.data()?.familias ?? null;
+  }
+
+  get termos() {
+    return this.dashboardService.data()?.termos ?? null;
+  }
+
+  refresh() {
+    this.dashboardService.fetch({
+      startDate: this.filters.startDate || null,
+      endDate: this.filters.endDate || null
+    });
   }
 }

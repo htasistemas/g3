@@ -1,0 +1,85 @@
+import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+
+export interface DashboardTop12 {
+  beneficiariosAtendidosPeriodo: number;
+  familiasExtremaPobreza: number;
+  rendaMediaFamiliar: number;
+  cursosAtivos: number;
+  taxaMediaOcupacaoCursos: number;
+  certificadosEmitidos: number;
+  doacoesPeriodo: number;
+  itensDoadoResumo: Record<string, number>;
+  visitasDomiciliares: number;
+  termosVencendo: number;
+  execucaoFinanceira: number;
+  absenteismo: number;
+}
+
+export interface DashboardAtendimento {
+  totalBeneficiarios: number;
+  ativos: number;
+  pendentes: number;
+  bloqueados: number;
+  emAnalise: number;
+  desatualizados: number;
+  cadastroCompletoPercentual: number;
+  beneficiariosPeriodo: number;
+  novosBeneficiarios: number;
+  reincidentes: number;
+  faixaEtaria: Record<string, number>;
+  vulnerabilidades: Record<string, number>;
+}
+
+export interface DashboardFamilias {
+  total: number;
+  mediaPessoas: number;
+  rendaMediaFamiliar: number;
+  rendaPerCapitaMedia: number;
+  insegurancaAlimentar: Record<string, number>;
+  faixaRenda: Record<string, number>;
+}
+
+export interface DashboardTermos {
+  ativos: number;
+  valorTotal: number;
+  alertas: { numero: string; vigenciaFim?: string | null; status?: string | null }[];
+}
+
+export interface DashboardAssistenciaResponse {
+  filters: { startDate: string | null; endDate: string | null };
+  top12: DashboardTop12;
+  atendimento: DashboardAtendimento;
+  familias: DashboardFamilias;
+  termos: DashboardTermos;
+}
+
+@Injectable({ providedIn: 'root' })
+export class DashboardAssistenciaService {
+  private readonly baseUrl = `${environment.apiUrl}/dashboard/assistencia`;
+  readonly data = signal<DashboardAssistenciaResponse | null>(null);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+
+  constructor(private readonly http: HttpClient) {}
+
+  fetch(filters?: { startDate?: string | null; endDate?: string | null }) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
+
+    this.http.get<DashboardAssistenciaResponse>(this.baseUrl, { params }).subscribe({
+      next: (payload) => {
+        this.data.set(payload);
+      },
+      error: () => {
+        this.error.set('Não foi possível carregar os indicadores.');
+      },
+      complete: () => this.loading.set(false)
+    });
+  }
+}
