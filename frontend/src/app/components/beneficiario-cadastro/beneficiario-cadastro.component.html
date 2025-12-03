@@ -93,6 +93,12 @@
         <div class="status-panel">
           <p class="status-panel__title">Status do beneficiário</p>
           <p class="muted" aria-live="polite">Código: {{ beneficiaryCode || 'Gerado ao salvar' }}</p>
+          <div class="barcode" *ngIf="beneficiaryBarcode; else barcodePlaceholder">
+            <img [src]="beneficiaryBarcode" alt="Código de barras do beneficiário" />
+          </div>
+          <ng-template #barcodePlaceholder>
+            <p class="muted">O código de barras será gerado após salvar.</p>
+          </ng-template>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -171,13 +177,13 @@
         <div>
           <p class="list-panel__eyebrow">Base cadastrada</p>
           <h2>Encontre beneficiários cadastrados</h2>
-          <p>Busque pelo nome, código, CPF ou NIS e selecione para editar, alterar ou excluir.</p>
+          <p>Busque pelo nome, código, CPF ou data de nascimento e selecione para editar, alterar ou excluir.</p>
         </div>
         <div class="list-panel__actions">
           <button
             type="button"
             class="ghost"
-            (click)="searchForm.reset({ nome: '', codigo: '', cpf: '', nis: '', status: '' }); searchBeneficiaries()"
+            (click)="searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' }); searchBeneficiaries()"
           >
             Limpar filtros
           </button>
@@ -199,8 +205,8 @@
           <input type="text" formControlName="cpf" placeholder="Somente números" />
         </label>
         <label class="field">
-          NIS
-          <input type="text" formControlName="nis" placeholder="Somente números" />
+          Data de nascimento
+          <input type="date" formControlName="data_nascimento" />
         </label>
         <label class="field">
           Status
