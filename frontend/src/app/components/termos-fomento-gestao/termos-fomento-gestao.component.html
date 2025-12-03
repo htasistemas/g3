@@ -174,7 +174,7 @@
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Registre prorrogações, ajustes de valor e alterações contratuais.</p>
         </div>
-        <span class="pill" *ngIf="termoEmEdicao">Vinculado a {{ termoEmEdicao?.numeroTermo }}</span>
+        <span class="pill" *ngIf="termoEmEdicao">Vinculado a {{ termoEmEdicao.numeroTermo }}</span>
       </div>
 
       <div class="aditivo-grid" formGroupName="aditivo">
@@ -236,28 +236,28 @@
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              <tr *ngFor="let aditivo of termoEmEdicao?.aditivos">
-                <td>{{ formatDate(aditivo.dataAditivo) }}</td>
-                <td>{{ aditivo.tipoAditivo }}</td>
-              <td>{{ formatDate(aditivo.novaDataFim) }}</td>
-              <td>{{ formatCurrency(aditivo.novoValor) }}</td>
-              <td>{{ aditivo.observacoes || '—' }}</td>
-              <td class="text-right">
-                  <a
-                    class="primary"
-                    *ngIf="aditivo.anexo?.dataUrl"
-                    [href]="aditivo.anexo?.dataUrl"
-                    target="_blank"
-                  >
-                    Abrir PDF
-                  </a>
-              </td>
-            </tr>
-              <tr *ngIf="!(termoEmEdicao?.aditivos?.length)">
-                <td colspan="6" class="muted">Nenhum aditivo cadastrado.</td>
-              </tr>
-            </tbody>
+              <tbody>
+                <tr *ngFor="let aditivo of termoEmEdicao.aditivos || []">
+                  <td>{{ formatDate(aditivo.dataAditivo) }}</td>
+                  <td>{{ aditivo.tipoAditivo }}</td>
+                  <td>{{ formatDate(aditivo.novaDataFim) }}</td>
+                  <td>{{ formatCurrency(aditivo.novoValor) }}</td>
+                  <td>{{ aditivo.observacoes || '—' }}</td>
+                  <td class="text-right">
+                    <a
+                      class="primary"
+                      *ngIf="aditivo.anexo?.dataUrl"
+                      [href]="aditivo.anexo?.dataUrl"
+                      target="_blank"
+                    >
+                      Abrir PDF
+                    </a>
+                  </td>
+                </tr>
+                <tr *ngIf="!(termoEmEdicao.aditivos?.length)">
+                  <td colspan="6" class="muted">Nenhum aditivo cadastrado.</td>
+                </tr>
+              </tbody>
           </table>
         </div>
       </div>
