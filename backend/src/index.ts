@@ -11,6 +11,8 @@ import configRoutes from './routes/config.routes';
 import usersRoutes from './routes/users.routes';
 import familiasRoutes from './routes/familias.routes';
 import patrimoniosRoutes from './routes/patrimonios.routes';
+import planosTrabalhoRoutes from './routes/planos-trabalho.routes';
+import termosFomentoRoutes from './routes/termos-fomento.routes';
 
 dotenv.config();
 
@@ -36,6 +38,8 @@ app.use('/api/config', configRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/familias', familiasRoutes);
 app.use('/api/patrimonios', patrimoniosRoutes);
+app.use('/api/planos-trabalho', planosTrabalhoRoutes);
+app.use('/api/termos-fomento', termosFomentoRoutes);
 
 async function start() {
   try {

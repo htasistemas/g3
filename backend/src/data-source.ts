@@ -11,6 +11,13 @@ import { Familia } from './entities/Familia';
 import { FamiliaMembro } from './entities/FamiliaMembro';
 import { Patrimonio } from './entities/Patrimonio';
 import { PatrimonioMovimento } from './entities/PatrimonioMovimento';
+import { TermoFomento } from './entities/TermoFomento';
+import { PlanoTrabalho } from './entities/PlanoTrabalho';
+import { PlanoMeta } from './entities/PlanoMeta';
+import { PlanoAtividade } from './entities/PlanoAtividade';
+import { PlanoEtapa } from './entities/PlanoEtapa';
+import { PlanoCronogramaItem } from './entities/PlanoCronogramaItem';
+import { PlanoEquipe } from './entities/PlanoEquipe';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -51,7 +58,14 @@ const baseOptions = {
     Familia,
     FamiliaMembro,
     Patrimonio,
-    PatrimonioMovimento
+    PatrimonioMovimento,
+    TermoFomento,
+    PlanoTrabalho,
+    PlanoMeta,
+    PlanoAtividade,
+    PlanoEtapa,
+    PlanoCronogramaItem,
+    PlanoEquipe
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;

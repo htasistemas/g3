@@ -18,6 +18,7 @@ import { PrestacaoContasComponent } from './components/prestacao-contas/prestaca
 import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
 import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
 import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
+import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -112,6 +113,11 @@ export const routes: Routes = [
         path: 'financeiro/prestacao-contas',
         component: PrestacaoContasComponent,
         data: { title: 'Prestação de contas' }
+      },
+      {
+        path: 'juridico/planos-trabalho',
+        component: PlanoTrabalhoGestaoComponent,
+        data: { title: 'Plano de Trabalho' }
       }
     ]
   },
