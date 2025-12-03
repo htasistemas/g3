@@ -19,6 +19,7 @@ import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gest
 import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
 import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
+import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -118,6 +119,11 @@ export const routes: Routes = [
         path: 'juridico/planos-trabalho',
         component: PlanoTrabalhoGestaoComponent,
         data: { title: 'Plano de Trabalho' }
+      },
+      {
+        path: 'juridico/termos-fomento',
+        component: TermosFomentoGestaoComponent,
+        data: { title: 'Termos de Fomento' }
       }
     ]
   },
