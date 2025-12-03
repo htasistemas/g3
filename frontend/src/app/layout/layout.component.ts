@@ -202,12 +202,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.openSection = this.openSection === label ? null : label;
   }
 
-  navigate(route: string): void {
-    if (!route) return;
-
-    this.router.navigateByUrl(route);
-  }
-
   handleSidebarEnter(): void {
     this.isSidebarCollapsed = false;
   }
