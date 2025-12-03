@@ -199,6 +199,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleSection(label: string): void {
+    // Garantimos que o usuário veja os submenus quando clicar, mesmo que a barra esteja recolhida
+    this.isSidebarCollapsed = false;
     this.openSection = this.openSection === label ? null : label;
   }
 
