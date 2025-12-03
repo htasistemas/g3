@@ -28,6 +28,7 @@ import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { SystemParameterService } from '../services/system-parameter.service';
 
 interface MenuChild {
   label: string;
@@ -67,7 +68,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   openSection: string | null = null;
 
-  menuSections: MenuItem[] = [
+  private readonly baseMenuSections: MenuItem[] = [
     {
       label: 'Dashboard',
       icon: faGauge,
@@ -135,12 +136,15 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }
   ];
 
+  libraryEnabled = false;
+
   constructor(
     private readonly auth: AuthService,
     private readonly assistanceUnitService: AssistanceUnitService,
     public readonly themeService: ThemeService,
     private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly systemParameters: SystemParameterService
   ) {}
 
   ngOnInit(): void {
@@ -156,6 +160,34 @@ export class LayoutComponent implements OnInit, OnDestroy {
         const deepest = this.findDeepestChild(this.activatedRoute);
         this.pageTitle = deepest.snapshot.data['title'] || 'Visão geral';
       });
+
+    this.systemParameters.parameters$.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      this.libraryEnabled = params.habilitarModuloBiblioteca;
+      if (!this.libraryEnabled && this.openSection === 'Administrativo') {
+        this.openSection = null;
+      }
+    });
+  }
+
+  get menuSections(): MenuItem[] {
+    const sections = this.baseMenuSections.map((section) => ({
+      ...section,
+      children: section.children ? [...section.children] : undefined
+    }));
+
+    const adminSection = sections.find((section) => section.label === 'Administrativo');
+    if (adminSection) {
+      adminSection.children = (adminSection.children ?? []).filter((child) => child.route !== '/administrativo/biblioteca/livros');
+      if (this.libraryEnabled) {
+        adminSection.children.push({
+          label: 'Biblioteca',
+          icon: faClipboardList,
+          route: '/administrativo/biblioteca/livros'
+        });
+      }
+    }
+
+    return sections;
   }
 
   get username(): string {

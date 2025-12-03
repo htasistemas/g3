@@ -1,0 +1,9 @@
+@use '../voluntariado-cadastro/voluntariado-cadastro.component.scss' as *;
+@use '../biblioteca-cadastro-livros/biblioteca-cadastro-livros.component.scss' as livros;
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
