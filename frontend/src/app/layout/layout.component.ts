@@ -170,24 +170,35 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   get menuSections(): MenuItem[] {
-    const sections = this.baseMenuSections.map((section) => ({
-      ...section,
-      children: section.children ? [...section.children] : undefined
-    }));
+    return this.baseMenuSections.map((section) => {
+      if (section.label !== 'Administrativo') {
+        return {
+          ...section,
+          children: section.children ? [...section.children] : undefined
+        };
+      }
 
-    const adminSection = sections.find((section) => section.label === 'Administrativo');
-    if (adminSection) {
-      adminSection.children = (adminSection.children ?? []).filter((child) => child.route !== '/administrativo/biblioteca/livros');
+      const adminChildren = (section.children ?? []).filter(
+        (child) => !this.isLibraryRoute(child.route)
+      );
+
       if (this.libraryEnabled) {
-        adminSection.children.push({
+        adminChildren.push({
           label: 'Biblioteca',
           icon: faClipboardList,
           route: '/administrativo/biblioteca/livros'
         });
       }
-    }
 
-    return sections;
+      return {
+        ...section,
+        children: adminChildren
+      };
+    });
+  }
+
+  private isLibraryRoute(route?: string): boolean {
+    return route?.startsWith('/administrativo/biblioteca') ?? false;
   }
 
   get username(): string {

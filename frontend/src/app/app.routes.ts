@@ -82,6 +82,7 @@ export const routes: Routes = [
       },
       {
         path: 'administrativo/biblioteca',
+        canMatch: [libraryEnabledGuard],
         canActivate: [libraryEnabledGuard],
         children: [
           { path: '', redirectTo: 'livros', pathMatch: 'full' },
