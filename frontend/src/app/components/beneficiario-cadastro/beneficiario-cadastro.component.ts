@@ -14,10 +14,7 @@ import {
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
-import {
-  AssistanceUnitPayload,
-  AssistanceUnitService
-} from '../../services/assistance-unit.service';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { Subject, firstValueFrom } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 type ViaCepResponse = {
@@ -52,7 +49,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
-  assistanceUnit: AssistanceUnitPayload | null = null;
+  assistanceUnit: AssistanceUnitPayload | undefined;
   printOrderBy: PrintOrder = 'nome';
   readonly printOrderOptions: { value: PrintOrder; label: string }[] = [
     { value: 'nome', label: 'Nome' },
@@ -425,10 +422,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private loadAssistanceUnit(): void {
     this.assistanceUnitService.get().subscribe({
       next: ({ unidade }) => {
-        this.assistanceUnit = unidade ?? null;
+        this.assistanceUnit = unidade ?? undefined;
       },
       error: () => {
-        this.assistanceUnit = null;
+        this.assistanceUnit = undefined;
       }
     });
   }
