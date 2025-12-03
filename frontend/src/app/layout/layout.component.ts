@@ -116,7 +116,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faScaleBalanced,
       children: [
         { label: 'Termo de Fomento', icon: faScaleBalanced },
-        { label: 'Plano de Trabalho', icon: faClipboardList }
+        { label: 'Plano de Trabalho', icon: faClipboardList, route: '/juridico/planos-trabalho' }
       ]
     },
     {
