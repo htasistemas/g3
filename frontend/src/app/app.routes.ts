@@ -20,6 +20,7 @@ import { DocumentosInstitucionaisComponent } from './components/documentos-insti
 import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
 import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
+import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -57,6 +58,11 @@ export const routes: Routes = [
         path: 'atendimentos/doacoes',
         component: DonationManagementComponent,
         data: { title: 'Registrar doações' }
+      },
+      {
+        path: 'atendimentos/visitas',
+        component: VisitaDomiciliarGestaoComponent,
+        data: { title: 'Visita domiciliar' }
       },
       {
         path: 'atendimentos/cursos',

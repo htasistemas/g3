@@ -90,6 +90,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faHandshakeAngle,
       children: [
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
+        { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
         { label: 'Cursos & Atendimentos', icon: faClipboardList, route: '/atendimentos/cursos' }
       ]
     },
