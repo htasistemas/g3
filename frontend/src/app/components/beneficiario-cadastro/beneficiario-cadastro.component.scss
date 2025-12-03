@@ -614,6 +614,17 @@
   gap: 0.5rem;
 }
 
+.list-panel__navigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
 .list-panel__filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

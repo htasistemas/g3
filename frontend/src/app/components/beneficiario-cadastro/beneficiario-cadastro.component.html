@@ -32,13 +32,30 @@
       <div>
         <p class="list-panel__eyebrow">Gestão rápida</p>
         <h2>Busque beneficiários cadastrados</h2>
-        <p>Localize pelo nome, CPF, data de nascimento ou código e selecione para editar, excluir ou incluir um novo.</p>
+        <p>Localize pelo nome, CPF, data de nascimento ou código e utilize os atalhos para navegar pelas ações.</p>
       </div>
       <div class="list-panel__actions">
         <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
-        <button type="button" class="ghost" (click)="startNewBeneficiario()">Incluir novo</button>
         <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
       </div>
+    </div>
+
+    <div class="list-panel__navigation" aria-label="Ações rápidas para o cadastro">
+      <button type="button" class="primary" (click)="startNewBeneficiario()">Incluir</button>
+      <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleEditSelected()">
+        Editar
+      </button>
+      <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleAlterSelected()">
+        Alterar
+      </button>
+      <button
+        type="button"
+        class="danger"
+        [disabled]="!selectedBeneficiary"
+        (click)="handleDeleteSelected()"
+      >
+        Excluir
+      </button>
     </div>
 
     <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
@@ -48,7 +65,7 @@
       </label>
       <label class="field">
         Código
-        <input type="text" formControlName="codigo" placeholder="Ex.: B-000123" />
+        <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
       </label>
       <label class="field">
         CPF
@@ -57,10 +74,6 @@
       <label class="field">
         Data de nascimento
         <input type="date" formControlName="data_nascimento" />
-      </label>
-      <label class="field">
-        NIS
-        <input type="text" formControlName="nis" placeholder="Somente números" />
       </label>
       <label class="field">
         Status
