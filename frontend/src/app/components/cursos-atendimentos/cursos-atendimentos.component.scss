@@ -217,7 +217,7 @@
 }
 
 .load-room-grid {
-  grid-template-columns: minmax(170px, 0.9fr) minmax(200px, 1fr) minmax(200px, 1fr) minmax(230px, 1.1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: end;
 }
 
@@ -229,7 +229,7 @@
 }
 
 .description-media {
-  align-items: start;
+  align-items: stretch;
 }
 
 .description-media.full {
@@ -238,6 +238,11 @@
 
 .description-field textarea {
   min-height: 100%;
+  height: 100%;
+}
+
+.description-media .media-card {
+  height: 100%;
 }
 
 @media (max-width: 960px) {
@@ -490,15 +495,18 @@
 .inline-control {
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .inline-control select {
-  flex: 1;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 
 .inline-control .ghost {
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .actions .primary {
