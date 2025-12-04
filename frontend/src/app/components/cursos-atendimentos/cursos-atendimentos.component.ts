@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,13 +10,13 @@ import {
   EnrollmentStatus,
   WaitlistEntry
 } from '../../services/cursos-atendimentos.service';
+import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 
 interface StepTab {
   id: string;
   label: string;
 }
-
-type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
 
 @Component({
   selector: 'app-cursos-atendimentos',
@@ -25,9 +25,10 @@ type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
   templateUrl: './cursos-atendimentos.component.html',
   styleUrl: './cursos-atendimentos.component.scss'
 })
-export class CursosAtendimentosComponent implements OnInit {
+export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   readonly tabs: StepTab[] = [
     { id: 'dados', label: 'Dados do Curso/Atendimento/Oficinas' },
+    { id: 'catalogo', label: 'Catálogo & Vagas' },
     { id: 'inscricoes', label: 'Inscrições & Lista de Espera' },
     { id: 'documentos', label: 'Certificados & Atestados' },
     { id: 'dashboard', label: 'Dashboard' }
@@ -50,12 +51,16 @@ export class CursosAtendimentosComponent implements OnInit {
 
   courseForm: FormGroup;
   enrollmentForm: FormGroup;
+  beneficiaryResults: BeneficiaryPayload[] = [];
+  beneficiarySearchLoading = false;
+  private beneficiarySearchSub?: Subscription;
 
   records: CourseRecord[] = [];
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly service: CursosAtendimentosService
+    private readonly service: CursosAtendimentosService,
+    private readonly beneficiaryService: BeneficiaryService
   ) {
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
@@ -71,6 +76,7 @@ export class CursosAtendimentosComponent implements OnInit {
     });
 
     this.enrollmentForm = this.fb.group({
+      courseId: [null, Validators.required],
       beneficiaryName: ['', Validators.required],
       cpf: ['', Validators.required]
     });
@@ -78,6 +84,11 @@ export class CursosAtendimentosComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchRecords();
+    this.setupBeneficiarySearch();
+  }
+
+  ngOnDestroy(): void {
+    this.beneficiarySearchSub?.unsubscribe();
   }
 
   fetchRecords(): void {
@@ -85,7 +96,7 @@ export class CursosAtendimentosComponent implements OnInit {
       next: (records) => {
         this.records = records.map((record) => this.normalizeRecord(record));
         if (this.records.length) {
-          this.loadCourse(this.records[0].id);
+          this.loadCourse(this.editingId ?? this.records[0].id);
         }
       },
       error: () => {
@@ -180,6 +191,7 @@ export class CursosAtendimentosComponent implements OnInit {
           next: (created) => {
             this.records = [this.normalizeRecord(created), ...this.records];
             this.editingId = created.id;
+            this.enrollmentForm.patchValue({ courseId: created.id });
             this.feedback = 'Cadastro salvo com sucesso!';
             this.saving = false;
           },
@@ -208,6 +220,7 @@ export class CursosAtendimentosComponent implements OnInit {
       diasSemana: course.diasSemana,
       profissional: course.profissional
     });
+    this.enrollmentForm.patchValue({ courseId: course.id });
   }
 
   startNew(): void {
@@ -224,6 +237,7 @@ export class CursosAtendimentosComponent implements OnInit {
       diasSemana: [],
       profissional: ''
     });
+    this.enrollmentForm.patchValue({ courseId: null });
     this.changeTab('dados');
   }
 
@@ -245,6 +259,9 @@ export class CursosAtendimentosComponent implements OnInit {
 
     if (this.enrollmentForm.invalid) {
       this.enrollmentForm.markAllAsTouched();
+      if (!this.enrollmentForm.value.courseId) {
+        this.feedback = 'Selecione o curso/atendimento antes de inscrever.';
+      }
       return;
     }
 
@@ -261,8 +278,7 @@ export class CursosAtendimentosComponent implements OnInit {
       this.currentCourse.enrollments.push(enrollment);
       this.currentCourse.vagasDisponiveis = this.calculateAvailable(this.currentCourse);
       this.persistCurrentCourse();
-      this.enrollmentForm.reset();
-      this.enrollmentForm.patchValue({ beneficiaryName: '', cpf: '' });
+      this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
     } else {
       const confirmWaitlist = window.confirm(
         'Não há vagas disponíveis. Deseja incluir o beneficiário na lista de espera?'
@@ -276,8 +292,7 @@ export class CursosAtendimentosComponent implements OnInit {
         };
         this.currentCourse.waitlist.push(entry);
         this.persistCurrentCourse();
-        this.enrollmentForm.reset();
-        this.enrollmentForm.patchValue({ beneficiaryName: '', cpf: '' });
+        this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
       }
     }
   }
@@ -435,6 +450,64 @@ export class CursosAtendimentosComponent implements OnInit {
   fillFromCourse(course: CourseRecord): void {
     this.loadCourse(course.id);
     this.changeTab('dados');
+  }
+
+  selectCourseForEnrollment(courseId: string): void {
+    if (!courseId) {
+      this.editingId = null;
+      return;
+    }
+    this.loadCourse(courseId);
+  }
+
+  selectFromCatalog(courseId: string): void {
+    this.loadCourse(courseId);
+    this.changeTab('inscricoes');
+  }
+
+  selectBeneficiary(beneficiary: BeneficiaryPayload): void {
+    this.enrollmentForm.patchValue({
+      beneficiaryName: beneficiary.nomeCompleto || beneficiary.nomeSocial || '',
+      cpf: beneficiary.cpf || ''
+    });
+    this.beneficiaryResults = [];
+  }
+
+  courseStatus(course: CourseRecord): { label: string; tone: 'green' | 'amber' | 'red' } {
+    if (course.vagasDisponiveis <= 0) return { label: 'Esgotado', tone: 'red' };
+    if (course.vagasDisponiveis <= Math.max(1, Math.floor(course.vagasTotais * 0.3))) {
+      return { label: 'Encerrando', tone: 'amber' };
+    }
+    return { label: 'Abertas', tone: 'green' };
+  }
+
+  private setupBeneficiarySearch(): void {
+    const beneficiaryControl = this.enrollmentForm.get('beneficiaryName');
+    if (!beneficiaryControl) return;
+
+    this.beneficiarySearchSub = beneficiaryControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap((term) => {
+          if (!term) {
+            this.beneficiaryResults = [];
+            this.beneficiarySearchLoading = false;
+          } else {
+            this.beneficiarySearchLoading = true;
+          }
+        }),
+        switchMap((term) => {
+          if (!term) return of({ beneficiarios: [] });
+          return this.beneficiaryService
+            .list({ nome: term })
+            .pipe(catchError(() => of({ beneficiarios: [] })));
+        })
+      )
+      .subscribe(({ beneficiarios }) => {
+        this.beneficiaryResults = beneficiarios.slice(0, 5);
+        this.beneficiarySearchLoading = false;
+      });
   }
 
   private normalizeRecord(record: CourseRecord): CourseRecord {
