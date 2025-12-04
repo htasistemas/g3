@@ -129,10 +129,6 @@
     </ol>
   </div>
 
-  <div class="page-actions page-actions--below-tabs">
-    <button type="button" class="primary" (click)="openQuickSearch()">Buscar</button>
-  </div>
-
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
@@ -168,7 +164,16 @@
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
           <p class="muted">Campos essenciais como nome, data de nascimento e responsáveis.</p>
         </div>
-        <span class="pill">Obrigatório</span>
+        <div class="tab-card__header-actions">
+          <span class="pill">Obrigatório</span>
+          <div class="tab-card__action-row">
+            <button type="button" class="primary" (click)="openQuickSearch()">Localizar beneficiário</button>
+            <button type="button" class="ghost" (click)="startNewBeneficiario()">Novo</button>
+            <button type="submit" class="primary" [disabled]="saving || uploadingDocuments">
+              {{ saving ? 'Salvando...' : uploadingDocuments ? 'Aguardando envios' : 'Salvar cadastro' }}
+            </button>
+          </div>
+        </div>
       </div>
       <div class="tab-card__utilities">
         <label class="print-order print-order--compact">
