@@ -201,6 +201,37 @@
   gap: 0.5rem;
 }
 
+.tab-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f7a43, #16a34a);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  border: 1px solid #0f7a43;
+  box-shadow: 0 10px 24px rgba(15, 122, 67, 0.16);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  min-width: 180px;
+  text-transform: uppercase;
+}
+
+.tab-card__cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15, 122, 67, 0.2);
+  filter: brightness(1.03);
+}
+
+.tab-card__cta:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .tab-card__utilities {
   display: flex;
   flex-wrap: wrap;

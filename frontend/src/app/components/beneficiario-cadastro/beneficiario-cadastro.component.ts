@@ -1113,23 +1113,29 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           ${this.printStyles()}
         </head>
         <body>
-          ${header}
-          <h1>Relação de beneficiários</h1>
-          <p class="muted">Dados gerados em ${today} | Ordenado por ${orderLabel.toLowerCase()}</p>
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th>Nome completo</th>
-                <th>Código</th>
-                <th>Data de nascimento</th>
-                <th>Idade</th>
-                <th>CPF/NIS</th>
-                <th>Status</th>
-                <th>Bairro</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+          <main class="print-page">
+            <section class="report-wrapper">
+              ${header}
+              <div class="report-meta">
+                <h1>Relação de beneficiários</h1>
+                <p class="muted">Dados gerados em ${today} | Ordenado por ${orderLabel.toLowerCase()}</p>
+              </div>
+              <table class="print-table">
+                <thead>
+                  <tr>
+                    <th>Nome completo</th>
+                    <th>Código</th>
+                    <th>Data de nascimento</th>
+                    <th>Idade</th>
+                    <th>CPF/NIS</th>
+                    <th>Status</th>
+                    <th>Bairro</th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </section>
+          </main>
         </body>
       </html>
     `);
@@ -1352,11 +1358,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
               --accent: #fbbf24;
             }
 
+            @page { size: A4; margin: 12mm; }
             * { box-sizing: border-box; }
-            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #0f172a; }
-            .report { max-width: 1080px; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); overflow: hidden; }
-            .report__inner { padding: 28px; }
-            .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 16px; }
+            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #e2e8f0; color: #0f172a; }
+            .report { width: 100%; max-width: 100%; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08); overflow: hidden; }
+            .report__inner { padding: 26px; }
+            .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 14px; }
             .identity { display: flex; align-items: center; gap: 14px; }
             .logo { width: 72px; height: 72px; border: 1px solid var(--slate-300); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-50); overflow: hidden; }
             .logo img { width: 100%; height: 100%; object-fit: contain; }
@@ -1366,7 +1373,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
             .header__title h1 { margin: 0; font-size: 18px; color: var(--brand-700); letter-spacing: 0.3px; }
             .header__title p { margin: 2px 0 0; font-size: 12px; color: var(--slate-500); }
 
-            .hero { display: grid; grid-template-columns: 220px 1fr; gap: 20px; margin: 20px 0 12px; }
+            .hero { display: grid; grid-template-columns: minmax(200px, 240px) 1fr; gap: 20px; margin: 20px 0 12px; align-items: start; }
             .photo { width: 100%; height: 220px; border-radius: 14px; overflow: hidden; border: 2px solid var(--slate-300); box-shadow: inset 0 0 0 1px #e2e8f0; background: #fff; }
             .photo img { width: 100%; height: 100%; object-fit: cover; }
             .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; margin-top: 10px; border: 1px solid #cbd5e1; }
@@ -1380,7 +1387,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
             .grid { display: grid; gap: 16px; margin: 14px 0; }
             .grid--two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-            .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); }
+            .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); page-break-inside: avoid; }
             .card__title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
             .card__title h2 { margin: 0; font-size: 15px; color: var(--brand-700); letter-spacing: 0.3px; }
             .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
@@ -1389,11 +1396,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
             .field__value { margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; word-break: break-word; }
 
             .note { margin-top: 10px; padding: 12px; background: #fef9c3; border: 1px solid #fef08a; border-radius: 10px; font-size: 13px; color: #713f12; line-height: 1.5; }
-            footer { text-align: center; padding: 18px; border-top: 1px solid #e2e8f0; margin-top: 8px; font-size: 12px; color: var(--slate-500); }
+            footer { text-align: center; padding: 18px; border-top: 1px solid #e2e8f0; margin-top: 8px; font-size: 12px; color: var(--slate-500); page-break-inside: avoid; }
             footer .footer-name { font-weight: 800; letter-spacing: 0.3px; color: #0f172a; }
             @media print {
               body { background: #fff; padding: 0; }
-              .report { box-shadow: none; border: none; }
+              .report { box-shadow: none; border: none; border-radius: 0; }
+              .report__inner { padding: 18px 12px; }
             }
           </style>
         </head>
@@ -1555,46 +1563,29 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return `
       <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 28px; line-height: 1.6; color: #0f172a; background: #f8fafc; }
-        h1 { margin: 0; }
+        @page { size: A4; margin: 12mm; }
+        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 0; line-height: 1.6; color: #0f172a; background: #e2e8f0; }
+        h1 { margin: 0 0 4px; letter-spacing: 0.2px; color: #0f172a; }
         h2 { margin: 0; }
         p { margin: 0; }
         .muted { color: #475569; font-size: 12px; }
-        .report-wrapper { max-width: 1024px; margin: 0 auto; background: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); }
-        .report-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px; }
-        .report-brand { display: flex; align-items: center; gap: 12px; }
-        .report-brand__logo { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; border: 1px solid #e2e8f0; padding: 6px; }
-        .report-brand__name { font-weight: 700; font-size: 18px; color: #0f172a; }
-        .report-brand__fantasy { font-size: 14px; color: #1f2937; }
-        .report-brand__cnpj { font-size: 12px; color: #475569; }
-        .report-meta { text-align: center; margin-bottom: 16px; }
-        .report-title { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #0f172a; }
-        .profile { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f8fafc, #eef2ff); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #e2e8f0; }
-        .profile__name { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
-        .profile__status { font-size: 13px; color: #1e3a8a; margin: 0; text-transform: uppercase; letter-spacing: 0.3px; }
-        .profile__photo { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08); }
-        .profile__photo img { width: 100%; height: 100%; object-fit: cover; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
-        .info-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04); }
-        .info-card__title { font-weight: 700; color: #0f172a; margin-bottom: 10px; font-size: 15px; letter-spacing: 0.2px; }
-        .info-card__content { display: grid; gap: 8px; }
-        .info-row { padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
-        .info-label { font-size: 12px; color: #475569; margin: 0 0 2px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .info-value { font-size: 14px; color: #0f172a; margin: 0; word-break: break-word; }
-        .report-footer { border-top: 1px solid #e2e8f0; margin-top: 20px; padding-top: 12px; text-align: center; color: #475569; font-size: 13px; }
-        .report-footer__name { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
-        .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
-        .signature { margin-top: 36px; text-align: center; }
-        .signature p { text-align: center; }
-        .report-section { margin-top: 10px; }
-        .report-header--center { justify-content: center; }
-        .report-header__logo { max-height: 64px; object-fit: contain; }
+        .print-page { width: 100%; padding: 8px 0 16px; }
+        .report-wrapper { max-width: 100%; margin: 0 auto; background: #ffffff; padding: 26px 28px; border-radius: 18px; box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08); }
+        .report-header { display: flex; justify-content: center; align-items: center; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 14px; }
+        .report-header__logo { max-height: 72px; object-fit: contain; border-radius: 12px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; }
         .report-header__identity { text-align: center; }
-        .report-header__name { font-weight: bold; font-size: 14pt; margin: 0; }
-        .report-header__fantasy { margin: 0; font-size: 12pt; color: #1f2937; }
+        .report-header__name { font-weight: 800; font-size: 15pt; margin: 0; letter-spacing: 0.2px; text-transform: uppercase; }
+        .report-header__fantasy { margin: 2px 0 0; font-size: 12pt; color: #1f2937; }
+        .report-meta { text-align: center; margin: 10px 0 6px; }
+        .report-meta h1 { font-size: 22px; font-weight: 800; }
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11.5px; background: #fff; border-radius: 12px; overflow: hidden; }
+        .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 9px 10px; text-align: left; }
+        .print-table th { background: linear-gradient(135deg, #f8fafc, #eef2ff); font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.2px; }
+        .print-table tbody tr:nth-child(even) { background: #f8fafc; }
         .print-table th:nth-child(3), .print-table td:nth-child(3) { text-align: center; }
-        .print-table th:nth-child(2), .print-table th:nth-child(4) { width: 18%; }
+        .print-table th:nth-child(2), .print-table th:nth-child(4) { width: 16%; }
+        .print-table th:nth-child(5), .print-table td:nth-child(5) { width: 15%; }
+        @media print { body { background: #fff; } .report-wrapper { box-shadow: none; border-radius: 0; padding: 18px 12px; } }
       </style>
     `;
   }

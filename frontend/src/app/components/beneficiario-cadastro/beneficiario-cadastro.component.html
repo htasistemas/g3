@@ -167,9 +167,9 @@
         <div class="tab-card__header-actions">
           <span class="pill">Obrigatório</span>
           <div class="tab-card__action-row">
-            <button type="button" class="primary" (click)="openQuickSearch()">Localizar beneficiário</button>
-            <button type="button" class="ghost" (click)="startNewBeneficiario()">Novo</button>
-            <button type="submit" class="primary" [disabled]="saving || uploadingDocuments">
+            <button type="button" class="tab-card__cta" (click)="openQuickSearch()">Localizar beneficiário</button>
+            <button type="button" class="tab-card__cta" (click)="startNewBeneficiario()">Novo</button>
+            <button type="submit" class="tab-card__cta" [disabled]="saving || uploadingDocuments">
               {{ saving ? 'Salvando...' : uploadingDocuments ? 'Aguardando envios' : 'Salvar cadastro' }}
             </button>
           </div>
@@ -177,7 +177,7 @@
       </div>
       <div class="tab-card__utilities">
         <label class="print-order print-order--compact">
-          <span>Ordenar relação por</span>
+          <span>Impressão ordenada por</span>
           <select [value]="printOrderBy" (change)="onPrintOrderChange($any($event.target).value)">
             <option *ngFor="let option of printOrderOptions" [value]="option.value">{{ option.label }}</option>
           </select>
