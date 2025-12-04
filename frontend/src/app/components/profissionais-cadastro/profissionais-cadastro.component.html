@@ -74,9 +74,34 @@
 
       <div class="field-grid cols-3">
         <label class="field">Nome completo*<input type="text" formControlName="nome" placeholder="Quem irá atender?" /></label>
-        <label class="field">Categoria*<select formControlName="categoria">
+        <div class="field category-manager">
+          <label class="field-title" for="categoriaSelect">Categoria*</label>
+          <select id="categoriaSelect" formControlName="categoria">
             <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
-          </select></label>
+          </select>
+          <div class="category-actions">
+            <div class="category-actions__inline">
+              <input
+                #novaCategoria
+                type="text"
+                placeholder="Nova categoria"
+                (keydown.enter)="addCategoria(novaCategoria.value); novaCategoria.value = ''; $event.preventDefault();"
+              />
+              <button type="button" class="ghost" (click)="addCategoria(novaCategoria.value); novaCategoria.value = ''">
+                Adicionar
+              </button>
+            </div>
+            <div class="category-list">
+              <span class="category-chip" *ngFor="let categoria of categorias">
+                {{ categoria }}
+                <button type="button" class="ghost tiny" (click)="editCategoria(categoria)">Editar</button>
+                <button type="button" class="danger ghost tiny" (click)="removeCategoria(categoria)">
+                  Remover
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
         <label class="field">Especialidade<input type="text" formControlName="especialidade" placeholder="Área principal de atuação" /></label>
         <label class="field">Registro em conselho<input type="text" formControlName="registroConselho" placeholder="CRESS, CRP, CRM..." /></label>
         <label class="field">E-mail*<input type="email" formControlName="email" placeholder="contato@instituicao.org.br" /></label>

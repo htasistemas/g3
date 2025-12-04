@@ -459,6 +459,32 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.changeTab('dados');
   }
 
+  deleteCourse(course: CourseRecord): void {
+    if (!window.confirm(`Remover ${course.tipo.toLowerCase()} "${course.nome}"?`)) return;
+
+    this.saving = true;
+    this.service.delete(course.id).subscribe({
+      next: () => {
+        this.records = this.records.filter((item) => item.id !== course.id);
+
+        if (this.editingId === course.id) {
+          if (this.records.length) {
+            this.loadCourse(this.records[0].id);
+          } else {
+            this.startNew();
+          }
+        }
+
+        this.refreshDashboardSnapshot();
+        this.saving = false;
+      },
+      error: () => {
+        this.feedback = 'Não foi possível excluir o cadastro. Tente novamente.';
+        this.saving = false;
+      }
+    });
+  }
+
   private setupCapitalizationRules(): void {
     const applyRule = (form: FormGroup, controlName: string) => {
       const control = form.get(controlName);
