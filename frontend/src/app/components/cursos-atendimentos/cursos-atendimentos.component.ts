@@ -16,6 +16,19 @@ import { ProfessionalRecord, ProfessionalService } from '../../services/professi
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 import { titleCaseWords } from '../../utils/capitalization.util';
 
+const generateId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  // Fallback for environments without crypto.randomUUID
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const random = (Math.random() * 16) | 0;
+    const value = char === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
+
 interface StepTab {
   id: string;
   label: string;
@@ -646,7 +659,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
     if (this.currentCourse.vagasDisponiveis > 0) {
       const enrollment: EnrollmentRecord = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         beneficiaryName,
         cpf,
         whatsapp: sanitizedWhatsApp,
@@ -663,7 +676,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       );
       if (confirmWaitlist) {
         const entry: WaitlistEntry = {
-          id: crypto.randomUUID(),
+          id: generateId(),
           beneficiaryName,
           cpf,
           whatsapp: sanitizedWhatsApp,
@@ -739,7 +752,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     sourceCourse.waitlist = sourceCourse.waitlist.filter((item) => item.id !== entry.id);
     const moved: WaitlistEntry = {
       ...entry,
-      id: crypto.randomUUID(),
+      id: generateId(),
       joinedAt: new Date().toISOString()
     };
 
@@ -756,7 +769,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
     const [first, ...rest] = this.currentCourse.waitlist;
     const enrollment: EnrollmentRecord = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       beneficiaryName: first.beneficiaryName,
       cpf: first.cpf,
       whatsapp: first.whatsapp ?? null,
@@ -774,7 +787,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
     this.currentCourse.waitlist = this.currentCourse.waitlist.filter((item) => item.id !== entry.id);
     const enrollment: EnrollmentRecord = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       beneficiaryName: entry.beneficiaryName,
       cpf: entry.cpf,
       whatsapp: entry.whatsapp ?? null,
