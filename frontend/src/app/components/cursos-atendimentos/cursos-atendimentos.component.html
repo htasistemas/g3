@@ -65,30 +65,35 @@
             <option value="Oficina">Oficina</option>
           </select>
         </label>
-        <label class="field full">Nome do curso/atendimento*<input formControlName="nome" /></label>
+        <label class="field">
+          Nome do curso/atendimento*
+          <input
+            formControlName="nome"
+            (input)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
+            (blur)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
+          />
+        </label>
+        <label class="field">
+          Horário inicial*
+          <input type="time" formControlName="horarioInicial" />
+        </label>
         <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
 
-        <div class="field-grid cols-3 full schedule-grid">
-          <label class="field">
-            Horário inicial*
-            <input type="time" formControlName="horarioInicial" />
-          </label>
-          <label class="field">
-            Duração (horas)*
-            <input type="number" formControlName="duracaoHoras" min="1" />
-          </label>
-          <div class="field day-selector">
-            <p class="field-title">Dias da semana*</p>
-            <div class="chips">
-              <label *ngFor="let dia of diasSemana" class="chip">
-                <input
-                  type="checkbox"
-                  [checked]="selectionChecked(['diasSemana'], dia)"
-                  (change)="toggleSelection(['diasSemana'], dia)"
-                />
-                <span>{{ dia }}</span>
-              </label>
-            </div>
+        <label class="field">
+          Duração (horas)*
+          <input type="number" formControlName="duracaoHoras" min="1" />
+        </label>
+        <div class="field day-selector horizontal span-2">
+          <p class="field-title">Dias da semana*</p>
+          <div class="chips">
+            <label *ngFor="let dia of diasSemana" class="chip">
+              <input
+                type="checkbox"
+                [checked]="selectionChecked(['diasSemana'], dia)"
+                (change)="toggleSelection(['diasSemana'], dia)"
+              />
+              <span>{{ dia }}</span>
+            </label>
           </div>
         </div>
 
@@ -114,7 +119,12 @@
         </label>
         <label class="field span-2">
           Profissional responsável*
-          <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
+          <input
+            formControlName="profissional"
+            placeholder="Pesquise ou digite o nome do profissional"
+            (input)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
+            (blur)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
+          />
           <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
           <ul class="search-results" *ngIf="professionalResults.length">
             <li *ngFor="let professional of professionalResults">
@@ -125,15 +135,17 @@
             </li>
           </ul>
         </label>
-        <label class="field">
-          Sala*
-          <select formControlName="salaId">
-            <option value="" disabled [selected]="!courseForm.value.salaId">Selecione a sala</option>
-            <option *ngFor="let room of rooms" [value]="room.id">{{ room.nome }}</option>
-          </select>
+        <div class="field sala-field">
+          <label class="field-title" for="salaSelect">Sala*</label>
+          <div class="inline-control">
+            <select id="salaSelect" formControlName="salaId">
+              <option value="" disabled [selected]="!courseForm.value.salaId">Selecione a sala</option>
+              <option *ngFor="let room of rooms" [value]="room.id">{{ room.nome }}</option>
+            </select>
+            <button type="button" class="ghost" (click)="addRoom()">Cadastrar sala</button>
+          </div>
           <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
-          <button type="button" class="ghost" (click)="addRoom()">Cadastrar sala</button>
-        </label>
+        </div>
       </div>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
@@ -227,7 +239,12 @@
         </label>
         <label class="field full">
           Beneficiário (nome ou CPF)*
-          <input formControlName="beneficiaryName" placeholder="Buscar beneficiário" />
+          <input
+            formControlName="beneficiaryName"
+            placeholder="Buscar beneficiário"
+            (input)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
+            (blur)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
+          />
           <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando beneficiários...</div>
           <ul class="search-results" *ngIf="beneficiaryResults.length">
             <li *ngFor="let beneficiary of beneficiaryResults">

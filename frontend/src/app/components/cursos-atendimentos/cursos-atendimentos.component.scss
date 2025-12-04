@@ -246,6 +246,21 @@
   gap: 0.35rem;
 }
 
+.day-selector.horizontal {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.day-selector.horizontal .field-title {
+  margin: 0;
+}
+
+.day-selector.horizontal .chips {
+  flex: 1;
+}
+
 @media (max-width: 820px) {
   .field.span-2 {
     grid-column: 1 / -1;
@@ -430,6 +445,19 @@
   display: flex;
   gap: 0.35rem;
   flex-wrap: nowrap;
+}
+.inline-control {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.inline-control select {
+  flex: 1;
+}
+
+.inline-control .ghost {
+  white-space: nowrap;
 }
 
 .actions .primary {
