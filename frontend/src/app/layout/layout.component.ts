@@ -88,7 +88,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       ]
     },
     {
-      label: 'Matrículas',
+      label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
@@ -103,7 +103,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
         { label: 'Ofícios', icon: faClipboardList, route: '/administrativo/oficios' },
         { label: 'Documentos da Instituição', icon: faClipboardList, route: '/administrativo/documentos' },
         { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
-        { label: 'Patrimônio', icon: faClipboardList, route: '/administrativo/patrimonio' }
+        { label: 'Patrimônio', icon: faClipboardList, route: '/administrativo/patrimonio' },
+        { label: 'Tarefas e pendências', icon: faClipboardList, route: '/administrativo/tarefas' }
       ]
     },
     {

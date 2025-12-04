@@ -65,8 +65,19 @@
             <option value="Oficina">Oficina</option>
           </select>
         </label>
-        <label class="field full">Nome do curso/atendimento*<input formControlName="nome" /></label>
-        <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field span-2">Nome do curso/atendimento*<input formControlName="nome" /></label>
+        <label class="field span-2">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <div class="field media-card">
+          <p class="field-title">Foto / Imagem ilustrativa</p>
+          <input type="file" accept="image/*" (change)="handleImage($event)" />
+          <div class="upload-preview" *ngIf="courseForm.value.imagem">
+            <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
+            <div>
+              <p class="strong">Pré-visualização</p>
+              <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
+            </div>
+          </div>
+        </div>
         <label class="field">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
@@ -100,7 +111,7 @@
             </label>
           </div>
         </div>
-        <label class="field full">
+        <label class="field span-2">
           Profissional responsável*
           <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
           <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
@@ -122,19 +133,15 @@
           <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
           <button type="button" class="ghost" (click)="addRoom()">Cadastrar sala</button>
         </label>
-        <label class="field">
-          Foto / Imagem ilustrativa
-          <input type="file" accept="image/*" (change)="handleImage($event)" />
-        </label>
-        <div class="upload-preview" *ngIf="courseForm.value.imagem">
-          <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
-        </div>
       </div>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
         <div class="actions__stack">
           <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar e continuar' }}</button>
-          <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscrições</button>
+          <div class="actions__inline">
+            <button type="button" class="ghost" (click)="changeTab('catalogo')">Ir para: catálogo e vagas</button>
+            <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscrições</button>
+          </div>
         </div>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>

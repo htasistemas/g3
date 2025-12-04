@@ -8,6 +8,11 @@ import {
   ProfessionalStatus
 } from '../../services/professional.service';
 
+interface StepTab {
+  id: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-profissionais-cadastro',
   standalone: true,
@@ -20,6 +25,14 @@ export class ProfissionaisCadastroComponent {
   feedback: string | null = null;
   professionals: ProfessionalRecord[] = [];
   editingId: string | null = null;
+  saving = false;
+
+  tabs: StepTab[] = [
+    { id: 'perfil', label: 'Perfil profissional' },
+    { id: 'agenda', label: 'Agenda e canais' },
+    { id: 'resumo', label: 'Resumo e observações' }
+  ];
+  activeTab: StepTab['id'] = 'perfil';
 
   readonly categorias = ['Assistente social', 'Psicólogo(a)', 'Pedagogo(a)', 'Médico(a)', 'Nutricionista'];
   readonly disponibilidades = ['Manhã', 'Tarde', 'Noite'];
@@ -48,6 +61,38 @@ export class ProfissionaisCadastroComponent {
     this.loadProfessionals();
   }
 
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  changeTab(tab: StepTab['id']): void {
+    this.activeTab = tab;
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    }
+  }
+
   get totalDisponiveis(): number {
     return this.professionals.filter((p) => p.status === 'Disponível').length;
   }
@@ -68,6 +113,7 @@ export class ProfissionaisCadastroComponent {
       return;
     }
 
+    this.saving = true;
     const payload = this.form.value as ProfessionalPayload;
     if (this.editingId) {
       const updated = this.professionalService.update(this.editingId, payload);
@@ -79,11 +125,20 @@ export class ProfissionaisCadastroComponent {
       this.feedback = 'Profissional cadastrado com sucesso.';
     }
 
+    this.saving = false;
+    this.resetForm();
+    this.changeTab('perfil');
+  }
+
+  startNew(): void {
+    this.editingId = null;
+    this.changeTab('perfil');
     this.resetForm();
   }
 
   edit(record: ProfessionalRecord): void {
     this.editingId = record.id;
+    this.changeTab('perfil');
     this.form.patchValue({
       nome: record.nome,
       categoria: record.categoria,
@@ -107,6 +162,7 @@ export class ProfissionaisCadastroComponent {
     this.professionalService.delete(record.id);
     this.professionals = this.professionals.filter((item) => item.id !== record.id);
     this.resetForm();
+    this.changeTab('perfil');
   }
 
   toggleSelection(path: (string | number)[], option: string): void {
