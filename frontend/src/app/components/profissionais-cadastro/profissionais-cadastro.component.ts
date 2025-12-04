@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   ProfessionalPayload,
@@ -20,12 +20,13 @@ interface StepTab {
   templateUrl: './profissionais-cadastro.component.html',
   styleUrl: './profissionais-cadastro.component.scss'
 })
-export class ProfissionaisCadastroComponent {
+export class ProfissionaisCadastroComponent implements OnDestroy {
   form: FormGroup;
   feedback: string | null = null;
   professionals: ProfessionalRecord[] = [];
   editingId: string | null = null;
   saving = false;
+  private readonly capitalizationSubs: Array<() => void> = [];
 
   tabs: StepTab[] = [
     { id: 'perfil', label: 'Perfil profissional' },
@@ -34,7 +35,7 @@ export class ProfissionaisCadastroComponent {
   ];
   activeTab: StepTab['id'] = 'perfil';
 
-  readonly categorias = ['Assistente social', 'Psicólogo(a)', 'Pedagogo(a)', 'Médico(a)', 'Nutricionista'];
+  categorias = ['Assistente social', 'Psicólogo(a)', 'Pedagogo(a)', 'Médico(a)', 'Nutricionista'];
   readonly disponibilidades = ['Manhã', 'Tarde', 'Noite'];
   readonly canais = ['Presencial', 'Online', 'Telefone'];
   readonly statuses: ProfessionalStatus[] = ['Disponível', 'Em atendimento', 'Em intervalo', 'Indisponível'];
@@ -59,6 +60,11 @@ export class ProfissionaisCadastroComponent {
     });
 
     this.loadProfessionals();
+    this.setupCapitalizationRules();
+  }
+
+  ngOnDestroy(): void {
+    this.capitalizationSubs.forEach((unsubscribe) => unsubscribe());
   }
 
   get activeTabIndex(): number {
@@ -130,6 +136,42 @@ export class ProfissionaisCadastroComponent {
     this.changeTab('perfil');
   }
 
+  addCategoria(value: string): void {
+    const formatted = this.capitalize(value);
+    if (!formatted) return;
+
+    if (this.categorias.includes(formatted)) {
+      this.form.patchValue({ categoria: formatted });
+      return;
+    }
+
+    this.categorias = [...this.categorias, formatted];
+    this.form.patchValue({ categoria: formatted });
+  }
+
+  editCategoria(actual: string): void {
+    const next = window.prompt('Atualizar categoria', actual);
+    const formatted = this.capitalize(next ?? '');
+    if (!formatted || actual === formatted) return;
+
+    this.categorias = this.categorias.map((item) => (item === actual ? formatted : item));
+
+    if (this.form.value.categoria === actual) {
+      this.form.patchValue({ categoria: formatted });
+    }
+  }
+
+  removeCategoria(target: string): void {
+    if (this.categorias.length === 1) return;
+    if (!window.confirm(`Remover a categoria "${target}"?`)) return;
+
+    this.categorias = this.categorias.filter((categoria) => categoria !== target);
+
+    if (this.form.value.categoria === target) {
+      this.form.patchValue({ categoria: this.categorias[0] ?? '' });
+    }
+  }
+
   startNew(): void {
     this.editingId = null;
     this.changeTab('perfil');
@@ -180,8 +222,9 @@ export class ProfissionaisCadastroComponent {
   addTag(tag: string): void {
     if (!tag.trim()) return;
     const control = this.form.get('tags');
+    const formatted = this.capitalize(tag);
     const current = new Set(control?.value ?? []);
-    current.add(tag.trim());
+    current.add(formatted || tag.trim());
     control?.setValue(Array.from(current));
   }
 
@@ -214,5 +257,35 @@ export class ProfissionaisCadastroComponent {
 
   private loadProfessionals(): void {
     this.professionals = this.professionalService.list();
+  }
+
+  private setupCapitalizationRules(): void {
+    const applyRule = (controlName: string) => {
+      const control = this.form.get(controlName);
+      if (!control) return;
+
+      const subscription = control.valueChanges.subscribe((value) => {
+        if (typeof value !== 'string') return;
+        if (controlName === 'email') return;
+
+        const transformed = this.capitalize(value);
+        if (transformed && transformed !== value) {
+          control.setValue(transformed, { emitEvent: false });
+        }
+      });
+
+      this.capitalizationSubs.push(() => subscription.unsubscribe());
+    };
+
+    ['nome', 'categoria', 'registroConselho', 'especialidade', 'telefone', 'unidade', 'resumo', 'observacoes'].forEach(
+      applyRule
+    );
+  }
+
+  private capitalize(value: string): string {
+    if (!value || typeof value !== 'string') return '';
+    const trimmed = value.trimStart();
+    if (!trimmed) return '';
+    return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`;
   }
 }

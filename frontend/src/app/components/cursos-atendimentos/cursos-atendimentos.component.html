@@ -55,7 +55,7 @@
         </div>
         <span class="pill">Obrigatório</span>
       </div>
-      <div class="field-grid cols-3">
+      <div class="field-grid cols-3 dados-grid">
         <label class="field">
           Tipo*
           <select formControlName="tipo">
@@ -65,9 +65,35 @@
             <option value="Oficina">Oficina</option>
           </select>
         </label>
-        <label class="field span-2">Nome do curso/atendimento*<input formControlName="nome" /></label>
-        <label class="field span-2">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
-        <div class="field media-card">
+        <label class="field full">Nome do curso/atendimento*<input formControlName="nome" /></label>
+        <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+
+        <div class="field-grid cols-3 full schedule-grid">
+          <label class="field">
+            Horário inicial*
+            <input type="time" formControlName="horarioInicial" />
+          </label>
+          <label class="field">
+            Duração (horas)*
+            <input type="number" formControlName="duracaoHoras" min="1" />
+          </label>
+          <div class="field day-selector">
+            <p class="field-title">Dias da semana*</p>
+            <div class="chips">
+              <label *ngFor="let dia of diasSemana" class="chip">
+                <input
+                  type="checkbox"
+                  [checked]="selectionChecked(['diasSemana'], dia)"
+                  (change)="toggleSelection(['diasSemana'], dia)"
+                />
+                <span>{{ dia }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
+        <div class="field media-card span-2">
           <p class="field-title">Foto / Imagem ilustrativa</p>
           <input type="file" accept="image/*" (change)="handleImage($event)" />
           <div class="upload-preview" *ngIf="courseForm.value.imagem">
@@ -86,31 +112,6 @@
           Vagas disponíveis
           <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
         </label>
-        <label class="field">
-          Carga horária total (horas)
-          <input type="number" formControlName="cargaHoraria" min="0" />
-        </label>
-        <label class="field">
-          Horário inicial*
-          <input type="time" formControlName="horarioInicial" />
-        </label>
-        <label class="field">
-          Duração (horas)*
-          <input type="number" formControlName="duracaoHoras" min="1" />
-        </label>
-        <div class="field full">
-          <p class="field-title">Dias da semana*</p>
-          <div class="chips">
-            <label *ngFor="let dia of diasSemana" class="chip">
-              <input
-                type="checkbox"
-                [checked]="selectionChecked(['diasSemana'], dia)"
-                (change)="toggleSelection(['diasSemana'], dia)"
-              />
-              <span>{{ dia }}</span>
-            </label>
-          </div>
-        </div>
         <label class="field span-2">
           Profissional responsável*
           <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
@@ -193,6 +194,7 @@
           </dl>
           <div class="catalog-card__actions">
             <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
+            <button type="button" class="danger" (click)="deleteCourse(course)">Excluir</button>
             <button type="button" class="primary" (click)="selectFromCatalog(course.id)" [disabled]="course.vagasDisponiveis === 0">
               Inscrever beneficiário
             </button>
@@ -490,6 +492,7 @@
             <td class="table-actions">
               <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
               <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscrições</button>
+              <button class="danger" type="button" (click)="deleteCourse(course)">Excluir</button>
             </td>
           </tr>
           <tr *ngIf="!records.length">

@@ -71,4 +71,8 @@ export class CursosAtendimentosService {
       .put<{ record: CourseRecord }>(`${this.baseUrl}/${id}`, payload)
       .pipe(map((response) => response.record));
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
