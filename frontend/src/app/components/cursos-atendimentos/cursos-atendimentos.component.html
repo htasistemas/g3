@@ -103,6 +103,24 @@
         <label class="field full">
           Profissional responsável*
           <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
+          <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
+          <ul class="search-results" *ngIf="professionalResults.length">
+            <li *ngFor="let volunteer of professionalResults">
+              <button type="button" (click)="selectProfessional(volunteer)">
+                <span>{{ volunteer.nome }}</span>
+                <small>{{ volunteer.areaInteresse || volunteer.email }}</small>
+              </button>
+            </li>
+          </ul>
+        </label>
+        <label class="field">
+          Sala*
+          <select formControlName="salaId">
+            <option value="" disabled [selected]="!courseForm.value.salaId">Selecione a sala</option>
+            <option *ngFor="let room of rooms" [value]="room.id">{{ room.nome }}</option>
+          </select>
+          <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
+          <button type="button" class="ghost" (click)="addRoom()">Cadastrar sala</button>
         </label>
         <label class="field">
           Foto / Imagem ilustrativa
@@ -135,7 +153,12 @@
         <article *ngFor="let course of records" class="catalog-card">
           <div class="catalog-card__badge" [ngClass]="courseStatus(course).tone">{{ courseStatus(course).label }}</div>
           <div class="catalog-card__header">
-            <div class="catalog-card__icon" aria-hidden="true">{{ course.tipo.slice(0, 1) }}</div>
+            <div class="catalog-card__media" *ngIf="course.imagem; else fallbackIcon">
+              <img [src]="course.imagem" [alt]="course.nome" />
+            </div>
+            <ng-template #fallbackIcon>
+              <div class="catalog-card__icon" aria-hidden="true">{{ course.tipo.slice(0, 1) }}</div>
+            </ng-template>
             <div class="catalog-card__meta">
               <p class="catalog-card__category">{{ course.tipo }}</p>
               <h3 class="catalog-card__title">{{ course.nome }}</h3>
@@ -155,6 +178,10 @@
             <div>
               <dt>Dias</dt>
               <dd>{{ course.diasSemana.join(', ') }}</dd>
+            </div>
+            <div>
+              <dt>Sala</dt>
+              <dd>{{ course.sala?.nome || rooms.find((room) => room.id === course.salaId)?.nome || 'Sem sala' }}</dd>
             </div>
           </dl>
           <div class="catalog-card__actions">
@@ -398,6 +425,7 @@
             <th>Nome</th>
             <th>Vagas</th>
             <th>Profissional</th>
+            <th>Sala</th>
             <th>Início</th>
             <th>Ações</th>
           </tr>
@@ -408,6 +436,7 @@
             <td>{{ course.nome }}</td>
             <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
             <td>{{ course.profissional }}</td>
+            <td>{{ course.sala?.nome || rooms.find((room) => room.id === course.salaId)?.nome || 'Sem sala' }}</td>
             <td>{{ course.horarioInicial }}</td>
             <td class="table-actions">
               <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
