@@ -173,67 +173,6 @@
         </div>
       </div>
 
-      <div class="list-card">
-        <div class="list-card__header">
-          <div>
-            <p class="page-title__eyebrow">Listas consolidadas</p>
-            <p class="page-title__label">Beneficiários aguardando por curso</p>
-          </div>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Curso/Atendimento</th>
-                <th>Beneficiário</th>
-                <th>CPF</th>
-                <th>Data de entrada</th>
-                <th>Posição</th>
-                <th>Destino</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of waitlistOverview">
-                <td>{{ item.course.tipo }} • {{ item.course.nome }}</td>
-                <td>{{ item.entry.beneficiaryName }}</td>
-                <td>{{ item.entry.cpf }}</td>
-                <td>{{ item.entry.joinedAt | date: 'shortDate' }}</td>
-                <td>{{ item.position }}</td>
-                <td>
-                  <select
-                    [(ngModel)]="waitlistTransfers[item.entry.id]"
-                    [ngModelOptions]="{ standalone: true }"
-                  >
-                    <option value="" disabled>Selecionar destino</option>
-                    <option
-                      *ngFor="let course of records"
-                      [value]="course.id"
-                      [disabled]="course.id === item.course.id"
-                    >
-                      {{ course.tipo }} • {{ course.nome }}
-                    </option>
-                  </select>
-                </td>
-                <td class="table-actions">
-                  <button
-                    class="ghost"
-                    type="button"
-                    (click)="transferWaitlist(item.entry, item.course)"
-                    [disabled]="!waitlistTransfers[item.entry.id]"
-                  >
-                    Transferir
-                  </button>
-                  <button class="ghost" type="button" (click)="removeFromWaitlist(item.entry, item.course)">Remover</button>
-                </td>
-              </tr>
-              <tr *ngIf="!waitlistOverview.length">
-                <td colspan="7" class="muted">Nenhum beneficiário em listas de espera.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
@@ -343,7 +282,6 @@
           </ul>
         </label>
         <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
-        <label class="field">WhatsApp<input formControlName="whatsapp" placeholder="(11) 99999-0000" /></label>
         <div class="actions align-end">
             <div class="helper" *ngIf="currentCourse">
               <p class="helper__title">Vagas disponíveis</p>
@@ -359,25 +297,6 @@
             <p class="page-title__eyebrow">Matrículas</p>
             <p class="page-title__label">Beneficiários vinculados</p>
           </div>
-          <div class="inline-actions">
-            <label class="field full">
-              Mensagem do WhatsApp
-              <textarea
-                rows="2"
-                [(ngModel)]="whatsappMessageTemplate"
-                [ngModelOptions]="{ standalone: true }"
-                [placeholder]="'Use {{nome}}, {{curso}}, {{horario}}, {{profissional}} e {{status}} para personalizar'"
-              ></textarea>
-            </label>
-            <button
-              type="button"
-              class="ghost"
-              (click)="sendWhatsAppToAll()"
-              [disabled]="!currentCourse?.enrollments?.length"
-            >
-              WhatsApp para todos
-            </button>
-          </div>
         </div>
         <div class="table-wrapper">
           <table>
@@ -387,7 +306,6 @@
                 <th>CPF</th>
                 <th>Situação</th>
                 <th>Data de inscrição</th>
-                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -402,17 +320,9 @@
                   </select>
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
-                <td class="table-actions">
-                  <button type="button" class="ghost" (click)="sendWhatsApp(enrollment)">
-                    Avisar por WhatsApp
-                  </button>
-                  <button type="button" class="ghost" (click)="emitDocument(enrollment)" [disabled]="!eligibleForDocument(enrollment)">
-                    {{ currentCourse?.tipo === 'Curso' ? 'Certificado' : 'Atestado' }}
-                  </button>
-                </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
+                <td colspan="4" class="muted">Nenhuma matrícula cadastrada.</td>
               </tr>
             </tbody>
           </table>
@@ -434,7 +344,6 @@
                 <th>CPF</th>
                 <th>Data de entrada</th>
                 <th>Posição</th>
-                <th>Destino</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -444,115 +353,15 @@
                 <td>{{ item.cpf }}</td>
                 <td>{{ item.joinedAt | date: 'shortDate' }}</td>
                 <td>{{ idx + 1 }}</td>
-                <td>
-                  <select
-                    [(ngModel)]="waitlistTransfers[item.id]"
-                    [ngModelOptions]="{ standalone: true }"
-                  >
-                    <option value="" disabled>Selecionar destino</option>
-                    <option *ngFor="let course of records" [value]="course.id" [disabled]="course.id === currentCourse?.id">
-                      {{ course.tipo }} • {{ course.nome }}
-                    </option>
-                  </select>
-                </td>
                 <td class="table-actions">
                   <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
                     Converter para matrícula
-                  </button>
-                  <button
-                    class="ghost"
-                    type="button"
-                    (click)="currentCourse && transferWaitlist(item, currentCourse)"
-                    [disabled]="!waitlistTransfers[item.id] || !currentCourse"
-                  >
-                    Transferir
                   </button>
                   <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.waitlist?.length">
-                <td colspan="5" class="muted">Nenhum beneficiário em fila.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
-    </div>
-
-    <div class="tab-card" *ngIf="activeTab === 'documentos'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Emita certificados para cursos concluídos ou atestados para atendimentos.</p>
-        </div>
-        <span class="pill">PDF</span>
-      </div>
-
-      <div class="list-card">
-        <div class="list-card__header">
-          <div>
-            <p class="page-title__eyebrow">Modelo do documento</p>
-            <p class="page-title__label">Personalize certificados e atestados</p>
-            <p class="muted" ngNonBindable>
-              Use marcadores como {{ nome }}, {{ curso }}, {{ tipo }}, {{ horario }}, {{ cargaHoraria }}, {{ profissional }} e {{ dataAtual }}.
-            </p>
-          </div>
-        </div>
-        <div class="field-grid cols-2" [formGroup]="courseForm">
-          <label class="field full">
-            HTML / texto do certificado
-            <textarea rows="6" formControlName="certificateTemplate" placeholder="Cole ou escreva o modelo do certificado"></textarea>
-            <small class="muted">Se deixar em branco, o sistema usa o modelo padrão.</small>
-          </label>
-          <div class="field">
-            <p class="field-title">Importar modelo</p>
-            <input type="file" accept=".html,.txt,text/html" (change)="loadCertificateTemplate($event)" />
-            <p class="muted">O arquivo deve conter HTML ou texto simples.</p>
-          </div>
-        </div>
-        <div class="actions">
-          <button type="button" class="primary" (click)="saveCertificateTemplate()" [disabled]="!currentCourse">
-            Salvar modelo
-          </button>
-        </div>
-      </div>
-
-      <div class="list-card">
-        <div class="list-card__header">
-          <div>
-            <p class="page-title__eyebrow">Registros elegíveis</p>
-            <p class="page-title__label">{{ currentCourse?.tipo === 'Curso' ? 'Certificados de conclusão' : 'Atestados de comparecimento' }}</p>
-          </div>
-          <div class="actions__inline">
-            <button type="button" class="ghost" (click)="emitAllDocuments()" [disabled]="!currentCourse?.enrollments?.length">
-              Imprimir todos
-            </button>
-          </div>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Beneficiário</th>
-                <th>CPF</th>
-                <th>Situação</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let enrollment of currentCourse?.enrollments">
-                <td>{{ enrollment.beneficiaryName }}</td>
-                <td>{{ enrollment.cpf }}</td>
-                <td>{{ enrollment.status }}</td>
-                <td>
-                  <button type="button" class="primary" (click)="emitDocument(enrollment)" [disabled]="!eligibleForDocument(enrollment)">
-                    {{ currentCourse?.tipo === 'Curso' ? 'Emitir certificado' : 'Emitir atestado' }}
-                  </button>
-                </td>
-              </tr>
-              <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="4" class="muted">Cadastre matrículas para liberar a emissão de documentos.</td>
+                <td colspan="4" class="muted">Nenhum beneficiário em fila.</td>
               </tr>
             </tbody>
           </table>
