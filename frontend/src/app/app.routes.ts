@@ -19,6 +19,7 @@ import { PrestacaoContasComponent } from './components/prestacao-contas/prestaca
 import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
 import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
 import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
+import { ProfissionaisCadastroComponent } from './components/profissionais-cadastro/profissionais-cadastro.component';
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
 import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
@@ -56,6 +57,11 @@ export const routes: Routes = [
         path: 'cadastros/voluntariados',
         component: VoluntariadoCadastroComponent,
         data: { title: 'Cadastro de Voluntário' }
+      },
+      {
+        path: 'cadastros/profissionais',
+        component: ProfissionaisCadastroComponent,
+        data: { title: 'Cadastro de Profissionais' }
       },
       {
         path: 'atendimentos/doacoes',

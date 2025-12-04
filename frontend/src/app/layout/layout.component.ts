@@ -19,6 +19,7 @@ import {
   faSun,
   faMoon,
   faUserCircle,
+  faUserDoctor,
   faUserPlus,
   faUsers,
   faWallet,
@@ -82,6 +83,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
         { label: 'Beneficiários', icon: faUserPlus, route: '/cadastros/beneficiarios' },
+        { label: 'Profissionais', icon: faUserDoctor, route: '/cadastros/profissionais' },
         { label: 'Voluntariados', icon: faClipboardList, route: '/cadastros/voluntariados' }
       ]
     },
