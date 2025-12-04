@@ -33,7 +33,9 @@ dotenv.config();
 type SupportedRelational = 'postgres' | 'mysql' | 'mariadb';
 type SupportedDrivers = SupportedRelational | 'sqlite';
 
-const dbType: SupportedDrivers = (process.env.DB_TYPE as SupportedDrivers) || 'sqlite';
+// Default to Postgres so multiple environments share the same persisted database
+// unless SQLite is explicitly requested.
+const dbType: SupportedDrivers = (process.env.DB_TYPE as SupportedDrivers) || 'postgres';
 
 function resolveSqlitePath(): string {
   const rawPath = process.env.DB_NAME && process.env.DB_NAME.trim() !== '' ? process.env.DB_NAME.trim() : path.join('data', 'g3.sqlite');
