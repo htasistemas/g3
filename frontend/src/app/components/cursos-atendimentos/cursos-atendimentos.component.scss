@@ -216,6 +216,11 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.load-room-grid {
+  grid-template-columns: minmax(170px, 0.9fr) minmax(200px, 1fr) minmax(200px, 1fr) minmax(230px, 1.1fr);
+  align-items: end;
+}
+
 .field-pair {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -225,6 +230,20 @@
 
 .description-media {
   align-items: start;
+}
+
+.description-media.full {
+  grid-template-columns: minmax(340px, 2fr) minmax(260px, 1fr);
+}
+
+.description-field textarea {
+  min-height: 100%;
+}
+
+@media (max-width: 960px) {
+  .description-media.full {
+    grid-template-columns: 1fr;
+  }
 }
 
 .field {
