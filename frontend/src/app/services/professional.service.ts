@@ -32,31 +32,7 @@ export class ProfessionalService {
   private readonly storageKey = 'g3.professionals';
 
   list(): ProfessionalRecord[] {
-    const loaded = this.load();
-    if (loaded.length) return loaded;
-
-    const seeded: ProfessionalRecord[] = [
-      {
-        id: crypto.randomUUID(),
-        nome: 'Equipe técnica referência',
-        categoria: 'Assistente social',
-        especialidade: 'Acolhimento familiar',
-        registroConselho: 'CRESS 0000',
-        email: 'assistencia@instituicao.org.br',
-        telefone: '(11) 4002-8922',
-        unidade: 'Unidade central',
-        cargaHoraria: 30,
-        disponibilidade: ['Manhã', 'Tarde'],
-        canaisAtendimento: ['Presencial', 'Online'],
-        status: 'Disponível',
-        tags: ['Famílias', 'Triagens rápidas'],
-        resumo: 'Profissionais responsáveis pelos casos gerais e orientação inicial.',
-        criadoEm: new Date().toISOString()
-      }
-    ];
-
-    this.persist(seeded);
-    return seeded;
+    return this.load();
   }
 
   create(payload: ProfessionalPayload): ProfessionalRecord {

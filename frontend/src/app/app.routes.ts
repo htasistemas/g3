@@ -23,6 +23,7 @@ import { ProfissionaisCadastroComponent } from './components/profissionais-cadas
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
 import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
+import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -97,6 +98,11 @@ export const routes: Routes = [
         path: 'administrativo/almoxarifado',
         component: AlmoxarifadoComponent,
         data: { title: 'Almoxarifado' }
+      },
+      {
+        path: 'administrativo/tarefas',
+        component: TarefasPendenciasComponent,
+        data: { title: 'Tarefas e pendências' }
       },
       {
         path: 'configuracoes/versao',

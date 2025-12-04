@@ -1,122 +1,142 @@
 <section class="cadastro">
   <header class="page-title">
     <p class="page-title__eyebrow">Cadastros</p>
-    <div class="page-title__heading">
-      <p class="page-title__label">Profissionais para atendimentos</p>
-      <p class="page-title__description">
-        Registre e acompanhe profissionais responsáveis pelos atendimentos presenciais ou remotos.
-      </p>
-    </div>
-    <div class="highlight-strip">
-      <span>Time disponível</span>
-      <strong>{{ totalDisponiveis }} profissionais prontos para atender</strong>
-    </div>
+    <p class="page-title__label">Profissionais para atendimentos</p>
+    <p class="page-title__description">
+      Utilize a mesma jornada do cadastro de voluntários para organizar o quadro profissional, com abas e fontes consistentes.
+    </p>
   </header>
 
-  <div class="metrics-row">
-    <div class="metric-card">
-      <p class="metric-card__label">Profissionais disponíveis</p>
-      <p class="metric-card__value">{{ totalDisponiveis }}</p>
-      <p class="metric-card__hint">Prontos para novos atendimentos</p>
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric">
+      <p class="metric__label">Profissionais disponíveis</p>
+      <p class="metric__value">{{ totalDisponiveis }}</p>
+      <p class="metric__hint">Prontos para novos atendimentos</p>
     </div>
-    <div class="metric-card gradient">
-      <p class="metric-card__label">Atendimento presencial</p>
-      <p class="metric-card__value">{{ totalPresencial }}</p>
-      <p class="metric-card__hint">Ativos em sala ou campo</p>
+    <div class="metric">
+      <p class="metric__label">Atendimento presencial</p>
+      <p class="metric__value">{{ totalPresencial }}</p>
+      <p class="metric__hint">Escala em unidades e salas</p>
     </div>
-    <div class="metric-card gradient-alt">
-      <p class="metric-card__label">Atendimento online</p>
-      <p class="metric-card__value">{{ totalOnline }}</p>
-      <p class="metric-card__hint">Teleatendimento e orientações</p>
+    <div class="metric">
+      <p class="metric__label">Atendimento online</p>
+      <p class="metric__value">{{ totalOnline }}</p>
+      <p class="metric__hint">Teleatendimento e orientações</p>
     </div>
   </div>
 
-  <section class="form-layout">
-    <div class="form-panel">
-      <div class="panel-header">
-        <div>
-          <p class="panel-eyebrow">Cadastro</p>
-          <h2>{{ editingId ? 'Editar profissional' : 'Novo profissional' }}</h2>
-          <p class="muted">Complete os campos para habilitar o profissional na agenda de atendimentos.</p>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="ghost" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'perfil'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Identifique o profissional e dados de contato de forma estruturada.</p>
         </div>
-        <span class="status-pill" [class.success]="!editingId">{{ editingId ? 'Edição' : 'Rascunho' }}</span>
+        <span class="pill">Obrigatório</span>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
-        <div class="field">
-          <label>Nome completo *</label>
-          <input type="text" formControlName="nome" placeholder="Quem irá atender?" />
-        </div>
-        <div class="field">
-          <label>Categoria *</label>
-          <select formControlName="categoria">
+      <div class="field-grid cols-3">
+        <label class="field">Nome completo*<input type="text" formControlName="nome" placeholder="Quem irá atender?" /></label>
+        <label class="field">Categoria*<select formControlName="categoria">
             <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Especialidade</label>
-          <input type="text" formControlName="especialidade" placeholder="Área principal de atuação" />
-        </div>
-        <div class="field">
-          <label>Registro em conselho</label>
-          <input type="text" formControlName="registroConselho" placeholder="CRESS, CRP, CRM..." />
-        </div>
-        <div class="field">
-          <label>E-mail *</label>
-          <input type="email" formControlName="email" placeholder="contato@instituicao.org.br" />
-        </div>
-        <div class="field">
-          <label>Telefone/WhatsApp</label>
-          <input type="text" formControlName="telefone" placeholder="(11) 90000-0000" />
-        </div>
-        <div class="field">
-          <label>Unidade de atendimento</label>
-          <input type="text" formControlName="unidade" placeholder="Unidade, polo ou sala" />
-        </div>
-        <div class="field">
-          <label>Carga horária semanal</label>
-          <input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" />
-        </div>
+          </select></label>
+        <label class="field">Especialidade<input type="text" formControlName="especialidade" placeholder="Área principal de atuação" /></label>
+        <label class="field">Registro em conselho<input type="text" formControlName="registroConselho" placeholder="CRESS, CRP, CRM..." /></label>
+        <label class="field">E-mail*<input type="email" formControlName="email" placeholder="contato@instituicao.org.br" /></label>
+        <label class="field">Telefone/WhatsApp<input type="text" formControlName="telefone" placeholder="(11) 90000-0000" /></label>
+      </div>
 
-        <div class="field full">
-          <p class="field__label">Disponibilidade</p>
-          <div class="chips">
-            <button
-              type="button"
-              class="chip"
-              [class.active]="selectionChecked(['disponibilidade'], periodo)"
-              *ngFor="let periodo of disponibilidades"
-              (click)="toggleSelection(['disponibilidade'], periodo)"
-            >
-              {{ periodo }}
-            </button>
-          </div>
-        </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
 
-        <div class="field full">
-          <p class="field__label">Canais de atendimento</p>
-          <div class="chips">
-            <button
-              type="button"
-              class="chip"
-              [class.active]="selectionChecked(['canaisAtendimento'], canal)"
-              *ngFor="let canal of canais"
-              (click)="toggleSelection(['canaisAtendimento'], canal)"
-            >
-              {{ canal }}
-            </button>
-          </div>
+    <div class="tab-card" *ngIf="activeTab === 'agenda'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Combine unidade, status e agenda de atendimento.</p>
         </div>
+        <span class="pill">Agenda</span>
+      </div>
 
-        <div class="field">
-          <label>Status *</label>
-          <select formControlName="status">
+      <div class="field-grid cols-3">
+        <label class="field">Unidade de atendimento<input type="text" formControlName="unidade" placeholder="Unidade, polo ou sala" /></label>
+        <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
+        <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-          </select>
+          </select></label>
+        <div class="field full">
+          <p class="field-title">Disponibilidade</p>
+          <div class="chips">
+            <label *ngFor="let periodo of disponibilidades" class="chip">
+              <input type="checkbox" [checked]="selectionChecked(['disponibilidade'], periodo)" (change)="toggleSelection(['disponibilidade'], periodo)" />
+              <span>{{ periodo }}</span>
+            </label>
+          </div>
         </div>
 
-        <div class="field">
-          <label>Palavras-chave</label>
+        <div class="field full">
+          <p class="field-title">Canais de atendimento</p>
+          <div class="chips">
+            <label *ngFor="let canal of canais" class="chip">
+              <input type="checkbox" [checked]="selectionChecked(['canaisAtendimento'], canal)" (change)="toggleSelection(['canaisAtendimento'], canal)" />
+              <span>{{ canal }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'resumo'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Resumo, observações e palavras-chave para encontrar rápido.</p>
+        </div>
+        <span class="pill">Finalização</span>
+      </div>
+
+      <div class="field-grid cols-2">
+        <div class="field full">
+          <label class="field-title">Palavras-chave</label>
           <div class="tag-input">
             <input
               type="text"
@@ -136,75 +156,72 @@
           </div>
         </div>
 
-        <div class="field">
-          <label>Resumo breve</label>
-          <textarea formControlName="resumo" rows="2" placeholder="Como este profissional contribui?" ></textarea>
-        </div>
-        <div class="field">
-          <label>Observações internas</label>
-          <textarea formControlName="observacoes" rows="2" placeholder="Notas de equipe e agenda"></textarea>
-        </div>
-      </form>
+        <label class="field">Resumo breve<textarea formControlName="resumo" rows="3" placeholder="Como este profissional contribui?"></textarea></label>
+        <label class="field">Observações internas<textarea formControlName="observacoes" rows="3" placeholder="Notas de equipe e agenda"></textarea></label>
+      </div>
 
-      <div class="form-actions">
+      <div class="actions">
         <button type="button" class="ghost" (click)="resetForm()">Limpar</button>
-        <button type="button" class="secondary" (click)="editingId ? resetForm() : null">Cancelar</button>
-        <button type="button" class="primary" (click)="submit()">
-          {{ editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
+        <button type="button" class="secondary" (click)="startNew()">Cancelar edição</button>
+        <button type="submit" class="primary" [disabled]="saving">
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
         </button>
       </div>
-      <p class="feedback" *ngIf="feedback">{{ feedback }}</p>
     </div>
+  </form>
 
-    <div class="list-panel">
-      <div class="panel-header compact">
-        <div>
-          <p class="panel-eyebrow">Escala e agenda</p>
-          <h3>Profissionais cadastrados</h3>
-          <p class="muted">Organize quem atende em cada canal ou período.</p>
-        </div>
-        <div class="filters">
-          <span class="pill">{{ professionals.length }} profissionais</span>
-          <span class="pill success">{{ totalDisponiveis }} disponíveis</span>
-        </div>
+  <div class="list-card">
+    <div class="list-card__header">
+      <div>
+        <p class="page-title__eyebrow">Profissionais cadastrados</p>
+        <p class="page-title__label">Agenda e disponibilidade</p>
       </div>
-
-      <div class="professional-list">
-        <article class="professional-card" *ngFor="let professional of professionals">
-          <div class="professional-card__header">
-            <div>
-              <p class="title">{{ professional.nome }}</p>
-              <p class="subtitle">{{ professional.categoria }} • {{ professional.especialidade || 'Sem especialidade' }}</p>
-            </div>
-            <span class="pill" [class.success]="professional.status === 'Disponível'">{{ professional.status }}</span>
-          </div>
-
-          <div class="professional-card__meta">
-            <span>{{ professional.unidade || 'Unidade não informada' }}</span>
-            <span>{{ professional.cargaHoraria || 'Carga não definida' }}h/semana</span>
-            <span>{{ professional.canaisAtendimento?.join(' • ') || 'Sem canais definidos' }}</span>
-          </div>
-
-          <p class="professional-card__resume" *ngIf="professional.resumo">{{ professional.resumo }}</p>
-
-          <div class="tag-list inline" *ngIf="professional.tags?.length">
-            <span class="tag" *ngFor="let tag of professional.tags">{{ tag }}</span>
-          </div>
-
-          <div class="professional-card__footer">
-            <div class="contact">
-              <span>{{ professional.email || 'E-mail não informado' }}</span>
-              <span>{{ professional.telefone || 'Telefone não informado' }}</span>
-            </div>
-            <div class="actions">
-              <button type="button" class="ghost" (click)="edit(professional)">Editar</button>
-              <button type="button" class="danger" (click)="remove(professional)">Remover</button>
-            </div>
-          </div>
-        </article>
-
-        <p class="muted" *ngIf="!professionals.length">Nenhum profissional cadastrado ainda.</p>
+      <div class="list-card__actions">
+        <span class="pill">{{ professionals.length }} no total</span>
+        <span class="pill success">{{ totalDisponiveis }} disponíveis</span>
       </div>
     </div>
-  </section>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Especialidade</th>
+            <th>Unidade</th>
+            <th>Status</th>
+            <th>Contato</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let professional of professionals">
+            <td>
+              <div class="strong">{{ professional.nome }}</div>
+              <div class="muted">{{ professional.categoria }}</div>
+            </td>
+            <td>{{ professional.especialidade || 'Sem especialidade' }}</td>
+            <td>{{ professional.unidade || 'Unidade não informada' }}</td>
+            <td>
+              <span class="pill" [class.success]="professional.status === 'Disponível'">{{ professional.status }}</span>
+              <div class="muted">{{ professional.canaisAtendimento?.join(' • ') || 'Sem canais definidos' }}</div>
+            </td>
+            <td>
+              <div class="muted">{{ professional.email || 'E-mail não informado' }}</div>
+              <div class="muted">{{ professional.telefone || 'Telefone não informado' }}</div>
+            </td>
+            <td class="text-right">
+              <div class="row-actions">
+                <button type="button" class="ghost" (click)="edit(professional)">Editar</button>
+                <button type="button" class="danger" (click)="remove(professional)">Remover</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!professionals.length">
+            <td colspan="6" class="muted">Nenhum profissional cadastrado ainda.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>
