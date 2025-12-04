@@ -8,7 +8,7 @@ export class AddStatusToBeneficiario1730000000000 implements MigrationInterface 
       name: 'status',
       type: 'varchar',
       isNullable: false,
-      default: "'EM_ANALISE'"
+      default: "'INCOMPLETO'"
     });
 
     const motivoBloqueioColumn = new TableColumn({
