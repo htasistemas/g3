@@ -132,12 +132,26 @@
 
     <ng-template #navigationControls>
       <div class="tab-actions">
-        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
-        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+        <button
+          type="button"
+          class="ghost"
+          *ngIf="hasPreviousTab"
+          (click)="goToPreviousTab()"
+          [disabled]="uploadingDocuments"
+        >
+          Voltar
+        </button>
+        <button
+          type="button"
+          class="primary"
+          *ngIf="hasNextTab"
+          (click)="goToNextTab()"
+          [disabled]="uploadingDocuments"
+        >
           Próximo: {{ nextTabLabel }}
         </button>
-        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
-          {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        <button type="submit" class="primary" [disabled]="saving || uploadingDocuments" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : uploadingDocuments ? 'Aguardando envios' : 'Salvar cadastro' }}
         </button>
       </div>
     </ng-template>
@@ -409,6 +423,9 @@
           </div>
           <button type="button" class="ghost" (click)="addOptionalDocument()">Adicionar documento opcional</button>
         </div>
+        <p class="upload-hint" *ngIf="uploadingDocuments">
+          Aguarde o envio dos documentos selecionados para continuar.
+        </p>
         <div class="document-grid">
           <div
             class="document-card"
@@ -432,6 +449,17 @@
                 Enviar arquivo
                 <input type="file" (change)="onDocumentFileSelected($event, i)" />
               </label>
+              <div class="upload-progress" *ngIf="uploadProgress[i] !== undefined">
+                <div
+                  class="upload-progress__bar"
+                  [style.width]="uploadProgress[i] + '%'"
+                  [class.upload-progress__bar--complete]="uploadProgress[i] === 100"
+                ></div>
+                <p class="upload-progress__label">
+                  {{ uploadProgress[i] === 100 ? 'Envio concluído' : 'Enviando documento...' }}
+                  ({{ uploadProgress[i] }}%)
+                </p>
+              </div>
               <button
                 type="button"
                 class="ghost"

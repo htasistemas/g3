@@ -16,8 +16,9 @@ import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/b
 import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { AuthorizationTermPayload, ReportService } from '../../services/report.service';
-import { Subject, firstValueFrom } from 'rxjs';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { ConfigService } from '../../services/config.service';
+import { Subject, firstValueFrom, of } from 'rxjs';
+import { catchError, finalize, map, takeUntil } from 'rxjs/operators';
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -193,6 +194,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private hasLoadedExistingDocuments = false;
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
+  uploadProgress: Record<number, number> = {};
+  uploadingDocuments = false;
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
@@ -329,6 +332,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly fb: FormBuilder,
     private readonly service: BeneficiarioApiService,
     private readonly beneficiaryService: BeneficiaryService,
+    private readonly configService: ConfigService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly http: HttpClient,
@@ -469,6 +473,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   goToNextTab(): void {
+    if (this.uploadingDocuments) {
+      this.feedback = 'Aguarde o envio dos documentos antes de continuar.';
+      return;
+    }
+
     if (!this.hasNextTab) return;
 
     const targetTab = this.tabs[this.activeTabIndex + 1].id;
@@ -651,22 +660,40 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private loadRequiredDocuments(): void {
-    this.beneficiaryService.getRequiredDocuments().subscribe({
-      next: ({ documents }) => {
-        this.documentosObrigatorios = documents;
-        if (this.hasLoadedExistingDocuments) {
-          this.mergeRequiredDocumentsWithExisting();
-        } else {
-          this.resetDocumentArray();
+    this.configService
+      .getBeneficiaryDocuments()
+      .pipe(
+        map(({ documents }) =>
+          (documents ?? []).map(
+            (doc) =>
+              ({
+                nome: doc.nome,
+                obrigatorio: !!doc.obrigatorio
+              } as DocumentoObrigatorio)
+          )
+        ),
+        catchError(() =>
+          this.beneficiaryService
+            .getRequiredDocuments()
+            .pipe(map(({ documents }) => documents ?? []), catchError(() => of([])))
+        )
+      )
+      .subscribe({
+        next: (documents) => {
+          this.documentosObrigatorios = documents;
+          if (this.hasLoadedExistingDocuments) {
+            this.mergeRequiredDocumentsWithExisting();
+          } else {
+            this.resetDocumentArray();
+          }
+        },
+        error: () => {
+          this.documentosObrigatorios = [];
+          if (!this.hasLoadedExistingDocuments) {
+            this.resetDocumentArray();
+          }
         }
-      },
-      error: () => {
-        this.documentosObrigatorios = [];
-        if (!this.hasLoadedExistingDocuments) {
-          this.resetDocumentArray();
-        }
-      }
-    });
+      });
   }
 
   private resetDocumentArray(existing?: DocumentoObrigatorio[]): void {
@@ -759,6 +786,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.hasLoadedExistingDocuments = true;
       const normalizedDocuments = documents.map((doc) => this.normalizeDocumentData(doc));
       this.resetDocumentArray(normalizedDocuments);
+      if (this.documentosObrigatorios.length) {
+        this.mergeRequiredDocumentsWithExisting();
+      }
     }
   }
 
@@ -773,6 +803,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     if (file) {
       const reader = new FileReader();
+      this.feedback = null;
+      this.uploadProgress[index] = 0;
+      this.uploadingDocuments = true;
+
+      reader.onprogress = (progressEvent) => {
+        if (!progressEvent.lengthComputable) return;
+        const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        this.uploadProgress[index] = percent;
+        this.updateUploadState();
+      };
+
       reader.onload = () => {
         const result = reader.result as string;
         control.patchValue({
@@ -781,10 +822,21 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           conteudo: result,
           contentType: file.type
         });
+        this.uploadProgress[index] = 100;
+        this.updateUploadState();
+      };
+      reader.onerror = () => {
+        this.feedback = 'Não foi possível carregar o arquivo selecionado. Tente novamente.';
+        delete this.uploadProgress[index];
+        this.updateUploadState();
       };
       reader.readAsDataURL(file);
       control.markAsDirty();
     }
+  }
+
+  private updateUploadState(): void {
+    this.uploadingDocuments = Object.values(this.uploadProgress).some((value) => value < 100);
   }
 
   viewDocument(index: number): void {
@@ -1652,6 +1704,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   changeTab(tab: string) {
+    if (this.uploadingDocuments) {
+      this.feedback = 'Aguarde o envio dos documentos antes de continuar.';
+      return;
+    }
+
     const documentsIndex = this.tabs.findIndex((item) => item.id === 'documentos');
     const targetIndex = this.tabs.findIndex((item) => item.id === tab);
     const cpfControl = this.form.get(['documentos', 'cpf']);
@@ -1731,6 +1788,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
     if (!skipValidation && !this.validateRequiredDocuments()) {
       this.form.get('status')?.setValue('INCOMPLETO');
+      return;
+    }
+    if (this.uploadingDocuments) {
+      this.feedback = 'Aguarde o envio dos documentos antes de salvar o cadastro.';
       return;
     }
     if (this.form.get('status')?.value === 'BLOQUEADO' && !this.form.get('motivo_bloqueio')?.value) {
