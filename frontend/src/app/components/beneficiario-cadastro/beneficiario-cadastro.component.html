@@ -65,7 +65,10 @@
         </div>
       </form>
 
-      <div *ngIf="listError" class="feedback">{{ listError }}</div>
+      <div *ngIf="listError" class="feedback">
+        <span>{{ listError }}</span>
+        <button type="button" class="feedback__close" (click)="dismissListError()" aria-label="Fechar aviso">×</button>
+      </div>
       <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
 
       <div class="list-panel__table" *ngIf="!listLoading">
@@ -130,7 +133,10 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
-    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+    <div *ngIf="feedback" class="feedback">
+      <span>{{ feedback }}</span>
+      <button type="button" class="feedback__close" (click)="dismissFeedback()" aria-label="Fechar aviso">×</button>
+    </div>
 
     <ng-template #navigationControls>
       <div class="tab-actions">
