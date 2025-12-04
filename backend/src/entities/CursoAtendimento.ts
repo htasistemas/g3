@@ -15,6 +15,7 @@ export interface EnrollmentRecord {
   id: string;
   beneficiaryName: string;
   cpf: string;
+  whatsapp?: string | null;
   status: EnrollmentStatus;
   enrolledAt: string;
 }
@@ -23,6 +24,7 @@ export interface WaitlistRecord {
   id: string;
   beneficiaryName: string;
   cpf: string;
+  whatsapp?: string | null;
   joinedAt: string;
 }
 
@@ -76,6 +78,9 @@ export class CursoAtendimento {
 
   @Column({ type: 'simple-json', nullable: true })
   waitlist?: WaitlistRecord[];
+
+  @Column({ type: 'text', nullable: true, name: 'certificate_template' })
+  certificateTemplate?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

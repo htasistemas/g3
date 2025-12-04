@@ -8,6 +8,7 @@ const router = Router();
 type PartialCourse = Partial<CursoAtendimento> & {
   enrollments?: CursoAtendimento['enrollments'];
   waitlist?: CursoAtendimento['waitlist'];
+  certificateTemplate?: CursoAtendimento['certificateTemplate'];
 };
 
 const normalizeCpf = (cpf: string): string => cpf.replace(/\D/g, '');
@@ -80,7 +81,8 @@ const preparePayload = async (
     sala: payload.salaId ? { id: payload.salaId } : null,
     salaId: payload.salaId ?? null,
     enrollments: payload.enrollments ?? [],
-    waitlist: payload.waitlist ?? []
+    waitlist: payload.waitlist ?? [],
+    certificateTemplate: payload.certificateTemplate ?? null
   });
 
   course.vagasDisponiveis = Math.max(

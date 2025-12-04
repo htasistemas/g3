@@ -98,6 +98,9 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   private professionalSearchSub?: Subscription;
   rooms: SalaRecord[] = [];
   roomsLoading = false;
+  whatsappMessageTemplate =
+    'Olá {{nome}}, você está inscrito em {{curso}} ({{tipo}}). A próxima aula é às {{horario}}. Qualquer dúvida, fale com {{profissional}}.';
+  waitlistTransfers: Record<string, string> = {};
 
   records: CourseRecord[] = [];
   dashboardSnapshot: DashboardSnapshot = this.buildDashboardSnapshot();
@@ -177,13 +180,15 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       diasSemana: this.fb.control<string[]>([], Validators.required),
       restricoes: [''],
       profissional: ['', Validators.required],
-      salaId: [null, Validators.required]
+      salaId: [null, Validators.required],
+      certificateTemplate: ['']
     });
 
     this.enrollmentForm = this.fb.group({
       courseId: [null, Validators.required],
       beneficiaryName: ['', Validators.required],
-      cpf: ['', Validators.required]
+      cpf: ['', Validators.required],
+      whatsapp: ['']
     });
   }
 
@@ -241,6 +246,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         this.records = records.map((record) => this.normalizeRecord(record));
         if (this.records.length) {
           this.loadCourse(this.editingId ?? this.records[0].id);
+          this.ensureEnrollmentTabReady();
         }
         this.refreshDashboardSnapshot();
       },
@@ -270,8 +276,32 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     return this.records.find((course) => course.id === this.editingId);
   }
 
+  get waitlistOverview(): { course: CourseRecord; entry: WaitlistEntry; position: number }[] {
+    return this.records.flatMap((course) =>
+      course.waitlist.map((entry, index) => ({ course, entry, position: index + 1 }))
+    );
+  }
+
   changeTab(tab: StepTab['id']): void {
     this.activeTab = tab;
+    if (tab === 'inscricoes') {
+      this.ensureEnrollmentTabReady();
+    }
+  }
+
+  private ensureEnrollmentTabReady(): void {
+    if (!this.records.length) return;
+
+    const targetId = this.editingId ?? this.records[0].id;
+    this.editingId = targetId;
+
+    if (!this.currentCourse || this.currentCourse.id !== targetId) {
+      this.loadCourse(targetId);
+    }
+
+    if (!this.enrollmentForm.value.courseId) {
+      this.enrollmentForm.patchValue({ courseId: targetId });
+    }
   }
 
   get visibleWidgets(): DashboardWidget[] {
@@ -438,7 +468,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       diasSemana: course.diasSemana,
       restricoes: course.restricoes ?? '',
       profissional: course.profissional,
-      salaId: course.salaId ?? course.sala?.id ?? null
+      salaId: course.salaId ?? course.sala?.id ?? null,
+      certificateTemplate: course.certificateTemplate ?? ''
     });
     this.enrollmentForm.patchValue({ courseId: course.id });
   }
@@ -541,6 +572,28 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     reader.readAsDataURL(file);
   }
 
+  loadCertificateTemplate(event: Event): void {
+    const file = (event.target as HTMLInputElement)?.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const content = reader.result as string;
+      this.courseForm.patchValue({ certificateTemplate: content });
+      if (this.currentCourse) {
+        this.currentCourse.certificateTemplate = content;
+        this.persistCurrentCourse();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  saveCertificateTemplate(): void {
+    if (!this.currentCourse) return;
+    this.currentCourse.certificateTemplate = this.courseForm.value.certificateTemplate;
+    this.persistCurrentCourse();
+  }
+
   enroll(): void {
     this.feedback = null;
     if (!this.currentCourse) {
@@ -556,7 +609,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { beneficiaryName, cpf } = this.enrollmentForm.value;
+    const { beneficiaryName, cpf, whatsapp } = this.enrollmentForm.value;
+    const sanitizedWhatsApp = this.sanitizePhone(whatsapp);
     const normalizedCpf = (cpf || '').replace(/\D/g, '');
     const alreadyRegistered = this.currentCourse.enrollments.some(
       (enrollment) =>
@@ -579,13 +633,14 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         id: crypto.randomUUID(),
         beneficiaryName,
         cpf,
+        whatsapp: sanitizedWhatsApp,
         status: 'Ativo',
         enrolledAt: new Date().toISOString()
       };
       this.currentCourse.enrollments.push(enrollment);
       this.currentCourse.vagasDisponiveis = this.calculateAvailable(this.currentCourse);
       this.persistCurrentCourse();
-      this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
+      this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '', whatsapp: '' });
     } else {
       const confirmWaitlist = window.confirm(
         'Não há vagas disponíveis. Deseja incluir o beneficiário na lista de espera?'
@@ -595,11 +650,12 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
           id: crypto.randomUUID(),
           beneficiaryName,
           cpf,
+          whatsapp: sanitizedWhatsApp,
           joinedAt: new Date().toISOString()
         };
         this.currentCourse.waitlist.push(entry);
         this.persistCurrentCourse();
-        this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
+        this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '', whatsapp: '' });
       }
     }
   }
@@ -630,10 +686,51 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.persistCurrentCourse();
   }
 
-  removeFromWaitlist(entry: WaitlistEntry): void {
-    if (!this.currentCourse) return;
-    this.currentCourse.waitlist = this.currentCourse.waitlist.filter((item) => item.id !== entry.id);
-    this.persistCurrentCourse();
+  removeFromWaitlist(entry: WaitlistEntry, course?: CourseRecord): void {
+    const targetCourse = course ?? this.currentCourse;
+    if (!targetCourse) return;
+    targetCourse.waitlist = targetCourse.waitlist.filter((item) => item.id !== entry.id);
+    this.persistCourse(targetCourse);
+  }
+
+  transferWaitlist(entry: WaitlistEntry, sourceCourse: CourseRecord): void {
+    const targetId = this.waitlistTransfers[entry.id];
+    if (!targetId || targetId === sourceCourse.id) {
+      this.feedback = 'Escolha um curso/atendimento diferente para transferir o beneficiário.';
+      return;
+    }
+
+    const targetCourse = this.records.find((course) => course.id === targetId);
+    if (!targetCourse) {
+      this.feedback = 'Curso de destino não encontrado.';
+      return;
+    }
+
+    const normalizedCpf = (entry.cpf || '').replace(/\D/g, '');
+    const duplicate = [...targetCourse.enrollments, ...targetCourse.waitlist].some((item: any) => {
+      const cpfItem = (item.cpf || '').replace(/\D/g, '');
+      const nameItem = (item.beneficiaryName || '').toLowerCase();
+      return (
+        (normalizedCpf && cpfItem === normalizedCpf) || nameItem === entry.beneficiaryName.toLowerCase()
+      );
+    });
+
+    if (duplicate) {
+      this.feedback = 'O beneficiário já está inscrito ou aguardando no curso de destino.';
+      return;
+    }
+
+    sourceCourse.waitlist = sourceCourse.waitlist.filter((item) => item.id !== entry.id);
+    const moved: WaitlistEntry = {
+      ...entry,
+      id: crypto.randomUUID(),
+      joinedAt: new Date().toISOString()
+    };
+
+    targetCourse.waitlist = [...targetCourse.waitlist, moved];
+    this.persistCourse(sourceCourse);
+    this.persistCourse(targetCourse);
+    this.feedback = 'Beneficiário transferido para a nova lista de espera.';
   }
 
   tryPromoteWaitlist(): void {
@@ -646,6 +743,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       id: crypto.randomUUID(),
       beneficiaryName: first.beneficiaryName,
       cpf: first.cpf,
+      whatsapp: first.whatsapp ?? null,
       status: 'Ativo',
       enrolledAt: new Date().toISOString()
     };
@@ -658,11 +756,12 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   convertWaitlist(entry: WaitlistEntry): void {
     if (!this.currentCourse || this.currentCourse.vagasDisponiveis <= 0) return;
 
-    this.removeFromWaitlist(entry);
+    this.currentCourse.waitlist = this.currentCourse.waitlist.filter((item) => item.id !== entry.id);
     const enrollment: EnrollmentRecord = {
       id: crypto.randomUUID(),
       beneficiaryName: entry.beneficiaryName,
       cpf: entry.cpf,
+      whatsapp: entry.whatsapp ?? null,
       status: 'Ativo',
       enrolledAt: new Date().toISOString()
     };
@@ -687,50 +786,172 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   emitDocument(enrollment: Enrollment): void {
     if (!this.currentCourse || !this.eligibleForDocument(enrollment)) return;
 
-    const title = this.currentCourse.tipo === 'Curso' ? 'Certificado de Conclusão' : 'Atestado de Comparecimento';
-    const payload = {
-      beneficiario: enrollment.beneficiaryName,
-      cpf: enrollment.cpf,
-      curso: this.currentCourse.nome,
-      tipo: this.currentCourse.tipo,
-      cargaHoraria: this.currentCourse.cargaHoraria,
-      horario: this.currentCourse.horarioInicial,
-      duracao: this.currentCourse.duracaoHoras,
-      profissional: this.currentCourse.profissional
-    };
+    const html = this.buildDocumentHtml(enrollment);
+    const documentWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!documentWindow) return;
+    documentWindow.document.write(html);
+    documentWindow.document.close();
+  }
+
+  emitAllDocuments(): void {
+    if (!this.currentCourse) return;
+    const eligible = this.currentCourse.enrollments.filter((enrollment) =>
+      this.eligibleForDocument(enrollment)
+    );
+
+    if (!eligible.length) {
+      this.feedback = 'Nenhuma matrícula concluída disponível para emissão.';
+      return;
+    }
+
+    const contents = eligible
+      .map((enrollment) => this.buildDocumentHtml(enrollment, false))
+      .join('<div class="page-break"></div>');
 
     const documentWindow = window.open('', '_blank', 'width=900,height=1200');
     if (!documentWindow) return;
-    documentWindow.document.write(`
-      <html>
-        <head>
-          <title>${title}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            header { border-bottom: 2px solid #16a34a; padding-bottom: 12px; margin-bottom: 24px; }
-            h1 { margin: 0; color: #166534; }
-            .meta { color: #555; margin: 0; }
-            .section { margin-top: 16px; }
-            .label { font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <header>
-            <h1>${title}</h1>
-            <p class="meta">${this.currentCourse.tipo === 'Curso' ? 'Conclusão' : 'Comparecimento'} registrado para ${payload.beneficiario}</p>
-          </header>
-          <section class="section">
-            <p><span class="label">Beneficiário:</span> ${payload.beneficiario} (${payload.cpf})</p>
-            <p><span class="label">${this.currentCourse.tipo}:</span> ${payload.curso}</p>
-            <p><span class="label">Carga horária:</span> ${payload.cargaHoraria ?? 'Não informada'} horas</p>
-            <p><span class="label">Horário:</span> ${payload.horario} • Duração ${payload.duracao}h</p>
-            <p><span class="label">Profissional responsável:</span> ${payload.profissional}</p>
-            <p class="meta">Documento gerado para fins institucionais.</p>
-          </section>
-        </body>
-      </html>
-    `);
+    documentWindow.document.write(
+      `<html><head><title>Documentos</title>${this.getDocumentStyles()}</head><body>${contents}</body></html>`
+    );
     documentWindow.document.close();
+  }
+
+  private buildDocumentPayload(enrollment: Enrollment) {
+    const titulo =
+      this.currentCourse?.tipo === 'Curso' ? 'Certificado de Conclusão' : 'Atestado de Comparecimento';
+
+    return {
+      titulo,
+      subtitulo: `${this.currentCourse?.tipo === 'Curso' ? 'Conclusão' : 'Comparecimento'} registrado para ${enrollment.beneficiaryName}`,
+      beneficiario: enrollment.beneficiaryName,
+      cpf: enrollment.cpf,
+      curso: this.currentCourse?.nome ?? '',
+      tipo: this.currentCourse?.tipo ?? '',
+      cargaHoraria: this.currentCourse?.cargaHoraria ?? 'Não informada',
+      horario: this.currentCourse?.horarioInicial ?? '',
+      duracao: this.currentCourse?.duracaoHoras ?? '',
+      profissional: this.currentCourse?.profissional ?? '',
+      dataAtual: new Date().toLocaleDateString('pt-BR')
+    };
+  }
+
+  private getDocumentStyles(): string {
+    return `
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; color: #0f172a; }
+        .document { border: 1px solid #e2e8f0; padding: 24px 32px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        .document__header { border-bottom: 2px solid #16a34a; padding-bottom: 12px; margin-bottom: 24px; }
+        .document__header h1 { margin: 0; color: #166534; }
+        .meta { color: #475569; margin: 4px 0; }
+        .document__section { margin-top: 12px; line-height: 1.6; }
+        .label { font-weight: bold; }
+        .page-break { page-break-after: always; height: 16px; }
+      </style>
+    `;
+  }
+
+  private interpolateTemplate(template: string, payload: Record<string, string | number | null>): string {
+    return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
+      const value = payload[key];
+      return value === undefined || value === null ? '' : String(value);
+    });
+  }
+
+  private defaultDocumentContent(payload: Record<string, any>): string {
+    return `
+      <div class="document__header">
+        <h1>${payload.titulo}</h1>
+        <p class="meta">${payload.subtitulo}</p>
+      </div>
+      <section class="document__section">
+        <p><span class="label">Beneficiário:</span> ${payload.beneficiario} (${payload.cpf})</p>
+        <p><span class="label">${payload.tipo}:</span> ${payload.curso}</p>
+        <p><span class="label">Carga horária:</span> ${payload.cargaHoraria} horas</p>
+        <p><span class="label">Horário:</span> ${payload.horario} • Duração ${payload.duracao}h</p>
+        <p><span class="label">Profissional responsável:</span> ${payload.profissional}</p>
+        <p class="meta">Emitido em ${payload.dataAtual}. Documento gerado para fins institucionais.</p>
+      </section>
+    `;
+  }
+
+  private wrapDocumentContent(content: string): string {
+    if (/<!doctype|<html/i.test(content)) {
+      return content;
+    }
+    return `<div class="document">${content}</div>`;
+  }
+
+  private buildDocumentHtml(enrollment: Enrollment, wrapShell = true): string {
+    const payload = this.buildDocumentPayload(enrollment);
+    const customTemplate = (this.currentCourse?.certificateTemplate || '').trim();
+    const content = customTemplate
+      ? this.wrapDocumentContent(this.interpolateTemplate(customTemplate, payload))
+      : this.wrapDocumentContent(this.defaultDocumentContent(payload));
+
+    if (!wrapShell) return content;
+
+    return `<html><head><title>${payload.titulo}</title>${this.getDocumentStyles()}</head><body>${content}</body></html>`;
+  }
+
+  buildWhatsAppMessage(enrollment: Enrollment): string {
+    const payload = this.buildDocumentPayload(enrollment);
+    return this.interpolateTemplate(this.whatsappMessageTemplate, {
+      ...payload,
+      nome: enrollment.beneficiaryName,
+      curso: payload.curso,
+      tipo: payload.tipo,
+      horario: payload.horario,
+      profissional: payload.profissional,
+      status: enrollment.status
+    });
+  }
+
+  sendWhatsApp(enrollment: Enrollment): void {
+    const phone = this.resolveWhatsApp(enrollment);
+    if (!phone) {
+      this.feedback = 'Informe um número de WhatsApp válido antes de enviar a mensagem.';
+      return;
+    }
+
+    const message = this.buildWhatsAppMessage(enrollment);
+    const link = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(link, '_blank');
+  }
+
+  sendWhatsAppToAll(): void {
+    if (!this.currentCourse) return;
+    const eligible = this.currentCourse.enrollments.filter((enrollment) => enrollment.status !== 'Cancelado');
+
+    if (!eligible.length) {
+      this.feedback = 'Nenhum beneficiário ativo ou concluído para envio.';
+      return;
+    }
+
+    eligible.forEach((enrollment) => this.sendWhatsApp(enrollment));
+  }
+
+  private resolveWhatsApp(enrollment: Enrollment): string | null {
+    const sanitizedStored = this.sanitizePhone(enrollment.whatsapp);
+    if (sanitizedStored) return sanitizedStored;
+
+    const provided = window.prompt('Informe o número de WhatsApp com DDD', enrollment.whatsapp ?? '');
+    const sanitized = this.sanitizePhone(provided);
+
+    if (sanitized && this.currentCourse) {
+      enrollment.whatsapp = provided ?? sanitized;
+      this.persistCurrentCourse();
+      return sanitized;
+    }
+
+    return sanitized;
+  }
+
+  private sanitizePhone(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length < 10) return null;
+    if (digits.startsWith('55')) return digits;
+    return `55${digits}`;
   }
 
   dashboardTotals() {
@@ -769,7 +990,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   selectBeneficiary(beneficiary: BeneficiaryPayload): void {
     this.enrollmentForm.patchValue({
       beneficiaryName: beneficiary.nomeCompleto || beneficiary.nomeSocial || '',
-      cpf: beneficiary.cpf || ''
+      cpf: beneficiary.cpf || '',
+      whatsapp: beneficiary.celular || beneficiary.telefone || beneficiary.telefoneFixo || ''
     });
     this.beneficiaryResults = [];
   }
@@ -947,12 +1169,15 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       restricoes: record.restricoes ?? null,
       diasSemana: record.diasSemana ?? [],
       salaId: record.salaId ?? record.sala?.id ?? null,
+      certificateTemplate: record.certificateTemplate ?? null,
       enrollments: (record.enrollments ?? []).map((enrollment) => ({
         ...enrollment,
+        whatsapp: enrollment.whatsapp ?? null,
         enrolledAt: enrollment.enrolledAt ?? new Date().toISOString()
       })),
       waitlist: (record.waitlist ?? []).map((entry) => ({
         ...entry,
+        whatsapp: entry.whatsapp ?? null,
         joinedAt: entry.joinedAt ?? new Date().toISOString()
       }))
     };
@@ -962,16 +1187,23 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     const normalized = this.normalizeRecord(updated);
     this.records = this.records.map((record) => (record.id === normalized.id ? normalized : record));
     this.refreshDashboardSnapshot();
-    this.loadCourse(normalized.id);
+    if (!this.editingId) this.editingId = normalized.id;
+    if (this.editingId === normalized.id) {
+      this.loadCourse(normalized.id);
+    }
   }
 
-  private persistCurrentCourse(): void {
-    if (!this.currentCourse) return;
-    this.service.update(this.currentCourse.id, this.currentCourse).subscribe({
+  private persistCourse(course: CourseRecord): void {
+    this.service.update(course.id, course).subscribe({
       next: (record) => this.replaceRecord(record),
       error: () => {
         this.feedback = 'Não foi possível salvar as alterações. Tente novamente.';
       }
     });
+  }
+
+  private persistCurrentCourse(): void {
+    if (!this.currentCourse) return;
+    this.persistCourse(this.currentCourse);
   }
 }
