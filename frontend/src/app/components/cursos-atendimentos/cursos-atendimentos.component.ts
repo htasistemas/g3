@@ -11,6 +11,8 @@ import {
   WaitlistEntry
 } from '../../services/cursos-atendimentos.service';
 import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { SalaRecord, SalasService } from '../../services/salas.service';
+import { VolunteerPayload, VolunteerService } from '../../services/volunteer.service';
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 
 interface StepTab {
@@ -55,13 +57,20 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   beneficiaryResults: BeneficiaryPayload[] = [];
   beneficiarySearchLoading = false;
   private beneficiarySearchSub?: Subscription;
+  professionalResults: VolunteerPayload[] = [];
+  professionalSearchLoading = false;
+  private professionalSearchSub?: Subscription;
+  rooms: SalaRecord[] = [];
+  roomsLoading = false;
 
   records: CourseRecord[] = [];
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: CursosAtendimentosService,
-    private readonly beneficiaryService: BeneficiaryService
+    private readonly beneficiaryService: BeneficiaryService,
+    private readonly salasService: SalasService,
+    private readonly volunteerService: VolunteerService
   ) {
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
@@ -73,7 +82,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: ['', Validators.required],
       duracaoHoras: [1, [Validators.required, Validators.min(1)]],
       diasSemana: this.fb.control<string[]>([], Validators.required),
-      profissional: ['', Validators.required]
+      profissional: ['', Validators.required],
+      salaId: [null, Validators.required]
     });
 
     this.enrollmentForm = this.fb.group({
@@ -87,11 +97,47 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.setupCapitalizationRules();
     this.fetchRecords();
     this.setupBeneficiarySearch();
+    this.setupProfessionalSearch();
+    this.fetchRooms();
   }
 
   ngOnDestroy(): void {
     this.beneficiarySearchSub?.unsubscribe();
+    this.professionalSearchSub?.unsubscribe();
     this.capitalizationSubs.forEach((sub) => sub.unsubscribe());
+  }
+
+  fetchRooms(): void {
+    this.roomsLoading = true;
+    this.salasService.list().subscribe({
+      next: (rooms) => {
+        this.rooms = rooms;
+        this.roomsLoading = false;
+      },
+      error: () => {
+        this.roomsLoading = false;
+        this.feedback = 'Não foi possível carregar as salas. Tente novamente.';
+      }
+    });
+  }
+
+  addRoom(): void {
+    const nome = window.prompt('Nome da sala');
+    if (!nome || !nome.trim()) return;
+
+    this.roomsLoading = true;
+    this.salasService.create({ nome: nome.trim() }).subscribe({
+      next: (room) => {
+        this.rooms = [...this.rooms, room].sort((a, b) => a.nome.localeCompare(b.nome));
+        this.courseForm.patchValue({ salaId: room.id });
+        this.roomsLoading = false;
+      },
+      error: (error) => {
+        this.roomsLoading = false;
+        const message = error?.error?.message || 'Não foi possível salvar a sala.';
+        this.feedback = message;
+      }
+    });
   }
 
   fetchRecords(): void {
@@ -152,11 +198,38 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     return (control?.value as string[] | undefined)?.includes(option) ?? false;
   }
 
+  private hasRoomConflict(
+    payload: Pick<CourseRecord, 'salaId' | 'horarioInicial' | 'duracaoHoras' | 'diasSemana'>,
+    excludeId?: string | null
+  ): boolean {
+    if (!payload.salaId) return false;
+    const [candidateHour, candidateMinute] = (payload.horarioInicial || '00:00').split(':').map(Number);
+    const candidateStart = candidateHour * 60 + (candidateMinute || 0);
+    const candidateEnd = candidateStart + Number(payload.duracaoHoras ?? 0) * 60;
+    const candidateDays = new Set(payload.diasSemana || []);
+
+    return this.records.some((record) => {
+      if (record.id === excludeId) return false;
+      if (!record.salaId || record.salaId !== payload.salaId) return false;
+      const sharesDay = record.diasSemana.some((dia) => candidateDays.has(dia));
+      if (!sharesDay) return false;
+      const [hour, minute] = record.horarioInicial.split(':').map(Number);
+      const start = hour * 60 + (minute || 0);
+      const end = start + record.duracaoHoras * 60;
+      return candidateStart < end && start < candidateEnd;
+    });
+  }
+
   submit(): void {
     this.feedback = null;
     if (this.courseForm.invalid) {
       this.courseForm.markAllAsTouched();
       this.feedback = 'Preencha os campos obrigatórios antes de salvar.';
+      return;
+    }
+
+    if (this.hasRoomConflict(this.courseForm.value, this.editingId)) {
+      this.feedback = 'Já existe um curso/atendimento na mesma sala e horário.';
       return;
     }
 
@@ -225,7 +298,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: course.horarioInicial,
       duracaoHoras: course.duracaoHoras,
       diasSemana: course.diasSemana,
-      profissional: course.profissional
+      profissional: course.profissional,
+      salaId: course.salaId ?? course.sala?.id ?? null
     });
     this.enrollmentForm.patchValue({ courseId: course.id });
   }
@@ -242,7 +316,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: '',
       duracaoHoras: 1,
       diasSemana: [],
-      profissional: ''
+      profissional: '',
+      salaId: null
     });
     this.enrollmentForm.patchValue({ courseId: null });
     this.changeTab('dados');
@@ -297,6 +372,22 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     }
 
     const { beneficiaryName, cpf } = this.enrollmentForm.value;
+    const normalizedCpf = (cpf || '').replace(/\D/g, '');
+    const alreadyRegistered = this.currentCourse.enrollments.some(
+      (enrollment) =>
+        (normalizedCpf && (enrollment.cpf || '').replace(/\D/g, '') === normalizedCpf) ||
+        enrollment.beneficiaryName.toLowerCase() === beneficiaryName.toLowerCase()
+    );
+    const alreadyOnWaitlist = this.currentCourse.waitlist.some(
+      (entry) =>
+        (normalizedCpf && (entry.cpf || '').replace(/\D/g, '') === normalizedCpf) ||
+        entry.beneficiaryName.toLowerCase() === beneficiaryName.toLowerCase()
+    );
+
+    if (alreadyRegistered || alreadyOnWaitlist) {
+      this.feedback = 'Este beneficiário já está inscrito ou aguardando neste curso/atendimento.';
+      return;
+    }
 
     if (this.currentCourse.vagasDisponiveis > 0) {
       const enrollment: EnrollmentRecord = {
@@ -504,6 +595,11 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.beneficiaryResults = [];
   }
 
+  selectProfessional(volunteer: VolunteerPayload): void {
+    this.courseForm.patchValue({ profissional: volunteer.nome });
+    this.professionalResults = [];
+  }
+
   courseStatus(course: CourseRecord): { label: string; tone: 'green' | 'amber' | 'red' } {
     if (course.vagasDisponiveis <= 0) return { label: 'Esgotado', tone: 'red' };
     if (course.vagasDisponiveis <= Math.max(1, Math.floor(course.vagasTotais * 0.3))) {
@@ -541,11 +637,40 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       });
   }
 
+  private setupProfessionalSearch(): void {
+    const professionalControl = this.courseForm.get('profissional');
+    if (!professionalControl) return;
+
+    this.professionalSearchSub = professionalControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        tap((term) => {
+          if (!term) {
+            this.professionalResults = [];
+            this.professionalSearchLoading = false;
+          } else {
+            this.professionalSearchLoading = true;
+          }
+        })
+      )
+      .subscribe((term) => {
+        if (!term) return;
+        const normalizedTerm = term.toLowerCase();
+        const volunteers = this.volunteerService.list();
+        this.professionalResults = volunteers
+          .filter((volunteer) => volunteer.nome.toLowerCase().includes(normalizedTerm))
+          .slice(0, 5);
+        this.professionalSearchLoading = false;
+      });
+  }
+
   private normalizeRecord(record: CourseRecord): CourseRecord {
     return {
       ...record,
       imagem: record.imagem ?? null,
       diasSemana: record.diasSemana ?? [],
+      salaId: record.salaId ?? record.sala?.id ?? null,
       enrollments: (record.enrollments ?? []).map((enrollment) => ({
         ...enrollment,
         enrolledAt: enrollment.enrolledAt ?? new Date().toISOString()

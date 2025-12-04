@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { SalaRecord } from './salas.service';
 
 export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
 export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
@@ -34,13 +35,16 @@ export interface CourseRecord {
   duracaoHoras: number;
   diasSemana: string[];
   profissional: string;
+  salaId?: string | null;
+  sala?: SalaRecord | null;
   createdAt: string;
   updatedAt?: string;
   enrollments: Enrollment[];
   waitlist: WaitlistEntry[];
 }
 
-export interface CoursePayload extends Omit<CourseRecord, 'id' | 'createdAt' | 'updatedAt' | 'vagasDisponiveis'> {
+export interface CoursePayload
+  extends Omit<CourseRecord, 'id' | 'createdAt' | 'updatedAt' | 'vagasDisponiveis' | 'sala'> {
   vagasDisponiveis?: number;
 }
 

@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from 'typeorm';
+import { Sala } from './Sala';
 
 type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
 
@@ -54,6 +63,13 @@ export class CursoAtendimento {
 
   @Column({ type: 'varchar' })
   profissional!: string;
+
+  @ManyToOne(() => Sala, (sala) => sala.cursos, { eager: true, nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'salaId' })
+  sala?: Sala | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  salaId?: string | null;
 
   @Column({ type: 'simple-json', nullable: true })
   enrollments?: EnrollmentRecord[];
