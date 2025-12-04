@@ -43,6 +43,10 @@
   gap: 0.5rem;
 }
 
+.page-actions--below-tabs {
+  padding: 0 0.2rem;
+}
+
 .print-order {
   display: flex;
   flex-direction: column;
@@ -77,7 +81,7 @@
 
 .step-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.35rem;
   padding: 0.15rem 0.05rem;
 }
