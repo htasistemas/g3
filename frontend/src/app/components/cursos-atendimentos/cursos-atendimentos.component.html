@@ -179,10 +179,10 @@
               <dt>Dias</dt>
               <dd>{{ course.diasSemana.join(', ') }}</dd>
             </div>
-            <div>
-              <dt>Sala</dt>
-              <dd>{{ course.sala?.nome || rooms.find((room) => room.id === course.salaId)?.nome || 'Sem sala' }}</dd>
-            </div>
+              <div>
+                <dt>Sala</dt>
+                <dd>{{ getRoomName(course) }}</dd>
+              </div>
           </dl>
           <div class="catalog-card__actions">
             <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
@@ -231,10 +231,10 @@
         </label>
         <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
         <div class="actions align-end">
-          <div class="helper" *ngIf="currentCourse">
-            <p class="helper__title">Vagas disponíveis</p>
-            <p class="helper__value">{{ currentCourse?.vagasDisponiveis }} / {{ currentCourse?.vagasTotais }}</p>
-          </div>
+            <div class="helper" *ngIf="currentCourse">
+              <p class="helper__title">Vagas disponíveis</p>
+              <p class="helper__value">{{ currentCourse.vagasDisponiveis }} / {{ currentCourse.vagasTotais }}</p>
+            </div>
           <button class="primary" type="button" (click)="enroll()">Inscrever</button>
         </div>
       </div>
@@ -436,7 +436,7 @@
             <td>{{ course.nome }}</td>
             <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
             <td>{{ course.profissional }}</td>
-            <td>{{ course.sala?.nome || rooms.find((room) => room.id === course.salaId)?.nome || 'Sem sala' }}</td>
+            <td>{{ getRoomName(course) }}</td>
             <td>{{ course.horarioInicial }}</td>
             <td class="table-actions">
               <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
