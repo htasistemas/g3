@@ -208,6 +208,10 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.field-grid.cols-4 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
 .field-grid.dados-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }

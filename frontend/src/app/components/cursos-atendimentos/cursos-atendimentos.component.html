@@ -55,7 +55,7 @@
         </div>
         <span class="pill">Obrigatório</span>
       </div>
-      <div class="field-grid cols-3 dados-grid">
+      <div class="field-grid cols-4 dados-grid">
         <label class="field">
           Tipo*
           <select formControlName="tipo">
@@ -73,56 +73,47 @@
             (blur)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
           />
         </label>
-        <div class="field-pair span-2">
-          <label class="field">
-            Horário inicial*
-            <input type="time" formControlName="horarioInicial" />
-          </label>
-          <label class="field">
-            Duração (horas)*
-            <input type="number" formControlName="duracaoHoras" min="1" />
-          </label>
-        </div>
+        <label class="field">
+          Horário inicial*
+          <input type="time" formControlName="horarioInicial" />
+        </label>
+        <label class="field">
+          Duração (horas)*
+          <input type="number" formControlName="duracaoHoras" min="1" />
+        </label>
+      </div>
 
-        <div class="field-grid cols-2 description-media full">
-          <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+      <div class="field-grid cols-2 description-media full">
+        <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
 
-          <div class="field media-card">
-            <p class="field-title">Foto / Imagem ilustrativa</p>
-            <input type="file" accept="image/*" (change)="handleImage($event)" />
-            <div class="upload-preview" *ngIf="courseForm.value.imagem">
-              <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
-              <div>
-                <p class="strong">Pré-visualização</p>
-                <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
-              </div>
+        <div class="field media-card">
+          <p class="field-title">Foto / Imagem ilustrativa</p>
+          <input type="file" accept="image/*" (change)="handleImage($event)" />
+          <div class="upload-preview" *ngIf="courseForm.value.imagem">
+            <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
+            <div>
+              <p class="strong">Pré-visualização</p>
+              <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="field day-selector horizontal full">
-          <p class="field-title">Dias da semana*</p>
-          <div class="chips">
-            <label *ngFor="let dia of diasSemana" class="chip">
-              <input
-                type="checkbox"
-                [checked]="selectionChecked(['diasSemana'], dia)"
-                (change)="toggleSelection(['diasSemana'], dia)"
-              />
-              <span>{{ dia }}</span>
-            </label>
-          </div>
+      <div class="field day-selector horizontal full">
+        <p class="field-title">Dias da semana*</p>
+        <div class="chips">
+          <label *ngFor="let dia of diasSemana" class="chip">
+            <input
+              type="checkbox"
+              [checked]="selectionChecked(['diasSemana'], dia)"
+              (change)="toggleSelection(['diasSemana'], dia)"
+            />
+            <span>{{ dia }}</span>
+          </label>
         </div>
+      </div>
 
-        <label class="field full">
-          Restrições e público indicado
-          <textarea
-            rows="2"
-            formControlName="restricoes"
-            placeholder="Ex.: menores de 18 anos não podem participar, vagas preferenciais para idosos, faixa etária recomendada"
-          ></textarea>
-        </label>
-
+      <div class="field-grid cols-4 dados-grid">
         <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
         <label class="field">
           Quantidade de vagas totais*
@@ -131,24 +122,6 @@
         <label class="field">
           Vagas disponíveis
           <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
-        </label>
-        <label class="field span-2">
-          Profissional responsável*
-          <input
-            formControlName="profissional"
-            placeholder="Pesquise ou digite o nome do profissional"
-            (input)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
-            (blur)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
-          />
-          <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
-          <ul class="search-results" *ngIf="professionalResults.length">
-            <li *ngFor="let professional of professionalResults">
-              <button type="button" (click)="selectProfessional(professional)">
-                <span>{{ professional.nome }}</span>
-                <small>{{ professional.especialidade || professional.categoria || professional.email }}</small>
-              </button>
-            </li>
-          </ul>
         </label>
         <div class="field sala-field">
           <label class="field-title" for="salaSelect">Sala*</label>
@@ -162,6 +135,34 @@
           <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
         </div>
       </div>
+
+      <label class="field full">
+        Restrições e público indicado
+        <textarea
+          rows="2"
+          formControlName="restricoes"
+          placeholder="Ex.: menores de 18 anos não podem participar, vagas preferenciais para idosos, faixa etária recomendada"
+        ></textarea>
+      </label>
+
+      <label class="field full">
+        Profissional responsável*
+        <input
+          formControlName="profissional"
+          placeholder="Pesquise ou digite o nome do profissional"
+          (input)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
+          (blur)="applyCapitalization(courseForm, 'profissional', $any($event.target).value)"
+        />
+        <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
+        <ul class="search-results" *ngIf="professionalResults.length">
+          <li *ngFor="let professional of professionalResults">
+            <button type="button" (click)="selectProfessional(professional)">
+              <span>{{ professional.nome }}</span>
+              <small>{{ professional.especialidade || professional.categoria || professional.email }}</small>
+            </button>
+          </li>
+        </ul>
+      </label>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
         <div class="actions__stack">
