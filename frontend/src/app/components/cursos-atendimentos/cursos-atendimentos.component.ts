@@ -198,6 +198,10 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     return (control?.value as string[] | undefined)?.includes(option) ?? false;
   }
 
+  getRoomName(course: CourseRecord): string {
+    return course.sala?.nome ?? this.rooms.find((room) => room.id === course.salaId)?.nome ?? 'Sem sala';
+  }
+
   private hasRoomConflict(
     payload: Pick<CourseRecord, 'salaId' | 'horarioInicial' | 'duracaoHoras' | 'diasSemana'>,
     excludeId?: string | null
