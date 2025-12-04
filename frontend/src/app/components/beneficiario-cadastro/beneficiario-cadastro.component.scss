@@ -187,6 +187,20 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
+.tab-card__header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.tab-card__action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .tab-card__utilities {
   display: flex;
   flex-wrap: wrap;
