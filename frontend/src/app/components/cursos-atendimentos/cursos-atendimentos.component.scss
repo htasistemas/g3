@@ -1209,6 +1209,39 @@
   gap: 0.5rem;
 }
 
+.catalog-card__actions button {
+  border-radius: 10px;
+}
+
+.catalog-card__actions .danger {
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  border: 1px solid #fca5a5;
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
+.catalog-card__actions .primary {
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.catalog-card__actions .primary:hover {
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.catalog-card__actions .primary:disabled {
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
 .muted-chip {
   background: rgba(15, 23, 42, 0.03);
   color: #0f172a;
