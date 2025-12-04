@@ -1,6 +1,5 @@
 import {
   Column,
-  BeforeInsert,
   CreateDateColumn,
   Entity,
   Index,
@@ -307,16 +306,4 @@ export class Beneficiario {
   @OneToMany(() => FamiliaMembro, (membro) => membro.beneficiario)
   familias?: FamiliaMembro[];
 
-  static generateCodigo(): string {
-    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const timestamp = Date.now().toString(36).toUpperCase();
-    return `B-${timestamp}-${random}`;
-  }
-
-  @BeforeInsert()
-  assignCodigo(): void {
-    if (!this.codigo) {
-      this.codigo = Beneficiario.generateCodigo();
-    }
-  }
 }
