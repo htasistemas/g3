@@ -53,7 +53,7 @@ export class Beneficiario {
   @Column({ name: 'cor_raca', nullable: true })
   corRaca?: CorRaca;
 
-  @Column({ name: 'status', default: 'EM_ANALISE' })
+  @Column({ name: 'status', default: 'INCOMPLETO' })
   status!: BeneficiarioStatus;
 
   @Column({ name: 'motivo_bloqueio', type: 'text', nullable: true })

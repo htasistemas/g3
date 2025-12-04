@@ -31,25 +31,6 @@ function sanitizeCpf(cpf?: string | null): string | undefined {
   return digits.length === 11 ? digits : undefined;
 }
 
-type IncomingDocumento = { nome?: string; nomeArquivo?: string; obrigatorio?: boolean; conteudo?: string };
-
-function getMissingRequiredDocuments(body: any, documentsFromBody?: IncomingDocumento[]): string[] {
-  const documents = Array.isArray(documentsFromBody)
-    ? documentsFromBody
-    : Array.isArray(body?.documentosObrigatorios)
-      ? body.documentosObrigatorios
-      : [];
-
-  return documents
-    .filter((doc: IncomingDocumento) => doc?.obrigatorio && !doc?.nomeArquivo && !doc?.conteudo)
-    .map((doc: IncomingDocumento) => doc?.nome)
-    .filter(Boolean);
-}
-
-function hasPendingData(payload: Beneficiario, missingDocuments: string[]): boolean {
-  return !payload.nomeCompleto || !payload.dataNascimento || !payload.nomeMae || missingDocuments.length > 0;
-}
-
 function isOutdated(entity?: Beneficiario | null): boolean {
   if (!entity) return false;
 
@@ -64,24 +45,9 @@ function isOutdated(entity?: Beneficiario | null): boolean {
 
 function resolveStatus(
   payload: Beneficiario,
-  missingDocuments: string[],
   options: { existing?: Beneficiario; requestedStatus?: BeneficiarioStatus }
 ): BeneficiarioStatus {
-  const hasPending = hasPendingData(payload, missingDocuments);
-
-  if (!options.existing) {
-    return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
-  }
-
-  if (hasPending) {
-    return 'INCOMPLETO';
-  }
-
-  if (isOutdated(options.existing) && options.requestedStatus !== 'BLOQUEADO') {
-    return 'DESATUALIZADO';
-  }
-
-  return options.requestedStatus ?? options.existing.status ?? 'EM_ANALISE';
+  return options.requestedStatus ?? options.existing?.status ?? payload.status ?? 'INCOMPLETO';
 }
 
 async function ensureCpfUnique(cpf: string, ignoreId?: string): Promise<boolean> {
@@ -100,7 +66,6 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
     : existing?.documentosObrigatorios
       ? [...existing.documentosObrigatorios]
       : [];
-  const missingDocuments = getMissingRequiredDocuments(body, documentosObrigatorios);
 
   const payload: Beneficiario = {
     ...existing,
@@ -194,14 +159,11 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
     dataAceiteLgpd: body.data_aceite_lgpd ?? existing?.dataAceiteLgpd,
     observacoes: body.observacoes ?? existing?.observacoes,
     motivoBloqueio: body.motivo_bloqueio ?? existing?.motivoBloqueio,
-    status: existing?.status ?? 'EM_ANALISE',
+    status: (body.status as BeneficiarioStatus) ?? existing?.status ?? 'INCOMPLETO',
     documentosObrigatorios
   } as Beneficiario;
 
-  payload.status = resolveStatus(payload, missingDocuments, {
-    existing,
-    requestedStatus: body.status ?? existing?.status
-  });
+  payload.status = resolveStatus(payload, { existing, requestedStatus: body.status ?? existing?.status });
 
   return payload;
 }
@@ -280,9 +242,6 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
   const payload = buildBeneficiarioPayload(req);
-  const missingDocuments = getMissingRequiredDocuments(req.body, payload.documentosObrigatorios);
-
-  payload.status = resolveStatus(payload, missingDocuments, { requestedStatus: 'EM_ANALISE' });
 
   if (!payload.nomeCompleto || !payload.dataNascimento || !payload.nomeMae) {
     return res.status(400).json({ message: 'Campos obrigatórios não preenchidos' });
