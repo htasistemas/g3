@@ -28,9 +28,9 @@ interface StepTab {
 export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   readonly tabs: StepTab[] = [
     { id: 'dados', label: 'Dados do Curso/Atendimento/Oficinas' },
-    { id: 'catalogo', label: 'Catálogo & Vagas' },
-    { id: 'inscricoes', label: 'Inscrições & Lista de Espera' },
-    { id: 'documentos', label: 'Certificados & Atestados' },
+    { id: 'catalogo', label: 'Catálogo e Vagas' },
+    { id: 'inscricoes', label: 'Inscrições e Lista de Espera' },
+    { id: 'documentos', label: 'Certificados e Atestados' },
     { id: 'dashboard', label: 'Dashboard' }
   ];
 
@@ -48,6 +48,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   feedback: string | null = null;
   saving = false;
   editingId: string | null = null;
+  private readonly capitalizationSubs: Subscription[] = [];
 
   courseForm: FormGroup;
   enrollmentForm: FormGroup;
@@ -83,12 +84,14 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.setupCapitalizationRules();
     this.fetchRecords();
     this.setupBeneficiarySearch();
   }
 
   ngOnDestroy(): void {
     this.beneficiarySearchSub?.unsubscribe();
+    this.capitalizationSubs.forEach((sub) => sub.unsubscribe());
   }
 
   fetchRecords(): void {
@@ -203,6 +206,10 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     }
   }
 
+  dismissFeedback(): void {
+    this.feedback = null;
+  }
+
   loadCourse(courseId: string): void {
     const course = this.records.find((item) => item.id === courseId);
     if (!course) return;
@@ -239,6 +246,30 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     });
     this.enrollmentForm.patchValue({ courseId: null });
     this.changeTab('dados');
+  }
+
+  private setupCapitalizationRules(): void {
+    const applyRule = (form: FormGroup, controlName: string) => {
+      const control = form.get(controlName);
+      if (!control) return;
+
+      const sub = control.valueChanges.subscribe((value) => {
+        if (typeof value !== 'string') return;
+        const trimmed = value.trimStart();
+        if (!trimmed) return;
+
+        const transformed = `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`;
+
+        if (transformed !== value) {
+          control.setValue(transformed, { emitEvent: false });
+        }
+      });
+
+      this.capitalizationSubs.push(sub);
+    };
+
+    ['nome', 'profissional'].forEach((controlName) => applyRule(this.courseForm, controlName));
+    applyRule(this.enrollmentForm, 'beneficiaryName');
   }
 
   handleImage(event: Event): void {
