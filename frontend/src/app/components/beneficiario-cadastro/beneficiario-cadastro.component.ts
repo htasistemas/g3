@@ -186,6 +186,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   cameraActive = false;
   captureError: string | null = null;
   cepLookupError: string | null = null;
+  quickSearchModalOpen = false;
   situacaoImovelOptions = ['Próprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupação', 'Outro'];
   tipoMoradiaOptions = ['Casa', 'Apartamento', 'Cômodo', 'Barraco', 'Casa de madeira', 'Sítio/Chácara', 'Outro'];
   private isUpdatingNationality = false;
@@ -2007,6 +2008,17 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.form.get('motivo_bloqueio')?.setValue('');
   }
 
+  openQuickSearch(): void {
+    this.quickSearchModalOpen = true;
+    if (!this.beneficiarios.length && !this.listLoading) {
+      this.searchBeneficiaries();
+    }
+  }
+
+  closeQuickSearch(): void {
+    this.quickSearchModalOpen = false;
+  }
+
   startNewBeneficiario(): void {
     this.beneficiarioId = null;
     this.photoPreview = null;
@@ -2061,6 +2073,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.filteredBeneficiarios = (this.beneficiarios ?? []).filter(
       (beneficiario) => !status || beneficiario.status === status
     );
+  }
+
+  onBeneficiarioSelected(beneficiario: BeneficiarioApiPayload): void {
+    this.selectBeneficiario(beneficiario);
+    this.changeTab('dados');
+    this.quickSearchModalOpen = false;
   }
 
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {

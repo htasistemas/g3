@@ -4,6 +4,112 @@
     <p class="page-title__label">Cadastro de beneficiário</p>
   </header>
 
+  <div class="page-actions">
+    <button type="button" class="primary" (click)="openQuickSearch()">Buscar</button>
+  </div>
+
+  <ng-template #gestaoRapida>
+    <section class="list-panel">
+      <div class="list-panel__header">
+        <div>
+          <p class="list-panel__eyebrow">Gestão rápida</p>
+          <h2>Busque beneficiários cadastrados</h2>
+          <p>Localize pelo nome, CPF, data de nascimento ou código e utilize os atalhos para navegar pelas ações.</p>
+        </div>
+        <div class="list-panel__actions">
+          <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
+          <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="list-panel__navigation" aria-label="Ações rápidas para o cadastro">
+        <button type="button" class="primary" (click)="startNewBeneficiario()">Incluir</button>
+        <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleEditSelected()">
+          Editar
+        </button>
+        <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleAlterSelected()">
+          Alterar
+        </button>
+        <button
+          type="button"
+          class="danger"
+          [disabled]="!selectedBeneficiary"
+          (click)="handleDeleteSelected()"
+        >
+          Excluir
+        </button>
+      </div>
+
+      <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
+        <label class="field">
+          Nome ou apelido
+          <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+        </label>
+        <label class="field">
+          Código
+          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
+        </label>
+        <label class="field">
+          CPF
+          <input type="text" formControlName="cpf" placeholder="Somente números" />
+        </label>
+        <label class="field">
+          Data de nascimento
+          <input type="date" formControlName="data_nascimento" />
+        </label>
+        <label class="field">
+          Status
+          <select formControlName="status">
+            <option value="">Todos</option>
+            <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+          </select>
+        </label>
+        <div class="list-panel__filter-actions">
+          <button type="submit" class="primary">Aplicar filtros</button>
+        </div>
+      </form>
+
+      <div *ngIf="listError" class="feedback">{{ listError }}</div>
+      <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
+
+      <div class="list-panel__table" *ngIf="!listLoading">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>CPF</th>
+              <th>Nascimento</th>
+              <th>Status</th>
+              <th class="text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
+            <tr *ngFor="let beneficiario of filteredBeneficiarios">
+              <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
+              <td>{{ beneficiario.codigo || '---' }}</td>
+              <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
+              <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
+              <td><span [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span></td>
+              <td class="text-right actions">
+                <button type="button" class="ghost" (click)="onBeneficiarioSelected(beneficiario)">Selecionar</button>
+                <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>
+                <button type="button" class="danger" (click)="deleteBeneficiario(beneficiario)">Excluir</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #emptyList>
+          <tbody>
+            <tr>
+              <td colspan="6" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </div>
+    </section>
+  </ng-template>
+
   <div class="tab-shell">
     <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
@@ -27,105 +133,9 @@
     </ol>
   </div>
 
-  <section class="list-panel" *ngIf="activeTab === 'dados'">
-    <div class="list-panel__header">
-      <div>
-        <p class="list-panel__eyebrow">Gestão rápida</p>
-        <h2>Busque beneficiários cadastrados</h2>
-        <p>Localize pelo nome, CPF, data de nascimento ou código e utilize os atalhos para navegar pelas ações.</p>
-      </div>
-      <div class="list-panel__actions">
-        <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
-        <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
-      </div>
-    </div>
-
-    <div class="list-panel__navigation" aria-label="Ações rápidas para o cadastro">
-      <button type="button" class="primary" (click)="startNewBeneficiario()">Incluir</button>
-      <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleEditSelected()">
-        Editar
-      </button>
-      <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleAlterSelected()">
-        Alterar
-      </button>
-      <button
-        type="button"
-        class="danger"
-        [disabled]="!selectedBeneficiary"
-        (click)="handleDeleteSelected()"
-      >
-        Excluir
-      </button>
-    </div>
-
-    <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
-      <label class="field">
-        Nome ou apelido
-        <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
-      </label>
-      <label class="field">
-        Código
-        <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
-      </label>
-      <label class="field">
-        CPF
-        <input type="text" formControlName="cpf" placeholder="Somente números" />
-      </label>
-      <label class="field">
-        Data de nascimento
-        <input type="date" formControlName="data_nascimento" />
-      </label>
-      <label class="field">
-        Status
-        <select formControlName="status">
-          <option value="">Todos</option>
-          <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
-        </select>
-      </label>
-      <div class="list-panel__filter-actions">
-        <button type="submit" class="primary">Aplicar filtros</button>
-      </div>
-    </form>
-
-    <div *ngIf="listError" class="feedback">{{ listError }}</div>
-    <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
-
-    <div class="list-panel__table" *ngIf="!listLoading">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Código</th>
-            <th>CPF</th>
-            <th>Nascimento</th>
-            <th>Status</th>
-            <th class="text-right">Ações</th>
-          </tr>
-        </thead>
-        <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
-          <tr *ngFor="let beneficiario of filteredBeneficiarios">
-            <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
-            <td>{{ beneficiario.codigo || '---' }}</td>
-            <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
-            <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
-            <td><span [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span></td>
-            <td class="text-right actions">
-              <button type="button" class="ghost" (click)="selectBeneficiario(beneficiario)">Selecionar</button>
-              <button type="button" class="ghost" (click)="editBeneficiario(beneficiario)">Editar</button>
-              <button type="button" class="danger" (click)="deleteBeneficiario(beneficiario)">Excluir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <ng-template #emptyList>
-        <tbody>
-          <tr>
-            <td colspan="6" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
-          </tr>
-        </tbody>
-      </ng-template>
-    </div>
-  </section>
+  <ng-container *ngIf="activeTab === 'dados' && !quickSearchModalOpen">
+    <ng-container *ngTemplateOutlet="gestaoRapida"></ng-container>
+  </ng-container>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
@@ -603,6 +613,20 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
+
+  <div class="modal" *ngIf="quickSearchModalOpen">
+    <div class="modal__backdrop" (click)="closeQuickSearch()"></div>
+    <div class="modal__content modal__content--wide">
+      <div class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Gestão rápida</p>
+          <h3>Buscar beneficiário</h3>
+        </div>
+        <button type="button" class="ghost" (click)="closeQuickSearch()">Fechar</button>
+      </div>
+      <ng-container *ngTemplateOutlet="gestaoRapida"></ng-container>
+    </div>
+  </div>
 
   <div class="modal" *ngIf="blockReasonModalOpen">
     <div class="modal__backdrop"></div>
