@@ -56,6 +56,22 @@ interface WidgetState {
   hidden: string[];
 }
 
+interface DocumentPayload {
+  titulo: string;
+  subtitulo: string;
+  beneficiario: string;
+  cpf: string;
+  curso: string;
+  tipo: string;
+  cargaHoraria: string | number;
+  horario: string | number;
+  duracao: string | number;
+  profissional: string;
+  dataAtual: string;
+  nome?: string;
+  status?: string;
+}
+
 @Component({
   selector: 'app-cursos-atendimentos',
   standalone: true,
@@ -816,7 +832,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     documentWindow.document.close();
   }
 
-  private buildDocumentPayload(enrollment: Enrollment) {
+  private buildDocumentPayload(enrollment: Enrollment): DocumentPayload {
     const titulo =
       this.currentCourse?.tipo === 'Curso' ? 'Certificado de Conclusão' : 'Atestado de Comparecimento';
 
@@ -850,14 +866,14 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     `;
   }
 
-  private interpolateTemplate(template: string, payload: Record<string, string | number | null>): string {
+  private interpolateTemplate(template: string, payload: DocumentPayload): string {
     return template.replace(/\{\{(\w+)\}\}/g, (_match, key) => {
-      const value = payload[key];
+      const value = payload[key as keyof DocumentPayload];
       return value === undefined || value === null ? '' : String(value);
     });
   }
 
-  private defaultDocumentContent(payload: Record<string, any>): string {
+  private defaultDocumentContent(payload: DocumentPayload): string {
     return `
       <div class="document__header">
         <h1>${payload.titulo}</h1>
