@@ -7,6 +7,7 @@ import {
   ProfessionalService,
   ProfessionalStatus
 } from '../../services/professional.service';
+import { titleCaseWords } from '../../utils/capitalization.util';
 
 interface StepTab {
   id: string;
@@ -137,7 +138,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
   }
 
   addCategoria(value: string): void {
-    const formatted = this.capitalize(value);
+    const formatted = titleCaseWords(value.trim());
     if (!formatted) return;
 
     if (this.categorias.includes(formatted)) {
@@ -151,7 +152,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
 
   editCategoria(actual: string): void {
     const next = window.prompt('Atualizar categoria', actual);
-    const formatted = this.capitalize(next ?? '');
+    const formatted = titleCaseWords((next ?? '').trim());
     if (!formatted || actual === formatted) return;
 
     this.categorias = this.categorias.map((item) => (item === actual ? formatted : item));
@@ -222,7 +223,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
   addTag(tag: string): void {
     if (!tag.trim()) return;
     const control = this.form.get('tags');
-    const formatted = this.capitalize(tag);
+    const formatted = titleCaseWords(tag.trim());
     const current = new Set(control?.value ?? []);
     current.add(formatted || tag.trim());
     control?.setValue(Array.from(current));
@@ -268,24 +269,26 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
         if (typeof value !== 'string') return;
         if (controlName === 'email') return;
 
-        const transformed = this.capitalize(value);
-        if (transformed && transformed !== value) {
-          control.setValue(transformed, { emitEvent: false });
-        }
+        this.applyCapitalization(controlName);
       });
 
       this.capitalizationSubs.push(() => subscription.unsubscribe());
     };
 
-    ['nome', 'categoria', 'registroConselho', 'especialidade', 'telefone', 'unidade', 'resumo', 'observacoes'].forEach(
-      applyRule
-    );
+    ['nome', 'categoria', 'registroConselho', 'especialidade', 'telefone', 'unidade'].forEach(applyRule);
   }
 
-  private capitalize(value: string): string {
-    if (!value || typeof value !== 'string') return '';
-    const trimmed = value.trimStart();
-    if (!trimmed) return '';
-    return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`;
+  applyCapitalization(controlName: string, rawValue?: string): void {
+    const control = this.form.get(controlName);
+    if (!control) return;
+    if (controlName === 'email') return;
+
+    const currentValue = rawValue ?? control.value;
+    if (typeof currentValue !== 'string') return;
+
+    const transformed = titleCaseWords(currentValue);
+    if (transformed && transformed !== currentValue) {
+      control.setValue(transformed, { emitEvent: false });
+    }
   }
 }

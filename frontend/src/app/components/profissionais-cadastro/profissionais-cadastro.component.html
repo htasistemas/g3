@@ -73,7 +73,14 @@
       </div>
 
       <div class="field-grid cols-3">
-        <label class="field">Nome completo*<input type="text" formControlName="nome" placeholder="Quem irá atender?" /></label>
+        <label class="field"
+          >Nome completo*<input
+            type="text"
+            formControlName="nome"
+            placeholder="Quem irá atender?"
+            (input)="applyCapitalization('nome', $any($event.target).value)"
+            (blur)="applyCapitalization('nome', $any($event.target).value)"
+        /></label>
         <div class="field category-manager">
           <label class="field-title" for="categoriaSelect">Categoria*</label>
           <select id="categoriaSelect" formControlName="categoria">
@@ -102,10 +109,31 @@
             </div>
           </div>
         </div>
-        <label class="field">Especialidade<input type="text" formControlName="especialidade" placeholder="Área principal de atuação" /></label>
-        <label class="field">Registro em conselho<input type="text" formControlName="registroConselho" placeholder="CRESS, CRP, CRM..." /></label>
+        <label class="field"
+          >Especialidade<input
+            type="text"
+            formControlName="especialidade"
+            placeholder="Área principal de atuação"
+            (input)="applyCapitalization('especialidade', $any($event.target).value)"
+            (blur)="applyCapitalization('especialidade', $any($event.target).value)"
+        /></label>
+        <label class="field"
+          >Registro em conselho<input
+            type="text"
+            formControlName="registroConselho"
+            placeholder="CRESS, CRP, CRM..."
+            (input)="applyCapitalization('registroConselho', $any($event.target).value)"
+            (blur)="applyCapitalization('registroConselho', $any($event.target).value)"
+        /></label>
         <label class="field">E-mail*<input type="email" formControlName="email" placeholder="contato@instituicao.org.br" /></label>
-        <label class="field">Telefone/WhatsApp<input type="text" formControlName="telefone" placeholder="(11) 90000-0000" /></label>
+        <label class="field"
+          >Telefone/WhatsApp<input
+            type="text"
+            formControlName="telefone"
+            placeholder="(11) 90000-0000"
+            (input)="applyCapitalization('telefone', $any($event.target).value)"
+            (blur)="applyCapitalization('telefone', $any($event.target).value)"
+        /></label>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -121,7 +149,14 @@
       </div>
 
       <div class="field-grid cols-3">
-        <label class="field">Unidade de atendimento<input type="text" formControlName="unidade" placeholder="Unidade, polo ou sala" /></label>
+        <label class="field"
+          >Unidade de atendimento<input
+            type="text"
+            formControlName="unidade"
+            placeholder="Unidade, polo ou sala"
+            (input)="applyCapitalization('unidade', $any($event.target).value)"
+            (blur)="applyCapitalization('unidade', $any($event.target).value)"
+        /></label>
         <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
         <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>

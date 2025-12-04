@@ -14,6 +14,7 @@ import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficia
 import { SalaRecord, SalasService } from '../../services/salas.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
+import { titleCaseWords } from '../../utils/capitalization.util';
 
 interface StepTab {
   id: string;
@@ -492,14 +493,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
       const sub = control.valueChanges.subscribe((value) => {
         if (typeof value !== 'string') return;
-        const trimmed = value.trimStart();
-        if (!trimmed) return;
-
-        const transformed = `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}`;
-
-        if (transformed !== value) {
-          control.setValue(transformed, { emitEvent: false });
-        }
+        this.applyCapitalization(form, controlName);
       });
 
       this.capitalizationSubs.push(sub);
@@ -507,6 +501,21 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
     ['nome', 'profissional'].forEach((controlName) => applyRule(this.courseForm, controlName));
     applyRule(this.enrollmentForm, 'beneficiaryName');
+  }
+
+  applyCapitalization(form: FormGroup, controlName: string, rawValue?: string): void {
+    const control = form.get(controlName);
+    if (!control) return;
+    if (controlName.toLowerCase().includes('descricao')) return;
+
+    const currentValue = rawValue ?? control.value;
+    if (typeof currentValue !== 'string') return;
+
+    const transformed = titleCaseWords(currentValue);
+
+    if (transformed && transformed !== currentValue) {
+      control.setValue(transformed, { emitEvent: false });
+    }
   }
 
   handleImage(event: Event): void {
