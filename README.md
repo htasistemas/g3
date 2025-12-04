@@ -7,7 +7,10 @@ Este repositório contém o front-end em Angular e o back-end em Node/Express pa
 - Comandos:
   - `npm install`
   - `npm run dev`
-- Configuração via `.env` (exemplo em `backend/.env.example`). Ao iniciar, a API cria as tabelas necessárias e garante o usuário `admin/123`.
+- Configuração via `.env` (exemplo em `backend/.env.example`). Por padrão usamos Postgres remoto
+  (`72.60.156.202`) para garantir que os dados permaneçam persistidos entre máquinas; defina `DB_TYPE=sqlite`
+  apenas se quiser um banco local.
+- Ao iniciar, a API cria as tabelas necessárias e garante o usuário `admin/123`.
 - Padrão de modelagem: chaves primárias devem ser inteiros autoincrementais (`@PrimaryGeneratedColumn()`), nunca UUID.
 - Endpoints principais:
   - `POST /api/auth/login`
