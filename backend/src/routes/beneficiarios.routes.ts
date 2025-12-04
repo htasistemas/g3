@@ -1,8 +1,13 @@
 import { Request, Router } from 'express';
+import multer from 'multer';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
 
 const router = Router();
+const upload = multer();
+
+// Permite que envios via FormData (sem arquivos) sejam lidos corretamente.
+router.use(upload.none());
 
 function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
