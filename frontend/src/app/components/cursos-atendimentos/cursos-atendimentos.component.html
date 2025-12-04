@@ -73,17 +73,34 @@
             (blur)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
           />
         </label>
-        <label class="field">
-          Horário inicial*
-          <input type="time" formControlName="horarioInicial" />
-        </label>
-        <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <div class="field-pair span-2">
+          <label class="field">
+            Horário inicial*
+            <input type="time" formControlName="horarioInicial" />
+          </label>
+          <label class="field">
+            Duração (horas)*
+            <input type="number" formControlName="duracaoHoras" min="1" />
+          </label>
+        </div>
 
-        <label class="field">
-          Duração (horas)*
-          <input type="number" formControlName="duracaoHoras" min="1" />
-        </label>
-        <div class="field day-selector horizontal span-2">
+        <div class="field-grid cols-2 description-media full">
+          <label class="field full">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+
+          <div class="field media-card">
+            <p class="field-title">Foto / Imagem ilustrativa</p>
+            <input type="file" accept="image/*" (change)="handleImage($event)" />
+            <div class="upload-preview" *ngIf="courseForm.value.imagem">
+              <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
+              <div>
+                <p class="strong">Pré-visualização</p>
+                <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field day-selector horizontal full">
           <p class="field-title">Dias da semana*</p>
           <div class="chips">
             <label *ngFor="let dia of diasSemana" class="chip">
@@ -97,18 +114,16 @@
           </div>
         </div>
 
+        <label class="field full">
+          Restrições e público indicado
+          <textarea
+            rows="2"
+            formControlName="restricoes"
+            placeholder="Ex.: menores de 18 anos não podem participar, vagas preferenciais para idosos, faixa etária recomendada"
+          ></textarea>
+        </label>
+
         <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
-        <div class="field media-card span-2">
-          <p class="field-title">Foto / Imagem ilustrativa</p>
-          <input type="file" accept="image/*" (change)="handleImage($event)" />
-          <div class="upload-preview" *ngIf="courseForm.value.imagem">
-            <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
-            <div>
-              <p class="strong">Pré-visualização</p>
-              <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
-            </div>
-          </div>
-        </div>
         <label class="field">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
@@ -152,7 +167,6 @@
         <div class="actions__stack">
           <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar e continuar' }}</button>
           <div class="actions__inline">
-            <button type="button" class="ghost" (click)="changeTab('catalogo')">Ir para: catálogo e vagas</button>
             <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscrições</button>
           </div>
         </div>
@@ -170,7 +184,7 @@
       </div>
 
       <div class="catalog-grid">
-        <article *ngFor="let course of records" class="catalog-card">
+        <article *ngFor="let course of records" class="catalog-card" [ngClass]="getCardAccent(course)">
           <div class="catalog-card__badge" [ngClass]="courseStatus(course).tone">{{ courseStatus(course).label }}</div>
           <div class="catalog-card__header">
             <div class="catalog-card__media" *ngIf="course.imagem; else fallbackIcon">
@@ -199,17 +213,27 @@
               <dt>Dias</dt>
               <dd>{{ course.diasSemana.join(', ') }}</dd>
             </div>
-              <div>
-                <dt>Sala</dt>
-                <dd>{{ getRoomName(course) }}</dd>
-              </div>
+            <div>
+              <dt>Sala</dt>
+              <dd>{{ getRoomName(course) }}</dd>
+            </div>
           </dl>
-          <div class="catalog-card__actions">
-            <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
-            <button type="button" class="danger" (click)="deleteCourse(course)">Excluir</button>
-            <button type="button" class="primary" (click)="selectFromCatalog(course.id)" [disabled]="course.vagasDisponiveis === 0">
-              Inscrever beneficiário
-            </button>
+          <div class="catalog-card__footer">
+            <div class="catalog-card__chips" *ngIf="course.restricoes">
+              <span class="chip muted-chip">{{ course.restricoes }}</span>
+            </div>
+            <div class="catalog-card__actions">
+              <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
+              <button type="button" class="danger" (click)="deleteCourse(course)">Excluir</button>
+              <button
+                type="button"
+                class="primary"
+                (click)="selectFromCatalog(course.id)"
+                [disabled]="course.vagasDisponiveis === 0"
+              >
+                Inscrever beneficiário
+              </button>
+            </div>
           </div>
         </article>
         <p class="muted" *ngIf="!records.length">Cadastre cursos ou atendimentos para exibir o catálogo.</p>
