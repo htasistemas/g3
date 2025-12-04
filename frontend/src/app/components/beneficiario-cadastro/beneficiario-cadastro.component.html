@@ -169,7 +169,7 @@
           </button>
         </div>
       </div>
-      <div class="tab-card__hero">
+      <div class="tab-card__hero" [class.tab-card__hero--camera]="cameraActive">
         <div class="photo-section">
           <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
             <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
@@ -188,6 +188,14 @@
             <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
             <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
           </div>
+        </div>
+
+        <div class="camera-panel" *ngIf="cameraActive">
+          <p class="camera-panel__title">Visualização da câmera</p>
+          <div class="camera-panel__preview">
+            <video #videoElement autoplay muted playsinline></video>
+          </div>
+          <p class="camera-panel__hint">Ajuste o enquadramento e clique em "Registrar foto" para salvar.</p>
         </div>
 
         <div class="status-panel">
@@ -212,9 +220,6 @@
             Editar motivo do bloqueio
           </button>
         </div>
-      </div>
-      <div class="camera-view" *ngIf="cameraActive">
-        <video #videoElement autoplay muted playsinline></video>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="field-grid cols-2">
