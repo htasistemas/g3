@@ -1,7 +1,7 @@
 <section class="cadastro">
   <header class="page-title">
     <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Cursos & Atendimentos</p>
+    <p class="page-title__label">Cursos e Atendimentos</p>
   </header>
 
   <div class="tab-shell">
@@ -28,7 +28,12 @@
   </div>
 
   <form [formGroup]="courseForm" class="form-shell" (ngSubmit)="submit()">
-    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+    <div *ngIf="feedback" class="feedback" role="alert">
+      <span>{{ feedback }}</span>
+      <button type="button" class="feedback__close" aria-label="Fechar aviso" (click)="dismissFeedback()">
+        ×
+      </button>
+    </div>
 
     <ng-template #navigationControls>
       <div class="tab-actions">
@@ -382,7 +387,7 @@
     <div class="list-card__header">
       <div>
         <p class="page-title__eyebrow">Registros</p>
-        <p class="page-title__label">Cursos & Atendimentos cadastrados</p>
+        <p class="page-title__label">Cursos e Atendimentos cadastrados</p>
       </div>
     </div>
     <div class="table-wrapper">

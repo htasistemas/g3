@@ -280,6 +280,19 @@
   background: #fef9c3;
   color: #854d0e;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.feedback__close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 .chips {
@@ -340,7 +353,7 @@
   border: 1px solid #cbd5e1;
   background: #fff;
   border-radius: 10px;
-  padding: 0.55rem 0.95rem;
+  padding: 0.5rem 0.9rem;
   font-weight: 600;
   color: #0f172a;
   cursor: pointer;
@@ -349,7 +362,9 @@
 .actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .actions.align-end {
@@ -360,11 +375,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .actions .primary {
-  padding: 0.85rem 1.6rem;
-  border-radius: 12px;
+  padding: 0.7rem 1.25rem;
+  border-radius: 10px;
   border: none;
   background: linear-gradient(135deg, #10b981, #0ea5e9);
   color: #fff;
@@ -567,8 +583,8 @@
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
   margin-top: 1rem;
 }
 
@@ -577,12 +593,12 @@
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  padding: 1rem;
+  padding: 0.85rem;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-height: 260px;
+  min-height: 230px;
 }
 
 .catalog-card__badge {
