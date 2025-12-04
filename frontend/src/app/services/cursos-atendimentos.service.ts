@@ -11,6 +11,7 @@ export interface Enrollment {
   id: string;
   beneficiaryName: string;
   cpf: string;
+  whatsapp?: string | null;
   status: EnrollmentStatus;
   enrolledAt: string;
 }
@@ -19,6 +20,7 @@ export interface WaitlistEntry {
   id: string;
   beneficiaryName: string;
   cpf: string;
+  whatsapp?: string | null;
   joinedAt: string;
 }
 
@@ -38,6 +40,7 @@ export interface CourseRecord {
   profissional: string;
   salaId?: string | null;
   sala?: SalaRecord | null;
+  certificateTemplate?: string | null;
   createdAt: string;
   updatedAt?: string;
   enrollments: Enrollment[];
