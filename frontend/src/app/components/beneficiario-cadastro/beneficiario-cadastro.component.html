@@ -4,10 +4,6 @@
     <p class="page-title__label">Cadastro de beneficiário</p>
   </header>
 
-  <div class="page-actions">
-    <button type="button" class="primary" (click)="openQuickSearch()">Buscar</button>
-  </div>
-
   <ng-template #gestaoRapida>
     <section class="list-panel">
       <div class="list-panel__header">
@@ -133,9 +129,9 @@
     </ol>
   </div>
 
-  <ng-container *ngIf="activeTab === 'dados' && !quickSearchModalOpen">
-    <ng-container *ngTemplateOutlet="gestaoRapida"></ng-container>
-  </ng-container>
+  <div class="page-actions page-actions--below-tabs">
+    <button type="button" class="primary" (click)="openQuickSearch()">Buscar</button>
+  </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
@@ -166,7 +162,7 @@
       </div>
     </ng-template>
 
-    <div class="tab-card" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
+    <div class="tab-card" *ngIf="activeTab === 'dados'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
@@ -246,7 +242,7 @@
         </div>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
-      <div class="field-grid cols-2">
+      <div class="field-grid cols-2" formGroupName="dadosPessoais">
         <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
         <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
         <label class="field">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
