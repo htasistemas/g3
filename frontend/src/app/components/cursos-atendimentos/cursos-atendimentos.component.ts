@@ -175,6 +175,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: ['', Validators.required],
       duracaoHoras: [1, [Validators.required, Validators.min(1)]],
       diasSemana: this.fb.control<string[]>([], Validators.required),
+      restricoes: [''],
       profissional: ['', Validators.required],
       salaId: [null, Validators.required]
     });
@@ -435,6 +436,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: course.horarioInicial,
       duracaoHoras: course.duracaoHoras,
       diasSemana: course.diasSemana,
+      restricoes: course.restricoes ?? '',
       profissional: course.profissional,
       salaId: course.salaId ?? course.sala?.id ?? null
     });
@@ -453,11 +455,23 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       horarioInicial: '',
       duracaoHoras: 1,
       diasSemana: [],
+      restricoes: '',
       profissional: '',
       salaId: null
     });
     this.enrollmentForm.patchValue({ courseId: null });
     this.changeTab('dados');
+  }
+
+  getCardAccent(course: CourseRecord): string {
+    switch (course.tipo) {
+      case 'Atendimento':
+        return 'accent-sky';
+      case 'Oficina':
+        return 'accent-violet';
+      default:
+        return 'accent-emerald';
+    }
   }
 
   deleteCourse(course: CourseRecord): void {
@@ -930,6 +944,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     return {
       ...record,
       imagem: record.imagem ?? null,
+      restricoes: record.restricoes ?? null,
       diasSemana: record.diasSemana ?? [],
       salaId: record.salaId ?? record.sala?.id ?? null,
       enrollments: (record.enrollments ?? []).map((enrollment) => ({
