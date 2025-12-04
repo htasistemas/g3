@@ -196,6 +196,9 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   uploadProgress: Record<number, number> = {};
   uploadingDocuments = false;
+  private documentNameKey(name?: string): string {
+    return (name ?? '').trim().toLowerCase();
+  }
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
@@ -696,61 +699,57 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       });
   }
 
+  private normalizeDocumentList(documents: Partial<DocumentoObrigatorio>[]): DocumentoObrigatorio[] {
+    const seen = new Set<string>();
+
+    return documents
+      .map((doc) => this.normalizeDocumentData(doc))
+      .filter((doc) => {
+        const key = this.documentNameKey(doc.nome);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  }
+
   private resetDocumentArray(existing?: DocumentoObrigatorio[]): void {
     this.anexos.clear();
-    const baseDocs = existing?.length ? existing : this.documentosObrigatorios;
+    const configDocs = this.normalizeDocumentList(this.documentosObrigatorios ?? []);
+    const existingDocs = this.normalizeDocumentList(existing ?? []);
 
-    if (!baseDocs.length) {
-      this.anexos.push(this.buildDocumentControl({ nome: 'Documento de identificação', obrigatorio: true }));
-      this.anexos.push(this.buildDocumentControl({ nome: 'Comprovante de residência', obrigatorio: true }));
+    if (configDocs.length) {
+      configDocs.forEach((doc) => {
+        const match = existingDocs.find(
+          (existingDoc) => this.documentNameKey(existingDoc.nome) === this.documentNameKey(doc.nome)
+        );
+
+        this.anexos.push(
+          this.buildDocumentControl({
+            ...doc,
+            nomeArquivo: match?.nomeArquivo ?? doc.nomeArquivo,
+            conteudo: match?.conteudo ?? doc.conteudo,
+            contentType: match?.contentType ?? doc.contentType
+          })
+        );
+      });
+
+      existingDocs
+        .filter(
+          (doc) => !configDocs.some((cfg) => this.documentNameKey(cfg.nome) === this.documentNameKey(doc.nome))
+        )
+        .forEach((doc) => this.anexos.push(this.buildDocumentControl(doc)));
+
       return;
     }
 
-    baseDocs.forEach((doc) => {
-      const normalized = this.normalizeDocumentData(doc);
-      this.anexos.push(
-        this.buildDocumentControl({
-          nome: normalized.nome,
-          obrigatorio: normalized.obrigatorio,
-          nomeArquivo: normalized.nomeArquivo,
-          conteudo: normalized.conteudo,
-          contentType: normalized.contentType
-        })
-      );
-    });
+    existingDocs.forEach((doc) => this.anexos.push(this.buildDocumentControl(doc)));
   }
 
   private mergeRequiredDocumentsWithExisting(): void {
     if (!this.documentosObrigatorios.length) return;
 
-    this.documentosObrigatorios.forEach((doc) => {
-      const normalized = this.normalizeDocumentData(doc);
-      const existingControl = this.anexos.controls.find(
-        (control) => control.get('nome')?.value === normalized.nome
-      ) as FormGroup | undefined;
-
-      if (existingControl) {
-        existingControl.patchValue(
-          {
-            obrigatorio: normalized.obrigatorio,
-            nomeArquivo: existingControl.get('nomeArquivo')?.value || normalized.nomeArquivo,
-            contentType: existingControl.get('contentType')?.value || normalized.contentType
-          },
-          { emitEvent: false }
-        );
-        return;
-      }
-
-      this.anexos.push(
-        this.buildDocumentControl({
-          nome: normalized.nome,
-          obrigatorio: normalized.obrigatorio,
-          nomeArquivo: normalized.nomeArquivo,
-          conteudo: normalized.conteudo,
-          contentType: normalized.contentType
-        })
-      );
-    });
+    const currentDocuments = this.anexos.controls.map((control) => control.value as DocumentoObrigatorio);
+    this.resetDocumentArray(currentDocuments);
   }
 
   private normalizeDocumentData(doc: Partial<DocumentoObrigatorio>): DocumentoObrigatorio {
@@ -948,25 +947,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private determineStatusForSave(allowStatusOnlyUpdate = false): BeneficiarioApiPayload['status'] {
-    const missingDocuments = allowStatusOnlyUpdate ? [] : this.getMissingRequiredDocuments();
-    const hasPending = (!allowStatusOnlyUpdate && this.form.invalid) || missingDocuments.length > 0;
-
     const manualStatus = (this.form.get('status')?.value as BeneficiarioApiPayload['status']) ?? 'EM_ANALISE';
 
     if (!this.beneficiarioId) {
-      return hasPending ? 'INCOMPLETO' : 'EM_ANALISE';
-    }
-
-    if (allowStatusOnlyUpdate) {
-      return manualStatus;
-    }
-
-    if (hasPending) {
-      return 'INCOMPLETO';
-    }
-
-    if (this.isOutdatedDate(this.lastUpdatedAt || this.createdAt) && manualStatus !== 'BLOQUEADO') {
-      return 'DESATUALIZADO';
+      const missingDocuments = allowStatusOnlyUpdate ? [] : this.getMissingRequiredDocuments();
+      const hasPending = this.form.invalid || missingDocuments.length > 0;
+      return hasPending ? 'INCOMPLETO' : manualStatus;
     }
 
     return manualStatus;
