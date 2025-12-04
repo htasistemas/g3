@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   AbstractControl,
@@ -341,7 +341,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly http: HttpClient,
     private readonly assistanceUnitService: AssistanceUnitService,
-    private readonly reportService: ReportService
+    private readonly reportService: ReportService,
+    private readonly ngZone: NgZone
   ) {
     this.searchForm = this.fb.group({
       nome: [''],
@@ -919,6 +920,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }, 4000);
   }
 
+  dismissFeedback(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = undefined;
+    }
+    this.feedback = null;
+  }
+
+  dismissListError(): void {
+    this.listError = null;
+  }
+
   saveStatusChange(): void {
     if (this.saving) return;
     if (!this.beneficiarioId) {
@@ -1360,7 +1373,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
             @page { size: A4; margin: 12mm; }
             * { box-sizing: border-box; }
-            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #e2e8f0; color: #0f172a; }
+            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #e2e8f0; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .report { width: 100%; max-width: 100%; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08); overflow: hidden; }
             .report__inner { padding: 26px; }
             .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 14px; }
@@ -1564,7 +1577,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       <style>
         * { box-sizing: border-box; }
         @page { size: A4; margin: 12mm; }
-        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 0; line-height: 1.6; color: #0f172a; background: #e2e8f0; }
+        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 0; line-height: 1.6; color: #0f172a; background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         h1 { margin: 0 0 4px; letter-spacing: 0.2px; color: #0f172a; }
         h2 { margin: 0; }
         p { margin: 0; }
@@ -1809,10 +1822,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         ? this.service.update(this.beneficiarioId, payload)
         : this.service.create(payload);
 
-      request.pipe(finalize(() => (this.saving = false))).subscribe({
+      request.pipe(finalize(() => this.ngZone.run(() => (this.saving = false)))).subscribe({
         next: () => {
-          this.showTemporaryFeedback('Registro salvo com sucesso');
-          setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
+          this.ngZone.run(() => {
+            this.showTemporaryFeedback('Registro salvo com sucesso');
+            setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
+          });
         },
         error: (error) => {
           this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
