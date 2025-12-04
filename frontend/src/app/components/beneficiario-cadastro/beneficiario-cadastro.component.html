@@ -449,6 +449,14 @@
                 Enviar arquivo
                 <input type="file" (change)="onDocumentFileSelected($event, i)" />
               </label>
+              <button
+                type="button"
+                class="ghost destructive"
+                *ngIf="control.get('nomeArquivo')?.value || control.get('conteudo')?.value"
+                (click)="removeUploadedDocument(i)"
+              >
+                Remover arquivo enviado
+              </button>
               <div class="upload-progress" *ngIf="uploadProgress[i] !== undefined">
                 <div
                   class="upload-progress__bar"

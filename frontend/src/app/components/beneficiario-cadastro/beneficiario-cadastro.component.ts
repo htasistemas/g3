@@ -835,6 +835,23 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
+  removeUploadedDocument(index: number): void {
+    const control = this.anexos.at(index) as FormGroup | undefined;
+
+    if (!control) return;
+
+    control.patchValue({
+      nomeArquivo: '',
+      conteudo: '',
+      contentType: '',
+      file: null
+    });
+
+    delete this.uploadProgress[index];
+    this.updateUploadState();
+    control.markAsDirty();
+  }
+
   private updateUploadState(): void {
     this.uploadingDocuments = Object.values(this.uploadProgress).some((value) => value < 100);
   }

@@ -487,6 +487,11 @@
   cursor: pointer;
 }
 
+.ghost.destructive {
+  border-color: #fecdd3;
+  color: #b91c1c;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;
