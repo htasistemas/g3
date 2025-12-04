@@ -105,10 +105,10 @@
           <input formControlName="profissional" placeholder="Pesquise ou digite o nome do profissional" />
           <div class="search-hint" *ngIf="professionalSearchLoading">Buscando profissionais...</div>
           <ul class="search-results" *ngIf="professionalResults.length">
-            <li *ngFor="let volunteer of professionalResults">
-              <button type="button" (click)="selectProfessional(volunteer)">
-                <span>{{ volunteer.nome }}</span>
-                <small>{{ volunteer.areaInteresse || volunteer.email }}</small>
+            <li *ngFor="let professional of professionalResults">
+              <button type="button" (click)="selectProfessional(professional)">
+                <span>{{ professional.nome }}</span>
+                <small>{{ professional.especialidade || professional.categoria || professional.email }}</small>
               </button>
             </li>
           </ul>
@@ -380,30 +380,72 @@
         <span class="pill">Resumo</span>
       </div>
 
-      <div class="cards-grid">
-        <article class="summary-card" aria-label="Cursos ativos">
-          <p class="summary-card__label">Cursos ativos</p>
-          <p class="summary-card__value">{{ dashboardTotals().ativosCurso }}</p>
-        </article>
-        <article class="summary-card" aria-label="Atendimentos ativos">
-          <p class="summary-card__label">Atendimentos ativos</p>
-          <p class="summary-card__value">{{ dashboardTotals().ativosAtendimento }}</p>
-        </article>
-        <article class="summary-card" aria-label="Beneficiários inscritos">
-          <p class="summary-card__label">Beneficiários inscritos</p>
-          <p class="summary-card__value">{{ dashboardTotals().totalMatriculas }}</p>
-        </article>
-        <article class="summary-card" aria-label="Vagas ofertadas">
-          <p class="summary-card__label">Vagas ofertadas</p>
-          <p class="summary-card__value">{{ dashboardTotals().totalVagas }}</p>
-        </article>
-        <article class="summary-card" aria-label="Vagas disponíveis">
-          <p class="summary-card__label">Vagas disponíveis</p>
-          <p class="summary-card__value">{{ dashboardTotals().vagasDisponiveis }}</p>
-        </article>
-        <article class="summary-card" aria-label="Lista de espera">
-          <p class="summary-card__label">Beneficiários na espera</p>
-          <p class="summary-card__value">{{ dashboardTotals().listaEspera }}</p>
+      <div class="dashboard-controls">
+        <div class="control-card">
+          <div class="control-card__header">
+            <div>
+              <p class="control-card__eyebrow">Painéis gerenciáveis</p>
+              <p class="control-card__title">Personalize os cartões exibidos</p>
+              <p class="muted">Ative apenas os indicadores relevantes e ajuste a ordem de exibição.</p>
+            </div>
+            <span class="pill">{{ visibleWidgets.length }} / {{ dashboardWidgets.length }} ativos</span>
+          </div>
+          <div class="control-list">
+            <label class="control-item" *ngFor="let widget of dashboardWidgets">
+              <div>
+                <p class="control-item__title">{{ widget.title }}</p>
+                <p class="control-item__desc">{{ widget.description }}</p>
+              </div>
+              <div class="control-actions">
+                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'up')" aria-label="Mover para cima">↑</button>
+                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'down')" aria-label="Mover para baixo">↓</button>
+                <label class="switch">
+                  <input type="checkbox" [checked]="isWidgetEnabled(widget.id)" (change)="toggleWidget(widget.id)" />
+                  <span></span>
+                </label>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="insights-panel">
+          <p class="insights-title">Insights rápidos</p>
+          <div class="insight-chips">
+            <span class="insight-chip">{{ dashboardTotals().ativosCurso }} cursos</span>
+            <span class="insight-chip">{{ dashboardTotals().ativosAtendimento }} atendimentos</span>
+            <span class="insight-chip">{{ dashboardSnapshot.waitlist }} em fila</span>
+            <span class="insight-chip">{{ dashboardSnapshot.profissionais }} profissionais</span>
+          </div>
+          <div class="insight-trend">
+            <div>
+              <p class="trend-label">Pressão de fila</p>
+              <p class="trend-value">{{ dashboardSnapshot.waitlistPressao }}%</p>
+            </div>
+            <div class="trend-meter">
+              <div class="trend-bar" [style.width]="dashboardSnapshot.waitlistPressao + '%'" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget-grid">
+        <article
+          class="widget-card"
+          *ngFor="let widget of visibleWidgets; trackBy: trackWidget"
+          [attr.data-gradient]="widget.gradient"
+        >
+          <div class="widget-card__header">
+            <p class="widget-card__title">{{ widget.title }}</p>
+            <span class="widget-card__pill">Dinâmico</span>
+          </div>
+          <p class="widget-card__value">{{ widget.getValue(dashboardSnapshot) }}</p>
+          <p class="widget-card__helper">{{ widget.getHelper(dashboardSnapshot) }}</p>
+          <div class="widget-card__progress" *ngIf="widget.getProgress">
+            <div
+              class="widget-card__progress-bar"
+              [style.width]="widget.getProgress!(dashboardSnapshot) + '%'"
+            ></div>
+          </div>
         </article>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>

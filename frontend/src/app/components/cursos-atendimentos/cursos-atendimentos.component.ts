@@ -12,12 +12,47 @@ import {
 } from '../../services/cursos-atendimentos.service';
 import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
-import { VolunteerPayload, VolunteerService } from '../../services/volunteer.service';
+import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 
 interface StepTab {
   id: string;
   label: string;
+}
+
+interface DashboardSnapshot {
+  totalVagas: number;
+  vagasDisponiveis: number;
+  vagasEmUso: number;
+  ocupacao: number;
+  totalMatriculas: number;
+  totalInscricoes: number;
+  concluidos: number;
+  cancelados: number;
+  waitlist: number;
+  waitlistPressao: number;
+  cursos: number;
+  atendimentos: number;
+  oficinas: number;
+  profissionais: number;
+  mediaCargaHoraria: number;
+  taxaConclusao: number;
+  engajamento: number;
+}
+
+interface DashboardWidget {
+  id: string;
+  title: string;
+  description: string;
+  gradient: string;
+  getValue(snapshot: DashboardSnapshot): string;
+  getHelper(snapshot: DashboardSnapshot): string;
+  getProgress?: (snapshot: DashboardSnapshot) => number;
+}
+
+interface WidgetState {
+  order: string[];
+  hidden: string[];
 }
 
 @Component({
@@ -57,20 +92,77 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   beneficiaryResults: BeneficiaryPayload[] = [];
   beneficiarySearchLoading = false;
   private beneficiarySearchSub?: Subscription;
-  professionalResults: VolunteerPayload[] = [];
+  professionalResults: ProfessionalRecord[] = [];
   professionalSearchLoading = false;
   private professionalSearchSub?: Subscription;
   rooms: SalaRecord[] = [];
   roomsLoading = false;
 
   records: CourseRecord[] = [];
+  dashboardSnapshot: DashboardSnapshot = this.buildDashboardSnapshot();
+  widgetState: WidgetState = { order: [], hidden: [] };
+  readonly dashboardWidgets: DashboardWidget[] = [
+    {
+      id: 'ocupacao',
+      title: 'Taxa de ocupação',
+      description: 'Quanto das vagas está preenchido nos cursos e atendimentos.',
+      gradient: 'emerald',
+      getValue: (snapshot) => `${snapshot.ocupacao}%`,
+      getHelper: (snapshot) => `${snapshot.vagasEmUso}/${snapshot.totalVagas || 0} vagas em uso`,
+      getProgress: (snapshot) => snapshot.ocupacao
+    },
+    {
+      id: 'profissionais',
+      title: 'Profissionais ativos',
+      description: 'Responsáveis vinculados às ofertas cadastradas.',
+      gradient: 'teal',
+      getValue: (snapshot) => `${snapshot.profissionais}`,
+      getHelper: (snapshot) => `${snapshot.mediaCargaHoraria}h média de carga semanal`
+    },
+    {
+      id: 'matriculas',
+      title: 'Inscrições ativas',
+      description: 'Matrículas em andamento e fila de espera.',
+      gradient: 'sky',
+      getValue: (snapshot) => `${snapshot.totalMatriculas}`,
+      getHelper: (snapshot) => `${snapshot.totalInscricoes} registros + ${snapshot.waitlist} em espera`,
+      getProgress: (snapshot) => Math.min(100, Math.max(10, 100 - snapshot.waitlistPressao))
+    },
+    {
+      id: 'conclusao',
+      title: 'Taxa de conclusão',
+      description: 'Percentual de beneficiários que concluíram as atividades.',
+      gradient: 'indigo',
+      getValue: (snapshot) => `${snapshot.taxaConclusao}%`,
+      getHelper: (snapshot) => `${snapshot.concluidos} concluídos • ${snapshot.cancelados} cancelamentos`,
+      getProgress: (snapshot) => snapshot.taxaConclusao
+    },
+    {
+      id: 'portfolio',
+      title: 'Portfólio de ofertas',
+      description: 'Distribuição entre cursos, atendimentos e oficinas.',
+      gradient: 'violet',
+      getValue: (snapshot) => `${snapshot.cursos + snapshot.atendimentos + snapshot.oficinas}`,
+      getHelper: (snapshot) => `${snapshot.cursos} cursos • ${snapshot.atendimentos} atendimentos • ${snapshot.oficinas} oficinas`
+    },
+    {
+      id: 'engajamento',
+      title: 'Engajamento',
+      description: 'Combinação de ocupação, fila e retenção.',
+      gradient: 'fuchsia',
+      getValue: (snapshot) => `${snapshot.engajamento}%`,
+      getHelper: (snapshot) => `${snapshot.waitlistPressao}% pressão de fila`,
+      getProgress: (snapshot) => snapshot.engajamento
+    }
+  ];
+  private readonly widgetPrefsKey = 'g3.cursos.dashboard.widgets';
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: CursosAtendimentosService,
     private readonly beneficiaryService: BeneficiaryService,
     private readonly salasService: SalasService,
-    private readonly volunteerService: VolunteerService
+    private readonly professionalService: ProfessionalService
   ) {
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
@@ -95,6 +187,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupCapitalizationRules();
+    this.loadWidgetPreferences();
     this.fetchRecords();
     this.setupBeneficiarySearch();
     this.setupProfessionalSearch();
@@ -147,6 +240,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         if (this.records.length) {
           this.loadCourse(this.editingId ?? this.records[0].id);
         }
+        this.refreshDashboardSnapshot();
       },
       error: () => {
         this.feedback = 'Não foi possível carregar os registros. Tente novamente.';
@@ -176,6 +270,43 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
   changeTab(tab: StepTab['id']): void {
     this.activeTab = tab;
+  }
+
+  get visibleWidgets(): DashboardWidget[] {
+    const map = new Map(this.dashboardWidgets.map((widget) => [widget.id, widget] as const));
+    const hidden = new Set(this.widgetState.hidden);
+
+    return this.normalizeWidgetState()
+      .map((id) => map.get(id))
+      .filter((widget): widget is DashboardWidget => !!widget && !hidden.has(widget.id));
+  }
+
+  isWidgetEnabled(widgetId: string): boolean {
+    return !this.widgetState.hidden.includes(widgetId);
+  }
+
+  toggleWidget(widgetId: string): void {
+    const hidden = new Set(this.widgetState.hidden);
+    hidden.has(widgetId) ? hidden.delete(widgetId) : hidden.add(widgetId);
+    this.widgetState.hidden = Array.from(hidden);
+    this.persistWidgetPreferences();
+  }
+
+  moveWidget(widgetId: string, direction: 'up' | 'down'): void {
+    const order = this.normalizeWidgetState();
+    const currentIndex = order.indexOf(widgetId);
+    if (currentIndex < 0) return;
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= order.length) return;
+
+    [order[currentIndex], order[targetIndex]] = [order[targetIndex], order[currentIndex]];
+    this.widgetState.order = order;
+    this.persistWidgetPreferences();
+  }
+
+  trackWidget(_index: number, widget: DashboardWidget): string {
+    return widget.id;
   }
 
   goToNextTab(): void {
@@ -274,6 +405,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
             this.enrollmentForm.patchValue({ courseId: created.id });
             this.feedback = 'Cadastro salvo com sucesso!';
             this.saving = false;
+            this.refreshDashboardSnapshot();
           },
           error: () => {
             this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
@@ -555,21 +687,15 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   dashboardTotals() {
     const ativosCurso = this.records.filter((c) => c.tipo === 'Curso').length;
     const ativosAtendimento = this.records.filter((c) => c.tipo === 'Atendimento').length;
-    const totalMatriculas = this.records.reduce(
-      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Ativo').length,
-      0
-    );
-    const totalVagas = this.records.reduce((sum, c) => sum + c.vagasTotais, 0);
-    const vagasDisponiveis = this.records.reduce((sum, c) => sum + c.vagasDisponiveis, 0);
-    const listaEspera = this.records.reduce((sum, c) => sum + c.waitlist.length, 0);
+    const snapshot = this.dashboardSnapshot;
 
     return {
       ativosCurso,
       ativosAtendimento,
-      totalMatriculas,
-      totalVagas,
-      vagasDisponiveis,
-      listaEspera
+      totalMatriculas: snapshot.totalMatriculas,
+      totalVagas: snapshot.totalVagas,
+      vagasDisponiveis: snapshot.vagasDisponiveis,
+      listaEspera: snapshot.waitlist
     };
   }
 
@@ -599,8 +725,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.beneficiaryResults = [];
   }
 
-  selectProfessional(volunteer: VolunteerPayload): void {
-    this.courseForm.patchValue({ profissional: volunteer.nome });
+  selectProfessional(professional: ProfessionalRecord): void {
+    this.courseForm.patchValue({ profissional: professional.nome });
     this.professionalResults = [];
   }
 
@@ -660,13 +786,109 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       )
       .subscribe((term) => {
         if (!term) return;
-        const normalizedTerm = term.toLowerCase();
-        const volunteers = this.volunteerService.list();
-        this.professionalResults = volunteers
-          .filter((volunteer) => volunteer.nome.toLowerCase().includes(normalizedTerm))
-          .slice(0, 5);
+        this.professionalResults = this.professionalService.search(term);
         this.professionalSearchLoading = false;
       });
+  }
+
+  private loadWidgetPreferences(): void {
+    try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(this.widgetPrefsKey) : null;
+      if (saved) {
+        this.widgetState = { ...this.widgetState, ...(JSON.parse(saved) as WidgetState) };
+      }
+    } catch (error) {
+      console.warn('Não foi possível carregar as preferências do dashboard', error);
+    }
+
+    this.normalizeWidgetState();
+  }
+
+  private persistWidgetPreferences(): void {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.widgetPrefsKey, JSON.stringify(this.widgetState));
+      }
+    } catch (error) {
+      console.warn('Não foi possível salvar as preferências do dashboard', error);
+    }
+  }
+
+  private normalizeWidgetState(): string[] {
+    const availableIds = this.dashboardWidgets.map((widget) => widget.id);
+    const order = this.widgetState.order.filter((id) => availableIds.includes(id));
+    availableIds.forEach((id) => {
+      if (!order.includes(id)) order.push(id);
+    });
+
+    const hidden = this.widgetState.hidden.filter((id) => availableIds.includes(id));
+    this.widgetState = { order, hidden };
+    return order;
+  }
+
+  private buildDashboardSnapshot(): DashboardSnapshot {
+    const totalVagas = this.records.reduce((sum, c) => sum + c.vagasTotais, 0);
+    const vagasDisponiveis = this.records.reduce((sum, c) => sum + c.vagasDisponiveis, 0);
+    const vagasEmUso = Math.max(totalVagas - vagasDisponiveis, 0);
+    const totalMatriculas = this.records.reduce(
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Ativo').length,
+      0
+    );
+    const totalInscricoes = this.records.reduce((sum, c) => sum + c.enrollments.length, 0);
+    const concluidos = this.records.reduce(
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Concluído').length,
+      0
+    );
+    const cancelados = this.records.reduce(
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Cancelado').length,
+      0
+    );
+    const waitlist = this.records.reduce((sum, c) => sum + c.waitlist.length, 0);
+
+    const cursos = this.records.filter((c) => c.tipo === 'Curso').length;
+    const atendimentos = this.records.filter((c) => c.tipo === 'Atendimento').length;
+    const oficinas = this.records.filter((c) => c.tipo === 'Oficina').length;
+    const profissionais = new Set(this.records.map((c) => c.profissional).filter(Boolean)).size;
+    const mediaCargaHoraria = this.records.length
+      ? Math.round(
+          this.records.reduce((sum, c) => sum + (c.cargaHoraria ?? 0), 0) / this.records.length
+        )
+      : 0;
+
+    const ocupacao = totalVagas ? Math.round((vagasEmUso / totalVagas) * 100) : 0;
+    const baseConclusao = totalMatriculas + concluidos + cancelados;
+    const taxaConclusao = baseConclusao ? Math.round((concluidos / baseConclusao) * 100) : 0;
+    const waitlistPressao = totalMatriculas
+      ? Math.min(100, Math.round((waitlist / totalMatriculas) * 100))
+      : 0;
+    const engajamento = Math.min(
+      100,
+      Math.round((ocupacao * 0.4 + (100 - waitlistPressao) * 0.25 + taxaConclusao * 0.35))
+    );
+
+    return {
+      totalVagas,
+      vagasDisponiveis,
+      vagasEmUso,
+      ocupacao,
+      totalMatriculas,
+      totalInscricoes,
+      concluidos,
+      cancelados,
+      waitlist,
+      waitlistPressao,
+      cursos,
+      atendimentos,
+      oficinas,
+      profissionais,
+      mediaCargaHoraria,
+      taxaConclusao,
+      engajamento
+    };
+  }
+
+  private refreshDashboardSnapshot(): void {
+    this.dashboardSnapshot = this.buildDashboardSnapshot();
   }
 
   private normalizeRecord(record: CourseRecord): CourseRecord {
@@ -689,6 +911,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   private replaceRecord(updated: CourseRecord): void {
     const normalized = this.normalizeRecord(updated);
     this.records = this.records.map((record) => (record.id === normalized.id ? normalized : record));
+    this.refreshDashboardSnapshot();
     this.loadCourse(normalized.id);
   }
 

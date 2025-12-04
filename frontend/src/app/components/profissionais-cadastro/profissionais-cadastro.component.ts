@@ -1,0 +1,162 @@
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  ProfessionalPayload,
+  ProfessionalRecord,
+  ProfessionalService,
+  ProfessionalStatus
+} from '../../services/professional.service';
+
+@Component({
+  selector: 'app-profissionais-cadastro',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './profissionais-cadastro.component.html',
+  styleUrl: './profissionais-cadastro.component.scss'
+})
+export class ProfissionaisCadastroComponent {
+  form: FormGroup;
+  feedback: string | null = null;
+  professionals: ProfessionalRecord[] = [];
+  editingId: string | null = null;
+
+  readonly categorias = ['Assistente social', 'Psicólogo(a)', 'Pedagogo(a)', 'Médico(a)', 'Nutricionista'];
+  readonly disponibilidades = ['Manhã', 'Tarde', 'Noite'];
+  readonly canais = ['Presencial', 'Online', 'Telefone'];
+  readonly statuses: ProfessionalStatus[] = ['Disponível', 'Em atendimento', 'Em intervalo', 'Indisponível'];
+  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Famílias', 'Juventude', 'Visitas', 'Oficinas'];
+
+  constructor(private readonly fb: FormBuilder, private readonly professionalService: ProfessionalService) {
+    this.form = this.fb.group({
+      nome: ['', Validators.required],
+      categoria: [this.categorias[0], Validators.required],
+      registroConselho: [''],
+      especialidade: [''],
+      email: ['', [Validators.required, Validators.email]],
+      telefone: [''],
+      unidade: [''],
+      cargaHoraria: [20, [Validators.min(1)]],
+      disponibilidade: this.fb.control<string[]>([]),
+      canaisAtendimento: this.fb.control<string[]>(['Presencial']),
+      status: ['Disponível', Validators.required],
+      tags: this.fb.control<string[]>([]),
+      resumo: [''],
+      observacoes: ['']
+    });
+
+    this.loadProfessionals();
+  }
+
+  get totalDisponiveis(): number {
+    return this.professionals.filter((p) => p.status === 'Disponível').length;
+  }
+
+  get totalOnline(): number {
+    return this.professionals.filter((p) => p.canaisAtendimento?.includes('Online')).length;
+  }
+
+  get totalPresencial(): number {
+    return this.professionals.filter((p) => p.canaisAtendimento?.includes('Presencial')).length;
+  }
+
+  submit(): void {
+    this.feedback = null;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.feedback = 'Preencha os campos obrigatórios para salvar o profissional.';
+      return;
+    }
+
+    const payload = this.form.value as ProfessionalPayload;
+    if (this.editingId) {
+      const updated = this.professionalService.update(this.editingId, payload);
+      this.professionals = this.professionals.map((item) => (item.id === updated.id ? updated : item));
+      this.feedback = 'Profissional atualizado com sucesso.';
+    } else {
+      const created = this.professionalService.create(payload);
+      this.professionals = [created, ...this.professionals];
+      this.feedback = 'Profissional cadastrado com sucesso.';
+    }
+
+    this.resetForm();
+  }
+
+  edit(record: ProfessionalRecord): void {
+    this.editingId = record.id;
+    this.form.patchValue({
+      nome: record.nome,
+      categoria: record.categoria,
+      registroConselho: record.registroConselho,
+      especialidade: record.especialidade,
+      email: record.email,
+      telefone: record.telefone,
+      unidade: record.unidade,
+      cargaHoraria: record.cargaHoraria,
+      disponibilidade: record.disponibilidade ?? [],
+      canaisAtendimento: record.canaisAtendimento ?? [],
+      status: record.status,
+      tags: record.tags ?? [],
+      resumo: record.resumo,
+      observacoes: record.observacoes
+    });
+  }
+
+  remove(record: ProfessionalRecord): void {
+    if (!window.confirm(`Remover ${record.nome} do cadastro?`)) return;
+    this.professionalService.delete(record.id);
+    this.professionals = this.professionals.filter((item) => item.id !== record.id);
+    this.resetForm();
+  }
+
+  toggleSelection(path: (string | number)[], option: string): void {
+    const control = this.form.get(path);
+    const current = new Set(control?.value ?? []);
+    current.has(option) ? current.delete(option) : current.add(option);
+    control?.setValue(Array.from(current));
+  }
+
+  selectionChecked(path: (string | number)[], option: string): boolean {
+    const control = this.form.get(path);
+    return (control?.value as string[] | undefined)?.includes(option) ?? false;
+  }
+
+  addTag(tag: string): void {
+    if (!tag.trim()) return;
+    const control = this.form.get('tags');
+    const current = new Set(control?.value ?? []);
+    current.add(tag.trim());
+    control?.setValue(Array.from(current));
+  }
+
+  removeTag(tag: string): void {
+    const control = this.form.get('tags');
+    const current = new Set(control?.value ?? []);
+    current.delete(tag);
+    control?.setValue(Array.from(current));
+  }
+
+  resetForm(): void {
+    this.editingId = null;
+    this.form.reset({
+      nome: '',
+      categoria: this.categorias[0],
+      registroConselho: '',
+      especialidade: '',
+      email: '',
+      telefone: '',
+      unidade: '',
+      cargaHoraria: 20,
+      disponibilidade: [],
+      canaisAtendimento: ['Presencial'],
+      status: 'Disponível',
+      tags: [],
+      resumo: '',
+      observacoes: ''
+    });
+  }
+
+  private loadProfessionals(): void {
+    this.professionals = this.professionalService.list();
+  }
+}
