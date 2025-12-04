@@ -1,5 +1,6 @@
 import { Request, Router } from 'express';
 import multer from 'multer';
+import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
 
@@ -34,6 +35,35 @@ function sanitizeCpf(cpf?: string | null): string | undefined {
   if (!cpf) return undefined;
   const digits = onlyDigits(cpf);
   return digits.length === 11 ? digits : undefined;
+}
+
+function extractSequentialNumber(code?: string | null): number | null {
+  if (!code) return null;
+
+  const match = String(code).trim().match(/^(?:B-)?(\d+)$/);
+  if (!match) return null;
+
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatSequentialCode(value: number): string {
+  const normalized = Number.isFinite(value) && value > 0 ? value : 1;
+  return normalized.toString().padStart(4, '0').slice(-4);
+}
+
+async function generateSequentialCodigo(repository: Repository<Beneficiario>): Promise<string> {
+  const existingCodes = await repository
+    .createQueryBuilder('beneficiario')
+    .select('beneficiario.codigo', 'codigo')
+    .getRawMany<{ codigo: string | null }>();
+
+  const highestNumber = existingCodes.reduce((currentMax, row) => {
+    const numeric = extractSequentialNumber(row.codigo);
+    return numeric !== null ? Math.max(currentMax, numeric) : currentMax;
+  }, 0);
+
+  return formatSequentialCode(highestNumber + 1);
 }
 
 function isOutdated(entity?: Beneficiario | null): boolean {
@@ -74,7 +104,7 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
   const payload: Beneficiario = {
     ...existing,
-    codigo: existing?.codigo ?? Beneficiario.generateCodigo(),
+    codigo: body.codigo ?? existing?.codigo,
     nomeCompleto: body.nome_completo ?? body.nomeCompleto ?? existing?.nomeCompleto ?? '',
     nomeSocial: body.nome_social ?? body.nomeSocial ?? existing?.nomeSocial,
     apelido: body.apelido ?? existing?.apelido,
@@ -203,12 +233,10 @@ router.get('/', async (req, res) => {
 
   const withoutCodigo = beneficiarios.filter((item) => !item.codigo);
   if (withoutCodigo.length) {
-    await Promise.all(
-      withoutCodigo.map((record) => {
-        record.codigo = Beneficiario.generateCodigo();
-        return repository.save(record);
-      })
-    );
+    for (const record of withoutCodigo) {
+      record.codigo = await generateSequentialCodigo(repository);
+      await repository.save(record);
+    }
   }
 
   const outdated = beneficiarios.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
@@ -232,7 +260,7 @@ router.get('/:id', async (req, res) => {
   }
 
   if (!beneficiario.codigo) {
-    beneficiario.codigo = Beneficiario.generateCodigo();
+    beneficiario.codigo = await generateSequentialCodigo(repository);
     await repository.save(beneficiario);
   }
 
@@ -260,6 +288,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    payload.codigo = await generateSequentialCodigo(repository);
     const created = repository.create(payload);
     const saved = await repository.save(created);
     res.status(201).json({ beneficiario: saved });
@@ -287,6 +316,9 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
+    if (!existing.codigo) {
+      payload.codigo = await generateSequentialCodigo(repository);
+    }
     repository.merge(existing, payload);
     const saved = await repository.save(existing);
     res.json({ beneficiario: saved });
