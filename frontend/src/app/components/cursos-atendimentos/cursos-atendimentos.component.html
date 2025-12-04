@@ -33,11 +33,11 @@
     <ng-template #navigationControls>
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
-        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Próximo: {{ nextTabLabel }}
-        </button>
-        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+        <button type="submit" class="primary" [disabled]="saving">
           {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+        </button>
+        <button type="button" class="ghost" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Ir para: {{ nextTabLabel }}
         </button>
       </div>
     </ng-template>
@@ -109,7 +109,59 @@
       </div>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
+        <div class="actions__stack">
+          <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar e continuar' }}</button>
+          <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscrições</button>
+        </div>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'catalogo'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Visualize rapidamente o status de cada curso, atendimento ou oficina.</p>
+        </div>
+        <span class="pill">Seleção</span>
+      </div>
+
+      <div class="catalog-grid">
+        <article *ngFor="let course of records" class="catalog-card">
+          <div class="catalog-card__badge" [ngClass]="courseStatus(course).tone">{{ courseStatus(course).label }}</div>
+          <div class="catalog-card__header">
+            <div class="catalog-card__icon" aria-hidden="true">{{ course.tipo.slice(0, 1) }}</div>
+            <div class="catalog-card__meta">
+              <p class="catalog-card__category">{{ course.tipo }}</p>
+              <h3 class="catalog-card__title">{{ course.nome }}</h3>
+              <p class="catalog-card__subtitle">{{ course.profissional }}</p>
+            </div>
+          </div>
+          <p class="catalog-card__description">{{ course.descricao }}</p>
+          <dl class="catalog-card__details">
+            <div>
+              <dt>Início</dt>
+              <dd>{{ course.horarioInicial }}</dd>
+            </div>
+            <div>
+              <dt>Vagas</dt>
+              <dd>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</dd>
+            </div>
+            <div>
+              <dt>Dias</dt>
+              <dd>{{ course.diasSemana.join(', ') }}</dd>
+            </div>
+          </dl>
+          <div class="catalog-card__actions">
+            <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
+            <button type="button" class="primary" (click)="selectFromCatalog(course.id)" [disabled]="course.vagasDisponiveis === 0">
+              Inscrever beneficiário
+            </button>
+          </div>
+        </article>
+        <p class="muted" *ngIf="!records.length">Cadastre cursos ou atendimentos para exibir o catálogo.</p>
+      </div>
+
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
@@ -123,9 +175,34 @@
       </div>
 
       <div class="field-grid cols-3" [formGroup]="enrollmentForm">
-        <label class="field full">Beneficiário (nome ou CPF)*<input formControlName="beneficiaryName" placeholder="Buscar beneficiário" /></label>
+        <label class="field full">
+          Selecione o curso/atendimento*
+          <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
+            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opção</option>
+            <option *ngFor="let course of records" [value]="course.id">
+              {{ course.tipo }} • {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
+            </option>
+          </select>
+        </label>
+        <label class="field full">
+          Beneficiário (nome ou CPF)*
+          <input formControlName="beneficiaryName" placeholder="Buscar beneficiário" />
+          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando beneficiários...</div>
+          <ul class="search-results" *ngIf="beneficiaryResults.length">
+            <li *ngFor="let beneficiary of beneficiaryResults">
+              <button type="button" (click)="selectBeneficiary(beneficiary)">
+                <span>{{ beneficiary.nomeCompleto || beneficiary.nomeSocial }}</span>
+                <small>{{ beneficiary.cpf || 'CPF não informado' }}</small>
+              </button>
+            </li>
+          </ul>
+        </label>
         <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
         <div class="actions align-end">
+          <div class="helper" *ngIf="currentCourse">
+            <p class="helper__title">Vagas disponíveis</p>
+            <p class="helper__value">{{ currentCourse?.vagasDisponiveis }} / {{ currentCourse?.vagasTotais }}</p>
+          </div>
           <button class="primary" type="button" (click)="enroll()">Inscrever</button>
         </div>
       </div>
