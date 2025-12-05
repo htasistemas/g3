@@ -392,12 +392,37 @@
 .alert {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   font-weight: 700;
   color: #0f172a;
+}
+
+.alert__message {
+  flex: 1;
+}
+
+.alert__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.04);
+  color: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+}
+
+.alert__close:hover {
+  background: rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .alert-success {
