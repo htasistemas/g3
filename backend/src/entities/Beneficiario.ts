@@ -26,7 +26,7 @@ export class Beneficiario {
   idBeneficiario!: string;
 
   @Index('idx_beneficiario_codigo', { unique: true })
-  @Column({ name: 'codigo', unique: true, length: 32, nullable: true })
+  @Column({ name: 'codigo', type: 'varchar', unique: true, length: 32, nullable: true })
   codigo?: string;
 
   // Identificação
@@ -59,9 +59,9 @@ export class Beneficiario {
   motivoBloqueio?: string;
 
   @Column({ name: 'foto_3x4', type: 'text', nullable: true })
-  foto_3x4?: string;
+  foto3x4?: string;
 
-  @Column({ name: 'documentos_obrigatorios', type: 'simple-json', nullable: true })
+  @Column({ name: 'documentos_obrigatorios', type: 'jsonb', nullable: true })
   documentosObrigatorios?: { nome: string; nomeArquivo?: string; obrigatorio?: boolean; conteudo?: string; contentType?: string }[];
 
   @Column({ name: 'estado_civil', nullable: true })
