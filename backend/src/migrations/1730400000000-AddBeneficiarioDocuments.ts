@@ -11,16 +11,14 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
 
     const hasDocumentosCol = await queryRunner.hasColumn(tableName, 'documentos_obrigatorios');
 
-    if (hasDocumentosCol) {
-      return;
-    }
+    if (hasDocumentosCol) return;
 
     await queryRunner.addColumn(
       tableName,
       new TableColumn({
         name: 'documentos_obrigatorios',
         type: 'simple-json',
-        isNullable: true
+        isNullable: true,
       })
     );
   }
