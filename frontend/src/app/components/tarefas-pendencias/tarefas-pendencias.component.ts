@@ -5,6 +5,11 @@ import { ChecklistItem, TaskRecord, TarefasPendenciasService } from '../../servi
 import { FormsModule } from '@angular/forms';
 import { ProfessionalService } from '../../services/professional.service';
 
+interface StepTab {
+  id: string;
+  label: string;
+}
+
 interface DashboardSnapshot {
   total: number;
   abertas: number;
@@ -30,6 +35,13 @@ export class TarefasPendenciasComponent {
   editingId: string | null = null;
   selectedTask: TaskRecord | null = null;
   responsaveisSugeridos: string[] = [];
+  activeTab: StepTab['id'] = 'dados';
+
+  tabs: StepTab[] = [
+    { id: 'dados', label: 'Dados da pendência' },
+    { id: 'checklist', label: 'Checklist e andamento' },
+    { id: 'dashboard', label: 'Dashboard & histórico' }
+  ];
 
   readonly prioridades: TaskRecord['prioridade'][] = ['Alta', 'Média', 'Baixa'];
   readonly statusOptions: TaskRecord['status'][] = ['Aberta', 'Em andamento', 'Concluída', 'Em atraso'];
@@ -50,6 +62,38 @@ export class TarefasPendenciasComponent {
 
     this.loadTasks();
     this.loadResponsaveis();
+  }
+
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  changeTab(tab: StepTab['id']): void {
+    this.activeTab = tab;
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    }
   }
 
   get dashboard(): DashboardSnapshot {
@@ -101,11 +145,13 @@ export class TarefasPendenciasComponent {
 
     this.normalizeStatuses();
     this.resetForm();
+    this.changeTab('dashboard');
   }
 
   editTask(task: TaskRecord): void {
     this.editingId = task.id;
     this.selectedTask = task;
+    this.changeTab('dados');
     this.form.patchValue({
       titulo: task.titulo,
       descricao: task.descricao,
@@ -168,6 +214,7 @@ export class TarefasPendenciasComponent {
       status: 'Aberta'
     });
     this.checklistDraft = [];
+    this.changeTab('dados');
   }
 
   selectTask(task: TaskRecord): void {
