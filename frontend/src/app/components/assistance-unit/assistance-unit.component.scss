@@ -49,6 +49,12 @@
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
 }
 
+.tab-shell__actions {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .card {
   background: #ffffff;
   border-radius: 16px;

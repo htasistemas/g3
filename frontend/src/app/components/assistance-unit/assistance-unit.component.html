@@ -4,45 +4,31 @@
     <p class="page-title__label">Cadastro da unidade</p>
   </header>
 
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegação por etapas</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-        [attr.data-tab]="tab.id"
-      >
-        <button
-          type="button"
-          class="step-tabs__button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index" aria-hidden="true">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
-
   <form [formGroup]="form" class="form-shell" (ngSubmit)="save()">
-    <div *ngIf="feedback" class="alert" [ngClass]="{
-        'alert-success': feedback.type === 'success',
-        'alert-error': feedback.type === 'error',
-        'alert-warning': feedback.type === 'warning'
-      }">
-      {{ feedback.message }}
-    </div>
+    <div class="tab-shell">
+      <p class="tab-shell__title">Navegação por etapas</p>
+      <ol class="step-tabs" role="tablist">
+        <li
+          *ngFor="let tab of tabs; index as idx"
+          class="step-tabs__item"
+          [class.active]="activeTab === tab.id"
+          [class.completed]="idx < activeTabIndex"
+          [attr.data-tab]="tab.id"
+        >
+          <button
+            type="button"
+            class="step-tabs__button"
+            role="tab"
+            [attr.aria-selected]="activeTab === tab.id"
+            (click)="changeTab(tab.id)"
+          >
+            <span class="step-tabs__index" aria-hidden="true">{{ idx + 1 }}</span>
+            <span class="step-tabs__label">{{ tab.label }}</span>
+          </button>
+        </li>
+      </ol>
 
-    <section class="tab-card" *ngIf="activeTab === 'dados'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
-          <p class="muted">Informações institucionais e contatos principais.</p>
-        </div>
+      <div class="tab-shell__actions">
         <div class="nav-buttons" aria-label="Ações rápidas da unidade">
           <button type="button" class="nav-button" (click)="printUnit()" [disabled]="!unidade">
             <span class="nav-button__icon" aria-hidden="true">
@@ -65,7 +51,7 @@
             <span class="nav-button__icon" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
-                  d="M5 3C4.44772 3 4 3.44772 4 4V16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16V6.41421C16 6.149 15.8946 5.89464 15.7071 5.70711L13.2929 3.29289C13.1054 3.10536 12.851 3 12.5858 3H5Z"
+                  d="M5 3C4.44772 3 4 3.44772 4 4V16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16V6.41421C16 6.14901 15.8946 5.89464 15.7071 5.70711L13.2929 3.29289C13.1054 3.10536 12.851 3 12.5858 3H5Z"
                   stroke="currentColor"
                   stroke-width="1.25"
                 />
@@ -175,6 +161,22 @@
             </span>
             <span class="nav-button__label">Fechar</span>
           </button>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="feedback" class="alert" [ngClass]="{
+        'alert-success': feedback.type === 'success',
+        'alert-error': feedback.type === 'error',
+        'alert-warning': feedback.type === 'warning'
+      }">
+      {{ feedback.message }}
+    </div>
+
+    <section class="tab-card" *ngIf="activeTab === 'dados'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
+          <p class="muted">Informações institucionais e contatos principais.</p>
         </div>
       </div>
 
