@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import fs from 'node:fs';
+import path from 'node:path';
 import dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from './entities/User';
@@ -34,13 +36,11 @@ type SupportedRelational = 'postgres' | 'mysql' | 'mariadb';
 
 const dbTypeInput = (process.env.DB_TYPE as SupportedRelational | 'sqlite' | undefined) || 'postgres';
 
-if (dbTypeInput === 'sqlite') {
-  throw new Error('Persistência local em SQLite não é mais suportada. Configure uma instância Postgres.');
+function isSupportedRelational(dbType: string | undefined): dbType is SupportedRelational {
+  return ['postgres', 'mysql', 'mariadb'].includes(dbType as SupportedRelational);
 }
 
-const dbType: SupportedRelational = ['postgres', 'mysql', 'mariadb'].includes(dbTypeInput)
-  ? dbTypeInput
-  : 'postgres';
+const dbType: SupportedRelational = isSupportedRelational(dbTypeInput) ? dbTypeInput : 'postgres';
 
 function resolveRelationalPort(): number {
   if (process.env.DB_PORT !== undefined && process.env.DB_PORT !== '') {
@@ -49,6 +49,18 @@ function resolveRelationalPort(): number {
 
   return dbType === 'mysql' ? 3306 : 5432;
 }
+
+const migrations = [
+  RenameSchemaToPortuguese1729700000000,
+  CreateBeneficiarioFamiliaSchema1729800000000,
+  UpdateAssistanceUnitSchema1730100000000,
+  AddLogoToAssistanceUnit1730200000000,
+  AddReportLogoAndScheduleToAssistanceUnit1730300000000,
+  AddBeneficiarioDocuments1730400000000,
+  AddBeneficiarioPhoto1730500000000,
+  AddBeneficiarioCodigo1730600000000,
+  CreateSalas1730700000000
+];
 
 const baseOptions = {
   entities: [
@@ -70,7 +82,10 @@ const baseOptions = {
     CursoAtendimento,
     Sala
   ],
-  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
+  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true',
+  migrations,
+  migrationsRun: true,
+  synchronize: false
 } satisfies Partial<DataSourceOptions>;
 
 const relationalOptions: DataSourceOptions = {
@@ -80,20 +95,32 @@ const relationalOptions: DataSourceOptions = {
   port: resolveRelationalPort(),
   username: process.env.DB_USER || 'g3',
   password: process.env.DB_PASSWORD || 'admin',
-  database: process.env.DB_NAME || 'g3',
-  synchronize: false,
-  migrations: [
-    RenameSchemaToPortuguese1729700000000,
-    CreateBeneficiarioFamiliaSchema1729800000000,
-    UpdateAssistanceUnitSchema1730100000000,
-    AddLogoToAssistanceUnit1730200000000,
-    AddReportLogoAndScheduleToAssistanceUnit1730300000000,
-    AddBeneficiarioDocuments1730400000000,
-    AddBeneficiarioPhoto1730500000000,
-    AddBeneficiarioCodigo1730600000000,
-    CreateSalas1730700000000
-  ],
-  migrationsRun: true
+  database: process.env.DB_NAME || 'g3'
 };
 
-export const AppDataSource = new DataSource(relationalOptions);
+function ensureSqliteDirectory(databasePath: string) {
+  const directory = path.dirname(databasePath);
+
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+}
+
+function createDataSourceOptions(): DataSourceOptions {
+  if (dbTypeInput === 'sqlite') {
+    const databasePath = process.env.DB_NAME || './data/g3.sqlite';
+    const resolvedDatabasePath = path.resolve(databasePath);
+
+    ensureSqliteDirectory(resolvedDatabasePath);
+
+    return {
+      ...baseOptions,
+      type: 'sqlite',
+      database: resolvedDatabasePath
+    } satisfies DataSourceOptions;
+  }
+
+  return relationalOptions;
+}
+
+export const AppDataSource = new DataSource(createDataSourceOptions());
