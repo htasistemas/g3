@@ -17,7 +17,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
       tableName,
       new TableColumn({
         name: 'documentos_obrigatorios',
-        type: 'simple-json',
+        type: 'jsonb',
         isNullable: true,
       })
     );
