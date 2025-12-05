@@ -17,6 +17,14 @@ export interface AuthorizationTermPayload {
   unit?: AssistanceUnitPayload | null;
 }
 
+export interface BeneficiaryReportFilters {
+  nome?: string;
+  cpf?: string;
+  codigo?: string;
+  status?: string;
+  dataNascimento?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly baseUrl = `${environment.apiUrl}/api/reports`;
@@ -25,5 +33,17 @@ export class ReportService {
 
   generateAuthorizationTerm(payload: AuthorizationTermPayload): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/authorization-term`, payload, { responseType: 'blob' });
+  }
+
+  generateBeneficiaryList(filters: BeneficiaryReportFilters): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/beneficiarios/relacao`, filters, { responseType: 'blob' });
+  }
+
+  generateBeneficiaryProfile(beneficiarioId: string): Observable<Blob> {
+    return this.http.post(
+      `${this.baseUrl}/beneficiarios/ficha`,
+      { beneficiarioId },
+      { responseType: 'blob' }
+    );
   }
 }
