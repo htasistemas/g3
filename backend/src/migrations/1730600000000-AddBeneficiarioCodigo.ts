@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public readonly name = 'AddBeneficiarioCodigo1730600000000';
@@ -11,33 +11,25 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
     }
 
     const hasColumn = await queryRunner.hasColumn(tableName, 'codigo');
-    if (hasColumn) {
-      return;
-    }
 
-    await queryRunner.addColumn(
-      tableName,
-      new TableColumn({
-        name: 'codigo',
-        type: 'varchar',
-        length: '32',
-        isNullable: true,
-        isUnique: true
-      })
+    await queryRunner.query(
+      `ALTER TABLE ${tableName} ADD COLUMN IF NOT EXISTS codigo varchar(32) UNIQUE`
     );
 
     const beneficiarios: Array<{ id_beneficiario: string }> = await queryRunner.query(
       'SELECT id_beneficiario FROM beneficiario ORDER BY data_cadastro ASC'
     );
 
-    let counter = 1;
-    for (const beneficiario of beneficiarios) {
-      const codigo = `B-${String(counter).padStart(6, '0')}`;
-      await queryRunner.query('UPDATE beneficiario SET codigo = $1 WHERE id_beneficiario = $2', [
-        codigo,
-        beneficiario.id_beneficiario
-      ]);
-      counter += 1;
+    if (!hasColumn) {
+      let counter = 1;
+      for (const beneficiario of beneficiarios) {
+        const codigo = `B-${String(counter).padStart(6, '0')}`;
+        await queryRunner.query('UPDATE beneficiario SET codigo = $1 WHERE id_beneficiario = $2', [
+          codigo,
+          beneficiario.id_beneficiario
+        ]);
+        counter += 1;
+      }
     }
   }
 
@@ -48,11 +40,6 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
       return;
     }
 
-    const hasColumn = await queryRunner.hasColumn(tableName, 'codigo');
-    if (!hasColumn) {
-      return;
-    }
-
-    await queryRunner.dropColumn(tableName, 'codigo');
+    await queryRunner.query(`ALTER TABLE ${tableName} DROP COLUMN IF EXISTS codigo`);
   }
 }
