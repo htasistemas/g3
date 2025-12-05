@@ -172,6 +172,27 @@
           <span class="pill">Obrigatório</span>
         </div>
         <div class="nav-buttons" aria-label="Ações rápidas do cadastro">
+          <div class="toolbar-buttons" aria-label="Navegação do cadastro">
+            <button
+              type="button"
+              class="toolbar-button toolbar-button--primary"
+              (click)="submit()"
+              [disabled]="saving || uploadingDocuments"
+            >
+              Salvar
+            </button>
+            <button type="button" class="toolbar-button" (click)="startNewBeneficiario()">Cancelar</button>
+            <button
+              type="button"
+              class="toolbar-button toolbar-button--danger"
+              (click)="handleDeleteSelected()"
+              [disabled]="!selectedBeneficiary"
+            >
+              Excluir
+            </button>
+            <button type="button" class="toolbar-button" (click)="startNewBeneficiario()">Novo</button>
+            <button type="button" class="toolbar-button" (click)="closeForm()">Fechar</button>
+          </div>
           <div class="nav-button-group" [class.nav-button-group--open]="printMenuOpen">
             <button type="button" class="nav-button" (click)="togglePrintMenu()">
               <span class="nav-button__icon" aria-hidden="true">

@@ -15,7 +15,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/beneficiario-api.service';
 import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
-import { AuthorizationTermPayload, ReportService } from '../../services/report.service';
+import { AuthorizationTermPayload, BeneficiaryReportFilters, ReportService } from '../../services/report.service';
 import { ConfigService } from '../../services/config.service';
 import { Subject, firstValueFrom, of } from 'rxjs';
 import { catchError, finalize, map, takeUntil } from 'rxjs/operators';
@@ -1080,205 +1080,37 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
-  printBeneficiaryList(): void {
-    if (!this.filteredBeneficiarios.length) {
-      this.feedback = 'Nenhum beneficiário encontrado para imprimir.';
+  async printBeneficiaryList(): Promise<void> {
+    const filters: BeneficiaryReportFilters = {
+      nome: this.searchForm.value?.nome,
+      cpf: this.searchForm.value?.cpf,
+      codigo: this.searchForm.value?.codigo,
+      status: this.searchForm.value?.status,
+      dataNascimento: this.searchForm.value?.data_nascimento
+    };
+
+    try {
+      const blob = await firstValueFrom(this.reportService.generateBeneficiaryList(filters));
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar relação de beneficiários', error);
+      this.feedback = 'Falha ao gerar a relação de beneficiários. Tente novamente.';
+    }
+  }
+  async printIndividualRecord(): Promise<void> {
+    const beneficiarioId = this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario;
+
+    if (!beneficiarioId) {
+      this.feedback = 'Selecione ou salve o beneficiário antes de gerar a ficha.';
       return;
     }
 
-    const sorted = [...this.filteredBeneficiarios].sort((a, b) => this.sortBeneficiariesForPrint(a, b));
-        const unit = this.assistanceUnit;
-        const logo = unit?.logomarcaRelatorio || unit?.logomarca;
-        const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
-        const orderLabel = this.printOrderOptions.find((option) => option.value === this.printOrderBy)?.label ?? 'Nome';
-        const today = this.formatDate(new Date().toISOString());
-
-        const rows = sorted
-          .map((beneficiario) => {
-            return `
-              <tr>
-                <td>${beneficiario.nome_completo || beneficiario.nome_social || '---'}</td>
-                <td>${beneficiario.codigo || '---'}</td>
-                <td>${this.formatDate(beneficiario.data_nascimento)}</td>
-                <td>${this.formatAge(beneficiario.data_nascimento)}</td>
-                <td>${beneficiario.cpf || beneficiario.nis || '---'}</td>
-                <td>${this.formatStatusLabel(beneficiario.status)}</td>
-                <td>${beneficiario.bairro || '---'}</td>
-          </tr>
-        `;
-      })
-      .join('');
-
-    const header = `
-      <header class="report-header report-header--center">
-        ${logo ? `<img class="report-header__logo" src="${logo}" alt="Logomarca da unidade" />` : ''}
-        <div class="report-header__identity">
-          <p class="report-header__name">${socialName}</p>
-          ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="report-header__fantasy">${unit.nomeFantasia}</p>` : ''}
-        </div>
-      </header>
-    `;
-
-    const documentWindow = window.open('', '_blank', 'width=1000,height=900');
-    if (!documentWindow) return;
-
-    documentWindow.document.write(`
-      <html>
-        <head>
-          <title>Relação de beneficiários</title>
-          ${this.printStyles()}
-        </head>
-        <body>
-          <main class="print-page">
-            <section class="report-wrapper">
-              ${header}
-              <div class="report-meta">
-                <h1>Relação de beneficiários</h1>
-                <p class="muted">Dados gerados em ${today} | Ordenado por ${orderLabel.toLowerCase()}</p>
-              </div>
-              <table class="print-table">
-                <thead>
-                  <tr>
-                    <th>Nome completo</th>
-                    <th>Código</th>
-                    <th>Data de nascimento</th>
-                    <th>Idade</th>
-                    <th>CPF/NIS</th>
-                    <th>Status</th>
-                    <th>Bairro</th>
-                  </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-              </table>
-            </section>
-          </main>
-        </body>
-      </html>
-    `);
-
-    documentWindow.document.close();
-    documentWindow.focus();
-    documentWindow.print();
-  }
-
-  printIndividualRecord(): void {
-    const value = this.form.value as any;
-    const personal = value.dadosPessoais ?? {};
-    const address = value.endereco ?? {};
-    const contact = value.contato ?? {};
-    const documents = value.documentos ?? {};
-    const family = value.familiar ?? {};
-    const education = value.escolaridade ?? {};
-    const health = value.saude ?? {};
-    const benefits = value.beneficios ?? {};
-    const unit = this.assistanceUnit;
-    const logo = unit?.logomarcaRelatorio || unit?.logomarca;
-    const socialName = unit?.razaoSocial || unit?.nomeFantasia || 'Instituição';
-    const generatedAt = new Date();
-    const formattedGeneratedAt = `${generatedAt.toLocaleDateString('pt-BR')} às ${generatedAt.toLocaleTimeString('pt-BR')}`;
-    const age = this.getAgeFromDate(personal.data_nascimento);
-    const beneficiaryName = personal.nome_completo || personal.nome_social || 'Beneficiário';
-    const statusLabel = value.status ? this.formatStatusLabel(value.status) : '---';
-    const codigo = this.beneficiaryCode || '---';
-    const formattedBirthDate = this.formatDate(personal.data_nascimento);
-    const formattedInclusionDate = this.formatDate(this.createdAt ?? null);
-    const formattedNaturalidade =
-      this.hasValue(personal.naturalidade_cidade) || this.hasValue(personal.naturalidade_uf)
-        ? this.formatCity(personal.naturalidade_cidade, personal.naturalidade_uf)
-        : null;
-    const formattedCity =
-      this.hasValue(address.municipio) || this.hasValue(address.uf)
-        ? this.formatCity(address.municipio, address.uf)
-        : null;
-
-    const displayValue = (val?: string | number | null, placeholder = '---'): string =>
-      this.hasValue(val) ? String(val) : placeholder;
-
-    const photoUrl =
-      this.photoPreview ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(beneficiaryName)}&background=0284c7&color=fff&size=256`;
-
-    const rendaFamiliar = this.formatCurrencyValue(benefits.renda_familiar);
-    const rendaPerCapita = this.formatCurrencyValue(benefits.renda_per_capita);
-    const familyMembers = family.composicao_familiar || family.total_moradores;
-    const institutionAddress = unit ? this.formatInstitutionAddress(unit) : '---';
-
-    const documentWindow = window.open('', '_blank', 'width=1080,height=1400');
-    if (!documentWindow) return;
-
-    const html = this.buildIndividualReportTemplate({
-      age,
-      address,
-      beneficiaryName,
-      benefits,
-      city: formattedCity,
-      codigo,
-      contact,
-      documents,
-      familyMembers,
-      formattedBirthDate,
-      formattedGeneratedAt,
-      formattedInclusionDate,
-      formattedNaturalidade,
-      institutionAddress,
-      logo,
-      observacoes: value.observacoes?.observacoes,
-      personal,
-      photoUrl,
-      rendaFamiliar,
-      rendaPerCapita,
-      socialName,
-      status: value.status,
-      statusLabel,
-      unit
-    });
-
-    documentWindow.document.write(html);
-
-    documentWindow.document.close();
-
-    const triggerPrint = () => {
-      documentWindow.focus();
-      documentWindow.print();
-    };
-
-    const waitForImagesToLoad = (): Promise<void> => {
-      const images = Array.from(documentWindow.document.images || []);
-      const pending = images.filter((image) => !image.complete);
-
-      if (!pending.length) return Promise.resolve();
-
-      return new Promise((resolve) => {
-        let resolved = 0;
-        const tryResolve = () => {
-          resolved += 1;
-          if (resolved === pending.length) resolve();
-        };
-
-        pending.forEach((image) => {
-          image.addEventListener('load', tryResolve, { once: true });
-          image.addEventListener('error', tryResolve, { once: true });
-        });
-      });
-    };
-
-    const waitForFontsToLoad = (): Promise<void> => {
-      const fontsReady = documentWindow.document.fonts?.ready;
-      if (!fontsReady) return Promise.resolve();
-
-      return fontsReady.then(() => undefined).catch(() => undefined);
-    };
-
-    const handleLoad = () => {
-      Promise.all([waitForImagesToLoad(), waitForFontsToLoad()])
-        .catch(() => undefined)
-        .finally(() => setTimeout(triggerPrint, 200));
-    };
-
-    documentWindow.addEventListener('load', handleLoad, { once: true });
-
-    if (documentWindow.document.readyState === 'complete') {
-      handleLoad();
+    try {
+      const blob = await firstValueFrom(this.reportService.generateBeneficiaryProfile(beneficiarioId));
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar ficha individual', error);
+      this.feedback = 'Falha ao gerar a ficha individual do beneficiário.';
     }
   }
 
@@ -2030,6 +1862,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   closeQuickSearch(): void {
     this.quickSearchModalOpen = false;
+  }
+
+  closeForm(): void {
+    this.router.navigate(['/']);
   }
 
   startNewBeneficiario(): void {
