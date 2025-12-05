@@ -400,23 +400,27 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               display: grid;
               gap: 24px;
             }
+            .section-card {
+              border: 1px solid #e2e8f0;
+              border-radius: 16px;
+              padding: 18px 20px 20px;
+              background: #ffffff;
+            }
             .section-title {
-              margin: 0 0 12px;
+              margin: 0 0 14px;
               font-size: 15px;
               letter-spacing: 0.02em;
               color: #0f172a;
             }
-            .grid {
+            .data-grid {
               display: grid;
-              gap: 14px;
+              gap: 16px 18px;
               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             }
-            .card {
-              background: #ffffff;
-              border-radius: 14px;
-              padding: 14px 16px 16px;
-              border: 1px solid #e2e8f0;
-              box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            .data-item {
+              display: grid;
+              gap: 4px;
+              padding: 4px 0;
             }
             .label {
               display: block;
@@ -424,16 +428,11 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               letter-spacing: 0.08em;
               text-transform: uppercase;
               color: #475569;
-              margin-bottom: 4px;
+              margin-bottom: 2px;
               font-weight: 700;
             }
             .value { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
-            .muted { color: #64748b; font-weight: 500; font-size: 13px; }
-            .highlight {
-              background: linear-gradient(135deg, #eef2ff, #e0f2fe);
-              border: 1px solid #c7d2fe;
-            }
-            .two-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+            .muted { color: #64748b; font-weight: 500; font-size: 13px; margin: 0; }
             .footer-note {
               padding: 18px;
               background: #0b1221;
@@ -464,35 +463,35 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
             </div>
 
             <div class="body">
-              <div>
+              <div class="section-card">
                 <p class="section-title">Identidade e contato</p>
-                <div class="grid">
-                  <div class="card">
+                <div class="data-grid">
+                  <div class="data-item">
                     <span class="label">Razão social</span>
                     <p class="value">${unidade.razaoSocial || 'Não informada'}</p>
                     <p class="muted">Nome completo cadastrado.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">CNPJ</span>
                     <p class="value">${unidade.cnpj || 'Não informado'}</p>
                     <p class="muted">Identificação fiscal da organização.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">Telefone</span>
                     <p class="value">${unidade.telefone || 'Não informado'}</p>
                     <p class="muted">Canal preferencial para contato direto.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">E-mail</span>
                     <p class="value">${unidade.email || 'Não informado'}</p>
                     <p class="muted">Endereço eletrônico para comunicação institucional.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">CEP</span>
                     <p class="value">${unidade.cep || 'Não informado'}</p>
                     <p class="muted">Código de endereçamento para localização.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">Horário de funcionamento</span>
                     <p class="value">${unidade.horarioFuncionamento || 'Não informado'}</p>
                     <p class="muted">Período de atendimento ao público.</p>
@@ -500,15 +499,15 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
                 </div>
               </div>
 
-              <div>
+              <div class="section-card">
                 <p class="section-title">Localização</p>
-                <div class="two-columns">
-                  <div class="card highlight">
+                <div class="data-grid">
+                  <div class="data-item">
                     <span class="label">Endereço</span>
                     <p class="value">${unidade.endereco || 'Endereço não informado'} ${unidade.numeroEndereco || ''}</p>
                     <p class="muted">Bairro: ${unidade.bairro || 'Não informado'}</p>
                   </div>
-                  <div class="card highlight">
+                  <div class="data-item">
                     <span class="label">Cidade / Estado</span>
                     <p class="value">${unidade.cidade || 'Sem cidade'} / ${unidade.estado || 'UF'}</p>
                     <p class="muted">Referência geográfica da unidade.</p>
@@ -516,20 +515,20 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
                 </div>
               </div>
 
-              <div>
+              <div class="section-card">
                 <p class="section-title">Responsável institucional</p>
-                <div class="grid">
-                  <div class="card">
+                <div class="data-grid">
+                  <div class="data-item">
                     <span class="label">Nome</span>
                     <p class="value">${unidade.responsavelNome || 'Não informado'}</p>
                     <p class="muted">Diretor(a), coordenador(a) ou presidente.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">CPF</span>
                     <p class="value">${unidade.responsavelCpf || 'Não informado'}</p>
                     <p class="muted">Documento pessoal do responsável.</p>
                   </div>
-                  <div class="card">
+                  <div class="data-item">
                     <span class="label">Período de mandato</span>
                     <p class="value">${unidade.responsavelPeriodoMandato || 'Não informado'}</p>
                     <p class="muted">Vigência da gestão atual.</p>
