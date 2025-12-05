@@ -118,7 +118,7 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
     naturalidadeUf: body.naturalidade_uf ?? existing?.naturalidadeUf,
     nomeMae: body.nome_mae ?? body.nomeMae ?? existing?.nomeMae ?? '',
     nomePai: body.nome_pai ?? existing?.nomePai,
-    foto3x4: body.foto_3x4 ?? body.foto3x4 ?? existing?.foto3x4,
+    foto_3x4: body.foto_3x4 ?? existing?.foto_3x4,
     cpf: cpf ?? null,
     rgNumero: body.rg_numero ?? existing?.rgNumero,
     rgOrgaoEmissor: body.rg_orgao_emissor ?? existing?.rgOrgaoEmissor,

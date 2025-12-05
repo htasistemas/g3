@@ -1,27 +1,21 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface {
-  public readonly name = 'AddBeneficiarioDocuments1730400000000';
+  name = 'AddBeneficiarioDocuments1730400000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const tableName = 'beneficiario';
+    const driver = queryRunner.connection.driver.options.type;
+    const isPostgres = driver === 'postgres';
+    const column = new TableColumn({
+      name: 'documentos_obrigatorios',
+      type: isPostgres ? 'jsonb' : 'json',
+      isNullable: true
+    });
 
-    if (!(await queryRunner.hasTable(tableName))) {
-      return;
-    }
-
-    await queryRunner.query(
-      `ALTER TABLE ${tableName} ADD COLUMN IF NOT EXISTS documentos_obrigatorios jsonb`
-    );
+    await queryRunner.addColumn('beneficiario', column);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const tableName = 'beneficiario';
-
-    if (!(await queryRunner.hasTable(tableName))) {
-      return;
-    }
-
-    await queryRunner.query(`ALTER TABLE ${tableName} DROP COLUMN IF EXISTS documentos_obrigatorios`);
+    await queryRunner.dropColumn('beneficiario', 'documentos_obrigatorios');
   }
 }

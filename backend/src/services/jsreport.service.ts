@@ -13,39 +13,20 @@ function ensureDependencyInstalled(packageName: string): void {
 
 ensureDependencyInstalled('jsreport-core');
 ensureDependencyInstalled('jsreport-chrome-pdf');
-ensureDependencyInstalled('jsreport-handlebars');
 
 // Importações após a validação para evitar erros de inicialização por dependências não instaladas
 import jsreport from 'jsreport-core';
 import jsreportChrome from 'jsreport-chrome-pdf';
-import jsreportHandlebars from 'jsreport-handlebars';
 
-let instance: ReturnType<typeof jsreport> | null = null;
-let initialized: Promise<void> | null = null;
-let initializationError: unknown = null;
+const instance = jsreport();
+instance.use(jsreportChrome());
 
-try {
-  instance = jsreport();
-  instance.use(jsreportChrome());
-  instance.use(jsreportHandlebars());
-  initialized = instance.init();
-} catch (error) {
-  initializationError = error;
-  console.error('Failed to initialize jsreport', error);
-}
+const initialized = instance.init();
 
 export async function renderPdf(template: {
   content: string;
   data?: Record<string, unknown>;
 }): Promise<Buffer> {
-  if (initializationError) {
-    throw initializationError;
-  }
-
-  if (!instance || !initialized) {
-    throw new Error('jsreport instance was not initialized');
-  }
-
   await initialized;
 
   const report = await instance.render({

@@ -8,8 +8,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "db:check": "node -r ts-node/register src/scripts/db-check.ts",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
+    "db:check": "node -r ts-node/register src/scripts/db-check.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -17,14 +16,13 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "jsreport-chrome-pdf": "npm:@jsreport/jsreport-chrome-pdf@^4.4.0",
-    "jsreport-core": "npm:@jsreport/jsreport-core@^4.8.0",
-    "jsreport-handlebars": "npm:@jsreport/jsreport-handlebars@^4.1.0",
+    "jsreport-chrome-pdf": "^1.10.0",
+    "jsreport-core": "^2.10.1",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.3",
     "pg": "^8.12.0",
-    "pg-hstore": "^2.3.4",
     "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
