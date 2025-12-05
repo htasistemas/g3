@@ -181,7 +181,7 @@
                 </button>
                 <button type="button" class="danger" (click)="removeTask(task)">Excluir</button>
               </div>
-              <div class="inline-checklist" *ngIf="task.checklist?.length">
+              <div class="inline-checklist" *ngIf="task.checklist.length">
                 <p class="muted">Checklist rápido</p>
                 <label *ngFor="let item of task.checklist">
                   <input type="checkbox" [checked]="item.concluido" (change)="toggleChecklist(task, item)" />
