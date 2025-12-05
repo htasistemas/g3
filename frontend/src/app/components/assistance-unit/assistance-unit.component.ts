@@ -302,7 +302,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
           <style>
             @page {
               size: A4;
-              margin: 12mm;
+              margin: 0;
             }
             *, *::before, *::after { box-sizing: border-box; }
             body {
@@ -310,7 +310,9 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               background: #ffffff;
               color: #0f172a;
               margin: 0;
-              padding: 0;
+              padding: 12mm;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
             .report {
               width: 100%;
@@ -349,18 +351,18 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               height: 96px;
               border-radius: 20px;
               overflow: hidden;
-              border: 1px solid rgba(255, 255, 255, 0.35);
-              background: rgba(255, 255, 255, 0.12);
+              border: 1px solid rgba(255, 255, 255, 0.65);
+              background: #ffffff;
               display: grid;
               place-items: center;
-              backdrop-filter: blur(6px);
-              box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+              backdrop-filter: none;
+              box-shadow: none;
             }
             .logo-badge img {
               max-width: 90%;
               max-height: 90%;
               object-fit: contain;
-              filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+              filter: none;
             }
             .logo-placeholder {
               font-size: 14px;
@@ -412,16 +414,20 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               gap: 18px;
             }
             .section-card {
-              border: none;
-              border-radius: 0;
-              padding: 12px 0 14px;
-              background: transparent;
+              border: 1px solid #e2e8f0;
+              border-radius: 14px;
+              padding: 14px 16px 16px;
+              background: #f8fafc;
+              box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
             }
             .section-title {
-              margin: 0 0 10px;
+              margin: 0 0 12px;
               font-size: 15px;
               letter-spacing: 0.02em;
               color: #0f172a;
+              display: flex;
+              align-items: center;
+              gap: 8px;
             }
             .data-grid {
               display: grid;
@@ -567,6 +573,8 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
 
     printWindow.document.write(content);
     printWindow.document.close();
+    printWindow.history.replaceState({}, '', '/unidades/impressao');
+    printWindow.document.title = '';
     printWindow.focus();
     setTimeout(() => {
       printWindow.print();
