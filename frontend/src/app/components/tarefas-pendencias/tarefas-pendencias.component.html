@@ -7,78 +7,132 @@
     </p>
   </header>
 
-  <div class="layout">
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <p class="panel__title">Nova pendência</p>
-          <p class="muted">Checklist, prioridade e prazo para organizar a execução.</p>
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informações</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="saveTask()" class="form-shell">
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="form.invalid" *ngIf="!hasNextTab">
+          {{ editingId ? 'Salvar pendência' : 'Registrar pendência' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'dados'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Defina os pontos-chave da pendência e quem vai conduzir o trabalho.</p>
         </div>
         <span class="pill">{{ editingId ? 'Editando' : 'Rascunho' }}</span>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="saveTask()" class="form-shell">
-        <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+      <div class="field-grid cols-2">
+        <label class="field">Título*<input formControlName="titulo" placeholder="Qual é a tarefa?" /></label>
+        <label class="field">Responsável*
+          <input formControlName="responsavel" list="responsaveis" placeholder="Selecione ou digite" />
+          <datalist id="responsaveis">
+            <option *ngFor="let pessoa of responsaveisSugeridos" [value]="pessoa"></option>
+          </datalist>
+        </label>
+        <label class="field">Prioridade*
+          <select formControlName="prioridade">
+            <option *ngFor="let prioridade of prioridades" [value]="prioridade">{{ prioridade }}</option>
+          </select>
+        </label>
+        <label class="field">Prazo previsto*<input type="date" formControlName="prazo" /></label>
+        <label class="field">Status*
+          <select formControlName="status">
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </label>
+        <label class="field full">Descrição detalhada*
+          <textarea formControlName="descricao" rows="3" placeholder="Contexto e expectativa de entrega"></textarea>
+        </label>
+      </div>
 
-        <div class="field-grid cols-2">
-          <label class="field">Título*<input formControlName="titulo" placeholder="Qual é a tarefa?" /></label>
-          <label class="field">Responsável*
-            <input formControlName="responsavel" list="responsaveis" placeholder="Selecione ou digite" />
-            <datalist id="responsaveis">
-              <option *ngFor="let pessoa of responsaveisSugeridos" [value]="pessoa"></option>
-            </datalist>
-          </label>
-          <label class="field">Prioridade*
-            <select formControlName="prioridade">
-              <option *ngFor="let prioridade of prioridades" [value]="prioridade">{{ prioridade }}</option>
-            </select>
-          </label>
-          <label class="field">Prazo previsto*<input type="date" formControlName="prazo" /></label>
-          <label class="field">Status*
-            <select formControlName="status">
-              <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
-            </select>
-          </label>
-          <label class="field full">Descrição detalhada*
-            <textarea formControlName="descricao" rows="3" placeholder="Contexto e expectativa de entrega"></textarea>
-          </label>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'checklist'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Organize o passo a passo com itens de verificação e acompanhe o avanço.</p>
         </div>
+        <span class="pill">Checklist</span>
+      </div>
 
-        <div class="checklist">
-          <div class="checklist__header">
-            <p class="panel__title">Checklist</p>
-            <p class="muted">Itens de verificação para concluir a tarefa.</p>
+      <div class="checklist">
+        <div class="checklist__header">
+          <div>
+            <p class="panel__title">Itens da pendência</p>
+            <p class="muted">Liste entregas ou validações necessárias.</p>
           </div>
-          <div class="checklist__controls">
-            <input [(ngModel)]="checklistEntry" name="checklistEntry" placeholder="Adicionar item" />
-            <button type="button" class="ghost" (click)="addChecklistItem()">Adicionar</button>
-          </div>
-          <ul class="checklist__list" *ngIf="checklistDraft.length; else emptyChecklist">
-            <li *ngFor="let item of checklistDraft">
-              <label>
-                <input type="checkbox" [checked]="item.concluido" (change)="toggleDraftChecklist(item)" />
-                <span [class.done]="item.concluido">{{ item.titulo }}</span>
-              </label>
-            </li>
-          </ul>
-          <ng-template #emptyChecklist>
-            <p class="muted">Nenhum item adicionado ainda.</p>
-          </ng-template>
+          <p class="pill ghost-pill">{{ checklistDraft.length || 0 }} itens</p>
         </div>
-
-        <div class="actions">
-          <button type="button" class="ghost" (click)="resetForm()">Limpar</button>
-          <button type="submit" class="primary">{{ editingId ? 'Salvar pendência' : 'Registrar pendência' }}</button>
+        <div class="checklist__controls">
+          <input [(ngModel)]="checklistEntry" name="checklistEntry" placeholder="Adicionar item" />
+          <button type="button" class="ghost" (click)="addChecklistItem()">Adicionar</button>
         </div>
-      </form>
-    </section>
+        <ul class="checklist__list" *ngIf="checklistDraft.length; else emptyChecklist">
+          <li *ngFor="let item of checklistDraft">
+            <label>
+              <input type="checkbox" [checked]="item.concluido" (change)="toggleDraftChecklist(item)" />
+              <span [class.done]="item.concluido">{{ item.titulo }}</span>
+            </label>
+          </li>
+        </ul>
+        <ng-template #emptyChecklist>
+          <p class="muted">Nenhum item adicionado ainda.</p>
+        </ng-template>
+      </div>
 
-    <section class="panel summary">
-      <div class="panel__header">
+      <div class="callout">
         <div>
-          <p class="panel__title">Dashboard</p>
-          <p class="muted">Indicadores rápidos e alertas.</p>
+          <p class="strong">Dica de acompanhamento</p>
+          <p class="muted">Use o checklist para marcar entregas rápidas antes de atualizar o status geral.</p>
         </div>
+        <span class="pill success">{{ checklistProgresso }} concluído</span>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'dashboard'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Visualize indicadores rápidos, alertas e histórico da pendência selecionada.</p>
+        </div>
+        <span class="pill">Resumo</span>
       </div>
 
       <div class="stats-grid">
@@ -105,7 +159,13 @@
       </div>
 
       <div class="alert-card" *ngIf="alertas.length">
-        <p class="panel__title">Avisos de alerta</p>
+        <div class="panel__header">
+          <div>
+            <p class="panel__title">Avisos de alerta</p>
+            <p class="muted">Prazo próximo ou vencido</p>
+          </div>
+          <span class="pill danger">{{ alertas.length }}</span>
+        </div>
         <ul>
           <li *ngFor="let alerta of alertas">
             <div>
@@ -132,8 +192,10 @@
           </li>
         </ul>
       </div>
-    </section>
-  </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+  </form>
 
   <div class="list-card">
     <div class="list-card__header">
@@ -174,7 +236,7 @@
             <td>{{ progress(task) }}</td>
             <td class="text-right">
               <div class="row-actions">
-                <button type="button" class="ghost" (click)="selectTask(task)">Histórico</button>
+                <button type="button" class="ghost" (click)="selectTask(task); changeTab('dashboard')">Histórico</button>
                 <button type="button" class="ghost" (click)="editTask(task)">Editar</button>
                 <button type="button" class="primary" (click)="changeStatus(task, 'Concluída')" [disabled]="task.status === 'Concluída'">
                   Concluir
