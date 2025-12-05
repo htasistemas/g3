@@ -132,7 +132,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
             type: 'success',
             message: payload.id ? 'Unidade atualizada com sucesso.' : 'Unidade salva com sucesso.'
           },
-          true
+          { autoDismiss: true }
         );
       },
       error: (error) => {
@@ -151,10 +151,13 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     }
 
     this.deleteConfirmation = true;
-    this.setFeedback({
-      type: 'warning',
-      message: 'Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.'
-    });
+    this.setFeedback(
+      {
+        type: 'warning',
+        message: 'Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.'
+      },
+      { autoDismiss: false }
+    );
   }
 
   cancelDeletion(): void {
@@ -174,7 +177,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
         this.logoPreview = null;
         this.reportLogoPreview = null;
         this.deleteConfirmation = false;
-        this.setFeedback({ type: 'success', message: 'Unidade excluída com sucesso.' }, true);
+        this.setFeedback({ type: 'success', message: 'Unidade excluída com sucesso.' }, { autoDismiss: true });
       },
       error: (error) => {
         console.error('Erro ao excluir unidade', error);
@@ -297,26 +300,34 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
         <head>
           <title>Dados da unidade</title>
           <style>
+            @page {
+              size: A4;
+              margin: 12mm;
+            }
             *, *::before, *::after { box-sizing: border-box; }
             body {
               font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-              background: #0b1221;
+              background: #ffffff;
               color: #0f172a;
               margin: 0;
-              padding: 32px;
+              padding: 0;
             }
             .report {
-              max-width: 960px;
+              width: 100%;
+              max-width: calc(210mm - 24mm);
+              min-height: calc(297mm - 24mm);
               margin: 0 auto;
-              background: #f8fafc;
-              border-radius: 18px;
+              background: #ffffff;
+              border-radius: 0;
               overflow: hidden;
-              box-shadow: 0 20px 70px rgba(15, 23, 42, 0.25);
-              border: 1px solid #e2e8f0;
+              box-shadow: none;
+              border: none;
+              display: flex;
+              flex-direction: column;
             }
             .hero {
               position: relative;
-              padding: 28px 32px;
+              padding: 24px 26px;
               background: linear-gradient(135deg, #0ea5e9, #6366f1, #8b5cf6);
               color: #ffffff;
               display: flex;
@@ -396,18 +407,18 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
               backdrop-filter: blur(6px);
             }
             .body {
-              padding: 26px 28px 32px;
+              padding: 18px 20px 22px;
               display: grid;
-              gap: 24px;
+              gap: 18px;
             }
             .section-card {
-              border: 1px solid #e2e8f0;
-              border-radius: 16px;
-              padding: 18px 20px 20px;
-              background: #ffffff;
+              border: none;
+              border-radius: 0;
+              padding: 12px 0 14px;
+              background: transparent;
             }
             .section-title {
-              margin: 0 0 14px;
+              margin: 0 0 10px;
               font-size: 15px;
               letter-spacing: 0.02em;
               color: #0f172a;
@@ -434,11 +445,11 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
             .value { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
             .muted { color: #64748b; font-weight: 500; font-size: 13px; margin: 0; }
             .footer-note {
-              padding: 18px;
-              background: #0b1221;
-              color: #e2e8f0;
-              border-radius: 12px;
-              border: 1px solid #1e293b;
+              padding: 12px 0 0;
+              background: transparent;
+              color: #0f172a;
+              border-radius: 0;
+              border: none;
             }
           </style>
         </head>
@@ -680,16 +691,18 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
 
   private setFeedback(
     feedback: { type: 'success' | 'error' | 'warning'; message: string },
-    autoDismiss = false
+    options: { autoDismiss?: boolean; duration?: number } = {}
   ): void {
     this.clearFeedbackTimeout();
     this.feedback = feedback;
 
-    if (autoDismiss) {
+    const shouldAutoDismiss = options.autoDismiss ?? true;
+
+    if (shouldAutoDismiss) {
+      const duration = options.duration ?? 4500;
       this.feedbackTimeout = setTimeout(() => {
-        this.feedback = null;
-        this.feedbackTimeout = null;
-      }, 3500);
+        this.dismissFeedback();
+      }, duration);
     }
   }
 
