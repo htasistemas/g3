@@ -217,19 +217,8 @@
 }
 
 .load-room-grid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   align-items: end;
-  row-gap: 0.5rem;
-}
-
-.load-room-grid .compact-field {
-  width: 20%;
-  min-width: 150px;
-  justify-self: start;
-}
-
-.load-room-grid .sala-field {
-  grid-column: auto / span 2;
 }
 
 .field-pair {
@@ -507,7 +496,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: flex-end;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .inline-control select {
