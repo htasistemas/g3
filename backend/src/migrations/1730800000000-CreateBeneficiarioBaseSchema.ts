@@ -24,7 +24,7 @@ export class CreateBeneficiarioBaseSchema1730800000000 implements MigrationInter
           { name: 'status', type: 'varchar', default: "'INCOMPLETO'" },
           { name: 'motivo_bloqueio', type: 'text', isNullable: true },
           { name: 'foto_3x4', type: 'text', isNullable: true },
-          { name: 'documentos_obrigatorios', type: 'simple-json', isNullable: true },
+          { name: 'documentos_obrigatorios', type: 'jsonb', isNullable: true },
           { name: 'estado_civil', type: 'varchar', isNullable: true },
           { name: 'nacionalidade', type: 'varchar', isNullable: true },
           { name: 'naturalidade_cidade', type: 'varchar', isNullable: true },
@@ -99,7 +99,7 @@ export class CreateBeneficiarioBaseSchema1730800000000 implements MigrationInter
           { name: 'aceite_lgpd', type: 'boolean', default: false },
           { name: 'data_aceite_lgpd', type: 'timestamp', isNullable: true },
           { name: 'observacoes', type: 'text', isNullable: true },
-          { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
+          { name: 'data_cadastro', type: 'timestamp with time zone', default: 'CURRENT_TIMESTAMP' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
           ]
         })
