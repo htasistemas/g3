@@ -114,12 +114,15 @@
       </div>
 
       <div class="field-grid cols-4 dados-grid load-room-grid">
-        <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
-        <label class="field">
+        <label class="field compact-field" fxFlex="20%">
+          Carga horária total (horas)
+          <input type="number" formControlName="cargaHoraria" min="0" />
+        </label>
+        <label class="field compact-field" fxFlex="20%">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
         </label>
-        <label class="field">
+        <label class="field compact-field" fxFlex="20%">
           Vagas disponíveis
           <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
         </label>
