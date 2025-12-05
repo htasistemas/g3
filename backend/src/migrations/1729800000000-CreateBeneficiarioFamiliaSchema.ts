@@ -96,7 +96,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
             { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
             { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
           ]
-        })
+        }),
+        true
       );
 
       await queryRunner.createIndices('beneficiario', [
@@ -175,7 +176,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
             { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
             { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
           ]
-        })
+        }),
+        true
       );
     }
 
@@ -216,7 +218,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           uniques: [
             { name: 'uk_familia_membro_beneficiario', columnNames: ['id_familia', 'id_beneficiario'] }
           ]
-        })
+        }),
+        true
       );
     }
 
@@ -258,8 +261,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('familia_membro');
-    await queryRunner.dropTable('familia');
-    await queryRunner.dropTable('beneficiario');
+    await queryRunner.dropTable('familia_membro', true);
+    await queryRunner.dropTable('familia', true);
+    await queryRunner.dropTable('beneficiario', true);
   }
 }
