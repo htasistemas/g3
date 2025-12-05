@@ -297,29 +297,254 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
         <head>
           <title>Dados da unidade</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
-            h1 { font-size: 20px; margin: 0 0 12px; }
-            .item { margin-bottom: 8px; line-height: 1.45; }
-            .label { font-weight: 600; }
-            .logo { margin: 12px 0 16px; max-height: 80px; }
+            *, *::before, *::after { box-sizing: border-box; }
+            body {
+              font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+              background: #0b1221;
+              color: #0f172a;
+              margin: 0;
+              padding: 32px;
+            }
+            .report {
+              max-width: 960px;
+              margin: 0 auto;
+              background: #f8fafc;
+              border-radius: 18px;
+              overflow: hidden;
+              box-shadow: 0 20px 70px rgba(15, 23, 42, 0.25);
+              border: 1px solid #e2e8f0;
+            }
+            .hero {
+              position: relative;
+              padding: 28px 32px;
+              background: linear-gradient(135deg, #0ea5e9, #6366f1, #8b5cf6);
+              color: #ffffff;
+              display: flex;
+              gap: 20px;
+              align-items: center;
+            }
+            .hero::after {
+              content: '';
+              position: absolute;
+              inset: 0;
+              background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25), transparent 35%),
+                          radial-gradient(circle at 80% 0%, rgba(255,255,255,0.18), transparent 40%);
+              pointer-events: none;
+            }
+            .logo-badge {
+              position: relative;
+              z-index: 1;
+              width: 96px;
+              height: 96px;
+              border-radius: 20px;
+              overflow: hidden;
+              border: 1px solid rgba(255, 255, 255, 0.35);
+              background: rgba(255, 255, 255, 0.12);
+              display: grid;
+              place-items: center;
+              backdrop-filter: blur(6px);
+              box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            }
+            .logo-badge img {
+              max-width: 90%;
+              max-height: 90%;
+              object-fit: contain;
+              filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+            }
+            .logo-placeholder {
+              font-size: 14px;
+              font-weight: 600;
+              color: #e0f2fe;
+              text-align: center;
+              padding: 12px;
+            }
+            .hero-content { position: relative; z-index: 1; }
+            .eyebrow {
+              text-transform: uppercase;
+              letter-spacing: 0.12em;
+              font-size: 11px;
+              font-weight: 700;
+              margin: 0 0 6px;
+              color: #c7d2fe;
+            }
+            h1 {
+              margin: 0 0 6px;
+              font-size: 26px;
+              font-weight: 800;
+              line-height: 1.15;
+            }
+            .hero-subtitle {
+              margin: 0;
+              color: #e0f2fe;
+              font-size: 14px;
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            }
+            .badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(255, 255, 255, 0.16);
+              color: #fff;
+              padding: 8px 12px;
+              border-radius: 12px;
+              font-weight: 600;
+              font-size: 12px;
+              border: 1px solid rgba(255, 255, 255, 0.18);
+              backdrop-filter: blur(6px);
+            }
+            .body {
+              padding: 26px 28px 32px;
+              display: grid;
+              gap: 24px;
+            }
+            .section-title {
+              margin: 0 0 12px;
+              font-size: 15px;
+              letter-spacing: 0.02em;
+              color: #0f172a;
+            }
+            .grid {
+              display: grid;
+              gap: 14px;
+              grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+            .card {
+              background: #ffffff;
+              border-radius: 14px;
+              padding: 14px 16px 16px;
+              border: 1px solid #e2e8f0;
+              box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            }
+            .label {
+              display: block;
+              font-size: 11px;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              color: #475569;
+              margin-bottom: 4px;
+              font-weight: 700;
+            }
+            .value { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+            .muted { color: #64748b; font-weight: 500; font-size: 13px; }
+            .highlight {
+              background: linear-gradient(135deg, #eef2ff, #e0f2fe);
+              border: 1px solid #c7d2fe;
+            }
+            .two-columns { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+            .footer-note {
+              padding: 18px;
+              background: #0b1221;
+              color: #e2e8f0;
+              border-radius: 12px;
+              border: 1px solid #1e293b;
+            }
           </style>
         </head>
         <body>
-          <h1>${unidade.nomeFantasia || 'Unidade assistencial'}</h1>
-          ${printLogo ? `<img class="logo" src="${printLogo}" alt="Imagem institucional" />` : ''}
-          <div class="item"><span class="label">Razão social:</span> ${unidade.razaoSocial || 'Não informada'}</div>
-          <div class="item"><span class="label">CNPJ:</span> ${unidade.cnpj || 'Não informado'}</div>
-          <div class="item"><span class="label">Telefone:</span> ${unidade.telefone || 'Não informado'}</div>
-          <div class="item"><span class="label">E-mail:</span> ${unidade.email || 'Não informado'}</div>
-          <div class="item"><span class="label">Horário de funcionamento:</span> ${unidade.horarioFuncionamento || 'Não informado'}</div>
-          <div class="item"><span class="label">CEP:</span> ${unidade.cep || 'Não informado'}</div>
-          <div class="item"><span class="label">Endereço:</span> ${unidade.endereco || ''} ${unidade.numeroEndereco || ''}</div>
-          <div class="item"><span class="label">Bairro:</span> ${unidade.bairro || 'Não informado'}</div>
-          <div class="item"><span class="label">Cidade/Estado:</span> ${unidade.cidade || 'Sem cidade'} / ${unidade.estado || 'UF'}</div>
-          <div class="item"><span class="label">Diretor(a)/Coordenador(a)/Presidente:</span> ${unidade.responsavelNome || 'Não informado'}</div>
-          <div class="item"><span class="label">CPF do responsável:</span> ${unidade.responsavelCpf || 'Não informado'}</div>
-          <div class="item"><span class="label">Período de mandato:</span> ${unidade.responsavelPeriodoMandato || 'Não informado'}</div>
-          <div class="item"><span class="label">Observações:</span> ${unidade.observacoes || 'Nenhuma'}</div>
+          <div class="report">
+            <div class="hero">
+              <div class="logo-badge">
+                ${
+                  printLogo
+                    ? `<img src="${printLogo}" alt="Imagem institucional" />`
+                    : `<div class="logo-placeholder">Logo da unidade</div>`
+                }
+              </div>
+              <div class="hero-content">
+                <p class="eyebrow">Cadastro da unidade</p>
+                <h1>${unidade.nomeFantasia || 'Unidade assistencial'}</h1>
+                <p class="hero-subtitle">
+                  <span class="badge">${unidade.cidade || 'Cidade não informada'} · ${unidade.estado || 'UF'}</span>
+                  <span class="badge">${unidade.horarioFuncionamento || 'Horário não informado'}</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="body">
+              <div>
+                <p class="section-title">Identidade e contato</p>
+                <div class="grid">
+                  <div class="card">
+                    <span class="label">Razão social</span>
+                    <p class="value">${unidade.razaoSocial || 'Não informada'}</p>
+                    <p class="muted">Nome completo cadastrado.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">CNPJ</span>
+                    <p class="value">${unidade.cnpj || 'Não informado'}</p>
+                    <p class="muted">Identificação fiscal da organização.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">Telefone</span>
+                    <p class="value">${unidade.telefone || 'Não informado'}</p>
+                    <p class="muted">Canal preferencial para contato direto.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">E-mail</span>
+                    <p class="value">${unidade.email || 'Não informado'}</p>
+                    <p class="muted">Endereço eletrônico para comunicação institucional.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">CEP</span>
+                    <p class="value">${unidade.cep || 'Não informado'}</p>
+                    <p class="muted">Código de endereçamento para localização.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">Horário de funcionamento</span>
+                    <p class="value">${unidade.horarioFuncionamento || 'Não informado'}</p>
+                    <p class="muted">Período de atendimento ao público.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p class="section-title">Localização</p>
+                <div class="two-columns">
+                  <div class="card highlight">
+                    <span class="label">Endereço</span>
+                    <p class="value">${unidade.endereco || 'Endereço não informado'} ${unidade.numeroEndereco || ''}</p>
+                    <p class="muted">Bairro: ${unidade.bairro || 'Não informado'}</p>
+                  </div>
+                  <div class="card highlight">
+                    <span class="label">Cidade / Estado</span>
+                    <p class="value">${unidade.cidade || 'Sem cidade'} / ${unidade.estado || 'UF'}</p>
+                    <p class="muted">Referência geográfica da unidade.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p class="section-title">Responsável institucional</p>
+                <div class="grid">
+                  <div class="card">
+                    <span class="label">Nome</span>
+                    <p class="value">${unidade.responsavelNome || 'Não informado'}</p>
+                    <p class="muted">Diretor(a), coordenador(a) ou presidente.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">CPF</span>
+                    <p class="value">${unidade.responsavelCpf || 'Não informado'}</p>
+                    <p class="muted">Documento pessoal do responsável.</p>
+                  </div>
+                  <div class="card">
+                    <span class="label">Período de mandato</span>
+                    <p class="value">${unidade.responsavelPeriodoMandato || 'Não informado'}</p>
+                    <p class="muted">Vigência da gestão atual.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p class="section-title">Observações</p>
+                <div class="footer-note">
+                  ${unidade.observacoes || 'Nenhuma observação registrada até o momento.'}
+                </div>
+              </div>
+            </div>
+          </div>
         </body>
       </html>
     `;
