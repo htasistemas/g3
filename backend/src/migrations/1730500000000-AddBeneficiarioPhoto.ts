@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddBeneficiarioPhoto1730500000000 implements MigrationInterface {
   public readonly name = 'AddBeneficiarioPhoto1730500000000';
@@ -34,6 +34,5 @@ export class AddBeneficiarioPhoto1730500000000 implements MigrationInterface {
     }
 
     await queryRunner.dropColumn(tableName, 'foto_3x4');
->>>>>>> 76e332a53542609843bdd6590dff35e4a398d17a
   }
 }
