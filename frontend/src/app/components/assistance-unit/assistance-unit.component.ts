@@ -271,6 +271,20 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     this.deleteConfirmation = false;
   }
 
+  startNew(): void {
+    this.unidade = null;
+    this.form.reset();
+    this.logoPreview = null;
+    this.reportLogoPreview = null;
+    this.deleteConfirmation = false;
+    this.activeTab = 'dados';
+    this.dismissFeedback();
+  }
+
+  closeForm(): void {
+    window.history.back();
+  }
+
   printUnit(): void {
     if (!this.unidade) {
       return;
