@@ -7,11 +7,12 @@ export class CreateBeneficiarioBaseSchema1730800000000 implements MigrationInter
     const hasTable = await queryRunner.hasTable(tableName);
     if (hasTable) return;
 
-    await queryRunner.createTable(
-      new Table({
-        name: tableName,
-        columns: [
-          { name: 'id_beneficiario', type: 'uuid', isPrimary: true, default: 'gen_random_uuid()' },
+    try {
+      await queryRunner.createTable(
+        new Table({
+          name: tableName,
+          columns: [
+            { name: 'id_beneficiario', type: 'uuid', isPrimary: true, default: 'gen_random_uuid()' },
           { name: 'codigo', type: 'varchar', length: '32', isNullable: true, isUnique: true },
           { name: 'nome_completo', type: 'varchar' },
           { name: 'nome_social', type: 'varchar', isNullable: true },
@@ -100,9 +101,17 @@ export class CreateBeneficiarioBaseSchema1730800000000 implements MigrationInter
           { name: 'observacoes', type: 'text', isNullable: true },
           { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
-        ]
-      })
-    );
+          ]
+        })
+      );
+    } catch (error) {
+      // Se a tabela já existir por alguma inconsistência anterior, ignoramos o erro
+      // para permitir que o restante das migrações seja aplicado normalmente.
+      const message = (error as Error).message.toLowerCase();
+      if (!message.includes('already exists')) {
+        throw error;
+      }
+    }
 
     await queryRunner.createIndices(tableName, [
       new TableIndex({ name: 'idx_beneficiario_nome', columnNames: ['nome_completo'] }),
