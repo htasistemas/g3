@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddBeneficiarioPhoto1730500000000 implements MigrationInterface {
   public readonly name = 'AddBeneficiarioPhoto1730500000000';
@@ -10,15 +10,7 @@ export class AddBeneficiarioPhoto1730500000000 implements MigrationInterface {
       return;
     }
 
-    const hasColumn = await queryRunner.hasColumn(tableName, 'foto_3x4');
-    if (hasColumn) {
-      return;
-    }
-
-    await queryRunner.addColumn(
-      tableName,
-      new TableColumn({ name: 'foto_3x4', type: 'text', isNullable: true })
-    );
+    await queryRunner.query(`ALTER TABLE ${tableName} ADD COLUMN IF NOT EXISTS foto_3x4 text`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -28,11 +20,6 @@ export class AddBeneficiarioPhoto1730500000000 implements MigrationInterface {
       return;
     }
 
-    const hasColumn = await queryRunner.hasColumn(tableName, 'foto_3x4');
-    if (!hasColumn) {
-      return;
-    }
-
-    await queryRunner.dropColumn(tableName, 'foto_3x4');
+    await queryRunner.query(`ALTER TABLE ${tableName} DROP COLUMN IF EXISTS foto_3x4`);
   }
 }
