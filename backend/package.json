@@ -8,7 +8,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "db:check": "node -r ts-node/register src/scripts/db-check.ts"
+    "db:check": "node -r ts-node/register src/scripts/db-check.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
