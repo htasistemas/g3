@@ -29,6 +29,7 @@ type ViaCepResponse = {
 };
 
 type PrintOrder = 'nome' | 'data_nascimento' | 'idade' | 'bairro';
+type PrintListOrder = 'alphabetical' | 'code';
 
 @Component({
   selector: 'app-beneficiario-cadastro',
@@ -55,6 +56,8 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   lastUpdatedAt: string | null = null;
   assistanceUnit: AssistanceUnitPayload | undefined | null = null;
   printOrderBy: PrintOrder = 'nome';
+  printListOrder: PrintListOrder = 'alphabetical';
+  printMenuOpen = false;
   readonly printOrderOptions: { value: PrintOrder; label: string }[] = [
     { value: 'nome', label: 'Nome' },
     { value: 'data_nascimento', label: 'Data de nascimento' },
@@ -1690,6 +1693,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private sortBeneficiariesForPrint(a: BeneficiarioApiPayload, b: BeneficiarioApiPayload): number {
+    if (this.printListOrder === 'code') {
+      return this.normalizeSortString(a.codigo).localeCompare(this.normalizeSortString(b.codigo));
+    }
+
     switch (this.printOrderBy) {
       case 'bairro':
         return this.normalizeSortString(a.bairro).localeCompare(this.normalizeSortString(b.bairro));
@@ -2044,6 +2051,34 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       beneficios: { beneficios_recebidos: [] }
     });
     this.resetDocumentArray();
+  }
+
+  togglePrintMenu(): void {
+    this.printMenuOpen = !this.printMenuOpen;
+  }
+
+  closePrintMenu(): void {
+    this.printMenuOpen = false;
+  }
+
+  setPrintListOrder(order: PrintListOrder): void {
+    this.printListOrder = order;
+  }
+
+  handlePrintSelection(option: 'list' | 'individual' | 'authorization'): void {
+    switch (option) {
+      case 'list':
+        this.printBeneficiaryList();
+        break;
+      case 'individual':
+        this.printIndividualRecord();
+        break;
+      case 'authorization':
+        this.printConsentDocument();
+        break;
+    }
+
+    this.closePrintMenu();
   }
 
   clearSearchFilters(): void {
