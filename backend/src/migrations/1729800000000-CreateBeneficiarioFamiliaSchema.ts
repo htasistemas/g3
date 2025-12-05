@@ -4,100 +4,6 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
   public async up(queryRunner: QueryRunner): Promise<void> {
     const uuidDefault = 'gen_random_uuid()';
 
-    const hasBeneficiarioTable = await queryRunner.hasTable('beneficiario');
-
-    if (!hasBeneficiarioTable) {
-      await queryRunner.query(`
-        CREATE TABLE "beneficiario" (
-          "id_beneficiario" uuid PRIMARY KEY NOT NULL DEFAULT (gen_random_uuid()),
-          "nome_completo" varchar NOT NULL,
-          "nome_social" varchar,
-          "apelido" varchar,
-          "data_nascimento" date NOT NULL,
-          "sexo_biologico" varchar,
-          "identidade_genero" varchar,
-          "cor_raca" varchar,
-          "estado_civil" varchar,
-          "nacionalidade" varchar,
-          "naturalidade_cidade" varchar,
-          "naturalidade_uf" varchar(2),
-          "nome_mae" varchar NOT NULL,
-          "nome_pai" varchar,
-          "cpf" varchar(11),
-          "rg_numero" varchar,
-          "rg_orgao_emissor" varchar,
-          "rg_uf" varchar(2),
-          "rg_data_emissao" date,
-          "nis" varchar,
-          "certidao_tipo" varchar,
-          "certidao_livro" varchar,
-          "certidao_folha" varchar,
-          "certidao_termo" varchar,
-          "certidao_cartorio" varchar,
-          "certidao_municipio" varchar,
-          "certidao_uf" varchar(2),
-          "titulo_eleitor" varchar,
-          "cnh" varchar,
-          "cartao_sus" varchar,
-          "telefone_principal" varchar,
-          "telefone_principal_whatsapp" boolean NOT NULL DEFAULT (false),
-          "telefone_secundario" varchar,
-          "telefone_recado_nome" varchar,
-          "telefone_recado_numero" varchar,
-          "email" varchar,
-          "permite_contato_tel" boolean NOT NULL DEFAULT (true),
-          "permite_contato_whatsapp" boolean NOT NULL DEFAULT (true),
-          "permite_contato_sms" boolean NOT NULL DEFAULT (false),
-          "permite_contato_email" boolean NOT NULL DEFAULT (false),
-          "horario_preferencial_contato" varchar,
-          "usa_endereco_familia" boolean NOT NULL DEFAULT (true),
-          "cep" varchar,
-          "logradouro" varchar,
-          "numero" varchar,
-          "complemento" varchar,
-          "bairro" varchar,
-          "ponto_referencia" varchar,
-          "municipio" varchar,
-          "uf" varchar(2),
-          "zona" varchar,
-          "situacao_imovel" varchar,
-          "tipo_moradia" varchar,
-          "agua_encanada" boolean NOT NULL DEFAULT (false),
-          "esgoto_tipo" varchar,
-          "coleta_lixo" varchar,
-          "energia_eletrica" boolean NOT NULL DEFAULT (false),
-          "internet" boolean NOT NULL DEFAULT (false),
-          "mora_com_familia" boolean NOT NULL DEFAULT (false),
-          "responsavel_legal" boolean NOT NULL DEFAULT (false),
-          "vinculo_familiar" varchar,
-          "situacao_vulnerabilidade" text,
-          "sabe_ler_escrever" boolean NOT NULL DEFAULT (false),
-          "nivel_escolaridade" varchar,
-          "estuda_atualmente" boolean NOT NULL DEFAULT (false),
-          "ocupacao" varchar,
-          "situacao_trabalho" varchar,
-          "local_trabalho" varchar,
-          "renda_mensal" numeric(12,2),
-          "fonte_renda" varchar,
-          "possui_deficiencia" boolean NOT NULL DEFAULT (false),
-          "tipo_deficiencia" varchar,
-          "cid_principal" varchar,
-          "usa_medicacao_continua" boolean NOT NULL DEFAULT (false),
-          "descricao_medicacao" text,
-          "servico_saude_referencia" varchar,
-          "recebe_beneficio" boolean NOT NULL DEFAULT (false),
-          "beneficios_descricao" text,
-          "valor_total_beneficios" numeric(12,2),
-          "aceite_lgpd" boolean NOT NULL DEFAULT (false),
-          "data_aceite_lgpd" timestamp,
-          "observacoes" text,
-          "data_cadastro" timestamp NOT NULL DEFAULT (now()),
-          "data_atualizacao" timestamp,
-          CONSTRAINT "UQ_a608d9b31059b0e934e9b9ddd6d" UNIQUE ("cpf")
-        )
-      `);
-    }
-
     const beneficiarioTable = await queryRunner.getTable('beneficiario');
 
     if (beneficiarioTable) {
@@ -254,6 +160,5 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('DROP TABLE IF EXISTS "familia_membro"');
     await queryRunner.query('DROP TABLE IF EXISTS "familia"');
-    await queryRunner.query('DROP TABLE IF EXISTS "beneficiario"');
   }
 }
