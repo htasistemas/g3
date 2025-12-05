@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
@@ -10,7 +10,7 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     // NO-OP.
     return;
-=======
+
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
@@ -61,6 +61,6 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
     if (hasColumn) {
       await queryRunner.dropColumn(tableName, 'codigo');
     }
->>>>>>> 42461ee7e1bb3260f1a3e48902ff1fab1f023c4e
+
   }
 }
