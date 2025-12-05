@@ -1,14 +1,51 @@
-<section class="georef">
+<section class="georef-page">
   <header class="page-title">
-    <p class="page-title__eyebrow">Georeferenciamento</p>
-    <p class="page-title__label">Localização da unidade assistencial</p>
+    <p class="page-title__eyebrow">Unidade assistencial</p>
+    <p class="page-title__label">Georeferenciamento da localização</p>
+    <p class="page-title__hint">Visualize e publique o ponto principal no mapa mantendo a mesma jornada do cadastro.</p>
   </header>
 
-  <div class="page-actions">
-    <div class="badge">Pronto para sincronizar</div>
-    <div class="badge badge--muted">Camadas ativas: {{ layers.length }}</div>
-    <button type="button" class="ghost" (click)="useUnitAddress()">Usar endereço da unidade</button>
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegação por etapas</p>
+    <ol class="step-tabs" role="tablist">
+      <li class="step-tabs__item completed" data-tab="dados">
+        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
+          <span class="step-tabs__index">1</span>
+          <span class="step-tabs__label">Dados da Unidade</span>
+        </button>
+      </li>
+      <li class="step-tabs__item completed" data-tab="endereco">
+        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
+          <span class="step-tabs__index">2</span>
+          <span class="step-tabs__label">Endereço da Unidade</span>
+        </button>
+      </li>
+      <li class="step-tabs__item active" data-tab="georef">
+        <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
+          <span class="step-tabs__index">3</span>
+          <span class="step-tabs__label">Georeferenciamento</span>
+        </button>
+      </li>
+      <li class="step-tabs__item" data-tab="publicacao">
+        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
+          <span class="step-tabs__index">4</span>
+          <span class="step-tabs__label">Publicação</span>
+        </button>
+      </li>
+    </ol>
   </div>
+
+  <article class="card card--controls">
+    <div class="status-pills">
+      <span class="status status--success">Pronto para sincronizar</span>
+      <span class="status status--muted">Camadas ativas: {{ layers.length }}</span>
+    </div>
+    <div class="nav-buttons">
+      <button type="button" class="nav-button" (click)="useUnitAddress()">Usar endereço da unidade</button>
+      <button type="button" class="nav-button" (click)="updateToManual(-23.533773, -46.62529)">Centralizar em SP</button>
+      <button type="button" class="nav-button nav-button--primary">Publicar no Geo</button>
+    </div>
+  </article>
 
   <section class="grid">
     <article class="card">
