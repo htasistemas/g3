@@ -48,9 +48,9 @@ const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT || 5432),
-  username: process.env.DB_USER || 'g3',
-  password: process.env.DB_PASS ?? process.env.DB_PASSWORD ?? 'g3',
-  database: process.env.DB_NAME || 'g3',
+  username: process.env.DB_USERNAME || 'g3',
+  password: process.env.DB_PASSWORD || 'g3',
+  database: process.env.DB_DATABASE || 'g3',
   entities: [
     User,
     Beneficiario,
