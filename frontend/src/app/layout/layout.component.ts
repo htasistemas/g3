@@ -126,7 +126,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     {
       label: 'Georeferenciamento',
       icon: faMapLocationDot,
-      children: [{ label: 'Localização', icon: faMapLocationDot }]
+      children: [{ label: 'Localização', icon: faMapLocationDot, route: '/georeferenciamento/localizacao' }]
     },
     {
       label: 'Configurações Gerais',
