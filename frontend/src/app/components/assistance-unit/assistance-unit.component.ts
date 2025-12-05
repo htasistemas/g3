@@ -713,7 +713,7 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     }
   }
 
-  private dismissFeedback(): void {
+  dismissFeedback(): void {
     this.clearFeedbackTimeout();
     this.feedback = null;
   }
