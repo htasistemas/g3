@@ -1,18 +1,12 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-  Table,
-  TableColumn,
-  TableForeignKey,
-  TableIndex
-} from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableColumn, TableForeignKey, TableIndex } from 'typeorm';
 
 export class CreateSalas1730700000000 implements MigrationInterface {
+  public readonly name = 'CreateSalas1730700000000';
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     const uuidDefault = 'gen_random_uuid()';
 
-    const salasExists = await queryRunner.hasTable('salas');
-    if (!salasExists) {
+    if (!(await queryRunner.hasTable('salas'))) {
       await queryRunner.createTable(
         new Table({
           name: 'salas',
@@ -26,8 +20,9 @@ export class CreateSalas1730700000000 implements MigrationInterface {
       );
     }
 
-    const hasCursosAtendimentos = await queryRunner.hasTable('cursos_atendimentos');
-    if (!hasCursosAtendimentos) return;
+    if (!(await queryRunner.hasTable('cursos_atendimentos'))) {
+      return;
+    }
 
     const hasSalaColumn = await queryRunner.hasColumn('cursos_atendimentos', 'salaId');
     if (!hasSalaColumn) {
@@ -80,8 +75,7 @@ export class CreateSalas1730700000000 implements MigrationInterface {
       }
     }
 
-    const salasExists = await queryRunner.hasTable('salas');
-    if (salasExists) {
+    if (await queryRunner.hasTable('salas')) {
       await queryRunner.dropTable('salas');
     }
   }
