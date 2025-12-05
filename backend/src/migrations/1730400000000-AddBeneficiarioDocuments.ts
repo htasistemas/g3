@@ -4,18 +4,37 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
   name = 'AddBeneficiarioDocuments1730400000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const driver = queryRunner.connection.driver.options.type;
-    const isPostgres = driver === 'postgres';
-    const column = new TableColumn({
-      name: 'documentos_obrigatorios',
-      type: isPostgres ? 'jsonb' : 'json',
-      isNullable: true
-    });
+    const tableName = 'beneficiario';
+    const hasTable = await queryRunner.hasTable(tableName);
 
-    await queryRunner.addColumn('beneficiario', column);
+    if (!hasTable) return;
+
+    const hasDocumentosCol = await queryRunner.hasColumn(tableName, 'documentos_obrigatorios');
+
+    if (hasDocumentosCol) {
+      return;
+    }
+
+    await queryRunner.addColumn(
+      tableName,
+      new TableColumn({
+        name: 'documentos_obrigatorios',
+        type: 'simple-json',
+        isNullable: true
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('beneficiario', 'documentos_obrigatorios');
+    const tableName = 'beneficiario';
+    const hasTable = await queryRunner.hasTable(tableName);
+
+    if (!hasTable) return;
+
+    const hasDocumentosCol = await queryRunner.hasColumn(tableName, 'documentos_obrigatorios');
+
+    if (hasDocumentosCol) {
+      await queryRunner.dropColumn(tableName, 'documentos_obrigatorios');
+    }
   }
 }
