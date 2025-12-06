@@ -25,7 +25,9 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
     }
 
     const existingType = (existingColumn.type as string).toLowerCase();
+
     if (existingType === desiredType || existingType === 'jsonb' || existingType === 'simple-json') return;
+
 
     if (isPostgres) {
       await queryRunner.query(
@@ -34,11 +36,13 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
       return;
     }
 
+
     const normalizedColumns = table.columns.map((column) => {
       if (column.name !== 'documentos_obrigatorios') return column;
 
       return new TableColumn({
         ...column,
+
         type: desiredColumn.type,
         isNullable: true,
         default: column.default
@@ -54,7 +58,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
         indices: table.indices,
         uniques: table.uniques,
         foreignKeys: table.foreignKeys
-      })
+
     );
 
     const columnNames = table.columns.map((column) => `"${column.name}"`).join(', ');
@@ -62,7 +66,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
       `INSERT INTO "${temporaryTableName}" (${columnNames}) SELECT ${columnNames} FROM "${table.name}"`
     );
 
-    await queryRunner.dropTable(table.name);
+
     await queryRunner.renameTable(temporaryTableName, table.name);
   }
 

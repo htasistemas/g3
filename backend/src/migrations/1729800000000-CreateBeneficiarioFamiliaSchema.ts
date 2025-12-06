@@ -100,7 +100,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
             { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
             { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
           ]
-        })
+        }),
+        true
       );
 
       beneficiarioTable = await queryRunner.getTable('beneficiario');
@@ -169,7 +170,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
           ]
-        })
+        }),
+        true
       );
     }
 
@@ -195,7 +197,8 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           uniques: [
             { name: 'uk_familia_membro_beneficiario', columnNames: ['id_familia', 'id_beneficiario'] }
           ]
-        })
+        }),
+        true
       );
     }
 
