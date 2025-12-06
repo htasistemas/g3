@@ -1,15 +1,16 @@
 # Backend (G3)
 
-Este backend está configurado exclusivamente para PostgreSQL. Nenhuma dependência ou driver de SQLite permanece no projeto.
+O backend pode usar PostgreSQL (padrão) ou SQLite local para desenvolvimento. A escolha é feita via variáveis de ambiente.
 
 ## Configuração do banco de dados
-Defina as variáveis de ambiente antes de subir a aplicação ou rodar migrations:
+As variáveis abaixo são lidas pelo TypeORM (ver `src/data-source.ts`). Caso não sejam informadas, usamos o Postgres remoto em `72.60.156.202` com usuário `g3`, senha `admin` e banco `g3`.
 
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USERNAME`
-- `DB_PASSWORD`
-- `DB_DATABASE`
+- `DB_TYPE` (`postgres` | `mysql` | `mariadb` | `sqlite`) – padrão: `postgres`
+- `DB_HOST` – padrão: `72.60.156.202`
+- `DB_PORT` – padrão: `5432` (ou `3306` para MySQL/MariaDB)
+- `DB_USER` – padrão: `g3`
+- `DB_PASSWORD` – padrão: `admin`
+- `DB_NAME` – para SQLite aceita caminho relativo/absoluto do arquivo
 
 Opcionalmente você pode usar `DATABASE_URL` para fornecer a string completa de conexão.
 
@@ -31,4 +32,4 @@ cd backend
 npm run dev
 ```
 
-O projeto utiliza TypeORM sem qualquer fallback para SQLite.
+O projeto utiliza TypeORM e pode cair para SQLite local se `DB_TYPE=sqlite` for definido.
