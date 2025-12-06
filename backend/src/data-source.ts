@@ -34,8 +34,13 @@ dotenv.config();
 
 type SupportedDatabase = 'postgres' | 'mysql' | 'mariadb' | 'sqlite';
 
-// Default to Postgres so multiple environments share the same persisted database.
-const dbType: SupportedDatabase = (process.env.DB_TYPE as SupportedDatabase) || 'postgres';
+const envDbType = (process.env.DB_TYPE as SupportedDatabase | undefined)?.toLowerCase() as
+  | SupportedDatabase
+  | undefined;
+const isDevEnvironment = (process.env.NODE_ENV || 'development') === 'development';
+
+// In development we keep SQLite as the default to simplify local setups.
+const dbType: SupportedDatabase = envDbType || (isDevEnvironment ? 'sqlite' : 'postgres');
 
 const migrations = [
   RenameSchemaToPortuguese1729700000000,
