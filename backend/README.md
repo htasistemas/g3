@@ -7,7 +7,7 @@ As variáveis abaixo são lidas pelo TypeORM (ver `src/data-source.ts`). Caso n�
 
 - `DB_TYPE` (`postgres` | `mysql` | `mariadb` | `sqlite`) – padrão: `postgres`
 - `DB_HOST` – padrão: `72.60.156.202`
-- `DB_PORT` – padrão: `5432` (ou `3306` para MySQL/MariaDB)
+- `DB_PORT` – padrão: `5434` (ou `3306` para MySQL/MariaDB)
 - `DB_USER` – padrão: `g3`
 - `DB_PASSWORD` – padrão: `admin`
 - `DB_NAME` – para SQLite aceita caminho relativo/absoluto do arquivo

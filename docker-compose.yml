@@ -8,7 +8,7 @@ services:
       - backend/.env.example
     environment:
       - DB_HOST=${DB_HOST:-72.60.156.202}
-      - DB_PORT=${DB_PORT:-5432}
+      - DB_PORT=${DB_PORT:-5434}
       - DB_TYPE=${DB_TYPE:-postgres}
       - DB_USER=${DB_USER:-g3}
       - DB_PASSWORD=${DB_PASSWORD:-admin}
