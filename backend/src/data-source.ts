@@ -108,7 +108,7 @@ const dataSourceOptions: DataSourceOptions = (() => {
     host: process.env.DB_HOST || '72.60.156.202',
     port: resolveRelationalPort(),
     username: process.env.DB_USER || 'g3',
-    password: process.env.DB_PASSWORD || 'admin',
+    password: process.env.DB_PASSWORD || 'g3',
     database: process.env.DB_NAME || 'g3',
     synchronize: false,
     migrations,

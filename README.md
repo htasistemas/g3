@@ -12,7 +12,7 @@ do banco.
   (`72.60.156.202`) para garantir que os dados permaneçam persistidos entre máquinas; defina `DB_TYPE=sqlite`
   apenas se quiser um banco local.
 - Variáveis principais: `DB_TYPE`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
-  Se nada for informado, o backend tenta `g3/admin` no host `72.60.156.202` usando o banco `g3`.
+  Se nada for informado, o backend tenta `g3/g3` no host `72.60.156.202` usando o banco `g3`.
 - Ao iniciar, a API cria as tabelas necessárias e garante o usuário `admin/123`.
 - Padrão de modelagem: chaves primárias devem ser inteiros autoincrementais (`@PrimaryGeneratedColumn()`), nunca UUID.
 - Endpoints principais:

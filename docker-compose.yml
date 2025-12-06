@@ -11,7 +11,7 @@ services:
       - DB_PORT=${DB_PORT:-5434}
       - DB_TYPE=${DB_TYPE:-postgres}
       - DB_USER=${DB_USER:-g3}
-      - DB_PASSWORD=${DB_PASSWORD:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-g3}
       - DB_NAME=${DB_NAME:-g3}
     ports:
       - "3000:3000"
