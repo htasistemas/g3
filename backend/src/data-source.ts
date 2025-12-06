@@ -54,7 +54,7 @@ function resolveRelationalPort(): number {
     return Number(process.env.DB_PORT);
   }
 
-  return dbType === 'mysql' ? 3306 : 5432;
+  return dbType === 'mysql' ? 3306 : 5434;
 }
 
 function ensureSqliteDirectory(databasePath: string): void {
