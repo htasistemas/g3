@@ -2,13 +2,19 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } f
 
 export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const uuidDefault = 'gen_random_uuid()';
+    const isSQLite = queryRunner.connection.options.type === 'sqlite';
+    const uuidDefault = isSQLite
+      ? "(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || '4' || substr(hex(randomblob(2)), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)), 2) || '-' || lower(hex(randomblob(6))))"
+      : 'gen_random_uuid()';
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'beneficiario',
-        columns: [
-          { name: 'id_beneficiario', type: 'uuid', isPrimary: true, default: uuidDefault },
+    const beneficiarioTable = await queryRunner.getTable('beneficiario');
+
+    if (!beneficiarioTable) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'beneficiario',
+          columns: [
+            { name: 'id_beneficiario', type: 'uuid', isPrimary: true, default: uuidDefault },
           { name: 'nome_completo', type: 'varchar' },
           { name: 'nome_social', type: 'varchar', isNullable: true },
           { name: 'apelido', type: 'varchar', isNullable: true },
@@ -92,21 +98,38 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           { name: 'observacoes', type: 'text', isNullable: true },
           { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
-        ]
-      })
-    );
+          ]
+        })
+      );
 
-    await queryRunner.createIndices('beneficiario', [
-      new TableIndex({ name: 'idx_beneficiario_nome', columnNames: ['nome_completo'] }),
-      new TableIndex({ name: 'idx_beneficiario_cpf', columnNames: ['cpf'] }),
-      new TableIndex({ name: 'idx_beneficiario_nis', columnNames: ['nis'] })
-    ]);
+      await queryRunner.createIndices('beneficiario', [
+        new TableIndex({ name: 'idx_beneficiario_nome', columnNames: ['nome_completo'] }),
+        new TableIndex({ name: 'idx_beneficiario_cpf', columnNames: ['cpf'] }),
+        new TableIndex({ name: 'idx_beneficiario_nis', columnNames: ['nis'] })
+      ]);
+    } else {
+      const existingIndices = new Set(beneficiarioTable.indices.map((idx) => idx.name));
+      const desiredIndices = [
+        new TableIndex({ name: 'idx_beneficiario_nome', columnNames: ['nome_completo'] }),
+        new TableIndex({ name: 'idx_beneficiario_cpf', columnNames: ['cpf'] }),
+        new TableIndex({ name: 'idx_beneficiario_nis', columnNames: ['nis'] })
+      ];
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'familia',
-        columns: [
-          { name: 'id_familia', type: 'uuid', isPrimary: true, default: uuidDefault },
+      for (const index of desiredIndices) {
+        if (!existingIndices.has(index.name)) {
+          await queryRunner.createIndex('beneficiario', index);
+        }
+      }
+    }
+
+    const hasFamilia = await queryRunner.hasTable('familia');
+
+    if (!hasFamilia) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'familia',
+          columns: [
+            { name: 'id_familia', type: 'uuid', isPrimary: true, default: uuidDefault },
           { name: 'nome_familia', type: 'varchar' },
           { name: 'id_referencia_familiar', type: 'uuid', isNullable: true },
           { name: 'cep', type: 'varchar', isNullable: true },
@@ -146,15 +169,19 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           { name: 'observacoes', type: 'text', isNullable: true },
           { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
-        ]
-      })
-    );
+          ]
+        })
+      );
+    }
 
-    await queryRunner.createTable(
-      new Table({
-        name: 'familia_membro',
-        columns: [
-          { name: 'id_familia_membro', type: 'uuid', isPrimary: true, default: uuidDefault },
+    const hasFamiliaMembro = await queryRunner.hasTable('familia_membro');
+
+    if (!hasFamiliaMembro) {
+      await queryRunner.createTable(
+        new Table({
+          name: 'familia_membro',
+          columns: [
+            { name: 'id_familia_membro', type: 'uuid', isPrimary: true, default: uuidDefault },
           { name: 'id_familia', type: 'uuid' },
           { name: 'id_beneficiario', type: 'uuid' },
           { name: 'parentesco', type: 'varchar' },
@@ -165,36 +192,59 @@ export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationIn
           { name: 'observacoes', type: 'text', isNullable: true },
           { name: 'data_cadastro', type: 'timestamp', default: 'now()' },
           { name: 'data_atualizacao', type: 'timestamp', isNullable: true }
-        ],
-        uniques: [
-          { name: 'uk_familia_membro_beneficiario', columnNames: ['id_familia', 'id_beneficiario'] }
-        ]
-      })
-    );
+          ],
+          uniques: [
+            { name: 'uk_familia_membro_beneficiario', columnNames: ['id_familia', 'id_beneficiario'] }
+          ]
+        })
+      );
+    }
 
-    await queryRunner.createForeignKeys('familia', [
-      new TableForeignKey({
-        columnNames: ['id_referencia_familiar'],
-        referencedTableName: 'beneficiario',
-        referencedColumnNames: ['id_beneficiario'],
-        onDelete: 'SET NULL'
-      })
-    ]);
+    const familiaTable = await queryRunner.getTable('familia');
+    if (familiaTable && !familiaTable.foreignKeys.some((fk) => fk.columnNames.includes('id_referencia_familiar'))) {
+      await queryRunner.createForeignKeys('familia', [
+        new TableForeignKey({
+          columnNames: ['id_referencia_familiar'],
+          referencedTableName: 'beneficiario',
+          referencedColumnNames: ['id_beneficiario'],
+          onDelete: 'SET NULL'
+        })
+      ]);
+    }
 
-    await queryRunner.createForeignKeys('familia_membro', [
-      new TableForeignKey({
-        columnNames: ['id_familia'],
-        referencedTableName: 'familia',
-        referencedColumnNames: ['id_familia'],
-        onDelete: 'CASCADE'
-      }),
-      new TableForeignKey({
-        columnNames: ['id_beneficiario'],
-        referencedTableName: 'beneficiario',
-        referencedColumnNames: ['id_beneficiario'],
-        onDelete: 'CASCADE'
-      })
-    ]);
+    const familiaMembroTable = await queryRunner.getTable('familia_membro');
+    const hasFamiliaFk = familiaMembroTable?.foreignKeys.some((fk) => fk.columnNames.includes('id_familia'));
+    const hasBenefFk = familiaMembroTable?.foreignKeys.some((fk) => fk.columnNames.includes('id_beneficiario'));
+
+    if (familiaMembroTable && (!hasFamiliaFk || !hasBenefFk)) {
+      const foreignKeys: TableForeignKey[] = [];
+
+      if (!hasFamiliaFk) {
+        foreignKeys.push(
+          new TableForeignKey({
+            columnNames: ['id_familia'],
+            referencedTableName: 'familia',
+            referencedColumnNames: ['id_familia'],
+            onDelete: 'CASCADE'
+          })
+        );
+      }
+
+      if (!hasBenefFk) {
+        foreignKeys.push(
+          new TableForeignKey({
+            columnNames: ['id_beneficiario'],
+            referencedTableName: 'beneficiario',
+            referencedColumnNames: ['id_beneficiario'],
+            onDelete: 'CASCADE'
+          })
+        );
+      }
+
+      if (foreignKeys.length) {
+        await queryRunner.createForeignKeys('familia_membro', foreignKeys);
+      }
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
