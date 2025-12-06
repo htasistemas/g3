@@ -33,3 +33,9 @@ npm run dev
 ```
 
 O projeto utiliza TypeORM e pode cair para SQLite local se `DB_TYPE=sqlite` for definido.
+
+## Scripts SQL manuais
+Caso queira criar as tabelas diretamente pelo seu gerenciador de banco, existem scripts prontos:
+
+- PostgreSQL: `backend/postgresSQL/sql-editor-create-tables.sql`
+- MySQL: `backend/mysqlSQL/sql-editor-create-tables.sql`
