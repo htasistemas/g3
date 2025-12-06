@@ -42,7 +42,6 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
 
       return new TableColumn({
         ...column,
-
         type: desiredColumn.type,
         isNullable: true,
         default: column.default
@@ -58,7 +57,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
         indices: table.indices,
         uniques: table.uniques,
         foreignKeys: table.foreignKeys
-
+      })
     );
 
     const columnNames = table.columns.map((column) => `"${column.name}"`).join(', ');
@@ -66,7 +65,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
       `INSERT INTO "${temporaryTableName}" (${columnNames}) SELECT ${columnNames} FROM "${table.name}"`
     );
 
-
+    await queryRunner.dropTable(table.name);
     await queryRunner.renameTable(temporaryTableName, table.name);
   }
 
