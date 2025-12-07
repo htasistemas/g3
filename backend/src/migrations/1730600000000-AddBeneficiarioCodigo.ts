@@ -2,10 +2,14 @@ import { MigrationInterface, QueryRunner, TableColumn, TableUnique } from 'typeo
 
 export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn(
-      'beneficiario',
-      new TableColumn({ name: 'codigo', type: 'varchar', length: '32', isNullable: true })
-    );
+    const hasCodigoColumn = await queryRunner.hasColumn('beneficiario', 'codigo');
+
+    if (!hasCodigoColumn) {
+      await queryRunner.addColumn(
+        'beneficiario',
+        new TableColumn({ name: 'codigo', type: 'varchar', length: '32', isNullable: true })
+      );
+    }
 
     const beneficiarios: Array<{ id_beneficiario: string }> = await queryRunner.query(
       'SELECT id_beneficiario FROM beneficiario ORDER BY data_cadastro ASC'
@@ -21,10 +25,16 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
       counter += 1;
     }
 
-    await queryRunner.createUniqueConstraint(
-      'beneficiario',
-      new TableUnique({ name: 'UQ_beneficiario_codigo', columnNames: ['codigo'] })
+    const hasUniqueConstraint = (await queryRunner.getTable('beneficiario'))?.uniques.some(
+      (unique) => unique.columnNames.includes('codigo')
     );
+
+    if (!hasUniqueConstraint) {
+      await queryRunner.createUniqueConstraint(
+        'beneficiario',
+        new TableUnique({ name: 'UQ_beneficiario_codigo', columnNames: ['codigo'] })
+      );
+    }
 
     await queryRunner.changeColumn(
       'beneficiario',
