@@ -101,7 +101,7 @@ const dataSourceOptions: DataSourceOptions = (() => {
       ...baseOptions,
       type: 'sqlite',
       database,
-      synchronize: false,
+      synchronize: true,
       migrations,
       migrationsRun: true
     } satisfies DataSourceOptions;
