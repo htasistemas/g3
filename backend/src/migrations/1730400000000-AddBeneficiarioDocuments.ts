@@ -12,7 +12,7 @@ export class AddBeneficiarioDocuments1730400000000 implements MigrationInterface
 
     const desiredColumn = new TableColumn({
       name: 'documentos_obrigatorios',
-      type: isPostgres ? 'jsonb' : 'simple-json',
+      type: isPostgres ? 'jsonb' : 'text',
       isNullable: true
     });
     const desiredType = isPostgres ? 'jsonb' : 'text';

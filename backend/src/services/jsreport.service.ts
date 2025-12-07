@@ -13,13 +13,16 @@ function ensureDependencyInstalled(packageName: string): void {
 
 ensureDependencyInstalled('jsreport-core');
 ensureDependencyInstalled('jsreport-chrome-pdf');
+ensureDependencyInstalled('jsreport-handlebars');
 
 // Importações após a validação para evitar erros de inicialização por dependências não instaladas
 import jsreport from 'jsreport-core';
 import jsreportChrome from 'jsreport-chrome-pdf';
+import jsreportHandlebars from 'jsreport-handlebars';
 
 const instance = jsreport();
 instance.use(jsreportChrome());
+instance.use(jsreportHandlebars());
 
 const initialized = instance.init();
 

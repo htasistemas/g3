@@ -37,10 +37,10 @@ type SupportedDatabase = 'postgres' | 'mysql' | 'mariadb' | 'sqlite';
 const envDbType = (process.env.DB_TYPE as SupportedDatabase | undefined)?.toLowerCase() as
   | SupportedDatabase
   | undefined;
-const isDevEnvironment = (process.env.NODE_ENV || 'development') === 'development';
 
-// In development we keep SQLite as the default to simplify local setups.
-const dbType: SupportedDatabase = envDbType || (isDevEnvironment ? 'sqlite' : 'postgres');
+// Default to the configured relational database to avoid writing to a local SQLite file
+// unless it is explicitly requested via DB_TYPE=sqlite.
+const dbType: SupportedDatabase = envDbType || 'postgres';
 
 const migrations = [
   RenameSchemaToPortuguese1729700000000,
@@ -101,7 +101,7 @@ const dataSourceOptions: DataSourceOptions = (() => {
       ...baseOptions,
       type: 'sqlite',
       database,
-      synchronize: false,
+      synchronize: true,
       migrations,
       migrationsRun: true
     } satisfies DataSourceOptions;
