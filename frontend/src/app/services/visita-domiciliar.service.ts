@@ -69,10 +69,10 @@ export class VisitaDomiciliarService {
   list(): VisitaDomiciliar[] {
     try {
       const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : null;
-      return saved ? (JSON.parse(saved) as VisitaDomiciliar[]) : this.seed();
+      return saved ? (JSON.parse(saved) as VisitaDomiciliar[]) : [];
     } catch (error) {
       console.error('Erro ao recuperar visitas domiciliares', error);
-      return this.seed();
+      return [];
     }
   }
 
@@ -103,64 +103,5 @@ export class VisitaDomiciliarService {
     } catch (error) {
       console.error('Erro ao salvar visitas domiciliares', error);
     }
-  }
-
-  private seed(): VisitaDomiciliar[] {
-    const sample: VisitaDomiciliar = {
-      id: crypto.randomUUID(),
-      unidade: 'Unidade Central',
-      beneficiario: 'Maria Souza',
-      responsavel: 'Equipe Social',
-      dataVisita: new Date().toISOString().slice(0, 10),
-      horarioInicial: '09:00',
-      horarioFinal: '10:15',
-      tipoVisita: 'Acompanhamento',
-      situacao: 'Realizada',
-      usarEnderecoBeneficiario: true,
-      endereco: {
-        logradouro: 'Rua das Flores',
-        numero: '123',
-        bairro: 'Centro',
-        cidade: 'São Paulo',
-        uf: 'SP',
-        cep: '01000-000'
-      },
-      observacoesIniciais: 'Visita de rotina para atualização de cadastro.',
-      condicoes: {
-        tipoMoradia: 'Alugada',
-        situacaoPosse: 'Regular',
-        comodos: 4,
-        saneamento: 'Rede geral',
-        abastecimentoAgua: 'Rede geral',
-        energiaEletrica: 'Regular',
-        condicoesHigiene: 'Boa',
-        situacaoRisco: ['Sem risco estrutural'],
-        observacoes: 'Ambiente organizado e ventilado.'
-      },
-      situacaoSocial: {
-        rendaFamiliar: 'R$ 1.800,00',
-        faixaRenda: '1 a 2 salários',
-        beneficios: ['Bolsa Família'],
-        redeApoio: 'Vizinhos e igreja local',
-        vinculos: 'Participa do grupo comunitário',
-        observacoes: 'Beneficiária engajada nas ações comunitárias.'
-      },
-      registro: {
-        relato: 'Visita realizada com atualização cadastral e orientação sobre cursos.',
-        necessidades: 'Acompanhamento escolar para filhos.',
-        encaminhamentos: 'Encaminhada para oficina de informática.',
-        orientacoes: 'Organizar documentos para próximo atendimento.',
-        plano: 'Revisar evolução em 30 dias.'
-      },
-      anexos: [
-        { id: crypto.randomUUID(), nome: 'Foto da fachada.jpg', tipo: 'Imagem', tamanho: '1.2 MB' },
-        { id: crypto.randomUUID(), nome: 'Comprovante de endereço.pdf', tipo: 'PDF', tamanho: '320 KB' }
-      ],
-      createdAt: new Date().toISOString(),
-      createdBy: 'admin'
-    };
-
-    this.persist([sample]);
-    return [sample];
   }
 }
