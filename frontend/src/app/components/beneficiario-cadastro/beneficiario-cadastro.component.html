@@ -241,84 +241,99 @@
               </div>
             </div>
           </div>
-          <div class="toolbar-buttons" aria-label="Navegação do cadastro">
-            <button
-              type="button"
-              class="toolbar-button toolbar-button--primary"
-              (click)="submit()"
-              [disabled]="saving || uploadingDocuments"
-            >
-              <span class="toolbar-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M6.25 3.5C5.2835 3.5 4.5 4.2835 4.5 5.25V14.75C4.5 15.7165 5.2835 16.5 6.25 16.5H13.75C14.7165 16.5 15.5 15.7165 15.5 14.75V6.41421C15.5 6.149 15.3946 5.89464 15.2071 5.70711L12.2929 2.79289C12.1054 2.60536 11.851 2.5 11.5858 2.5H6.25ZM6.5 5.25C6.5 5.11193 6.61193 5 6.75 5H10.25C10.3881 5 10.5 5.11193 10.5 5.25C10.5 5.38807 10.3881 5.5 10.25 5.5H6.75C6.61193 5.5 6.5 5.38807 6.5 5.25ZM6.75 7.25C6.61193 7.25 6.5 7.36193 6.5 7.5C6.5 7.63807 6.61193 7.75 6.75 7.75H13.25C13.3881 7.75 13.5 7.63807 13.5 7.5C13.5 7.36193 13.3881 7.25 13.25 7.25H6.75ZM6.5 9.5C6.5 9.36193 6.61193 9.25 6.75 9.25H13.25C13.3881 9.25 13.5 9.36193 13.5 9.5C13.5 9.63807 13.3881 9.75 13.25 9.75H6.75C6.61193 9.75 6.5 9.63807 6.5 9.5ZM6.75 11.75C6.61193 11.75 6.5 11.8619 6.5 12C6.5 12.1381 6.61193 12.25 6.75 12.25H11.25C11.3881 12.25 11.5 12.1381 11.5 12C11.5 11.8619 11.3881 11.75 11.25 11.75H6.75Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="toolbar-button__label">Salvar</span>
-            </button>
-            <button type="button" class="toolbar-button toolbar-button--neutral" (click)="startNewBeneficiario()">
-              <span class="toolbar-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M10.3536 4.64645C10.5488 4.84171 10.5488 5.15829 10.3536 5.35355L7.70711 8H14.5C14.7761 8 15 8.22386 15 8.5C15 8.77614 14.7761 9 14.5 9H7.70711L10.3536 11.6464C10.5488 11.8417 10.5488 12.1583 10.3536 12.3536C10.1583 12.5488 9.84171 12.5488 9.64645 12.3536L6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L9.64645 4.64645C9.84171 4.45118 10.1583 4.45118 10.3536 4.64645Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="toolbar-button__label">Cancelar</span>
-            </button>
-            <button
-              type="button"
-              class="toolbar-button toolbar-button--danger"
-              (click)="handleDeleteSelected()"
-              [disabled]="!selectedBeneficiary"
-            >
-              <span class="toolbar-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M7.5 4C7.5 3.44772 7.94772 3 8.5 3H11.5C12.0523 3 12.5 3.44772 12.5 4V4.5H15.25C15.6642 4.5 16 4.83579 16 5.25C16 5.66421 15.6642 6 15.25 6H4.75C4.33579 6 4 5.66421 4 5.25C4 4.83579 4.33579 4.5 4.75 4.5H7.5V4Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M6.11392 7H13.8861L13.3861 14.5C13.3342 15.2792 12.6842 15.875 11.904 15.875H8.09597C7.31576 15.875 6.66579 15.2792 6.61392 14.5L6.11392 7ZM8.75 8.75C8.75 8.33579 8.41421 8 8 8C7.58579 8 7.25 8.33579 7.25 8.75V13.25C7.25 13.6642 7.58579 14 8 14C8.41421 14 8.75 13.6642 8.75 13.25V8.75ZM12.75 8.75C12.75 8.33579 12.4142 8 12 8C11.5858 8 11.25 8.33579 11.25 8.75V13.25C11.25 13.6642 11.5858 14 12 14C12.4142 14 12.75 13.6642 12.75 13.25V8.75Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="toolbar-button__label">Excluir</span>
-            </button>
-            <button type="button" class="toolbar-button toolbar-button--positive" (click)="startNewBeneficiario()">
-              <span class="toolbar-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M10.75 5.25C10.75 4.97386 10.5261 4.75 10.25 4.75C9.97386 4.75 9.75 4.97386 9.75 5.25V9.25H5.75C5.47386 9.25 5.25 9.47386 5.25 9.75C5.25 10.0261 5.47386 10.25 5.75 10.25H9.75V14.25C9.75 14.5261 9.97386 14.75 10.25 14.75C10.5261 14.75 10.75 14.5261 10.75 14.25V10.25H14.75C15.0261 10.25 15.25 10.0261 15.25 9.75C15.25 9.47386 15.0261 9.25 14.75 9.25H10.75V5.25Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="toolbar-button__label">Novo</span>
-            </button>
-            <button type="button" class="toolbar-button toolbar-button--neutral" (click)="closeForm()">
-              <span class="toolbar-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M6.46967 6.46967C6.76256 6.17678 7.23744 6.17678 7.53033 6.46967L10 8.93934L12.4697 6.46967C12.7626 6.17678 13.2374 6.17678 13.5303 6.46967C13.8232 6.76256 13.8232 7.23744 13.5303 7.53033L11.0607 10L13.5303 12.4697C13.8232 12.7626 13.8232 13.2374 13.5303 13.5303C13.2374 13.8232 12.7626 13.8232 12.4697 13.5303L10 11.0607L7.53033 13.5303C7.23744 13.8232 6.76256 13.8232 6.46967 13.5303C6.17678 13.2374 6.17678 12.7626 6.46967 12.4697L8.93934 10L6.46967 7.53033C6.17678 7.23744 6.17678 6.76256 6.46967 6.46967Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="toolbar-button__label">Fechar</span>
-            </button>
+          <div class="action-toolbar" aria-label="Ações do cadastro">
+            <div class="action-toolbar__group">
+              <button type="button" class="action-button action-button--print" (click)="onPrint()">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M14.25 4.25H5.75C5.33579 4.25 5 4.58579 5 5V7.25H15V5C15 4.58579 14.6642 4.25 14.25 4.25ZM5 12.25H3.75C3.33579 12.25 3 11.9142 3 11.5V8.25C3 7.42157 3.67157 6.75 4.5 6.75H15.5C16.3284 6.75 17 7.42157 17 8.25V11.5C17 11.9142 16.6642 12.25 16.25 12.25H15V14C15 14.8284 14.3284 15.5 13.5 15.5H6.5C5.67157 15.5 5 14.8284 5 14V12.25ZM13.5 13.75H6.5C6.36193 13.75 6.25 13.8619 6.25 14C6.25 14.1381 6.36193 14.25 6.5 14.25H13.5C13.6381 14.25 13.75 14.1381 13.75 14C13.75 13.8619 13.6381 13.75 13.5 13.75ZM5.75 5.75H14.25V4.75H5.75V5.75Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Imprimir dados</span>
+              </button>
+              <button
+                type="button"
+                class="action-button action-button--save"
+                (click)="onSave()"
+                [disabled]="saving || uploadingDocuments"
+              >
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M5.25 3.5C4.55964 3.5 4 4.05964 4 4.75V15.25C4 15.9404 4.55964 16.5 5.25 16.5H14.75C15.4404 16.5 16 15.9404 16 15.25V6.41421C16 6.149 15.8946 5.89464 15.7071 5.70711L12.2929 2.29289C12.1054 2.10536 11.851 2 11.5858 2H5.25ZM6.25 4.5C6.11193 4.5 6 4.61193 6 4.75C6 4.88807 6.11193 5 6.25 5H10.25C10.3881 5 10.5 4.88807 10.5 4.75C10.5 4.61193 10.3881 4.5 10.25 4.5H6.25ZM6 8C6 7.86193 6.11193 7.75 6.25 7.75H13.75C13.8881 7.75 14 7.86193 14 8C14 8.13807 13.8881 8.25 13.75 8.25H6.25C6.11193 8.25 6 8.13807 6 8ZM6 10.5C6 10.3619 6.11193 10.25 6.25 10.25H13.75C13.8881 10.25 14 10.3619 14 10.5C14 10.6381 13.8881 10.75 13.75 10.75H6.25C6.11193 10.75 6 10.6381 6 10.5ZM6.25 12.75C6.11193 12.75 6 12.8619 6 13C6 13.1381 6.11193 13.25 6.25 13.25H11.75C11.8881 13.25 12 13.1381 12 13C12 12.8619 11.8881 12.75 11.75 12.75H6.25Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Salvar</span>
+              </button>
+              <button type="button" class="action-button action-button--cancel" (click)="onCancel()">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M10.3536 4.64645C10.5488 4.84171 10.5488 5.15829 10.3536 5.35355L7.70711 8H14.5C14.7761 8 15 8.22386 15 8.5C15 8.77614 14.7761 9 14.5 9H7.70711L10.3536 11.6464C10.5488 11.8417 10.5488 12.1583 10.3536 12.3536C10.1583 12.5488 9.84171 12.5488 9.64645 12.3536L6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L9.64645 4.64645C9.84171 4.45118 10.1583 4.45118 10.3536 4.64645Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Cancelar</span>
+              </button>
+              <button
+                type="button"
+                class="action-button action-button--delete"
+                (click)="onDelete()"
+                [disabled]="!selectedBeneficiary"
+              >
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M7.5 4C7.5 3.44772 7.94772 3 8.5 3H11.5C12.0523 3 12.5 3.44772 12.5 4V4.5H15.25C15.6642 4.5 16 4.83579 16 5.25C16 5.66421 15.6642 6 15.25 6H4.75C4.33579 6 4 5.66421 4 5.25C4 4.83579 4.33579 4.5 4.75 4.5H7.5V4Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M6.11392 7H13.8861L13.3861 14.5C13.3342 15.2792 12.6842 15.875 11.904 15.875H8.09597C7.31576 15.875 6.66579 15.2792 6.61392 14.5L6.11392 7ZM8.75 8.75C8.75 8.33579 8.41421 8 8 8C7.58579 8 7.25 8.33579 7.25 8.75V13.25C7.25 13.6642 7.58579 14 8 14C8.41421 14 8.75 13.6642 8.75 13.25V8.75ZM12.75 8.75C12.75 8.33579 12.4142 8 12 8C11.5858 8 11.25 8.33579 11.25 8.75V13.25C11.25 13.6642 11.5858 14 12 14C12.4142 14 12.75 13.6642 12.75 13.25V8.75Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Excluir</span>
+              </button>
+              <button type="button" class="action-button action-button--new" (click)="onNew()">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M10.75 5.25C10.75 4.97386 10.5261 4.75 10.25 4.75C9.97386 4.75 9.75 4.97386 9.75 5.25V9.25H5.75C5.47386 9.25 5.25 9.47386 5.25 9.75C5.25 10.0261 5.47386 10.25 5.75 10.25H9.75V14.25C9.75 14.5261 9.97386 14.75 10.25 14.75C10.5261 14.75 10.75 14.5261 10.75 14.25V10.25H14.75C15.0261 10.25 15.25 10.0261 15.25 9.75C15.25 9.47386 15.0261 9.25 14.75 9.25H10.75V5.25Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Novo</span>
+              </button>
+              <button type="button" class="action-button action-button--close" (click)="onClose()">
+                <span class="action-button__icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M6.46967 6.46967C6.76256 6.17678 7.23744 6.17678 7.53033 6.46967L10 8.93934L12.4697 6.46967C12.7626 6.17678 13.2374 6.17678 13.5303 6.46967C13.8232 6.76256 13.8232 7.23744 13.5303 7.53033L11.0607 10L13.5303 12.4697C13.8232 12.7626 13.8232 13.2374 13.5303 13.5303C13.2374 13.8232 12.7626 13.8232 12.4697 13.5303L10 11.0607L7.53033 13.5303C7.23744 13.8232 6.76256 13.8232 6.46967 13.5303C6.17678 13.2374 6.17678 12.7626 6.46967 12.4697L8.93934 10L6.46967 7.53033C6.17678 7.23744 6.17678 6.76256 6.46967 6.46967Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span class="action-button__label">Fechar</span>
+              </button>
+            </div>
           </div>
           <button type="button" class="nav-button nav-button--muted" (click)="openQuickSearch()">
             <span class="nav-button__icon" aria-hidden="true">
