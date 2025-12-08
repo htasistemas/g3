@@ -14,6 +14,14 @@ export interface DocumentoObrigatorio {
   contentType?: string;
 }
 
+export interface VulnerabilityIndexPayload {
+  id?: string;
+  idBeneficiario?: string;
+  pontuacaoTotal?: number;
+  faixaVulnerabilidade?: string;
+  dataCalculo?: string;
+}
+
 export interface BeneficiaryPayload {
   id?: number;
   codigo?: string;
@@ -119,6 +127,7 @@ export interface BeneficiaryPayload {
   historicoBeneficio?: string;
   documentosAnexos: DocumentoObrigatorio[];
   foto?: string | null;
+  indiceVulnerabilidade?: VulnerabilityIndexPayload | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -166,6 +175,22 @@ export class BeneficiaryService {
         return { beneficiarios: [] };
       })
     );
+  }
+
+  verifyDuplicidade(payload: {
+    nomeCompleto?: string;
+    nomeMae?: string;
+    dataNascimento?: string;
+    cpf?: string;
+  }): Observable<{ candidatos: BeneficiaryPayload[] }> {
+    return this.requestWithFallback((baseUrl) =>
+      this.http.post<{ candidatos: BeneficiaryPayload[] }>(`${baseUrl}/verificar-duplicidade`, payload)
+    );
+  }
+
+  recalculateIvf(idBeneficiario: string): Observable<VulnerabilityIndexPayload> {
+    const url = `${environment.apiUrl}/api/ivf/${idBeneficiario}/recalcular`;
+    return this.http.post<{ indice: VulnerabilityIndexPayload }>(url, {}).pipe(map(({ indice }) => indice));
   }
 
   save(payload: BeneficiaryPayload, photoFile?: File | null): Observable<BeneficiaryPayload> {

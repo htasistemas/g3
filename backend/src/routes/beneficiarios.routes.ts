@@ -1,14 +1,32 @@
 import { Request, Router } from 'express';
 import multer from 'multer';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
+import { BeneficiarioDuplicidadeService } from '../services/beneficiario-duplicidade.service';
+import { IndiceVulnerabilidadeFamiliar } from '../entities/IndiceVulnerabilidadeFamiliar';
 
 const router = Router();
 const upload = multer();
+const duplicidadeService = new BeneficiarioDuplicidadeService();
 
 // Permite que envios via FormData (sem arquivos) sejam lidos corretamente.
 router.use(upload.none());
+
+router.post('/verificar-duplicidade', async (req, res) => {
+  try {
+    const candidatos = await duplicidadeService.verificar({
+      nomeCompleto: req.body.nomeCompleto ?? req.body.nome_completo,
+      nomeMae: req.body.nomeMae ?? req.body.nome_mae,
+      dataNascimento: req.body.dataNascimento ?? req.body.data_nascimento,
+      cpf: req.body.cpf
+    });
+
+    res.json({ candidatos });
+  } catch (error: any) {
+    res.status(500).json({ message: error?.message || 'Falha ao verificar duplicidade' });
+  }
+});
 
 function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
@@ -231,6 +249,17 @@ router.get('/', async (req, res) => {
 
   const beneficiarios = await qb.orderBy('beneficiario.nome_completo', 'ASC').getMany();
 
+  const ivfRepo = AppDataSource.getRepository(IndiceVulnerabilidadeFamiliar);
+  const indices = await ivfRepo.find({ where: { idBeneficiario: In(beneficiarios.map((b) => b.idBeneficiario)) } });
+  const ivfMap = indices.reduce<Record<string, IndiceVulnerabilidadeFamiliar>>((acc, index) => {
+    acc[index.idBeneficiario] = index;
+    return acc;
+  }, {});
+
+  beneficiarios.forEach((beneficiario) => {
+    (beneficiario as any).indiceVulnerabilidade = ivfMap[beneficiario.idBeneficiario] ?? null;
+  });
+
   const withoutCodigo = beneficiarios.filter((item) => !item.codigo);
   if (withoutCodigo.length) {
     for (const record of withoutCodigo) {
@@ -258,6 +287,10 @@ router.get('/:id', async (req, res) => {
   if (!beneficiario) {
     return res.status(404).json({ message: 'Beneficiário não encontrado' });
   }
+
+  const ivfRepo = AppDataSource.getRepository(IndiceVulnerabilidadeFamiliar);
+  const indiceVulnerabilidade = await ivfRepo.findOne({ where: { idBeneficiario: beneficiario.idBeneficiario } });
+  (beneficiario as any).indiceVulnerabilidade = indiceVulnerabilidade ?? null;
 
   if (!beneficiario.codigo) {
     beneficiario.codigo = await generateSequentialCodigo(repository);

@@ -20,6 +20,7 @@ import { PlanoCronogramaItem } from './entities/PlanoCronogramaItem';
 import { PlanoEquipe } from './entities/PlanoEquipe';
 import { CursoAtendimento } from './entities/CursoAtendimento';
 import { Sala } from './entities/Sala';
+import { IndiceVulnerabilidadeFamiliar } from './entities/IndiceVulnerabilidadeFamiliar';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -30,6 +31,7 @@ import { AddBeneficiarioPhoto1730500000000 } from './migrations/1730500000000-Ad
 import { AddBeneficiarioCodigo1730600000000 } from './migrations/1730600000000-AddBeneficiarioCodigo';
 import { CreateSalas1730700000000 } from './migrations/1730700000000-CreateSalas';
 import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/1730800000000-CreateBeneficiarioBaseSchema';
+import { CreateVulnerabilityIndex1730900000000 } from './migrations/1730900000000-CreateVulnerabilityIndex';
 
 dotenv.config();
 
@@ -53,7 +55,8 @@ const migrations = [
   AddBeneficiarioPhoto1730500000000,
   AddBeneficiarioCodigo1730600000000,
   CreateSalas1730700000000,
-  CreateBeneficiarioBaseSchema1730800000000
+  CreateBeneficiarioBaseSchema1730800000000,
+  CreateVulnerabilityIndex1730900000000
 ];
 
 function resolveRelationalPort(): number {
@@ -89,7 +92,8 @@ const baseOptions = {
     PlanoCronogramaItem,
     PlanoEquipe,
     CursoAtendimento,
-    Sala
+    Sala,
+    IndiceVulnerabilidadeFamiliar
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;

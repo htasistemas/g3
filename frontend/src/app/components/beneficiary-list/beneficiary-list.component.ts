@@ -17,6 +17,7 @@ export class BeneficiaryListComponent implements OnInit {
   searchTerm = '';
   loading = false;
   error: string | null = null;
+  orderIvfDesc = true;
 
   constructor(private readonly beneficiaryService: BeneficiaryService, private readonly router: Router) {}
 
@@ -45,14 +46,18 @@ export class BeneficiaryListComponent implements OnInit {
     const term = this.searchTerm.trim().toLowerCase();
     if (!term) {
       this.filtered = [...this.beneficiaries];
-      return;
+    } else {
+      this.filtered = this.beneficiaries.filter((beneficiary) => {
+        const name = beneficiary.nomeCompleto?.toLowerCase() ?? '';
+        const cpf = beneficiary.cpf?.toLowerCase() ?? beneficiary.documentos?.toLowerCase() ?? '';
+        const code = beneficiary.codigo?.toLowerCase() ?? '';
+        return name.includes(term) || cpf.includes(term) || code.includes(term);
+      });
     }
 
-    this.filtered = this.beneficiaries.filter((beneficiary) => {
-      const name = beneficiary.nomeCompleto?.toLowerCase() ?? '';
-      const cpf = beneficiary.cpf?.toLowerCase() ?? beneficiary.documentos?.toLowerCase() ?? '';
-      const code = beneficiary.codigo?.toLowerCase() ?? '';
-      return name.includes(term) || cpf.includes(term) || code.includes(term);
+    this.filtered.sort((a, b) => {
+      const diff = this.getIvfScore(b) - this.getIvfScore(a);
+      return this.orderIvfDesc ? diff : -diff;
     });
   }
 
@@ -66,5 +71,33 @@ export class BeneficiaryListComponent implements OnInit {
     }
 
     this.router.navigate(['/beneficiarios/editar', id]);
+  }
+
+  toggleIvfOrder(): void {
+    this.orderIvfDesc = !this.orderIvfDesc;
+    this.applyFilter();
+  }
+
+  getIvfScore(beneficiary: BeneficiaryPayload): number {
+    return beneficiary.indiceVulnerabilidade?.pontuacaoTotal ?? 0;
+  }
+
+  getIvfLabel(beneficiary: BeneficiaryPayload): string {
+    return beneficiary.indiceVulnerabilidade?.faixaVulnerabilidade ?? 'Sem cálculo';
+  }
+
+  getBadgeClass(faixa?: string): string {
+    switch (faixa) {
+      case 'Crítica':
+        return 'bg-red-100 text-red-700';
+      case 'Alta':
+        return 'bg-orange-100 text-orange-700';
+      case 'Média':
+        return 'bg-amber-100 text-amber-700';
+      case 'Baixa':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-slate-100 text-slate-600';
+    }
   }
 }

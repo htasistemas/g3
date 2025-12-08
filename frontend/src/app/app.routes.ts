@@ -25,6 +25,7 @@ import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
+import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -36,6 +37,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard/visao-geral', pathMatch: 'full' },
       { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visão geral' } },
       { path: 'dashboard/indicadores', component: DashboardIndicatorsComponent, data: { title: 'Indicadores' } },
+      { path: 'dashboard/gerencial', component: DashboardBiComponent, data: { title: 'Dashboard gerencial' } },
       { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiários' } },
       {
         path: 'beneficiarios/editar/:id',
