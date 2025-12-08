@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   SituacaoVisita,
@@ -7,6 +7,7 @@ import {
   VisitaDomiciliar,
   VisitaDomiciliarService
 } from '../../services/visita-domiciliar.service';
+import { BeneficiaryService } from '../../services/beneficiary.service';
 
 interface StepTab {
   id: string;
@@ -20,7 +21,7 @@ interface StepTab {
   templateUrl: './visita-domiciliar-gestao.component.html',
   styleUrl: './visita-domiciliar-gestao.component.scss'
 })
-export class VisitaDomiciliarGestaoComponent {
+export class VisitaDomiciliarGestaoComponent implements OnInit {
   tabs: StepTab[] = [
     { id: 'identificacao', label: 'Identificação da visita' },
     { id: 'condicoes', label: 'Condições do domicílio' },
@@ -33,8 +34,10 @@ export class VisitaDomiciliarGestaoComponent {
   readonly tiposVisita = ['Social', 'Técnica', 'Acompanhamento', 'Retorno'];
   readonly situacoes: SituacaoVisita[] = ['Agendada', 'Em andamento', 'Realizada', 'Cancelada'];
   readonly unidades = ['Unidade Central', 'Polo Norte', 'Polo Sul'];
-  readonly beneficiarios = ['Maria Souza', 'João Silva', 'Ana Costa', 'Carlos Santos'];
   readonly responsaveis = ['Equipe Social', 'Equipe Técnica', 'Voluntário dedicado'];
+  beneficiarios: string[] = [];
+  beneficiariosLoading = false;
+  beneficiariosError: string | null = null;
 
   readonly situacaoMoradia = ['Própria', 'Alugada', 'Cedida', 'Ocupação'];
   readonly situacaoPosse = ['Regular', 'Irregular'];
@@ -58,7 +61,11 @@ export class VisitaDomiciliarGestaoComponent {
   saving = false;
   editingId: string | null = null;
 
-  constructor(private readonly fb: FormBuilder, private readonly visitaService: VisitaDomiciliarService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly visitaService: VisitaDomiciliarService,
+    private readonly beneficiaryService: BeneficiaryService
+  ) {
     this.visitForm = this.fb.group({
       identificacao: this.fb.group({
         unidade: ['', Validators.required],
@@ -123,8 +130,30 @@ export class VisitaDomiciliarGestaoComponent {
       tipo: ['PDF', Validators.required],
       tamanho: ['']
     });
+  }
 
+  ngOnInit(): void {
+    this.loadBeneficiarios();
     this.loadVisitas();
+  }
+
+  private loadBeneficiarios(): void {
+    this.beneficiariosLoading = true;
+    this.beneficiariosError = null;
+
+    this.beneficiaryService.list().subscribe({
+      next: ({ beneficiarios }) => {
+        this.beneficiarios = (beneficiarios ?? []).map(
+          (beneficiario) => beneficiario.nomeCompleto || (beneficiario as any).nome_completo || 'Beneficiário'
+        );
+        this.beneficiariosLoading = false;
+      },
+      error: () => {
+        this.beneficiarios = [];
+        this.beneficiariosError = 'Não foi possível carregar os beneficiários.';
+        this.beneficiariosLoading = false;
+      }
+    });
   }
 
   get activeTabIndex(): number {

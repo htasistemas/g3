@@ -59,6 +59,8 @@
             <option value=""></option>
             <option *ngFor="let beneficiario of beneficiarios" [value]="beneficiario">{{ beneficiario }}</option>
           </select></label>
+        <p class="muted" *ngIf="beneficiariosLoading">Carregando beneficiários...</p>
+        <p class="muted text-red-600" *ngIf="beneficiariosError">{{ beneficiariosError }}</p>
         <label class="field">Responsável pela visita*<select formControlName="responsavel">
             <option value=""></option>
             <option *ngFor="let responsavel of responsaveis" [value]="responsavel">{{ responsavel }}</option>
