@@ -135,7 +135,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faWrench,
       children: [
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
-        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' }
+        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
+        { label: 'Assistente de textos', icon: faBullhorn, route: '/assistente-textos' }
       ]
     }
   ];
