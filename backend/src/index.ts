@@ -19,6 +19,8 @@ import cursosAtendimentosRoutes from './routes/cursos-atendimentos.routes';
 import salasRoutes from './routes/salas.routes';
 import vulnerabilityIndexRoutes from './routes/vulnerability-index.routes';
 import dashboardBiRoutes from './routes/dashboard-bi.routes';
+import benefitTypesRoutes from './routes/benefit-types.routes';
+import benefitGrantsRoutes from './routes/benefit-grants.routes';
 
 dotenv.config();
 
@@ -52,6 +54,8 @@ app.use('/api/cursos-atendimentos', cursosAtendimentosRoutes);
 app.use('/api/salas', salasRoutes);
 app.use('/api/ivf', vulnerabilityIndexRoutes);
 app.use('/api/dashboard/bi', dashboardBiRoutes);
+app.use('/api/benefits/types', benefitTypesRoutes);
+app.use('/api/benefits/grants', benefitGrantsRoutes);
 
 async function start() {
   try {

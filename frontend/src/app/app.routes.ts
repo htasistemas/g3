@@ -26,6 +26,7 @@ import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
+import { AtendimentoFluxoComponent } from './components/atendimento-fluxo/atendimento-fluxo.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -81,6 +82,11 @@ export const routes: Routes = [
         path: 'atendimentos/cursos',
         component: CursosAtendimentosComponent,
         data: { title: 'Cursos e atendimentos' }
+      },
+      {
+        path: 'atendimentos/fluxo',
+        component: AtendimentoFluxoComponent,
+        data: { title: 'Fluxo de atendimentos' }
       },
       {
         path: 'administrativo/patrimonio',
