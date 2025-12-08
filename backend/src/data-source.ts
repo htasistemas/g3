@@ -29,6 +29,7 @@ import { AddBeneficiarioDocuments1730400000000 } from './migrations/173040000000
 import { AddBeneficiarioPhoto1730500000000 } from './migrations/1730500000000-AddBeneficiarioPhoto';
 import { AddBeneficiarioCodigo1730600000000 } from './migrations/1730600000000-AddBeneficiarioCodigo';
 import { CreateSalas1730700000000 } from './migrations/1730700000000-CreateSalas';
+import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/1730800000000-CreateBeneficiarioBaseSchema';
 
 dotenv.config();
 
@@ -51,7 +52,8 @@ const migrations = [
   AddBeneficiarioDocuments1730400000000,
   AddBeneficiarioPhoto1730500000000,
   AddBeneficiarioCodigo1730600000000,
-  CreateSalas1730700000000
+  CreateSalas1730700000000,
+  CreateBeneficiarioBaseSchema1730800000000
 ];
 
 function resolveRelationalPort(): number {
