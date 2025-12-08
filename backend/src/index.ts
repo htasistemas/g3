@@ -17,6 +17,8 @@ import dashboardAssistenciaRoutes from './routes/dashboard-assistencia.routes';
 import reportsRoutes from './routes/reports.routes';
 import cursosAtendimentosRoutes from './routes/cursos-atendimentos.routes';
 import salasRoutes from './routes/salas.routes';
+import vulnerabilityIndexRoutes from './routes/vulnerability-index.routes';
+import dashboardBiRoutes from './routes/dashboard-bi.routes';
 
 dotenv.config();
 
@@ -48,6 +50,8 @@ app.use('/api/dashboard', dashboardAssistenciaRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/cursos-atendimentos', cursosAtendimentosRoutes);
 app.use('/api/salas', salasRoutes);
+app.use('/api/ivf', vulnerabilityIndexRoutes);
+app.use('/api/dashboard/bi', dashboardBiRoutes);
 
 async function start() {
   try {

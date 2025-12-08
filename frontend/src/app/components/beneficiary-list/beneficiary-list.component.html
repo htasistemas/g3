@@ -39,6 +39,10 @@
             <th class="table-head">Nome completo</th>
             <th class="table-head">Código</th>
             <th class="table-head">CPF</th>
+            <th class="table-head cursor-pointer" (click)="toggleIvfOrder()">
+              IVF
+              <span class="text-xs text-slate-500">{{ orderIvfDesc ? '▼' : '▲' }}</span>
+            </th>
             <th class="table-head">Data de nascimento</th>
             <th class="table-head">Cidade/UF</th>
             <th class="table-head text-right">Ações</th>
@@ -49,6 +53,17 @@
             <td class="table-cell">{{ beneficiary.nomeCompleto || 'Não informado' }}</td>
             <td class="table-cell">{{ beneficiary.codigo || '---' }}</td>
             <td class="table-cell">{{ beneficiary.cpf || beneficiary.documentos || '---' }}</td>
+            <td class="table-cell">
+              <div class="flex items-center gap-2">
+                <span
+                  class="px-2 py-1 rounded-full text-xs font-semibold"
+                  [ngClass]="getBadgeClass(beneficiary.indiceVulnerabilidade?.faixaVulnerabilidade)"
+                >
+                  {{ getIvfLabel(beneficiary) }}
+                </span>
+                <span class="text-xs text-slate-500">{{ getIvfScore(beneficiary) }}</span>
+              </div>
+            </td>
             <td class="table-cell">
               {{ beneficiary.dataNascimento ? (beneficiary.dataNascimento | date : 'dd/MM/yyyy') : '---' }}
             </td>
@@ -61,7 +76,7 @@
       </table>
       <ng-template #emptyState>
         <tr>
-          <td colspan="6" class="text-center py-6 text-slate-600">Nenhum beneficiário encontrado.</td>
+          <td colspan="7" class="text-center py-6 text-slate-600">Nenhum beneficiário encontrado.</td>
         </tr>
       </ng-template>
     </div>

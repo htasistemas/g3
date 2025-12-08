@@ -3,7 +3,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
+import {
+  BeneficiaryPayload,
+  BeneficiaryService,
+  DocumentoObrigatorio,
+  VulnerabilityIndexPayload
+} from '../../services/beneficiary.service';
 
 interface UploadedDocument {
   tipo: string;
@@ -46,6 +51,12 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   editingId: number | null = null;
   isSubmitting = false;
   photoFile: File | null = null;
+  duplicateModalOpen = false;
+  possibleDuplicates: BeneficiaryPayload[] = [];
+  pendingPayload: BeneficiaryPayload | null = null;
+  duplicateError: string | null = null;
+  vulnerabilityIndex: VulnerabilityIndexPayload | null = null;
+  ivfLoading = false;
   private destroy$ = new Subject<void>();
 
   readonly states = [
@@ -365,6 +376,56 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
       }))
     };
 
+    this.checkDuplicatesAndSave(payload);
+  }
+
+  private checkDuplicatesAndSave(payload: BeneficiaryPayload): void {
+    this.isSubmitting = true;
+    this.pendingPayload = payload;
+    this.duplicateError = null;
+
+    this.beneficiaryService
+      .verifyDuplicidade({
+        nomeCompleto: payload.nomeCompleto,
+        nomeMae: payload.nomeMae,
+        dataNascimento: payload.dataNascimento,
+        cpf: payload.cpf
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ candidatos }) => {
+          if (candidatos?.length && !this.editingId) {
+            this.isSubmitting = false;
+            this.possibleDuplicates = candidatos;
+            this.duplicateModalOpen = true;
+            return;
+          }
+
+          this.persistBeneficiary(payload);
+        },
+        error: () => {
+          this.isSubmitting = false;
+          this.duplicateError = 'Não foi possível verificar duplicidade. Tente novamente.';
+        }
+      });
+  }
+
+  continueDespiteDuplicates(): void {
+    if (!this.pendingPayload) {
+      this.duplicateModalOpen = false;
+      return;
+    }
+
+    this.persistBeneficiary(this.pendingPayload);
+    this.duplicateModalOpen = false;
+  }
+
+  openExistingBeneficiary(id?: number): void {
+    if (!id) return;
+    this.router.navigate(['/beneficiarios/editar', id]);
+  }
+
+  private persistBeneficiary(payload: BeneficiaryPayload): void {
     this.isSubmitting = true;
     this.beneficiaryService.save(payload, this.photoFile).subscribe({
       next: () => {
@@ -379,11 +440,45 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     });
   }
 
+  recalculateIvf(): void {
+    if (!this.editingId) return;
+    this.ivfLoading = true;
+    this.beneficiaryService
+      .recalculateIvf(String(this.editingId))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (indice) => {
+          this.vulnerabilityIndex = indice;
+          this.ivfLoading = false;
+        },
+        error: () => {
+          this.ivfLoading = false;
+          this.feedback = { type: 'error', message: 'Não foi possível recalcular o IVF.' };
+        }
+      });
+  }
+
+  resolveIvfBadge(faixa?: string): string {
+    switch (faixa) {
+      case 'Crítica':
+        return 'bg-red-100 text-red-700';
+      case 'Alta':
+        return 'bg-orange-100 text-orange-700';
+      case 'Média':
+        return 'bg-amber-100 text-amber-700';
+      case 'Baixa':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-slate-100 text-slate-600';
+    }
+  }
+
   startNew(): void {
     this.editingId = null;
     this.feedback = null;
     this.uploadedDocuments = [];
     this.photoFile = null;
+    this.vulnerabilityIndex = null;
     this.beneficiaryForm.reset({
       contatoWhatsApp: true,
       responsavelLegal: false,
@@ -510,6 +605,7 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
   }
 
   private applyBeneficiary(beneficiary: BeneficiaryPayload): void {
+    this.vulnerabilityIndex = beneficiary.indiceVulnerabilidade ?? null;
     this.beneficiaryForm.patchValue({
       nomeCompleto: beneficiary.nomeCompleto || '',
       nomeSocial: beneficiary.nomeSocial || '',

@@ -19,6 +19,31 @@
     {{ feedback.message }}
   </div>
 
+  <div class="card flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <p class="text-sm font-semibold text-g3-green-700 uppercase">Índice de Vulnerabilidade Familiar</p>
+      <div class="flex items-center gap-3">
+        <span
+          class="px-3 py-1 rounded-full text-sm font-semibold"
+          [ngClass]="resolveIvfBadge(vulnerabilityIndex?.faixaVulnerabilidade)"
+        >
+          {{ vulnerabilityIndex?.faixaVulnerabilidade || 'Sem cálculo' }}
+        </span>
+        <p class="text-3xl font-bold text-slate-900">
+          {{ vulnerabilityIndex?.pontuacaoTotal ?? '—' }}
+        </p>
+      </div>
+      <p class="text-xs text-slate-600">
+        Último cálculo: {{ vulnerabilityIndex?.dataCalculo ? (vulnerabilityIndex.dataCalculo | date : 'short') : 'Não calculado' }}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" class="btn-outline" [disabled]="!editingId || ivfLoading" (click)="recalculateIvf()">
+        {{ ivfLoading ? 'Recalculando...' : 'Recalcular IVF' }}
+      </button>
+    </div>
+  </div>
+
   <nav class="tab-list" aria-label="Etapas do cadastro">
     <button type="button" class="tab-list__item" [class.tab-list__item--active]="activeTab === 'personal'" (click)="setActiveTab('personal')">
       Dados pessoais
@@ -933,4 +958,43 @@
       </div>
     </section>
   </form>
+</div>
+
+<div *ngIf="duplicateModalOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-g3-green-700 uppercase">Cadastro único</p>
+        <h3 class="text-xl font-semibold text-slate-900">Possíveis duplicidades encontradas</h3>
+        <p class="text-sm text-slate-600">Encontramos registros com dados semelhantes. Escolha como deseja prosseguir.</p>
+      </div>
+      <button type="button" class="btn-ghost" (click)="duplicateModalOpen = false">Fechar</button>
+    </div>
+
+    <div *ngIf="duplicateError" class="alert alert-error">{{ duplicateError }}</div>
+
+    <div *ngIf="possibleDuplicates.length; else noDuplicates" class="space-y-3 max-h-72 overflow-y-auto">
+      <div *ngFor="let candidate of possibleDuplicates" class="border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+        <div>
+          <p class="font-semibold text-slate-900">{{ candidate.nomeCompleto }}</p>
+          <p class="text-sm text-slate-600">
+            Nascimento: {{ candidate.dataNascimento | date : 'dd/MM/yyyy' }} · CPF: {{ candidate.cpf || '---' }}
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline" (click)="openExistingBeneficiary(candidate.id)">
+            Abrir cadastro existente
+          </button>
+        </div>
+      </div>
+    </div>
+    <ng-template #noDuplicates>
+      <p class="text-sm text-slate-600">Nenhum candidato foi retornado.</p>
+    </ng-template>
+
+    <div class="flex items-center justify-end gap-2 pt-2">
+      <button type="button" class="btn-outline" (click)="duplicateModalOpen = false">Cancelar</button>
+      <button type="button" class="btn-primary" (click)="continueDespiteDuplicates()">Continuar e salvar</button>
+    </div>
+  </div>
 </div>
