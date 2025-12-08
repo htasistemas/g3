@@ -228,8 +228,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  height: 42px;
-  padding: 0 18px;
+  min-height: 36px;
+  padding: 0.4rem 0.95rem;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #fff;
