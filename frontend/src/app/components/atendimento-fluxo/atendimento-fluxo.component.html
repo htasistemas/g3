@@ -1,0 +1,46 @@
+<section class="fluxo">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Atendimentos</p>
+    <p class="page-title__label">Monitoramento do fluxo</p>
+  </header>
+
+  <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+  <div *ngIf="loading">Carregando atendimentos...</div>
+
+  <div class="cards" *ngIf="!loading">
+    <article class="card" *ngFor="let record of records">
+      <header class="card__header">
+        <div>
+          <p class="eyebrow">{{ record.tipo }}</p>
+          <h3>{{ record.nome }}</h3>
+          <p class="muted">{{ record.descricao }}</p>
+        </div>
+        <span class="status" [attr.data-status]="record.status">{{ record.status }}</span>
+      </header>
+
+      <div class="card__controls">
+        <label>
+          Alterar status
+          <select [ngModel]="record.status" (ngModelChange)="updateStatus(record, $event)">
+            <option *ngFor="let option of statusOptions" [value]="option">{{ option }}</option>
+          </select>
+        </label>
+
+        <label>
+          Justificativa (opcional)
+          <textarea rows="2" [(ngModel)]="justification[record.id]"></textarea>
+        </label>
+      </div>
+
+      <div class="timeline" *ngIf="record.statusHistory?.length">
+        <p class="muted">Histórico do fluxo</p>
+        <ol>
+          <li *ngFor="let item of timeline(record)">
+            <span>{{ item.label }}</span>
+            <small>{{ item.date }}</small>
+          </li>
+        </ol>
+      </div>
+    </article>
+  </div>
+</section>

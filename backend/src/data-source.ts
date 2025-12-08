@@ -21,6 +21,8 @@ import { PlanoEquipe } from './entities/PlanoEquipe';
 import { CursoAtendimento } from './entities/CursoAtendimento';
 import { Sala } from './entities/Sala';
 import { IndiceVulnerabilidadeFamiliar } from './entities/IndiceVulnerabilidadeFamiliar';
+import { BenefitType } from './entities/BenefitType';
+import { BenefitGrant } from './entities/BenefitGrant';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -32,6 +34,8 @@ import { AddBeneficiarioCodigo1730600000000 } from './migrations/1730600000000-A
 import { CreateSalas1730700000000 } from './migrations/1730700000000-CreateSalas';
 import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/1730800000000-CreateBeneficiarioBaseSchema';
 import { CreateVulnerabilityIndex1730900000000 } from './migrations/1730900000000-CreateVulnerabilityIndex';
+import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950000000-AddStatusToCursosAtendimentos';
+import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
 
 dotenv.config();
 
@@ -56,7 +60,9 @@ const migrations = [
   AddBeneficiarioCodigo1730600000000,
   CreateSalas1730700000000,
   CreateBeneficiarioBaseSchema1730800000000,
-  CreateVulnerabilityIndex1730900000000
+  CreateVulnerabilityIndex1730900000000,
+  AddStatusToCursosAtendimentos1730950000000,
+  CreateBenefitsModule1730960000000
 ];
 
 function resolveRelationalPort(): number {
@@ -93,7 +99,9 @@ const baseOptions = {
     PlanoEquipe,
     CursoAtendimento,
     Sala,
-    IndiceVulnerabilidadeFamiliar
+    IndiceVulnerabilidadeFamiliar,
+    BenefitType,
+    BenefitGrant
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;
