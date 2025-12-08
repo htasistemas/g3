@@ -189,9 +189,10 @@
 
 .nav-buttons {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .action-toolbar {
@@ -286,22 +287,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   color: #0f172a;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
-  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.07);
 }
 
 .nav-button:hover {
   transform: translateY(-1px);
   border-color: #cbd5e1;
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
 }
 
 .nav-button:active {
@@ -309,8 +310,8 @@
 }
 
 .nav-button__icon {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -319,6 +320,13 @@
 
 .nav-button__label {
   white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .nav-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 
 .nav-button-group {
