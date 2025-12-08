@@ -27,6 +27,7 @@ import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tare
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
 import { AtendimentoFluxoComponent } from './components/atendimento-fluxo/atendimento-fluxo.component';
+import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -154,6 +155,11 @@ export const routes: Routes = [
         path: 'juridico/termos-fomento',
         component: TermosFomentoGestaoComponent,
         data: { title: 'Termos de Fomento' }
+      },
+      {
+        path: 'assistente-textos',
+        component: AssistenteTextosComponent,
+        data: { title: 'Assistente de textos' }
       },
       {
         path: 'georeferenciamento/localizacao',

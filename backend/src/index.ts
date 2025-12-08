@@ -21,6 +21,8 @@ import vulnerabilityIndexRoutes from './routes/vulnerability-index.routes';
 import dashboardBiRoutes from './routes/dashboard-bi.routes';
 import benefitTypesRoutes from './routes/benefit-types.routes';
 import benefitGrantsRoutes from './routes/benefit-grants.routes';
+import assistenteTextosRoutes from './routes/assistente-textos.routes';
+import prontuarioRoutes from './routes/prontuario.routes';
 
 dotenv.config();
 
@@ -56,6 +58,8 @@ app.use('/api/ivf', vulnerabilityIndexRoutes);
 app.use('/api/dashboard/bi', dashboardBiRoutes);
 app.use('/api/benefits/types', benefitTypesRoutes);
 app.use('/api/benefits/grants', benefitGrantsRoutes);
+app.use('/api/assistente-textos', assistenteTextosRoutes);
+app.use('/api/prontuario', prontuarioRoutes);
 
 async function start() {
   try {
