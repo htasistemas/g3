@@ -9,6 +9,12 @@ import {
 
 export class CreateSalas1730700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    const tableExists = await queryRunner.hasTable('salas');
+    if (tableExists) {
+      // Tabela já existe, não tentar criar novamente para evitar erro SQLITE_ERROR
+      return;
+    }
+
     const driver = queryRunner.connection.driver.options.type;
     const isSqlite = driver === 'sqlite';
     const uuidDefault = isSqlite
@@ -90,29 +96,12 @@ export class CreateSalas1730700000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const hasCursoTable = await queryRunner.hasTable('cursos_atendimentos');
-    if (!hasCursoTable) {
-      await queryRunner.dropTable('salas');
+    const tableExists = await queryRunner.hasTable('salas');
+    if (!tableExists) {
+      // Se a tabela não existir, não tenta dropar
       return;
     }
 
-    const index = (await queryRunner.getTable('cursos_atendimentos'))?.indices.find((idx) =>
-      idx.columnNames.includes('salaId')
-    );
-    if (index) {
-      await queryRunner.dropIndex('cursos_atendimentos', index);
-    }
-
-    const table = await queryRunner.getTable('cursos_atendimentos');
-    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('salaId'));
-    if (foreignKey) {
-      await queryRunner.dropForeignKey('cursos_atendimentos', foreignKey);
-    }
-
-    const hasSalaColumn = table?.findColumnByName('salaId');
-    if (hasSalaColumn) {
-      await queryRunner.dropColumn('cursos_atendimentos', 'salaId');
-    }
     await queryRunner.dropTable('salas');
   }
 }
