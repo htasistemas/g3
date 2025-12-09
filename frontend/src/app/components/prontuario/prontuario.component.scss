@@ -1,0 +1,25 @@
+.section-header {
+  @apply flex items-center justify-between gap-2;
+}
+
+.section-label {
+  @apply text-sm font-semibold text-g3-green-700 uppercase;
+}
+
+.section-title {
+  @apply text-xl font-semibold text-slate-900;
+}
+
+.card-muted {
+  @apply border border-slate-200 rounded-xl bg-white shadow-sm p-4 space-y-3;
+}
+
+.field {
+  @apply flex flex-col gap-1 text-sm text-slate-700;
+
+  input,
+  textarea,
+  select {
+    @apply input;
+  }
+}

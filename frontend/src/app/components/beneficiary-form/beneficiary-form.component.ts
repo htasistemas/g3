@@ -511,6 +511,11 @@ export class BeneficiaryFormComponent implements OnInit, OnDestroy {
     this.router.navigate(['/beneficiarios']);
   }
 
+  openProntuario(): void {
+    if (!this.editingId) return;
+    this.router.navigate(['/beneficiarios', this.editingId, 'prontuario']);
+  }
+
   private findFirstInvalidTab(): typeof this.activeTab {
     const tabControlMap: Record<typeof this.activeTab, string[]> = {
       personal: ['nomeCompleto', 'cpf', 'dataNascimento', 'nomeMae'],

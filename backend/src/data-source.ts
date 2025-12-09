@@ -23,6 +23,9 @@ import { BenefitType } from './entities/BenefitType';
 import { BenefitGrant } from './entities/BenefitGrant';
 import { StockItem } from './entities/StockItem';
 import { StockMovement } from './entities/StockMovement';
+import { Prontuario } from './entities/Prontuario';
+import { ProntuarioAtendimento } from './entities/ProntuarioAtendimento';
+import { ProntuarioEncaminhamento } from './entities/ProntuarioEncaminhamento';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -37,6 +40,7 @@ import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950
 import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
 import { CreateStockModule1731000000000 } from './migrations/1731000000000-CreateStockModule';
 import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/1731100000000-RenameBeneficiariesToBeneficiarios';
+import { CreateProntuarioModule1731200000000 } from './migrations/1731200000000-CreateProntuarioModule';
 
 dotenv.config();
 
@@ -54,7 +58,8 @@ const migrations = [
   AddStatusToCursosAtendimentos1730950000000,
   CreateBenefitsModule1730960000000,
   CreateStockModule1731000000000,
-  RenameBeneficiariesToBeneficiarios1731100000000
+  RenameBeneficiariesToBeneficiarios1731100000000,
+  CreateProntuarioModule1731200000000
 ];
 
 const baseOptions = {
@@ -80,7 +85,10 @@ const baseOptions = {
     BenefitType,
     BenefitGrant,
     StockItem,
-    StockMovement
+    StockMovement,
+    Prontuario,
+    ProntuarioAtendimento,
+    ProntuarioEncaminhamento
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;
