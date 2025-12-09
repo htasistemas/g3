@@ -242,6 +242,40 @@ export class VoluntariadoCadastroComponent {
     this.resetForm();
   }
 
+  printCurrentVolunteer(): void {
+    this.printVolunteer(this.buildVolunteerRecord());
+  }
+
+  cancelEdit(): void {
+    this.editingVolunteerId = null;
+    this.resetForm();
+  }
+
+  deleteCurrentVolunteer(): void {
+    if (!this.editingVolunteerId) return;
+
+    const volunteer = this.volunteers.find((item) => item.id === this.editingVolunteerId);
+    if (!volunteer) {
+      this.startNewVolunteer();
+      return;
+    }
+
+    if (!window.confirm(`Remover ${volunteer.nome} do cadastro?`)) return;
+
+    this.volunteerService.delete(volunteer.id);
+    this.loadVolunteers();
+    this.startNewVolunteer();
+  }
+
+  startNewVolunteer(): void {
+    this.editingVolunteerId = null;
+    this.resetForm();
+  }
+
+  closeForm(): void {
+    window.history.back();
+  }
+
   editVolunteer(volunteer: VolunteerRecord): void {
     this.editingVolunteerId = volunteer.id;
     this.changeTab('dados');
