@@ -212,25 +212,25 @@
           <fa-icon [icon]="faSliders" class="text-slate-400"></fa-icon>
         </div>
         <div class="space-y-3">
-          <div class="relative flex items-center gap-2">
-            <fa-icon [icon]="faMagnifyingGlass" class="absolute left-3 text-slate-400"></fa-icon>
+          <div class="flex items-center gap-2">
+            <fa-icon [icon]="faMagnifyingGlass" class="text-slate-400"></fa-icon>
             <input
               type="search"
-              class="input pl-9"
+              class="input flex-1"
               [(ngModel)]="itemFilters.term"
               placeholder="Descrição ou código"
             />
           </div>
-          <div class="relative flex items-center gap-2">
-            <fa-icon [icon]="faFilter" class="absolute left-3 text-slate-400"></fa-icon>
-            <select class="input pl-9" [(ngModel)]="itemFilters.category">
+          <div class="flex items-center gap-2">
+            <fa-icon [icon]="faFilter" class="text-slate-400"></fa-icon>
+            <select class="input flex-1" [(ngModel)]="itemFilters.category">
               <option value="all">Todas as categorias</option>
               <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
             </select>
           </div>
-          <div class="relative flex items-center gap-2">
-            <fa-icon [icon]="faBoxArchive" class="absolute left-3 text-slate-400"></fa-icon>
-            <select class="input pl-9" [(ngModel)]="itemFilters.status">
+          <div class="flex items-center gap-2">
+            <fa-icon [icon]="faBoxArchive" class="text-slate-400"></fa-icon>
+            <select class="input flex-1" [(ngModel)]="itemFilters.status">
               <option value="all">Todas as situações</option>
               <option value="Ativo">Ativo</option>
               <option value="Inativo">Inativo</option>
