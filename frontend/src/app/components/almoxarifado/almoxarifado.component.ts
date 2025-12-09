@@ -49,15 +49,15 @@ interface MovementFilters {
 interface ItemFormState {
   code: string;
   description: string;
-  category: string;
-  unit: string;
-  location: string;
-  locationDetail: string;
+  category?: string;
+  unit?: string;
+  location?: string;
+  locationDetail?: string;
   currentStock: number;
   minStock: number;
   unitValue: number;
   status: StockItemStatus;
-  notes: string;
+  notes?: string;
 }
 
 interface MovementFormState {
@@ -283,9 +283,16 @@ export class AlmoxarifadoComponent implements OnInit {
 
   editItem(item: StockItem): void {
     this.itemForm = {
-      ...item,
+      code: item.code,
+      description: item.description,
+      category: item.category ?? '',
+      unit: item.unit ?? '',
       location: item.location ?? '',
       locationDetail: item.locationDetail ?? '',
+      currentStock: item.currentStock,
+      minStock: item.minStock,
+      unitValue: item.unitValue,
+      status: item.status,
       notes: item.notes ?? ''
     };
     this.editingItemId = item.id;
@@ -312,10 +319,16 @@ export class AlmoxarifadoComponent implements OnInit {
 
     this.formError = null;
     const formData: StockItemPayload = {
-      ...this.itemForm,
+      code: this.itemForm.code,
+      description: this.itemForm.description,
+      category: this.itemForm.category ?? '',
+      unit: this.itemForm.unit ?? '',
+      location: this.itemForm.location || undefined,
+      locationDetail: this.itemForm.locationDetail || undefined,
       currentStock: Number(this.itemForm.currentStock) || 0,
       minStock: Number(this.itemForm.minStock),
       unitValue: Number(this.itemForm.unitValue) || 0,
+      status: this.itemForm.status,
       notes: this.itemForm.notes || undefined
     };
 
