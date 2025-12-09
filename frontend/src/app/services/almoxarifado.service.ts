@@ -61,6 +61,12 @@ export class AlmoxarifadoService {
       .pipe(map((response) => response.items));
   }
 
+  getNextItemCode(): Observable<string> {
+    return this.http
+      .get<{ code: string }>(`${this.baseUrl}/items/next-code`)
+      .pipe(map((response) => response.code));
+  }
+
   listMovements(): Observable<StockMovement[]> {
     return this.http
       .get<{ movements: StockMovement[] }>(`${this.baseUrl}/movements`)

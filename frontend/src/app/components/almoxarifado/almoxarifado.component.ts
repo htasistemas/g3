@@ -151,6 +151,7 @@ export class AlmoxarifadoComponent implements OnInit {
   ngOnInit(): void {
     this.loadItems();
     this.loadMovements();
+    this.loadNextItemCode();
   }
 
   private loadItems(): void {
@@ -159,6 +160,23 @@ export class AlmoxarifadoComponent implements OnInit {
       next: (items) => this.items.set(items),
       error: () => {
         this.formError = 'Não foi possível carregar os itens do almoxarifado.';
+      }
+    });
+  }
+
+  private loadNextItemCode(): void {
+    if (this.editingItemId) {
+      return;
+    }
+
+    this.almoxarifadoService.getNextItemCode().subscribe({
+      next: (code) => {
+        if (!this.editingItemId) {
+          this.itemForm = { ...this.itemForm, code };
+        }
+      },
+      error: () => {
+        this.formError = this.formError || 'Não foi possível gerar o próximo código do item.';
       }
     });
   }
@@ -307,6 +325,7 @@ export class AlmoxarifadoComponent implements OnInit {
     this.editingItemCode = null;
     this.formError = null;
     this.successMessage = null;
+    this.loadNextItemCode();
   }
 
   saveItem(): void {
