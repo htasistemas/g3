@@ -34,50 +34,47 @@ export class OficiosGestaoComponent {
   readonly meiosEnvio = ['E-mail', 'Correio', 'Entrega presencial', 'Sistema SEI', 'Mensageria'];
 
   constructor(private readonly fb: FormBuilder, private readonly oficioService: OficioService) {
-    const hoje = new Date().toISOString().split('T')[0];
+    const initialState = this.buildInitialFormValue();
     this.form = this.fb.group({
       identificacao: this.fb.group({
-        tipo: ['emissao', Validators.required],
-        numero: ['', Validators.required],
-        data: [hoje, Validators.required],
-        setorOrigem: ['Núcleo de Uberlândia', Validators.required],
-        responsavel: ['Adriano Martins Torres', Validators.required],
-        destinatario: ['Bítrvic Brasil', Validators.required],
-        meioEnvio: ['E-mail', Validators.required],
-        prazoResposta: [''],
-        classificacao: ['Solicitação']
+        tipo: [initialState.identificacao.tipo, Validators.required],
+        numero: [initialState.identificacao.numero, Validators.required],
+        data: [initialState.identificacao.data, Validators.required],
+        setorOrigem: [initialState.identificacao.setorOrigem, Validators.required],
+        responsavel: [initialState.identificacao.responsavel, Validators.required],
+        destinatario: [initialState.identificacao.destinatario, Validators.required],
+        meioEnvio: [initialState.identificacao.meioEnvio, Validators.required],
+        prazoResposta: [initialState.identificacao.prazoResposta],
+        classificacao: [initialState.identificacao.classificacao]
       }),
       conteudo: this.fb.group({
-        razaoSocial: ['Justiça em Ação - ADRA Núcleo Uberlândia', Validators.required],
-        logoUrl: [''],
-        titulo: ['OFÍCIO DE SOLICITAÇÃO DE DOAÇÕES'],
-        saudacao: ['Prezado(a),'],
-        assunto: ['Solicitação de doação de alimentos e serviços para Feira Solidária'],
-        corpo: [
-          'A ADRA - Agência Adventista de Desenvolvimento e Recursos Assistenciais Unidade Uberlândia promove a Feira Solidária visando apoiar famílias em situação de vulnerabilidade. Solicitamos apoio na forma de alimentos, serviços e equipe para atendimento ao público durante o evento.',
-          Validators.required
-        ],
-        finalizacao: ['Agradecemos antecipadamente e permanecemos à disposição para esclarecimentos.'],
-        assinaturaNome: ['Adriano Martins Torres'],
-        assinaturaCargo: ['Diretor - ADRA Núcleo Uberlândia'],
-        rodape: ['ADRA Núcleo de Uberlândia | CNPJ: 60.974.622/0001-71 | Avenida João Pinheiro, 400 - Uberlândia/MG | (34) 3229-9958 | uberlandia@adra.org.br']
+        razaoSocial: [initialState.conteudo.razaoSocial, Validators.required],
+        logoUrl: [initialState.conteudo.logoUrl],
+        titulo: [initialState.conteudo.titulo],
+        saudacao: [initialState.conteudo.saudacao],
+        assunto: [initialState.conteudo.assunto],
+        corpo: [initialState.conteudo.corpo, Validators.required],
+        finalizacao: [initialState.conteudo.finalizacao],
+        assinaturaNome: [initialState.conteudo.assinaturaNome],
+        assinaturaCargo: [initialState.conteudo.assinaturaCargo],
+        rodape: [initialState.conteudo.rodape]
       }),
       protocolo: this.fb.group({
-        status: ['Rascunho', Validators.required],
-        protocoloEnvio: [''],
-        dataEnvio: [''],
-        protocoloRecebimento: [''],
-        dataRecebimento: [''],
-        proximoDestino: [''],
-        observacoes: ['']
+        status: [initialState.protocolo.status, Validators.required],
+        protocoloEnvio: [initialState.protocolo.protocoloEnvio],
+        dataEnvio: [initialState.protocolo.dataEnvio],
+        protocoloRecebimento: [initialState.protocolo.protocoloRecebimento],
+        dataRecebimento: [initialState.protocolo.dataRecebimento],
+        proximoDestino: [initialState.protocolo.proximoDestino],
+        observacoes: [initialState.protocolo.observacoes]
       }),
       tramitacao: this.fb.group({
-        data: [hoje],
-        origem: [''],
-        destino: [''],
-        responsavel: [''],
-        acao: ['', Validators.required],
-        observacoes: ['']
+        data: [initialState.tramitacao.data],
+        origem: [initialState.tramitacao.origem],
+        destino: [initialState.tramitacao.destino],
+        responsavel: [initialState.tramitacao.responsavel],
+        acao: [initialState.tramitacao.acao, Validators.required],
+        observacoes: [initialState.tramitacao.observacoes]
       })
     });
 
@@ -155,54 +152,8 @@ export class OficiosGestaoComponent {
     }
 
     this.loadOficios();
+    this.resetState();
     this.saving = false;
-    this.editingId = null;
-    this.form.reset({
-      identificacao: {
-        tipo: 'emissao',
-        numero: '',
-        data: new Date().toISOString().split('T')[0],
-        setorOrigem: 'Núcleo de Uberlândia',
-        responsavel: 'Adriano Martins Torres',
-        destinatario: 'Bítrvic Brasil',
-        meioEnvio: 'E-mail',
-        prazoResposta: '',
-        classificacao: 'Solicitação'
-      },
-      conteudo: {
-        razaoSocial: 'Justiça em Ação - ADRA Núcleo Uberlândia',
-        logoUrl: '',
-        titulo: 'OFÍCIO DE SOLICITAÇÃO DE DOAÇÕES',
-        saudacao: 'Prezado(a),',
-        assunto: 'Solicitação de doação de alimentos e serviços para Feira Solidária',
-        corpo:
-          'A ADRA - Agência Adventista de Desenvolvimento e Recursos Assistenciais Unidade Uberlândia promove a Feira Solidária visando apoiar famílias em situação de vulnerabilidade. Solicitamos apoio na forma de alimentos, serviços e equipe para atendimento ao público durante o evento.',
-        finalizacao: 'Agradecemos antecipadamente e permanecemos à disposição para esclarecimentos.',
-        assinaturaNome: 'Adriano Martins Torres',
-        assinaturaCargo: 'Diretor - ADRA Núcleo Uberlândia',
-        rodape:
-          'ADRA Núcleo de Uberlândia | CNPJ: 60.974.622/0001-71 | Avenida João Pinheiro, 400 - Uberlândia/MG | (34) 3229-9958 | uberlandia@adra.org.br'
-      },
-      protocolo: {
-        status: 'Rascunho',
-        protocoloEnvio: '',
-        dataEnvio: '',
-        protocoloRecebimento: '',
-        dataRecebimento: '',
-        proximoDestino: '',
-        observacoes: ''
-      },
-      tramitacao: {
-        data: new Date().toISOString().split('T')[0],
-        origem: '',
-        destino: '',
-        responsavel: '',
-        acao: '',
-        observacoes: ''
-      }
-    });
-    this.tramites = [];
-    this.changeTab('identificacao');
   }
 
   imprimirRascunho(): void {
@@ -244,6 +195,28 @@ export class OficiosGestaoComponent {
     if (!id) return;
     this.oficioService.delete(id);
     this.loadOficios();
+    if (this.editingId === id) {
+      this.resetState();
+    }
+  }
+
+  printCurrent(): void {
+    if (!this.form.valid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const payload: OficioPayload = {
+      identificacao: this.form.value.identificacao,
+      conteudo: this.form.value.conteudo,
+      protocolo: {
+        ...this.form.value.protocolo,
+        status: this.form.value.protocolo?.status ?? 'Rascunho'
+      },
+      tramites: this.tramites
+    };
+
+    this.imprimirModelo(payload);
   }
 
   registrarEnvio(): void {
@@ -269,6 +242,41 @@ export class OficiosGestaoComponent {
 
   loadOficios(): void {
     this.oficios = this.oficioService.list();
+  }
+
+  resetForm(): void {
+    if (this.editingId) {
+      const registro = this.oficios.find((oficio) => oficio.id === this.editingId);
+      if (registro) {
+        this.tramites = registro.tramites ?? [];
+        this.form.reset({
+          identificacao: registro.identificacao,
+          conteudo: registro.conteudo,
+          protocolo: registro.protocolo,
+          tramitacao: {
+            data: new Date().toISOString().split('T')[0],
+            origem: registro.identificacao.setorOrigem,
+            destino: registro.identificacao.destinatario,
+            responsavel: registro.identificacao.responsavel,
+            acao: '',
+            observacoes: ''
+          }
+        });
+        this.changeTab('identificacao');
+        this.feedback = null;
+        return;
+      }
+    }
+
+    this.resetState();
+  }
+
+  startNew(): void {
+    this.resetState();
+  }
+
+  closeForm(): void {
+    window.history.back();
   }
 
   getLocalAtual(oficio: OficioPayload): string {
@@ -338,5 +346,64 @@ export class OficiosGestaoComponent {
     if (!value) return '';
     const [year, month, day] = value.split('-').map(Number);
     return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+  }
+
+  private buildInitialFormValue() {
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      identificacao: {
+        tipo: 'emissao',
+        numero: '',
+        data: today,
+        setorOrigem: 'Núcleo de Uberlândia',
+        responsavel: 'Adriano Martins Torres',
+        destinatario: 'Bítrvic Brasil',
+        meioEnvio: 'E-mail',
+        prazoResposta: '',
+        classificacao: 'Solicitação'
+      },
+      conteudo: {
+        razaoSocial: 'Justiça em Ação - ADRA Núcleo Uberlândia',
+        logoUrl: '',
+        titulo: 'OFÍCIO DE SOLICITAÇÃO DE DOAÇÕES',
+        saudacao: 'Prezado(a),',
+        assunto: 'Solicitação de doação de alimentos e serviços para Feira Solidária',
+        corpo:
+          'A ADRA - Agência Adventista de Desenvolvimento e Recursos Assistenciais Unidade Uberlândia promove a Feira Solidária visando apoiar famílias em situação de vulnerabilidade. Solicitamos apoio na forma de alimentos, serviços e equipe para atendimento ao público durante o evento.',
+        finalizacao: 'Agradecemos antecipadamente e permanecemos à disposição para esclarecimentos.',
+        assinaturaNome: 'Adriano Martins Torres',
+        assinaturaCargo: 'Diretor - ADRA Núcleo Uberlândia',
+        rodape:
+          'ADRA Núcleo de Uberlândia | CNPJ: 60.974.622/0001-71 | Avenida João Pinheiro, 400 - Uberlândia/MG | (34) 3229-9958 | uberlandia@adra.org.br'
+      },
+      protocolo: {
+        status: 'Rascunho',
+        protocoloEnvio: '',
+        dataEnvio: '',
+        protocoloRecebimento: '',
+        dataRecebimento: '',
+        proximoDestino: '',
+        observacoes: ''
+      },
+      tramitacao: {
+        data: today,
+        origem: '',
+        destino: '',
+        responsavel: '',
+        acao: '',
+        observacoes: ''
+      }
+    };
+  }
+
+  private resetState(): void {
+    const initialState = this.buildInitialFormValue();
+    this.tramites = [];
+    this.editingId = null;
+    this.form.reset(initialState);
+    this.feedback = null;
+    this.saving = false;
+    this.changeTab('identificacao');
   }
 }
