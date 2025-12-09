@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { StockItem, StockItemStatus } from '../entities/StockItem';
 import { StockMovement, StockMovementType } from '../entities/StockMovement';
+import { Repository } from 'typeorm';
 
 const router = Router();
 
@@ -34,10 +35,30 @@ function buildItemPayload(body: any, existing?: StockItem): StockItem {
   } as StockItem;
 }
 
+function extractNumericCode(code?: string | null): number {
+  if (!code) return 0;
+  const match = code.match(/\d+/g);
+  if (!match) return 0;
+  return match.reduce((max, part) => Math.max(max, Number(part) || 0), 0);
+}
+
+async function generateNextItemCode(repository: Repository<StockItem>): Promise<string> {
+  const items = await repository.find({ select: ['code'] });
+  const currentMax = items.reduce((max, item) => Math.max(max, extractNumericCode(item.code)), 0);
+  const nextValue = currentMax + 1;
+  return String(nextValue).padStart(5, '0');
+}
+
 router.get('/items', async (_req, res) => {
   const repository = AppDataSource.getRepository(StockItem);
   const items = await repository.find({ order: { updatedAt: 'DESC' } });
   res.json({ items });
+});
+
+router.get('/items/next-code', async (_req, res) => {
+  const repository = AppDataSource.getRepository(StockItem);
+  const code = await generateNextItemCode(repository);
+  res.json({ code });
 });
 
 router.get('/movements', async (_req, res) => {
@@ -49,17 +70,13 @@ router.get('/movements', async (_req, res) => {
 router.post('/items', async (req, res) => {
   const repository = AppDataSource.getRepository(StockItem);
   const payload = buildItemPayload(req.body);
+  payload.code = await generateNextItemCode(repository);
 
   if (!payload.code || !payload.description || !payload.category || !payload.unit || payload.minStock === undefined) {
     return res.status(400).json({ message: 'Campos obrigatórios não preenchidos.' });
   }
 
   try {
-    const existingCode = await repository.findOne({ where: { code: payload.code } });
-    if (existingCode) {
-      return res.status(400).json({ message: 'Já existe um item cadastrado com este código.' });
-    }
-
     const entity = repository.create(payload);
     const saved = await repository.save(entity);
     res.status(201).json({ item: saved });
