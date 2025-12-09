@@ -1,0 +1,180 @@
+<div class="p-6 space-y-4">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold text-g3-green-700 uppercase">Prontuário</p>
+      <h1 class="text-2xl font-semibold text-slate-900">Prontuário de Atendimento</h1>
+      <p class="text-sm text-slate-600">
+        Registro integrado do beneficiário com histórico de atendimentos, encaminhamentos e parecer técnico.
+      </p>
+    </div>
+    <button class="btn-primary" type="button" (click)="salvar()" [disabled]="salvando || carregando">
+      {{ salvando ? 'Salvando...' : 'Salvar prontuário' }}
+    </button>
+  </div>
+
+  <div *ngIf="feedback" class="alert" [ngClass]="feedback.tipo === 'erro' ? 'alert-error' : 'alert-success'">
+    {{ feedback.mensagem }}
+  </div>
+
+  <div class="card" *ngIf="!carregando; else loading">
+    <form class="space-y-6" [formGroup]="prontuarioForm">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section class="space-y-4" formGroupName="identificacao">
+          <div class="section-header">
+            <div>
+              <p class="section-label">Identificação</p>
+              <h2 class="section-title">Dados gerais</h2>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="field">Unidade de referência<input type="text" formControlName="unidadeReferencia" /></label>
+            <label class="field">Responsável técnico<input type="text" formControlName="responsavelTecnico" /></label>
+            <label class="field">Data de abertura<input type="date" formControlName="dataAbertura" /></label>
+            <label class="field md:col-span-2">Observações iniciais<textarea rows="2" formControlName="observacoes"></textarea></label>
+          </div>
+        </section>
+
+        <section class="space-y-4">
+          <div class="section-header">
+            <div>
+              <p class="section-label">Vulnerabilidades</p>
+            <h2 class="section-title">Situações de vulnerabilidade</h2>
+          </div>
+        </div>
+          <div class="space-y-2">
+            <p class="text-sm text-slate-600">
+              Liste os fatores identificados. Separe múltiplos itens por linha.
+            </p>
+            <textarea
+              rows="6"
+              class="input"
+              [value]="(vulnerabilidadesControl?.value || []).join('\n')"
+              (input)="vulnerabilidadesControl?.setValue(($event.target as HTMLTextAreaElement).value.split(/\n+/).filter(Boolean))"
+            ></textarea>
+          </div>
+        </section>
+      </div>
+
+      <section class="space-y-4" formGroupName="composicaoFamiliar">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Composição familiar</p>
+          <h2 class="section-title">Referências do prontuário</h2>
+          <p class="text-sm text-slate-600">Dados trazidos do cadastro de família do beneficiário.</p>
+        </div>
+      </div>
+      <div *ngIf="composicaoFamiliar?.length; else emptyFamily" class="overflow-hidden border border-slate-200 rounded-xl">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="table-head">Nome</th>
+              <th class="table-head">Parentesco</th>
+              <th class="table-head">Renda</th>
+              <th class="table-head">Responsável</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr *ngFor="let membro of composicaoFamiliar" class="hover:bg-slate-50">
+              <td class="table-cell">{{ membro?.beneficiario?.nomeCompleto || membro?.nome }}</td>
+              <td class="table-cell">{{ membro?.parentesco || '---' }}</td>
+              <td class="table-cell">{{ membro?.rendaIndividual || membro?.beneficiario?.rendaMensal || '---' }}</td>
+              <td class="table-cell">{{ membro?.responsavelFamiliar ? 'Sim' : 'Não' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #emptyFamily>
+        <div class="alert alert-info">Nenhum membro familiar vinculado ao beneficiário.</div>
+      </ng-template>
+      </section>
+
+      <section class="space-y-4">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Participação</p>
+          <h2 class="section-title">Serviços e projetos</h2>
+        </div>
+        <button class="btn-ghost" type="button" (click)="adicionarParticipacao()">Adicionar</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" formArrayName="participacoesServicos">
+        <div class="card-muted" *ngFor="let grupo of participacoes.controls; let i = index" [formGroupName]="i">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-slate-800">Participação #{{ i + 1 }}</h3>
+            <button class="btn-link" type="button" (click)="removerParticipacao(i)">Remover</button>
+          </div>
+          <label class="field">Serviço/projeto<input formControlName="servicoOuProjeto" /></label>
+          <label class="field">Papel<input formControlName="papel" /></label>
+          <label class="field">Situação<input formControlName="situacao" placeholder="Ativo, Concluído, Em espera" /></label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="field">Início<input type="date" formControlName="dataInicio" /></label>
+            <label class="field">Fim<input type="date" formControlName="dataFim" /></label>
+          </div>
+          <label class="field">Observações<textarea rows="2" formControlName="observacoes"></textarea></label>
+        </div>
+      </div>
+      </section>
+
+      <section class="space-y-4" formArrayName="historicoAtendimentos">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Histórico</p>
+          <h2 class="section-title">Atendimentos registrados</h2>
+        </div>
+        <button class="btn-ghost" type="button" (click)="adicionarAtendimento()">Adicionar atendimento</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card-muted" *ngFor="let grupo of historicoAtendimentos.controls; let i = index" [formGroupName]="i">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-slate-800">Registro #{{ i + 1 }}</h3>
+            <button class="btn-link" type="button" (click)="removerAtendimento(i)">Remover</button>
+          </div>
+          <label class="field">Data<input type="date" formControlName="dataAtendimento" /></label>
+          <label class="field">Tipo<input formControlName="tipoAtendimento" placeholder="Visita, atendimento individual..." /></label>
+          <label class="field">Responsável<input formControlName="responsavel" /></label>
+          <label class="field">Descrição<textarea rows="3" formControlName="descricao"></textarea></label>
+          <label class="field">Resultado<textarea rows="2" formControlName="resultado"></textarea></label>
+        </div>
+      </div>
+      </section>
+
+      <section class="space-y-4" formArrayName="encaminhamentos">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Encaminhamentos</p>
+          <h2 class="section-title">Ações e acompanhamentos</h2>
+        </div>
+        <button class="btn-ghost" type="button" (click)="adicionarEncaminhamento()">Adicionar encaminhamento</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card-muted" *ngFor="let grupo of encaminhamentos.controls; let i = index" [formGroupName]="i">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-slate-800">Encaminhamento #{{ i + 1 }}</h3>
+            <button class="btn-link" type="button" (click)="removerEncaminhamento(i)">Remover</button>
+          </div>
+          <label class="field">Data<input type="date" formControlName="dataEncaminhamento" /></label>
+          <label class="field">Destino<input formControlName="destino" placeholder="Serviço/órgão" /></label>
+          <label class="field">Motivo<textarea rows="2" formControlName="motivo"></textarea></label>
+          <label class="field">Responsável<input formControlName="responsavel" /></label>
+          <label class="field">Situação<input formControlName="status" placeholder="Pendente, concluído" /></label>
+          <label class="field">Retorno previsto<input type="date" formControlName="retornoPrevisto" /></label>
+          <label class="field">Observações<textarea rows="2" formControlName="observacoes"></textarea></label>
+        </div>
+      </div>
+      </section>
+
+      <section class="space-y-4">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Parecer técnico</p>
+          <h2 class="section-title">Síntese e recomendações</h2>
+        </div>
+      </div>
+      <textarea class="input" rows="6" formControlName="parecerTecnico" placeholder="Registro estruturado do parecer"></textarea>
+      </section>
+    </form>
+  </div>
+
+  <ng-template #loading>
+    <div class="card text-center py-6 text-slate-600">Carregando prontuário...</div>
+  </ng-template>
+</div>

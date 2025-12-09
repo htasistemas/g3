@@ -28,6 +28,7 @@ import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenc
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
 import { AtendimentoFluxoComponent } from './components/atendimento-fluxo/atendimento-fluxo.component';
 import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
+import { ProntuarioComponent } from './components/prontuario/prontuario.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -45,6 +46,11 @@ export const routes: Routes = [
         path: 'beneficiarios/editar/:id',
         component: BeneficiaryFormComponent,
         data: { title: 'Beneficiários' }
+      },
+      {
+        path: 'beneficiarios/:id/prontuario',
+        component: ProntuarioComponent,
+        data: { title: 'Prontuário de Atendimento' }
       },
       {
         path: 'beneficiarios/cadastro',

@@ -92,6 +92,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [
+        { label: 'Prontuário de atendimento', icon: faClipboardList, route: '/beneficiarios' },
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
         { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
         { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' },
