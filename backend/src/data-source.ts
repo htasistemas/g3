@@ -36,6 +36,7 @@ import { CreateVulnerabilityIndex1730900000000 } from './migrations/173090000000
 import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950000000-AddStatusToCursosAtendimentos';
 import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
 import { CreateStockModule1731000000000 } from './migrations/1731000000000-CreateStockModule';
+import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/1731100000000-RenameBeneficiariesToBeneficiarios';
 
 dotenv.config();
 
@@ -52,7 +53,8 @@ const migrations = [
   CreateVulnerabilityIndex1730900000000,
   AddStatusToCursosAtendimentos1730950000000,
   CreateBenefitsModule1730960000000,
-  CreateStockModule1731000000000
+  CreateStockModule1731000000000,
+  RenameBeneficiariesToBeneficiarios1731100000000
 ];
 
 const baseOptions = {

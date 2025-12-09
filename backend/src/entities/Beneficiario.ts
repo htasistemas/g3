@@ -20,7 +20,7 @@ export type ColetaLixo = 'REGULAR' | 'IRREGULAR' | 'NAO_POSSUI';
 export type TipoDeficiencia = 'FISICA' | 'INTELECTUAL' | 'AUDITIVA' | 'VISUAL' | 'MULTIPLA' | 'TEA';
 export type BeneficiarioStatus = 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO';
 
-@Entity('beneficiario')
+@Entity('beneficiarios')
 export class Beneficiario {
   @PrimaryGeneratedColumn('uuid', { name: 'id_beneficiario' })
   idBeneficiario!: string;
