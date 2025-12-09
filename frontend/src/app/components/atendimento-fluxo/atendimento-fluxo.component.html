@@ -2,9 +2,21 @@
   <header class="page-title">
     <p class="page-title__eyebrow">Atendimentos</p>
     <p class="page-title__label">Monitoramento do fluxo</p>
+    <p class="page-title__helper">
+      Acompanhe cada etapa do atendimento, altere status rapidamente e mantenha um histórico visível para toda a equipe.
+    </p>
   </header>
 
-  <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+  <div class="status-board" *ngIf="records.length">
+    <article class="status-board__card" *ngFor="let item of statusSummary()">
+      <p class="status-board__label">{{ item.status }}</p>
+      <p class="status-board__value">{{ item.total }}</p>
+    </article>
+  </div>
+
+  <div *ngIf="feedback" class="feedback">
+    <strong>Atenção:</strong> {{ feedback }}
+  </div>
   <div *ngIf="loading">Carregando atendimentos...</div>
 
   <div class="cards" *ngIf="!loading">
@@ -14,8 +26,15 @@
           <p class="eyebrow">{{ record.tipo }}</p>
           <h3>{{ record.nome }}</h3>
           <p class="muted">{{ record.descricao }}</p>
+          <div class="meta">
+            <span>Responsável: {{ record.profissional }}</span>
+            <span>Início: {{ record.horarioInicial | date: 'short' }}</span>
+          </div>
         </div>
-        <span class="status" [attr.data-status]="record.status">{{ record.status }}</span>
+        <div class="status-wrapper">
+          <span class="status" [attr.data-status]="record.status">{{ record.status }}</span>
+          <small class="muted" *ngIf="offlineMode">Atualizando localmente</small>
+        </div>
       </header>
 
       <div class="card__controls">

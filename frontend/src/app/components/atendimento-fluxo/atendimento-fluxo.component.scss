@@ -4,6 +4,40 @@
   gap: 1rem;
 }
 
+.page-title__helper {
+  color: #4b5563;
+  margin-top: 0.25rem;
+  max-width: 720px;
+}
+
+.status-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.status-board__card {
+  background: linear-gradient(135deg, #f0f4ff 0%, #eef2ff 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.status-board__label {
+  font-size: 0.9rem;
+  color: #4338ca;
+  font-weight: 600;
+  margin: 0;
+}
+
+.status-board__value {
+  margin: 0.15rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 .cards {
   display: grid;
   gap: 1rem;
@@ -24,6 +58,15 @@
   align-items: flex-start;
 }
 
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.35rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
 .card__controls {
   display: grid;
   gap: 0.5rem;
@@ -36,6 +79,12 @@
   background: #eef2ff;
   color: #312e81;
   font-weight: 600;
+}
+
+.status-wrapper {
+  text-align: right;
+  display: grid;
+  gap: 0.2rem;
 }
 
 .feedback {
