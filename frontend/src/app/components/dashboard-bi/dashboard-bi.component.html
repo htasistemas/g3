@@ -16,17 +16,17 @@
   <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="card">
       <p class="text-sm text-slate-500">Beneficiários ativos</p>
-      <h3 class="text-3xl font-bold text-slate-900">{{ beneficiariosStatus?.values[0] ?? 0 }}</h3>
+      <h3 class="text-3xl font-bold text-slate-900">{{ getChartValue(beneficiariosStatus, 0) }}</h3>
       <p class="text-xs text-slate-500">Total em acompanhamento</p>
     </div>
     <div class="card">
       <p class="text-sm text-slate-500">Beneficiários inativos</p>
-      <h3 class="text-3xl font-bold text-slate-900">{{ beneficiariosStatus?.values[1] ?? 0 }}</h3>
+      <h3 class="text-3xl font-bold text-slate-900">{{ getChartValue(beneficiariosStatus, 1) }}</h3>
       <p class="text-xs text-slate-500">Cadastros desligados</p>
     </div>
     <div class="card">
       <p class="text-sm text-slate-500">Cursos ativos</p>
-      <h3 class="text-3xl font-bold text-slate-900">{{ cursosMetricas?.ativos ?? 0 }}</h3>
+      <h3 class="text-3xl font-bold text-slate-900">{{ cursosMetricas.ativos }}</h3>
       <p class="text-xs text-slate-500">Oferta atual</p>
     </div>
   </div>
@@ -36,16 +36,16 @@
       <div class="flex items-center justify-between mb-3">
         <h3 class="card__header">Distribuição por faixa de vulnerabilidade</h3>
       </div>
-      <div *ngIf="ivfFaixas?.labels.length; else emptyIvf" class="space-y-2">
-        <div *ngFor="let label of ivfFaixas?.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
+      <div *ngIf="ivfFaixas.labels.length; else emptyIvf" class="space-y-2">
+        <div *ngFor="let label of ivfFaixas.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
           <div class="w-28 text-sm font-semibold text-slate-700">{{ label }}</div>
           <div class="flex-1 h-2 rounded-full bg-slate-100">
             <div
               class="h-2 rounded-full bg-emerald-500"
-              [style.width]="((ivfFaixas?.values[i] || 0) / (ivfFaixas?.values.reduce((a, b) => a + b, 0) || 1)) * 100 + '%'"
+              [style.width]="getIvfPercentage(i) + '%'"
             ></div>
           </div>
-          <span class="text-sm text-slate-600">{{ ivfFaixas?.values[i] || 0 }}</span>
+          <span class="text-sm text-slate-600">{{ getChartValue(ivfFaixas, i) }}</span>
         </div>
       </div>
       <ng-template #emptyIvf>
@@ -57,16 +57,16 @@
       <div class="flex items-center justify-between mb-3">
         <h3 class="card__header">Atendimentos por tipo</h3>
       </div>
-      <div *ngIf="atendimentosTipo?.labels.length; else emptyTipo" class="space-y-2">
-        <div *ngFor="let label of atendimentosTipo?.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
+      <div *ngIf="atendimentosTipo.labels.length; else emptyTipo" class="space-y-2">
+        <div *ngFor="let label of atendimentosTipo.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
           <div class="w-28 text-sm font-semibold text-slate-700">{{ label }}</div>
           <div class="flex-1 h-2 rounded-full bg-slate-100">
             <div
               class="h-2 rounded-full bg-indigo-500"
-              [style.width]="((atendimentosTipo?.values[i] || 0) / (atendimentosTipo?.values.reduce((a, b) => a + b, 0) || 1)) * 100 + '%'"
+              [style.width]="getAtendimentosTipoPercentage(i) + '%'"
             ></div>
           </div>
-          <span class="text-sm text-slate-600">{{ atendimentosTipo?.values[i] || 0 }}</span>
+          <span class="text-sm text-slate-600">{{ getChartValue(atendimentosTipo, i) }}</span>
         </div>
       </div>
       <ng-template #emptyTipo>
@@ -79,16 +79,16 @@
     <div class="flex items-center justify-between mb-3">
       <h3 class="card__header">Atendimentos nos últimos 12 meses</h3>
     </div>
-    <div *ngIf="atendimentosMes?.labels.length; else emptyMes" class="space-y-2">
-      <div *ngFor="let label of atendimentosMes?.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
+    <div *ngIf="atendimentosMes.labels.length; else emptyMes" class="space-y-2">
+      <div *ngFor="let label of atendimentosMes.labels; let i = index; trackBy: trackByIndex" class="flex items-center gap-3">
         <div class="w-20 text-sm font-semibold text-slate-700">{{ label }}</div>
         <div class="flex-1 h-2 rounded-full bg-slate-100">
           <div
             class="h-2 rounded-full bg-amber-500"
-            [style.width]="((atendimentosMes?.values[i] || 0) / (Math.max(...(atendimentosMes?.values || [1])) || 1)) * 100 + '%'"
+            [style.width]="getAtendimentosMesPercentage(i) + '%'"
           ></div>
         </div>
-        <span class="text-sm text-slate-600">{{ atendimentosMes?.values[i] || 0 }}</span>
+        <span class="text-sm text-slate-600">{{ getChartValue(atendimentosMes, i) }}</span>
       </div>
     </div>
     <ng-template #emptyMes>
@@ -101,19 +101,19 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
       <div>
         <p class="text-sm text-slate-500">Inscritos</p>
-        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas?.inscritos ?? 0 }}</p>
+        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas.inscritos }}</p>
       </div>
       <div>
         <p class="text-sm text-slate-500">Concluintes</p>
-        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas?.concluintes ?? 0 }}</p>
+        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas.concluintes }}</p>
       </div>
       <div>
         <p class="text-sm text-slate-500">Taxa de evasão</p>
-        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas?.evasao | number : '1.0-1' }}%</p>
+        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas.evasao | number : '1.0-1' }}%</p>
       </div>
       <div>
         <p class="text-sm text-slate-500">Oferta ativa</p>
-        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas?.ativos ?? 0 }}</p>
+        <p class="text-2xl font-bold text-slate-900">{{ cursosMetricas.ativos }}</p>
       </div>
     </div>
   </div>

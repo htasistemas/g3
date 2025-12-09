@@ -11,11 +11,16 @@ import { ChartResponse, CursosMetricasResponse, DashboardBiService } from '../..
   styleUrl: './dashboard-bi.component.scss'
 })
 export class DashboardBiComponent implements OnInit {
-  beneficiariosStatus: ChartResponse | null = null;
-  atendimentosMes: ChartResponse | null = null;
-  atendimentosTipo: ChartResponse | null = null;
-  cursosMetricas: CursosMetricasResponse | null = null;
-  ivfFaixas: ChartResponse | null = null;
+  beneficiariosStatus: ChartResponse = { labels: [], values: [] };
+  atendimentosMes: ChartResponse = { labels: [], values: [] };
+  atendimentosTipo: ChartResponse = { labels: [], values: [] };
+  cursosMetricas: CursosMetricasResponse = {
+    inscritos: 0,
+    concluintes: 0,
+    evasao: 0,
+    ativos: 0
+  };
+  ivfFaixas: ChartResponse = { labels: [], values: [] };
   loading = false;
   error: string | null = null;
 
@@ -52,5 +57,27 @@ export class DashboardBiComponent implements OnInit {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  getIvfPercentage(index: number): number {
+    const values = this.ivfFaixas?.values ?? [];
+    const total = values.reduce((acc, value) => acc + (value ?? 0), 0) || 1;
+    return ((values[index] ?? 0) / total) * 100;
+  }
+
+  getAtendimentosTipoPercentage(index: number): number {
+    const values = this.atendimentosTipo?.values ?? [];
+    const total = values.reduce((acc, value) => acc + (value ?? 0), 0) || 1;
+    return ((values[index] ?? 0) / total) * 100;
+  }
+
+  getAtendimentosMesPercentage(index: number): number {
+    const values = this.atendimentosMes?.values ?? [];
+    const max = Math.max(...values, 1);
+    return ((values[index] ?? 0) / max) * 100;
+  }
+
+  getChartValue(chart: ChartResponse, index: number): number {
+    return chart?.values?.[index] ?? 0;
   }
 }
