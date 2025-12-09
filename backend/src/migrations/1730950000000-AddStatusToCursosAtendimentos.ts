@@ -4,8 +4,6 @@ export class AddStatusToCursosAtendimentos1730950000000 implements MigrationInte
   name = 'AddStatusToCursosAtendimentos1730950000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const dateType = queryRunner.connection.options.type === 'sqlite' ? 'datetime' : 'timestamp';
-
     await queryRunner.addColumns('cursos_atendimentos', [
       new TableColumn({
         name: 'status',
@@ -20,17 +18,17 @@ export class AddStatusToCursosAtendimentos1730950000000 implements MigrationInte
       }),
       new TableColumn({
         name: 'dataTriagem',
-        type: dateType,
+        type: 'datetime',
         isNullable: true
       }),
       new TableColumn({
         name: 'dataEncaminhamento',
-        type: dateType,
+        type: 'datetime',
         isNullable: true
       }),
       new TableColumn({
         name: 'dataConclusao',
-        type: dateType,
+        type: 'datetime',
         isNullable: true
       })
     ]);

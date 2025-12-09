@@ -2,55 +2,36 @@ import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
 export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const tableName = "beneficiario";
+    const table = await queryRunner.getTable("beneficiario");
 
+    const hasCodigo =
+      table?.columns.some((column) => column.name === "codigo") ?? false;
 
-    const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
-
-    if (hasCodigoColumn) {
-
+    // Se a coluna já existe, NÃO faz nada para evitar duplicação
+    if (hasCodigo) {
       return;
     }
 
     await queryRunner.addColumn(
-      tableName,
+      "beneficiario",
       new TableColumn({
         name: "codigo",
         type: "varchar",
         length: "32",
         isNullable: true,
+        isUnique: true,
       })
     );
-
-
-    const hasCodigoUnique = (await queryRunner.getTable(tableName))
-      ?.uniques.some((uq) => uq.columnNames.includes("codigo"));
-
-
-    if (!hasCodigoUnique) {
-      await queryRunner.query(
-        `CREATE UNIQUE INDEX IF NOT EXISTS "UQ_beneficiario_codigo" ON "${tableName}" ("codigo")`
-      );
-    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const tableName = "beneficiario";
+    const table = await queryRunner.getTable("beneficiario");
 
+    const hasCodigo =
+      table?.columns.some((column) => column.name === "codigo") ?? false;
 
-    const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
-
-    if (hasCodigoColumn) {
-      await queryRunner.dropColumn(tableName, "codigo");
-
-    }
-
-    try {
-      await queryRunner.query(
-        `DROP INDEX IF EXISTS "UQ_beneficiario_codigo"`
-      );
-    } catch (e) {
-      // ignore if index does not exist
+    if (hasCodigo) {
+      await queryRunner.dropColumn("beneficiario", "codigo");
     }
   }
 }
