@@ -256,6 +256,92 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
     });
   }
 
+  printProfessional(): void {
+    const record = this.editingId ? this.professionals.find((item) => item.id === this.editingId) : null;
+    const data = record ?? (this.form.value as ProfessionalPayload);
+
+    const disponibilidade = (data.disponibilidade ?? []).join(' • ') || 'Não informado';
+    const canais = (data.canaisAtendimento ?? []).join(' • ') || 'Não informado';
+    const tags = (data.tags ?? []).join(', ') || 'Sem tags definidas';
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Dados do profissional</title>
+          <style>
+            @page { size: A4; margin: 12mm; }
+            body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; color: #0f172a; }
+            h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+            p { margin: 0.1rem 0 0.35rem; color: #475569; }
+            dl { display: grid; grid-template-columns: 180px 1fr; gap: 0.25rem 0.75rem; margin: 1rem 0; }
+            dt { font-weight: 700; color: #0f172a; }
+            dd { margin: 0; color: #1f2937; }
+            .pill { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 999px; background: #ecfdf3; color: #166534; font-weight: 700; font-size: 0.82rem; }
+          </style>
+        </head>
+        <body>
+          <h1>Perfil profissional</h1>
+          <p class="pill">${data.status || 'Sem status'}</p>
+          <dl>
+            <dt>Nome completo</dt>
+            <dd>${data.nome || 'Não informado'}</dd>
+            <dt>Categoria</dt>
+            <dd>${data.categoria || 'Não informado'}</dd>
+            <dt>Especialidade</dt>
+            <dd>${data.especialidade || 'Não informado'}</dd>
+            <dt>Registro em conselho</dt>
+            <dd>${data.registroConselho || 'Não informado'}</dd>
+            <dt>E-mail</dt>
+            <dd>${data.email || 'Não informado'}</dd>
+            <dt>Telefone/WhatsApp</dt>
+            <dd>${data.telefone || 'Não informado'}</dd>
+            <dt>Unidade de atendimento</dt>
+            <dd>${data.unidade || 'Não informado'}</dd>
+            <dt>Carga horária</dt>
+            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Não informado'}</dd>
+            <dt>Disponibilidade</dt>
+            <dd>${disponibilidade}</dd>
+            <dt>Canais de atendimento</dt>
+            <dd>${canais}</dd>
+            <dt>Palavras-chave</dt>
+            <dd>${tags}</dd>
+            <dt>Resumo breve</dt>
+            <dd>${data.resumo || 'Sem resumo'}</dd>
+            <dt>Observações internas</dt>
+            <dd>${data.observacoes || 'Sem observações'}</dd>
+          </dl>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }
+
+  removeCurrent(): void {
+    if (!this.editingId) return;
+
+    const current = this.professionals.find((item) => item.id === this.editingId);
+    if (!current) {
+      this.startNew();
+      return;
+    }
+
+    if (!window.confirm(`Remover ${current.nome} do cadastro?`)) return;
+
+    this.professionalService.delete(current.id);
+    this.professionals = this.professionals.filter((item) => item.id !== current.id);
+    this.startNew();
+  }
+
+  closeForm(): void {
+    window.history.back();
+  }
+
   private loadProfessionals(): void {
     this.professionals = this.professionalService.list();
   }
