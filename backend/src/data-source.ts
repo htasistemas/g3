@@ -20,6 +20,9 @@ import { PlanoCronogramaItem } from './entities/PlanoCronogramaItem';
 import { PlanoEquipe } from './entities/PlanoEquipe';
 import { CursoAtendimento } from './entities/CursoAtendimento';
 import { Sala } from './entities/Sala';
+import { IndiceVulnerabilidadeFamiliar } from './entities/IndiceVulnerabilidadeFamiliar';
+import { BenefitType } from './entities/BenefitType';
+import { BenefitGrant } from './entities/BenefitGrant';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -27,8 +30,11 @@ import { AddLogoToAssistanceUnit1730200000000 } from './migrations/1730200000000
 import { AddReportLogoAndScheduleToAssistanceUnit1730300000000 } from './migrations/1730300000000-AddReportLogoAndScheduleToAssistanceUnit';
 import { AddBeneficiarioDocuments1730400000000 } from './migrations/1730400000000-AddBeneficiarioDocuments';
 import { AddBeneficiarioPhoto1730500000000 } from './migrations/1730500000000-AddBeneficiarioPhoto';
-import { AddBeneficiarioCodigo1730600000000 } from './migrations/1730600000000-AddBeneficiarioCodigo';
 import { CreateSalas1730700000000 } from './migrations/1730700000000-CreateSalas';
+import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/1730800000000-CreateBeneficiarioBaseSchema';
+import { CreateVulnerabilityIndex1730900000000 } from './migrations/1730900000000-CreateVulnerabilityIndex';
+import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950000000-AddStatusToCursosAtendimentos';
+import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
 
 dotenv.config();
 
@@ -37,10 +43,10 @@ type SupportedDatabase = 'postgres' | 'mysql' | 'mariadb' | 'sqlite';
 const envDbType = (process.env.DB_TYPE as SupportedDatabase | undefined)?.toLowerCase() as
   | SupportedDatabase
   | undefined;
-const isDevEnvironment = (process.env.NODE_ENV || 'development') === 'development';
 
-// In development we keep SQLite as the default to simplify local setups.
-const dbType: SupportedDatabase = envDbType || (isDevEnvironment ? 'sqlite' : 'postgres');
+// Default to the configured relational database to avoid writing to a local SQLite file
+// unless it is explicitly requested via DB_TYPE=sqlite.
+const dbType: SupportedDatabase = envDbType || 'postgres';
 
 const migrations = [
   RenameSchemaToPortuguese1729700000000,
@@ -50,8 +56,11 @@ const migrations = [
   AddReportLogoAndScheduleToAssistanceUnit1730300000000,
   AddBeneficiarioDocuments1730400000000,
   AddBeneficiarioPhoto1730500000000,
-  AddBeneficiarioCodigo1730600000000,
-  CreateSalas1730700000000
+  CreateSalas1730700000000,
+  CreateBeneficiarioBaseSchema1730800000000,
+  CreateVulnerabilityIndex1730900000000,
+  AddStatusToCursosAtendimentos1730950000000,
+  CreateBenefitsModule1730960000000
 ];
 
 function resolveRelationalPort(): number {
@@ -87,7 +96,10 @@ const baseOptions = {
     PlanoCronogramaItem,
     PlanoEquipe,
     CursoAtendimento,
-    Sala
+    Sala,
+    IndiceVulnerabilidadeFamiliar,
+    BenefitType,
+    BenefitGrant
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;

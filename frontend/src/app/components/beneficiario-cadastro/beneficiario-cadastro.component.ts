@@ -1917,6 +1917,30 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.closePrintMenu();
   }
 
+  onPrint(): void {
+    this.togglePrintMenu();
+  }
+
+  onSave(): void {
+    this.submit();
+  }
+
+  onCancel(): void {
+    this.startNewBeneficiario();
+  }
+
+  onDelete(): void {
+    this.handleDeleteSelected();
+  }
+
+  onNew(): void {
+    this.startNewBeneficiario();
+  }
+
+  onClose(): void {
+    this.closeForm();
+  }
+
   clearSearchFilters(): void {
     this.searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' });
     this.searchBeneficiaries();

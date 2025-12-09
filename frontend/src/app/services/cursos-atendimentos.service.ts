@@ -40,6 +40,11 @@ export interface CourseRecord {
   sala?: SalaRecord | null;
   createdAt: string;
   updatedAt?: string;
+  status: 'TRIAGEM' | 'EM_ANDAMENTO' | 'ENCAMINHADO' | 'EM_VISITA' | 'CONCLUIDO';
+  statusHistory?: { status: CourseRecord['status']; changedAt: string; justification?: string }[];
+  dataTriagem?: string | null;
+  dataEncaminhamento?: string | null;
+  dataConclusao?: string | null;
   enrollments: Enrollment[];
   waitlist: WaitlistEntry[];
 }
@@ -70,6 +75,15 @@ export class CursosAtendimentosService {
   update(id: string, payload: Partial<CoursePayload>): Observable<CourseRecord> {
     return this.http
       .put<{ record: CourseRecord }>(`${this.baseUrl}/${id}`, payload)
+      .pipe(map((response) => response.record));
+  }
+
+  updateStatus(
+    id: string,
+    payload: { status: CourseRecord['status']; justification?: string },
+  ): Observable<CourseRecord> {
+    return this.http
+      .patch<{ record: CourseRecord }>(`${this.baseUrl}/${id}/status`, payload)
       .pipe(map((response) => response.record));
   }
 

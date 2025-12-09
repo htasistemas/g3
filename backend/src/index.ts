@@ -17,6 +17,12 @@ import dashboardAssistenciaRoutes from './routes/dashboard-assistencia.routes';
 import reportsRoutes from './routes/reports.routes';
 import cursosAtendimentosRoutes from './routes/cursos-atendimentos.routes';
 import salasRoutes from './routes/salas.routes';
+import vulnerabilityIndexRoutes from './routes/vulnerability-index.routes';
+import dashboardBiRoutes from './routes/dashboard-bi.routes';
+import benefitTypesRoutes from './routes/benefit-types.routes';
+import benefitGrantsRoutes from './routes/benefit-grants.routes';
+import assistenteTextosRoutes from './routes/assistente-textos.routes';
+import prontuarioRoutes from './routes/prontuario.routes';
 
 dotenv.config();
 
@@ -26,7 +32,7 @@ const port = Number(process.env.PORT) || 3000;
 app.use(cors());
 app.use(
   express.json({
-    limit: '10mb'
+    limit: '50mb'
   })
 );
 
@@ -48,6 +54,12 @@ app.use('/api/dashboard', dashboardAssistenciaRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/cursos-atendimentos', cursosAtendimentosRoutes);
 app.use('/api/salas', salasRoutes);
+app.use('/api/ivf', vulnerabilityIndexRoutes);
+app.use('/api/dashboard/bi', dashboardBiRoutes);
+app.use('/api/benefits/types', benefitTypesRoutes);
+app.use('/api/benefits/grants', benefitGrantsRoutes);
+app.use('/api/assistente-textos', assistenteTextosRoutes);
+app.use('/api/prontuario', prontuarioRoutes);
 
 async function start() {
   try {

@@ -11,6 +11,14 @@ import { Sala } from './Sala';
 
 type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
 
+export type AtendimentoStatus = 'TRIAGEM' | 'EM_ANDAMENTO' | 'ENCAMINHADO' | 'EM_VISITA' | 'CONCLUIDO';
+
+export interface AtendimentoStatusEntry {
+  status: AtendimentoStatus;
+  changedAt: string;
+  justification?: string;
+}
+
 export interface EnrollmentRecord {
   id: string;
   beneficiaryName: string;
@@ -81,6 +89,21 @@ export class CursoAtendimento {
 
   @Column({ type: 'text', nullable: true, name: 'certificate_template' })
   certificateTemplate?: string | null;
+
+  @Column({ type: 'varchar', default: 'TRIAGEM' })
+  status!: AtendimentoStatus;
+
+  @Column({ type: 'simple-json', nullable: true })
+  statusHistory?: AtendimentoStatusEntry[] | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  dataTriagem?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  dataEncaminhamento?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  dataConclusao?: Date | null;
 
   @CreateDateColumn()
   createdAt!: Date;

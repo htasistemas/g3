@@ -1,0 +1,61 @@
+.fluxo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  border: 1px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.card__controls {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #312e81;
+  font-weight: 600;
+}
+
+.feedback {
+  background: #fff4e5;
+  border: 1px solid #f59e0b;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.timeline ol {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.timeline li {
+  background: #f9fafb;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}

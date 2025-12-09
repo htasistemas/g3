@@ -74,7 +74,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faGauge,
       children: [
         { label: 'Visão Geral', icon: faGauge, route: '/dashboard/visao-geral' },
-        { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' }
+        { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
+        { label: 'BI Gerencial', icon: faGauge, route: '/dashboard/gerencial' }
       ]
     },
     {
@@ -93,7 +94,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
         { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
-        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' }
+        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' },
+        { label: 'Fluxo de atendimento', icon: faClipboardList, route: '/atendimentos/fluxo' }
       ]
     },
     {
@@ -133,7 +135,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faWrench,
       children: [
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
-        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' }
+        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
+        { label: 'Assistente de textos', icon: faBullhorn, route: '/assistente-textos' }
       ]
     }
   ];

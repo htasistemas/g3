@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
-import { CursoAtendimento } from '../entities/CursoAtendimento';
+import {
+  AtendimentoStatus,
+  AtendimentoStatusEntry,
+  CursoAtendimento
+} from '../entities/CursoAtendimento';
 
 const router = Router();
 
@@ -57,6 +61,22 @@ const hasRoomConflict = async (candidate: PartialCourse, ignoreId?: string): Pro
 
     return candidateStart < end && start < candidateEnd;
   });
+};
+
+const allowedStatuses: AtendimentoStatus[] = ['TRIAGEM', 'EM_ANDAMENTO', 'ENCAMINHADO', 'EM_VISITA', 'CONCLUIDO'];
+
+const appendStatusHistory = (
+  record: CursoAtendimento,
+  nextStatus: AtendimentoStatus,
+  justification?: string,
+): AtendimentoStatusEntry[] => {
+  const history = record.statusHistory ?? [];
+  const entry: AtendimentoStatusEntry = {
+    status: nextStatus,
+    changedAt: new Date().toISOString(),
+    justification: justification || undefined
+  };
+  return [...history, entry];
 };
 
 router.get('/', async (_req, res) => {
@@ -135,6 +155,40 @@ router.put('/:id', async (req, res) => {
   const saved = await repository.save({ ...course, id: existing.id });
   const record = await repository.findOne({ where: { id: saved.id }, relations: ['sala'] });
   res.json({ record });
+});
+
+router.patch('/:id/status', async (req, res) => {
+  const { status, justification } = req.body as { status?: AtendimentoStatus; justification?: string };
+  if (!status || !allowedStatuses.includes(status)) {
+    return res.status(400).json({ message: 'Status inválido' });
+  }
+
+  const repository = AppDataSource.getRepository(CursoAtendimento);
+  const existing = await repository.findOne({ where: { id: req.params.id } });
+  if (!existing) return res.status(404).json({ message: 'Registro não encontrado' });
+
+  if (existing.status === 'TRIAGEM' && status === 'CONCLUIDO' && !justification) {
+    return res
+      .status(400)
+      .json({ message: 'Para concluir diretamente da triagem, informe uma justificativa.' });
+  }
+
+  const statusHistory = appendStatusHistory(existing, status, justification);
+
+  const updatedDates = {
+    dataTriagem: existing.dataTriagem ?? (status === 'TRIAGEM' ? new Date() : null),
+    dataEncaminhamento: existing.dataEncaminhamento ?? (status === 'ENCAMINHADO' ? new Date() : null),
+    dataConclusao: existing.dataConclusao ?? (status === 'CONCLUIDO' ? new Date() : null)
+  };
+
+  const saved = await repository.save({
+    ...existing,
+    ...updatedDates,
+    status,
+    statusHistory
+  });
+
+  res.json({ record: saved });
 });
 
 router.delete('/:id', async (req, res) => {
