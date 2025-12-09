@@ -4,9 +4,11 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const tableName = "beneficiario";
 
+
     const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
 
     if (hasCodigoColumn) {
+
       return;
     }
 
@@ -20,8 +22,10 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
       })
     );
 
+
     const hasCodigoUnique = (await queryRunner.getTable(tableName))
       ?.uniques.some((uq) => uq.columnNames.includes("codigo"));
+
 
     if (!hasCodigoUnique) {
       await queryRunner.query(
@@ -33,10 +37,12 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const tableName = "beneficiario";
 
+
     const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
 
     if (hasCodigoColumn) {
       await queryRunner.dropColumn(tableName, "codigo");
+
     }
 
     try {
