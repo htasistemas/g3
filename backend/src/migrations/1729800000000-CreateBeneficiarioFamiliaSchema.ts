@@ -2,10 +2,7 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } f
 
 export class CreateBeneficiarioFamiliaSchema1729800000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const isSQLite = queryRunner.connection.options.type === 'sqlite';
-    const uuidDefault = isSQLite
-      ? "(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || '4' || substr(hex(randomblob(2)), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)), 2) || '-' || lower(hex(randomblob(6))))"
-      : 'gen_random_uuid()';
+    const uuidDefault = 'gen_random_uuid()';
 
     const hasBeneficiario = await queryRunner.hasTable('beneficiario');
     let beneficiarioTable = hasBeneficiario ? await queryRunner.getTable('beneficiario') : null;

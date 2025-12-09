@@ -1,8 +1,6 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import fs from 'fs';
-import path from 'path';
 import { User } from './entities/User';
 import { Beneficiario } from './entities/Beneficiario';
 import { AssistanceUnit } from './entities/AssistanceUnit';
@@ -41,16 +39,6 @@ import { CreateStockModule1731000000000 } from './migrations/1731000000000-Creat
 
 dotenv.config();
 
-type SupportedDatabase = 'postgres' | 'mysql' | 'mariadb' | 'sqlite';
-
-const envDbType = (process.env.DB_TYPE as SupportedDatabase | undefined)?.toLowerCase() as
-  | SupportedDatabase
-  | undefined;
-
-// Default to the configured relational database to avoid writing to a local SQLite file
-// unless it is explicitly requested via DB_TYPE=sqlite.
-const dbType: SupportedDatabase = envDbType || 'postgres';
-
 const migrations = [
   RenameSchemaToPortuguese1729700000000,
   CreateBeneficiarioFamiliaSchema1729800000000,
@@ -66,21 +54,6 @@ const migrations = [
   CreateBenefitsModule1730960000000,
   CreateStockModule1731000000000
 ];
-
-function resolveRelationalPort(): number {
-  if (process.env.DB_PORT !== undefined && process.env.DB_PORT !== '') {
-    return Number(process.env.DB_PORT);
-  }
-
-  return dbType === 'mysql' ? 3306 : 5434;
-}
-
-function ensureSqliteDirectory(databasePath: string): void {
-  const directory = path.dirname(databasePath);
-  if (directory && directory !== '.') {
-    fs.mkdirSync(directory, { recursive: true });
-  }
-}
 
 const baseOptions = {
   entities: [
@@ -111,25 +84,11 @@ const baseOptions = {
 } satisfies Partial<DataSourceOptions>;
 
 const dataSourceOptions: DataSourceOptions = (() => {
-  if (dbType === 'sqlite') {
-    const database = process.env.DB_NAME || './data/g3.sqlite';
-    ensureSqliteDirectory(database);
-
-    return {
-      ...baseOptions,
-      type: 'sqlite',
-      database,
-      synchronize: false,
-      migrations,
-      migrationsRun: true
-    } satisfies DataSourceOptions;
-  }
-
   return {
     ...baseOptions,
-    type: dbType as SupportedDatabase,
+    type: 'postgres',
     host: process.env.DB_HOST || '72.60.156.202',
-    port: resolveRelationalPort(),
+    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5434,
     username: process.env.DB_USER || 'g3',
     password: process.env.DB_PASSWORD || 'g3',
     database: process.env.DB_NAME || 'g3',
