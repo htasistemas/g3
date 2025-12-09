@@ -15,11 +15,7 @@ export class CreateSalas1730700000000 implements MigrationInterface {
       return;
     }
 
-    const driver = queryRunner.connection.driver.options.type;
-    const isSqlite = driver === 'sqlite';
-    const uuidDefault = isSqlite
-      ? "(lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || '4' || substr(hex(randomblob(2)), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(hex(randomblob(2)), 2) || '-' || lower(hex(randomblob(6))))"
-      : 'gen_random_uuid()';
+    const uuidDefault = 'gen_random_uuid()';
 
     await queryRunner.createTable(
       new Table({
@@ -53,8 +49,8 @@ export class CreateSalas1730700000000 implements MigrationInterface {
             { name: 'diasSemana', type: 'text', isNullable: true },
             { name: 'profissional', type: 'varchar' },
             { name: 'salaId', type: 'uuid', isNullable: true },
-            { name: 'enrollments', type: isSqlite ? 'text' : 'simple-json', isNullable: true },
-            { name: 'waitlist', type: isSqlite ? 'text' : 'simple-json', isNullable: true },
+            { name: 'enrollments', type: 'jsonb', isNullable: true },
+            { name: 'waitlist', type: 'jsonb', isNullable: true },
             { name: 'certificate_template', type: 'text', isNullable: true },
             { name: 'createdAt', type: 'timestamp', default: 'now()' },
             { name: 'updatedAt', type: 'timestamp', default: 'now()' }

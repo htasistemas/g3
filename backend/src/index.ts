@@ -41,6 +41,20 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.get('/api/health/db', async (_req, res) => {
+  try {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
+
+    await AppDataSource.query('SELECT 1');
+    res.json({ status: 'ok' });
+  } catch (error) {
+    console.error('Database health check failed', error);
+    res.status(500).json({ status: 'error', message: 'Database unavailable' });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/beneficiarios', beneficiariosRoutes);
 app.use('/api/beneficiaries', beneficiariosRoutes);
