@@ -23,6 +23,8 @@ import { Sala } from './entities/Sala';
 import { IndiceVulnerabilidadeFamiliar } from './entities/IndiceVulnerabilidadeFamiliar';
 import { BenefitType } from './entities/BenefitType';
 import { BenefitGrant } from './entities/BenefitGrant';
+import { StockItem } from './entities/StockItem';
+import { StockMovement } from './entities/StockMovement';
 import { RenameSchemaToPortuguese1729700000000 } from './migrations/1729700000000-RenameSchemaToPortuguese';
 import { CreateBeneficiarioFamiliaSchema1729800000000 } from './migrations/1729800000000-CreateBeneficiarioFamiliaSchema';
 import { UpdateAssistanceUnitSchema1730100000000 } from './migrations/1730100000000-UpdateAssistanceUnitSchema';
@@ -35,6 +37,7 @@ import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/17308000
 import { CreateVulnerabilityIndex1730900000000 } from './migrations/1730900000000-CreateVulnerabilityIndex';
 import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950000000-AddStatusToCursosAtendimentos';
 import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
+import { CreateStockModule1731000000000 } from './migrations/1731000000000-CreateStockModule';
 
 dotenv.config();
 
@@ -60,7 +63,8 @@ const migrations = [
   CreateBeneficiarioBaseSchema1730800000000,
   CreateVulnerabilityIndex1730900000000,
   AddStatusToCursosAtendimentos1730950000000,
-  CreateBenefitsModule1730960000000
+  CreateBenefitsModule1730960000000,
+  CreateStockModule1731000000000
 ];
 
 function resolveRelationalPort(): number {
@@ -99,7 +103,9 @@ const baseOptions = {
     Sala,
     IndiceVulnerabilidadeFamiliar,
     BenefitType,
-    BenefitGrant
+    BenefitGrant,
+    StockItem,
+    StockMovement
   ],
   logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
 } satisfies Partial<DataSourceOptions>;

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -19,40 +19,17 @@ import {
   faUser,
   faWarehouse
 } from '@fortawesome/free-solid-svg-icons';
+import {
+  AdjustmentDirection,
+  AlmoxarifadoService,
+  MovementType,
+  StockItem,
+  StockItemPayload,
+  StockItemStatus,
+  StockMovement
+} from '../../services/almoxarifado.service';
 
 type AlmoxTabId = 'cadastro' | 'itens' | 'movimentacoes' | 'dashboards';
-
-type MovementType = 'Entrada' | 'Saída' | 'Ajuste';
-
-type StockItemStatus = 'Ativo' | 'Inativo';
-
-type AdjustmentDirection = 'increase' | 'decrease';
-
-interface StockItem {
-  code: string;
-  description: string;
-  category: string;
-  unit: string;
-  location: string;
-  locationDetail: string;
-  currentStock: number;
-  minStock: number;
-  unitValue: number;
-  status: StockItemStatus;
-  notes?: string;
-}
-
-interface StockMovement {
-  date: string;
-  type: MovementType;
-  itemCode: string;
-  itemDescription: string;
-  quantity: number;
-  balanceAfter: number;
-  reference: string;
-  responsible: string;
-  notes?: string;
-}
 
 interface ItemFilters {
   term: string;
@@ -101,7 +78,7 @@ interface MovementFormState {
   templateUrl: './almoxarifado.component.html',
   styleUrl: './almoxarifado.component.scss'
 })
-export class AlmoxarifadoComponent {
+export class AlmoxarifadoComponent implements OnInit {
   readonly faBoxArchive = faBoxArchive;
   readonly faTriangleExclamation = faTriangleExclamation;
   readonly faMoneyBillTrendUp = faMoneyBillTrendUp;
@@ -118,6 +95,8 @@ export class AlmoxarifadoComponent {
   readonly faCircleExclamation = faCircleExclamation;
   readonly faUser = faUser;
 
+  constructor(private readonly almoxarifadoService: AlmoxarifadoService) {}
+
   readonly tabs: { id: AlmoxTabId; label: string; description: string }[] = [
     { id: 'cadastro', label: 'Cadastros de itens', description: 'Estruture o item com campos obrigatórios e validações.' },
     { id: 'itens', label: 'Itens do almoxarifado', description: 'Consulte rapidamente os itens ativos e críticos.' },
@@ -129,93 +108,9 @@ export class AlmoxarifadoComponent {
 
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
-  items = signal<StockItem[]>([
-    {
-      code: 'ALM-001',
-      description: 'Álcool em gel 70% 500ml',
-      category: 'Higiene',
-      unit: 'Frasco',
-      location: 'Sala de materiais',
-      locationDetail: 'Prateleira A1',
-      currentStock: 85,
-      minStock: 40,
-      unitValue: 12.5,
-      status: 'Ativo',
-      notes: 'Reposição semanal preferencial'
-    },
-    {
-      code: 'ALM-002',
-      description: 'Luvas descartáveis tamanho M',
-      category: 'EPI',
-      unit: 'Caixa',
-      location: 'Depósito central',
-      locationDetail: 'Estante B2',
-      currentStock: 18,
-      minStock: 30,
-      unitValue: 32.9,
-      status: 'Ativo'
-    },
-    {
-      code: 'ALM-003',
-      description: 'Papel sulfite A4 75g',
-      category: 'Escritório',
-      unit: 'Resma',
-      location: 'Almoxarifado administrativo',
-      locationDetail: 'Prateleira C1',
-      currentStock: 120,
-      minStock: 60,
-      unitValue: 24.5,
-      status: 'Ativo'
-    },
-    {
-      code: 'ALM-004',
-      description: 'Cartucho de impressora HP 664',
-      category: 'Escritório',
-      unit: 'Unidade',
-      location: 'Almoxarifado administrativo',
-      locationDetail: 'Prateleira C3',
-      currentStock: 6,
-      minStock: 10,
-      unitValue: 95.0,
-      status: 'Inativo',
-      notes: 'Modelo sendo descontinuado'
-    }
-  ]);
+  items = signal<StockItem[]>([]);
 
-  movements = signal<StockMovement[]>([
-    {
-      date: this.todayIso,
-      type: 'Entrada',
-      itemCode: 'ALM-001',
-      itemDescription: 'Álcool em gel 70% 500ml',
-      quantity: 20,
-      balanceAfter: 85,
-      reference: 'NF 02314',
-      responsible: 'Maria Silva',
-      notes: 'Reposição mensal'
-    },
-    {
-      date: this.offsetDate(-3),
-      type: 'Saída',
-      itemCode: 'ALM-002',
-      itemDescription: 'Luvas descartáveis tamanho M',
-      quantity: 12,
-      balanceAfter: 18,
-      reference: 'Req 0081',
-      responsible: 'Equipe Saúde',
-      notes: 'Atendimento interno'
-    },
-    {
-      date: this.offsetDate(-15),
-      type: 'Entrada',
-      itemCode: 'ALM-003',
-      itemDescription: 'Papel sulfite A4 75g',
-      quantity: 60,
-      balanceAfter: 120,
-      reference: 'NF 01998',
-      responsible: 'João Mendes'
-    }
-  ]);
+  movements = signal<StockMovement[]>([]);
 
   itemFilters: ItemFilters = {
     term: '',
@@ -237,6 +132,7 @@ export class AlmoxarifadoComponent {
   successMessage: string | null = null;
 
   itemForm: ItemFormState = this.createEmptyItemForm();
+  editingItemId: string | null = null;
   editingItemCode: string | null = null;
 
   movementForm: MovementFormState = {
@@ -251,6 +147,31 @@ export class AlmoxarifadoComponent {
   };
 
   showMovementModal = false;
+
+  ngOnInit(): void {
+    this.loadItems();
+    this.loadMovements();
+  }
+
+  private loadItems(): void {
+    this.formError = null;
+    this.almoxarifadoService.listItems().subscribe({
+      next: (items) => this.items.set(items),
+      error: () => {
+        this.formError = 'Não foi possível carregar os itens do almoxarifado.';
+      }
+    });
+  }
+
+  private loadMovements(): void {
+    this.movementError = null;
+    this.almoxarifadoService.listMovements().subscribe({
+      next: (movements) => this.movements.set(movements),
+      error: () => {
+        this.movementError = 'Não foi possível carregar as movimentações do almoxarifado.';
+      }
+    });
+  }
 
   changeTab(tabId: AlmoxTabId): void {
     this.activeTab = tabId;
@@ -288,7 +209,10 @@ export class AlmoxarifadoComponent {
   readonly indicatorTotals = computed(() => {
     const allItems = this.items();
     const belowMin = allItems.filter((item) => item.currentStock < item.minStock).length;
-    const totalValue = allItems.reduce((sum, item) => sum + item.currentStock * item.unitValue, 0);
+    const totalValue = allItems.reduce(
+      (sum, item) => sum + item.currentStock * (Number(item.unitValue) || 0),
+      0
+    );
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentMovements = this.movements().filter((movement) =>
@@ -304,7 +228,7 @@ export class AlmoxarifadoComponent {
   });
 
   get categories(): string[] {
-    const raw = this.items().map((item) => item.category);
+    const raw = this.items().map((item) => item.category).filter(Boolean) as string[];
     const unique = Array.from(new Set(raw));
     return unique.sort();
   }
@@ -348,7 +272,7 @@ export class AlmoxarifadoComponent {
 
       if (
         this.movementFilters.responsible &&
-        !movement.responsible.toLowerCase().includes(this.movementFilters.responsible.toLowerCase())
+        !(movement.responsible ?? '').toLowerCase().includes(this.movementFilters.responsible.toLowerCase())
       ) {
         return false;
       }
@@ -358,7 +282,13 @@ export class AlmoxarifadoComponent {
   }
 
   editItem(item: StockItem): void {
-    this.itemForm = { ...item, notes: item.notes ?? '' };
+    this.itemForm = {
+      ...item,
+      location: item.location ?? '',
+      locationDetail: item.locationDetail ?? '',
+      notes: item.notes ?? ''
+    };
+    this.editingItemId = item.id;
     this.editingItemCode = item.code;
     this.formError = null;
     this.successMessage = null;
@@ -366,6 +296,7 @@ export class AlmoxarifadoComponent {
 
   resetItemForm(): void {
     this.itemForm = this.createEmptyItemForm();
+    this.editingItemId = null;
     this.editingItemCode = null;
     this.formError = null;
     this.successMessage = null;
@@ -380,7 +311,7 @@ export class AlmoxarifadoComponent {
     }
 
     this.formError = null;
-    const formData: StockItem = {
+    const formData: StockItemPayload = {
       ...this.itemForm,
       currentStock: Number(this.itemForm.currentStock) || 0,
       minStock: Number(this.itemForm.minStock),
@@ -388,19 +319,26 @@ export class AlmoxarifadoComponent {
       notes: this.itemForm.notes || undefined
     };
 
-    const updatedItems = [...this.items()];
-    const existingIndex = updatedItems.findIndex((item) => item.code === this.editingItemCode);
+    const request$ = this.editingItemId
+      ? this.almoxarifadoService.updateItem(this.editingItemId, formData)
+      : this.almoxarifadoService.createItem(formData);
 
-    if (existingIndex >= 0) {
-      updatedItems[existingIndex] = formData;
-      this.successMessage = 'Item atualizado com sucesso e pronto para novas movimentações.';
-    } else {
-      updatedItems.push(formData);
-      this.successMessage = 'Item cadastrado com sucesso no almoxarifado.';
-    }
+    request$.subscribe({
+      next: (item) => {
+        const updatedItems = this.editingItemId
+          ? this.items().map((existing) => (existing.id === item.id ? item : existing))
+          : [item, ...this.items()];
 
-    this.items.set(updatedItems);
-    this.resetItemForm();
+        this.items.set(updatedItems);
+        this.successMessage = this.editingItemId
+          ? 'Item atualizado com sucesso e pronto para novas movimentações.'
+          : 'Item cadastrado com sucesso no almoxarifado.';
+        this.resetItemForm();
+      },
+      error: (error) => {
+        this.formError = error?.error?.message || 'Não foi possível salvar o item de estoque.';
+      }
+    });
   }
 
   openMovementModal(item?: StockItem): void {
@@ -428,29 +366,8 @@ export class AlmoxarifadoComponent {
       return;
     }
 
-    const items = [...this.items()];
-    const targetItem = items.find((item) => item.code === itemCode);
-
-    if (!targetItem) {
-      this.movementError = 'Selecione um item cadastrado para registrar a movimentação.';
-      return;
-    }
-
-    let quantityChange = quantity;
-    if (type === 'Saída') {
-      if (quantity > targetItem.currentStock) {
-        this.movementError = 'Não é possível registrar saída maior que o estoque atual do item.';
-        return;
-      }
-      quantityChange = -quantity;
-    }
-
     if (type === 'Ajuste') {
       const adjustNegative = adjustmentDirection === 'decrease';
-      if (adjustNegative && quantity > targetItem.currentStock) {
-        this.movementError = 'Ajuste negativo não pode deixar o estoque negativo. Revise a quantia.';
-        return;
-      }
 
       const message = adjustNegative
         ? 'Confirma reduzir o estoque deste item? Este ajuste é permanente.'
@@ -461,27 +378,29 @@ export class AlmoxarifadoComponent {
         return;
       }
 
-      quantityChange = adjustNegative ? -quantity : quantity;
     }
 
-    const newBalance = targetItem.currentStock + quantityChange;
-    targetItem.currentStock = newBalance;
-
-    const newMovement: StockMovement = {
-      date,
-      type,
-      itemCode,
-      itemDescription: targetItem.description,
-      quantity,
-      balanceAfter: newBalance,
-      reference,
-      responsible,
-      notes: notes || undefined
-    };
-
-    this.movements.set([newMovement, ...this.movements()]);
-    this.items.set(items);
-    this.showMovementModal = false;
+    this.almoxarifadoService
+      .registerMovement({
+        date,
+        type,
+        itemCode,
+        quantity,
+        reference,
+        responsible,
+        notes: notes || undefined,
+        adjustmentDirection
+      })
+      .subscribe({
+        next: ({ movement, item }) => {
+          this.movements.set([movement, ...this.movements()]);
+          this.items.set(this.items().map((existing) => (existing.id === item.id ? item : existing)));
+          this.showMovementModal = false;
+        },
+        error: (error) => {
+          this.movementError = error?.error?.message || 'Não foi possível registrar a movimentação.';
+        }
+      });
   }
 
   private validateItemForm(): string[] {
@@ -529,12 +448,6 @@ export class AlmoxarifadoComponent {
     };
 
     return map[field];
-  }
-
-  private offsetDate(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().substring(0, 10);
   }
 
   private createEmptyItemForm(): ItemFormState {

@@ -23,6 +23,7 @@ import benefitTypesRoutes from './routes/benefit-types.routes';
 import benefitGrantsRoutes from './routes/benefit-grants.routes';
 import assistenteTextosRoutes from './routes/assistente-textos.routes';
 import prontuarioRoutes from './routes/prontuario.routes';
+import almoxarifadoRoutes from './routes/almoxarifado.routes';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/benefits/types', benefitTypesRoutes);
 app.use('/api/benefits/grants', benefitGrantsRoutes);
 app.use('/api/assistente-textos', assistenteTextosRoutes);
 app.use('/api/prontuario', prontuarioRoutes);
+app.use('/api/almoxarifado', almoxarifadoRoutes);
 
 async function start() {
   try {
