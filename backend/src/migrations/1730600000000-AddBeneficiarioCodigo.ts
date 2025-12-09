@@ -4,15 +4,11 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const tableName = "beneficiario";
 
-    const table = await queryRunner.getTable(tableName);
-    if (!table) {
-      // Table not created yet (handled by later migrations)
-      return;
-    }
 
-    const hasCodigoColumn = table.columns.some((column) => column.name === "codigo");
+    const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
+
     if (hasCodigoColumn) {
-      // Column already exists; nothing to do
+
       return;
     }
 
@@ -26,9 +22,10 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
       })
     );
 
-    const hasCodigoUnique = table.uniques.some((unique) =>
-      unique.columnNames.includes("codigo")
-    );
+
+    const hasCodigoUnique = (await queryRunner.getTable(tableName))
+      ?.uniques.some((uq) => uq.columnNames.includes("codigo"));
+
 
     if (!hasCodigoUnique) {
       await queryRunner.query(
@@ -40,12 +37,12 @@ export class AddBeneficiarioCodigo1730600000000 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     const tableName = "beneficiario";
 
-    const table = await queryRunner.getTable(tableName);
-    if (table) {
-      const hasCodigoColumn = table.columns.some((column) => column.name === "codigo");
-      if (hasCodigoColumn) {
-        await queryRunner.dropColumn(tableName, "codigo");
-      }
+
+    const hasCodigoColumn = await queryRunner.hasColumn(tableName, "codigo");
+
+    if (hasCodigoColumn) {
+      await queryRunner.dropColumn(tableName, "codigo");
+
     }
 
     try {
