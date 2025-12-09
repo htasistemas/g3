@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 
 interface LoginResponse {
   token: string;
-  user: { id: string; nomeUsuario: string };
+  user?: { id: string; nomeUsuario: string };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -22,8 +22,11 @@ export class AuthService {
       .post<LoginResponse>(`${environment.apiUrl}/api/auth/login`, { nomeUsuario, senha })
       .pipe(
         tap((response) => {
-          this.user.set(response.user);
-          localStorage.setItem(this.storageKey, JSON.stringify(response));
+          const authenticatedUser = response.user ?? { id: '0', nomeUsuario };
+          const session: LoginResponse = { ...response, user: authenticatedUser };
+
+          this.user.set(authenticatedUser);
+          localStorage.setItem(this.storageKey, JSON.stringify(session));
         })
       );
   }
@@ -36,7 +39,7 @@ export class AuthService {
   }
 
   get isAuthenticated(): boolean {
-    return !!this.user();
+    return !!this.token;
   }
 
   get token(): string | null {
