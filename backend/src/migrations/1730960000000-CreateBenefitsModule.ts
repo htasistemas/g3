@@ -36,7 +36,10 @@ export class CreateBenefitsModule1730960000000 implements MigrationInterface {
           {
             name: 'FK_3b529be18eb0b217e09e4dc681f',
             columnNames: ['beneficiarioId'],
-            referencedTableName: 'beneficiarios',
+            // The beneficiaries table is created as "beneficiario" in earlier migrations
+            // and later renamed to "beneficiarios". Referencing the pre-rename table
+            // keeps the migration order compatible while still following the rename.
+            referencedTableName: 'beneficiario',
             referencedColumnNames: ['id_beneficiario'],
             onDelete: 'CASCADE'
           },
