@@ -321,6 +321,11 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const duplicates = await duplicidadeService.verificar(payload);
+    if (duplicates.length) {
+      return res.status(409).json({ message: 'Beneficiário já cadastrado', candidatos: duplicates });
+    }
+
     payload.codigo = await generateSequentialCodigo(repository);
     const created = repository.create(payload);
     const saved = await repository.save(created);
@@ -349,6 +354,11 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
+    const duplicates = await duplicidadeService.verificar(payload, { ignoreIdBeneficiario: existing.idBeneficiario });
+    if (duplicates.length) {
+      return res.status(409).json({ message: 'Beneficiário já cadastrado', candidatos: duplicates });
+    }
+
     if (!existing.codigo) {
       payload.codigo = await generateSequentialCodigo(repository);
     }

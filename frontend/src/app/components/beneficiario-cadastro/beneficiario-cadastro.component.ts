@@ -1699,11 +1699,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     try {
       const payload = await this.toPayload(statusForSave);
-      const isDuplicate = await this.hasDuplicate(payload);
-      if (isDuplicate) {
-        this.saving = false;
-        return;
-      }
 
       const request = this.beneficiarioId
         ? this.service.update(this.beneficiarioId, payload)
@@ -2246,48 +2241,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private setPhotoPreview(dataUrl: string): void {
     this.photoPreview = dataUrl;
     this.form.get('foto_3x4')?.setValue(dataUrl);
-  }
-
-  private async hasDuplicate(payload: BeneficiarioApiPayload): Promise<boolean> {
-    try {
-      const { nome_completo, cpf, nis, data_nascimento, nome_mae } = payload;
-      const { beneficiarios } = await firstValueFrom(
-        this.service.list({ nome: nome_completo, cpf: cpf ?? undefined, nis: nis ?? undefined })
-      );
-      const duplicates = (beneficiarios ?? []).filter((item) => {
-        if (this.beneficiarioId && item.id_beneficiario === this.beneficiarioId) return false;
-
-        const sameCpf = cpf && item.cpf && item.cpf === cpf;
-        const sameIdentity =
-          this.normalizeString(item.nome_completo) === this.normalizeString(nome_completo) &&
-          item.data_nascimento === data_nascimento &&
-          this.normalizeString(item.nome_mae) === this.normalizeString(nome_mae);
-
-        return sameCpf || sameIdentity;
-      });
-
-      if (duplicates.length) {
-        this.feedback = 'Beneficiário já cadastrado. Utilize a lista para editar ou excluir.';
-        this.changeTab('dados');
-        return true;
-      }
-    } catch (error) {
-      console.warn('Não foi possível verificar duplicidade', error);
-
-      if (error instanceof HttpErrorResponse && error.status === 0) {
-        this.feedback = 'Não foi possível verificar duplicidade. Verifique a conexão com a API.';
-        return true;
-      }
-
-      this.feedback = 'Não foi possível verificar duplicidade. Tente novamente em instantes.';
-      return true;
-    }
-
-    return false;
-  }
-
-  private normalizeString(value?: string | null): string {
-    return (value ?? '').trim().toLowerCase();
   }
 
   onCpfInput(event: Event): void {
