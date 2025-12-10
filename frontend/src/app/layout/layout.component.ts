@@ -92,11 +92,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [
-        { label: 'Prontuário de atendimento', icon: faClipboardList, route: '/beneficiarios' },
+        { label: 'Prontuário', icon: faClipboardList, route: '/beneficiarios' },
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
         { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
-        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' },
-        { label: 'Fluxo de atendimento', icon: faClipboardList, route: '/atendimentos/fluxo' }
+        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' }
       ]
     },
     {

@@ -25,7 +25,6 @@ import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
-import { AtendimentoFluxoComponent } from './components/atendimento-fluxo/atendimento-fluxo.component';
 import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
 import { ProntuarioComponent } from './components/prontuario/prontuario.component';
 
@@ -44,7 +43,7 @@ export const routes: Routes = [
       {
         path: 'beneficiarios/:id/prontuario',
         component: ProntuarioComponent,
-        data: { title: 'Prontuário de Atendimento' }
+        data: { title: 'Prontuário' }
       },
       { path: 'beneficiarios/novo', redirectTo: 'cadastros/beneficiarios', pathMatch: 'full' },
       { path: 'beneficiarios/editar/:id', redirectTo: 'cadastros/beneficiarios/:id', pathMatch: 'full' },
@@ -75,11 +74,6 @@ export const routes: Routes = [
         path: 'atendimentos/cursos',
         component: CursosAtendimentosComponent,
         data: { title: 'Cursos e atendimentos' }
-      },
-      {
-        path: 'atendimentos/fluxo',
-        component: AtendimentoFluxoComponent,
-        data: { title: 'Fluxo de atendimentos' }
       },
       {
         path: 'administrativo/patrimonio',

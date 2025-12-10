@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   AbstractControl,
   FormArray,
@@ -1703,7 +1703,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
             setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
           });
         },
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 0) {
+            this.feedback = 'Não foi possível conectar à API. Verifique a conexão e tente novamente.';
+            return;
+          }
+
           this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
         }
       });
@@ -2255,6 +2260,14 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.warn('Não foi possível verificar duplicidade', error);
+
+      if (error instanceof HttpErrorResponse && error.status === 0) {
+        this.feedback = 'Não foi possível verificar duplicidade. Verifique a conexão com a API.';
+        return true;
+      }
+
+      this.feedback = 'Não foi possível verificar duplicidade. Tente novamente em instantes.';
+      return true;
     }
 
     return false;
