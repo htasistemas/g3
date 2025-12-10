@@ -62,7 +62,7 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   newBeneficiary(): void {
-    this.router.navigate(['/beneficiarios/novo']);
+    this.router.navigate(['/cadastros/beneficiarios']);
   }
 
   editBeneficiary(id: number | undefined): void {
@@ -70,7 +70,7 @@ export class BeneficiaryListComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/beneficiarios/editar', id]);
+    this.router.navigate(['/cadastros/beneficiarios', id]);
   }
 
   toggleIvfOrder(): void {

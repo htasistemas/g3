@@ -4,7 +4,6 @@ import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DashboardIndicatorsComponent } from './components/dashboard-indicators/dashboard-indicators.component';
-import { BeneficiaryFormComponent } from './components/beneficiary-form/beneficiary-form.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
@@ -43,25 +42,12 @@ export const routes: Routes = [
       { path: 'dashboard/gerencial', component: DashboardBiComponent, data: { title: 'Dashboard gerencial' } },
       { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiários' } },
       {
-        path: 'beneficiarios/editar/:id',
-        component: BeneficiaryFormComponent,
-        data: { title: 'Beneficiários' }
-      },
-      {
         path: 'beneficiarios/:id/prontuario',
         component: ProntuarioComponent,
         data: { title: 'Prontuário de Atendimento' }
       },
-      {
-        path: 'beneficiarios/cadastro',
-        component: BeneficiaryFormComponent,
-        data: { title: 'Beneficiários' }
-      },
-      {
-        path: 'beneficiarios/novo',
-        component: BeneficiaryFormComponent,
-        data: { title: 'Beneficiários' }
-      },
+      { path: 'beneficiarios/novo', redirectTo: 'cadastros/beneficiarios', pathMatch: 'full' },
+      { path: 'beneficiarios/editar/:id', redirectTo: 'cadastros/beneficiarios/:id', pathMatch: 'full' },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
