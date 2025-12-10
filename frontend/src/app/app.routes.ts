@@ -27,6 +27,7 @@ import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenc
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
 import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
 import { ProntuarioComponent } from './components/prontuario/prontuario.component';
+import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -74,6 +75,11 @@ export const routes: Routes = [
         path: 'atendimentos/cursos',
         component: CursosAtendimentosComponent,
         data: { title: 'Cursos e atendimentos' }
+      },
+      {
+        path: 'atendimentos/banco-empregos',
+        component: BancoEmpregosComponent,
+        data: { title: 'Banco de Empregos' }
       },
       {
         path: 'administrativo/patrimonio',
