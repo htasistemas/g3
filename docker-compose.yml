@@ -1,5 +1,16 @@
 version: '3.9'
 services:
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:-g3}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-admin}
+      - POSTGRES_DB=${DB_NAME:-g3}
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
   backend:
     build:
       context: .
@@ -7,14 +18,15 @@ services:
     env_file:
       - backend/.env.example
     environment:
-      - DB_HOST=${DB_HOST:-72.60.156.202}
-      - DB_PORT=${DB_PORT:-5434}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
       - DB_USERNAME=${DB_USERNAME:-g3}
       - DB_PASSWORD=${DB_PASSWORD:-admin}
       - DB_NAME=${DB_NAME:-g3}
     ports:
       - "3000:3000"
-    depends_on: []
+    depends_on:
+      - db
   frontend:
     build:
       context: .
@@ -25,3 +37,6 @@ services:
       - "4200:4200"
     depends_on:
       - backend
+
+volumes:
+  db_data:
