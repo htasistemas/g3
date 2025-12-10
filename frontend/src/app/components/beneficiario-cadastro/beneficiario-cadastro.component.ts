@@ -1712,12 +1712,19 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           });
         },
         error: (error: HttpErrorResponse) => {
+          console.error('Erro ao salvar beneficiário', error);
+
+          const serverMessage =
+            typeof error?.error === 'string'
+              ? error.error
+              : error?.error?.message || error.message || 'Erro ao salvar beneficiário';
+
           if (error.status === 0) {
-            this.feedback = 'Não foi possível conectar à API. Verifique a conexão e tente novamente.';
+            this.feedback = `Não foi possível comunicar com a API: ${serverMessage}`;
             return;
           }
 
-          this.feedback = error?.error?.message || 'Erro ao salvar beneficiário';
+          this.feedback = serverMessage;
         }
       });
     } catch (error) {

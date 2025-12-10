@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { DocumentoObrigatorio } from './beneficiary.service';
 
@@ -117,6 +117,13 @@ export class BeneficiarioApiService {
 
   constructor(private readonly http: HttpClient) {}
 
+  private logAndRethrow(operation: string) {
+    return (error: any) => {
+      console.error(`Erro ${operation}`, error);
+      return throwError(() => error);
+    };
+  }
+
   private normalizePayload(payload: any): BeneficiarioApiPayload {
     const normalized: any = {};
 
@@ -163,15 +170,22 @@ export class BeneficiarioApiService {
   getById(id: string): Observable<{ beneficiario: BeneficiarioApiPayload }> {
     return this.http
       .get<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`)
-      .pipe(map(({ beneficiario }) => ({ beneficiario: this.normalizePayload(beneficiario) })));
+      .pipe(
+        map(({ beneficiario }) => ({ beneficiario: this.normalizePayload(beneficiario) })),
+        catchError(this.logAndRethrow('ao buscar beneficiário'))
+      );
   }
 
   create(payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
-    return this.http.post<{ beneficiario: BeneficiarioApiPayload }>(this.baseUrl, payload);
+    return this.http
+      .post<{ beneficiario: BeneficiarioApiPayload }>(this.baseUrl, payload)
+      .pipe(catchError(this.logAndRethrow('ao criar beneficiário')));
   }
 
   update(id: string, payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
-    return this.http.put<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`, payload);
+    return this.http
+      .put<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`, payload)
+      .pipe(catchError(this.logAndRethrow('ao atualizar beneficiário')));
   }
 
   delete(id: string): Observable<void> {
