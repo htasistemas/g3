@@ -46,8 +46,8 @@ import { EnsureUsuariosTable1731300000000 } from './migrations/1731300000000-Ens
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || '72.60.156.202',
-  port: Number(process.env.DB_PORT) || 5434,
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT) || 5432,
   username: process.env.DB_USERNAME || 'g3',
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'g3',
