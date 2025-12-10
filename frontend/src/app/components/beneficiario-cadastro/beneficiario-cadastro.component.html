@@ -133,6 +133,30 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div class="beneficiary-meta-card">
+      <p class="beneficiary-meta-card__title">Dados do cadastro</p>
+      <div class="beneficiary-meta" aria-live="polite">
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Família</span>
+          <span class="beneficiary-meta__value">{{ getFamilyRegistrationLabel() }}</span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Matrícula</span>
+          <span class="beneficiary-meta__value beneficiary-meta__value--code">
+            {{ beneficiaryCode || 'Gerado ao salvar' }}
+          </span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Cadastrado em</span>
+          <span class="beneficiary-meta__value">{{ formatDateTime(createdAt) }}</span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Alterado em</span>
+          <span class="beneficiary-meta__value">{{ formatDateTime(lastUpdatedAt) }}</span>
+        </div>
+      </div>
+    </div>
+
     <div *ngIf="feedback" class="feedback">
       <span>{{ feedback }}</span>
       <button type="button" class="feedback__close" (click)="dismissFeedback()" aria-label="Fechar aviso">×</button>
@@ -391,26 +415,6 @@
         </div>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
-      <div class="beneficiary-meta" aria-live="polite">
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Família</span>
-          <span class="beneficiary-meta__value">{{ getFamilyRegistrationLabel() }}</span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Matrícula</span>
-          <span class="beneficiary-meta__value beneficiary-meta__value--code">
-            {{ beneficiaryCode || 'Gerado ao salvar' }}
-          </span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Cadastrado em</span>
-          <span class="beneficiary-meta__value">{{ formatDateTime(createdAt) }}</span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Alterado em</span>
-          <span class="beneficiary-meta__value">{{ formatDateTime(lastUpdatedAt) }}</span>
-        </div>
-      </div>
       <div class="field-grid cols-2" formGroupName="dadosPessoais">
         <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
         <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
