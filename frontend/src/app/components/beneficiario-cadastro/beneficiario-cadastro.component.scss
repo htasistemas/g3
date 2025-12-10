@@ -581,6 +581,66 @@
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }
 
+.contact-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contact-field input {
+  flex: 1;
+}
+
+.contact-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact-actions__button {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.contact-actions__button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+  border-color: #cbd5e1;
+}
+
+.contact-actions__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.contact-actions__button--whatsapp {
+  background: #e7f9f0;
+  border-color: #bbf7d0;
+  color: #128c7e;
+}
+
+.contact-actions__button--sms {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+.contact-actions__button--email {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
 .checkbox-field {
   display: inline-flex;
   align-items: center;
@@ -1104,6 +1164,36 @@
 .status-panel__reason {
   color: #64748b;
   font-size: 0.9rem;
+}
+
+.status-panel__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.4rem 0.75rem;
+  margin: 0.2rem 0 0.6rem;
+}
+
+.status-panel__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.status-panel__meta-label {
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.status-panel__meta-value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.status-panel__meta-value--code {
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
 }
 
 .photo-section {

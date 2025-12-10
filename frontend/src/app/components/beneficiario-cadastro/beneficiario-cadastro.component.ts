@@ -28,6 +28,8 @@ type ViaCepResponse = {
   erro?: boolean;
 };
 
+type PhoneControlName = 'telefone_principal' | 'telefone_secundario' | 'telefone_recado_numero';
+
 type PrintOrder = 'nome' | 'data_nascimento' | 'idade' | 'bairro';
 type PrintListOrder = 'alphabetical' | 'code';
 
@@ -52,6 +54,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   nextSequentialCode = '0001';
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
+  familyRegistration: string | null = null;
   createdAt: string | null = null;
   lastUpdatedAt: string | null = null;
   assistanceUnit: AssistanceUnitPayload | undefined | null = null;
@@ -549,8 +552,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   mapToForm(beneficiario: BeneficiarioApiPayload) {
-    this.createdAt = beneficiario.data_cadastro ?? null;
-    this.lastUpdatedAt = beneficiario.data_atualizacao ?? beneficiario.data_cadastro ?? null;
+    this.applyBeneficiaryMetadata(beneficiario);
     this.beneficiaryCode = this.normalizeBeneficiaryCode(beneficiario.codigo);
 
     return {
@@ -665,6 +667,39 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         observacoes: beneficiario.observacoes
       }
     };
+  }
+
+  private applyBeneficiaryMetadata(beneficiario: BeneficiarioApiPayload | null): void {
+    this.createdAt = beneficiario?.data_cadastro ?? null;
+    this.lastUpdatedAt = beneficiario?.data_atualizacao ?? beneficiario?.data_cadastro ?? null;
+    this.familyRegistration = this.getFamilyRegistrationValue(beneficiario);
+  }
+
+  formatDateTime(dateValue: string | null): string {
+    if (!dateValue) return 'Não informado';
+    const parsed = new Date(dateValue);
+    if (isNaN(parsed.getTime())) return 'Não informado';
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(parsed);
+  }
+
+  getFamilyRegistrationLabel(): string {
+    return this.familyRegistration || 'Não vinculado';
+  }
+
+  private getFamilyRegistrationValue(beneficiario: BeneficiarioApiPayload | null): string | null {
+    if (!beneficiario) return null;
+
+    return (
+      beneficiario.registro_familia ||
+      beneficiario.codigo_familia ||
+      beneficiario.id_familia ||
+      beneficiario.nome_familia ||
+      null
+    );
   }
 
   private loadRequiredDocuments(): void {
@@ -1871,8 +1906,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   startNewBeneficiario(): void {
     this.beneficiarioId = null;
     this.photoPreview = null;
-    this.createdAt = null;
-    this.lastUpdatedAt = null;
+    this.applyBeneficiaryMetadata(null);
     this.selectedBeneficiary = null;
     this.beneficiaryCode = this.nextSequentialCode;
     this.lastStatus = 'EM_ANALISE';
@@ -2068,8 +2102,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
           this.form.reset({ status: 'EM_ANALISE', motivo_bloqueio: '', foto_3x4: '', endereco: { zona: 'URBANA' } });
           this.beneficiarioId = null;
           this.photoPreview = null;
-          this.createdAt = null;
-          this.lastUpdatedAt = null;
+          this.applyBeneficiaryMetadata(null);
           this.beneficiaryCode = null;
           this.selectedBeneficiary = null;
         }
@@ -2182,6 +2215,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     reader.onload = () => {
       const dataUrl = reader.result as string;
       this.setPhotoPreview(dataUrl);
+      input.value = '';
     };
     reader.readAsDataURL(file);
   }
@@ -2267,6 +2301,57 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private normalizePhone(value?: string | null): string | undefined {
     const digits = (value ?? '').replace(/\D/g, '');
     return digits || undefined;
+  }
+
+  openWhatsapp(controlName: PhoneControlName): void {
+    const digits = this.getPhoneDigits(controlName);
+    if (!digits) {
+      this.showTemporaryFeedback('Informe um telefone válido para abrir o WhatsApp.');
+      return;
+    }
+
+    window.open(`https://wa.me/${digits}`, '_blank');
+  }
+
+  startCall(controlName: PhoneControlName): void {
+    const digits = this.getPhoneDigits(controlName);
+    if (!digits) {
+      this.showTemporaryFeedback('Informe um telefone válido para iniciar a ligação.');
+      return;
+    }
+
+    window.open(`tel:${digits}`, '_self');
+  }
+
+  sendSms(controlName: PhoneControlName): void {
+    const digits = this.getPhoneDigits(controlName);
+    if (!digits) {
+      this.showTemporaryFeedback('Informe um telefone válido para enviar SMS.');
+      return;
+    }
+
+    window.open(`sms:${digits}`, '_self');
+  }
+
+  openEmailClient(): void {
+    const email = this.form.get(['contato', 'email'])?.value as string | undefined;
+    if (!email) {
+      this.showTemporaryFeedback('Informe um e-mail para abrir o cliente de mensagens.');
+      return;
+    }
+
+    window.open(`mailto:${email}`);
+  }
+
+  hasPhoneValue(controlName: PhoneControlName): boolean {
+    return !!this.getPhoneDigits(controlName);
+  }
+
+  private getPhoneDigits(controlName: PhoneControlName): string | null {
+    const value = this.form.get(['contato', controlName])?.value as string | undefined;
+    const normalized = this.normalizePhone(value);
+
+    return normalized || null;
   }
 
   private formatCpf(value?: string | null): string {

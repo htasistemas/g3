@@ -7,6 +7,10 @@ import { DocumentoObrigatorio } from './beneficiary.service';
 
 export interface BeneficiarioApiPayload {
   id_beneficiario?: string;
+  id_familia?: string;
+  nome_familia?: string;
+  codigo_familia?: string;
+  registro_familia?: string;
   codigo?: string;
   status?: 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO' | string;
   motivo_bloqueio?: string;

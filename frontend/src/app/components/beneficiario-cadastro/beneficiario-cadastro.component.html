@@ -370,7 +370,26 @@
 
         <div class="status-panel">
           <p class="status-panel__title">Status do beneficiário</p>
-          <p class="muted" aria-live="polite">Código: {{ beneficiaryCode || 'Gerado ao salvar' }}</p>
+          <div class="status-panel__meta" aria-live="polite">
+            <div class="status-panel__meta-item">
+              <span class="status-panel__meta-label">Família</span>
+              <span class="status-panel__meta-value">{{ getFamilyRegistrationLabel() }}</span>
+            </div>
+            <div class="status-panel__meta-item">
+              <span class="status-panel__meta-label">Matrícula</span>
+              <span class="status-panel__meta-value status-panel__meta-value--code">
+                {{ beneficiaryCode || 'Gerado ao salvar' }}
+              </span>
+            </div>
+            <div class="status-panel__meta-item">
+              <span class="status-panel__meta-label">Cadastrado em</span>
+              <span class="status-panel__meta-value">{{ formatDateTime(createdAt) }}</span>
+            </div>
+            <div class="status-panel__meta-item">
+              <span class="status-panel__meta-label">Alterado em</span>
+              <span class="status-panel__meta-value">{{ formatDateTime(lastUpdatedAt) }}</span>
+            </div>
+          </div>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -509,25 +528,173 @@
           <p class="muted">Cadastre diferentes formas de contato e preferências.</p>
         </div>
       </div>
-      <div class="field-grid cols-3">
-        <label class="field">Telefone principal*<input
-            formControlName="telefone_principal"
-            placeholder="(00) 00000-0000"
-            (input)="onPhoneInput($event, 'telefone_principal')"
-          />
-          <p class="field-error" *ngIf="form.get(['contato', 'telefone_principal'])?.invalid && form.get(['contato', 'telefone_principal'])?.touched">
-            Informe o telefone principal.
-          </p>
-        </label>
-        <label class="field">Telefone secundário<input formControlName="telefone_secundario" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_secundario')" /></label>
-        <label class="field">Email<input type="email" formControlName="email" />
-          <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
-            Informe um e-mail válido.
-          </p>
-        </label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="telefone_principal_whatsapp" /> <span>Telefone principal tem WhatsApp</span></label>
-        <label class="field">Nome para recado<input formControlName="telefone_recado_nome" /></label>
-        <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_recado_numero')" /></label>
+        <div class="field-grid cols-3">
+          <label class="field">
+            Telefone principal*
+            <div class="contact-field">
+              <input
+                formControlName="telefone_principal"
+                placeholder="(00) 00000-0000"
+                (input)="onPhoneInput($event, 'telefone_principal')"
+              />
+              <div
+                class="contact-actions"
+                *ngIf="
+                  form.get(['contato', 'permite_contato_tel'])?.value ||
+                  form.get(['contato', 'permite_contato_whatsapp'])?.value ||
+                  form.get(['contato', 'permite_contato_sms'])?.value
+                "
+              >
+                <button
+                  type="button"
+                  class="contact-actions__button"
+                  *ngIf="form.get(['contato', 'permite_contato_tel'])?.value"
+                  (click)="startCall('telefone_principal')"
+                  [disabled]="!hasPhoneValue('telefone_principal')"
+                  aria-label="Ligar para telefone principal"
+                  title="Ligar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.72 11.72 0 003.68.59 1 1 0 011 1v3.5a1 1 0 01-1 1A17.5 17.5 0 012.5 3a1 1 0 011-1H7a1 1 0 011 1 11.72 11.72 0 00.59 3.68 1 1 0 01-.24 1.02l-2.2 2.09z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="contact-actions__button contact-actions__button--whatsapp"
+                  *ngIf="form.get(['contato', 'permite_contato_whatsapp'])?.value"
+                  (click)="openWhatsapp('telefone_principal')"
+                  [disabled]="!hasPhoneValue('telefone_principal')"
+                  aria-label="Abrir WhatsApp para telefone principal"
+                  title="WhatsApp"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2.25a9.75 9.75 0 00-8.51 14.48L2.2 21.8a.75.75 0 001 .93l5.08-1.74A9.75 9.75 0 1012 2.25zm0 1.5a8.25 8.25 0 110 16.5 8.18 8.18 0 01-3.74-.9l-.26-.13-3.05 1.04 1.03-2.88-.14-.24A8.25 8.25 0 0112 3.75zm-3.02 3.5c-.14 0-.35.05-.54.21-.22.18-.71.69-.71 1.68 0 1 .73 1.96.83 2.1.1.14 1.43 2.28 3.53 3.22 1.79.79 2.15.72 2.54.67.39-.05 1.26-.51 1.44-1 .18-.49.18-.91.13-1-.05-.09-.2-.15-.42-.26-.22-.1-1.3-.64-1.5-.71-.2-.08-.35-.11-.5.11-.15.23-.58.71-.72.86-.14.15-.27.17-.5.06-.23-.11-.97-.36-1.86-1.14a6.37 6.37 0 01-1.18-1.47c-.13-.22 0-.33.1-.44.1-.11.23-.27.35-.4.12-.13.15-.22.23-.36.08-.14.04-.26-.02-.36-.06-.1-.5-1.22-.69-1.68-.18-.44-.36-.38-.5-.39z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="contact-actions__button contact-actions__button--sms"
+                  *ngIf="form.get(['contato', 'permite_contato_sms'])?.value"
+                  (click)="sendSms('telefone_principal')"
+                  [disabled]="!hasPhoneValue('telefone_principal')"
+                  aria-label="Enviar SMS para telefone principal"
+                  title="SMS"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4 4h16a1 1 0 011 1v10a1 1 0 01-1 1H8.41L5 19.92V16H4a1 1 0 01-1-1V5a1 1 0 011-1zm1 2v8h1a1 1 0 011 1v1.38L9.62 15H19V6H5zm3 2h8a1 1 0 110 2H8a1 1 0 110-2zm0 3h5a1 1 0 110 2H8a1 1 0 110-2z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <p class="field-error" *ngIf="form.get(['contato', 'telefone_principal'])?.invalid && form.get(['contato', 'telefone_principal'])?.touched">
+              Informe o telefone principal.
+            </p>
+          </label>
+          <label class="field">
+            Telefone secundário
+            <div class="contact-field">
+              <input
+                formControlName="telefone_secundario"
+                placeholder="(00) 00000-0000"
+                (input)="onPhoneInput($event, 'telefone_secundario')"
+              />
+              <div
+                class="contact-actions"
+                *ngIf="
+                  form.get(['contato', 'permite_contato_tel'])?.value ||
+                  form.get(['contato', 'permite_contato_whatsapp'])?.value ||
+                  form.get(['contato', 'permite_contato_sms'])?.value
+                "
+              >
+                <button
+                  type="button"
+                  class="contact-actions__button"
+                  *ngIf="form.get(['contato', 'permite_contato_tel'])?.value"
+                  (click)="startCall('telefone_secundario')"
+                  [disabled]="!hasPhoneValue('telefone_secundario')"
+                  aria-label="Ligar para telefone secundário"
+                  title="Ligar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.72 11.72 0 003.68.59 1 1 0 011 1v3.5a1 1 0 01-1 1A17.5 17.5 0 012.5 3a1 1 0 011-1H7a1 1 0 011 1 11.72 11.72 0 00.59 3.68 1 1 0 01-.24 1.02l-2.2 2.09z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="contact-actions__button contact-actions__button--whatsapp"
+                  *ngIf="form.get(['contato', 'permite_contato_whatsapp'])?.value"
+                  (click)="openWhatsapp('telefone_secundario')"
+                  [disabled]="!hasPhoneValue('telefone_secundario')"
+                  aria-label="Abrir WhatsApp para telefone secundário"
+                  title="WhatsApp"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2.25a9.75 9.75 0 00-8.51 14.48L2.2 21.8a.75.75 0 001 .93l5.08-1.74A9.75 9.75 0 1012 2.25zm0 1.5a8.25 8.25 0 110 16.5 8.18 8.18 0 01-3.74-.9l-.26-.13-3.05 1.04 1.03-2.88-.14-.24A8.25 8.25 0 0112 3.75zm-3.02 3.5c-.14 0-.35.05-.54.21-.22.18-.71.69-.71 1.68 0 1 .73 1.96.83 2.1.1.14 1.43 2.28 3.53 3.22 1.79.79 2.15.72 2.54.67.39-.05 1.26-.51 1.44-1 .18-.49.18-.91.13-1-.05-.09-.2-.15-.42-.26-.22-.1-1.3-.64-1.5-.71-.2-.08-.35-.11-.5.11-.15.23-.58.71-.72.86-.14.15-.27.17-.5.06-.23-.11-.97-.36-1.86-1.14a6.37 6.37 0 01-1.18-1.47c-.13-.22 0-.33.1-.44.1-.11.23-.27.35-.4.12-.13.15-.22.23-.36.08-.14.04-.26-.02-.36-.06-.1-.5-1.22-.69-1.68-.18-.44-.36-.38-.5-.39z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="contact-actions__button contact-actions__button--sms"
+                  *ngIf="form.get(['contato', 'permite_contato_sms'])?.value"
+                  (click)="sendSms('telefone_secundario')"
+                  [disabled]="!hasPhoneValue('telefone_secundario')"
+                  aria-label="Enviar SMS para telefone secundário"
+                  title="SMS"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4 4h16a1 1 0 011 1v10a1 1 0 01-1 1H8.41L5 19.92V16H4a1 1 0 01-1-1V5a1 1 0 011-1zm1 2v8h1a1 1 0 011 1v1.38L9.62 15H19V6H5zm3 2h8a1 1 0 110 2H8a1 1 0 110-2zm0 3h5a1 1 0 110 2H8a1 1 0 110-2z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </label>
+          <label class="field">
+            Email
+            <div class="contact-field">
+              <input type="email" formControlName="email" />
+              <div class="contact-actions" *ngIf="form.get(['contato', 'permite_contato_email'])?.value">
+                <button
+                  type="button"
+                  class="contact-actions__button contact-actions__button--email"
+                  (click)="openEmailClient()"
+                  [disabled]="!form.get(['contato', 'email'])?.value"
+                  aria-label="Abrir cliente de e-mail"
+                  title="E-mail"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm1.25 2l6.25 4.35L17.75 7H5.25zM19 17V9.74l-7.09 4.94a1 1 0 01-1.14 0L3 9.74V17h16z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
+              Informe um e-mail válido.
+            </p>
+          </label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="telefone_principal_whatsapp" /> <span>Telefone principal tem WhatsApp</span></label>
+          <label class="field">Nome para recado<input formControlName="telefone_recado_nome" /></label>
+          <label class="field">Telefone para recado<input formControlName="telefone_recado_numero" placeholder="(00) 00000-0000" (input)="onPhoneInput($event, 'telefone_recado_numero')" /></label>
         <label class="field">Horário preferencial<select formControlName="horario_preferencial_contato">
             <option value="">Selecione um horário</option>
             <option *ngFor="let option of preferredContactOptions" [value]="option.value">{{ option.label }}</option>
