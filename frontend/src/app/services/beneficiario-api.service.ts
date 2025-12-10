@@ -112,7 +112,8 @@ export interface BeneficiarioApiPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BeneficiarioApiService {
-  private readonly baseUrl = `${environment.apiUrl}/api/beneficiarios`;
+  private readonly apiBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+  private readonly baseUrl = `${this.apiBaseUrl}/api/beneficiarios`;
 
   constructor(private readonly http: HttpClient) {}
 
