@@ -32,6 +32,18 @@ export class ProntuarioComponent implements OnInit, OnDestroy {
     return this.prontuarioForm.get('situacoesVulnerabilidade');
   }
 
+  onVulnerabilidadesInput(event: Event): void {
+    const target = event.target as HTMLTextAreaElement | null;
+    const value = target?.value ?? '';
+
+    const linhas = value
+      .split(/\r?\n+/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    this.vulnerabilidadesControl?.setValue(linhas);
+  }
+
   get participacoes(): FormArray {
     return this.prontuarioForm.get('participacoesServicos') as FormArray;
   }

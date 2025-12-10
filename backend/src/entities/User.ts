@@ -12,9 +12,9 @@ export class User {
   @Column({ name: 'hash_senha' })
   hashSenha!: string;
 
-  @CreateDateColumn({ name: 'criado_em' })
+  @CreateDateColumn({ name: 'criado_em', type: 'timestamp without time zone' })
   criadoEm!: Date;
 
-  @UpdateDateColumn({ name: 'atualizado_em' })
+  @UpdateDateColumn({ name: 'atualizado_em', type: 'timestamp without time zone' })
   atualizadoEm!: Date;
 }

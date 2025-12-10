@@ -49,7 +49,7 @@
               rows="6"
               class="input"
               [value]="(vulnerabilidadesControl?.value || []).join('\n')"
-              (input)="vulnerabilidadesControl?.setValue(($event.target as HTMLTextAreaElement).value.split(/\n+/).filter(Boolean))"
+              (input)="onVulnerabilidadesInput($event)"
             ></textarea>
           </div>
         </section>
@@ -63,7 +63,7 @@
           <p class="text-sm text-slate-600">Dados trazidos do cadastro de família do beneficiário.</p>
         </div>
       </div>
-      <div *ngIf="composicaoFamiliar?.length; else emptyFamily" class="overflow-hidden border border-slate-200 rounded-xl">
+      <div *ngIf="composicaoFamiliar.length; else emptyFamily" class="overflow-hidden border border-slate-200 rounded-xl">
         <table class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>

@@ -80,6 +80,7 @@ app.use('/api/almoxarifado', almoxarifadoRoutes);
 async function start() {
   try {
     await AppDataSource.initialize();
+    await AppDataSource.runMigrations();
     await ensureAdminUser();
     app.listen(port, () => {
       console.log(`API server running on port ${port}`);
