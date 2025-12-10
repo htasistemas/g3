@@ -9,9 +9,8 @@ services:
     environment:
       - DB_HOST=${DB_HOST:-72.60.156.202}
       - DB_PORT=${DB_PORT:-5434}
-      - DB_TYPE=${DB_TYPE:-postgres}
-      - DB_USER=${DB_USER:-g3}
-      - DB_PASSWORD=${DB_PASSWORD:-g3}
+      - DB_USERNAME=${DB_USERNAME:-g3}
+      - DB_PASSWORD=${DB_PASSWORD:-admin}
       - DB_NAME=${DB_NAME:-g3}
     ports:
       - "3000:3000"
