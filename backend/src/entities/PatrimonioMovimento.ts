@@ -20,7 +20,7 @@ export class PatrimonioMovimento {
   @Column({ type: 'text', nullable: true })
   observacao?: string;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamp without time zone' })
   dataMovimento!: Date;
 
   @ManyToOne(() => Patrimonio, (patrimonio) => patrimonio.movimentos, { onDelete: 'CASCADE' })

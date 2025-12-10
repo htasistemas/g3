@@ -58,9 +58,9 @@ export class Patrimonio {
   @OneToMany(() => PatrimonioMovimento, (movimento) => movimento.patrimonio, { cascade: true })
   movimentos?: PatrimonioMovimento[];
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamp without time zone' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({ type: 'timestamp without time zone' })
   updatedAt!: Date;
 }

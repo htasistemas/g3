@@ -38,6 +38,6 @@ export class StockMovement {
   @ManyToOne(() => StockItem, (item) => item.movements, { onDelete: 'CASCADE' })
   item?: StockItem;
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamp without time zone' })
   createdAt!: Date;
 }

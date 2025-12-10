@@ -296,7 +296,7 @@ export class Beneficiario {
   @Column({ name: 'aceite_lgpd', default: false })
   aceiteLgpd!: boolean;
 
-  @Column({ name: 'data_aceite_lgpd', type: 'datetime', nullable: true })
+  @Column({ name: 'data_aceite_lgpd', type: 'timestamp without time zone', nullable: true })
   dataAceiteLgpd?: Date;
 
   @Column({ name: 'observacoes', type: 'text', nullable: true })
