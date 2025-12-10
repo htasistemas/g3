@@ -20,8 +20,8 @@ export class BenefitGrant {
   @JoinColumn({ name: 'beneficiarioId' })
   beneficiario!: Beneficiario;
 
-  @Column({ type: 'uuid' })
-  beneficiarioId!: string;
+  @Column({ type: 'integer' })
+  beneficiarioId!: number;
 
   @ManyToOne(() => BenefitType, { eager: true, nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'benefitTypeId' })

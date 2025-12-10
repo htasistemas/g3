@@ -22,7 +22,7 @@ export class CreateBenefitsModule1730960000000 implements MigrationInterface {
         name: 'benefit_grants',
         columns: [
           { name: 'id', type: 'uuid', isPrimary: true, isGenerated: true, generationStrategy: 'uuid' },
-          { name: 'beneficiarioId', type: 'uuid', isNullable: false },
+          { name: 'beneficiarioId', type: 'integer', isNullable: false },
           { name: 'benefitTypeId', type: 'uuid', isNullable: false },
           { name: 'termoFomentoId', type: 'uuid', isNullable: true },
           { name: 'dataConcessao', type: 'date', isNullable: false },
