@@ -95,7 +95,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
         { label: 'Prontuário', icon: faClipboardList, route: '/beneficiarios' },
         { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
         { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
-        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' }
+        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' },
+        { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' }
       ]
     },
     {
