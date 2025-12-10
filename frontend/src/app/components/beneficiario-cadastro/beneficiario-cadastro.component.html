@@ -370,26 +370,6 @@
 
         <div class="status-panel">
           <p class="status-panel__title">Status do beneficiário</p>
-          <div class="status-panel__meta" aria-live="polite">
-            <div class="status-panel__meta-item">
-              <span class="status-panel__meta-label">Família</span>
-              <span class="status-panel__meta-value">{{ getFamilyRegistrationLabel() }}</span>
-            </div>
-            <div class="status-panel__meta-item">
-              <span class="status-panel__meta-label">Matrícula</span>
-              <span class="status-panel__meta-value status-panel__meta-value--code">
-                {{ beneficiaryCode || 'Gerado ao salvar' }}
-              </span>
-            </div>
-            <div class="status-panel__meta-item">
-              <span class="status-panel__meta-label">Cadastrado em</span>
-              <span class="status-panel__meta-value">{{ formatDateTime(createdAt) }}</span>
-            </div>
-            <div class="status-panel__meta-item">
-              <span class="status-panel__meta-label">Alterado em</span>
-              <span class="status-panel__meta-value">{{ formatDateTime(lastUpdatedAt) }}</span>
-            </div>
-          </div>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -411,6 +391,26 @@
         </div>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
+      <div class="beneficiary-meta" aria-live="polite">
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Família</span>
+          <span class="beneficiary-meta__value">{{ getFamilyRegistrationLabel() }}</span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Matrícula</span>
+          <span class="beneficiary-meta__value beneficiary-meta__value--code">
+            {{ beneficiaryCode || 'Gerado ao salvar' }}
+          </span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Cadastrado em</span>
+          <span class="beneficiary-meta__value">{{ formatDateTime(createdAt) }}</span>
+        </div>
+        <div class="beneficiary-meta__item">
+          <span class="beneficiary-meta__label">Alterado em</span>
+          <span class="beneficiary-meta__value">{{ formatDateTime(lastUpdatedAt) }}</span>
+        </div>
+      </div>
       <div class="field-grid cols-2" formGroupName="dadosPessoais">
         <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
         <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
@@ -530,8 +530,8 @@
       </div>
         <div class="field-grid cols-3">
           <label class="field">
-            Telefone principal*
-            <div class="contact-field">
+            <span>Telefone principal*</span>
+            <div class="contact-row">
               <input
                 formControlName="telefone_principal"
                 placeholder="(00) 00000-0000"
@@ -600,8 +600,8 @@
             </p>
           </label>
           <label class="field">
-            Telefone secundário
-            <div class="contact-field">
+            <span>Telefone secundário</span>
+            <div class="contact-row">
               <input
                 formControlName="telefone_secundario"
                 placeholder="(00) 00000-0000"
@@ -667,8 +667,8 @@
             </div>
           </label>
           <label class="field">
-            Email
-            <div class="contact-field">
+            <span>Email</span>
+            <div class="contact-row">
               <input type="email" formControlName="email" />
               <div class="contact-actions" *ngIf="form.get(['contato', 'permite_contato_email'])?.value">
                 <button

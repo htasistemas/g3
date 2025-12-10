@@ -998,13 +998,20 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     }
   }
 
-  private determineStatusForSave(allowStatusOnlyUpdate = false): BeneficiarioApiPayload['status'] {
+  private determineStatusForSave(
+    allowStatusOnlyUpdate = false,
+    missingDocuments: string[] = []
+  ): BeneficiarioApiPayload['status'] {
     const manualStatus = (this.form.get('status')?.value as BeneficiarioApiPayload['status']) ?? 'EM_ANALISE';
+    const hasPendingDocuments = !allowStatusOnlyUpdate && missingDocuments.length > 0;
+    const hasPendingData = this.form.invalid || hasPendingDocuments;
 
-    if (!this.beneficiarioId) {
-      const missingDocuments = allowStatusOnlyUpdate ? [] : this.getMissingRequiredDocuments();
-      const hasPending = this.form.invalid || missingDocuments.length > 0;
-      return hasPending ? 'INCOMPLETO' : manualStatus;
+    if (hasPendingData && manualStatus === 'BLOQUEADO') {
+      return manualStatus;
+    }
+
+    if (hasPendingData) {
+      return 'INCOMPLETO';
     }
 
     return manualStatus;
@@ -1661,16 +1668,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   async submit(skipValidation = false) {
-    const statusForSave = this.determineStatusForSave(skipValidation);
+    const missingDocuments = skipValidation ? [] : this.getMissingRequiredDocuments();
+    const statusForSave = this.determineStatusForSave(skipValidation, missingDocuments);
 
-    if (!skipValidation && this.form.invalid) {
-      this.form.get('status')?.setValue(statusForSave);
-      this.feedback = 'Preencha os campos obrigatórios.';
-      return;
+    this.form.get('status')?.setValue(statusForSave);
+
+    if (!skipValidation && missingDocuments.length) {
+      this.feedback = `Envie os documentos obrigatórios: ${missingDocuments.join(', ')}`;
+      this.changeTab('documentos');
     }
-    if (!skipValidation && !this.validateRequiredDocuments()) {
-      this.form.get('status')?.setValue('INCOMPLETO');
-      return;
+
+    if (!skipValidation && this.form.invalid && !this.feedback) {
+      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+    }
+
+    if (!skipValidation && this.form.get('status')?.value === 'INCOMPLETO' && statusForSave === 'INCOMPLETO') {
+      this.feedback = this.feedback ?? 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
     }
     if (this.uploadingDocuments) {
       this.feedback = 'Aguarde o envio dos documentos antes de salvar o cadastro.';
