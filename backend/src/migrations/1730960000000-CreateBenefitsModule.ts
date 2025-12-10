@@ -22,7 +22,7 @@ export class CreateBenefitsModule1730960000000 implements MigrationInterface {
         name: 'benefit_grants',
         columns: [
           { name: 'id', type: 'uuid', isPrimary: true, isGenerated: true, generationStrategy: 'uuid' },
-          { name: 'beneficiarioId', type: 'integer', isNullable: false },
+          { name: 'beneficiarioId', type: 'uuid', isNullable: false },
           { name: 'benefitTypeId', type: 'uuid', isNullable: false },
           { name: 'termoFomentoId', type: 'uuid', isNullable: true },
           { name: 'dataConcessao', type: 'date', isNullable: false },
@@ -34,9 +34,10 @@ export class CreateBenefitsModule1730960000000 implements MigrationInterface {
         ],
         foreignKeys: [
           {
+            name: 'FK_3b529be18eb0b217e09e4dc681f',
             columnNames: ['beneficiarioId'],
             referencedTableName: 'beneficiarios',
-            referencedColumnNames: ['id'],
+            referencedColumnNames: ['id_beneficiario'],
             onDelete: 'CASCADE'
           },
           {
@@ -46,6 +47,7 @@ export class CreateBenefitsModule1730960000000 implements MigrationInterface {
             onDelete: 'RESTRICT'
           },
           {
+            name: 'FK_477ad3236aeecd46d9d3b7c9bd9',
             columnNames: ['termoFomentoId'],
             referencedTableName: 'termos_fomento',
             referencedColumnNames: ['id'],

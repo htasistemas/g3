@@ -37,6 +37,7 @@ import { CreateSalas1730700000000 } from './migrations/1730700000000-CreateSalas
 import { CreateBeneficiarioBaseSchema1730800000000 } from './migrations/1730800000000-CreateBeneficiarioBaseSchema';
 import { CreateVulnerabilityIndex1730900000000 } from './migrations/1730900000000-CreateVulnerabilityIndex';
 import { AddStatusToCursosAtendimentos1730950000000 } from './migrations/1730950000000-AddStatusToCursosAtendimentos';
+import { CreateTermosFomento1730959000000 } from './migrations/1730959000000-CreateTermosFomento';
 import { CreateBenefitsModule1730960000000 } from './migrations/1730960000000-CreateBenefitsModule';
 import { CreateStockModule1731000000000 } from './migrations/1731000000000-CreateStockModule';
 import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/1731100000000-RenameBeneficiariesToBeneficiarios';
@@ -45,11 +46,11 @@ import { EnsureUsuariosTable1731300000000 } from './migrations/1731300000000-Ens
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: process.env.DB_HOST || '72.60.156.202',
+  port: Number(process.env.DB_PORT) || 5434,
+  username: process.env.DB_USERNAME || 'g3',
+  password: process.env.DB_PASSWORD || 'admin',
+  database: process.env.DB_NAME || 'g3',
   synchronize: false,
   logging: false,
   entities: [
@@ -91,6 +92,7 @@ export const AppDataSource = new DataSource({
     CreateBeneficiarioBaseSchema1730800000000,
     CreateVulnerabilityIndex1730900000000,
     AddStatusToCursosAtendimentos1730950000000,
+    CreateTermosFomento1730959000000,
     CreateBenefitsModule1730960000000,
     CreateStockModule1731000000000,
     RenameBeneficiariesToBeneficiarios1731100000000,
