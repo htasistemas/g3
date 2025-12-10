@@ -96,13 +96,13 @@ export class CursoAtendimento {
   @Column({ type: 'simple-json', nullable: true })
   statusHistory?: AtendimentoStatusEntry[] | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp without time zone', nullable: true })
   dataTriagem?: Date | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp without time zone', nullable: true })
   dataEncaminhamento?: Date | null;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp without time zone', nullable: true })
   dataConclusao?: Date | null;
 
   @CreateDateColumn()

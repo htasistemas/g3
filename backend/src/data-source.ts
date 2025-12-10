@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import dotenv from 'dotenv';
-import { DataSource, DataSourceOptions } from 'typeorm';
+import 'dotenv/config';
+import { DataSource } from 'typeorm';
 import { User } from './entities/User';
 import { Beneficiario } from './entities/Beneficiario';
 import { AssistanceUnit } from './entities/AssistanceUnit';
@@ -42,27 +42,15 @@ import { CreateStockModule1731000000000 } from './migrations/1731000000000-Creat
 import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/1731100000000-RenameBeneficiariesToBeneficiarios';
 import { CreateProntuarioModule1731200000000 } from './migrations/1731200000000-CreateProntuarioModule';
 
-dotenv.config();
-
-const migrations = [
-  RenameSchemaToPortuguese1729700000000,
-  CreateBeneficiarioFamiliaSchema1729800000000,
-  UpdateAssistanceUnitSchema1730100000000,
-  AddLogoToAssistanceUnit1730200000000,
-  AddReportLogoAndScheduleToAssistanceUnit1730300000000,
-  AddBeneficiarioDocuments1730400000000,
-  AddBeneficiarioPhoto1730500000000,
-  CreateSalas1730700000000,
-  CreateBeneficiarioBaseSchema1730800000000,
-  CreateVulnerabilityIndex1730900000000,
-  AddStatusToCursosAtendimentos1730950000000,
-  CreateBenefitsModule1730960000000,
-  CreateStockModule1731000000000,
-  RenameBeneficiariesToBeneficiarios1731100000000,
-  CreateProntuarioModule1731200000000
-];
-
-const baseOptions = {
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  synchronize: false,
+  logging: false,
   entities: [
     User,
     Beneficiario,
@@ -90,22 +78,21 @@ const baseOptions = {
     ProntuarioAtendimento,
     ProntuarioEncaminhamento
   ],
-  logging: (process.env.DB_LOGGING || '').toLowerCase() === 'true'
-} satisfies Partial<DataSourceOptions>;
-
-const dataSourceOptions: DataSourceOptions = (() => {
-  return {
-    ...baseOptions,
-    type: 'postgres',
-    host: process.env.DB_HOST || '72.60.156.202',
-    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5434,
-    username: process.env.DB_USER || 'g3',
-    password: process.env.DB_PASSWORD || 'admin',
-    database: process.env.DB_NAME || 'g3',
-    synchronize: false,
-    migrations,
-    migrationsRun: true
-  } satisfies DataSourceOptions;
-})();
-
-export const AppDataSource = new DataSource(dataSourceOptions);
+  migrations: [
+    RenameSchemaToPortuguese1729700000000,
+    CreateBeneficiarioFamiliaSchema1729800000000,
+    UpdateAssistanceUnitSchema1730100000000,
+    AddLogoToAssistanceUnit1730200000000,
+    AddReportLogoAndScheduleToAssistanceUnit1730300000000,
+    AddBeneficiarioDocuments1730400000000,
+    AddBeneficiarioPhoto1730500000000,
+    CreateSalas1730700000000,
+    CreateBeneficiarioBaseSchema1730800000000,
+    CreateVulnerabilityIndex1730900000000,
+    AddStatusToCursosAtendimentos1730950000000,
+    CreateBenefitsModule1730960000000,
+    CreateStockModule1731000000000,
+    RenameBeneficiariesToBeneficiarios1731100000000,
+    CreateProntuarioModule1731200000000
+  ]
+});

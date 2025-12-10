@@ -18,17 +18,17 @@ export class AddStatusToCursosAtendimentos1730950000000 implements MigrationInte
       }),
       new TableColumn({
         name: 'dataTriagem',
-        type: 'datetime',
+        type: 'timestamp without time zone',
         isNullable: true
       }),
       new TableColumn({
         name: 'dataEncaminhamento',
-        type: 'datetime',
+        type: 'timestamp without time zone',
         isNullable: true
       }),
       new TableColumn({
         name: 'dataConclusao',
-        type: 'datetime',
+        type: 'timestamp without time zone',
         isNullable: true
       })
     ]);

@@ -50,9 +50,9 @@ export class StockItem {
   @OneToMany(() => StockMovement, (movement) => movement.item)
   movements?: StockMovement[];
 
-  @CreateDateColumn({ type: 'datetime' })
+  @CreateDateColumn({ type: 'timestamp without time zone' })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn({ type: 'timestamp without time zone' })
   updatedAt!: Date;
 }
