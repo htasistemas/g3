@@ -100,7 +100,7 @@ const dataSourceOptions: DataSourceOptions = (() => {
     host: process.env.DB_HOST || '72.60.156.202',
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5434,
     username: process.env.DB_USER || 'g3',
-    password: process.env.DB_PASSWORD || 'g3',
+    password: process.env.DB_PASSWORD || 'admin',
     database: process.env.DB_NAME || 'g3',
     synchronize: false,
     migrations,
