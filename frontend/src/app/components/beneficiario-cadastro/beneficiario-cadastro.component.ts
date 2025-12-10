@@ -1720,7 +1720,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
               : error?.error?.message || error.message || 'Erro ao salvar beneficiário';
 
           if (error.status === 0) {
-            this.feedback = `Não foi possível comunicar com a API: ${serverMessage}`;
+            this.feedback = 'Não foi possível comunicar com a API. Verifique a conexão e tente novamente.';
             return;
           }
 
