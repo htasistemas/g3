@@ -17,7 +17,7 @@ export interface UserInput {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly baseUrl = `${environment.apiUrl}/api/users`;
+  private readonly baseUrl = `${environment.apiUrl}/api/usuarios`;
 
   constructor(private readonly http: HttpClient) {}
 

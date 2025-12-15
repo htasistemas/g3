@@ -43,6 +43,7 @@ import { CreateStockModule1731000000000 } from './migrations/1731000000000-Creat
 import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/1731100000000-RenameBeneficiariesToBeneficiarios';
 import { CreateProntuarioModule1731200000000 } from './migrations/1731200000000-CreateProntuarioModule';
 import { EnsureUsuariosTable1731300000000 } from './migrations/1731300000000-EnsureUsuariosTable';
+import { RenameUsuariosToUsuario1731400000000 } from './migrations/1731400000000-RenameUsuariosToUsuario';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -97,6 +98,7 @@ export const AppDataSource = new DataSource({
     CreateStockModule1731000000000,
     RenameBeneficiariesToBeneficiarios1731100000000,
     CreateProntuarioModule1731200000000,
-    EnsureUsuariosTable1731300000000
+    EnsureUsuariosTable1731300000000,
+    RenameUsuariosToUsuario1731400000000
   ]
 });
