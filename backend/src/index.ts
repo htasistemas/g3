@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { AppDataSource } from './data-source';
+import { AppDataSource, dbConnectionInfo } from './data-source';
 import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
 import beneficiariosRoutes from './routes/beneficiarios.routes';
@@ -79,6 +79,14 @@ app.use('/api/almoxarifado', almoxarifadoRoutes);
 
 async function start() {
   try {
+    console.log('[database] starting with configuration', {
+      source: dbConnectionInfo.source,
+      host: dbConnectionInfo.host,
+      port: dbConnectionInfo.port,
+      database: dbConnectionInfo.database,
+      user: dbConnectionInfo.user,
+      password: dbConnectionInfo.maskedPassword
+    });
     await AppDataSource.initialize();
     await AppDataSource.runMigrations();
     await ensureAdminUser();
