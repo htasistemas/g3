@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { User } from './entities/User';
 import { Beneficiario } from './entities/Beneficiario';
@@ -44,16 +43,13 @@ import { RenameBeneficiariesToBeneficiarios1731100000000 } from './migrations/17
 import { CreateProntuarioModule1731200000000 } from './migrations/1731200000000-CreateProntuarioModule';
 import { EnsureUsuariosTable1731300000000 } from './migrations/1731300000000-EnsureUsuariosTable';
 import { RenameUsuariosToUsuario1731400000000 } from './migrations/1731400000000-RenameUsuariosToUsuario';
+import { buildDatabaseConfig } from './utils/databaseConfig';
+
+const { options: databaseOptions, info: dbConnectionInfo } = buildDatabaseConfig();
+export { dbConnectionInfo };
 
 export const AppDataSource = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  // O container do PostgreSQL expõe a porta 5434 para acesso local (veja docker-compose.yml),
-  // então usamos 5434 como padrão para evitar erros de autenticação ao rodar sem .env.
-  port: Number(process.env.DB_PORT) || 5434,
-  username: process.env.DB_USERNAME || 'g3',
-  password: process.env.DB_PASSWORD || 'admin',
-  database: process.env.DB_NAME || 'g3',
+  ...databaseOptions,
   synchronize: false,
   logging: false,
   entities: [
