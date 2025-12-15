@@ -4,12 +4,18 @@ export class EnsureUsuariosTable1731300000000 implements MigrationInterface {
   name = 'EnsureUsuariosTable1731300000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const tableExists = await queryRunner.hasTable('usuarios');
-    if (tableExists) return;
+    const usuarioExists = await queryRunner.hasTable('usuario');
+    if (usuarioExists) return;
+
+    const legacyTableExists = await queryRunner.hasTable('usuarios');
+    if (legacyTableExists) {
+      await queryRunner.renameTable('usuarios', 'usuario');
+      return;
+    }
 
     await queryRunner.createTable(
       new Table({
-        name: 'usuarios',
+        name: 'usuario',
         columns: [
           {
             name: 'id',
@@ -46,9 +52,9 @@ export class EnsureUsuariosTable1731300000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const tableExists = await queryRunner.hasTable('usuarios');
+    const tableExists = await queryRunner.hasTable('usuario');
     if (!tableExists) return;
 
-    await queryRunner.dropTable('usuarios');
+    await queryRunner.dropTable('usuario');
   }
 }

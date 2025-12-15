@@ -71,7 +71,7 @@ export class RenameSchemaToPortuguese1729700000000 implements MigrationInterface
 
   private async renameUsers(queryRunner: QueryRunner) {
     const oldTable = 'users';
-    const newTable = 'usuarios';
+    const newTable = 'usuario';
 
     if (await queryRunner.hasTable(oldTable)) {
       if (!(await queryRunner.hasTable(newTable))) {
@@ -208,7 +208,7 @@ export class RenameSchemaToPortuguese1729700000000 implements MigrationInterface
   }
 
   private async revertUsers(queryRunner: QueryRunner) {
-    const newTable = 'usuarios';
+    const newTable = 'usuario';
     const oldTable = 'users';
 
     if (await queryRunner.hasTable(newTable)) {
