@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { EMPTY } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -25,15 +27,46 @@ export class LoginComponent {
   submit(): void {
     this.error = null;
     this.loading = true;
-    this.auth.login(this.nomeUsuario, this.senha).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.error = err?.error?.message || 'Falha ao fazer login. Tente novamente.';
-      }
-    });
+
+    try {
+      this.auth
+        .login(this.nomeUsuario, this.senha)
+        .pipe(
+          catchError((err) => {
+            this.error = this.mapError(err);
+            return EMPTY;
+          }),
+          finalize(() => {
+            this.loading = false;
+          })
+        )
+        .subscribe(() => {
+          this.router.navigate(['/']);
+        });
+    } catch (err) {
+      this.error = this.mapError(err);
+      this.loading = false;
+    }
+  }
+
+  private mapError(err: unknown): string {
+    if (err && typeof err === 'object' && 'name' in err && err['name'] === 'TimeoutError') {
+      return 'O servidor não respondeu. Verifique sua conexão ou tente novamente em instantes.';
+    }
+
+    const fallback =
+      err && typeof err === 'object' && 'error' in err && (err as any).error?.message
+        ? (err as any).error.message
+        : null;
+
+    if (fallback) {
+      return fallback;
+    }
+
+    if (err instanceof Error) {
+      return err.message;
+    }
+
+    return 'Falha ao fazer login. Tente novamente.';
   }
 }

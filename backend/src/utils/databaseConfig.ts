@@ -3,6 +3,9 @@ import { DataSourceOptions } from 'typeorm';
 
 dotenv.config();
 
+const DEFAULT_CONNECTION_TIMEOUT_MS = 5_000;
+const DEFAULT_STATEMENT_TIMEOUT_MS = 10_000;
+
 export type DatabaseSource = 'DATABASE_URL' | 'DB_VARIABLES';
 
 export interface DatabaseConfigInfo {
@@ -67,7 +70,11 @@ export const buildDatabaseConfig = (): ResolvedDatabaseConfig => {
     return {
       options: {
         type: 'postgres',
-        url: databaseUrl
+        url: databaseUrl,
+        extra: {
+          connectionTimeoutMillis: DEFAULT_CONNECTION_TIMEOUT_MS,
+          statement_timeout: DEFAULT_STATEMENT_TIMEOUT_MS
+        }
       },
       info: {
         source: 'DATABASE_URL',
@@ -93,7 +100,11 @@ export const buildDatabaseConfig = (): ResolvedDatabaseConfig => {
       port,
       username: user,
       password,
-      database
+      database,
+      extra: {
+        connectionTimeoutMillis: DEFAULT_CONNECTION_TIMEOUT_MS,
+        statement_timeout: DEFAULT_STATEMENT_TIMEOUT_MS
+      }
     },
     info: {
       source: 'DB_VARIABLES',

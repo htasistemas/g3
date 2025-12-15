@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs/operators';
+import { tap, timeout } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
@@ -13,6 +13,7 @@ interface LoginResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'g3_session';
+  private readonly requestTimeoutMs = 10000;
   readonly user = signal<{ id: string; nomeUsuario: string } | null>(this.loadUser());
 
   constructor(private readonly http: HttpClient, private readonly router: Router) {}
@@ -21,6 +22,7 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/api/auth/login`, { nomeUsuario, senha })
       .pipe(
+        timeout(this.requestTimeoutMs),
         tap((response) => {
           const authenticatedUser = response.user ?? { id: '0', nomeUsuario };
           const session: LoginResponse = { ...response, user: authenticatedUser };
