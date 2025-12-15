@@ -3,7 +3,7 @@
 O backend utiliza exclusivamente PostgreSQL. Configure as variáveis de ambiente no `.env` (veja `.env.example`):
 
 - DB_HOST
-- DB_PORT
+- DB_PORT (para acessar o Postgres do docker-compose a partir da máquina host use 5434)
 - DB_USERNAME
 - DB_PASSWORD
 - DB_NAME
