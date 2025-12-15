@@ -48,7 +48,9 @@ import { RenameUsuariosToUsuario1731400000000 } from './migrations/1731400000000
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT) || 5432,
+  // O container do PostgreSQL expõe a porta 5434 para acesso local (veja docker-compose.yml),
+  // então usamos 5434 como padrão para evitar erros de autenticação ao rodar sem .env.
+  port: Number(process.env.DB_PORT) || 5434,
   username: process.env.DB_USERNAME || 'g3',
   password: process.env.DB_PASSWORD || 'admin',
   database: process.env.DB_NAME || 'g3',
