@@ -10,6 +10,21 @@ O backend utiliza exclusivamente PostgreSQL. Configure as variáveis de ambiente
 
 A aplicação espera encontrar um banco PostgreSQL acessível com essas credenciais.
 
+### Subindo o Postgres local
+- Com Docker e Compose v2 instalados, suba apenas o serviço de banco:
+
+  ```powershell
+  cd C:\G3\g3
+  docker compose up -d db
+  docker compose ps
+  ```
+
+  A coluna `Ports` deve mostrar `0.0.0.0:5434->5432/tcp`. Use sempre `docker compose` (com espaço); se vir "comando não encontrado", atualize o Docker Desktop ou use o comando equivalente com `docker run` mostrado em [`docs/postgres-local-run.md`](../docs/postgres-local-run.md).
+
+### Erros comuns
+- `connect ECONNREFUSED 127.0.0.1:5434`: o Postgres não está rodando na porta 5434. Suba o serviço `db` com Docker ou ajuste a porta do `.env` para a porta na qual o banco está de pé.
+- `password authentication failed for user "g3"` (28P01): alinhe a senha do usuário `g3` com o `.env` seguindo o roteiro em [`../docs/postgres-28P01.md`](../docs/postgres-28P01.md).
+
 ## Migrations
 Para aplicar as migrations utilizando o DataSource em TypeScript:
 
