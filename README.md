@@ -33,6 +33,11 @@ do banco.
   - `backend` exposto em `3000` (já apontando para o serviço `db`).
   - `frontend` exposto em `4200`.
 
+### Subir só o banco para desenvolvimento local
+- Com Docker instalado e Compose v2, use `docker compose up -d db` para iniciar apenas o PostgreSQL exposto em `localhost:5434`.
+- Se o terminal não reconhecer `docker compose` (erro "comando não encontrado"), instale/atualize o Docker Desktop ou siga a alternativa com `docker run` descrita em [`docs/postgres-local-run.md`](docs/postgres-local-run.md).
+- Depois de subir o banco, rode `npm run typeorm migration:run` no diretório `backend/` e então `npm run dev`.
+
 ### Erro Postgres 28P01 (senha do usuário `g3` falhou)
 
 Se ao subir o backend você receber `authentication type password failed for user "g3" (28P01)`, siga o
