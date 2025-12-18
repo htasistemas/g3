@@ -1,8 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
+import { ensureDatabaseConnection } from './database';
 
 export async function ensureAdminUser(): Promise<void> {
+  await ensureDatabaseConnection();
+
   const repo = AppDataSource.getRepository(User);
   const existing = await repo.findOne({ where: { nomeUsuario: 'admin' } });
 
