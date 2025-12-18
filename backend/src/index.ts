@@ -24,6 +24,7 @@ import benefitGrantsRoutes from './routes/benefit-grants.routes';
 import assistenteTextosRoutes from './routes/assistente-textos.routes';
 import prontuarioRoutes from './routes/prontuario.routes';
 import almoxarifadoRoutes from './routes/almoxarifado.routes';
+import { ensureDatabaseConnection } from './utils/database';
 
 dotenv.config();
 
@@ -43,11 +44,7 @@ app.get('/api/health', (_req, res) => {
 
 app.get('/api/health/db', async (_req, res) => {
   try {
-    if (!AppDataSource.isInitialized) {
-      await AppDataSource.initialize();
-    }
-
-    await AppDataSource.query('SELECT 1');
+    await ensureDatabaseConnection();
     res.json({ status: 'ok' });
   } catch (error) {
     console.error('Database health check failed', error);
@@ -87,8 +84,7 @@ async function start() {
       user: dbConnectionInfo.user,
       password: dbConnectionInfo.maskedPassword
     });
-    await AppDataSource.initialize();
-    await AppDataSource.runMigrations();
+    await ensureDatabaseConnection();
     await ensureAdminUser();
     app.listen(port, () => {
       console.log(`API server running on port ${port}`);
