@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { AppDataSource, dbConnectionInfo } from './data-source';
 import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
@@ -25,8 +25,6 @@ import assistenteTextosRoutes from './routes/assistente-textos.routes';
 import prontuarioRoutes from './routes/prontuario.routes';
 import almoxarifadoRoutes from './routes/almoxarifado.routes';
 import { ensureDatabaseConnection } from './utils/database';
-
-dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -76,14 +74,12 @@ app.use('/api/almoxarifado', almoxarifadoRoutes);
 
 async function start() {
   try {
-    console.log('[database] starting with configuration', {
-      source: dbConnectionInfo.source,
-      host: dbConnectionInfo.host,
-      port: dbConnectionInfo.port,
-      database: dbConnectionInfo.database,
-      user: dbConnectionInfo.user,
-      password: dbConnectionInfo.maskedPassword
-    });
+    const isProd = (process.env.NODE_ENV || '').toLowerCase() === 'production';
+    if (!isProd) {
+      console.log(
+        `DB Config: host=${dbConnectionInfo.host} port=${dbConnectionInfo.port} db=${dbConnectionInfo.database} user=${dbConnectionInfo.user} ssl=${dbConnectionInfo.ssl}`
+      );
+    }
     await ensureDatabaseConnection();
     await ensureAdminUser();
     app.listen(port, () => {
