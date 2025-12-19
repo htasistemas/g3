@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { User } from './entities/User';

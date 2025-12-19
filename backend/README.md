@@ -7,6 +7,12 @@ cd backend
 cp .env.example .env
 ```
 
+Em seguida, ajuste as credenciais no `.env` e instale as dependências:
+
+```bash
+npm install
+```
+
 Variáveis suportadas no `.env`:
 
 - NODE_ENV
@@ -54,7 +60,6 @@ Após configurar as variáveis de ambiente do banco, inicie o backend em modo de
 
 ```bash
 cd backend
-npm install
 npm run dev
 ```
 
