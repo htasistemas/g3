@@ -2,7 +2,7 @@ import "dotenv/config";
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
-import { AppDataSource, dbConnectionInfo } from './data-source';
+import { AppDataSource, dbConnectionInfo, isJsonStorage, storageInfo } from './data-source';
 import authRoutes from './routes/auth.routes';
 import { ensureAdminUser } from './utils/bootstrap';
 import beneficiariosRoutes from './routes/beneficiarios.routes';
@@ -76,9 +76,13 @@ async function start() {
   try {
     const isProd = (process.env.NODE_ENV || '').toLowerCase() === 'production';
     if (!isProd) {
-      console.log(
-        `DB Config: host=${dbConnectionInfo.host} port=${dbConnectionInfo.port} db=${dbConnectionInfo.database} user=${dbConnectionInfo.user} ssl=${dbConnectionInfo.ssl}`
-      );
+      if (isJsonStorage) {
+        console.log(`Storage Config: mode=${storageInfo.mode} path=${storageInfo.path}`);
+      } else {
+        console.log(
+          `DB Config: host=${dbConnectionInfo.host} port=${dbConnectionInfo.port} db=${dbConnectionInfo.database} user=${dbConnectionInfo.user} ssl=${dbConnectionInfo.ssl}`
+        );
+      }
     }
     await ensureDatabaseConnection();
     await ensureAdminUser();

@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { Between, FindOptionsWhere, Repository } from 'typeorm';
+import { Between, FindOptionsWhere } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { BenefitGrant } from '../entities/BenefitGrant';
+import type { RepositoryLike } from '../storage/types';
 
 const router = Router();
 
@@ -23,7 +24,10 @@ const buildFilters = (query: any): FindOptionsWhere<BenefitGrant> => {
   return where;
 };
 
-const saveGrant = async (repo: Repository<BenefitGrant>, payload: Partial<BenefitGrant>): Promise<BenefitGrant> => {
+const saveGrant = async (
+  repo: RepositoryLike<BenefitGrant>,
+  payload: Partial<BenefitGrant>
+): Promise<BenefitGrant> => {
   const grant = repo.create({
     ...payload,
     beneficiario: payload.beneficiarioId ? { id: payload.beneficiarioId } as any : undefined,

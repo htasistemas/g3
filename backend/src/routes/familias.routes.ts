@@ -39,13 +39,15 @@ function calculateAge(dateString?: string | null): number | null {
 async function ensureSingleResponsible(familiaId: string, responsavelId?: string) {
   if (!responsavelId) return;
   const membroRepository = AppDataSource.getRepository(FamiliaMembro);
-  await membroRepository
-    .createQueryBuilder()
-    .update(FamiliaMembro)
-    .set({ responsavelFamiliar: false })
-    .where('id_familia = :id', { id: familiaId })
-    .andWhere('id_familia_membro != :membroId', { membroId: responsavelId })
-    .execute();
+  const membros = await membroRepository.find({ where: { familiaId } });
+  const toUpdate = membros.filter(
+    (membro) => membro.idFamiliaMembro !== responsavelId && membro.responsavelFamiliar
+  );
+  if (!toUpdate.length) return;
+  toUpdate.forEach((membro) => {
+    membro.responsavelFamiliar = false;
+  });
+  await membroRepository.save(toUpdate);
 }
 
 async function recalculateIndicadores(familia: Familia) {
@@ -160,23 +162,41 @@ async function persistMembros(familia: Familia, membros: any[] | undefined) {
 router.get('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Familia);
   const { nome_familia, municipio, referencia } = req.query as Record<string, string>;
-  const qb = repository.createQueryBuilder('familia');
+  const familias = await repository.find({ order: { nomeFamilia: 'ASC' } });
+  const nomeBusca = nome_familia?.toLowerCase();
+  const municipioBusca = municipio?.toLowerCase();
 
-  if (nome_familia) {
-    qb.andWhere('LOWER(familia.nome_familia) LIKE LOWER(:nome)', { nome: `%${nome_familia}%` });
-  }
-  if (municipio) {
-    qb.andWhere('LOWER(familia.municipio) LIKE LOWER(:municipio)', { municipio: `%${municipio}%` });
-  }
+  let filtered = familias.filter((familia) => {
+    if (nomeBusca && !(familia.nomeFamilia ?? '').toLowerCase().includes(nomeBusca)) {
+      return false;
+    }
+    if (municipioBusca && !(familia.municipio ?? '').toLowerCase().includes(municipioBusca)) {
+      return false;
+    }
+    return true;
+  });
+
   if (referencia) {
-    qb.leftJoin(Beneficiario, 'ref', 'ref.id_beneficiario = familia.id_referencia_familiar');
-    qb.andWhere('LOWER(ref.nome_completo) LIKE LOWER(:ref) OR ref.cpf = :ref', {
-      ref: `%${referencia}%`
-    });
+    const refBusca = referencia.toLowerCase();
+    const refCpf = referencia.replace(/\D/g, '');
+    const beneficiarioRepository = AppDataSource.getRepository(Beneficiario);
+    const beneficiarios = await beneficiarioRepository.find();
+    const referenciaIds = new Set(
+      beneficiarios
+        .filter((beneficiario) => {
+          const nomeCompleto = (beneficiario.nomeCompleto ?? '').toLowerCase();
+          const cpf = (beneficiario.cpf ?? '').replace(/\D/g, '');
+          if (refCpf && refCpf.length >= 11) {
+            return cpf === refCpf;
+          }
+          return nomeCompleto.includes(refBusca);
+        })
+        .map((beneficiario) => beneficiario.idBeneficiario)
+    );
+    filtered = filtered.filter((familia) => !!familia.idReferenciaFamiliar && referenciaIds.has(familia.idReferenciaFamiliar));
   }
 
-  const familias = await qb.orderBy('familia.nome_familia', 'ASC').getMany();
-  res.json({ familias });
+  res.json({ familias: filtered });
 });
 
 router.get('/:id', async (req, res) => {

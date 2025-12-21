@@ -47,59 +47,80 @@ import { CreateProntuarioModule1731200000000 } from './migrations/1731200000000-
 import { EnsureUsuariosTable1731300000000 } from './migrations/1731300000000-EnsureUsuariosTable';
 import { RenameUsuariosToUsuario1731400000000 } from './migrations/1731400000000-RenameUsuariosToUsuario';
 import { buildDatabaseConfig } from './utils/databaseConfig';
+import type { DataSourceLike } from './storage/types';
+import { JsonDataSource } from './storage/json-data-source';
 
-const { options: databaseOptions, info: dbConnectionInfo } = buildDatabaseConfig();
-export { dbConnectionInfo };
+const storageMode = (process.env.STORAGE_MODE || 'json').toLowerCase();
+const isJsonStorage = storageMode === 'json' || storageMode === 'local';
+const databaseConfig = isJsonStorage ? null : buildDatabaseConfig();
+const databaseOptions = databaseConfig?.options;
+const dbConnectionInfo = databaseConfig?.info ?? {
+  source: 'DB_VARIABLES',
+  host: '',
+  port: 0,
+  database: '',
+  user: '',
+  maskedPassword: '',
+  ssl: false
+};
 
-export const AppDataSource = new DataSource({
-  ...databaseOptions,
-  synchronize: false,
-  logging: false,
-  entities: [
-    User,
-    Beneficiario,
-    AssistanceUnit,
-    BeneficiaryDocumentConfig,
-    Familia,
-    FamiliaMembro,
-    Patrimonio,
-    PatrimonioMovimento,
-    TermoFomento,
-    PlanoTrabalho,
-    PlanoMeta,
-    PlanoAtividade,
-    PlanoEtapa,
-    PlanoCronogramaItem,
-    PlanoEquipe,
-    CursoAtendimento,
-    Sala,
-    IndiceVulnerabilidadeFamiliar,
-    BenefitType,
-    BenefitGrant,
-    StockItem,
-    StockMovement,
-    Prontuario,
-    ProntuarioAtendimento,
-    ProntuarioEncaminhamento
-  ],
-  migrations: [
-    RenameSchemaToPortuguese1729700000000,
-    CreateBeneficiarioFamiliaSchema1729800000000,
-    UpdateAssistanceUnitSchema1730100000000,
-    AddLogoToAssistanceUnit1730200000000,
-    AddReportLogoAndScheduleToAssistanceUnit1730300000000,
-    AddBeneficiarioDocuments1730400000000,
-    AddBeneficiarioPhoto1730500000000,
-    CreateSalas1730700000000,
-    CreateBeneficiarioBaseSchema1730800000000,
-    CreateVulnerabilityIndex1730900000000,
-    AddStatusToCursosAtendimentos1730950000000,
-    CreateTermosFomento1730959000000,
-    CreateBenefitsModule1730960000000,
-    CreateStockModule1731000000000,
-    RenameBeneficiariesToBeneficiarios1731100000000,
-    CreateProntuarioModule1731200000000,
-    EnsureUsuariosTable1731300000000,
-    RenameUsuariosToUsuario1731400000000
-  ]
-});
+export const storageInfo = isJsonStorage
+  ? { mode: 'json', path: process.env.LOCAL_JSON_PATH || path.resolve(__dirname, '..', 'data', 'local-db.json') }
+  : { mode: 'postgres', ...dbConnectionInfo };
+
+export const AppDataSource: DataSourceLike = isJsonStorage
+  ? new JsonDataSource(storageInfo.path)
+    : new DataSource({
+      ...(databaseOptions ?? {}),
+      synchronize: false,
+      logging: false,
+      entities: [
+        User,
+        Beneficiario,
+        AssistanceUnit,
+        BeneficiaryDocumentConfig,
+        Familia,
+        FamiliaMembro,
+        Patrimonio,
+        PatrimonioMovimento,
+        TermoFomento,
+        PlanoTrabalho,
+        PlanoMeta,
+        PlanoAtividade,
+        PlanoEtapa,
+        PlanoCronogramaItem,
+        PlanoEquipe,
+        CursoAtendimento,
+        Sala,
+        IndiceVulnerabilidadeFamiliar,
+        BenefitType,
+        BenefitGrant,
+        StockItem,
+        StockMovement,
+        Prontuario,
+        ProntuarioAtendimento,
+        ProntuarioEncaminhamento
+      ],
+      migrations: [
+        RenameSchemaToPortuguese1729700000000,
+        CreateBeneficiarioFamiliaSchema1729800000000,
+        UpdateAssistanceUnitSchema1730100000000,
+        AddLogoToAssistanceUnit1730200000000,
+        AddReportLogoAndScheduleToAssistanceUnit1730300000000,
+        AddBeneficiarioDocuments1730400000000,
+        AddBeneficiarioPhoto1730500000000,
+        CreateSalas1730700000000,
+        CreateBeneficiarioBaseSchema1730800000000,
+        CreateVulnerabilityIndex1730900000000,
+        AddStatusToCursosAtendimentos1730950000000,
+        CreateTermosFomento1730959000000,
+        CreateBenefitsModule1730960000000,
+        CreateStockModule1731000000000,
+        RenameBeneficiariesToBeneficiarios1731100000000,
+        CreateProntuarioModule1731200000000,
+        EnsureUsuariosTable1731300000000,
+        RenameUsuariosToUsuario1731400000000
+      ]
+    });
+
+export { dbConnectionInfo, isJsonStorage };

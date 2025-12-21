@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { StockItem, StockItemStatus } from '../entities/StockItem';
 import { StockMovement, StockMovementType } from '../entities/StockMovement';
-import { Repository } from 'typeorm';
+import type { RepositoryLike } from '../storage/types';
 
 const router = Router();
 
@@ -42,7 +42,7 @@ function extractNumericCode(code?: string | null): number {
   return match.reduce((max, part) => Math.max(max, Number(part) || 0), 0);
 }
 
-async function generateNextItemCode(repository: Repository<StockItem>): Promise<string> {
+async function generateNextItemCode(repository: RepositoryLike<StockItem>): Promise<string> {
   const items = await repository.find({ select: ['code'] });
   const currentMax = items.reduce((max, item) => Math.max(max, extractNumericCode(item.code)), 0);
   const nextValue = currentMax + 1;
