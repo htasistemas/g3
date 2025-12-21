@@ -28,6 +28,7 @@ import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.com
 import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
 import { ProntuarioComponent } from './components/prontuario/prontuario.component';
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
+import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -51,6 +52,7 @@ export const routes: Routes = [
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
       { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
       { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
+      { path: 'cadastros/vinculo-familiar', component: VinculoFamiliarComponent, data: { title: 'Vínculo familiar' } },
       {
         path: 'cadastros/voluntariados',
         component: VoluntariadoCadastroComponent,
