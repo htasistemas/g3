@@ -68,10 +68,14 @@
   align-items: center;
   gap: 1rem;
   color: #e2e8f0;
-  background: linear-gradient(150deg, rgba(var(--accent-rgb, 59, 130, 246), 0.14), rgba(15, 23, 42, 0.9)),
-    linear-gradient(120deg, #0b1324, #0f172a);
-  border: 1px solid rgba(var(--accent-rgb, 59, 130, 246), 0.35);
-  box-shadow: 0 20px 40px rgba(var(--accent-rgb, 59, 130, 246), 0.18);
+  background: linear-gradient(
+      150deg,
+      rgba(var(--accent-rgb, 59, 130, 246), 0.16),
+      rgba(12, 92, 52, 0.92)
+    ),
+    linear-gradient(120deg, var(--primary-stronger), var(--primary-gradient-end));
+  border: 1px solid rgba(12, 92, 52, 0.4);
+  box-shadow: 0 20px 40px rgba(12, 92, 52, 0.22);
   backdrop-filter: blur(6px);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -82,14 +86,14 @@
   inset: -40% auto auto -20%;
   width: 160%;
   height: 160%;
-  background: radial-gradient(circle at 20% 20%, rgba(var(--accent-rgb, 59, 130, 246), 0.16), transparent 38%);
+  background: radial-gradient(circle at 20% 20%, rgba(22, 163, 74, 0.2), transparent 38%);
   pointer-events: none;
 }
 
 .pulse-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 24px 46px rgba(var(--accent-rgb, 59, 130, 246), 0.26);
-  border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.55);
+  box-shadow: 0 24px 46px rgba(12, 92, 52, 0.3);
+  border-color: rgba(22, 163, 74, 0.45);
 }
 
 .pulse-card__icon {
