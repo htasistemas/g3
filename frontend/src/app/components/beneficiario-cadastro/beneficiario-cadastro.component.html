@@ -802,56 +802,88 @@
         <p class="upload-hint" *ngIf="uploadingDocuments">
           Aguarde o envio dos documentos selecionados para continuar.
         </p>
-        <div class="document-grid">
-          <div
-            class="document-card"
-            *ngFor="let control of anexos.controls; index as i"
-            [formGroupName]="i"
-            [class.document-card--alert]="control.get('obrigatorio')?.value && !control.get('nomeArquivo')?.value"
-          >
-            <div class="document-card__header">
-              <div>
-                <p class="document-card__title">{{ control.get('nome')?.value }}</p>
-                <p class="document-card__subtitle" *ngIf="control.get('obrigatorio')?.value">Obrigatório para concluir o cadastro</p>
-              </div>
-              <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigatório</span>
-            </div>
-            <div class="document-card__body">
-              <label class="field">Nome do documento<input formControlName="nome" /></label>
-              <p class="doc-status">
-                {{ control.get('nomeArquivo')?.value || 'Nenhum arquivo selecionado' }}
-              </p>
-              <label class="upload-btn">
-                Enviar arquivo
-                <input type="file" (change)="onDocumentFileSelected($event, i)" />
-              </label>
-              <button
-                type="button"
-                class="ghost destructive"
-                *ngIf="control.get('nomeArquivo')?.value || control.get('conteudo')?.value"
-                (click)="removeUploadedDocument(i)"
-              >
-                Remover arquivo enviado
-              </button>
-              <div class="upload-progress" *ngIf="uploadProgress[i] !== undefined">
-                <div
-                  class="upload-progress__bar"
-                  [style.width]="uploadProgress[i] + '%'"
-                  [class.upload-progress__bar--complete]="uploadProgress[i] === 100"
-                ></div>
-                <p class="upload-progress__label">
-                  {{ uploadProgress[i] === 100 ? 'Envio concluído' : 'Enviando documento...' }}
-                  ({{ uploadProgress[i] }}%)
+        <div class="document-section__content">
+          <div class="document-upload-list">
+            <p class="document-upload-list__title">Enviar documentos</p>
+            <div
+              class="document-upload-row"
+              *ngFor="let control of anexos.controls; index as i"
+              [formGroupName]="i"
+              [class.document-upload-row--alert]="
+                control.get('obrigatorio')?.value &&
+                !control.get('nomeArquivo')?.value &&
+                !control.get('conteudo')?.value
+              "
+            >
+              <div class="document-upload-row__info">
+                <p class="document-upload-row__name">{{ control.get('nome')?.value }}</p>
+                <p class="document-upload-row__meta" *ngIf="control.get('obrigatorio')?.value">
+                  Obrigatório para concluir o cadastro
                 </p>
               </div>
-              <button
-                type="button"
-                class="ghost"
-                *ngIf="control.get('conteudo')?.value"
-                (click)="viewDocument(i)"
-              >
-                Visualizar / imprimir documento
-              </button>
+              <div class="document-upload-row__fields">
+                <label class="field">Nome do documento<input formControlName="nome" /></label>
+                <p class="doc-status">
+                  {{ control.get('nomeArquivo')?.value || 'Nenhum arquivo selecionado' }}
+                </p>
+              </div>
+              <div class="document-upload-row__actions">
+                <label class="upload-btn">
+                  Enviar arquivo
+                  <input type="file" (change)="onDocumentFileSelected($event, i)" />
+                </label>
+                <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigatório</span>
+                <div class="upload-progress" *ngIf="uploadProgress[i] !== undefined">
+                  <div
+                    class="upload-progress__bar"
+                    [style.width]="uploadProgress[i] + '%'"
+                    [class.upload-progress__bar--complete]="uploadProgress[i] === 100"
+                  ></div>
+                  <p class="upload-progress__label">
+                    {{ uploadProgress[i] === 100 ? 'Envio concluído' : 'Enviando documento...' }}
+                    ({{ uploadProgress[i] }}%)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="document-uploaded">
+            <div class="document-uploaded__header">
+              <p class="document-uploaded__title">Documentos enviados</p>
+              <p class="document-uploaded__subtitle">Confira rapidamente os arquivos anexados.</p>
+            </div>
+            <div class="document-uploaded__empty" *ngIf="!hasUploadedDocuments()">
+              Nenhum documento enviado ainda.
+            </div>
+            <div class="document-uploaded-grid" *ngIf="hasUploadedDocuments()">
+              <ng-container *ngFor="let control of anexos.controls; index as i">
+                <div
+                  class="document-uploaded-card"
+                  *ngIf="control.get('nomeArquivo')?.value || control.get('conteudo')?.value"
+                >
+                  <p class="document-uploaded-card__name">{{ control.get('nome')?.value }}</p>
+                  <p class="document-uploaded-card__file">
+                    {{ control.get('nomeArquivo')?.value || 'Arquivo anexado' }}
+                  </p>
+                  <div class="document-uploaded-card__actions">
+                    <button
+                      type="button"
+                      class="ghost"
+                      *ngIf="control.get('conteudo')?.value"
+                      (click)="viewDocument(i)"
+                    >
+                      Visualizar
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost destructive"
+                      (click)="removeUploadedDocument(i)"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
             </div>
           </div>
         </div>
