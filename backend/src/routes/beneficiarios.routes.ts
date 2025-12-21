@@ -33,6 +33,30 @@ function onlyDigits(value: string): string {
   return value.replace(/\D/g, '');
 }
 
+function normalizeDateInput(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const trimmed = String(value).trim();
+  if (!trimmed) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+    const [day, month, year] = trimmed.split('/');
+    return `${year}-${month}-${day}`;
+  }
+
+  const digits = onlyDigits(trimmed);
+  if (digits.length === 8) {
+    const day = digits.slice(0, 2);
+    const month = digits.slice(2, 4);
+    const year = digits.slice(4);
+    return `${year}-${month}-${day}`;
+  }
+
+  return undefined;
+}
+
 function parseBoolean(value: unknown, fallback = false): boolean {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {
@@ -221,16 +245,18 @@ function buildBeneficiarioPayload(req: Request, existing?: Beneficiario): Benefi
 
 router.get('/', async (req, res) => {
   const repository = AppDataSource.getRepository(Beneficiario);
-  const { nome, cpf, nis, codigo } = req.query as {
+  const { nome, cpf, nis, codigo, data_nascimento } = req.query as {
     nome?: string;
     cpf?: string;
     nis?: string;
     codigo?: string;
+    data_nascimento?: string;
   };
   const beneficiarios = await repository.find({ order: { nomeCompleto: 'ASC' } });
   const nomeBusca = nome?.toLowerCase();
   const codigoBusca = codigo?.toLowerCase();
   const cpfBusca = cpf ? onlyDigits(String(cpf)) : undefined;
+  const dataNascimentoBusca = normalizeDateInput(data_nascimento);
 
   const filtered = beneficiarios.filter((beneficiario) => {
     if (nomeBusca) {
@@ -251,6 +277,9 @@ router.get('/', async (req, res) => {
       if (!codigoAtual.includes(codigoBusca)) {
         return false;
       }
+    }
+    if (dataNascimentoBusca && beneficiario.dataNascimento !== dataNascimentoBusca) {
+      return false;
     }
     return true;
   });
