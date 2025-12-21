@@ -4,7 +4,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Reacti
 import { HttpClient } from '@angular/common/http';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { FamiliaMembroPayload, FamiliaPayload, FamilyService } from '../../services/family.service';
-import { Subject, of } from 'rxjs';
+import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -20,14 +20,19 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   saving = false;
   cepLookupError: string | null = null;
   principalSearch = new FormControl('');
+  familySearch = new FormControl('');
   memberSearch = new FormControl('');
   principalResults: BeneficiarioApiPayload[] = [];
+  familyResults: FamiliaPayload[] = [];
   memberResults: BeneficiarioApiPayload[] = [];
   principalLoading = false;
+  familyLoading = false;
   memberLoading = false;
   principalError: string | null = null;
+  familyError: string | null = null;
   memberError: string | null = null;
   principal: BeneficiarioApiPayload | null = null;
+  selectedFamilyId: string | null = null;
   applyAddressToMembers = true;
   activeTab = 'cadastro';
   readonly tabs = [
@@ -103,6 +108,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       this.principalSearch,
       'principal'
     );
+    this.setupFamilySearch();
     this.setupSearch(
       this.memberSearch,
       'member'
@@ -173,6 +179,88 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.principalSearch.setValue(beneficiary.nome_completo || beneficiary.nome_social || '', { emitEvent: false });
     this.principalResults = [];
     this.upsertMember(beneficiary, true);
+  }
+
+  selectFamily(familia: FamiliaPayload): void {
+    if (!familia.id_familia) return;
+    this.familySearch.setValue(familia.nome_familia, { emitEvent: false });
+    this.familyResults = [];
+    this.familyLoading = true;
+    this.familyError = null;
+
+    this.familyService
+      .getById(familia.id_familia)
+      .pipe(finalize(() => (this.familyLoading = false)))
+      .subscribe({
+        next: ({ familia: loaded }) => {
+          this.selectedFamilyId = loaded.id_familia ?? familia.id_familia ?? null;
+          this.familyForm.patchValue({
+            nome_familia: loaded.nome_familia,
+            id_referencia_familiar: loaded.id_referencia_familiar ?? '',
+            cep: loaded.cep ?? '',
+            logradouro: loaded.logradouro ?? '',
+            numero: loaded.numero ?? '',
+            complemento: loaded.complemento ?? '',
+            bairro: loaded.bairro ?? '',
+            ponto_referencia: loaded.ponto_referencia ?? '',
+            municipio: loaded.municipio ?? '',
+            uf: loaded.uf ?? '',
+            zona: loaded.zona ?? '',
+            situacao_imovel: loaded.situacao_imovel ?? '',
+            tipo_moradia: loaded.tipo_moradia ?? '',
+            agua_encanada: loaded.agua_encanada ?? false,
+            esgoto_tipo: loaded.esgoto_tipo ?? '',
+            coleta_lixo: loaded.coleta_lixo ?? '',
+            energia_eletrica: loaded.energia_eletrica ?? false,
+            internet: loaded.internet ?? false,
+            arranjo_familiar: loaded.arranjo_familiar ?? '',
+            qtd_membros: loaded.qtd_membros ?? null,
+            qtd_criancas: loaded.qtd_criancas ?? null,
+            qtd_adolescentes: loaded.qtd_adolescentes ?? null,
+            qtd_idosos: loaded.qtd_idosos ?? null,
+            qtd_pessoas_deficiencia: loaded.qtd_pessoas_deficiencia ?? null,
+            renda_familiar_total: loaded.renda_familiar_total ?? '',
+            renda_per_capita: loaded.renda_per_capita ?? '',
+            faixa_renda_per_capita: loaded.faixa_renda_per_capita ?? '',
+            principais_fontes_renda: loaded.principais_fontes_renda ?? '',
+            situacao_inseguranca_alimentar: loaded.situacao_inseguranca_alimentar ?? '',
+            possui_dividas_relevantes: loaded.possui_dividas_relevantes ?? false,
+            descricao_dividas: loaded.descricao_dividas ?? '',
+            vulnerabilidades_familia: loaded.vulnerabilidades_familia ?? '',
+            servicos_acompanhamento: loaded.servicos_acompanhamento ?? '',
+            tecnico_responsavel: loaded.tecnico_responsavel ?? '',
+            periodicidade_atendimento: loaded.periodicidade_atendimento ?? '',
+            proxima_visita_prevista: loaded.proxima_visita_prevista ?? '',
+            observacoes: loaded.observacoes ?? ''
+          });
+
+          this.membros.clear();
+          (loaded.membros ?? []).forEach((member) => {
+            this.membros.push(this.buildMemberControlFromExisting(member));
+          });
+
+          const referencia = loaded.referencia_familiar;
+          if (referencia) {
+            this.principal = referencia;
+            this.principalSearch.setValue(
+              referencia.nome_completo || referencia.nome_social || '',
+              { emitEvent: false }
+            );
+          } else {
+            const responsavel = loaded.membros?.find((member) => member.responsavel_familiar)?.beneficiario;
+            if (responsavel) {
+              this.principal = responsavel;
+              this.principalSearch.setValue(
+                responsavel.nome_completo || responsavel.nome_social || '',
+                { emitEvent: false }
+              );
+            }
+          }
+        },
+        error: () => {
+          this.familyError = 'Não foi possível carregar a família selecionada.';
+        }
+      });
   }
 
   changeTab(tabId: string): void {
@@ -258,35 +346,47 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.feedback = null;
 
-    const payload = this.buildPayload();
+    const payload = this.buildPayload(!this.selectedFamilyId);
 
-    this.familyService.create(payload).pipe(
-      finalize(() => {
-        this.saving = false;
-      })
-    ).subscribe({
-      next: ({ familia }) => {
-        this.feedback = `Família ${familia.nome_familia} registrada com sucesso.`;
-      },
-      error: () => {
-        this.feedback = 'Não foi possível salvar o vínculo familiar. Tente novamente.';
-      }
-    });
+    const request$ = this.selectedFamilyId
+      ? this.familyService.update(this.selectedFamilyId, payload).pipe(
+          switchMap(({ familia }) =>
+            this.persistMembers(familia.id_familia ?? this.selectedFamilyId ?? '')
+              .pipe(map(() => ({ familia })))
+          )
+        )
+      : this.familyService.create(payload);
+
+    request$
+      .pipe(finalize(() => (this.saving = false)))
+      .subscribe({
+        next: ({ familia }) => {
+          this.selectedFamilyId = familia.id_familia ?? this.selectedFamilyId;
+          const nomeFamilia = familia.nome_familia || this.familyForm.get('nome_familia')?.value || '';
+          this.feedback = `Família ${nomeFamilia} registrada com sucesso.`;
+        },
+        error: () => {
+          this.feedback = 'Não foi possível salvar o vínculo familiar. Tente novamente.';
+        }
+      });
   }
 
-  private buildPayload(): FamiliaPayload {
+  private buildPayload(includeMembers: boolean): FamiliaPayload {
     const rawValue = this.familyForm.getRawValue();
-    const membros = this.membros.controls.map((control) => this.mapMemberPayload(control.value));
+    const membros = includeMembers
+      ? this.membros.controls.map((control) => this.mapMemberPayload(control.value))
+      : undefined;
 
     return {
       ...(rawValue as FamiliaPayload),
       membros,
-      qtd_membros: rawValue.qtd_membros || membros.length
+      qtd_membros: rawValue.qtd_membros || (membros ? membros.length : this.membros.length)
     };
   }
 
   private mapMemberPayload(member: any): FamiliaMembroPayload {
     return {
+      id_familia_membro: member.id_familia_membro,
       id_beneficiario: member.id_beneficiario,
       parentesco: member.parentesco,
       responsavel_familiar: member.responsavel_familiar,
@@ -296,6 +396,18 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       observacoes: member.observacoes,
       usa_endereco_familia: member.usa_endereco_familia
     };
+  }
+
+  private persistMembers(familiaId: string) {
+    const requests = this.membros.controls.map((control) => {
+      const payload = this.mapMemberPayload(control.value);
+      if (payload.id_familia_membro) {
+        return this.familyService.updateMember(familiaId, payload.id_familia_membro, payload);
+      }
+      return this.familyService.addMember(familiaId, payload);
+    });
+
+    return requests.length ? forkJoin(requests) : of([]);
   }
 
   private setupSearch(control: FormControl, context: 'principal' | 'member'): void {
@@ -312,6 +424,39 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
         } else {
           this.memberResults = results;
         }
+      });
+  }
+
+  private setupFamilySearch(): void {
+    this.familySearch.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((value) => {
+          const query = (value ?? '').trim();
+          if (!query) {
+            this.familyResults = [];
+            this.familyError = null;
+            this.familyLoading = false;
+            return of([] as FamiliaPayload[]);
+          }
+          this.familyLoading = true;
+          this.familyError = null;
+          return this.familyService.list({ nome_familia: query }).pipe(
+            map(({ familias }) => familias ?? []),
+            catchError(() => {
+              this.familyError = 'Não foi possível buscar famílias agora.';
+              return of([] as FamiliaPayload[]);
+            }),
+            finalize(() => {
+              this.familyLoading = false;
+            })
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((results) => {
+        this.familyResults = results;
       });
   }
 
@@ -384,6 +529,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
 
   private buildMemberControl(beneficiary: BeneficiarioApiPayload, isReference: boolean): FormGroup {
     return this.fb.group({
+      id_familia_membro: [null],
       id_beneficiario: [beneficiary.id_beneficiario, Validators.required],
       nome: [beneficiary.nome_completo || beneficiary.nome_social || 'Beneficiário'],
       documento: [beneficiary.cpf || beneficiary.nis || beneficiary.codigo || ''],
@@ -394,6 +540,26 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       participa_servicos: [false],
       observacoes: [''],
       usa_endereco_familia: [this.applyAddressToMembers]
+    });
+  }
+
+  private buildMemberControlFromExisting(member: FamiliaMembroPayload): FormGroup {
+    const beneficiary = member.beneficiario;
+    const displayName = beneficiary?.nome_completo || beneficiary?.nome_social || 'Beneficiário';
+    const document = beneficiary?.cpf || beneficiary?.nis || beneficiary?.codigo || '';
+
+    return this.fb.group({
+      id_familia_membro: [member.id_familia_membro ?? null],
+      id_beneficiario: [member.id_beneficiario, Validators.required],
+      nome: [displayName],
+      documento: [document],
+      parentesco: [member.parentesco ?? '', Validators.required],
+      responsavel_familiar: [member.responsavel_familiar ?? false],
+      contribui_renda: [member.contribui_renda ?? false],
+      renda_individual: [member.renda_individual ?? ''],
+      participa_servicos: [member.participa_servicos ?? false],
+      observacoes: [member.observacoes ?? ''],
+      usa_endereco_familia: [member.usa_endereco_familia ?? this.applyAddressToMembers]
     });
   }
 

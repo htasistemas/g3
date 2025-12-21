@@ -67,6 +67,29 @@
       </div>
       <div class="search-block">
         <label class="field">
+          Buscar família cadastrada
+          <input [formControl]="familySearch" placeholder="Digite o nome da família" />
+        </label>
+        <div class="suggestions" *ngIf="familyLoading">
+          <p class="muted">Buscando famílias...</p>
+        </div>
+        <div class="suggestions" *ngIf="familyError">
+          <p class="muted text-error">{{ familyError }}</p>
+        </div>
+        <ul class="suggestions" *ngIf="!familyLoading && familyResults.length">
+          <li *ngFor="let familia of familyResults">
+            <button type="button" (click)="selectFamily(familia)">
+              <div>
+                <strong>{{ familia.nome_familia }}</strong>
+                <small>{{ familia.municipio || 'Município não informado' }}</small>
+              </div>
+              <span class="pill">Carregar</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div class="search-block">
+        <label class="field">
           Buscar responsável
           <input [formControl]="principalSearch" placeholder="Digite nome ou CPF" />
         </label>
@@ -267,7 +290,5 @@
         <label class="field">Coleta de lixo<input formControlName="coleta_lixo" /></label>
       </div>
     </div>
-
-    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </form>
 </section>
