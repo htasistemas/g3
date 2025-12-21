@@ -1,10 +1,11 @@
 import { Request, Router } from 'express';
 import multer from 'multer';
-import { In, Repository } from 'typeorm';
+import { In } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
 import { BeneficiarioDuplicidadeService } from '../services/beneficiario-duplicidade.service';
 import { IndiceVulnerabilidadeFamiliar } from '../entities/IndiceVulnerabilidadeFamiliar';
+import type { RepositoryLike } from '../storage/types';
 
 const router = Router();
 const upload = multer();
@@ -70,14 +71,11 @@ function formatSequentialCode(value: number): string {
   return normalized.toString().padStart(4, '0').slice(-4);
 }
 
-async function generateSequentialCodigo(repository: Repository<Beneficiario>): Promise<string> {
-  const existingCodes = await repository
-    .createQueryBuilder('beneficiario')
-    .select('beneficiario.codigo', 'codigo')
-    .getRawMany<{ codigo: string | null }>();
+async function generateSequentialCodigo(repository: RepositoryLike<Beneficiario>): Promise<string> {
+  const existingCodes = await repository.find({ select: ['codigo'] });
 
   const highestNumber = existingCodes.reduce((currentMax, row) => {
-    const numeric = extractSequentialNumber(row.codigo);
+    const numeric = extractSequentialNumber(row.codigo ?? null);
     return numeric !== null ? Math.max(currentMax, numeric) : currentMax;
   }, 0);
 
@@ -229,38 +227,46 @@ router.get('/', async (req, res) => {
     nis?: string;
     codigo?: string;
   };
-  const qb = repository.createQueryBuilder('beneficiario');
+  const beneficiarios = await repository.find({ order: { nomeCompleto: 'ASC' } });
+  const nomeBusca = nome?.toLowerCase();
+  const codigoBusca = codigo?.toLowerCase();
+  const cpfBusca = cpf ? onlyDigits(String(cpf)) : undefined;
 
-  if (nome) {
-    qb.andWhere(
-      '(LOWER(beneficiario.nome_completo) LIKE LOWER(:nome) OR LOWER(beneficiario.codigo) LIKE LOWER(:codigoBusca))',
-      { nome: `%${nome}%`, codigoBusca: `%${nome}%` }
-    );
-  }
-  if (cpf) {
-    qb.andWhere('beneficiario.cpf = :cpf', { cpf: onlyDigits(String(cpf)) });
-  }
-  if (nis) {
-    qb.andWhere('beneficiario.nis = :nis', { nis });
-  }
-  if (codigo) {
-    qb.andWhere('LOWER(beneficiario.codigo) LIKE LOWER(:codigo)', { codigo: `%${codigo}%` });
-  }
-
-  const beneficiarios = await qb.orderBy('beneficiario.nome_completo', 'ASC').getMany();
+  const filtered = beneficiarios.filter((beneficiario) => {
+    if (nomeBusca) {
+      const nomeAtual = (beneficiario.nomeCompleto ?? '').toLowerCase();
+      const codigoAtual = (beneficiario.codigo ?? '').toLowerCase();
+      if (!nomeAtual.includes(nomeBusca) && !codigoAtual.includes(nomeBusca)) {
+        return false;
+      }
+    }
+    if (cpfBusca && onlyDigits(beneficiario.cpf ?? '') !== cpfBusca) {
+      return false;
+    }
+    if (nis && beneficiario.nis !== nis) {
+      return false;
+    }
+    if (codigoBusca) {
+      const codigoAtual = (beneficiario.codigo ?? '').toLowerCase();
+      if (!codigoAtual.includes(codigoBusca)) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   const ivfRepo = AppDataSource.getRepository(IndiceVulnerabilidadeFamiliar);
-  const indices = await ivfRepo.find({ where: { idBeneficiario: In(beneficiarios.map((b) => b.idBeneficiario)) } });
+  const indices = await ivfRepo.find({ where: { idBeneficiario: In(filtered.map((b) => b.idBeneficiario)) } });
   const ivfMap = indices.reduce<Record<string, IndiceVulnerabilidadeFamiliar>>((acc, index) => {
     acc[index.idBeneficiario] = index;
     return acc;
   }, {});
 
-  beneficiarios.forEach((beneficiario) => {
+  filtered.forEach((beneficiario) => {
     (beneficiario as any).indiceVulnerabilidade = ivfMap[beneficiario.idBeneficiario] ?? null;
   });
 
-  const withoutCodigo = beneficiarios.filter((item) => !item.codigo);
+  const withoutCodigo = filtered.filter((item) => !item.codigo);
   if (withoutCodigo.length) {
     for (const record of withoutCodigo) {
       record.codigo = await generateSequentialCodigo(repository);
@@ -268,7 +274,7 @@ router.get('/', async (req, res) => {
     }
   }
 
-  const outdated = beneficiarios.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
+  const outdated = filtered.filter((item) => isOutdated(item) && item.status !== 'DESATUALIZADO');
   if (outdated.length) {
     await Promise.all(
       outdated.map((record) => {
@@ -277,7 +283,7 @@ router.get('/', async (req, res) => {
       })
     );
   }
-  res.json({ beneficiarios });
+  res.json({ beneficiarios: filtered });
 });
 
 router.get('/:id', async (req, res) => {

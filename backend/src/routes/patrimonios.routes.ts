@@ -127,9 +127,11 @@ router.post('/:id/movimentos', async (req, res) => {
     await patrimonioRepository.save(patrimonio);
     const refreshed = await patrimonioRepository.findOne({
       where: { idPatrimonio: patrimonio.idPatrimonio },
-      relations: ['movimentos'],
-      order: { movimentos: { dataMovimento: 'DESC' } }
+      relations: ['movimentos']
     });
+    if (refreshed?.movimentos?.length) {
+      refreshed.movimentos.sort((a, b) => (a.dataMovimento > b.dataMovimento ? -1 : 1));
+    }
     res.status(201).json({ patrimonio: refreshed });
   } catch (error) {
     console.error('Erro ao registrar movimentação', error);

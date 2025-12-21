@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { Repository } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import {
   AtendimentoStatus,
   AtendimentoStatusEntry,
   CursoAtendimento
 } from '../entities/CursoAtendimento';
+import type { RepositoryLike } from '../storage/types';
 
 const router = Router();
 
@@ -42,7 +42,7 @@ const hasRoomConflict = async (candidate: PartialCourse, ignoreId?: string): Pro
   if (!candidate.salaId) return false;
 
   const repository = AppDataSource.getRepository(CursoAtendimento);
-  const sameRoom = await repository.find({ where: { sala: { id: candidate.salaId } }, relations: ['sala'] });
+  const sameRoom = await repository.find({ where: { salaId: candidate.salaId }, relations: ['sala'] });
 
   const candidateDays = new Set(candidate.diasSemana ?? []);
   const [candidateHour, candidateMinute] = (candidate.horarioInicial ?? '00:00').split(':').map(Number);
@@ -93,7 +93,7 @@ router.get('/:id', async (req, res) => {
 });
 
 const preparePayload = async (
-  repository: Repository<CursoAtendimento>,
+  repository: RepositoryLike<CursoAtendimento>,
   payload: PartialCourse
 ): Promise<CursoAtendimento> => {
   const course = repository.create({

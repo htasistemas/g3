@@ -37,54 +37,61 @@ router.post('/beneficiarios/relacao', async (req, res) => {
   try {
     const filters = (req.body || {}) as BeneficiaryListRequest;
     const repository = AppDataSource.getRepository(Beneficiario);
-    const qb = repository
-      .createQueryBuilder('beneficiario')
-      .select([
-        'beneficiario.idBeneficiario',
-        'beneficiario.codigo',
-        'beneficiario.nomeCompleto',
-        'beneficiario.nomeSocial',
-        'beneficiario.cpf',
-        'beneficiario.nis',
-        'beneficiario.dataNascimento',
-        'beneficiario.bairro',
-        'beneficiario.municipio',
-        'beneficiario.uf',
-        'beneficiario.status',
-        'beneficiario.dataCadastro'
-      ]);
+    const beneficiarios = await repository.find({ order: { nomeCompleto: 'ASC' } });
+    const nomeBusca = filters.nome?.toLowerCase();
+    const codigoBusca = filters.codigo?.toLowerCase();
+    const cpfBusca = filters.cpf ? filters.cpf.replace(/\D/g, '') : undefined;
 
-    if (filters.nome) {
-      qb.andWhere(
-        '(LOWER(beneficiario.nome_completo) LIKE LOWER(:nome) OR LOWER(beneficiario.nome_social) LIKE LOWER(:nome))',
-        { nome: `%${filters.nome}%` }
-      );
-    }
+    const filtered = beneficiarios.filter((beneficiario) => {
+      if (nomeBusca) {
+        const nomeCompleto = (beneficiario.nomeCompleto ?? '').toLowerCase();
+        const nomeSocial = (beneficiario.nomeSocial ?? '').toLowerCase();
+        if (!nomeCompleto.includes(nomeBusca) && !nomeSocial.includes(nomeBusca)) {
+          return false;
+        }
+      }
 
-    if (filters.codigo) {
-      qb.andWhere('LOWER(beneficiario.codigo) LIKE LOWER(:codigo)', { codigo: `%${filters.codigo}%` });
-    }
+      if (codigoBusca) {
+        const codigo = (beneficiario.codigo ?? '').toLowerCase();
+        if (!codigo.includes(codigoBusca)) {
+          return false;
+        }
+      }
 
-    if (filters.cpf) {
-      qb.andWhere('beneficiario.cpf = :cpf', { cpf: filters.cpf.replace(/\D/g, '') });
-    }
+      if (cpfBusca && (beneficiario.cpf ?? '').replace(/\D/g, '') !== cpfBusca) {
+        return false;
+      }
 
-    if (filters.status) {
-      qb.andWhere('beneficiario.status = :status', { status: filters.status });
-    }
+      if (filters.status && beneficiario.status !== filters.status) {
+        return false;
+      }
 
-    if (filters.dataNascimento) {
-      qb.andWhere('beneficiario.data_nascimento = :dataNascimento', { dataNascimento: filters.dataNascimento });
-    }
+      if (filters.dataNascimento && beneficiario.dataNascimento !== filters.dataNascimento) {
+        return false;
+      }
 
-    qb.orderBy('beneficiario.nome_completo', 'ASC');
+      return true;
+    });
 
-    const beneficiarios = await qb.getMany();
+    const payloadBeneficiarios = filtered.map((beneficiario) => ({
+      idBeneficiario: beneficiario.idBeneficiario,
+      codigo: beneficiario.codigo,
+      nomeCompleto: beneficiario.nomeCompleto,
+      nomeSocial: beneficiario.nomeSocial,
+      cpf: beneficiario.cpf,
+      nis: beneficiario.nis,
+      dataNascimento: beneficiario.dataNascimento,
+      bairro: beneficiario.bairro,
+      municipio: beneficiario.municipio,
+      uf: beneficiario.uf,
+      status: beneficiario.status,
+      dataCadastro: beneficiario.dataCadastro
+    }));
 
     const payload: BeneficiaryListPayload = {
       issuedAt: new Date().toISOString(),
       filters,
-      beneficiarios
+      beneficiarios: payloadBeneficiarios
     };
 
     const content = buildBeneficiaryListTemplate(payload);
