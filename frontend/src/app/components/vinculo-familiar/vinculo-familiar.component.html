@@ -7,13 +7,48 @@
     </p>
   </header>
 
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegação por etapas</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < activeTabIndex"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
   <form [formGroup]="familyForm" (ngSubmit)="saveFamily()" class="form-shell">
     <div *ngIf="feedback" class="feedback">
       <span>{{ feedback }}</span>
       <button type="button" class="feedback__close" (click)="feedback = null" aria-label="Fechar aviso">×</button>
     </div>
 
-    <div class="tab-card">
+    <ng-template #navigationControls>
+      <div class="tab-actions">
+        <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+          Próximo: {{ nextTabLabel }}
+        </button>
+        <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
+          {{ saving ? 'Salvando...' : 'Salvar vínculo familiar' }}
+        </button>
+      </div>
+    </ng-template>
+
+    <div class="tab-card" *ngIf="activeTab === 'cadastro'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Cadastro da família</p>
@@ -53,9 +88,10 @@
           </li>
         </ul>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card">
+    <div class="tab-card" *ngIf="activeTab === 'endereco'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Endereço da família</p>
@@ -67,7 +103,14 @@
         </label>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">
+          CEP
+          <input formControlName="cep" placeholder="00000-000" (input)="onFamilyCepInput($event)" (blur)="onFamilyCepBlur()" />
+          <p class="field-error" *ngIf="familyForm.get('cep')?.invalid && familyForm.get('cep')?.touched">
+            Informe um CEP válido.
+          </p>
+          <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
+        </label>
         <label class="field">Logradouro<input formControlName="logradouro" /></label>
         <label class="field">Número<input formControlName="numero" /></label>
         <label class="field">Complemento<input formControlName="complemento" /></label>
@@ -77,9 +120,10 @@
         <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
         <label class="field">Zona<input formControlName="zona" placeholder="Urbana, rural..." /></label>
       </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card" formArrayName="membros">
+    <div class="tab-card" *ngIf="activeTab === 'membros'" formArrayName="membros">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Membros vinculados</p>
@@ -118,6 +162,12 @@
               <p class="member-card__meta">{{ member.get('documento')?.value || 'Documento não informado' }}</p>
             </div>
             <button type="button" class="ghost destructive" (click)="removeMember(i)">Remover</button>
+          </div>
+          <div class="member-card__address" *ngIf="member.get('usa_endereco_familia')?.value">
+            <p class="member-card__address-label">Endereço da família aplicado</p>
+            <p class="member-card__address-value">
+              {{ familyAddressLabel || 'Informe o endereço da família para preencher os membros.' }}
+            </p>
           </div>
           <div class="field-grid cols-2 compact">
             <label class="field">
@@ -158,9 +208,10 @@
       <ng-template #emptyMembers>
         <div class="empty-state">Nenhum beneficiário vinculado ainda.</div>
       </ng-template>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card">
+    <div class="tab-card" *ngIf="activeTab === 'indicadores'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Indicadores sociais</p>
@@ -217,10 +268,6 @@
       </div>
     </div>
 
-    <div class="tab-actions">
-      <button type="submit" class="primary" [disabled]="saving">
-        {{ saving ? 'Salvando...' : 'Salvar vínculo familiar' }}
-      </button>
-    </div>
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </form>
 </section>

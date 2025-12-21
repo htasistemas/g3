@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { FamiliaMembroPayload, FamiliaPayload, FamilyService } from '../../services/family.service';
 import { Subject, of } from 'rxjs';
@@ -17,6 +18,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   familyForm: FormGroup;
   feedback: string | null = null;
   saving = false;
+  cepLookupError: string | null = null;
   principalSearch = new FormControl('');
   memberSearch = new FormControl('');
   principalResults: BeneficiarioApiPayload[] = [];
@@ -27,6 +29,13 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   memberError: string | null = null;
   principal: BeneficiarioApiPayload | null = null;
   applyAddressToMembers = true;
+  activeTab = 'cadastro';
+  readonly tabs = [
+    { id: 'cadastro', label: 'Cadastro da família' },
+    { id: 'endereco', label: 'Endereço da família' },
+    { id: 'membros', label: 'Membros vinculados' },
+    { id: 'indicadores', label: 'Indicadores sociais' }
+  ];
   readonly relationshipOptions = [
     'Responsável familiar',
     'Cônjuge/companheiro(a)',
@@ -44,12 +53,13 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   constructor(
     private readonly fb: FormBuilder,
     private readonly familyService: FamilyService,
-    private readonly beneficiaryService: BeneficiarioApiService
+    private readonly beneficiaryService: BeneficiarioApiService,
+    private readonly http: HttpClient
   ) {
     this.familyForm = this.fb.group({
       nome_familia: ['', Validators.required],
       id_referencia_familiar: ['', Validators.required],
-      cep: [''],
+      cep: ['', [this.cepValidator]],
       logradouro: [''],
       numero: [''],
       complemento: [''],
@@ -114,6 +124,38 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     return this.familyForm.get('membros') as FormArray;
   }
 
+  get activeTabIndex(): number {
+    return Math.max(
+      this.tabs.findIndex((tab) => tab.id === this.activeTab),
+      0
+    );
+  }
+
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.tabs[this.activeTabIndex + 1]?.label ?? '';
+  }
+
+  get familyAddressLabel(): string {
+    const value = this.familyForm.getRawValue();
+    const parts = [
+      value.logradouro,
+      value.numero,
+      value.bairro,
+      value.municipio,
+      value.uf,
+      value.cep
+    ].filter(Boolean);
+    return parts.join(', ');
+  }
+
   get principalLabel(): string {
     if (!this.principal) return 'Selecione o responsável principal';
     const doc = this.principal.cpf || this.principal.nis || this.principal.codigo || '';
@@ -131,6 +173,20 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.principalSearch.setValue(beneficiary.nome_completo || beneficiary.nome_social || '', { emitEvent: false });
     this.principalResults = [];
     this.upsertMember(beneficiary, true);
+  }
+
+  changeTab(tabId: string): void {
+    this.activeTab = tabId;
+  }
+
+  goToNextTab(): void {
+    if (!this.hasNextTab) return;
+    this.activeTab = this.tabs[this.activeTabIndex + 1]?.id ?? this.activeTab;
+  }
+
+  goToPreviousTab(): void {
+    if (!this.hasPreviousTab) return;
+    this.activeTab = this.tabs[this.activeTabIndex - 1]?.id ?? this.activeTab;
   }
 
   addMember(beneficiary: BeneficiarioApiPayload): void {
@@ -153,6 +209,38 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.membros.controls.forEach((control) => {
       control.get('usa_endereco_familia')?.setValue(this.applyAddressToMembers);
     });
+  }
+
+  onFamilyCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+
+    if (digits.length > 5) {
+      formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    this.familyForm.get('cep')?.setValue(formatted, { emitEvent: false });
+    this.cepLookupError = null;
+
+    if (digits.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  onFamilyCepBlur(): void {
+    const cepControl = this.familyForm.get('cep');
+    if (!cepControl) return;
+
+    if (cepControl.invalid) {
+      this.cepLookupError = cepControl.value ? 'Informe um CEP válido para consultar o endereço.' : null;
+      return;
+    }
+
+    const digits = this.normalizeCep(cepControl.value as string);
+    if (digits?.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
   }
 
   saveFamily(): void {
@@ -237,7 +325,15 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
 
     this.setSearchState(context, true, null);
 
-    return this.beneficiaryService.list({ nome: query }).pipe(
+    const digits = query.replace(/\D/g, '');
+    const params =
+      digits.length === 11
+        ? { cpf: digits, nis: digits }
+        : digits.length >= 4 && /^\d+$/.test(digits)
+          ? { codigo: digits }
+          : { nome: query };
+
+    return this.beneficiaryService.list(params).pipe(
       map(({ beneficiarios }) => beneficiarios ?? []),
       catchError(() => {
         this.setSearchState(context, false, 'Não foi possível buscar beneficiários agora.');
@@ -300,4 +396,48 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       usa_endereco_familia: [this.applyAddressToMembers]
     });
   }
+
+  private lookupAddressByCep(cep: string): void {
+    this.cepLookupError = null;
+    this.http
+      .get<ViaCepResponse>(`https://viacep.com.br/ws/${cep}/json/`)
+      .pipe(finalize(() => this.familyForm.get('cep')?.markAsTouched()))
+      .subscribe({
+        next: (response) => {
+          if (response?.erro) {
+            this.cepLookupError = 'CEP não encontrado.';
+            return;
+          }
+
+          this.familyForm.patchValue({
+            logradouro: response.logradouro ?? '',
+            bairro: response.bairro ?? '',
+            municipio: response.localidade ?? '',
+            uf: response.uf ?? ''
+          });
+        },
+        error: () => {
+          this.cepLookupError = 'Não foi possível consultar o CEP.';
+        }
+      });
+  }
+
+  private normalizeCep(value?: string | null): string | undefined {
+    const digits = (value ?? '').replace(/\D/g, '');
+    return digits || undefined;
+  }
+
+  private cepValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value as string | null | undefined)?.replace(/\D/g, '') ?? '';
+    if (!value) return null;
+    return value.length === 8 ? null : { cep: true };
+  };
+}
+
+interface ViaCepResponse {
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
 }
