@@ -891,6 +891,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     control.markAsDirty();
   }
 
+  hasUploadedDocuments(): boolean {
+    return this.anexos.controls.some(
+      (control) => !!control.get('nomeArquivo')?.value || !!control.get('conteudo')?.value
+    );
+  }
+
   private updateUploadState(): void {
     this.uploadingDocuments = Object.values(this.uploadProgress).some((value) => value < 100);
   }
