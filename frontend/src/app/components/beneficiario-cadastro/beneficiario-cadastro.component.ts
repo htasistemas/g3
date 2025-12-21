@@ -953,6 +953,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  confirmDocuments(): void {
+    const missing = this.getMissingRequiredDocuments();
+
+    if (missing.length) {
+      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.changeTab('documentos');
+      return;
+    }
+
+    this.showTemporaryFeedback('Documentos conferidos com sucesso.');
+  }
+
   private showTemporaryFeedback(message: string): void {
     this.feedback = message;
     if (this.feedbackTimeout) {

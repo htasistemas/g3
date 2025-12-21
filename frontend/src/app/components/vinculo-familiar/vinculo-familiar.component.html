@@ -1,0 +1,226 @@
+<section class="cadastro">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Cadastros</p>
+    <p class="page-title__label">Vínculo familiar</p>
+    <p class="page-title__hint">
+      Cadastre famílias, defina o responsável principal e vincule beneficiários ao mesmo endereço.
+    </p>
+  </header>
+
+  <form [formGroup]="familyForm" (ngSubmit)="saveFamily()" class="form-shell">
+    <div *ngIf="feedback" class="feedback">
+      <span>{{ feedback }}</span>
+      <button type="button" class="feedback__close" (click)="feedback = null" aria-label="Fechar aviso">×</button>
+    </div>
+
+    <div class="tab-card">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">Cadastro da família</p>
+          <p class="muted">Informe o nome da família e identifique o responsável principal.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-2">
+        <label class="field">
+          Nome da família*
+          <input formControlName="nome_familia" placeholder="Ex.: Família Souza" />
+        </label>
+        <label class="field">
+          Responsável principal*
+          <input [value]="principalLabel" readonly />
+        </label>
+      </div>
+      <div class="search-block">
+        <label class="field">
+          Buscar responsável
+          <input [formControl]="principalSearch" placeholder="Digite nome ou CPF" />
+        </label>
+        <div class="suggestions" *ngIf="principalLoading">
+          <p class="muted">Buscando beneficiários...</p>
+        </div>
+        <div class="suggestions" *ngIf="principalError">
+          <p class="muted text-error">{{ principalError }}</p>
+        </div>
+        <ul class="suggestions" *ngIf="!principalLoading && principalResults.length">
+          <li *ngFor="let beneficiary of principalResults">
+            <button type="button" (click)="selectPrincipal(beneficiary)">
+              <div>
+                <strong>{{ beneficiary.nome_completo || beneficiary.nome_social }}</strong>
+                <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento não informado' }}</small>
+              </div>
+              <span class="pill">Selecionar</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-card">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">Endereço da família</p>
+          <p class="muted">Esse endereço será a referência principal para todos os membros.</p>
+        </div>
+        <label class="checkbox-field checkbox-field--inline">
+          <input type="checkbox" [checked]="applyAddressToMembers" (change)="toggleAddressForAll()" />
+          <span>Aplicar endereço da família aos membros vinculados</span>
+        </label>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" /></label>
+        <label class="field">Logradouro<input formControlName="logradouro" /></label>
+        <label class="field">Número<input formControlName="numero" /></label>
+        <label class="field">Complemento<input formControlName="complemento" /></label>
+        <label class="field">Bairro<input formControlName="bairro" /></label>
+        <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
+        <label class="field">Município<input formControlName="municipio" /></label>
+        <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
+        <label class="field">Zona<input formControlName="zona" placeholder="Urbana, rural..." /></label>
+      </div>
+    </div>
+
+    <div class="tab-card" formArrayName="membros">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">Membros vinculados</p>
+          <p class="muted">Adicione os beneficiários que compõem o núcleo familiar.</p>
+        </div>
+      </div>
+      <div class="search-block">
+        <label class="field">
+          Buscar beneficiário
+          <input [formControl]="memberSearch" placeholder="Digite nome ou CPF" />
+        </label>
+        <div class="suggestions" *ngIf="memberLoading">
+          <p class="muted">Buscando beneficiários...</p>
+        </div>
+        <div class="suggestions" *ngIf="memberError">
+          <p class="muted text-error">{{ memberError }}</p>
+        </div>
+        <ul class="suggestions" *ngIf="!memberLoading && memberResults.length">
+          <li *ngFor="let beneficiary of memberResults">
+            <button type="button" (click)="addMember(beneficiary)">
+              <div>
+                <strong>{{ beneficiary.nome_completo || beneficiary.nome_social }}</strong>
+                <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento não informado' }}</small>
+              </div>
+              <span class="pill">Adicionar</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="members-grid" *ngIf="membros.length; else emptyMembers">
+        <div class="member-card" *ngFor="let member of membros.controls; index as i" [formGroupName]="i">
+          <div class="member-card__header">
+            <div>
+              <p class="member-card__name">{{ member.get('nome')?.value }}</p>
+              <p class="member-card__meta">{{ member.get('documento')?.value || 'Documento não informado' }}</p>
+            </div>
+            <button type="button" class="ghost destructive" (click)="removeMember(i)">Remover</button>
+          </div>
+          <div class="field-grid cols-2 compact">
+            <label class="field">
+              Parentesco*
+              <select formControlName="parentesco">
+                <option value="">Selecione</option>
+                <option *ngFor="let option of relationshipOptions" [value]="option">{{ option }}</option>
+              </select>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" formControlName="responsavel_familiar" />
+              <span>Responsável familiar</span>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" formControlName="contribui_renda" />
+              <span>Contribui com a renda</span>
+            </label>
+            <label class="field">
+              Renda individual
+              <input formControlName="renda_individual" placeholder="R$" />
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" formControlName="participa_servicos" />
+              <span>Participa dos serviços</span>
+            </label>
+            <label class="checkbox-field">
+              <input type="checkbox" formControlName="usa_endereco_familia" />
+              <span>Usa o endereço da família</span>
+            </label>
+          </div>
+          <label class="field">
+            Observações
+            <textarea formControlName="observacoes" rows="2"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <ng-template #emptyMembers>
+        <div class="empty-state">Nenhum beneficiário vinculado ainda.</div>
+      </ng-template>
+    </div>
+
+    <div class="tab-card">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">Indicadores sociais</p>
+          <p class="muted">Informações para análise social e planejamento de atendimentos.</p>
+        </div>
+      </div>
+      <div class="field-grid cols-3">
+        <label class="field">Arranjo familiar<input formControlName="arranjo_familiar" /></label>
+        <label class="field">Situação do imóvel<select formControlName="situacao_imovel">
+            <option value="">Selecione</option>
+            <option *ngFor="let option of housingOptions" [value]="option">{{ option }}</option>
+          </select></label>
+        <label class="field">Tipo de moradia<select formControlName="tipo_moradia">
+            <option value="">Selecione</option>
+            <option *ngFor="let option of housingTypes" [value]="option">{{ option }}</option>
+          </select></label>
+        <label class="field">Total de membros<input type="number" formControlName="qtd_membros" /></label>
+        <label class="field">Crianças<input type="number" formControlName="qtd_criancas" /></label>
+        <label class="field">Adolescentes<input type="number" formControlName="qtd_adolescentes" /></label>
+        <label class="field">Idosos<input type="number" formControlName="qtd_idosos" /></label>
+        <label class="field">Pessoas com deficiência<input type="number" formControlName="qtd_pessoas_deficiencia" /></label>
+        <label class="field">Renda familiar total<input formControlName="renda_familiar_total" placeholder="R$" /></label>
+        <label class="field">Renda per capita<input formControlName="renda_per_capita" placeholder="R$" /></label>
+        <label class="field">Faixa renda per capita<input formControlName="faixa_renda_per_capita" /></label>
+        <label class="field">Principais fontes de renda<textarea formControlName="principais_fontes_renda" rows="2"></textarea></label>
+        <label class="field">Insegurança alimentar<textarea formControlName="situacao_inseguranca_alimentar" rows="2"></textarea></label>
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="possui_dividas_relevantes" />
+          <span>Possui dívidas relevantes</span>
+        </label>
+        <label class="field">Descrição das dívidas<textarea formControlName="descricao_dividas" rows="2"></textarea></label>
+        <label class="field">Vulnerabilidades familiares<textarea formControlName="vulnerabilidades_familia" rows="2"></textarea></label>
+        <label class="field">Serviços de acompanhamento<textarea formControlName="servicos_acompanhamento" rows="2"></textarea></label>
+        <label class="field">Técnico responsável<input formControlName="tecnico_responsavel" /></label>
+        <label class="field">Periodicidade de atendimento<input formControlName="periodicidade_atendimento" /></label>
+        <label class="field">Próxima visita prevista<input type="date" formControlName="proxima_visita_prevista" /></label>
+        <label class="field">Observações<textarea formControlName="observacoes" rows="3"></textarea></label>
+      </div>
+      <div class="field-grid cols-3 compact">
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="agua_encanada" />
+          <span>Água encanada</span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="energia_eletrica" />
+          <span>Energia elétrica</span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="internet" />
+          <span>Internet</span>
+        </label>
+        <label class="field">Tipo de esgoto<input formControlName="esgoto_tipo" /></label>
+        <label class="field">Coleta de lixo<input formControlName="coleta_lixo" /></label>
+      </div>
+    </div>
+
+    <div class="tab-actions">
+      <button type="submit" class="primary" [disabled]="saving">
+        {{ saving ? 'Salvando...' : 'Salvar vínculo familiar' }}
+      </button>
+    </div>
+  </form>
+</section>

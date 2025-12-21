@@ -9,6 +9,7 @@ export interface FamiliaMembroPayload {
   id_beneficiario: string;
   parentesco: string;
   responsavel_familiar?: boolean;
+  usa_endereco_familia?: boolean;
   contribui_renda?: boolean;
   renda_individual?: number | string;
   participa_servicos?: boolean;
