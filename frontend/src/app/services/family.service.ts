@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { BeneficiarioApiPayload } from './beneficiario-api.service';
 
 export interface FamiliaMembroPayload {
@@ -21,6 +22,7 @@ export interface FamiliaPayload {
   id_familia?: string;
   nome_familia: string;
   id_referencia_familiar?: string;
+  referencia_familiar?: BeneficiarioApiPayload;
   cep?: string;
   logradouro?: string;
   numero?: string;
@@ -65,24 +67,82 @@ export class FamilyService {
 
   constructor(private readonly http: HttpClient) {}
 
+  private toSnakeCase(value: any): any {
+    const normalized: any = {};
+
+    Object.entries(value ?? {}).forEach(([key, val]) => {
+      const snakeKey = key.includes('_') ? key : key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      normalized[snakeKey] = val;
+    });
+
+    return normalized;
+  }
+
+  private normalizeBeneficiario(payload: any): BeneficiarioApiPayload {
+    return this.toSnakeCase(payload) as BeneficiarioApiPayload;
+  }
+
+  private normalizeMember(payload: any): FamiliaMembroPayload {
+    const normalized = this.toSnakeCase(payload);
+
+    return {
+      ...normalized,
+      id_familia_membro: payload?.idFamiliaMembro ?? normalized.id_familia_membro,
+      id_beneficiario: payload?.beneficiarioId ?? normalized.id_beneficiario,
+      responsavel_familiar: payload?.responsavelFamiliar ?? normalized.responsavel_familiar,
+      contribui_renda: payload?.contribuiRenda ?? normalized.contribui_renda,
+      renda_individual: payload?.rendaIndividual ?? normalized.renda_individual,
+      participa_servicos: payload?.participaServicos ?? normalized.participa_servicos,
+      usa_endereco_familia: payload?.usaEnderecoFamilia ?? normalized.usa_endereco_familia,
+      beneficiario: payload?.beneficiario
+        ? this.normalizeBeneficiario(payload.beneficiario)
+        : normalized.beneficiario
+    } as FamiliaMembroPayload;
+  }
+
+  private normalizeFamily(payload: any): FamiliaPayload {
+    const normalized = this.toSnakeCase(payload);
+
+    return {
+      ...normalized,
+      id_familia: payload?.idFamilia ?? normalized.id_familia,
+      nome_familia: payload?.nomeFamilia ?? normalized.nome_familia,
+      id_referencia_familiar: payload?.idReferenciaFamiliar ?? normalized.id_referencia_familiar,
+      referencia_familiar: payload?.referenciaFamiliar
+        ? this.normalizeBeneficiario(payload.referenciaFamiliar)
+        : normalized.referencia_familiar,
+      membros: (payload?.membros ?? normalized.membros ?? []).map((member: any) => this.normalizeMember(member))
+    } as FamiliaPayload;
+  }
+
   list(params?: { nome_familia?: string; municipio?: string; referencia?: string }): Observable<{ familias: FamiliaPayload[] }> {
     let httpParams = new HttpParams();
     if (params?.nome_familia) httpParams = httpParams.set('nome_familia', params.nome_familia);
     if (params?.municipio) httpParams = httpParams.set('municipio', params.municipio);
     if (params?.referencia) httpParams = httpParams.set('referencia', params.referencia);
-    return this.http.get<{ familias: FamiliaPayload[] }>(this.baseUrl, { params: httpParams });
+    return this.http
+      .get<{ familias: FamiliaPayload[] }>(this.baseUrl, { params: httpParams })
+      .pipe(
+        map(({ familias }) => ({ familias: (familias ?? []).map((item) => this.normalizeFamily(item)) }))
+      );
   }
 
   getById(id: string): Observable<{ familia: FamiliaPayload }> {
-    return this.http.get<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`);
+    return this.http
+      .get<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`)
+      .pipe(map(({ familia }) => ({ familia: this.normalizeFamily(familia) })));
   }
 
   create(payload: FamiliaPayload): Observable<{ familia: FamiliaPayload }> {
-    return this.http.post<{ familia: FamiliaPayload }>(this.baseUrl, payload);
+    return this.http
+      .post<{ familia: FamiliaPayload }>(this.baseUrl, payload)
+      .pipe(map(({ familia }) => ({ familia: this.normalizeFamily(familia) })));
   }
 
   update(id: string, payload: FamiliaPayload): Observable<{ familia: FamiliaPayload }> {
-    return this.http.put<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`, payload);
+    return this.http
+      .put<{ familia: FamiliaPayload }>(`${this.baseUrl}/${id}`, payload)
+      .pipe(map(({ familia }) => ({ familia: this.normalizeFamily(familia) })));
   }
 
   addMember(familiaId: string, membro: FamiliaMembroPayload) {
