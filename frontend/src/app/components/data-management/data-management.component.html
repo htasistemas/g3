@@ -1,0 +1,418 @@
+<section class="data-shell">
+  <header class="page-title">
+    <p class="page-title__eyebrow">Configurações gerais</p>
+    <div class="page-title__stack">
+      <p class="page-title__label">Gerenciamento de Dados</p>
+      <p class="page-title__description">
+        Controle centralizado de políticas de backup, restauração, retenção e monitoramento.
+        Garanta a continuidade do serviço com rotinas rastreáveis e seguras.
+      </p>
+    </div>
+  </header>
+
+  <div class="quick-grid">
+    <div class="card kpi">
+      <div class="kpi__icon">
+        <fa-icon [icon]="faDatabase"></fa-icon>
+      </div>
+      <div>
+        <p class="kpi__label">Último backup bem-sucedido</p>
+        <p class="kpi__value">{{ lastSuccessfulBackup()?.startedAt || 'Sem registros' }}</p>
+        <p class="kpi__hint">{{ lastSuccessfulBackup()?.label }}</p>
+      </div>
+      <span class="pill pill--positive" *ngIf="lastSuccessfulBackup()">OK</span>
+    </div>
+
+    <div class="card kpi">
+      <div class="kpi__icon kpi__icon--green">
+        <fa-icon [icon]="faShieldHalved"></fa-icon>
+      </div>
+      <div>
+        <p class="kpi__label">Integridade e retenção</p>
+        <p class="kpi__value">{{ scheduleForm.value.retentionDays }} dias</p>
+        <p class="kpi__hint">Verificação automática: {{ backupSettingsForm.value.verifyIntegrity ? 'ativa' : 'inativa' }}</p>
+      </div>
+      <span class="pill">Retenção</span>
+    </div>
+
+    <div class="card kpi">
+      <div class="kpi__icon kpi__icon--accent">
+        <fa-icon [icon]="faGaugeHigh"></fa-icon>
+      </div>
+      <div>
+        <p class="kpi__label">Rotina automática</p>
+        <p class="kpi__value">{{ scheduleForm.value.executionTime }} • {{ scheduleForm.value.frequency === 'semanal' ? 'Semanal' : 'Diária' }}</p>
+        <p class="kpi__hint">Incremental às {{ scheduleForm.value.incrementalTime }}</p>
+      </div>
+      <span class="pill pill--outline">{{ scheduleForm.value.enableAutomation ? 'Habilitada' : 'Pausada' }}</span>
+    </div>
+  </div>
+
+  <div class="grid gap-4 xl:grid-cols-3">
+    <div class="card xl:col-span-2 space-y-6">
+      <div class="card__header-row">
+        <div>
+          <p class="card__eyebrow">
+            <fa-icon [icon]="faCloudArrowUp"></fa-icon>
+            Backup manual imediato
+          </p>
+          <p class="muted">Dispare backups completos ou incrementais sem sair da tela.</p>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline" (click)="startBackup('Completo')" [disabled]="runningBackupId">
+            <fa-icon [icon]="faCloudArrowUp" class="mr-2"></fa-icon>
+            Backup completo
+          </button>
+          <button type="button" class="btn-primary" (click)="startBackup('Incremental')" [disabled]="runningBackupId">
+            <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+            Backup incremental
+          </button>
+        </div>
+      </div>
+
+      <form [formGroup]="backupSettingsForm" class="grid gap-4 md:grid-cols-2">
+        <label class="field">
+          <span>Destino principal</span>
+          <select class="input" formControlName="provider">
+            <option value="local">Local</option>
+            <option value="nuvem">Nuvem</option>
+            <option value="hibrido">Híbrido</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Pasta ou volume</span>
+          <input class="input" formControlName="destinationPath" placeholder="/var/backups" />
+        </label>
+
+        <label class="field">
+          <span>Bucket / repositório</span>
+          <input class="input" formControlName="bucketName" placeholder="g3-operacional" />
+        </label>
+
+        <label class="field">
+          <span>Método de compressão</span>
+          <select class="input" formControlName="compression">
+            <option value="agressiva">Agressiva (mais compacta)</option>
+            <option value="balanceada">Balanceada</option>
+            <option value="desabilitada">Sem compressão</option>
+          </select>
+        </label>
+
+        <div class="toggle-list">
+          <label class="toggle">
+            <input type="checkbox" formControlName="encryption" />
+            <span>Criptografar arquivos em repouso</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="verifyIntegrity" />
+            <span>Validar integridade ao finalizar</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="offsiteCopy" />
+            <span>Manter cópia externa (off-site)</span>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>E-mail para alertas</span>
+          <input class="input" formControlName="notifyEmail" placeholder="time@suaempresa.com" />
+        </label>
+      </form>
+
+      <div class="inline-feedback" *ngIf="runningBackupId || runningBackup()">
+        <fa-icon [icon]="faCircleNotch" class="spin text-g3-green-700"></fa-icon>
+        <div>
+          <p class="font-semibold text-slate-800">Backup em andamento</p>
+          <p class="muted">Processando {{ runningBackup()?.type?.toLowerCase() }}... você será notificado ao concluir.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <button type="button" class="btn-primary" (click)="saveStorageSettings()">
+          <fa-icon [icon]="faLock" class="mr-2"></fa-icon>
+          Salvar política de backup
+        </button>
+        <button type="button" class="btn-outline" (click)="startBackup('Completo')" [disabled]="runningBackupId">
+          <fa-icon [icon]="faFileArrowDown" class="mr-2"></fa-icon>
+          Executar backup completo agora
+        </button>
+        <span
+          *ngIf="storageFeedback"
+          class="text-sm font-medium px-3 py-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200"
+        >
+          {{ storageFeedback }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card space-y-4">
+      <div class="card__header-row">
+        <div>
+          <p class="card__eyebrow">
+            <fa-icon [icon]="faRotateLeft"></fa-icon>
+            Restauração guiada
+          </p>
+          <p class="muted">Valide, simule e aplique restaurações com segurança.</p>
+        </div>
+        <span class="pill pill--outline">Seguro</span>
+      </div>
+
+      <form [formGroup]="restoreForm" class="space-y-3">
+        <label class="field">
+          <span>Selecione o backup</span>
+          <select class="input" formControlName="backupId">
+            <option *ngFor="let backup of recentBackups" [value]="backup.id">
+              {{ backup.id }} — {{ backup.label }}
+            </option>
+          </select>
+        </label>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="field">
+            <span>Destino da restauração</span>
+            <select class="input" formControlName="target">
+              <option value="produção">Produção</option>
+              <option value="homologação">Homologação</option>
+              <option value="teste-isolado">Teste isolado</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Recuperação por horário (opcional)</span>
+            <input class="input" formControlName="pointInTime" placeholder="YYYY-MM-DD HH:mm" />
+          </label>
+        </div>
+
+        <div class="toggle-list">
+          <label class="toggle">
+            <input type="checkbox" formControlName="dryRun" />
+            <span>Executar validação (dry-run) antes de aplicar</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="preserveNewerData" />
+            <span>Preservar dados mais recentes que o backup</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="notifyTeam" />
+            <span>Notificar equipe ao concluir restauração</span>
+          </label>
+        </div>
+
+        <div class="flex flex-wrap gap-3 items-center">
+          <button type="button" class="btn-primary" (click)="simulateRestore()">
+            <fa-icon [icon]="faRotateLeft" class="mr-2"></fa-icon>
+            Validar restauração
+          </button>
+          <button type="button" class="btn-outline" (click)="simulateRestore()">
+            <fa-icon [icon]="faRecycle" class="mr-2"></fa-icon>
+            Preparar rollback automático
+          </button>
+          <span
+            *ngIf="restoreFeedback"
+            class="text-sm font-medium px-3 py-2 rounded-lg"
+            [ngClass]="{
+              'bg-emerald-50 text-emerald-800 border border-emerald-200': restoreFeedback.type === 'success' || restoreFeedback.type === 'info',
+              'bg-red-50 text-red-700 border border-red-200': restoreFeedback.type === 'error'
+            }"
+          >
+            {{ restoreFeedback.message }}
+          </span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-2 mt-4">
+    <div class="card space-y-4">
+      <div class="card__header-row">
+        <div>
+          <p class="card__eyebrow">
+            <fa-icon [icon]="faStopwatch"></fa-icon>
+            Agendamento e retenção
+          </p>
+          <p class="muted">Defina frequência, janelas de execução e volume máximo por rotina.</p>
+        </div>
+        <span class="pill">Automação</span>
+      </div>
+
+      <form [formGroup]="scheduleForm" class="grid gap-3 sm:grid-cols-2">
+        <label class="field">
+          <span>Frequência</span>
+          <select class="input" formControlName="frequency">
+            <option value="diario">Diário</option>
+            <option value="semanal">Semanal</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Horário do backup completo</span>
+          <input class="input" formControlName="executionTime" type="time" />
+        </label>
+
+        <label class="field">
+          <span>Horário do incremental</span>
+          <input class="input" formControlName="incrementalTime" type="time" />
+        </label>
+
+        <label class="field">
+          <span>Retenção (dias)</span>
+          <input class="input" formControlName="retentionDays" type="number" min="1" />
+        </label>
+
+        <label class="field">
+          <span>Limite de banda (%)</span>
+          <input class="input" formControlName="throttle" type="number" min="10" max="100" />
+        </label>
+
+        <div class="toggle-list sm:col-span-2">
+          <label class="toggle">
+            <input type="checkbox" formControlName="enableAutomation" />
+            <span>Habilitar execução automática</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="pauseDuringBusiness" />
+            <span>Pausar durante horário comercial</span>
+          </label>
+        </div>
+      </form>
+
+      <div class="flex flex-wrap gap-3 items-center">
+        <button type="button" class="btn-primary" (click)="saveSchedule()">
+          <fa-icon [icon]="faGaugeHigh" class="mr-2"></fa-icon>
+          Salvar agendamento
+        </button>
+        <button type="button" class="btn-outline" (click)="startBackup('Incremental')" [disabled]="runningBackupId">
+          <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+          Rodar incremental agora
+        </button>
+        <span
+          *ngIf="automationFeedback"
+          class="text-sm font-medium px-3 py-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200"
+        >
+          {{ automationFeedback }}
+        </span>
+      </div>
+    </div>
+
+    <div class="card space-y-4">
+      <div class="card__header-row">
+        <div>
+          <p class="card__eyebrow">
+            <fa-icon [icon]="faShieldHalved"></fa-icon>
+            Monitoramento e conformidade
+          </p>
+          <p class="muted">Alertas, checagens automáticas e readiness para auditoria.</p>
+        </div>
+        <span class="pill pill--outline">Observabilidade</span>
+      </div>
+
+      <form [formGroup]="monitoringForm" class="space-y-3">
+        <div class="toggle-list">
+          <label class="toggle">
+            <input type="checkbox" formControlName="alerts" />
+            <span>Alertar falhas por e-mail</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="anomalyDetection" />
+            <span>Detectar variações de volume (anomaly detection)</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="autoVerification" />
+            <span>Rodar verificação de integridade semanal</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="retentionDrill" />
+            <span>Incluir relatório de retenção na auditoria</span>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Canal de notificação</span>
+          <select class="input" formControlName="integrations">
+            <option>Email</option>
+            <option>Webhook</option>
+            <option>Slack</option>
+            <option>Teams</option>
+          </select>
+        </label>
+      </form>
+
+      <div class="status-list">
+        <div class="status-item">
+          <div class="status-dot status-dot--success"></div>
+          <div>
+            <p class="font-semibold text-slate-800">Plano de continuidade</p>
+            <p class="muted">Backup e restauração testados nos últimos 7 dias.</p>
+          </div>
+          <fa-icon [icon]="faShieldHalved" class="text-emerald-600"></fa-icon>
+        </div>
+        <div class="status-item">
+          <div class="status-dot status-dot--warning"></div>
+          <div>
+            <p class="font-semibold text-slate-800">Janela de teste</p>
+            <p class="muted">Próxima simulação automática em 48h.</p>
+          </div>
+          <fa-icon [icon]="faBell" class="text-amber-500"></fa-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4 space-y-3">
+    <div class="card__header-row">
+      <div>
+        <p class="card__eyebrow">
+          <fa-icon [icon]="faTableList"></fa-icon>
+          Histórico e auditoria
+        </p>
+        <p class="muted">Acompanhe status, criptografia e retenção de cada execução.</p>
+      </div>
+      <div class="pill pill--outline">
+        <fa-icon [icon]="faDownload" class="mr-2"></fa-icon>
+        Exportar registros
+      </div>
+    </div>
+
+    <div class="history-grid" role="table">
+      <div class="history-grid__header" role="row">
+        <div role="columnheader">Backup</div>
+        <div role="columnheader">Tipo</div>
+        <div role="columnheader">Início</div>
+        <div role="columnheader">Destino</div>
+        <div role="columnheader">Tamanho</div>
+        <div role="columnheader">Integridade</div>
+        <div role="columnheader">Retenção</div>
+        <div role="columnheader">Status</div>
+      </div>
+      <div class="history-grid__row" *ngFor="let backup of recentBackups" role="row">
+        <div role="cell">
+          <p class="font-semibold text-slate-800">{{ backup.id }}</p>
+          <p class="muted">{{ backup.label }}</p>
+        </div>
+        <div role="cell">
+          <span class="pill pill--outline">{{ backup.type }}</span>
+        </div>
+        <div role="cell">{{ backup.startedAt }}</div>
+        <div role="cell">{{ backup.storedIn }}</div>
+        <div role="cell">{{ backup.size }}</div>
+        <div role="cell">
+          <span class="pill" [ngClass]="backup.encrypted ? 'pill--positive' : 'pill--outline'">
+            {{ backup.encrypted ? 'Criptografado' : 'Aberto' }}
+          </span>
+        </div>
+        <div role="cell">{{ backup.retention }}</div>
+        <div role="cell">
+          <span class="status-chip" [ngClass]="{
+            'status-chip--running': backup.status === 'executando',
+            'status-chip--success': backup.status === 'sucesso',
+            'status-chip--error': backup.status === 'falha'
+          }">
+            <fa-icon *ngIf="backup.status === 'executando'" [icon]="faCircleNotch" class="spin mr-2"></fa-icon>
+            {{ backup.status === 'executando' ? 'Em execução' : backup.status === 'sucesso' ? 'Sucesso' : 'Falha' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

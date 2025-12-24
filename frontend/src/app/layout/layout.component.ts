@@ -23,7 +23,8 @@ import {
   faUserPlus,
   faUsers,
   faWallet,
-  faWrench
+  faWrench,
+  faDatabase
 } from '@fortawesome/free-solid-svg-icons';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
@@ -138,7 +139,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
         { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
-        { label: 'Assistente de textos', icon: faBullhorn, route: '/assistente-textos' }
+        { label: 'Assistente de textos', icon: faBullhorn, route: '/assistente-textos' },
+        { label: 'Gerenciamento de Dados', icon: faDatabase, route: '/configuracoes/gerenciamento-dados' }
       ]
     }
   ];
