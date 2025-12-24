@@ -43,7 +43,7 @@
           <fa-icon [icon]="faMoneyBills"></fa-icon>
         </div>
         <div>
-          <p class="summary-card__label">Pronto para empenhar</p>
+          <p class="summary-card__label">Pronto para reservar</p>
           <p class="summary-card__value">{{ readyToConclude }} em execução</p>
           <p class="muted">Reserve recursos na contabilidade e siga para conclusão.</p>
         </div>
@@ -461,7 +461,7 @@
               Imprimir mapa comparativo
             </button>
             <button class="primary" type="button" (click)="navigateStep('next')">
-              Ir para empenho
+              Ir para reserva orçamentária
               <fa-icon [icon]="faArrowRight"></fa-icon>
             </button>
           </div>
@@ -489,12 +489,12 @@
             </div>
             <div>
               <p class="strong">Integrações</p>
-              <p class="muted">Direcionar vencedor para empenho, patrimônio ou almoxarifado conforme o tipo.</p>
+              <p class="muted">Direcionar vencedor para reserva orçamentária, patrimônio ou almoxarifado conforme o tipo.</p>
             </div>
             <div>
               <p class="strong">Limite de dispensa</p>
               <p class="muted">
-                Compras abaixo de {{ quotationThreshold | currency: 'BRL' }} podem seguir direto para empenho, com
+                Compras abaixo de {{ quotationThreshold | currency: 'BRL' }} podem seguir direto para reserva orçamentária, com
                 registro de motivo e cartão CNPJ do fornecedor ativo.
               </p>
             </div>
@@ -505,15 +505,15 @@
           <p class="callout__title">Dispensa de cotação autorizada</p>
           <p class="callout__text">
             O valor estimado ({{ selected.value | currency: 'BRL' }}) está abaixo do limite de
-            {{ quotationThreshold | currency: 'BRL' }}. Registre o fornecedor com CNPJ ativo e siga direto para o
-            empenho.
+            {{ quotationThreshold | currency: 'BRL' }}. Registre o fornecedor com CNPJ ativo e siga direto para a
+            reserva orçamentária.
           </p>
           <div class="callout__actions">
             <button class="primary" type="button" (click)="dispenseQuotation()">
               <fa-icon [icon]="faCheckCircle"></fa-icon>
               Dispensar cotação e avançar
             </button>
-            <button class="ghost" type="button" (click)="navigateStep('next')">Ir para empenho</button>
+            <button class="ghost" type="button" (click)="navigateStep('next')">Ir para reserva</button>
           </div>
         </div>
 
@@ -666,11 +666,11 @@
         </div>
       </ng-container>
 
-      <ng-container *ngSwitchCase="'empenho'">
+      <ng-container *ngSwitchCase="'reserva'">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Reserva orçamentária e empenho</p>
-            <p class="muted">Busque recursos na contabilidade e registre o lastro antes da contratação.</p>
+            <p class="tab-card__highlight">Reserva orçamentária</p>
+            <p class="muted">Busque recursos na contabilidade, registre a reserva e siga para a contratação.</p>
           </div>
           <div class="tab-card__actions">
             <button class="ghost" type="button" (click)="printSection()">
@@ -712,7 +712,7 @@
           <form class="panel" (ngSubmit)="registerReservation()">
             <header class="panel__header">
               <div>
-                <p class="panel__eyebrow">Registrar empenho</p>
+                <p class="panel__eyebrow">Reserva contábil</p>
                 <p class="panel__title">Vincular reserva à compra</p>
               </div>
               <span class="pill">{{ selected.title }}</span>
@@ -721,7 +721,7 @@
             <div class="form-grid">
               <label class="form-field">
                 <span>Centro de custo</span>
-                <select class="select" name="center" [(ngModel)]="empenhoForm.center">
+                <select class="select" name="center" [(ngModel)]="reservationForm.center">
                   <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
                     {{ envelope.center }} · {{ envelope.title }}
                   </option>
@@ -729,15 +729,15 @@
               </label>
               <label class="form-field">
                 <span>Valor a reservar</span>
-                <input class="input" type="number" name="value" [(ngModel)]="empenhoForm.value" min="0" step="0.01" />
+                <input class="input" type="number" name="value" [(ngModel)]="reservationForm.value" min="0" step="0.01" />
               </label>
               <label class="form-field">
-                <span>Número do empenho</span>
-                <input class="input" name="empenhoNumber" [(ngModel)]="empenhoForm.empenhoNumber" placeholder="EMP-000/2024" />
+                <span>Número da reserva</span>
+                <input class="input" name="reservationNumber" [(ngModel)]="reservationForm.reservationNumber" placeholder="RES-000/2024" />
               </label>
               <label class="form-field form-field--full">
                 <span>Observações</span>
-                <textarea class="textarea" name="observation" [(ngModel)]="empenhoForm.observation" rows="3"></textarea>
+                <textarea class="textarea" name="observation" [(ngModel)]="reservationForm.observation" rows="3"></textarea>
               </label>
             </div>
 
@@ -787,7 +787,7 @@
               Imprimir termo
             </button>
             <button class="primary" type="button" (click)="navigateStep('prev')">
-              Voltar para empenho
+              Voltar para reserva
               <fa-icon [icon]="faArrowLeft"></fa-icon>
             </button>
           </div>
@@ -809,12 +809,27 @@
                 <dd>{{ selected.winnerSupplier || 'Selecionar na etapa de cotação' }}</dd>
               </div>
               <div>
-                <dt>Empenho</dt>
-                <dd>{{ selected.empenhoNumber || 'Registrar número do empenho' }}</dd>
+                <dt>Reserva orçamentária</dt>
+                <dd>{{ selected.reservationNumber || 'Registrar número da reserva' }}</dd>
               </div>
               <div>
-                <dt>Reserva contábil</dt>
+                <dt>Centro de custo reservado</dt>
                 <dd>{{ selected.budgetCenter || 'Reservar centro de custo' }}</dd>
+              </div>
+              <div>
+                <dt>Autorização de pagamento</dt>
+                <dd>
+                  <span *ngIf="selected.paymentAuthorization?.number; else noPaymentAuth">
+                    Nº {{ selected.paymentAuthorization?.number }}
+                    <span *ngIf="selected.paymentAuthorization?.authorizedBy"> • {{ selected.paymentAuthorization?.authorizedBy }}</span>
+                    <span *ngIf="selected.paymentAuthorization?.date">
+                      • {{ selected.paymentAuthorization?.date | date: 'dd/MM/yyyy' }}
+                    </span>
+                  </span>
+                  <ng-template #noPaymentAuth>
+                    Registrar autorização de pagamento na conclusão.
+                  </ng-template>
+                </dd>
               </div>
               <div>
                 <dt>Integrações obrigatórias</dt>
@@ -842,9 +857,25 @@
                 <span>Nº do termo / documento</span>
                 <input class="input" name="documentNumber" [(ngModel)]="conclusionForm.documentNumber" placeholder="TERM-2024/001" />
               </label>
+              <label class="form-field">
+                <span>Autorização de pagamento</span>
+                <input class="input" name="paymentNumber" [(ngModel)]="paymentAuthorizationForm.number" placeholder="AP-2024/001" />
+              </label>
+              <label class="form-field">
+                <span>Responsável pela autorização</span>
+                <input class="input" name="authorizedBy" [(ngModel)]="paymentAuthorizationForm.authorizedBy" placeholder="Nome do aprovador" />
+              </label>
+              <label class="form-field">
+                <span>Data da autorização</span>
+                <input class="input" type="date" name="paymentDate" [(ngModel)]="paymentAuthorizationForm.date" />
+              </label>
               <label class="form-field form-field--full">
                 <span>Observações finais</span>
                 <textarea class="textarea" name="observation" [(ngModel)]="conclusionForm.observation" rows="3"></textarea>
+              </label>
+              <label class="form-field form-field--full">
+                <span>Observações da autorização de pagamento</span>
+                <textarea class="textarea" name="paymentNotes" [(ngModel)]="paymentAuthorizationForm.notes" rows="3"></textarea>
               </label>
               <label class="checkbox">
                 <input type="checkbox" name="sendToPatrimony" [(ngModel)]="conclusionForm.sendToPatrimony" />
@@ -878,7 +909,7 @@
               <fa-icon [icon]="faBuildingColumns"></fa-icon>
               <div>
                 <p class="strong">Contabilidade</p>
-                <p class="muted">Reserva orçamentária vinculada ao centro de custo e empenho.</p>
+                <p class="muted">Reserva orçamentária vinculada ao centro de custo e autorização de pagamento.</p>
               </div>
             </article>
             <article class="integration-card">

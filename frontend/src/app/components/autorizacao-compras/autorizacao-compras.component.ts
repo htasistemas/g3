@@ -19,7 +19,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
-type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'empenho' | 'conclusao';
+type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'reserva' | 'conclusao';
 type ApprovalDecision = 'aprovado' | 'ajustes' | 'rejeitado';
 type ReservationStatus = 'reservado' | 'aguardando' | 'insuficiente';
 type CnpjStatus = 'ATIVA' | 'SUSPENSA' | 'BAIXADA';
@@ -48,12 +48,13 @@ interface PurchaseRequest {
     date: string;
   };
   budgetCenter?: string;
-  empenhoNumber?: string;
+  reservationNumber?: string;
   winnerSupplier?: string;
   quotationDispensed?: boolean;
   quotationExemptionReason?: string;
   patrimonyRegistration?: boolean;
   warehouseRegistration?: boolean;
+  paymentAuthorization?: PaymentAuthorization;
 }
 
 interface Quotation {
@@ -91,6 +92,13 @@ interface IntegrationChecklist {
   patrimony: boolean;
   warehouse: boolean;
   contracts: boolean;
+}
+
+interface PaymentAuthorization {
+  number?: string;
+  authorizedBy?: string;
+  date?: string;
+  notes?: string;
 }
 
 interface SupplierRegistryEntry {
@@ -196,9 +204,9 @@ export class AutorizacaoComprasComponent {
       documentLabel: 'Mapa comparativo de preços'
     },
     {
-      id: 'empenho',
-      label: 'Realização de empenho',
-      helper: 'Reserva orçamentária e lastro contábil',
+      id: 'reserva',
+      label: 'Reserva orçamentária',
+      helper: 'Bloqueio de orçamento e lastro contábil',
       documentLabel: 'Reserva orçamentária'
     },
     {
@@ -240,7 +248,7 @@ export class AutorizacaoComprasComponent {
       expectedDate: this.todayISO(20),
       value: 12500,
       justification: 'Plano trimestral de manutenção para evitar paradas das salas.',
-      status: 'empenho',
+      status: 'reserva',
       approval: {
         director: 'Carlos Menezes',
         decision: 'aprovado',
@@ -248,7 +256,7 @@ export class AutorizacaoComprasComponent {
         notes: 'Priorizar fornecedores homologados.'
       },
       budgetCenter: '3.3.90.39',
-      empenhoNumber: 'EMP-058/2024',
+      reservationNumber: 'RES-058/2024',
       winnerSupplier: 'Bradesco Serviços'
     },
     {
@@ -409,10 +417,10 @@ export class AutorizacaoComprasComponent {
 
   cnpjValidationError: string | null = null;
 
-  empenhoForm = {
+  reservationForm = {
     center: '3.3.90.30',
     value: 0,
-    empenhoNumber: '',
+    reservationNumber: '',
     observation: ''
   };
 
@@ -421,6 +429,13 @@ export class AutorizacaoComprasComponent {
     observation: '',
     sendToPatrimony: false,
     sendToWarehouse: false
+  };
+
+  paymentAuthorizationForm: PaymentAuthorization = {
+    number: '',
+    authorizedBy: '',
+    date: this.todayISO(),
+    notes: ''
   };
 
   get selectedRequest(): PurchaseRequest | undefined {
@@ -452,7 +467,7 @@ export class AutorizacaoComprasComponent {
   }
 
   get readyToConclude(): number {
-    return this.requests.filter((req) => req.status === 'empenho').length;
+    return this.requests.filter((req) => req.status === 'reserva').length;
   }
 
   todayISO(offsetDays = 0): string {
@@ -488,6 +503,18 @@ export class AutorizacaoComprasComponent {
     const target = this.selectedRequest;
     this.conclusionForm.sendToPatrimony = target?.type === 'bem';
     this.conclusionForm.sendToWarehouse = target?.type === 'produto';
+    this.reservationForm = {
+      center: target?.budgetCenter || this.reservationForm.center,
+      value: target?.value ?? 0,
+      reservationNumber: target?.reservationNumber || '',
+      observation: ''
+    };
+    this.paymentAuthorizationForm = {
+      number: target?.paymentAuthorization?.number || '',
+      authorizedBy: target?.paymentAuthorization?.authorizedBy || '',
+      date: target?.paymentAuthorization?.date || this.todayISO(),
+      notes: target?.paymentAuthorization?.notes || ''
+    };
   }
 
   createRequest(): void {
@@ -608,11 +635,11 @@ export class AutorizacaoComprasComponent {
       ...this.selectedRequest,
       winnerSupplier: quote.supplier,
       quotationDispensed: false,
-      status: 'empenho'
+      status: 'reserva'
     };
 
     this.updateRequest(updatedRequest);
-    this.activeStep = 'empenho';
+    this.activeStep = 'reserva';
   }
 
   dispenseQuotation(): void {
@@ -624,18 +651,18 @@ export class AutorizacaoComprasComponent {
       quotationExemptionReason:
         this.selectedRequest.quotationExemptionReason ??
         `Valor estimado abaixo de R$ ${this.quotationThreshold.toFixed(2)}: dispensa de cotação liberada.`,
-      status: 'empenho'
+      status: 'reserva'
     };
 
     this.updateRequest(updatedRequest);
-    this.activeStep = 'empenho';
+    this.activeStep = 'reserva';
   }
 
   registerReservation(): void {
-    if (!this.selectedRequest || !this.empenhoForm.center || !this.empenhoForm.value) return;
+    if (!this.selectedRequest || !this.reservationForm.center || !this.reservationForm.value) return;
 
-    const envelope = this.budgetEnvelopes.find((item) => item.center === this.empenhoForm.center);
-    const requested = Number(this.empenhoForm.value);
+    const envelope = this.budgetEnvelopes.find((item) => item.center === this.reservationForm.center);
+    const requested = Number(this.reservationForm.value);
     const hasBalance = envelope ? envelope.available >= requested : false;
     const status: ReservationStatus = hasBalance ? 'reservado' : 'insuficiente';
 
@@ -648,10 +675,10 @@ export class AutorizacaoComprasComponent {
     this.reservations = [
       {
         requestId: this.selectedRequest.id,
-        center: this.empenhoForm.center,
+        center: this.reservationForm.center,
         value: requested,
         status,
-        observation: this.empenhoForm.observation || 'Reserva registrada',
+        observation: this.reservationForm.observation || 'Reserva registrada',
         createdAt: this.todayISO()
       },
       ...this.reservations
@@ -659,9 +686,9 @@ export class AutorizacaoComprasComponent {
 
     const updatedRequest: PurchaseRequest = {
       ...this.selectedRequest,
-      budgetCenter: this.empenhoForm.center,
-      empenhoNumber: this.empenhoForm.empenhoNumber || this.selectedRequest.empenhoNumber,
-      status: status === 'reservado' ? 'conclusao' : 'empenho'
+      budgetCenter: this.reservationForm.center,
+      reservationNumber: this.reservationForm.reservationNumber || this.selectedRequest.reservationNumber,
+      status: status === 'reservado' ? 'conclusao' : 'reserva'
     };
 
     this.updateRequest(updatedRequest);
@@ -679,6 +706,7 @@ export class AutorizacaoComprasComponent {
       ...this.selectedRequest,
       patrimonyRegistration: shouldSendToPatrimony,
       warehouseRegistration: shouldSendToWarehouse,
+      paymentAuthorization: { ...this.paymentAuthorizationForm },
       status: 'conclusao'
     };
 
