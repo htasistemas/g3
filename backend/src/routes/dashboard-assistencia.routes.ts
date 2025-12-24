@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Between } from 'typeorm';
 import { AppDataSource } from '../data-source';
+import { CursoAtendimento } from '../entities/CursoAtendimento';
 import { Beneficiario } from '../entities/Beneficiario';
 import { Familia } from '../entities/Familia';
 import { FamiliaMembro } from '../entities/FamiliaMembro';
@@ -44,6 +45,7 @@ router.get('/assistencia', async (req, res) => {
   const familiesRepo = AppDataSource.getRepository(Familia);
   const familyMembersRepo = AppDataSource.getRepository(FamiliaMembro);
   const termosRepo = AppDataSource.getRepository(TermoFomento);
+  const cursosRepo = AppDataSource.getRepository(CursoAtendimento);
 
   const dateFilter = startDate && endDate ? Between(startDate, endDate) : undefined;
 
@@ -56,6 +58,8 @@ router.get('/assistencia', async (req, res) => {
   const familyMembers = await familyMembersRepo.find({ select: ['idFamiliaMembro', 'familiaId', 'parentesco', 'responsavelFamiliar'] });
 
   const terms = await termosRepo.find({ select: ['id', 'numero', 'valorGlobal', 'vigenciaInicio', 'vigenciaFim', 'status'] });
+
+  const cursos = await cursosRepo.find({ select: ['id', 'tipo', 'status'] });
 
   const beneficiariesInPeriod = dateFilter
     ? beneficiaries.filter((item) => {
@@ -131,6 +135,11 @@ router.get('/assistencia', async (req, res) => {
     })
     .map((term) => ({ numero: term.numero, vigenciaFim: term.vigenciaFim, status: term.status }));
 
+  const activeCourses = cursos.filter((curso) => {
+    if (curso.tipo !== 'Curso') return false;
+    return (curso.status ?? '').toUpperCase() !== 'CONCLUIDO';
+  }).length;
+
   const response = {
     filters: {
       startDate: startDate?.toISOString() ?? null,
@@ -140,7 +149,7 @@ router.get('/assistencia', async (req, res) => {
       beneficiariosAtendidosPeriodo: beneficiariesInPeriod.length,
       familiasExtremaPobreza: faixaRendaDistribution['ATE_1_4_SM'] ?? 0,
       rendaMediaFamiliar: rendaMedia,
-      cursosAtivos: 0,
+      cursosAtivos: activeCourses,
       taxaMediaOcupacaoCursos: 0,
       certificadosEmitidos: 0,
       doacoesPeriodo: 0,
