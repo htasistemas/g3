@@ -22,6 +22,7 @@ type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
 type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'empenho' | 'conclusao';
 type ApprovalDecision = 'aprovado' | 'ajustes' | 'rejeitado';
 type ReservationStatus = 'reservado' | 'aguardando' | 'insuficiente';
+type CnpjStatus = 'ATIVA' | 'SUSPENSA' | 'BAIXADA';
 
 interface Step {
   id: StepId;
@@ -49,12 +50,19 @@ interface PurchaseRequest {
   budgetCenter?: string;
   empenhoNumber?: string;
   winnerSupplier?: string;
+  quotationDispensed?: boolean;
+  quotationExemptionReason?: string;
   patrimonyRegistration?: boolean;
   warehouseRegistration?: boolean;
 }
 
 interface Quotation {
   supplier: string;
+  legalName: string;
+  cnpj: string;
+  cnpjStatus: CnpjStatus;
+  cnpjCheckedAt: string;
+  cnpjCardUrl: string;
   value: number;
   delivery: string;
   validity: string;
@@ -85,6 +93,15 @@ interface IntegrationChecklist {
   contracts: boolean;
 }
 
+interface SupplierRegistryEntry {
+  cnpj: string;
+  legalName: string;
+  tradeName?: string;
+  status: CnpjStatus;
+  lastUpdate: string;
+  cnpjCardUrl: string;
+}
+
 @Component({
   selector: 'app-autorizacao-compras',
   standalone: true,
@@ -106,6 +123,58 @@ export class AutorizacaoComprasComponent {
   readonly faStamp = faStamp;
   readonly faFileSignature = faFileSignature;
   readonly faWarehouse = faWarehouse;
+  readonly quotationThreshold = 300;
+
+  readonly cnpjRegistry: Record<string, SupplierRegistryEntry> = {
+    '33000167000101': {
+      cnpj: '33.000.167/0001-01',
+      legalName: 'PETRÓLEO BRASILEIRO S.A. - PETROBRAS',
+      tradeName: 'Petrobras',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(30),
+      cnpjCardUrl: this.receitaCardUrl('33000167000101')
+    },
+    '60746948000112': {
+      cnpj: '60.746.948/0001-12',
+      legalName: 'BANCO BRADESCO S.A.',
+      tradeName: 'Bradesco',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(20),
+      cnpjCardUrl: this.receitaCardUrl('60746948000112')
+    },
+    '00623904000173': {
+      cnpj: '00.623.904/0001-73',
+      legalName: 'BANCO SANTANDER (BRASIL) S.A.',
+      tradeName: 'Santander',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(18),
+      cnpjCardUrl: this.receitaCardUrl('00623904000173')
+    },
+    '53113791000122': {
+      cnpj: '53.113.791/0001-22',
+      legalName: 'TOTVS S.A.',
+      tradeName: 'TOTVS',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(25),
+      cnpjCardUrl: this.receitaCardUrl('53113791000122')
+    },
+    '19131243000197': {
+      cnpj: '19.131.243/0001-97',
+      legalName: 'MERCADO LIVRE COMÉRCIO ATACADISTA S.A.',
+      tradeName: 'Mercado Livre',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(15),
+      cnpjCardUrl: this.receitaCardUrl('19131243000197')
+    },
+    '47960950000121': {
+      cnpj: '47.960.950/0001-21',
+      legalName: 'MAGAZINE LUIZA S.A.',
+      tradeName: 'Magazine Luiza',
+      status: 'ATIVA',
+      lastUpdate: this.todayISO(22),
+      cnpjCardUrl: this.receitaCardUrl('47960950000121')
+    }
+  };
 
   steps: Step[] = [
     {
@@ -144,26 +213,26 @@ export class AutorizacaoComprasComponent {
 
   requests: PurchaseRequest[] = [
     {
-      id: 'REQ-2401',
-      title: 'Reposição de materiais pedagógicos',
-      type: 'produto',
-      requester: 'Coordenação Pedagógica',
-      area: 'Educação',
+      id: 'SC-2024/091',
+      title: 'Aquisição de notebooks corporativos Lenovo',
+      type: 'bem',
+      requester: 'Tecnologia da Informação',
+      area: 'TI Corporativa',
       expectedDate: this.todayISO(10),
-      value: 14800,
-      justification: 'Garantir continuidade das oficinas de reforço com kits completos.',
+      value: 148000,
+      justification: 'Padronizar estações com Windows 11 Pro, criptografia e suporte remoto para equipes de campo.',
       status: 'cotacoes',
       approval: {
-        director: 'Marina Prado',
+        director: 'Marina Prado (COO)',
         decision: 'aprovado',
         date: this.todayISO(14),
-        notes: 'Aprovado com recurso do centro 3.3.90.30'
+        notes: 'Aprovado com recurso do centro 3.3.90.30 e entrega faseada em dois lotes.'
       },
       budgetCenter: '3.3.90.30',
-      winnerSupplier: 'Papelaria Central'
+      winnerSupplier: 'Magazine Luiza'
     },
     {
-      id: 'REQ-3202',
+      id: 'SC-2024/134',
       title: 'Contrato de manutenção predial preventiva',
       type: 'servico',
       requester: 'Infraestrutura',
@@ -179,62 +248,79 @@ export class AutorizacaoComprasComponent {
         notes: 'Priorizar fornecedores homologados.'
       },
       budgetCenter: '3.3.90.39',
-      empenhoNumber: 'EMP-058/2024'
+      empenhoNumber: 'EMP-058/2024',
+      winnerSupplier: 'Bradesco Serviços'
     },
     {
-      id: 'REQ-4001',
-      title: 'Aquisição de veículo utilitário',
-      type: 'bem',
-      requester: 'Assistência Social',
-      area: 'Logística',
+      id: 'SC-2024/205',
+      title: 'Compra emergencial de materiais de limpeza',
+      type: 'produto',
+      requester: 'Serviços Gerais',
+      area: 'Administrativo',
       expectedDate: this.todayISO(40),
-      value: 185000,
-      justification: 'Transporte de equipes e insumos para as unidades externas.',
-      status: 'autorizacao',
-      approval: {
-        director: 'Diretoria Executiva',
-        decision: 'ajustes',
-        date: this.todayISO(5),
-        notes: 'Rever opção de leasing e manutenção inclusa.'
-      }
+      value: 248,
+      justification: 'Reposição de álcool 70% e detergentes para salas de atendimento. Valor abaixo do limite de dispensa.',
+      status: 'cotacoes',
+      quotationExemptionReason: 'Valor estimado inferior ao limite de R$ 300,00 para cotação prévia.'
     }
   ];
 
   quotes: Record<string, Quotation[]> = {
-    'REQ-2401': [
+    'SC-2024/091': [
       {
-        supplier: 'Papelaria Central',
-        value: 14200,
+        supplier: 'Magazine Luiza',
+        legalName: 'MAGAZINE LUIZA S.A.',
+        cnpj: this.formatCnpj('47960950000121'),
+        cnpjStatus: 'ATIVA',
+        cnpjCheckedAt: this.todayISO(2),
+        cnpjCardUrl: this.receitaCardUrl('47960950000121'),
+        value: 142000,
         delivery: this.todayISO(7),
         validity: this.todayISO(20),
         compliance: 'ok',
-        notes: 'Inclui frete e montagem dos kits',
+        notes: 'Inclui suporte onsite para configuração inicial dos notebooks.',
         isWinner: true
       },
       {
-        supplier: 'EducaMais',
-        value: 15600,
+        supplier: 'Mercado Livre',
+        legalName: 'MERCADO LIVRE COMÉRCIO ATACADISTA S.A.',
+        cnpj: this.formatCnpj('19131243000197'),
+        cnpjStatus: 'ATIVA',
+        cnpjCheckedAt: this.todayISO(1),
+        cnpjCardUrl: this.receitaCardUrl('19131243000197'),
+        value: 138500,
         delivery: this.todayISO(8),
         validity: this.todayISO(22),
-        compliance: 'ok'
+        compliance: 'ok',
+        notes: 'Entrega consolidada no hub Campinas com NF-e emitida.'
       },
       {
-        supplier: 'Papel e Arte',
-        value: 16800,
+        supplier: 'TOTVS',
+        legalName: 'TOTVS S.A.',
+        cnpj: this.formatCnpj('53113791000122'),
+        cnpjStatus: 'ATIVA',
+        cnpjCheckedAt: this.todayISO(3),
+        cnpjCardUrl: this.receitaCardUrl('53113791000122'),
+        value: 168000,
         delivery: this.todayISO(9),
         validity: this.todayISO(18),
         compliance: 'pendente',
-        notes: 'Necessita comprovar certificação ambiental'
+        notes: 'Necessita comprovar cadeia de distribuição autorizada pela Lenovo.'
       }
     ],
-    'REQ-3202': [
+    'SC-2024/134': [
       {
-        supplier: 'Serv Predial Ltda',
+        supplier: 'Bradesco Serviços',
+        legalName: 'BANCO BRADESCO S.A.',
+        cnpj: this.formatCnpj('60746948000112'),
+        cnpjStatus: 'ATIVA',
+        cnpjCheckedAt: this.todayISO(4),
+        cnpjCardUrl: this.receitaCardUrl('60746948000112'),
         value: 11800,
         delivery: this.todayISO(15),
         validity: this.todayISO(40),
         compliance: 'ok',
-        notes: 'Inclui check-list mensal e plantão 24h'
+        notes: 'Equipe técnica credenciada com check-list mensal e plantão 24h.'
       }
     ]
   };
@@ -262,7 +348,7 @@ export class AutorizacaoComprasComponent {
 
   reservations: BudgetReservation[] = [
     {
-      requestId: 'REQ-3202',
+      requestId: 'SC-2024/134',
       center: '3.3.90.39',
       value: 12000,
       status: 'reservado',
@@ -272,19 +358,19 @@ export class AutorizacaoComprasComponent {
   ];
 
   integrationChecklist: Record<string, IntegrationChecklist> = {
-    'REQ-2401': {
-      patrimony: false,
-      warehouse: true,
+    'SC-2024/091': {
+      patrimony: true,
+      warehouse: false,
       contracts: false
     },
-    'REQ-3202': {
+    'SC-2024/134': {
       patrimony: false,
       warehouse: false,
       contracts: true
     },
-    'REQ-4001': {
-      patrimony: true,
-      warehouse: false,
+    'SC-2024/205': {
+      patrimony: false,
+      warehouse: true,
       contracts: false
     }
   };
@@ -311,12 +397,17 @@ export class AutorizacaoComprasComponent {
 
   newQuoteForm = {
     supplier: '',
+    companyName: '',
+    cnpj: '',
+    cnpjCardUrl: '',
     value: 0,
     delivery: this.todayISO(5),
     validity: this.todayISO(20),
     compliance: 'ok' as Quotation['compliance'],
     notes: ''
   };
+
+  cnpjValidationError: string | null = null;
 
   empenhoForm = {
     center: '3.3.90.30',
@@ -345,6 +436,10 @@ export class AutorizacaoComprasComponent {
   }
 
   get quoteRequirementMet(): boolean {
+    if (!this.selectedRequest) return false;
+    if (!this.requiresQuotation(this.selectedRequest)) return true;
+    if (this.selectedRequest.quotationDispensed) return true;
+
     return this.currentQuotes.length >= 3 && this.currentQuotes.some((quote) => quote.isWinner);
   }
 
@@ -364,6 +459,15 @@ export class AutorizacaoComprasComponent {
     const date = new Date();
     date.setDate(date.getDate() + offsetDays);
     return date.toISOString().substring(0, 10);
+  }
+
+  requiresQuotation(request: PurchaseRequest): boolean {
+    return request.value >= this.quotationThreshold;
+  }
+
+  canDispenseQuotation(request: PurchaseRequest | undefined): boolean {
+    if (!request) return false;
+    return !this.requiresQuotation(request) && !request.quotationDispensed;
   }
 
   changeStep(step: StepId): void {
@@ -401,7 +505,11 @@ export class AutorizacaoComprasComponent {
       value: Number(this.newRequestForm.value),
       justification: this.newRequestForm.justification,
       status: 'solicitacao',
-      budgetCenter: this.newRequestForm.budgetCenter
+      budgetCenter: this.newRequestForm.budgetCenter,
+      quotationExemptionReason:
+        Number(this.newRequestForm.value) < this.quotationThreshold
+          ? `Valor estimado inferior ao limite de R$ ${this.quotationThreshold.toFixed(2)} para cotação prévia.`
+          : undefined
     };
 
     this.requests = [newRequest, ...this.requests];
@@ -437,7 +545,20 @@ export class AutorizacaoComprasComponent {
   }
 
   addQuotation(): void {
-    if (!this.selectedRequest || !this.newQuoteForm.supplier || !this.newQuoteForm.value) return;
+    if (!this.selectedRequest || !this.newQuoteForm.value) return;
+
+    const cnpjValidation = this.validateSupplierCnpj(this.newQuoteForm.cnpj);
+    if (!cnpjValidation.valid) {
+      this.cnpjValidationError = cnpjValidation.message ?? 'CNPJ inválido';
+      return;
+    }
+
+    this.cnpjValidationError = null;
+
+    const registry = cnpjValidation.record;
+    const supplierLabel = registry?.tradeName || this.newQuoteForm.supplier || registry?.legalName || '';
+    const legalName = registry?.legalName || this.newQuoteForm.companyName || supplierLabel;
+    const cardUrl = registry?.cnpjCardUrl || this.newQuoteForm.cnpjCardUrl;
 
     const quotes = this.quotes[this.selectedRequestId] ?? [];
     this.quotes = {
@@ -445,7 +566,12 @@ export class AutorizacaoComprasComponent {
       [this.selectedRequestId]: [
         ...quotes,
         {
-          supplier: this.newQuoteForm.supplier,
+          supplier: supplierLabel,
+          legalName,
+          cnpj: this.formatCnpj(this.newQuoteForm.cnpj),
+          cnpjStatus: registry?.status ?? 'ATIVA',
+          cnpjCheckedAt: this.todayISO(),
+          cnpjCardUrl: cardUrl || this.receitaCardUrl(this.newQuoteForm.cnpj),
           value: Number(this.newQuoteForm.value),
           delivery: this.newQuoteForm.delivery,
           validity: this.newQuoteForm.validity,
@@ -457,6 +583,9 @@ export class AutorizacaoComprasComponent {
 
     this.newQuoteForm = {
       supplier: '',
+      companyName: '',
+      cnpj: '',
+      cnpjCardUrl: '',
       value: 0,
       delivery: this.todayISO(5),
       validity: this.todayISO(20),
@@ -478,6 +607,23 @@ export class AutorizacaoComprasComponent {
     const updatedRequest: PurchaseRequest = {
       ...this.selectedRequest,
       winnerSupplier: quote.supplier,
+      quotationDispensed: false,
+      status: 'empenho'
+    };
+
+    this.updateRequest(updatedRequest);
+    this.activeStep = 'empenho';
+  }
+
+  dispenseQuotation(): void {
+    if (!this.selectedRequest) return;
+
+    const updatedRequest: PurchaseRequest = {
+      ...this.selectedRequest,
+      quotationDispensed: true,
+      quotationExemptionReason:
+        this.selectedRequest.quotationExemptionReason ??
+        `Valor estimado abaixo de R$ ${this.quotationThreshold.toFixed(2)}: dispensa de cotação liberada.`,
       status: 'empenho'
     };
 
@@ -554,6 +700,78 @@ export class AutorizacaoComprasComponent {
 
   getStepLabel(stepId: StepId): string {
     return this.steps.find((step) => step.id === stepId)?.label ?? '';
+  }
+
+  prefillSupplierFromCnpj(): void {
+    const registry = this.lookupSupplier(this.newQuoteForm.cnpj);
+    if (!registry) return;
+
+    this.newQuoteForm.companyName = registry.legalName;
+    this.newQuoteForm.supplier = registry.tradeName || registry.legalName;
+    this.newQuoteForm.cnpjCardUrl = registry.cnpjCardUrl;
+    this.cnpjValidationError = null;
+  }
+
+  validateSupplierCnpj(cnpj: string): { valid: boolean; record?: SupplierRegistryEntry; message?: string } {
+    const normalized = this.normalizeCnpj(cnpj);
+    if (!normalized) {
+      return { valid: false, message: 'Informe o CNPJ do fornecedor.' };
+    }
+
+    if (!this.isValidCnpj(normalized)) {
+      return { valid: false, message: 'CNPJ inválido pelo cálculo de dígitos verificadores.' };
+    }
+
+    const registry = this.lookupSupplier(normalized);
+    if (!registry) {
+      return {
+        valid: false,
+        message: 'CNPJ não localizado na consulta da Receita Federal. Inclua apenas fornecedores ativos.'
+      };
+    }
+
+    if (registry.status !== 'ATIVA') {
+      return { valid: false, message: `Situação cadastral: ${registry.status}.` };
+    }
+
+    return { valid: true, record: registry };
+  }
+
+  private lookupSupplier(cnpj: string): SupplierRegistryEntry | undefined {
+    return this.cnpjRegistry[this.normalizeCnpj(cnpj)];
+  }
+
+  private normalizeCnpj(cnpj: string): string {
+    return (cnpj || '').replace(/\D/g, '');
+  }
+
+  private formatCnpj(cnpj: string): string {
+    const digits = this.normalizeCnpj(cnpj).padStart(14, '0');
+    return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  }
+
+  private isValidCnpj(cnpj: string): boolean {
+    const digits = this.normalizeCnpj(cnpj);
+    if (digits.length !== 14 || /^(\d)\1+$/.test(digits)) return false;
+
+    const calc = (base: string, factors: number[]): number => {
+      const total = base
+        .split('')
+        .map((num, idx) => Number(num) * factors[idx])
+        .reduce((sum, value) => sum + value, 0);
+      const remainder = total % 11;
+      return remainder < 2 ? 0 : 11 - remainder;
+    };
+
+    const base = digits.slice(0, 12);
+    const digit1 = calc(base, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+    const digit2 = calc(base + digit1, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+
+    return digits.endsWith(`${digit1}${digit2}`);
+  }
+
+  private receitaCardUrl(cnpj: string): string {
+    return `https://servicos.receita.economia.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp?cnpj=${this.normalizeCnpj(cnpj)}`;
   }
 
   private updateRequest(updated: PurchaseRequest): void {

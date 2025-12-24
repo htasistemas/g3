@@ -102,6 +102,7 @@
             <span class="pill" [class.pill--ghost]="request.type === 'produto'">{{ request.type }}</span>
             <span class="pill pill--ghost">{{ getStepLabel(request.status) }}</span>
             <span class="pill pill--accent" *ngIf="request.winnerSupplier">Cotação: {{ request.winnerSupplier }}</span>
+            <span class="pill pill--warning" *ngIf="!requiresQuotation(request)">Dispensa até {{ quotationThreshold | currency: 'BRL' }}</span>
           </div>
           <p class="request-card__value">{{ request.value | currency: 'BRL' }}</p>
           <p class="muted">Entrega prevista em {{ request.expectedDate | date: 'dd/MM/yyyy' }}</p>
@@ -332,6 +333,10 @@
                 <dt>Justificativa</dt>
                 <dd>{{ selected.justification }}</dd>
               </div>
+              <div *ngIf="selected.quotationExemptionReason">
+                <dt>Dispensa de cotação</dt>
+                <dd>{{ selected.quotationExemptionReason }}</dd>
+              </div>
               <div>
                 <dt>Área / responsável</dt>
                 <dd>{{ selected.area }} • {{ selected.requester }}</dd>
@@ -469,6 +474,9 @@
               <p class="panel__title">3 propostas + comprovação de requisitos</p>
             </div>
             <span class="pill" [class.pill--accent]="quoteRequirementMet">{{ currentQuotes.length }}/3 cotações</span>
+            <span class="pill pill--warning" *ngIf="!requiresQuotation(selected)">
+              Dispensa até {{ quotationThreshold | currency: 'BRL' }}
+            </span>
           </header>
           <div class="quote-guidelines">
             <div>
@@ -483,6 +491,29 @@
               <p class="strong">Integrações</p>
               <p class="muted">Direcionar vencedor para empenho, patrimônio ou almoxarifado conforme o tipo.</p>
             </div>
+            <div>
+              <p class="strong">Limite de dispensa</p>
+              <p class="muted">
+                Compras abaixo de {{ quotationThreshold | currency: 'BRL' }} podem seguir direto para empenho, com
+                registro de motivo e cartão CNPJ do fornecedor ativo.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--info" *ngIf="!requiresQuotation(selected)">
+          <p class="callout__title">Dispensa de cotação autorizada</p>
+          <p class="callout__text">
+            O valor estimado ({{ selected.value | currency: 'BRL' }}) está abaixo do limite de
+            {{ quotationThreshold | currency: 'BRL' }}. Registre o fornecedor com CNPJ ativo e siga direto para o
+            empenho.
+          </p>
+          <div class="callout__actions">
+            <button class="primary" type="button" (click)="dispenseQuotation()">
+              <fa-icon [icon]="faCheckCircle"></fa-icon>
+              Dispensar cotação e avançar
+            </button>
+            <button class="ghost" type="button" (click)="navigateStep('next')">Ir para empenho</button>
           </div>
         </div>
 
@@ -498,8 +529,46 @@
 
             <div class="form-grid">
               <label class="form-field">
-                <span>Fornecedor</span>
-                <input class="input" name="supplier" [(ngModel)]="newQuoteForm.supplier" placeholder="Razão social" required />
+                <span>CNPJ do fornecedor</span>
+                <input
+                  class="input"
+                  name="cnpj"
+                  [(ngModel)]="newQuoteForm.cnpj"
+                  placeholder="00.000.000/0001-00"
+                  inputmode="numeric"
+                  (blur)="prefillSupplierFromCnpj()"
+                  required
+                />
+                <small class="form-hint">Consulta validada na Receita Federal para aceitar apenas cartões ativos.</small>
+                <p class="form-error" *ngIf="cnpjValidationError">{{ cnpjValidationError }}</p>
+              </label>
+              <label class="form-field">
+                <span>Razão social (cartão CNPJ)</span>
+                <input
+                  class="input"
+                  name="companyName"
+                  [(ngModel)]="newQuoteForm.companyName"
+                  placeholder="Nome conforme Receita Federal"
+                />
+              </label>
+              <label class="form-field">
+                <span>Nome fantasia / contato</span>
+                <input
+                  class="input"
+                  name="supplier"
+                  [(ngModel)]="newQuoteForm.supplier"
+                  placeholder="Responsável comercial"
+                  required
+                />
+              </label>
+              <label class="form-field">
+                <span>Link do cartão CNPJ</span>
+                <input
+                  class="input"
+                  name="cnpjCardUrl"
+                  [(ngModel)]="newQuoteForm.cnpjCardUrl"
+                  placeholder="URL do cartão CNPJ consultado"
+                />
               </label>
               <label class="form-field">
                 <span>Valor ofertado</span>
@@ -553,6 +622,27 @@
                   <span class="pill" [class.pill--ghost]="quote.compliance === 'ok'">
                     {{ quote.compliance === 'ok' ? 'Documentação ok' : 'Documentação pendente' }}
                   </span>
+                </div>
+                <p class="quote-card__cnpj">
+                  {{ quote.legalName }}
+                  <br />
+                  <span class="muted">
+                    CNPJ {{ quote.cnpj }} • Consulta em {{ quote.cnpjCheckedAt | date: 'dd/MM/yyyy' }}
+                  </span>
+                </p>
+                <div class="quote-card__status">
+                  <span class="pill" [class.pill--accent]="quote.cnpjStatus === 'ATIVA'">
+                    Situação {{ quote.cnpjStatus | titlecase }}
+                  </span>
+                  <a
+                    class="chip chip--link"
+                    *ngIf="quote.cnpjCardUrl"
+                    [href]="quote.cnpjCardUrl"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Cartão CNPJ na Receita Federal
+                  </a>
                 </div>
                 <p class="quote-card__value">{{ quote.value | currency: 'BRL' }}</p>
                 <p class="muted">Validade até {{ quote.validity | date: 'dd/MM/yyyy' }}</p>
