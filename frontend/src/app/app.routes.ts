@@ -30,6 +30,7 @@ import { ProntuarioComponent } from './components/prontuario/prontuario.componen
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
 import { DataManagementComponent } from './components/data-management/data-management.component';
+import { ImportManagementComponent } from './components/import-management/import-management.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -130,6 +131,11 @@ export const routes: Routes = [
         path: 'configuracoes/gerenciamento-dados',
         component: DataManagementComponent,
         data: { title: 'Gerenciamento de Dados' }
+      },
+      {
+        path: 'configuracoes/importacao',
+        component: ImportManagementComponent,
+        data: { title: 'Importação de dados' }
       },
       {
         path: 'configuracoes/personalizacao',
