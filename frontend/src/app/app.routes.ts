@@ -31,6 +31,7 @@ import { BancoEmpregosComponent } from './components/banco-empregos/banco-empreg
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
 import { DataManagementComponent } from './components/data-management/data-management.component';
 import { ImportManagementComponent } from './components/import-management/import-management.component';
+import { AutorizacaoComprasComponent } from './components/autorizacao-compras/autorizacao-compras.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -151,6 +152,11 @@ export const routes: Routes = [
         path: 'financeiro/prestacao-contas',
         component: PrestacaoContasComponent,
         data: { title: 'Prestação de contas' }
+      },
+      {
+        path: 'financeiro/autorizacao-compras',
+        component: AutorizacaoComprasComponent,
+        data: { title: 'Autorização de compras' }
       },
       {
         path: 'juridico/planos-trabalho',

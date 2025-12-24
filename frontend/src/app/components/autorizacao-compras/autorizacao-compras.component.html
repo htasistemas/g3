@@ -1,0 +1,724 @@
+<section class="cadastro">
+  <header class="page-title">
+    <div class="page-title__stack">
+      <p class="page-title__eyebrow">Financeiro · Autorização de Compras</p>
+      <div class="page-title__headline">
+        <div>
+          <p class="page-title__label">Governança de compras, contratos e serviços</p>
+          <p class="muted">
+            Organize a jornada da compra desde a solicitação até a conclusão, com trilha de aprovação da diretoria,
+            reserva orçamentária e integração com contabilidade, patrimônio e almoxarifado.
+          </p>
+        </div>
+        <button type="button" class="ghost" (click)="printSection()">
+          <fa-icon [icon]="faPrint"></fa-icon>
+          Imprimir visão geral
+        </button>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <article class="summary-card">
+        <div class="summary-card__icon summary-card__icon--primary">
+          <fa-icon [icon]="faClipboardList"></fa-icon>
+        </div>
+        <div>
+          <p class="summary-card__label">Pendente de autorização</p>
+          <p class="summary-card__value">{{ pendingApprovals }} solicitação(ões)</p>
+          <p class="muted">Relatório pronto para apreciação da diretoria.</p>
+        </div>
+      </article>
+      <article class="summary-card">
+        <div class="summary-card__icon">
+          <fa-icon [icon]="faCartShopping"></fa-icon>
+        </div>
+        <div>
+          <p class="summary-card__label">Em cotação</p>
+          <p class="summary-card__value">{{ pendingQuotes }} processo(s)</p>
+          <p class="muted">Exija 3 cotações e defina o vencedor.</p>
+        </div>
+      </article>
+      <article class="summary-card">
+        <div class="summary-card__icon summary-card__icon--accent">
+          <fa-icon [icon]="faMoneyBills"></fa-icon>
+        </div>
+        <div>
+          <p class="summary-card__label">Pronto para empenhar</p>
+          <p class="summary-card__value">{{ readyToConclude }} em execução</p>
+          <p class="muted">Reserve recursos na contabilidade e siga para conclusão.</p>
+        </div>
+      </article>
+    </div>
+  </header>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas etapas do módulo</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let step of steps; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeStep === step.id"
+        [class.completed]="idx < activeStepIndex"
+      >
+        <button class="step-tabs__button" type="button" (click)="changeStep(step.id)">
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">
+            {{ step.label }}
+            <small>{{ step.helper }}</small>
+          </span>
+          <span class="pill pill--ghost">{{ step.documentLabel }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <div class="workspace" *ngIf="selectedRequest as selected">
+    <aside class="board">
+      <header class="board__header">
+        <div>
+          <p class="board__eyebrow">Solicitações em curso</p>
+          <p class="board__title">Priorize o que precisa de autorização</p>
+        </div>
+        <span class="pill pill--ghost">{{ requests.length }} processos</span>
+      </header>
+
+      <div class="board__list">
+        <article
+          *ngFor="let request of requests"
+          class="request-card"
+          [class.request-card--active]="request.id === selectedRequestId"
+        >
+          <div class="request-card__header">
+            <div>
+              <p class="request-card__title">{{ request.title }}</p>
+              <p class="muted">{{ request.area }} • {{ request.requester }}</p>
+            </div>
+            <button class="chip" type="button" (click)="selectRequest(request.id)">
+              <fa-icon [icon]="faArrowRight"></fa-icon>
+              Abrir
+            </button>
+          </div>
+          <div class="request-card__meta">
+            <span class="pill" [class.pill--ghost]="request.type === 'produto'">{{ request.type }}</span>
+            <span class="pill pill--ghost">{{ getStepLabel(request.status) }}</span>
+            <span class="pill pill--accent" *ngIf="request.winnerSupplier">Cotação: {{ request.winnerSupplier }}</span>
+          </div>
+          <p class="request-card__value">{{ request.value | currency: 'BRL' }}</p>
+          <p class="muted">Entrega prevista em {{ request.expectedDate | date: 'dd/MM/yyyy' }}</p>
+        </article>
+      </div>
+    </aside>
+
+    <div class="tab-card" [ngSwitch]="activeStep">
+      <ng-container *ngSwitchCase="'solicitacao'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Solicitação de compras</p>
+            <p class="muted">Cadastre a demanda e gere o relatório de autorização para a diretoria.</p>
+          </div>
+          <div class="tab-card__actions">
+            <button class="ghost" type="button" (click)="printSection()">
+              <fa-icon [icon]="faPrint"></fa-icon>
+              Imprimir formulário
+            </button>
+            <button class="primary" type="button" (click)="navigateStep('next')">
+              Próxima etapa
+              <fa-icon [icon]="faArrowRight"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-two-columns">
+          <form class="panel" (ngSubmit)="createRequest()">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Nova solicitação</p>
+                <p class="panel__title">Detalhes da demanda</p>
+              </div>
+              <span class="pill">Etapa 1/5</span>
+            </header>
+
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Título da compra</span>
+                <input class="input" name="title" [(ngModel)]="newRequestForm.title" placeholder="Ex.: Kits pedagógicos" required />
+              </label>
+              <label class="form-field">
+                <span>Tipo</span>
+                <select class="select" name="type" [(ngModel)]="newRequestForm.type">
+                  <option value="produto">Compras de produtos</option>
+                  <option value="bem">Compra de bens</option>
+                  <option value="servico">Autorização de serviços</option>
+                  <option value="contrato">Contratos</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Área solicitante</span>
+                <input class="input" name="area" [(ngModel)]="newRequestForm.area" placeholder="Setor / projeto" />
+              </label>
+              <label class="form-field">
+                <span>Responsável</span>
+                <input class="input" name="requester" [(ngModel)]="newRequestForm.requester" placeholder="Nome do solicitante" required />
+              </label>
+              <label class="form-field">
+                <span>Previsão / necessidade</span>
+                <input class="input" type="date" name="expectedDate" [(ngModel)]="newRequestForm.expectedDate" />
+              </label>
+              <label class="form-field">
+                <span>Valor estimado</span>
+                <input class="input" type="number" name="value" [(ngModel)]="newRequestForm.value" min="0" step="0.01" />
+              </label>
+              <label class="form-field form-field--full">
+                <span>Justificativa e escopo</span>
+                <textarea
+                  class="textarea"
+                  name="justification"
+                  [(ngModel)]="newRequestForm.justification"
+                  rows="4"
+                  placeholder="Objetivo, quantidades, critérios mínimos e impacto social"
+                  required
+                ></textarea>
+              </label>
+              <label class="form-field">
+                <span>Centro de custo / conta contábil</span>
+                <select class="select" name="budgetCenter" [(ngModel)]="newRequestForm.budgetCenter">
+                  <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
+                    {{ envelope.center }} · {{ envelope.title }}
+                  </option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="primary" type="submit">Salvar solicitação</button>
+              <button class="ghost" type="button" (click)="navigateStep('next')">Pular para autorização</button>
+            </div>
+          </form>
+
+          <div class="panel">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Relatório para autorização</p>
+                <p class="panel__title">Resumo das solicitações</p>
+              </div>
+              <button class="ghost" type="button" (click)="printSection()">
+                <fa-icon [icon]="faFileSignature"></fa-icon>
+                Gerar PDF
+              </button>
+            </header>
+
+            <div class="report">
+              <div class="report__row report__row--head">
+                <span>Processo</span>
+                <span>Tipo</span>
+                <span>Valor</span>
+                <span>Etapa</span>
+              </div>
+              <div class="report__row" *ngFor="let request of requests">
+                <span class="strong">{{ request.title }}</span>
+                <span class="pill pill--ghost">{{ request.type }}</span>
+                <span>{{ request.value | currency: 'BRL' }}</span>
+                <span>{{ getStepLabel(request.status) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'autorizacao'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Autorização pela diretoria</p>
+            <p class="muted">
+              Registre parecer, encaminhe para contabilidade e defina condicionantes antes de liberar cotações.
+            </p>
+          </div>
+          <div class="tab-card__actions">
+            <button class="ghost" type="button" (click)="printSection()">
+              <fa-icon [icon]="faPrint"></fa-icon>
+              Imprimir relatório
+            </button>
+            <button class="primary" type="button" (click)="navigateStep('next')">
+              Ir para cotação
+              <fa-icon [icon]="faArrowRight"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-two-columns">
+          <article class="panel">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Dados da solicitação</p>
+                <p class="panel__title">{{ selected.title }}</p>
+              </div>
+              <span class="pill">{{ selected.type }}</span>
+            </header>
+
+            <dl class="definition-list">
+              <div>
+                <dt>Justificativa</dt>
+                <dd>{{ selected.justification }}</dd>
+              </div>
+              <div>
+                <dt>Área / responsável</dt>
+                <dd>{{ selected.area }} • {{ selected.requester }}</dd>
+              </div>
+              <div>
+                <dt>Valor estimado</dt>
+                <dd>{{ selected.value | currency: 'BRL' }}</dd>
+              </div>
+              <div>
+                <dt>Entrega prevista</dt>
+                <dd>{{ selected.expectedDate | date: 'dd/MM/yyyy' }}</dd>
+              </div>
+              <div>
+                <dt>Centro de custo</dt>
+                <dd>{{ selected.budgetCenter || 'A definir com contabilidade' }}</dd>
+              </div>
+            </dl>
+          </article>
+
+          <form class="panel" (ngSubmit)="registerAuthorization()">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Parecer da diretoria</p>
+                <p class="panel__title">Autorizar ou solicitar ajustes</p>
+              </div>
+              <span class="pill pill--ghost">Etapa 2/5</span>
+            </header>
+
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Diretor responsável</span>
+                <input class="input" name="director" [(ngModel)]="approvalForm.director" placeholder="Nome" />
+              </label>
+              <label class="form-field">
+                <span>Data</span>
+                <input class="input" type="date" name="date" [(ngModel)]="approvalForm.date" />
+              </label>
+              <label class="form-field">
+                <span>Decisão</span>
+                <select class="select" name="decision" [(ngModel)]="approvalForm.decision">
+                  <option value="aprovado">Aprovar e liberar cotações</option>
+                  <option value="ajustes">Solicitar ajustes</option>
+                  <option value="rejeitado">Rejeitar</option>
+                </select>
+              </label>
+              <label class="form-field form-field--full">
+                <span>Observações</span>
+                <textarea
+                  class="textarea"
+                  name="notes"
+                  [(ngModel)]="approvalForm.notes"
+                  rows="4"
+                  placeholder="Condições, limites de valor, reservas orçamentárias ou direcionamento de fornecedores"
+                ></textarea>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="primary" type="submit">Registrar parecer</button>
+              <button class="ghost" type="button" (click)="navigateStep('next')">Avançar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel panel--wide">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Linha do tempo</p>
+              <p class="panel__title">Evidências e documentos impressos</p>
+            </div>
+            <span class="pill pill--ghost">Formulários de impressão por etapa</span>
+          </header>
+
+          <div class="timeline">
+            <div class="timeline__item" *ngFor="let step of steps">
+              <div class="timeline__bullet" [class.timeline__bullet--active]="step.id === activeStep"></div>
+              <div>
+                <p class="strong">{{ step.label }}</p>
+                <p class="muted">{{ step.documentLabel }}</p>
+              </div>
+              <button class="ghost" type="button" (click)="printSection()">
+                <fa-icon [icon]="faPrint"></fa-icon>
+                Imprimir {{ step.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'cotacoes'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Cotação prévia e vencedor</p>
+            <p class="muted">Cadastre pelo menos 3 cotações, compare condições e selecione o fornecedor vencedor.</p>
+          </div>
+          <div class="tab-card__actions">
+            <button class="ghost" type="button" (click)="printSection()">
+              <fa-icon [icon]="faPrint"></fa-icon>
+              Imprimir mapa comparativo
+            </button>
+            <button class="primary" type="button" (click)="navigateStep('next')">
+              Ir para empenho
+              <fa-icon [icon]="faArrowRight"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel panel--wide">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Regras de cotação</p>
+              <p class="panel__title">3 propostas + comprovação de requisitos</p>
+            </div>
+            <span class="pill" [class.pill--accent]="quoteRequirementMet">{{ currentQuotes.length }}/3 cotações</span>
+          </header>
+          <div class="quote-guidelines">
+            <div>
+              <p class="strong">Tipos contemplados</p>
+              <p class="muted">Produtos, bens permanentes, serviços e contratos.</p>
+            </div>
+            <div>
+              <p class="strong">Critérios</p>
+              <p class="muted">Preço, prazo, condições comerciais, comprovação fiscal e regularidade.</p>
+            </div>
+            <div>
+              <p class="strong">Integrações</p>
+              <p class="muted">Direcionar vencedor para empenho, patrimônio ou almoxarifado conforme o tipo.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-two-columns">
+          <form class="panel" (ngSubmit)="addQuotation()">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Nova cotação</p>
+                <p class="panel__title">Registrar fornecedor</p>
+              </div>
+              <span class="pill pill--ghost">Etapa 3/5</span>
+            </header>
+
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Fornecedor</span>
+                <input class="input" name="supplier" [(ngModel)]="newQuoteForm.supplier" placeholder="Razão social" required />
+              </label>
+              <label class="form-field">
+                <span>Valor ofertado</span>
+                <input class="input" type="number" name="value" [(ngModel)]="newQuoteForm.value" min="0" step="0.01" required />
+              </label>
+              <label class="form-field">
+                <span>Prazo de entrega</span>
+                <input class="input" type="date" name="delivery" [(ngModel)]="newQuoteForm.delivery" />
+              </label>
+              <label class="form-field">
+                <span>Validade da proposta</span>
+                <input class="input" type="date" name="validity" [(ngModel)]="newQuoteForm.validity" />
+              </label>
+              <label class="form-field">
+                <span>Conformidade</span>
+                <select class="select" name="compliance" [(ngModel)]="newQuoteForm.compliance">
+                  <option value="ok">Documentação OK</option>
+                  <option value="pendente">Documentação pendente</option>
+                </select>
+              </label>
+              <label class="form-field form-field--full">
+                <span>Observações</span>
+                <textarea class="textarea" name="notes" [(ngModel)]="newQuoteForm.notes" rows="3"></textarea>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="primary" type="submit">Adicionar cotação</button>
+              <button class="ghost" type="button" (click)="navigateStep('next')">Avançar</button>
+            </div>
+          </form>
+
+          <div class="panel">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Comparativo</p>
+                <p class="panel__title">Escolha o vencedor</p>
+              </div>
+              <span class="pill" [class.pill--accent]="quoteRequirementMet">
+                {{ currentQuotes.length }} propostas
+              </span>
+            </header>
+
+            <div class="quotes" *ngIf="currentQuotes.length; else noQuotes">
+              <article class="quote-card" *ngFor="let quote of currentQuotes">
+                <div class="quote-card__header">
+                  <div>
+                    <p class="strong">{{ quote.supplier }}</p>
+                    <p class="muted">Entrega: {{ quote.delivery | date: 'dd/MM/yyyy' }}</p>
+                  </div>
+                  <span class="pill" [class.pill--ghost]="quote.compliance === 'ok'">
+                    {{ quote.compliance === 'ok' ? 'Documentação ok' : 'Documentação pendente' }}
+                  </span>
+                </div>
+                <p class="quote-card__value">{{ quote.value | currency: 'BRL' }}</p>
+                <p class="muted">Validade até {{ quote.validity | date: 'dd/MM/yyyy' }}</p>
+                <p class="quote-card__notes">{{ quote.notes || 'Sem observações adicionais' }}</p>
+                <div class="quote-card__actions">
+                  <button class="ghost" type="button" (click)="printSection()">
+                    <fa-icon [icon]="faPrint"></fa-icon>
+                    Imprimir
+                  </button>
+                  <button class="primary" type="button" [disabled]="currentQuotes.length < 3" (click)="markWinner(quote)">
+                    <fa-icon [icon]="faCheckCircle"></fa-icon>
+                    Definir vencedor
+                  </button>
+                </div>
+              </article>
+            </div>
+            <ng-template #noQuotes>
+              <p class="empty-state">Inclua no mínimo 3 propostas para habilitar o vencedor.</p>
+            </ng-template>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'empenho'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Reserva orçamentária e empenho</p>
+            <p class="muted">Busque recursos na contabilidade e registre o lastro antes da contratação.</p>
+          </div>
+          <div class="tab-card__actions">
+            <button class="ghost" type="button" (click)="printSection()">
+              <fa-icon [icon]="faPrint"></fa-icon>
+              Imprimir reserva
+            </button>
+            <button class="primary" type="button" (click)="navigateStep('next')">
+              Ir para conclusão
+              <fa-icon [icon]="faArrowRight"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-two-columns">
+          <div class="panel">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Centros de custo</p>
+                <p class="panel__title">Disponibilidade na contabilidade</p>
+              </div>
+              <span class="pill pill--ghost">Etapa 4/5</span>
+            </header>
+
+            <div class="budget-grid">
+              <article class="budget-card" *ngFor="let envelope of budgetEnvelopes">
+                <div class="budget-card__header">
+                  <div>
+                    <p class="strong">{{ envelope.center }}</p>
+                    <p class="muted">{{ envelope.title }}</p>
+                  </div>
+                  <span class="pill pill--ghost">{{ envelope.linkedTo }}</span>
+                </div>
+                <p class="budget-card__value">{{ envelope.available | currency: 'BRL' }}</p>
+                <p class="muted">Saldo disponível para reserva</p>
+              </article>
+            </div>
+          </div>
+
+          <form class="panel" (ngSubmit)="registerReservation()">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Registrar empenho</p>
+                <p class="panel__title">Vincular reserva à compra</p>
+              </div>
+              <span class="pill">{{ selected.title }}</span>
+            </header>
+
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Centro de custo</span>
+                <select class="select" name="center" [(ngModel)]="empenhoForm.center">
+                  <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
+                    {{ envelope.center }} · {{ envelope.title }}
+                  </option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>Valor a reservar</span>
+                <input class="input" type="number" name="value" [(ngModel)]="empenhoForm.value" min="0" step="0.01" />
+              </label>
+              <label class="form-field">
+                <span>Número do empenho</span>
+                <input class="input" name="empenhoNumber" [(ngModel)]="empenhoForm.empenhoNumber" placeholder="EMP-000/2024" />
+              </label>
+              <label class="form-field form-field--full">
+                <span>Observações</span>
+                <textarea class="textarea" name="observation" [(ngModel)]="empenhoForm.observation" rows="3"></textarea>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="primary" type="submit">Registrar reserva</button>
+              <button class="ghost" type="button" (click)="navigateStep('next')">Avançar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel panel--wide">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Reservas registradas</p>
+              <p class="panel__title">Rastreabilidade contábil</p>
+            </div>
+            <span class="pill pill--ghost">Reserva orçamentária impressa</span>
+          </header>
+          <div class="reservations" *ngIf="reservations.length; else noReservations">
+            <article class="reservation" *ngFor="let reservation of reservations">
+              <div>
+                <p class="strong">{{ reservation.center }}</p>
+                <p class="muted">{{ reservation.observation }}</p>
+              </div>
+              <div class="reservation__meta">
+                <span class="pill" [class.pill--accent]="reservation.status === 'reservado'">{{ reservation.status }}</span>
+                <span>{{ reservation.value | currency: 'BRL' }}</span>
+                <span class="muted">{{ reservation.createdAt | date: 'dd/MM/yyyy' }}</span>
+              </div>
+            </article>
+          </div>
+          <ng-template #noReservations>
+            <p class="empty-state">Nenhuma reserva realizada ainda.</p>
+          </ng-template>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'conclusao'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Conclusão e integração</p>
+            <p class="muted">Finalize a compra, envie para patrimônio ou almoxarifado e gere o termo de conclusão.</p>
+          </div>
+          <div class="tab-card__actions">
+            <button class="ghost" type="button" (click)="printSection()">
+              <fa-icon [icon]="faPrint"></fa-icon>
+              Imprimir termo
+            </button>
+            <button class="primary" type="button" (click)="navigateStep('prev')">
+              Voltar para empenho
+              <fa-icon [icon]="faArrowLeft"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid-two-columns">
+          <article class="panel">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Dados finais</p>
+                <p class="panel__title">{{ selected.title }}</p>
+              </div>
+              <span class="pill">{{ selected.type }}</span>
+            </header>
+
+            <dl class="definition-list">
+              <div>
+                <dt>Fornecedor vencedor</dt>
+                <dd>{{ selected.winnerSupplier || 'Selecionar na etapa de cotação' }}</dd>
+              </div>
+              <div>
+                <dt>Empenho</dt>
+                <dd>{{ selected.empenhoNumber || 'Registrar número do empenho' }}</dd>
+              </div>
+              <div>
+                <dt>Reserva contábil</dt>
+                <dd>{{ selected.budgetCenter || 'Reservar centro de custo' }}</dd>
+              </div>
+              <div>
+                <dt>Integrações obrigatórias</dt>
+                <dd>
+                  <span class="pill pill--ghost" *ngIf="integrationChecklist[selected.id]?.patrimony">Patrimônio</span>
+                  <span class="pill pill--ghost" *ngIf="integrationChecklist[selected.id]?.warehouse">Almoxarifado</span>
+                  <span class="pill pill--ghost" *ngIf="integrationChecklist[selected.id]?.contracts">Contratos</span>
+                  <span class="muted" *ngIf="!integrationChecklist[selected.id]">Defina os destinos abaixo</span>
+                </dd>
+              </div>
+            </dl>
+          </article>
+
+          <form class="panel" (ngSubmit)="finalizePurchase()">
+            <header class="panel__header">
+              <div>
+                <p class="panel__eyebrow">Integração</p>
+                <p class="panel__title">Patrimônio e almoxarifado</p>
+              </div>
+              <span class="pill">Etapa 5/5</span>
+            </header>
+
+            <div class="form-grid">
+              <label class="form-field">
+                <span>Nº do termo / documento</span>
+                <input class="input" name="documentNumber" [(ngModel)]="conclusionForm.documentNumber" placeholder="TERM-2024/001" />
+              </label>
+              <label class="form-field form-field--full">
+                <span>Observações finais</span>
+                <textarea class="textarea" name="observation" [(ngModel)]="conclusionForm.observation" rows="3"></textarea>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="sendToPatrimony" [(ngModel)]="conclusionForm.sendToPatrimony" />
+                <span>Enviar para cadastro de patrimônio (compras de bens)</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="sendToWarehouse" [(ngModel)]="conclusionForm.sendToWarehouse" />
+                <span>Enviar para cadastro de almoxarifado (materiais)</span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button class="primary" type="submit">
+                <fa-icon [icon]="faCircleCheck"></fa-icon>
+                Concluir compra
+              </button>
+              <button class="ghost" type="button" (click)="printSection()">Imprimir termo</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel panel--wide">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Checklist final</p>
+              <p class="panel__title">Fluxo integrado</p>
+            </div>
+          </header>
+          <div class="integration-grid">
+            <article class="integration-card">
+              <fa-icon [icon]="faBuildingColumns"></fa-icon>
+              <div>
+                <p class="strong">Contabilidade</p>
+                <p class="muted">Reserva orçamentária vinculada ao centro de custo e empenho.</p>
+              </div>
+            </article>
+            <article class="integration-card">
+              <fa-icon [icon]="faWarehouse"></fa-icon>
+              <div>
+                <p class="strong">Almoxarifado</p>
+                <p class="muted">Materiais geram saldo inicial no cadastro de estoque.</p>
+              </div>
+            </article>
+            <article class="integration-card">
+              <fa-icon [icon]="faGavel"></fa-icon>
+              <div>
+                <p class="strong">Contratos</p>
+                <p class="muted">Serviços e contratos acompanham vigência, SLA e reajustes.</p>
+              </div>
+            </article>
+            <article class="integration-card">
+              <fa-icon [icon]="faStamp"></fa-icon>
+              <div>
+                <p class="strong">Patrimônio</p>
+                <p class="muted">Bens permanentes são registrados com tombamento e responsável.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</section>
