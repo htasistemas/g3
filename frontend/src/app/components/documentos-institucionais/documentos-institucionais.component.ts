@@ -30,6 +30,8 @@ interface DocumentoAnexo {
   tipo: string;
   dataUpload: string;
   usuario: string;
+  dataUrl?: string;
+  tamanho?: string;
 }
 
 interface DocumentoHistorico {
@@ -242,7 +244,8 @@ export class DocumentosInstitucionaisComponent {
 
     this.anexoForm = this.fb.group({
       nomeArquivo: ['', Validators.required],
-      tipo: ['PDF', Validators.required]
+      tipo: ['PDF', Validators.required],
+      arquivo: [null as File | null, Validators.required]
     });
 
     this.refreshSituacoes();
@@ -310,6 +313,7 @@ export class DocumentosInstitucionaisComponent {
   }
 
   changeTab(tab: string): void {
+    this.feedback = null;
     this.activeTab = tab;
   }
 
@@ -409,8 +413,23 @@ export class DocumentosInstitucionaisComponent {
     this.refreshSituacoes();
   }
 
-  adicionarAnexo(): void {
-    if (!this.selectedDocumentId || this.anexoForm.invalid) return;
+  async adicionarAnexo(): Promise<void> {
+    this.feedback = null;
+    if (!this.selectedDocumentId) {
+      this.feedback = 'Selecione um documento antes de anexar o arquivo digitalizado.';
+      return;
+    }
+
+    if (this.anexoForm.invalid) {
+      this.feedback = 'Preencha o nome e selecione o arquivo digitalizado.';
+      this.anexoForm.markAllAsTouched();
+      return;
+    }
+
+    const arquivo = this.anexoForm.value.arquivo as File | null;
+    if (!arquivo) return;
+
+    const dataUrl = await this.readFileAsDataUrl(arquivo).catch(() => null);
 
     const payload: DocumentoAnexo = {
       id: crypto.randomUUID(),
@@ -418,11 +437,13 @@ export class DocumentosInstitucionaisComponent {
       nomeArquivo: this.anexoForm.value.nomeArquivo,
       tipo: this.anexoForm.value.tipo,
       dataUpload: new Date().toISOString().slice(0, 10),
-      usuario: 'Usuário atual'
+      usuario: 'Usuário atual',
+      dataUrl: dataUrl ?? undefined,
+      tamanho: this.formatarTamanho(arquivo.size)
     };
 
     this.anexos = [payload, ...this.anexos];
-    this.anexoForm.reset({ tipo: 'PDF' });
+    this.anexoForm.reset({ tipo: 'PDF', arquivo: null, nomeArquivo: '' });
   }
 
   registrarHistorico(mensagem: string, tipoAlteracao: string): void {
@@ -528,6 +549,60 @@ export class DocumentosInstitucionaisComponent {
 
   imprimirListaFiltrada(): void {
     this.documentosFiltrados.forEach((doc) => this.imprimirDocumento(doc));
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.anexoForm.patchValue({
+      nomeArquivo: file.name,
+      tipo: this.detectarTipoArquivo(file),
+      arquivo: file
+    });
+  }
+
+  visualizarAnexo(anexo: DocumentoAnexo): void {
+    this.feedback = null;
+    if (!anexo.dataUrl) {
+      this.feedback = 'Este registro não possui arquivo digitalizado salvo.';
+      return;
+    }
+
+    const win = window.open('', '_blank', 'width=900,height=1100');
+    if (!win) return;
+
+    const isPdf = anexo.tipo.toLowerCase() === 'pdf' || anexo.nomeArquivo.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
+      win.document.write(`<iframe src="${anexo.dataUrl}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
+    } else {
+      win.document.write(
+        `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`
+      );
+    }
+  }
+
+  private detectarTipoArquivo(file: File): string {
+    if (file.type.includes('pdf') || file.name.toLowerCase().endsWith('.pdf')) return 'PDF';
+    if (file.type.includes('png') || file.name.toLowerCase().endsWith('.png')) return 'PNG';
+    if (file.type.includes('jpg') || file.type.includes('jpeg') || file.name.toLowerCase().match(/\.jpe?g$/)) return 'JPG';
+    return 'PDF';
+  }
+
+  private formatarTamanho(bytes: number): string {
+    if (!bytes) return '—';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(2)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
+  }
+
+  private readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   private filtrarPorPeriodo(doc: DocumentoInstitucional, periodo?: string): boolean {
