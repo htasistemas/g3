@@ -127,10 +127,17 @@
               <div class="muted">{{ doc.categoria }}</div>
             </td>
             <td>{{ doc.orgaoEmissor }}</td>
-            <td>{{ doc.numeroCodigo }}</td>
+            <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
             <td>{{ doc.emissao }}</td>
             <td>{{ doc.validade || 'Sem vencimento' }}</td>
-            <td><span [class]="classeSituacao(doc.situacao)">{{ labelSituacao(doc.situacao!) }}</span></td>
+            <td>
+              <span
+                [class]="classeSituacao(doc.situacao)"
+                [class.status--blink]="doc.situacao === 'vencido' || doc.situacao === 'vence_em_breve'"
+              >
+                {{ labelSituacao(doc.situacao!) }}
+              </span>
+            </td>
             <td>{{ doc.responsavelInterno || 'Não definido' }}</td>
             <td class="text-right">
               <div class="table-actions">
@@ -190,7 +197,11 @@
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
     <div class="field-grid cols-3">
-      <label class="field">Tipo de documento*
+      <label class="field">
+        <div class="field__label">
+          <span>Tipo de documento*</span>
+          <button type="button" class="text-button" (click)="adicionarTipoDocumento()">+ Incluir tipo</button>
+        </div>
         <select formControlName="tipoDocumento">
           <option value=""></option>
           <option *ngFor="let tipo of tiposPadrao" [value]="tipo">{{ tipo }}</option>
@@ -199,10 +210,15 @@
       <label class="field">Órgão emissor*
         <input formControlName="orgaoEmissor" />
       </label>
-      <label class="field">Número / Código*
-        <input formControlName="numeroCodigo" />
+      <label class="field">Número / Código
+        <input formControlName="numeroCodigo" placeholder="Opcional" />
+        <span class="muted small-text">Preencha apenas se houver código no documento.</span>
       </label>
-      <label class="field">Categoria
+      <label class="field">
+        <div class="field__label">
+          <span>Categoria</span>
+          <button type="button" class="text-button" (click)="adicionarCategoria()">+ Nova categoria</button>
+        </div>
         <select formControlName="categoria">
           <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
         </select>
@@ -334,12 +350,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let doc of documentosCriticos">
+          <tr *ngFor="let doc of documentosCriticos" [class.alert-blink]="doc.situacao === 'vencido' || doc.situacao === 'vence_em_breve'">
             <td>{{ doc.tipoDocumento }}</td>
             <td>{{ doc.orgaoEmissor }}</td>
-            <td>{{ doc.numeroCodigo }}</td>
+            <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
             <td>{{ doc.validade || 'Sem vencimento' }}</td>
-            <td><span [class]="classeSituacao(doc.situacao)">{{ labelSituacao(doc.situacao!) }}</span></td>
+            <td>
+              <span
+                [class]="classeSituacao(doc.situacao)"
+                [class.status--blink]="doc.situacao === 'vencido' || doc.situacao === 'vence_em_breve'"
+              >
+                {{ labelSituacao(doc.situacao!) }}
+              </span>
+            </td>
             <td>{{ doc.responsavelInterno || 'Não definido' }}</td>
             <td class="text-right">
               <button class="ghost" type="button" (click)="editarDocumento(doc)">Ver/Editar</button>
@@ -363,7 +386,7 @@
     <div class="selection-bar">
       <p>Documento selecionado:</p>
       <select [ngModel]="selectedDocumentId" (ngModelChange)="selectedDocumentId = $event">
-        <option *ngFor="let doc of documentos" [value]="doc.id">{{ doc.tipoDocumento }} — {{ doc.numeroCodigo }}</option>
+        <option *ngFor="let doc of documentos" [value]="doc.id">{{ doc.tipoDocumento }} — {{ doc.numeroCodigo || 'Sem código' }}</option>
       </select>
     </div>
 
@@ -491,10 +514,10 @@
         <p class="card__title">Exportação</p>
         <p class="muted">Gere relatórios completos ou focados em risco.</p>
         <div class="actions">
-          <button class="primary" type="button">Exportar PDF</button>
-          <button class="ghost" type="button">Exportar Excel</button>
-          <button class="ghost" type="button">Vencidos</button>
-          <button class="ghost" type="button">A vencer em 30 dias</button>
+          <button class="primary" type="button" (click)="exportarRelatorioPDF()">Exportar PDF</button>
+          <button class="ghost" type="button" (click)="exportarRelatorioExcel()">Exportar Excel</button>
+          <button class="ghost" type="button" (click)="alertaFiltro = 'vencidos'; changeTab('alertas')">Vencidos</button>
+          <button class="ghost" type="button" (click)="alertaFiltro = '30'; changeTab('alertas')">A vencer em 30 dias</button>
         </div>
       </div>
     </div>
@@ -505,7 +528,7 @@
           <p class="page-title__eyebrow">Documentos ativos</p>
           <p class="page-title__label">Relação resumida para impressão</p>
         </div>
-        <button class="ghost" type="button" (click)="imprimirListaFiltrada()">Imprimir lista</button>
+        <button class="ghost" type="button" (click)="imprimirRelatorioTexto()">Imprimir lista</button>
       </div>
       <div class="table-wrapper">
         <table>
@@ -521,10 +544,17 @@
           <tbody>
             <tr *ngFor="let doc of documentos">
               <td>{{ doc.tipoDocumento }}</td>
-              <td>{{ doc.numeroCodigo }}</td>
+              <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
               <td>{{ doc.categoria }}</td>
               <td>{{ doc.validade || 'Sem vencimento' }}</td>
-              <td><span [class]="classeSituacao(doc.situacao)">{{ labelSituacao(doc.situacao!) }}</span></td>
+              <td>
+                <span
+                  [class]="classeSituacao(doc.situacao)"
+                  [class.status--blink]="doc.situacao === 'vencido' || doc.situacao === 'vence_em_breve'"
+                >
+                  {{ labelSituacao(doc.situacao!) }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>

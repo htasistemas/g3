@@ -74,31 +74,31 @@ export class DocumentosInstitucionaisComponent {
   selectedDocumentId: string | null = null;
   alertaFiltro: AlertaFiltro = '30';
 
-  readonly categorias = ['Fiscal', 'Trabalhista', 'Jurídico', 'Contratos', 'Licenças', 'Outros'];
-  readonly tiposPadrao = [
-    'CND Federal',
-    'CND Estadual',
-    'CND Municipal',
-    'FGTS',
-    'Alvará',
-    'Contrato',
-    'Certificado',
-    'Outro'
+  categorias: string[] = ['Fiscal', 'Trabalhista', 'Jurídico', 'Contratos', 'Licenças', 'Segurança'];
+  tiposPadrao: string[] = [
+    'Certidão Negativa de Débitos Federal',
+    'Certidão Negativa de Débitos Municipal',
+    'Certificado de Regularidade do FGTS',
+    'Alvará de Funcionamento',
+    'Auto de Vistoria do Corpo de Bombeiros',
+    'Contrato de Prestação de Serviços',
+    'Licença Sanitária',
+    'Registro de Marca no INPI'
   ];
   readonly modosRenovacao: Array<'Manual' | 'Automática'> = ['Manual', 'Automática'];
 
   documentos: DocumentoInstitucional[] = [
     {
       id: '1',
-      tipoDocumento: 'CND Federal',
-      orgaoEmissor: 'Receita Federal',
-      numeroCodigo: '2025/001',
+      tipoDocumento: 'Certidão Negativa de Débitos Federal',
+      orgaoEmissor: 'Receita Federal do Brasil',
+      numeroCodigo: '2026/001-RFB',
       categoria: 'Fiscal',
-      emissao: '2024-12-15',
-      validade: '2025-12-15',
-      responsavelInterno: 'Setor Fiscal',
+      emissao: '2025-12-15',
+      validade: '2026-12-15',
+      responsavelInterno: 'Equipe Fiscal',
       modoRenovacao: 'Manual',
-      observacaoRenovacao: 'Renovar no e-CAC com certificado digital',
+      observacaoRenovacao: 'Renovar pelo e-CAC com certificado digital válido',
       gerarAlerta: true,
       diasAntecedencia: [30, 60],
       formaAlerta: 'Sistema',
@@ -106,9 +106,9 @@ export class DocumentosInstitucionaisComponent {
     },
     {
       id: '2',
-      tipoDocumento: 'CND Municipal',
-      orgaoEmissor: 'Prefeitura Municipal',
-      numeroCodigo: '7812/2024',
+      tipoDocumento: 'Certidão Negativa de Débitos Municipal',
+      orgaoEmissor: 'Prefeitura de São Paulo',
+      numeroCodigo: '7812/2024-SF',
       categoria: 'Fiscal',
       emissao: '2024-06-01',
       validade: this.addDaysFromToday(15),
@@ -121,25 +121,25 @@ export class DocumentosInstitucionaisComponent {
     },
     {
       id: '3',
-      tipoDocumento: 'Contrato de prestação de serviços',
-      orgaoEmissor: 'Fornecedor XPTO',
-      numeroCodigo: 'CTR-8891',
-      categoria: 'Contratos',
-      emissao: '2023-10-01',
-      validade: '2024-10-01',
-      responsavelInterno: 'Jurídico',
-      modoRenovacao: 'Automática',
-      observacaoRenovacao: 'Renovação automática anual, avaliar cláusula 7',
+      tipoDocumento: 'Certificado de Regularidade do FGTS',
+      orgaoEmissor: 'Caixa Econômica Federal',
+      numeroCodigo: 'CRF-2025-8891',
+      categoria: 'Trabalhista',
+      emissao: '2024-04-01',
+      validade: this.addDaysFromToday(-20),
+      responsavelInterno: 'Recursos Humanos',
+      modoRenovacao: 'Manual',
+      observacaoRenovacao: 'Emitir novo CRF no Conectividade Social',
       gerarAlerta: true,
-      diasAntecedencia: [30],
+      diasAntecedencia: [30, 60],
       formaAlerta: 'Sistema',
       situacao: 'vencido'
     },
     {
       id: '4',
       tipoDocumento: 'Alvará de funcionamento',
-      orgaoEmissor: 'Prefeitura',
-      numeroCodigo: 'ALV-9988',
+      orgaoEmissor: 'Prefeitura do Rio de Janeiro',
+      numeroCodigo: 'ALF-2025-9988',
       categoria: 'Licenças',
       emissao: '2025-01-02',
       validade: null,
@@ -173,10 +173,10 @@ export class DocumentosInstitucionaisComponent {
     {
       id: 'a3',
       documentoId: '3',
-      nomeArquivo: 'Contrato_XPTO.pdf',
+      nomeArquivo: 'CRF_FGTS_2024.pdf',
       tipo: 'PDF',
-      dataUpload: '2023-10-01',
-      usuario: 'Jurídico'
+      dataUpload: '2024-04-02',
+      usuario: 'Equipe de RH'
     }
   ];
 
@@ -185,32 +185,47 @@ export class DocumentosInstitucionaisComponent {
       id: 'h1',
       documentoId: '1',
       dataHora: '2025-01-12 10:30',
-      usuario: 'Maria Lima',
+      usuario: 'Equipe Fiscal',
       tipoAlteracao: 'Inclusão',
-      observacao: 'Documento inserido com alerta de 60 dias.'
+      observacao: 'Documento inserido com alerta de 60 dias pelo responsável fiscal.'
     },
     {
       id: 'h2',
       documentoId: '2',
       dataHora: '2024-12-01 09:00',
       usuario: 'Tesouraria',
-      tipoAlteracao: 'Mudança de data de vencimento',
-      observacao: 'Reemissão pela prefeitura. Novo vencimento para 15 dias.'
+      tipoAlteracao: 'Atualização de vencimento',
+      observacao: 'Reemissão pela Secretaria da Fazenda Municipal, vencimento revisado.'
     },
     {
       id: 'h3',
       documentoId: '3',
       dataHora: '2024-10-02 14:40',
-      usuario: 'Jurídico',
+      usuario: 'Recursos Humanos',
       tipoAlteracao: 'Mudança de situação',
-      observacao: 'Contrato vencido, aguardando negociação de renovação.'
+      observacao: 'CRF vencido, nova emissão solicitada na Caixa.'
     }
   ];
 
   enviosRecentes = [
-    { destinatario: 'Receita Federal', documento: 'CND Federal', protocolo: 'PR-2025-0102', data: '2025-01-15' },
-    { destinatario: 'Prefeitura Municipal', documento: 'CND Municipal', protocolo: 'PR-2025-0089', data: '2025-01-10' },
-    { destinatario: 'Fornecedor XPTO', documento: 'Contrato de prestação de serviços', protocolo: 'PR-2024-0771', data: '2024-10-05' }
+    {
+      destinatario: 'Receita Federal do Brasil',
+      documento: 'Certidão Negativa de Débitos Federal',
+      protocolo: 'RFB-2025-0102',
+      data: '2025-01-15'
+    },
+    {
+      destinatario: 'Prefeitura de São Paulo',
+      documento: 'Certidão Negativa de Débitos Municipal',
+      protocolo: 'SFP-2025-0089',
+      data: '2025-01-10'
+    },
+    {
+      destinatario: 'Caixa Econômica Federal',
+      documento: 'Certificado de Regularidade do FGTS',
+      protocolo: 'CAIXA-2024-0771',
+      data: '2024-10-05'
+    }
   ];
 
   constructor(private readonly fb: FormBuilder) {
@@ -226,7 +241,7 @@ export class DocumentosInstitucionaisComponent {
     this.documentoForm = this.fb.group({
       tipoDocumento: ['', Validators.required],
       orgaoEmissor: ['', Validators.required],
-      numeroCodigo: ['', Validators.required],
+      numeroCodigo: [''],
       descricao: [''],
       categoria: ['Fiscal'],
       emissao: ['', Validators.required],
@@ -275,7 +290,10 @@ export class DocumentosInstitucionaisComponent {
         !tipoDocumento || doc.tipoDocumento.toLowerCase().includes((tipoDocumento as string).toLowerCase())
       )
       .filter((doc) => !orgaoEmissor || doc.orgaoEmissor.toLowerCase().includes((orgaoEmissor as string).toLowerCase()))
-      .filter((doc) => !numeroDocumento || doc.numeroCodigo.toLowerCase().includes((numeroDocumento as string).toLowerCase()))
+      .filter((doc) => {
+        const numero = (doc.numeroCodigo || '').toLowerCase();
+        return !numeroDocumento || numero.includes((numeroDocumento as string).toLowerCase());
+      })
       .filter((doc) => !situacao || doc.situacao === situacao)
       .filter((doc) => this.filtrarPorPeriodo(doc, periodoVencimento as string))
       .sort((a, b) => (a.validade || '').localeCompare(b.validade || ''));
@@ -364,6 +382,38 @@ export class DocumentosInstitucionaisComponent {
       diasAntecedencia: doc.diasAntecedencia ?? [30]
     });
     this.activeTab = 'cadastro';
+  }
+
+  adicionarTipoDocumento(): void {
+    this.feedback = null;
+    const novoTipo = prompt('Informe o novo tipo de documento que deseja cadastrar:')?.trim();
+    if (!novoTipo) return;
+
+    const existe = this.tiposPadrao.some((tipo) => tipo.toLowerCase() === novoTipo.toLowerCase());
+    if (existe) {
+      this.feedback = 'Esse tipo de documento já está cadastrado na lista.';
+      return;
+    }
+
+    this.tiposPadrao = [...this.tiposPadrao, novoTipo];
+    this.documentoForm.get('tipoDocumento')?.setValue(novoTipo);
+    this.feedback = 'Novo tipo de documento incluído.';
+  }
+
+  adicionarCategoria(): void {
+    this.feedback = null;
+    const novaCategoria = prompt('Digite a nova categoria de documentos:')?.trim();
+    if (!novaCategoria) return;
+
+    const existe = this.categorias.some((categoria) => categoria.toLowerCase() === novaCategoria.toLowerCase());
+    if (existe) {
+      this.feedback = 'Essa categoria já está disponível.';
+      return;
+    }
+
+    this.categorias = [...this.categorias, novaCategoria];
+    this.documentoForm.get('categoria')?.setValue(novaCategoria);
+    this.feedback = 'Categoria adicionada para uso imediato.';
   }
 
   selecionarDocumento(documento: DocumentoInstitucional): void {
@@ -486,7 +536,7 @@ export class DocumentosInstitucionaisComponent {
           <table>
             <tr><th>Tipo</th><td>${doc.tipoDocumento}</td></tr>
             <tr><th>Órgão emissor</th><td>${doc.orgaoEmissor}</td></tr>
-            <tr><th>Número</th><td>${doc.numeroCodigo}</td></tr>
+            <tr><th>Número</th><td>${doc.numeroCodigo || 'Sem código informado'}</td></tr>
             <tr><th>Categoria</th><td>${doc.categoria}</td></tr>
             <tr><th>Emissão</th><td>${doc.emissao}</td></tr>
             <tr><th>Validade</th><td>${doc.validade || 'Sem vencimento'}</td></tr>
@@ -547,8 +597,90 @@ export class DocumentosInstitucionaisComponent {
     return this.documentos.filter((d) => d.categoria === categoria).length;
   }
 
-  imprimirListaFiltrada(): void {
-    this.documentosFiltrados.forEach((doc) => this.imprimirDocumento(doc));
+  exportarRelatorioPDF(): void {
+    const janela = window.open('', '_blank', 'width=900,height=1200');
+    if (!janela) return;
+
+    janela.document.write(this.gerarHtmlRelatorio());
+    janela.document.close();
+    janela.focus();
+    janela.print();
+  }
+
+  exportarRelatorioExcel(): void {
+    const cabecalho = [
+      'Tipo de Documento',
+      'Número / Código',
+      'Categoria',
+      'Vencimento',
+      'Situação',
+      'Órgão emissor',
+      'Responsável interno'
+    ];
+
+    const linhas = this.documentos.map((doc) => [
+      doc.tipoDocumento,
+      doc.numeroCodigo || 'Não informado',
+      doc.categoria,
+      doc.validade || 'Sem vencimento',
+      this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc)),
+      doc.orgaoEmissor,
+      doc.responsavelInterno || '—'
+    ]);
+
+    const csv = [cabecalho, ...linhas]
+      .map((linha) => linha.map((valor) => this.escapeCsv(valor)).join(';'))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'relatorio-documentos.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  imprimirRelatorioTexto(): void {
+    const janela = window.open('', '_blank', 'width=900,height=1200');
+    if (!janela) return;
+
+    const headers = ['Tipo', 'Número/Código', 'Categoria', 'Vencimento', 'Situação'];
+    const linhas = this.documentos.map((doc) => [
+      doc.tipoDocumento.padEnd(36, ' '),
+      (doc.numeroCodigo || 'Sem código').padEnd(16, ' '),
+      doc.categoria.padEnd(14, ' '),
+      (doc.validade || 'Sem vencimento').padEnd(16, ' '),
+      this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc))
+    ]);
+
+    const conteudo = [
+      'RELATÓRIO TEXTO - LISTA DE DOCUMENTOS',
+      'Atualizado em: ' + new Date().toLocaleString('pt-BR'),
+      ''.padEnd(90, '='),
+      headers.map((h) => h.padEnd(18, ' ')).join(''),
+      ''.padEnd(90, '-'),
+      ...linhas.map((linha) => linha.join(''))
+    ].join('\n');
+
+    janela.document.write(`
+      <html>
+        <head>
+          <title>Relação resumida de documentos</title>
+          <style>
+            body { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; padding: 24px; }
+            pre { font-size: 14px; white-space: pre; }
+          </style>
+        </head>
+        <body>
+          <pre>${conteudo}</pre>
+        </body>
+      </html>
+    `);
+
+    janela.document.close();
+    janela.focus();
+    janela.print();
   }
 
   onFileSelected(event: Event): void {
@@ -581,6 +713,61 @@ export class DocumentosInstitucionaisComponent {
         `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`
       );
     }
+  }
+
+  private gerarHtmlRelatorio(): string {
+    const linhas = this.documentos
+      .map(
+        (doc) => `
+        <tr>
+          <td>${doc.tipoDocumento}</td>
+          <td>${doc.numeroCodigo || 'Sem código'}</td>
+          <td>${doc.categoria}</td>
+          <td>${doc.validade || 'Sem vencimento'}</td>
+          <td>${this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc))}</td>
+          <td>${doc.orgaoEmissor}</td>
+          <td>${doc.responsavelInterno || '—'}</td>
+        </tr>`
+      )
+      .join('');
+
+    return `
+      <html>
+        <head>
+          <title>Relatório de documentos institucionais</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; }
+            h1 { margin: 0 0 12px; }
+            table { border-collapse: collapse; width: 100%; font-size: 13px; }
+            th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+            th { background: #f1f5f9; }
+          </style>
+        </head>
+        <body>
+          <h1>Relatório completo de documentos</h1>
+          <p>Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Número/Código</th>
+                <th>Categoria</th>
+                <th>Vencimento</th>
+                <th>Situação</th>
+                <th>Órgão emissor</th>
+                <th>Responsável</th>
+              </tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+  }
+
+  private escapeCsv(valor: string | number | null | undefined): string {
+    const texto = (valor ?? '').toString().replace(/"/g, '""');
+    return `"${texto}"`;
   }
 
   private detectarTipoArquivo(file: File): string {
