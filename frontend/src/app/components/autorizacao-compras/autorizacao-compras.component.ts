@@ -6,12 +6,9 @@ import {
   faArrowLeft,
   faArrowRight,
   faBuildingColumns,
-  faCartShopping,
   faCheckCircle,
-  faClipboardList,
   faFileSignature,
   faGavel,
-  faMoneyBills,
   faPrint,
   faStamp,
   faCircleCheck,
@@ -118,15 +115,12 @@ interface SupplierRegistryEntry {
   styleUrl: './autorizacao-compras.component.scss'
 })
 export class AutorizacaoComprasComponent {
-  readonly faCartShopping = faCartShopping;
-  readonly faClipboardList = faClipboardList;
   readonly faPrint = faPrint;
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
   readonly faCheckCircle = faCheckCircle;
   readonly faCircleCheck = faCircleCheck;
   readonly faBuildingColumns = faBuildingColumns;
-  readonly faMoneyBills = faMoneyBills;
   readonly faGavel = faGavel;
   readonly faStamp = faStamp;
   readonly faFileSignature = faFileSignature;

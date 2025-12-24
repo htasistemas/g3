@@ -4,10 +4,9 @@
       <p class="page-title__eyebrow">Financeiro · Autorização de Compras</p>
       <div class="page-title__headline">
         <div>
-          <p class="page-title__label">Governança de compras, contratos e serviços</p>
+          <p class="page-title__label">Fluxo enxuto para autorizar compras</p>
           <p class="muted">
-            Organize a jornada da compra desde a solicitação até a conclusão, com trilha de aprovação da diretoria,
-            reserva orçamentária e integração com contabilidade, patrimônio e almoxarifado.
+            Acompanhe cada etapa com clareza, registre pareceres e siga direto para reserva orçamentária e conclusão.
           </p>
         </div>
         <button type="button" class="ghost" (click)="printSection()">
@@ -16,43 +15,10 @@
         </button>
       </div>
     </div>
-
-    <div class="summary-grid">
-      <article class="summary-card">
-        <div class="summary-card__icon summary-card__icon--primary">
-          <fa-icon [icon]="faClipboardList"></fa-icon>
-        </div>
-        <div>
-          <p class="summary-card__label">Pendente de autorização</p>
-          <p class="summary-card__value">{{ pendingApprovals }} solicitação(ões)</p>
-          <p class="muted">Relatório pronto para apreciação da diretoria.</p>
-        </div>
-      </article>
-      <article class="summary-card">
-        <div class="summary-card__icon">
-          <fa-icon [icon]="faCartShopping"></fa-icon>
-        </div>
-        <div>
-          <p class="summary-card__label">Em cotação</p>
-          <p class="summary-card__value">{{ pendingQuotes }} processo(s)</p>
-          <p class="muted">Exija 3 cotações e defina o vencedor.</p>
-        </div>
-      </article>
-      <article class="summary-card">
-        <div class="summary-card__icon summary-card__icon--accent">
-          <fa-icon [icon]="faMoneyBills"></fa-icon>
-        </div>
-        <div>
-          <p class="summary-card__label">Pronto para reservar</p>
-          <p class="summary-card__value">{{ readyToConclude }} em execução</p>
-          <p class="muted">Reserve recursos na contabilidade e siga para conclusão.</p>
-        </div>
-      </article>
-    </div>
   </header>
 
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas etapas do módulo</p>
+    <p class="tab-shell__title">Etapas principais</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let step of steps; index as idx"
@@ -62,53 +28,42 @@
       >
         <button class="step-tabs__button" type="button" (click)="changeStep(step.id)">
           <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">
-            {{ step.label }}
-            <small>{{ step.helper }}</small>
-          </span>
-          <span class="pill pill--ghost">{{ step.documentLabel }}</span>
+          <span class="step-tabs__label">{{ step.label }}</span>
         </button>
       </li>
     </ol>
   </div>
 
   <div class="workspace" *ngIf="selectedRequest as selected">
-    <aside class="board">
-      <header class="board__header">
-        <div>
-          <p class="board__eyebrow">Solicitações em curso</p>
-          <p class="board__title">Priorize o que precisa de autorização</p>
-        </div>
-        <span class="pill pill--ghost">{{ requests.length }} processos</span>
-      </header>
-
-      <div class="board__list">
-        <article
-          *ngFor="let request of requests"
-          class="request-card"
-          [class.request-card--active]="request.id === selectedRequestId"
+    <div class="context-bar">
+      <label class="context-bar__field">
+        <span class="context-bar__label">Processo</span>
+        <select
+          class="select select--dense"
+          name="selectedRequest"
+          [ngModel]="selectedRequestId"
+          (ngModelChange)="selectRequest($event)"
         >
-          <div class="request-card__header">
-            <div>
-              <p class="request-card__title">{{ request.title }}</p>
-              <p class="muted">{{ request.area }} • {{ request.requester }}</p>
-            </div>
-            <button class="chip" type="button" (click)="selectRequest(request.id)">
-              <fa-icon [icon]="faArrowRight"></fa-icon>
-              Abrir
-            </button>
-          </div>
-          <div class="request-card__meta">
-            <span class="pill" [class.pill--ghost]="request.type === 'produto'">{{ request.type }}</span>
-            <span class="pill pill--ghost">{{ getStepLabel(request.status) }}</span>
-            <span class="pill pill--accent" *ngIf="request.winnerSupplier">Cotação: {{ request.winnerSupplier }}</span>
-            <span class="pill pill--warning" *ngIf="!requiresQuotation(request)">Dispensa até {{ quotationThreshold | currency: 'BRL' }}</span>
-          </div>
-          <p class="request-card__value">{{ request.value | currency: 'BRL' }}</p>
-          <p class="muted">Entrega prevista em {{ request.expectedDate | date: 'dd/MM/yyyy' }}</p>
-        </article>
+          <option *ngFor="let request of requests" [value]="request.id">
+            {{ request.id }} · {{ request.title }}
+          </option>
+        </select>
+      </label>
+      <div class="context-bar__summary">
+        <div class="context-bar__item">
+          <p class="context-bar__hint">Etapa atual</p>
+          <p class="context-bar__value">{{ getStepLabel(selected.status) }}</p>
+        </div>
+        <div class="context-bar__item">
+          <p class="context-bar__hint">Valor estimado</p>
+          <p class="context-bar__value">{{ selected.value | currency: 'BRL' }}</p>
+        </div>
+        <div class="context-bar__item">
+          <p class="context-bar__hint">Responsável</p>
+          <p class="context-bar__value">{{ selected.requester }} — {{ selected.area }}</p>
+        </div>
       </div>
-    </aside>
+    </div>
 
     <div class="tab-card" [ngSwitch]="activeStep">
       <ng-container *ngSwitchCase="'solicitacao'">
