@@ -4,7 +4,7 @@
     <p class="page-title__label">Banco de Empregos</p>
   </header>
 
-  <div class="tab-shell">
+  <section class="tab-shell">
     <p class="tab-shell__title">Navegação por etapas</p>
     <ol class="step-tabs" role="tablist">
       <li
@@ -25,7 +25,7 @@
         </button>
       </li>
     </ol>
-  </div>
+  </section>
 
   <form [formGroup]="form" class="form-shell">
     <div *ngIf="feedback" class="alert alert-warning">
@@ -43,8 +43,8 @@
           <button type="button" class="nav-button nav-button--print" (click)="print()">
             <span class="nav-button__label">Imprimir dados</span>
           </button>
-          <button type="button" class="nav-button" (click)="save()">
-            <span class="nav-button__label">Salvar</span>
+          <button type="button" class="nav-button" (click)="save()" [disabled]="saving">
+            <span class="nav-button__label">{{ saving ? 'Salvando...' : 'Salvar' }}</span>
           </button>
           <button type="button" class="nav-button" (click)="cancel()">
             <span class="nav-button__label">Cancelar</span>
@@ -173,7 +173,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[3].label }}</p>
-          <p class="muted">Preparado para listar encaminhamentos da vaga.</p>
+          <p class="muted">Inclua e acompanhe os encaminhamentos para beneficiários.</p>
         </div>
         <div class="nav-buttons" aria-label="Ações da vaga">
           <button type="button" class="nav-button nav-button--print" (click)="print()">
@@ -194,32 +194,142 @@
         </div>
       </div>
 
-      <div class="table-card">
-        <div class="table-card__header">
-          <p>Encaminhamentos da vaga</p>
-          <button type="button" class="nav-button" (click)="save()">Novo encaminhamento</button>
-        </div>
-        <div class="table-card__table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Beneficiário</th>
-                <th>Data de encaminhamento</th>
-                <th>Status</th>
-                <th>Observações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of encaminhamentos">
-                <td>{{ item.beneficiario }}</td>
-                <td>{{ item.data }}</td>
-                <td>{{ item.status }}</td>
-                <td>{{ item.observacoes }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="encaminhamento-shell">
+        <form [formGroup]="encaminhamentoForm" class="encaminhamento-form" (ngSubmit)="addEncaminhamento()">
+          <div class="field-grid cols-2 narrow">
+            <label class="field full">Buscar beneficiário*
+              <input type="text" [formControl]="beneficiarioPesquisa" placeholder="Digite para buscar" />
+            </label>
+            <label class="field full">Beneficiário selecionado*
+              <input type="text" formControlName="beneficiarioNome" placeholder="Escolha na busca" readonly />
+            </label>
+            <label class="field">Data de encaminhamento*
+              <input type="date" formControlName="data" />
+            </label>
+            <label class="field">Status*
+              <input type="text" formControlName="status" />
+            </label>
+            <label class="field full">Observações
+              <textarea formControlName="observacoes" rows="2" placeholder="Notas do encaminhamento"></textarea>
+            </label>
+          </div>
+          <div class="encaminhamento-actions">
+            <div class="beneficiario-results" *ngIf="beneficiarios.length || beneficiarioErro">
+              <p class="muted">Resultados:</p>
+              <div class="result-list">
+                <button
+                  type="button"
+                  class="result-item"
+                  *ngFor="let beneficiario of beneficiarios"
+                  (click)="selectBeneficiario(beneficiario)"
+                >
+                  <span class="result-item__name">{{ beneficiario.nome_completo }}</span>
+                  <span class="result-item__doc" *ngIf="beneficiario.cpf">CPF: {{ beneficiario.cpf }}</span>
+                </button>
+              </div>
+              <p class="text-error" *ngIf="beneficiarioErro">{{ beneficiarioErro }}</p>
+            </div>
+            <button class="nav-button" type="submit">Adicionar encaminhamento</button>
+          </div>
+        </form>
+
+        <div class="table-card">
+          <div class="table-card__header">
+            <p>Encaminhamentos da vaga</p>
+            <span class="muted">Total: {{ encaminhamentos.length }}</span>
+          </div>
+          <div class="table-card__table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Beneficiário</th>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Observações</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="!encaminhamentos.length">
+                  <td colspan="5" class="muted">Nenhum encaminhamento adicionado.</td>
+                </tr>
+                <tr *ngFor="let item of encaminhamentos">
+                  <td>{{ item.beneficiarioNome }}</td>
+                  <td>{{ item.data }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>{{ item.observacoes || '—' }}</td>
+                  <td>
+                    <button type="button" class="nav-button nav-button--danger" (click)="removeEncaminhamento(item.id)">Remover</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
   </form>
+
+  <section class="listing-card">
+    <div class="listing-card__header">
+      <div>
+        <p class="tab-card__highlight">Listagem de vagas</p>
+        <p class="muted">Todas as vagas cadastradas aparecem aqui.</p>
+      </div>
+      <div class="listing-filters">
+        <label class="field">
+          <span class="muted">Pesquisar</span>
+          <input type="text" [formControl]="listSearch" placeholder="Título, empresa ou cidade" />
+        </label>
+        <label class="field">
+          <span class="muted">Status</span>
+          <select [formControl]="statusFilter">
+            <option value="todos">Todos</option>
+            <option value="Aberta">Aberta</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Encerrada">Encerrada</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="listing-grid" *ngIf="!listLoading; else loadingList">
+      <article class="vaga-card" *ngFor="let record of filteredRecords">
+        <header class="vaga-card__header">
+          <div>
+            <p class="vaga-card__title">{{ record.dadosVaga.titulo }}</p>
+            <p class="muted">{{ record.empresaLocal.nomeEmpresa }} • {{ record.empresaLocal.cidade }}</p>
+          </div>
+          <span class="status-pill" [class.status-pill--open]="record.dadosVaga.status === 'Aberta'" [class.status-pill--progress]="record.dadosVaga.status === 'Em andamento'" [class.status-pill--closed]="record.dadosVaga.status === 'Encerrada'">
+            {{ record.dadosVaga.status }}
+          </span>
+        </header>
+        <p class="vaga-card__description">{{ record.requisitos.descricao }}</p>
+        <dl class="vaga-card__meta">
+          <div>
+            <dt>Aberta em</dt>
+            <dd>{{ record.dadosVaga.dataAbertura || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Contrato</dt>
+            <dd>{{ record.dadosVaga.tipoContrato || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Salário</dt>
+            <dd>{{ record.dadosVaga.salario || '—' }}</dd>
+          </div>
+        </dl>
+        <div class="vaga-card__actions">
+          <button type="button" class="nav-button" (click)="editRecord(record)">Editar</button>
+          <button type="button" class="nav-button nav-button--danger" (click)="deleteRecord(record)" [disabled]="deletingId === record.id">
+            {{ deletingId === record.id ? 'Removendo...' : 'Excluir' }}
+          </button>
+        </div>
+      </article>
+      <p class="muted" *ngIf="!filteredRecords.length">Nenhuma vaga encontrada com os filtros atuais.</p>
+    </div>
+    <ng-template #loadingList>
+      <p class="muted">Carregando vagas...</p>
+    </ng-template>
+  </section>
 </section>
