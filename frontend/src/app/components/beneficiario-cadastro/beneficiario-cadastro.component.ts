@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import {
   AbstractControl,
   FormArray,
@@ -203,6 +203,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   uploadProgress: Record<number, number> = {};
   uploadingDocuments = false;
+  missingFieldsModalOpen = false;
+  missingFieldMessages: string[] = [];
+  pdfErrorDialogOpen = false;
+  pdfErrorMessage: string | null = null;
   private documentNameKey(name?: string): string {
     return (name ?? '').trim().toLowerCase();
   }
@@ -965,6 +969,54 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.showTemporaryFeedback('Documentos conferidos com sucesso.');
   }
 
+  private collectFieldIssues(): string[] {
+    const requiredFields: {
+      path: (string | number)[];
+      label: string;
+      message?: string;
+      validate?: (control: AbstractControl) => boolean;
+    }[] = [
+      { path: ['status'], label: 'Status do beneficiário' },
+      { path: ['dadosPessoais', 'nome_completo'], label: 'Nome completo' },
+      { path: ['dadosPessoais', 'data_nascimento'], label: 'Data de nascimento' },
+      { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mãe' },
+      { path: ['endereco', 'cep'], label: 'CEP', message: 'Informe um CEP válido.' },
+      { path: ['contato', 'telefone_principal'], label: 'Telefone principal' },
+      { path: ['documentos', 'cpf'], label: 'CPF', message: 'Informe um CPF válido.' },
+      {
+        path: ['contato', 'email'],
+        label: 'E-mail',
+        message: 'Informe um e-mail válido ou deixe o campo vazio.',
+        validate: (control) => !!control.value && control.invalid
+      },
+      {
+        path: ['observacoes', 'aceite_lgpd'],
+        label: 'Aceite LGPD',
+        message: 'Confirme o aceite LGPD para continuar.',
+        validate: (control) => control.invalid
+      }
+    ];
+
+    return requiredFields
+      .filter(({ path, validate }) => {
+        const control = this.form.get(path);
+        if (!control) return false;
+        if (validate) return validate(control);
+        return control.invalid;
+      })
+      .map(({ label, message }) => message ?? `${label} é obrigatório.`);
+  }
+
+  private showMissingFieldsModal(messages: string[]): void {
+    this.missingFieldMessages = messages;
+    this.missingFieldsModalOpen = true;
+  }
+
+  closeMissingFieldsModal(): void {
+    this.missingFieldsModalOpen = false;
+    this.missingFieldMessages = [];
+  }
+
   private showTemporaryFeedback(message: string): void {
     this.feedback = message;
     if (this.feedbackTimeout) {
@@ -1091,11 +1143,15 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     const payload = this.buildAuthorizationTermPayload();
 
     try {
-      const blob = await firstValueFrom(this.reportService.generateAuthorizationTerm(payload));
-      this.openPdfInNewWindow(blob);
+      const response = await firstValueFrom(this.reportService.generateAuthorizationTerm(payload));
+      const pdfBlob = await this.extractPdfFromResponse(response);
+      this.openPdfInNewWindow(pdfBlob);
+      this.closePdfErrorDialog();
     } catch (error) {
       console.error('Erro ao gerar termo de autorização', error);
-      this.feedback = 'Não foi possível gerar o termo de autorização.';
+      const message = await this.extractPdfErrorMessage(error);
+      this.pdfErrorMessage = message;
+      this.pdfErrorDialogOpen = true;
     }
   }
 
@@ -1138,6 +1194,63 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     documentWindow.addEventListener('load', triggerPrint, { once: true });
 
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  private async extractPdfFromResponse(response: HttpResponse<Blob>): Promise<Blob> {
+    if (!response.ok) {
+      throw new Error('Falha ao gerar o PDF.');
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+    const body = response.body;
+
+    if (!body) {
+      throw new Error('Falha ao carregar documento PDF.');
+    }
+
+    if (!contentType.toLowerCase().includes('pdf')) {
+      const text = await body.text();
+      throw new Error(text || 'Falha ao carregar documento PDF.');
+    }
+
+    return body;
+  }
+
+  private async extractPdfErrorMessage(error: unknown): Promise<string> {
+    if (error instanceof HttpErrorResponse) {
+      if (error.error instanceof Blob) {
+        const text = await error.error.text();
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed?.message) return parsed.message;
+        } catch {
+          /* ignore parse errors */
+        }
+        if (text) return text;
+      }
+
+      if (typeof error.error === 'string' && error.error.trim().length) {
+        return error.error;
+      }
+
+      if (error.message) return error.message;
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    return 'Falha ao carregar documento PDF.';
+  }
+
+  closePdfErrorDialog(): void {
+    this.pdfErrorDialogOpen = false;
+    this.pdfErrorMessage = null;
+  }
+
+  retryAuthorizationTerm(): void {
+    this.closePdfErrorDialog();
+    void this.printConsentDocument();
   }
 
   async printBeneficiaryList(): Promise<void> {
@@ -1694,10 +1807,22 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (!skipValidation && missingDocuments.length) {
       this.feedback = `Envie os documentos obrigatórios: ${missingDocuments.join(', ')}`;
       this.changeTab('documentos');
+      return;
+    }
+
+    const fieldIssues = !skipValidation ? this.collectFieldIssues() : [];
+
+    if (!skipValidation && fieldIssues.length) {
+      this.form.markAllAsTouched();
+      this.showMissingFieldsModal(fieldIssues);
+      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+      return;
     }
 
     if (!skipValidation && this.form.invalid && !this.feedback) {
+      this.form.markAllAsTouched();
       this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+      return;
     }
 
     if (!skipValidation && this.form.get('status')?.value === 'INCOMPLETO' && statusForSave === 'INCOMPLETO') {
