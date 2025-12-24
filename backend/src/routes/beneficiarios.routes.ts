@@ -3,6 +3,7 @@ import multer from 'multer';
 import { In } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Beneficiario, BeneficiarioStatus } from '../entities/Beneficiario';
+import { FamiliaMembro } from '../entities/FamiliaMembro';
 import { BeneficiarioDuplicidadeService } from '../services/beneficiario-duplicidade.service';
 import { IndiceVulnerabilidadeFamiliar } from '../entities/IndiceVulnerabilidadeFamiliar';
 import type { RepositoryLike } from '../storage/types';
@@ -116,6 +117,33 @@ function isOutdated(entity?: Beneficiario | null): boolean {
   const oneYearMs = 1000 * 60 * 60 * 24 * 365;
 
   return Date.now() - lastUpdate.getTime() > oneYearMs;
+}
+
+async function loadFamilyMemberships(beneficiaryIds: string[]): Promise<Record<string, FamiliaMembro>> {
+  if (!beneficiaryIds.length) return {};
+
+  const familiaMembroRepo = AppDataSource.getRepository(FamiliaMembro);
+  const memberships = await familiaMembroRepo.find({
+    where: { beneficiarioId: In(beneficiaryIds) },
+    relations: ['familia'],
+    order: { responsavelFamiliar: 'DESC', dataAtualizacao: 'DESC', dataCadastro: 'DESC' }
+  });
+
+  return memberships.reduce<Record<string, FamiliaMembro>>((acc, membership) => {
+    if (!membership.familia || acc[membership.beneficiarioId]) return acc;
+    acc[membership.beneficiarioId] = membership;
+    return acc;
+  }, {});
+}
+
+function applyFamilyMetadata(beneficiario: Beneficiario, membership?: FamiliaMembro | null): void {
+  if (!membership?.familia) return;
+
+  const familia = membership.familia;
+  (beneficiario as any).idFamilia = membership.familiaId ?? familia.idFamilia;
+  (beneficiario as any).nomeFamilia = familia.nomeFamilia;
+  (beneficiario as any).registroFamilia = familia.nomeFamilia ?? familia.idFamilia;
+  (beneficiario as any).codigoFamilia = familia.idFamilia;
 }
 
 function resolveStatus(
@@ -295,6 +323,9 @@ router.get('/', async (req, res) => {
     (beneficiario as any).indiceVulnerabilidade = ivfMap[beneficiario.idBeneficiario] ?? null;
   });
 
+  const membershipMap = await loadFamilyMemberships(filtered.map((b) => b.idBeneficiario));
+  filtered.forEach((beneficiario) => applyFamilyMetadata(beneficiario, membershipMap[beneficiario.idBeneficiario]));
+
   const withoutCodigo = filtered.filter((item) => !item.codigo);
   if (withoutCodigo.length) {
     for (const record of withoutCodigo) {
@@ -331,6 +362,9 @@ router.get('/:id', async (req, res) => {
     beneficiario.codigo = await generateSequentialCodigo(repository);
     await repository.save(beneficiario);
   }
+
+  const memberships = await loadFamilyMemberships([beneficiario.idBeneficiario]);
+  applyFamilyMetadata(beneficiario, memberships[beneficiario.idBeneficiario]);
 
   if (isOutdated(beneficiario) && beneficiario.status !== 'DESATUALIZADO') {
     beneficiario.status = 'DESATUALIZADO';
