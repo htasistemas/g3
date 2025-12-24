@@ -93,7 +93,7 @@
 }
 
 .step-tabs__item.active .step-tabs__button {
-  background: linear-gradient(90deg, #0ea5e9, #2563eb);
+  background: linear-gradient(90deg, var(--primary-stronger), var(--primary-gradient-end));
   color: #fff;
   border-radius: 12px;
 }
