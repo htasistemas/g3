@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AssistanceUnitPayload } from './assistance-unit.service';
@@ -31,8 +31,11 @@ export class ReportService {
 
   constructor(private readonly http: HttpClient) {}
 
-  generateAuthorizationTerm(payload: AuthorizationTermPayload): Observable<Blob> {
-    return this.http.post(`${this.baseUrl}/authorization-term`, payload, { responseType: 'blob' });
+  generateAuthorizationTerm(payload: AuthorizationTermPayload): Observable<HttpResponse<Blob>> {
+    return this.http.post(`${this.baseUrl}/authorization-term`, payload, {
+      responseType: 'blob',
+      observe: 'response'
+    });
   }
 
   generateBeneficiaryList(filters: BeneficiaryReportFilters): Observable<Blob> {

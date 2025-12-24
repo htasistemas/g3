@@ -401,7 +401,7 @@
             </span>
           </div>
           <label class="field">
-            <span>Atualizar status</span>
+            <span>Atualizar status*</span>
             <select formControlName="status">
               <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
             </select>
@@ -1031,6 +1031,48 @@
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="cancelBlockReason()">Cancelar</button>
         <button type="button" class="primary" (click)="confirmBlockReason()">Salvar motivo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" *ngIf="pdfErrorDialogOpen">
+    <div class="modal__backdrop" (click)="closePdfErrorDialog()"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Erro</p>
+          <h3>Falha ao carregar documento PDF.</h3>
+        </div>
+        <button type="button" class="ghost" (click)="closePdfErrorDialog()" aria-label="Fechar aviso">×</button>
+      </div>
+      <p>{{ pdfErrorMessage || 'Não foi possível gerar o termo de autorização.' }}</p>
+      <div class="modal__actions">
+        <button type="button" class="ghost" (click)="closePdfErrorDialog()">Fechar</button>
+        <button type="button" class="primary" (click)="retryAuthorizationTerm()">Recarregar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" *ngIf="missingFieldsModalOpen">
+    <div class="modal__backdrop" (click)="closeMissingFieldsModal()"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Campos obrigatórios</p>
+          <h3>Complete os itens para ativar o cadastro</h3>
+        </div>
+        <button type="button" class="ghost" (click)="closeMissingFieldsModal()" aria-label="Fechar aviso">×</button>
+      </div>
+      <p class="muted">Os itens abaixo precisam ser preenchidos ou corrigidos:</p>
+      <ul class="issue-list">
+        <li class="issue-list__item" *ngFor="let item of missingFieldMessages">
+          <span class="issue-list__dot"></span>
+          <span>{{ item }}</span>
+        </li>
+      </ul>
+      <div class="modal__actions">
+        <button type="button" class="ghost" (click)="closeMissingFieldsModal()">Entendi</button>
+        <button type="button" class="primary" (click)="closeMissingFieldsModal()">Voltar ao formulário</button>
       </div>
     </div>
   </div>
