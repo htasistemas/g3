@@ -29,6 +29,7 @@ import { AssistenteTextosComponent } from './components/assistente-textos/assist
 import { ProntuarioComponent } from './components/prontuario/prontuario.component';
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
+import { DataManagementComponent } from './components/data-management/data-management.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -125,6 +126,11 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       { path: 'configuracoes/usuarios', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
+      {
+        path: 'configuracoes/gerenciamento-dados',
+        component: DataManagementComponent,
+        data: { title: 'Gerenciamento de Dados' }
+      },
       {
         path: 'configuracoes/personalizacao',
         redirectTo: 'configuracoes/parametros',
