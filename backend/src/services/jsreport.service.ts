@@ -24,6 +24,8 @@ function ensureDependencyInstalled(packageName: string): void {
 ensureDependencyInstalled('jsreport-core');
 ensureDependencyInstalled('jsreport-chrome-pdf');
 ensureDependencyInstalled('jsreport-handlebars');
+ensureDependencyInstalled('puppeteer-core');
+ensureDependencyInstalled('@sparticuz/chromium');
 
 // Importações após a validação para evitar erros de inicialização por dependências não instaladas
 const jsreport = require('jsreport-core') as typeof import('jsreport-core');
@@ -31,16 +33,47 @@ const jsreportChrome = require('jsreport-chrome-pdf') as typeof import('jsreport
 const jsreportHandlebars = require('jsreport-handlebars') as typeof import('jsreport-handlebars');
 
 const instance = jsreport();
-instance.use(jsreportChrome());
-instance.use(jsreportHandlebars());
 
-const initialized = instance.init();
+let initialized: Promise<void> | null = null;
+
+async function initJsReport(): Promise<void> {
+  if (initialized) return initialized;
+
+  initialized = (async () => {
+    const chromium = require('@sparticuz/chromium') as typeof import('@sparticuz/chromium');
+    const puppeteer = require('puppeteer-core') as typeof import('puppeteer-core');
+    const executablePath = await chromium.executablePath();
+
+    if (!executablePath) {
+      throw new Error('Não foi possível localizar o executável do Chromium para gerar PDFs.');
+    }
+
+    instance.use(
+      jsreportChrome({
+        launchOptions: {
+          args: chromium.args,
+          executablePath,
+          headless: chromium.headless,
+          ignoreHTTPSErrors: true,
+          defaultViewport: { width: 1280, height: 720 }
+        },
+        puppeteerInstance: puppeteer
+      })
+    );
+
+    instance.use(jsreportHandlebars());
+
+    await instance.init();
+  })();
+
+  return initialized;
+}
 
 export async function renderPdf(template: {
   content: string;
   data?: Record<string, unknown>;
 }): Promise<Buffer> {
-  await initialized;
+  await initJsReport();
 
   const report = await instance.render({
     template: {
