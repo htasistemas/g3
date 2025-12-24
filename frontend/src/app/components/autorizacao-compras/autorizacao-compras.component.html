@@ -233,7 +233,11 @@
               Registre parecer, encaminhe para contabilidade e defina condicionantes antes de liberar cotações.
             </p>
           </div>
-          <div class="tab-card__actions">
+          <div class="tab-card__actions tab-card__actions--stacked">
+            <button class="ghost" type="button" (click)="changeStep('solicitacao')">
+              <fa-icon [icon]="faArrowLeft"></fa-icon>
+              Revisar solicitação
+            </button>
             <button class="ghost" type="button" (click)="printSection()">
               <fa-icon [icon]="faPrint"></fa-icon>
               Imprimir relatório
@@ -242,6 +246,59 @@
               Ir para cotação
               <fa-icon [icon]="faArrowRight"></fa-icon>
             </button>
+          </div>
+        </div>
+
+        <div class="authorization-overview">
+          <div class="authorization-overview__intro">
+            <div>
+              <p class="authorization-overview__eyebrow">Processo {{ selected.id }}</p>
+              <p class="authorization-overview__title">{{ selected.title }}</p>
+              <p class="muted">Responsável: {{ selected.requester }} • {{ selected.area }}</p>
+            </div>
+            <div class="authorization-overview__tags">
+              <span class="pill pill--ghost">{{ getStepLabel(selected.status) }}</span>
+              <span class="pill">{{ selected.type }}</span>
+              <span class="pill pill--accent">Entrega {{ selected.expectedDate | date: 'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="authorization-overview__stats">
+            <div class="overview-stat">
+              <p class="overview-stat__label">Valor estimado</p>
+              <p class="overview-stat__value">{{ selected.value | currency: 'BRL' }}</p>
+            </div>
+            <div class="overview-stat">
+              <p class="overview-stat__label">Centro de custo</p>
+              <p class="overview-stat__value">{{ selected.budgetCenter || 'Definir na contabilidade' }}</p>
+            </div>
+            <div class="overview-stat">
+              <p class="overview-stat__label">Último parecer</p>
+              <p class="overview-stat__value">
+                {{ selected.approval?.decision ? (selected.approval?.decision | titlecase) : 'Pendente' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="authorization-overview__actions">
+            <div class="helper-list">
+              <p class="helper-list__title">O que fazer agora</p>
+              <ul>
+                <li>Conferir a justificativa e o orçamento informado.</li>
+                <li>Registrar o parecer com condicionantes claros.</li>
+                <li>Avançar só quando a diretoria sinalizar com “Aprovar”.</li>
+              </ul>
+            </div>
+            <div class="authorization-overview__cta">
+              <button class="chip" type="button" (click)="printSection()">
+                <fa-icon [icon]="faFileSignature"></fa-icon>
+                Baixar relatório em PDF
+              </button>
+              <button class="primary" type="button" (click)="navigateStep('next')">
+                Liberar cotações
+                <fa-icon [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -255,8 +312,23 @@
               <span class="pill">{{ selected.type }}</span>
             </header>
 
+            <div class="info-grid">
+              <div class="info-grid__item">
+                <p class="info-grid__label">Valor estimado</p>
+                <p class="info-grid__value">{{ selected.value | currency: 'BRL' }}</p>
+              </div>
+              <div class="info-grid__item">
+                <p class="info-grid__label">Entrega prevista</p>
+                <p class="info-grid__value">{{ selected.expectedDate | date: 'dd/MM/yyyy' }}</p>
+              </div>
+              <div class="info-grid__item">
+                <p class="info-grid__label">Centro de custo</p>
+                <p class="info-grid__value">{{ selected.budgetCenter || 'A definir com contabilidade' }}</p>
+              </div>
+            </div>
+
             <dl class="definition-list">
-              <div>
+              <div class="definition-list__row definition-list__row--full">
                 <dt>Justificativa</dt>
                 <dd>{{ selected.justification }}</dd>
               </div>
@@ -265,18 +337,15 @@
                 <dd>{{ selected.area }} • {{ selected.requester }}</dd>
               </div>
               <div>
-                <dt>Valor estimado</dt>
-                <dd>{{ selected.value | currency: 'BRL' }}</dd>
-              </div>
-              <div>
-                <dt>Entrega prevista</dt>
-                <dd>{{ selected.expectedDate | date: 'dd/MM/yyyy' }}</dd>
-              </div>
-              <div>
-                <dt>Centro de custo</dt>
-                <dd>{{ selected.budgetCenter || 'A definir com contabilidade' }}</dd>
+                <dt>Documentos e anexos</dt>
+                <dd>Gerencie no relatório para impressão.</dd>
               </div>
             </dl>
+
+            <div class="callout" *ngIf="selected.approval?.notes">
+              <p class="callout__title">Observação registrada pela diretoria</p>
+              <p class="callout__text">{{ selected.approval?.notes }}</p>
+            </div>
           </article>
 
           <form class="panel" (ngSubmit)="registerAuthorization()">
@@ -297,14 +366,41 @@
                 <span>Data</span>
                 <input class="input" type="date" name="date" [(ngModel)]="approvalForm.date" />
               </label>
-              <label class="form-field">
+              <div class="form-field form-field--full">
                 <span>Decisão</span>
-                <select class="select" name="decision" [(ngModel)]="approvalForm.decision">
-                  <option value="aprovado">Aprovar e liberar cotações</option>
-                  <option value="ajustes">Solicitar ajustes</option>
-                  <option value="rejeitado">Rejeitar</option>
-                </select>
-              </label>
+                <div class="decision-options" role="group" aria-label="Decisão da diretoria">
+                  <label class="radio-card" [class.radio-card--active]="approvalForm.decision === 'aprovado'">
+                    <input type="radio" name="decision" value="aprovado" [(ngModel)]="approvalForm.decision" />
+                    <span class="radio-card__content">
+                      <fa-icon [icon]="faCheckCircle"></fa-icon>
+                      <span>
+                        <strong>Aprovar</strong>
+                        <small>Liberar imediatamente para cotação.</small>
+                      </span>
+                    </span>
+                  </label>
+                  <label class="radio-card" [class.radio-card--active]="approvalForm.decision === 'ajustes'">
+                    <input type="radio" name="decision" value="ajustes" [(ngModel)]="approvalForm.decision" />
+                    <span class="radio-card__content">
+                      <fa-icon [icon]="faFileSignature"></fa-icon>
+                      <span>
+                        <strong>Pedir ajustes</strong>
+                        <small>Solicitar correção antes de avançar.</small>
+                      </span>
+                    </span>
+                  </label>
+                  <label class="radio-card" [class.radio-card--active]="approvalForm.decision === 'rejeitado'">
+                    <input type="radio" name="decision" value="rejeitado" [(ngModel)]="approvalForm.decision" />
+                    <span class="radio-card__content">
+                      <fa-icon [icon]="faStamp"></fa-icon>
+                      <span>
+                        <strong>Rejeitar</strong>
+                        <small>Encerrar a solicitação nesta etapa.</small>
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
               <label class="form-field form-field--full">
                 <span>Observações</span>
                 <textarea
