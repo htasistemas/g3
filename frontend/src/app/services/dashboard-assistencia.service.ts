@@ -1,4 +1,7 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { finalize } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface DashboardTop12 {
   beneficiariosAtendidosPeriodo: number;
@@ -59,96 +62,27 @@ export class DashboardAssistenciaService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  constructor(private readonly http: HttpClient) {}
+
   fetch(filters?: { startDate?: string | null; endDate?: string | null }) {
     this.loading.set(true);
     this.error.set(null);
 
-    setTimeout(() => {
-      this.data.set(this.buildMockData(filters));
-      this.loading.set(false);
-    }, 300);
-  }
+    let params = new HttpParams();
+    if (filters?.startDate) params = params.set('startDate', filters.startDate);
+    if (filters?.endDate) params = params.set('endDate', filters.endDate);
 
-  private buildMockData(filters?: { startDate?: string | null; endDate?: string | null }): DashboardAssistenciaResponse {
-    const startDate = filters?.startDate || null;
-    const endDate = filters?.endDate || null;
-
-    return {
-      filters: { startDate, endDate },
-      top12: {
-        beneficiariosAtendidosPeriodo: 1240,
-        familiasExtremaPobreza: 318,
-        rendaMediaFamiliar: 1450.35,
-        cursosAtivos: 22,
-        taxaMediaOcupacaoCursos: 78,
-        certificadosEmitidos: 432,
-        doacoesPeriodo: 84500,
-        itensDoadoResumo: {
-          cestas: 65,
-          livros: 28,
-          uniformes: 42,
-          kitsHigiene: 51
+    this.http
+      .get<DashboardAssistenciaResponse>(`${environment.apiUrl}/api/dashboard/assistencia`, { params })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.data.set(response);
         },
-        visitasDomiciliares: 37,
-        termosVencendo: 4,
-        execucaoFinanceira: 86,
-        absenteismo: 6.5
-      },
-      atendimento: {
-        totalBeneficiarios: 3280,
-        ativos: 2975,
-        pendentes: 165,
-        bloqueados: 24,
-        emAnalise: 62,
-        desatualizados: 54,
-        cadastroCompletoPercentual: 88,
-        beneficiariosPeriodo: 412,
-        novosBeneficiarios: 156,
-        reincidentes: 41,
-        faixaEtaria: {
-          '0-5 anos': 420,
-          '6-12 anos': 870,
-          '13-17 anos': 680,
-          '18-29 anos': 540,
-          '30-59 anos': 620,
-          '60+ anos': 150
-        },
-        vulnerabilidades: {
-          'Insegurança alimentar': 680,
-          'Desemprego': 740,
-          'Moradia precária': 295,
-          'Violência doméstica': 115,
-          'Pessoa com deficiência': 180
+        error: (error) => {
+          console.error('Erro ao carregar dashboard de assistência', error);
+          this.error.set('Não foi possível carregar os indicadores em tempo real.');
         }
-      },
-      familias: {
-        total: 910,
-        mediaPessoas: 3.4,
-        rendaMediaFamiliar: 1895.75,
-        rendaPerCapitaMedia: 556.1,
-        insegurancaAlimentar: {
-          Grave: 124,
-          Moderada: 228,
-          Leve: 310,
-          'Não identificada': 248
-        },
-        faixaRenda: {
-          'Até 1/2 SM': 362,
-          'Até 1 SM': 271,
-          '1 a 2 SM': 190,
-          '2 a 3 SM': 62,
-          'Acima de 3 SM': 25
-        }
-      },
-      termos: {
-        ativos: 18,
-        valorTotal: 925000,
-        alertas: [
-          { numero: 'TF-2024-018', vigenciaFim: '2024-09-30', status: 'A vencer' },
-          { numero: 'TF-2024-011', vigenciaFim: '2024-10-12', status: 'A vencer' },
-          { numero: 'TF-2023-027', vigenciaFim: '2024-08-22', status: 'Revisão' }
-        ]
-      }
-    };
+      });
   }
 }
