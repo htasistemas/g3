@@ -367,6 +367,8 @@
       </select>
     </div>
 
+    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+
     <div class="grid-cols-2">
       <div class="card">
         <div class="card__header">
@@ -388,6 +390,10 @@
               <option value="PNG">PNG</option>
             </select>
           </label>
+          <label class="field full">Arquivo digitalizado*
+            <input type="file" accept=".pdf,image/*" (change)="onFileSelected($event)" />
+            <span class="muted">Formatos aceitos: PDF, JPG ou PNG. Tamanho máximo sugerido: 10MB.</span>
+          </label>
         </form>
 
         <div class="table-wrapper">
@@ -396,16 +402,24 @@
               <tr>
                 <th>Arquivo</th>
                 <th>Tipo</th>
+                <th>Tamanho</th>
                 <th>Data</th>
                 <th>Usuário</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let anexo of anexosSelecionados">
                 <td>{{ anexo.nomeArquivo }}</td>
                 <td>{{ anexo.tipo }}</td>
+                <td>{{ anexo.tamanho || '—' }}</td>
                 <td>{{ anexo.dataUpload }}</td>
                 <td>{{ anexo.usuario }}</td>
+                <td class="text-right">
+                  <button class="ghost" type="button" [disabled]="!anexo.dataUrl" (click)="visualizarAnexo(anexo)">
+                    {{ anexo.dataUrl ? 'Visualizar' : 'Sem arquivo digitalizado' }}
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
