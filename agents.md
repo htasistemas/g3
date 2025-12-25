@@ -1,129 +1,142 @@
-# AGENTS.md – Diretrizes para Agentes e Contribuições (G3)
+# AGENTS.md - Diretrizes para Agentes e Contribuicoes (G3)
 
-Este documento define **como agentes humanos ou assistentes de IA devem atuar** ao contribuir com o sistema **G3 – Sistema de Gestão do Terceiro Setor**.
-
-O objetivo é garantir **consistência técnica**, **qualidade de código**, **segurança** e **evolução sustentável** do sistema.
-
----
+Este documento define como agentes humanos ou assistentes de IA devem atuar ao contribuir com o sistema G3.
 
 ## Idioma
-- **Sempre comunicar em português**.
-- Nomes técnicos podem permanecer em inglês quando fizer sentido (ex.: DTO, Service, Repository).
+- Sempre comunicar em portugues.
+- Nomes tecnicos podem permanecer em ingles quando fizer sentido (ex.: DTO, Service, Repository).
+- Esta diretriz e obrigatoria para todas as respostas.
 
----
+## Padrao de nomenclatura
+- Padrao de nome para variaveis e classes: exemplo `unidadeAssistencial`.
+- Nomes sempre em portugues (codigo, banco de dados, tabelas e colunas).
 
-## Princípios Fundamentais
-- O sistema G3 deve priorizar:
-  - Clareza
-  - Manutenção
-  - Estabilidade
-  - Segurança
-- Nenhuma solução deve ser implementada apenas “para funcionar”.
-- Toda alteração deve considerar impacto futuro.
+## Principios fundamentais
+- Priorizar clareza, manutencao, estabilidade e seguranca.
+- Nenhuma solucao deve ser implementada apenas para funcionar.
+- Toda alteracao deve considerar impacto futuro.
 
----
-
-## Escopo de Atuação dos Agentes
+## Escopo de atuacao
 Agentes devem:
-- Sugerir soluções alinhadas ao padrão do projeto.
+- Sugerir solucoes alinhadas ao padrao do projeto.
 - Respeitar a arquitetura existente.
-- Evitar reescritas desnecessárias.
-- Manter compatibilidade com o que já está em produção.
+- Evitar reescritas desnecessarias.
+- Manter compatibilidade com o que ja esta em producao.
 
-Agentes **não devem**:
-- Criar soluções paralelas para o mesmo problema.
-- Introduzir dependências sem justificativa clara.
-- Alterar padrões sem alinhar com este documento.
+Agentes nao devem:
+- Criar solucoes paralelas para o mesmo problema.
+- Introduzir dependencias sem justificativa clara.
+- Alterar padroes sem alinhar com este documento.
 
----
-
-## Regras de Código
-- Código deve ser:
-  - Legível
-  - Simples
-  - Coeso
-- Evitar duplicação; reutilizar serviços e utilitários existentes.
-- Preferir composição a herança.
-- Métodos devem ter responsabilidade única.
-- Evitar lógica oculta ou efeitos colaterais inesperados.
-- Todas as telas novas ou ja criadas precisam ser geradas o popup error message
-
----
+## Regras de codigo
+- Codigo deve ser legivel, simples e coeso.
+- Evitar duplicacao; reutilizar servicos e utilitarios existentes.
+- Preferir composicao a heranca.
+- Metodos devem ter responsabilidade unica.
+- Evitar logica oculta ou efeitos colaterais inesperados.
+- Todas as telas novas ou ja criadas precisam gerar o popup de error message.
 
 ## Angular (Frontend)
-- Não adicionar lógica pesada em templates.
-- Sempre usar serviços para regras de negócio.
-- Tipagem estrita é obrigatória; evitar `any`.
-- Seguir os padrões visuais e estruturais definidos no README.md.
+- Nao adicionar logica pesada em templates.
+- Sempre usar servicos para regras de negocio.
+- Tipagem estrita e obrigatoria; evitar `any`.
+- Seguir os padroes visuais e estruturais definidos no README.md.
 - Componentes devem ser pequenos e focados.
-- Separar smart/dumb components quando aplicável.
+- Separar smart/dumb components quando aplicavel.
+- Todas as telas devem usar `app-tela-padrao` como base, mantendo o formulario centralizado e o cabecalho alinhado ao padrao da tela de cadastro de unidade.
+- `app-tela-padrao` deve posicionar a `app-barra-acoes-crud` no canto superior direito, alinhada ao titulo (fora de cards e formularios), com as acoes via input; "cancelar" deve limpar todos os campos, mesmo em cadastro novo.
 
-### Componentes Compartilhados
-- **Autocomplete**:
-  - Usar exclusivamente `app-autocomplete`.
-  - Normalizar buscas (case-insensitive e sem acento) no frontend e backend.
-- **Mensagens**:
-  - Formulários: `PopupErrorBuilder` + `app-popup-messages`
+### Campos padronizados
+- Sempre aplicar capitalizacao: cada palavra deve iniciar com maiuscula e o restante minusculo em campos de texto (nome fantasia, razao social, endereco, bairro, cidade, horario, responsavel etc.), exceto quando o campo aceita livre texto longo (observacoes) ou emails.
+- Qualquer campo de CNPJ precisa ter mascara `00.000.000/0000-00` no frontend e validar a estrutura (incluindo calculo dos digitos verificadores) antes de enviar ao backend, exibindo erro claro ao usuario.
+- Qualquer campo de CPF precisa ter mascara `000.000.000-00` no frontend e validar a estrutura (incluindo calculo dos digitos verificadores) antes de enviar ao backend, exibindo erro claro ao usuario e destacando o campo com borda vermelha quando invalido.
+- No modulo de endereco da unidade, o campo `cidade` deve oferecer autocomplete/lista baseada nas cidades de Minas Gerais e, ao confirmar um valor valido, preencher automaticamente o campo `estado` com a UF correspondente.
+
+### Componentes compartilhados
+- Autocomplete: usar exclusivamente `app-autocomplete`.
+- Normalizar buscas (case-insensitive e sem acento) no frontend e backend.
+- Mensagens:
+  - Formularios: `PopupErrorBuilder` + `app-popup-messages`
   - Globais: `ErrorService` + `ToastComponent`
-- **Confirmações**:
-  - Usar sempre `app-dialog`
-
----
+- Confirmacoes: usar sempre `app-dialog`
 
 ## Backend (Java)
-- Manter separação clara de camadas:
+- Manter separacao clara de camadas:
   - Controller
   - Service
   - Repository
   - Domain
-- Usar DTOs para entrada e saída.
+- Usar DTOs para entrada e saida.
 - Nunca expor entidades diretamente.
-- Validar dados no backend mesmo que já validados no frontend.
-- Priorizar imutabilidade quando possível.
-- Tratar erros de forma explícita e previsível.
+- Validar dados no backend mesmo que ja validados no frontend.
+- Priorizar imutabilidade quando possivel.
+- Tratar erros de forma explicita e previsivel.
+- CORS:
+  - Se o frontend receber 403 no preflight (OPTIONS), configurar CORS no backend para liberar o Origin e headers/metodos usados.
+  - Padrao recomendado: criar `CorsConfig` com `WebMvcConfigurer` e permitir `http://localhost:4200` em dev, com `allowedMethods` e `allowedHeaders` (ex.: `authorization`, `content-type`).
+  - Em producao, restringir `allowedOrigins` ao dominio oficial do frontend.
+  - Snippet (exemplo):
+```java
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
 
----
+    @Value("${app.cors.allowed-origins}")
+    private String[] allowedOrigins;
 
-## Segurança
+    @Override
+    public void addCorsMappings(CorsRegistry registro) {
+        registro.addMapping("/**")
+            .allowedOrigins(allowedOrigins)
+            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+            .allowedHeaders("authorization", "content-type")
+            .allowCredentials(true);
+    }
+}
+```
+  - Exemplo de configuracao:
+```yaml
+# application-dev.yml
+app:
+  cors:
+    allowed-origins: "http://localhost:4200"
+
+# application-prod.yml
+app:
+  cors:
+    allowed-origins: "https://app.exemplo.com.br"
+```
+
+## Seguranca
 - Nunca confiar apenas em dados vindos do frontend.
-- Evitar exposição de informações sensíveis em logs.
-- Aplicar princípio do menor privilégio.
-- Criar defesas contra:
-  - Registros nulos
-  - Estados inválidos
-  - Fluxos incompletos
+- Evitar exposicao de informacoes sensiveis em logs.
+- Aplicar principio do menor privilegio.
+- Criar defesas contra registros nulos, estados invalidos e fluxos incompletos.
 
----
-
-## Banco de Dados
-- Toda alteração estrutural deve estar em `init.sql`.
-- Scripts devem ser **idempotentes**.
+## Banco de dados
+- Toda alteracao estrutural deve estar em `init.db`.
+- Scripts devem ser idempotentes.
 - Evitar blocos `DO $$`.
-- Usar nomes em português, claros e objetivos.
-- Modelagem relacional correta é obrigatória.
-- Sempre usar `id` sequencial como chave primária.
-
----
+- Usar nomes em portugues, claros e objetivos.
+- Modelagem relacional correta e obrigatoria.
+- Sempre usar `id` sequencial como chave primaria.
+- Usar relacionamento por FK nas tabelas.
+- Quando for solicitado "colocar no banco", sempre atualizar o `init.db` e criar/ajustar toda a infra Java necessaria (Domain, DTO, Repository, Service, Controller) para persistir e retornar os campos.
 
 ## Testes
 - Criar ou atualizar testes sempre que alterar comportamento.
-- Priorizar testes de fluxos críticos.
-- Testes devem ser determinísticos e rápidos.
-- Código sem teste deve ser exceção, não regra.
+- Priorizar testes de fluxos criticos.
+- Testes devem ser deterministas e rapidos.
+- Codigo sem teste deve ser excecao, nao regra.
 
----
+## Revisoes e mudancas
+- Mudancas devem ser pequenas e com proposito claro.
+- Nao misturar refatoracao com novas funcionalidades.
+- Decisoes importantes devem ser documentadas.
+- Atualizar README.md ou documentacao tecnica quando necessario.
 
-## Revisões e Mudanças
-- Mudanças devem ser pequenas e com propósito claro.
-- Não misturar refatoração com novas funcionalidades.
-- Decisões importantes devem ser documentadas.
-- Atualizar README.md ou documentação técnica quando necessário.
-
----
-
-## Postura Esperada do Agente
+## Postura esperada do agente
 - Ser direto e objetivo.
-- Apontar riscos técnicos quando existirem.
-- Não assumir requisitos não informados.
-- Não simplificar problemas complexos sem justificativa.
-- Manter alinhamento com a arquitetura e visão do sistema G3.
+- Apontar riscos tecnicos quando existirem.
+- Nao assumir requisitos nao informados.
+- Nao simplificar problemas complexos sem justificativa.
+- Manter alinhamento com a arquitetura e visao do sistema G3.

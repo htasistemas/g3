@@ -7,7 +7,7 @@ const runtimeApiUrl =
       ((window as any).__env?.apiUrl as string | undefined)
     : undefined;
 
-const apiPort = browserLocation?.port === '4200' ? '3000' : browserLocation?.port;
+const apiPort = browserLocation?.port === '4200' ? '8080' : browserLocation?.port;
 const apiUrlFromLocation = browserLocation
   ? `${browserLocation.protocol}//${browserLocation.hostname}${apiPort ? `:${apiPort}` : ''}`
   : null;

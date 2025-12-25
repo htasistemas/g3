@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface DocumentoInstitucional {
   id: string;
   tipoDocumento: string;
@@ -50,7 +51,7 @@ type AlertaFiltro = 'hoje' | '7' | '30' | '60' | 'vencidos';
 @Component({
   selector: 'app-documentos-institucionais',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent],
   templateUrl: './documentos-institucionais.component.html',
   styleUrl: './documentos-institucionais.component.scss'
 })

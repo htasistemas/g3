@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { VolunteerPayload, VolunteerService } from '../../services/volunteer.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface StepTab {
   id: string;
   label: string;
@@ -13,7 +14,7 @@ type VolunteerRecord = VolunteerPayload & { id: string };
 @Component({
   selector: 'app-voluntariado-cadastro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './voluntariado-cadastro.component.html',
   styleUrl: './voluntariado-cadastro.component.scss'
 })

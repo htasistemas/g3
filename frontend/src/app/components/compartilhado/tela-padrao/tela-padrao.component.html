@@ -1,0 +1,26 @@
+<div class="tela-padrao">
+  <div class="page-header">
+    <div class="page-title-slot">
+      <ng-content select="[slot='titulo']"></ng-content>
+    </div>
+    <div class="page-actions">
+      <app-barra-acoes-crud
+        *ngIf="mostrarToolbar"
+        [acoes]="acoes"
+        [desabilitado]="desabilitado"
+        [mostrarFechar]="mostrarFechar"
+      (imprimir)="imprimir.emit()"
+      (buscar)="buscar.emit()"
+      (salvar)="salvar.emit()"
+        (cancelar)="cancelar.emit()"
+        (excluir)="excluir.emit()"
+        (novo)="novo.emit()"
+        (fechar)="fechar.emit()"
+      ></app-barra-acoes-crud>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <ng-content></ng-content>
+  </div>
+</div>

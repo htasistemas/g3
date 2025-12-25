@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, tap, timeout } from 'rxjs/operators';
-import { Observable, of, throwError } from 'rxjs';
+import { tap, timeout } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
 
@@ -28,14 +28,6 @@ export class AuthService {
             ...response,
             user: response.user ?? { id: '0', nomeUsuario },
           });
-        }),
-        catchError((error) => {
-          const localSession = this.createLocalSession(nomeUsuario, senha);
-          if (localSession) {
-            this.persistSession(localSession);
-            return of(localSession);
-          }
-          return throwError(() => error);
         })
       );
   }
@@ -70,10 +62,4 @@ export class AuthService {
     localStorage.setItem(this.storageKey, JSON.stringify(session));
   }
 
-  private createLocalSession(nomeUsuario: string, senha: string): LoginResponse | null {
-    if (nomeUsuario === 'admin' && senha === '123') {
-      return { token: 'local-session', user: { id: 'local-admin', nomeUsuario } };
-    }
-    return null;
-  }
 }

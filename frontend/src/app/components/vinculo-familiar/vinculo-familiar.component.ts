@@ -7,10 +7,11 @@ import { FamiliaMembroPayload, FamiliaPayload, FamilyService } from '../../servi
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 @Component({
   selector: 'app-vinculo-familiar',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './vinculo-familiar.component.html',
   styleUrl: './vinculo-familiar.component.scss'
 })

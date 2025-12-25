@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ef12291c-2c5d-4ddc-acac-3ec4a49c71b0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.dockerignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.dockerignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/g3.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/g3.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../agents.md" beforeDir="false" afterPath="$PROJECT_DIR$/../agents.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysqlSQL/sql-editor-create-tables.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/postgresSQL/sql-editor-create-tables.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data-source.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/AssistanceUnit.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/Beneficiario.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/BeneficiaryDocumentConfig.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/BenefitGrant.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/BenefitType.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/CursoAtendimento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/Familia.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/FamiliaMembro.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/IndiceVulnerabilidadeFamiliar.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/Patrimonio.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PatrimonioMovimento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoAtividade.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoCronogramaItem.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoEquipe.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoEtapa.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoMeta.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/PlanoTrabalho.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/Prontuario.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/ProntuarioAtendimento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/ProntuarioEncaminhamento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/Sala.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/StockItem.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/StockMovement.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/TermoFomento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/entities/User.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1729700000000-RenameSchemaToPortuguese.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1729750000000-CreateFamiliesAndMembers.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1729800000000-CreateBeneficiarioFamiliaSchema.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730000000000-AddStatusToBeneficiario.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730100000000-UpdateAssistanceUnitSchema.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730140000000-AddCertificateTemplateToCursoAtendimento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730200000000-AddLogoToAssistanceUnit.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730300000000-AddReportLogoAndScheduleToAssistanceUnit.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730400000000-AddBeneficiarioDocuments.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730500000000-AddBeneficiarioPhoto.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730600000000-AddBeneficiarioCodigo.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730700000000-CreateSalas.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730800000000-CreateBeneficiarioBaseSchema.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730900000000-CreateVulnerabilityIndex.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730950000000-AddStatusToCursosAtendimentos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730959000000-CreateTermosFomento.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1730960000000-CreateBenefitsModule.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1731000000000-CreateStockModule.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1731100000000-RenameBeneficiariesToBeneficiarios.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1731200000000-CreateProntuarioModule.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1731300000000-EnsureUsuariosTable.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/migrations/1731400000000-RenameUsuariosToUsuario.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/almoxarifado.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/assistance-units.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/assistente-textos.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/auth.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/beneficiaries.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/beneficiarios.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/benefit-grants.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/benefit-types.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/config.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/cursos-atendimentos.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/dashboard-assistencia.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/dashboard-bi.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/familias.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/families.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/patrimonios.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/planos-trabalho.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/prontuario.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/reports.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/salas.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/termos-fomento.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/usuarios.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/vulnerability-index.routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/db-check.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/assistente-textos.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/beneficiario-duplicidade.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/jsreport.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/services/vulnerability-index.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/json-data-source.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/types.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/templates/authorization-term.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/templates/reports/beneficiarios/authorization-term.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/templates/reports/beneficiarios/beneficiary-list.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/templates/reports/beneficiarios/beneficiary-profile.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/jsreport.d.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/bootstrap.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/database.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/databaseConfig.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/document-config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="37IiRv0KsmE8ExGgfc2PZtyA4Al" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/g3/backend",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="G3Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="backend" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.g3.G3Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ef12291c-2c5d-4ddc-acac-3ec4a49c71b0" name="Changes" comment="" />
+      <created>1766596982227</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1766596982227</updated>
+      <workItem from="1766596983540" duration="152000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-core" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.validation:jakarta.validation-api" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.persistence:jakarta.persistence-api" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.data:spring-data-commons" />
+    <option featureType="dependencySupport" implementationName="java:org.hibernate.validator:hibernate-validator" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.boot:spring-boot" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-webmvc" />
+  </component>
+</project>

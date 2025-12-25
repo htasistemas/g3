@@ -1,0 +1,208 @@
+-- Arquivo SQL idempotente executado no startup
+CREATE TABLE IF NOT EXISTS unidade_assistencial (
+  id BIGSERIAL PRIMARY KEY,
+  nome_fantasia VARCHAR(200) NOT NULL,
+  razao_social VARCHAR(200),
+  cnpj VARCHAR(20),
+  email VARCHAR(150),
+  telefone VARCHAR(30),
+  horario_funcionamento VARCHAR(120),
+  observacoes TEXT,
+  unidade_principal BOOLEAN NOT NULL DEFAULT FALSE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS endereco (
+  id BIGSERIAL PRIMARY KEY,
+  cep VARCHAR(20),
+  logradouro VARCHAR(200),
+  numero VARCHAR(20),
+  complemento VARCHAR(150),
+  bairro VARCHAR(150),
+  ponto_referencia VARCHAR(200),
+  cidade VARCHAR(150),
+  zona VARCHAR(60),
+  estado VARCHAR(2),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cadastro_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  nome_completo VARCHAR(200) NOT NULL,
+  nome_social VARCHAR(200),
+  apelido VARCHAR(120),
+  data_nascimento DATE NOT NULL,
+  sexo_biologico VARCHAR(60),
+  identidade_genero VARCHAR(120),
+  cor_raca VARCHAR(60),
+  estado_civil VARCHAR(60),
+  nacionalidade VARCHAR(120),
+  naturalidade_cidade VARCHAR(150),
+  naturalidade_uf VARCHAR(2),
+  nome_mae VARCHAR(200) NOT NULL,
+  nome_pai VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS imagens_unidade (
+  id BIGSERIAL PRIMARY KEY,
+  unidade_id BIGINT NOT NULL UNIQUE,
+  logomarca TEXT,
+  logomarca_relatorio TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (unidade_id) REFERENCES unidade_assistencial(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS diretoria_unidade (
+  id BIGSERIAL PRIMARY KEY,
+  unidade_id BIGINT NOT NULL,
+  nome_completo VARCHAR(200) NOT NULL,
+  documento VARCHAR(60) NOT NULL,
+  funcao VARCHAR(120) NOT NULL,
+  mandato_inicio VARCHAR(9),
+  mandato_fim VARCHAR(9),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (unidade_id) REFERENCES unidade_assistencial(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id BIGSERIAL PRIMARY KEY,
+  nome_usuario VARCHAR(120) NOT NULL,
+  senha_hash VARCHAR(255) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS usuarios_nome_usuario_unique ON usuarios (nome_usuario);
+
+INSERT INTO usuarios (nome_usuario, senha_hash)
+VALUES ('admin', '$2b$12$5TpCYArxeCzM9aE6yrSVeOmdONYrVZwXRqUXwhEqOh11IUkCo23sq')
+ON CONFLICT (nome_usuario) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS permissao (
+  id BIGSERIAL PRIMARY KEY,
+  nome VARCHAR(60) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS usuario_permissao (
+  usuario_id BIGINT NOT NULL,
+  permissao_id BIGINT NOT NULL,
+  PRIMARY KEY (usuario_id, permissao_id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (permissao_id) REFERENCES permissao(id)
+);
+
+INSERT INTO permissao (nome)
+VALUES
+  ('ADMINISTRADOR'),
+  ('OPERADOR'),
+  ('LEITURA_APENAS')
+ON CONFLICT (nome) DO NOTHING;
+
+INSERT INTO usuario_permissao (usuario_id, permissao_id)
+SELECT u.id, p.id
+FROM usuarios u
+JOIN permissao p ON p.nome = 'ADMINISTRADOR'
+WHERE u.nome_usuario = 'admin'
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS nome_fantasia VARCHAR(200);
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS razao_social VARCHAR(200);
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS horario_funcionamento VARCHAR(120);
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS observacoes TEXT;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS unidade_principal BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS nome_usuario VARCHAR(120);
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS senha_hash VARCHAR(255);
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS endereco_id BIGINT REFERENCES endereco(id) ON DELETE SET NULL;
+
+ALTER TABLE diretoria_unidade
+  ADD COLUMN IF NOT EXISTS mandato_inicio VARCHAR(9);
+
+ALTER TABLE diretoria_unidade
+  ADD COLUMN IF NOT EXISTS mandato_fim VARCHAR(9);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS nome_completo VARCHAR(200);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS nome_social VARCHAR(200);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS apelido VARCHAR(120);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS data_nascimento DATE;
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS sexo_biologico VARCHAR(60);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS identidade_genero VARCHAR(120);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS cor_raca VARCHAR(60);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS estado_civil VARCHAR(60);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS nacionalidade VARCHAR(120);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS naturalidade_cidade VARCHAR(150);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS naturalidade_uf VARCHAR(2);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS nome_mae VARCHAR(200);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(200);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS complemento VARCHAR(150);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS ponto_referencia VARCHAR(200);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS zona VARCHAR(60);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS subzona VARCHAR(60);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS latitude NUMERIC(10, 6);
+
+ALTER TABLE endereco
+  ADD COLUMN IF NOT EXISTS longitude NUMERIC(10, 6);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS endereco_id BIGINT REFERENCES endereco(id) ON DELETE SET NULL;

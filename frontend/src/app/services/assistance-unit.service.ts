@@ -7,27 +7,42 @@ export interface AssistanceUnitPayload {
   id?: number;
   nomeFantasia: string;
   razaoSocial?: string;
+  enderecoId?: number;
   cnpj?: string;
   telefone?: string;
   email?: string;
   cep?: string;
   endereco?: string;
   numeroEndereco?: string;
+  complemento?: string;
   bairro?: string;
+  pontoReferencia?: string;
   cidade?: string;
+  zona?: string;
+  subzona?: string;
   estado?: string;
+  latitude?: string;
+  longitude?: string;
   observacoes?: string;
   logomarca?: string;
   logomarcaRelatorio?: string;
+  diretoria?: DiretoriaUnidadePayload[];
   horarioFuncionamento?: string;
-  responsavelNome?: string;
-  responsavelCpf?: string;
-  responsavelPeriodoMandato?: string;
+  unidadePrincipal?: boolean;
+}
+
+export interface DiretoriaUnidadePayload {
+  id?: number;
+  nomeCompleto: string;
+  documento: string;
+  funcao: string;
+  mandatoInicio?: string;
+  mandatoFim?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AssistanceUnitService {
-  private readonly baseUrl = `${environment.apiUrl}/api/assistance-units`;
+  private readonly baseUrl = `${environment.apiUrl}/api/unidades-assistenciais`;
   private readonly activeUnitKey = 'g3-active-assistance-unit';
   private readonly activeUnitLogoKey = 'g3-active-assistance-logo';
 
@@ -45,7 +60,11 @@ export class AssistanceUnitService {
   constructor(private readonly http: HttpClient) {}
 
   get(): Observable<{ unidade: AssistanceUnitPayload | null }> {
-    return this.http.get<{ unidade: AssistanceUnitPayload | null }>(this.baseUrl);
+    return this.http.get<{ unidade: AssistanceUnitPayload | null }>(`${this.baseUrl}/atual`);
+  }
+
+  list(): Observable<AssistanceUnitPayload[]> {
+    return this.http.get<AssistanceUnitPayload[]>(this.baseUrl);
   }
 
   save(payload: AssistanceUnitPayload): Observable<AssistanceUnitPayload> {

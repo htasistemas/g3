@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { OficioPayload, OficioService, TramiteRegistro } from '../../services/oficio.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface StepTab {
   id: string;
   label: string;
@@ -11,7 +12,7 @@ interface StepTab {
 @Component({
   selector: 'app-oficios-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './oficios-gestao.component.html',
   styleUrl: './oficios-gestao.component.scss'
 })

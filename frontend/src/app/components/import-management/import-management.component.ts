@@ -8,6 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faBoxOpen,
   faCheckCircle,
@@ -199,7 +200,7 @@ const SAMPLE_DATA: Record<ImportEntity, Record<string, string>[]> = {
 @Component({
   selector: 'app-import-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './import-management.component.html',
   styleUrl: './import-management.component.scss'
 })

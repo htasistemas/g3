@@ -22,6 +22,7 @@ import { firstValueFrom } from 'rxjs';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { FamilyService, FamiliaPayload } from '../../services/family.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface Beneficiary {
   id: string;
   name: string;
@@ -83,7 +84,7 @@ type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
 @Component({
   selector: 'app-donation-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './donation-management.component.html',
   styleUrl: './donation-management.component.scss'
 })

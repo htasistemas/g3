@@ -8,11 +8,13 @@ export interface UserPayload {
   nomeUsuario: string;
   criadoEm?: string;
   atualizadoEm?: string;
+  permissoes?: string[];
 }
 
 export interface UserInput {
   nomeUsuario: string;
   senha: string;
+  permissoes: string[];
 }
 
 @Injectable({ providedIn: 'root' })

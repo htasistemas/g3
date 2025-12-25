@@ -9,6 +9,7 @@ import {
 } from '../../services/professional.service';
 import { titleCaseWords } from '../../utils/capitalization.util';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface StepTab {
   id: string;
   label: string;
@@ -17,7 +18,7 @@ interface StepTab {
 @Component({
   selector: 'app-profissionais-cadastro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './profissionais-cadastro.component.html',
   styleUrl: './profissionais-cadastro.component.scss'
 })

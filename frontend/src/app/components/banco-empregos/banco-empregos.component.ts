@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { Router, RouterModule } from '@angular/router';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, takeUntil } from 'rxjs';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   BancoEmpregosService,
   JobEncaminhamento,
@@ -15,7 +16,7 @@ import {
 @Component({
   selector: 'app-banco-empregos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TelaPadraoComponent],
   templateUrl: './banco-empregos.component.html',
   styleUrl: './banco-empregos.component.scss'
 })

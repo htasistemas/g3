@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faArrowTrendUp,
   faBookOpen,
@@ -36,7 +37,7 @@ interface PrestacaoTab {
 @Component({
   selector: 'app-prestacao-contas',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule],
+  imports: [CommonModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './prestacao-contas.component.html',
   styleUrl: './prestacao-contas.component.scss'
 })

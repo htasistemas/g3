@@ -9,6 +9,7 @@ import {
 } from '../../services/plano-trabalho.service';
 import { TermoFomentoPayload, TermoFomentoService } from '../../services/termo-fomento.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface StepTab {
   id: string;
   label: string;
@@ -17,7 +18,7 @@ interface StepTab {
 @Component({
   selector: 'app-plano-trabalho-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './plano-trabalho-gestao.component.html',
   styleUrl: './plano-trabalho-gestao.component.scss'
 })

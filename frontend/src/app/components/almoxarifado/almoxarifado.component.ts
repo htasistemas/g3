@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faArrowTrendUp,
   faBoxArchive,
@@ -74,7 +75,7 @@ interface MovementFormState {
 @Component({
   selector: 'app-almoxarifado',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './almoxarifado.component.html',
   styleUrl: './almoxarifado.component.scss'
 })

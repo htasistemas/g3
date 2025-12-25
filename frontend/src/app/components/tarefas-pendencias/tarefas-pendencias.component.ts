@@ -5,6 +5,7 @@ import { ChecklistItem, TaskRecord, TarefasPendenciasService } from '../../servi
 import { FormsModule } from '@angular/forms';
 import { ProfessionalService } from '../../services/professional.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface DashboardSnapshot {
   total: number;
   abertas: number;
@@ -17,7 +18,7 @@ interface DashboardSnapshot {
 @Component({
   selector: 'app-tarefas-pendencias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent],
   templateUrl: './tarefas-pendencias.component.html',
   styleUrl: './tarefas-pendencias.component.scss'
 })

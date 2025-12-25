@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faBell,
   faCircleNotch,
@@ -35,7 +36,7 @@ interface BackupRecord {
 @Component({
   selector: 'app-data-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './data-management.component.html',
   styleUrl: './data-management.component.scss'
 })

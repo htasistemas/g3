@@ -5,8 +5,7 @@
 }
 
 .cadastro {
-  max-width: 1280px;
-  width: min(1280px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -22,18 +21,18 @@
 
 .page-title__eyebrow {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   color: #94a3b8;
   font-weight: 800;
 }
 
 .page-title__label {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0;
   color: #0f172a;
 }
 
@@ -71,12 +70,148 @@
   padding: 0.75rem 1rem;
   border: 1px solid #e2e8f0;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+  margin-bottom: 0.25rem;
+}
+
+.unit-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.unit-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: left;
+  transition: box-shadow 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+}
+
+.unit-list__item:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.1);
+}
+
+.unit-list__name {
+  margin: 0 0 0.15rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.unit-list__meta {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.unit-list__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-small {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.list-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.list-filters__actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.list-filters__actions .btn-outline {
+  width: fit-content;
+}
+
+.unit-active {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  box-shadow: 0 12px 26px rgba(16, 185, 129, 0.12);
+  margin-bottom: 0.75rem;
+}
+
+.unit-active__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.unit-active__name {
+  margin: 0 0 0.2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.unit-active__meta {
+  margin: 0;
+  color: #166534;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.unit-list__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.unit-list__page {
+  font-weight: 700;
+  color: #475569;
+}
+
+.unit-list__total {
+  margin-right: auto;
+  font-weight: 700;
+  color: #475569;
 }
 
 .tab-shell__title {
   margin: 0 0 0.35rem;
   font-weight: 600;
   color: #2b3648;
+}
+
+.date-age-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.age-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .step-tabs {
@@ -165,6 +300,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: -0.5rem;
 }
 
 .tab-card {
@@ -511,6 +647,91 @@
   display: grid;
   gap: 0.75rem 1rem;
   margin-top: 1rem;
+}
+
+.field-matricula {
+  grid-column: span 1;
+}
+
+.field-nome-completo {
+  grid-column: span 3;
+}
+
+.dados-grid {
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  align-items: end;
+}
+
+.endereco-grid {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  align-items: end;
+}
+
+.endereco-grid .field-cep {
+  grid-column: span 1;
+}
+
+.endereco-grid .field-logradouro {
+  grid-column: span 2;
+}
+
+.endereco-grid .field-numero {
+  grid-column: span 1;
+  max-width: 130px;
+}
+
+.endereco-grid .field-complemento {
+  grid-column: span 1;
+}
+
+.endereco-grid .field-bairro {
+  grid-column: span 1;
+}
+
+.endereco-grid .field-ponto {
+  grid-column: span 2;
+}
+
+.endereco-grid .field-municipio {
+  grid-column: span 2;
+}
+
+.endereco-grid .field-uf-endereco {
+  grid-column: span 1;
+  max-width: 140px;
+}
+
+.endereco-grid .field-zona {
+  grid-column: span 1;
+}
+
+.endereco-grid .field-subzona {
+  grid-column: span 1;
+}
+
+.field-social,
+.field-apelido,
+.field-sexo,
+.field-identidade,
+.field-cor,
+.field-nacionalidade,
+.field-nascimento,
+.field-estado-civil {
+  grid-column: span 1;
+}
+
+.field-naturalidade {
+  grid-column: span 1;
+}
+
+.field-uf {
+  grid-column: span 1;
+  max-width: 160px;
+}
+
+.field-mae,
+.field-pai {
+  grid-column: span 2;
 }
 
 .field-grid.full-span {
@@ -1294,7 +1515,7 @@
 
 .beneficiary-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
 }

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faArrowLeft,
   faArrowRight,
@@ -110,7 +111,7 @@ interface SupplierRegistryEntry {
 @Component({
   selector: 'app-autorizacao-compras',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './autorizacao-compras.component.html',
   styleUrl: './autorizacao-compras.component.scss'
 })

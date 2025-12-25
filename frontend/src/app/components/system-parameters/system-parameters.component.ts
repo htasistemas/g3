@@ -5,6 +5,7 @@ import { SystemSettingsComponent } from '../system-settings/system-settings.comp
 import { TextTemplatesComponent } from '../text-templates/text-templates.component';
 import { UserManagementComponent } from '../user-management/user-management.component';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 type ParameterTabId = 'documentos' | 'modelos' | 'usuarios' | 'personalizacao';
 
 interface ParameterTab {
@@ -23,7 +24,7 @@ interface ParameterTab {
     TextTemplatesComponent,
     UserManagementComponent,
     PersonalizacaoComponent
-  ],
+  , TelaPadraoComponent],
   templateUrl: './system-parameters.component.html',
   styleUrl: './system-parameters.component.scss'
 })

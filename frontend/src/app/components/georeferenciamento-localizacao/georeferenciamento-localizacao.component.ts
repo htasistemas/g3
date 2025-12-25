@@ -5,10 +5,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 @Component({
   selector: 'app-georeferenciamento-localizacao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './georeferenciamento-localizacao.component.html',
   styleUrl: './georeferenciamento-localizacao.component.scss'
 })

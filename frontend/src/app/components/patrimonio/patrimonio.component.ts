@@ -24,6 +24,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 type AssetTabId = 'dados' | 'visual' | 'localizacao' | 'dashboard' | 'movimentacao';
 
 type AssetFormTextField =
@@ -85,7 +86,7 @@ interface AssetForm {
 @Component({
   selector: 'app-patrimonio',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './patrimonio.component.html',
   styleUrl: './patrimonio.component.scss'
 })

@@ -1,16 +1,27 @@
-<section class="cadastro">
-  <header class="page-title">
-    <p class="page-title__eyebrow">Beneficiário</p>
-    <p class="page-title__label">Cadastro de beneficiário</p>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="submit()"
+  (excluir)="handleDeleteSelected()"
+  (novo)="startNewBeneficiario()"
+  (cancelar)="startNewBeneficiario()"
+  (imprimir)="printIndividualRecord()"
+  (fechar)="closeForm()"
+>
+<header class="page-title" slot="titulo">
+    <p class="page-title__eyebrow">Benefici&aacute;rio</p>
+    <p class="page-title__label">Cadastro de benefici&aacute;rio</p>
   </header>
 
+  <section class="cadastro">
   <ng-template #gestaoRapida>
     <section class="list-panel">
       <div class="list-panel__header">
         <div>
-          <p class="list-panel__eyebrow">Gestão rápida</p>
-          <h2>Busque beneficiários cadastrados</h2>
-          <p>Localize pelo nome, CPF, data de nascimento ou código e utilize os atalhos para navegar pelas ações.</p>
+          <p class="list-panel__eyebrow">Gest&atilde;o r&aacute;pida</p>
+          <h2>Busque benefici&aacute;rios cadastrados</h2>
+          <p>Localize pelo nome, CPF, data de nascimento ou c&oacute;digo e utilize os atalhos para navegar pelas a&ccedil;&otilde;es.</p>
         </div>
         <div class="list-panel__actions">
           <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
@@ -18,7 +29,7 @@
         </div>
       </div>
 
-      <div class="list-panel__navigation" aria-label="Ações rápidas para o cadastro">
+      <div class="list-panel__navigation" aria-label="A&ccedil;&otilde;es r&aacute;pidas para o cadastro">
         <button type="button" class="primary" (click)="startNewBeneficiario()">Incluir</button>
         <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleEditSelected()">
           Editar
@@ -42,12 +53,12 @@
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
         <label class="field">
-          Código
+          C&oacute;digo
           <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
         </label>
         <label class="field">
           CPF
-          <input type="text" formControlName="cpf" placeholder="Somente números" />
+          <input type="text" formControlName="cpf" placeholder="Somente n&uacute;meros" />
         </label>
         <label class="field">
           Data de nascimento
@@ -67,24 +78,24 @@
 
       <div *ngIf="listError" class="feedback">
         <span>{{ listError }}</span>
-        <button type="button" class="feedback__close" (click)="dismissListError()" aria-label="Fechar aviso">×</button>
+        <button type="button" class="feedback__close" (click)="dismissListError()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiários...</div>
+      <div *ngIf="listLoading" class="list-panel__loading">Carregando benefici&aacute;rios...</div>
 
       <div class="list-panel__table" *ngIf="!listLoading">
         <table>
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Código</th>
+              <th>C&oacute;digo</th>
               <th>CPF</th>
               <th>Nascimento</th>
               <th>Status</th>
-              <th class="text-right">Ações</th>
+              <th class="text-right">A&ccedil;&otilde;es</th>
             </tr>
           </thead>
-          <tbody *ngIf="filteredBeneficiarios.length; else emptyList">
-            <tr *ngFor="let beneficiario of filteredBeneficiarios">
+          <tbody *ngIf="beneficiariosPaginados.length; else emptyList">
+            <tr *ngFor="let beneficiario of beneficiariosPaginados">
               <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
               <td>{{ beneficiario.codigo || '---' }}</td>
               <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
@@ -101,16 +112,30 @@
         <ng-template #emptyList>
           <tbody>
             <tr>
-              <td colspan="6" class="list-panel__empty">Nenhum beneficiário encontrado com os filtros informados.</td>
+              <td colspan="6" class="list-panel__empty">Nenhum benefici&aacute;rio encontrado com os filtros informados.</td>
             </tr>
           </tbody>
         </ng-template>
+      </div>
+      <div class="unit-list__pagination" *ngIf="filteredBeneficiarios.length && beneficiariosPaginados.length">
+        <span class="unit-list__total">
+          Total: {{ filteredBeneficiarios.length }} benefici&aacute;rios
+        </span>
+        <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
+          Anterior
+        </button>
+        <span class="unit-list__page">
+          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+        </span>
+        <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
+          Proximo
+        </button>
       </div>
     </section>
   </ng-template>
 
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
+    <p class="tab-shell__title">Navegue pelas informa&ccedil;&otilde;es</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -133,33 +158,11 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
-    <div class="beneficiary-meta-card">
-      <p class="beneficiary-meta-card__title">Dados do cadastro</p>
-      <div class="beneficiary-meta" aria-live="polite">
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Família</span>
-          <span class="beneficiary-meta__value">{{ getFamilyRegistrationLabel() }}</span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Matrícula</span>
-          <span class="beneficiary-meta__value beneficiary-meta__value--code">
-            {{ beneficiaryCode || 'Gerado ao salvar' }}
-          </span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Cadastrado em</span>
-          <span class="beneficiary-meta__value">{{ formatDateTime(createdAt) }}</span>
-        </div>
-        <div class="beneficiary-meta__item">
-          <span class="beneficiary-meta__label">Alterado em</span>
-          <span class="beneficiary-meta__value">{{ formatDateTime(lastUpdatedAt) }}</span>
-        </div>
-      </div>
-    </div>
+    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 
     <div *ngIf="feedback" class="feedback">
       <span>{{ feedback }}</span>
-      <button type="button" class="feedback__close" (click)="dismissFeedback()" aria-label="Fechar aviso">×</button>
+      <button type="button" class="feedback__close" (click)="dismissFeedback()" aria-label="Fechar aviso">&times;</button>
     </div>
 
     <ng-template #navigationControls>
@@ -180,7 +183,7 @@
           (click)="goToNextTab()"
           [disabled]="uploadingDocuments"
         >
-          Próximo: {{ nextTabLabel }}
+          Pr&oacute;ximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving || uploadingDocuments" *ngIf="!hasNextTab">
           {{ saving ? 'Salvando...' : uploadingDocuments ? 'Aguardando envios' : 'Salvar cadastro' }}
@@ -192,182 +195,13 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
-          <p class="muted">Campos essenciais como nome, data de nascimento e responsáveis.</p>
-          <span class="pill">Obrigatório</span>
-        </div>
-        <div class="nav-buttons" aria-label="Ações rápidas do cadastro">
-          <div class="nav-buttons__row nav-buttons__row--primary">
-            <div class="nav-button-group" [class.nav-button-group--open]="printMenuOpen">
-              <button type="button" class="nav-button nav-button--print" (click)="togglePrintMenu()">
-                <span class="nav-button__icon" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M6 4.5C6 3.67157 6.67157 3 7.5 3H12.5C13.3284 3 14 3.67157 14 4.5V6H6V4.5Z"
-                      fill="currentColor"
-                    />
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M5 6H15C16.1046 6 17 6.89543 17 8V11.5C17 12.3284 16.3284 13 15.5 13H14V14.5C14 15.3284 13.3284 16 12.5 16H7.5C6.67157 16 6 15.3284 6 14.5V13H4.5C3.67157 13 3 12.3284 3 11.5V8C3 6.89543 3.89543 6 5 6ZM7.5 8.75C7.22386 8.75 7 8.97386 7 9.25C7 9.52614 7.22386 9.75 7.5 9.75H12.5C12.7761 9.75 13 9.52614 13 9.25C13 8.97386 12.7761 8.75 12.5 8.75H7.5Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </span>
-                <span class="nav-button__label">Imprimir dados</span>
-              </button>
-              <div class="print-menu" *ngIf="printMenuOpen" role="dialog" aria-label="Opções de impressão">
-                <div class="print-menu__section">
-                  <p class="print-menu__title">Ordenação da impressão</p>
-                  <label class="print-menu__field">
-                    <span>Ordenar por</span>
-                    <select [value]="printOrderBy" (change)="onPrintOrderChange($any($event.target).value)">
-                      <option *ngFor="let option of printOrderOptions" [value]="option.value">{{ option.label }}</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="print-menu__section">
-                  <div class="print-menu__heading">
-                    <p class="print-menu__title">Relação de beneficiários</p>
-                    <div class="chip-options" role="group" aria-label="Ordenação específica">
-                      <label class="chip-option">
-                        <input
-                          type="radio"
-                          name="printListOrder"
-                          value="alphabetical"
-                          [checked]="printListOrder === 'alphabetical'"
-                          (change)="setPrintListOrder('alphabetical')"
-                        />
-                        <span>Ordem alfabética</span>
-                      </label>
-                      <label class="chip-option">
-                        <input
-                          type="radio"
-                          name="printListOrder"
-                          value="code"
-                          [checked]="printListOrder === 'code'"
-                          (change)="setPrintListOrder('code')"
-                        />
-                        <span>Ordem de código</span>
-                      </label>
-                    </div>
-                  </div>
-                  <button type="button" class="ghost ghost--compact" (click)="handlePrintSelection('list')">
-                    Relação de beneficiários
-                  </button>
-                </div>
-                <div class="print-menu__section print-menu__section--actions">
-                  <button type="button" class="ghost ghost--compact" (click)="handlePrintSelection('individual')">
-                    Ficha individual
-                  </button>
-                  <button type="button" class="ghost ghost--compact" (click)="handlePrintSelection('authorization')">
-                    Termo de autorização
-                  </button>
-                  <button type="button" class="ghost ghost--compact" (click)="closePrintMenu()">Fechar</button>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="nav-button nav-button--muted" (click)="openQuickSearch()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M9.25 4.25C6.62665 4.25 4.5 6.37665 4.5 9C4.5 11.6234 6.62665 13.75 9.25 13.75C10.4688 13.75 11.579 13.2974 12.4324 12.5521L15.1903 15.3099C15.4832 15.6028 15.958 15.6028 16.2509 15.3099C16.5438 15.017 16.5438 14.5421 16.2509 14.2492L13.493 11.4913C14.2382 10.6379 14.6909 9.52771 14.6909 8.30901C14.6909 5.68565 12.5643 3.55901 9.94093 3.55901C9.25 3.55901 9.25 4.25 9.25 4.25Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Localizar beneficiário</span>
-            </button>
-            <div class="action-toolbar" aria-label="Ações do cadastro">
-              <div class="action-toolbar__group">
-                <button
-                  type="button"
-                  class="action-button action-button--save"
-                  (click)="onSave()"
-                  [disabled]="saving || uploadingDocuments"
-                >
-                  <span class="action-button__icon" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M5.25 3.5C4.55964 3.5 4 4.05964 4 4.75V15.25C4 15.9404 4.55964 16.5 5.25 16.5H14.75C15.4404 16.5 16 15.9404 16 15.25V6.41421C16 6.149 15.8946 5.89464 15.7071 5.70711L12.2929 2.29289C12.1054 2.10536 11.851 2 11.5858 2H5.25ZM6.25 4.5C6.11193 4.5 6 4.61193 6 4.75C6 4.88807 6.11193 5 6.25 5H10.25C10.3881 5 10.5 4.88807 10.5 4.75C10.5 4.61193 10.3881 4.5 10.25 4.5H6.25ZM6 8C6 7.86193 6.11193 7.75 6.25 7.75H13.75C13.8881 7.75 14 7.86193 14 8C14 8.13807 13.8881 8.25 13.75 8.25H6.25C6.11193 8.25 6 8.13807 6 8ZM6 10.5C6 10.3619 6.11193 10.25 6.25 10.25H13.75C13.8881 10.25 14 10.3619 14 10.5C14 10.6381 13.8881 10.75 13.75 10.75H6.25C6.11193 10.75 6 10.6381 6 10.5ZM6.25 12.75C6.11193 12.75 6 12.8619 6 13C6 13.1381 6.11193 13.25 6.25 13.25H11.75C11.8881 13.25 12 13.1381 12 13C12 12.8619 11.8881 12.75 11.75 12.75H6.25Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </span>
-                  <span class="action-button__label">Salvar</span>
-                </button>
-                <button type="button" class="action-button action-button--new" (click)="onNew()">
-                  <span class="action-button__icon" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M10.75 5.25C10.75 4.97386 10.5261 4.75 10.25 4.75C9.97386 4.75 9.75 4.97386 9.75 5.25V9.25H5.75C5.47386 9.25 5.25 9.47386 5.25 9.75C5.25 10.0261 5.47386 10.25 5.75 10.25H9.75V14.25C9.75 14.5261 9.97386 14.75 10.25 14.75C10.5261 14.75 10.75 14.5261 10.75 14.25V10.25H14.75C15.0261 10.25 15.25 10.0261 15.25 9.75C15.25 9.47386 15.0261 9.25 14.75 9.25H10.75V5.25Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </span>
-                  <span class="action-button__label">Novo</span>
-                </button>
-                <button type="button" class="action-button action-button--cancel" (click)="onCancel()">
-                  <span class="action-button__icon" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M10.3536 4.64645C10.5488 4.84171 10.5488 5.15829 10.3536 5.35355L7.70711 8H14.5C14.7761 8 15 8.22386 15 8.5C15 8.77614 14.7761 9 14.5 9H7.70711L10.3536 11.6464C10.5488 11.8417 10.5488 12.1583 10.3536 12.3536C10.1583 12.5488 9.84171 12.5488 9.64645 12.3536L6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L9.64645 4.64645C9.84171 4.45118 10.1583 4.45118 10.3536 4.64645Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </span>
-                  <span class="action-button__label">Cancelar</span>
-                </button>
-                <button
-                  type="button"
-                  class="action-button action-button--delete"
-                  (click)="onDelete()"
-                  [disabled]="!selectedBeneficiary"
-                >
-                  <span class="action-button__icon" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M7.5 4C7.5 3.44772 7.94772 3 8.5 3H11.5C12.0523 3 12.5 3.44772 12.5 4V4.5H15.25C15.6642 4.5 16 4.83579 16 5.25C16 5.66421 15.6642 6 15.25 6H4.75C4.33579 6 4 5.66421 4 5.25C4 4.83579 4.33579 4.5 4.75 4.5H7.5V4Z"
-                        fill="currentColor"
-                      />
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M6.11392 7H13.8861L13.3861 14.5C13.3342 15.2792 12.6842 15.875 11.904 15.875H8.09597C7.31576 15.875 6.66579 15.2792 6.61392 14.5L6.11392 7ZM8.75 8.75C8.75 8.33579 8.41421 8 8 8C7.58579 8 7.25 8.33579 7.25 8.75V13.25C7.25 13.6642 7.58579 14 8 14C8.41421 14 8.75 13.6642 8.75 13.25V8.75ZM12.75 8.75C12.75 8.33579 12.4142 8 12 8C11.5858 8 11.25 8.33579 11.25 8.75V13.25C11.25 13.6642 11.5858 14 12 14C12.4142 14 12.75 13.6642 12.75 13.25V8.75Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </span>
-                  <span class="action-button__label">Excluir</span>
-                </button>
-                <button type="button" class="action-button action-button--close" (click)="onClose()">
-                  <span class="action-button__icon" aria-hidden="true">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M6.46967 6.46967C6.76256 6.17678 7.23744 6.17678 7.53033 6.46967L10 8.93934L12.4697 6.46967C12.7626 6.17678 13.2374 6.17678 13.5303 6.46967C13.8232 6.76256 13.8232 7.23744 13.5303 7.53033L11.0607 10L13.5303 12.4697C13.8232 12.7626 13.8232 13.2374 13.5303 13.5303C13.2374 13.8232 12.7626 13.8232 12.4697 13.5303L10 11.0607L7.53033 13.5303C7.23744 13.8232 6.76256 13.8232 6.46967 13.5303C6.17678 13.2374 6.17678 12.7626 6.46967 12.4697L8.93934 10L6.46967 7.53033C6.17678 7.23744 6.17678 6.76256 6.46967 6.46967Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </span>
-                  <span class="action-button__label">Fechar</span>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       <div class="tab-card__hero" [class.tab-card__hero--camera]="cameraActive">
         <div class="photo-section">
           <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
-            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiário" />
-            <span *ngIf="!photoPreview">Foto 3x4 do beneficiário</span>
+            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do benefici&aacute;rio" />
+            <span *ngIf="!photoPreview">Foto 3x4 do benefici&aacute;rio</span>
           </div>
           <div class="photo-actions">
             <label class="upload-btn">
@@ -375,17 +209,17 @@
               <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
             </label>
             <button type="button" class="ghost" (click)="handleCameraCapture()">
-              {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
+              {{ cameraActive ? 'Registrar foto' : 'Capturar pela camera' }}
             </button>
             <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
-            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
+            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar c&acirc;mera</button>
             <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
             <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
           </div>
         </div>
 
         <div class="camera-panel" *ngIf="cameraActive">
-          <p class="camera-panel__title">Visualização da câmera</p>
+          <p class="camera-panel__title">Visualiza&ccedil;&atilde;o da c&acirc;mera</p>
           <div class="camera-panel__preview">
             <video #videoElement autoplay muted playsinline></video>
           </div>
@@ -393,7 +227,7 @@
         </div>
 
         <div class="status-panel">
-          <p class="status-panel__title">Status do beneficiário</p>
+          <p class="status-panel__title">Status do benefici&aacute;rio</p>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -405,122 +239,102 @@
             <select formControlName="status">
               <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
             </select>
-          </label>
-          <button type="button" class="primary" [disabled]="saving" (click)="saveStatusChange()">
-            {{ saving ? 'Salvando...' : 'Atualizar cadastro' }}
-          </button>
-          <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
+          </label>          <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
             Editar motivo do bloqueio
           </button>
         </div>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
-      <div class="field-grid cols-2" formGroupName="dadosPessoais">
-        <label class="field full">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
-        <label class="field">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
-        <label class="field">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
-        <div class="field date-field">
-          <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
-          <p class="age-hint" *ngIf="beneficiaryAge !== null">{{ beneficiaryAge }} anos</p>
-        </div>
-        <label class="field">Sexo biológico<select formControlName="sexo_biologico">
+      <div class="field-grid cols-3 dados-grid" formGroupName="dadosPessoais">
+        <label class="field field-matricula">Codigo
+          <input [value]="beneficiaryCode || nextSequentialCode" readonly />
+        </label>
+        <label class="field field-nome-completo">Nome*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
+
+        <label class="field field-social">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
+        <label class="field field-apelido">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
+        <label class="field field-sexo">Sexo biologico<select formControlName="sexo_biologico">
             <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
             <option value="OUTRO">Outro</option>
           </select></label>
-        <label class="field">Identidade de gênero<select formControlName="identidade_genero">
+        <label class="field field-identidade">Identidade de genero<select formControlName="identidade_genero">
             <option value="">Selecione</option>
             <option *ngFor="let option of genderIdentityOptions" [value]="option">{{ option }}</option>
           </select></label>
-        <label class="field">Cor/Raça<select formControlName="cor_raca">
+
+        <label class="field field-cor">Cor/Raca<select formControlName="cor_raca">
             <option value=""></option>
             <option value="BRANCA">Branca</option>
             <option value="PRETA">Preta</option>
             <option value="PARDA">Parda</option>
             <option value="AMARELA">Amarela</option>
-            <option value="INDIGENA">Indígena</option>
-            <option value="NAO_INFORMADO">Não informado</option>
+            <option value="INDIGENA">Indigena</option>
+            <option value="NAO_INFORMADO">Nao informado</option>
           </select></label>
-        <label class="field">Estado civil<select formControlName="estado_civil">
+        <div class="field date-field field-nascimento">
+          <label class="field">Data de nascimento*
+            <div class="date-age-row">
+              <input type="date" formControlName="data_nascimento" />
+              <span class="age-badge" *ngIf="beneficiaryAge !== null">{{ beneficiaryAge }} anos</span>
+            </div>
+          </label>
+        </div>
+        <label class="field field-estado-civil">Estado civil<select formControlName="estado_civil">
             <option value=""></option>
             <option *ngFor="let option of maritalStatusOptions" [value]="option">{{ option }}</option>
           </select></label>
-        <div class="field-grid cols-3 compact full-span">
-          <label class="field">Nacionalidade<select formControlName="nacionalidade">
-              <option value=""></option>
-              <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
-            </select></label>
-          <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
-          <label class="field">Estado<select formControlName="naturalidade_uf">
-              <option value="">Selecione o estado</option>
-              <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
-            </select></label>
-        </div>
-      <label class="field full">Nome da mãe*<input formControlName="nome_mae" /></label>
-      <label class="field full">Nome do pai<input formControlName="nome_pai" /></label>
-    </div>
+        <label class="field field-nacionalidade">Nacionalidade<select formControlName="nacionalidade">
+            <option value=""></option>
+            <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
+          </select></label>
 
-    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+        <label class="field field-naturalidade">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
+        <label class="field field-uf">Estado<select formControlName="naturalidade_uf">
+            <option value="">Selecione o estado</option>
+            <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
+          </select></label>
+
+        <label class="field field-mae">Nome da mae*<input formControlName="nome_mae" /></label>
+        <label class="field field-pai">Nome do pai<input formControlName="nome_pai" /></label>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
     <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
-          <p class="muted">Preferencialmente utilize o endereço da família para evitar inconsistências.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
-        <label class="checkbox-field">
-          <input type="checkbox" formControlName="usa_endereco_familia" />
-          <span>Usar endereço da família</span>
-        </label>
-      </div>
-      <div class="field-grid cols-3">
-        <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+</div>
+      <div class="field-grid cols-3 endereco-grid">
+        <label class="field field-cep">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
-            Informe um CEP válido com 8 dígitos.
-          </p>
+            Informe um CEP v&aacute;lido com 8 d&iacute;gitos.</p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
-        <label class="field">Logradouro<input formControlName="logradouro" /></label>
-        <label class="field">Número<input formControlName="numero" /></label>
-        <label class="field">Complemento<input formControlName="complemento" /></label>
-        <label class="field">Bairro<input formControlName="bairro" /></label>
-        <label class="field">Ponto de referência<input formControlName="ponto_referencia" /></label>
-        <label class="field">Município<input formControlName="municipio" /></label>
-        <label class="field">Estado<input maxlength="2" formControlName="uf" /></label>
-        <label class="field">Zona<select formControlName="zona">
+        <label class="field field-logradouro">Endere&ccedil;o<input formControlName="logradouro" /></label>
+        <label class="field field-numero">N&uacute;mero<input formControlName="numero" /></label>
+        <label class="field field-complemento">Complemento<input formControlName="complemento" /></label>
+        <label class="field field-bairro">Bairro<input formControlName="bairro" /></label>
+        <label class="field field-ponto">Ponto de refer&ecirc;ncia<input formControlName="ponto_referencia" /></label>
+        <label class="field field-municipio">Munic&iacute;pio<input formControlName="municipio" /></label>
+        <label class="field field-zona">Zona<select formControlName="zona">
             <option value="URBANA">Urbana</option>
             <option value="RURAL">Rural</option>
           </select></label>
-        <label class="field">Situação do imóvel<select formControlName="situacao_imovel">
-            <option value=""></option>
-            <option *ngFor="let option of situacaoImovelOptions" [value]="option">{{ option }}</option>
+        <label class="field field-subzona">Subzona<select formControlName="subzona">
+            <option value="">Selecione...</option>
+            <option value="ZONA NORTE">Zona Norte</option>
+            <option value="ZONA SUL">Zona Sul</option>
+            <option value="ZONA LESTE">Zona Leste</option>
+            <option value="ZONA OESTE">Zona Oeste</option>
+            <option value="ZONA CENTRAL">Zona Central</option>
           </select></label>
-        <div class="field-grid cols-3 compact full-span">
-          <label class="field">Tipo de moradia<select formControlName="tipo_moradia">
-              <option value=""></option>
-              <option *ngFor="let option of tipoMoradiaOptions" [value]="option">{{ option }}</option>
-            </select></label>
-          <label class="field">Esgoto<select formControlName="esgoto_tipo">
-              <option value=""></option>
-              <option value="REDE">Rede</option>
-              <option value="FOSSA">Fossa</option>
-              <option value="CEU_ABERTO">Céu aberto</option>
-              <option value="NAO_POSSUI">Não possui</option>
-            </select></label>
-          <label class="field">Coleta de lixo<select formControlName="coleta_lixo">
-              <option value=""></option>
-              <option value="REGULAR">Regular</option>
-              <option value="IRREGULAR">Irregular</option>
-              <option value="NAO_POSSUI">Não possui</option>
-            </select></label>
-        </div>
-        <div class="feature-grid">
-          <label class="checkbox-field"><input type="checkbox" formControlName="agua_encanada" /> <span>Água encanada</span></label>
-          <label class="checkbox-field"><input type="checkbox" formControlName="energia_eletrica" /> <span>Energia elétrica</span></label>
-          <label class="checkbox-field"><input type="checkbox" formControlName="internet" /> <span>Internet</span></label>
-        </div>
+        <label class="field field-uf-endereco">Estado<input maxlength="2" formControlName="uf" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -529,7 +343,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('contato') }}</p>
-          <p class="muted">Cadastre diferentes formas de contato e preferências.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
         <div class="field-grid cols-2">
@@ -604,7 +418,7 @@
             </p>
           </label>
           <label class="field">
-            <span>Telefone secundário</span>
+            <span>Telefone secund&aacute;rio</span>
             <div class="contact-row">
               <input
                 formControlName="telefone_secundario"
@@ -625,7 +439,7 @@
                   *ngIf="form.get(['contato', 'permite_contato_tel'])?.value"
                   (click)="startCall('telefone_secundario')"
                   [disabled]="!hasPhoneValue('telefone_secundario')"
-                  aria-label="Ligar para telefone secundário"
+                  aria-label="Ligar para telefone secund&aacute;rio"
                   title="Ligar"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -641,7 +455,7 @@
                   *ngIf="form.get(['contato', 'permite_contato_whatsapp'])?.value"
                   (click)="openWhatsapp('telefone_secundario')"
                   [disabled]="!hasPhoneValue('telefone_secundario')"
-                  aria-label="Abrir WhatsApp para telefone secundário"
+                  aria-label="Abrir WhatsApp para telefone secund&aacute;rio"
                   title="WhatsApp"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -657,7 +471,7 @@
                   *ngIf="form.get(['contato', 'permite_contato_sms'])?.value"
                   (click)="sendSms('telefone_secundario')"
                   [disabled]="!hasPhoneValue('telefone_secundario')"
-                  aria-label="Enviar SMS para telefone secundário"
+                  aria-label="Enviar SMS para telefone secund&aacute;rio"
                   title="SMS"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -745,15 +559,15 @@
               </div>
             </div>
             <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
-              Informe um e-mail válido.
+              Informe um e-mail v&aacute;lido.
             </p>
           </label>
-          <label class="field">Horário preferencial<select formControlName="horario_preferencial_contato">
-              <option value="">Selecione um horário</option>
+          <label class="field">Hor&aacute;rio preferencial<select formControlName="horario_preferencial_contato">
+              <option value="">Selecione um hor&aacute;rio</option>
               <option *ngFor="let option of preferredContactOptions" [value]="option.value">{{ option.label }}</option>
             </select></label>
           <div class="feature-grid">
-            <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_tel" /> <span>Permite contato telefônico</span></label>
+            <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_tel" /> <span>Permite contato telef&ocirc;nico</span></label>
             <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_whatsapp" /> <span>Permite WhatsApp</span></label>
             <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_sms" /> <span>Permite SMS</span></label>
             <label class="checkbox-field"><input type="checkbox" formControlName="permite_contato_email" /> <span>Permite e-mail</span></label>
@@ -766,30 +580,30 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('documentos') }}</p>
-          <p class="muted">Organize CPF, RG, certidões e demais identificadores.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
         <label class="field">CPF*<input formControlName="cpf" (input)="onCpfInput($event)" />
           <p class="field-error" *ngIf="form.get(['documentos', 'cpf'])?.invalid && form.get(['documentos', 'cpf'])?.touched">
-            Informe um CPF válido.
+            Informe um CPF v&aacute;lido.
           </p>
         </label>
-        <label class="field">RG número<input formControlName="rg_numero" /></label>
-        <label class="field">Órgão emissor<input formControlName="rg_orgao_emissor" /></label>
+        <label class="field">RG n&uacute;mero<input formControlName="rg_numero" /></label>
+        <label class="field">&Oacute;rg&atilde;o emissor<input formControlName="rg_orgao_emissor" /></label>
         <label class="field">Estado<input maxlength="2" formControlName="rg_uf" /></label>
-        <label class="field">Data emissão<input type="date" formControlName="rg_data_emissao" /></label>
+        <label class="field">Data emiss&atilde;o<input type="date" formControlName="rg_data_emissao" /></label>
         <label class="field">NIS<input formControlName="nis" /></label>
-        <label class="field">Certidão tipo<input formControlName="certidao_tipo" /></label>
+        <label class="field">Certid&atilde;o tipo<input formControlName="certidao_tipo" /></label>
         <label class="field">Livro<input formControlName="certidao_livro" /></label>
         <label class="field">Folha<input formControlName="certidao_folha" /></label>
         <label class="field">Termo<input formControlName="certidao_termo" /></label>
-        <label class="field">Cartório<input formControlName="certidao_cartorio" /></label>
-        <label class="field">Município<input formControlName="certidao_municipio" /></label>
+        <label class="field">Cart&oacute;rio<input formControlName="certidao_cartorio" /></label>
+        <label class="field">Munic&iacute;pio<input formControlName="certidao_municipio" /></label>
         <label class="field">Estado<input maxlength="2" formControlName="certidao_uf" /></label>
-        <label class="field">Título de eleitor<input formControlName="titulo_eleitor" /></label>
+        <label class="field">T&iacute;tulo de eleitor<input formControlName="titulo_eleitor" /></label>
         <label class="field">CNH<input formControlName="cnh" /></label>
-        <label class="field">Cartão SUS<input formControlName="cartao_sus" /></label>
+        <label class="field">Cart&atilde;o SUS<input formControlName="cartao_sus" /></label>
       </div>
       <div class="document-section" formArrayName="anexos">
         <div class="document-request">
@@ -833,10 +647,10 @@
                   <ng-template #editableName>
                     <input class="document-request__name-input" formControlName="nome" />
                   </ng-template>
-                  <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigatório</span>
+                  <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigat&oacute;rio</span>
                 </div>
                 <p class="document-request__description">
-                  {{ control.get('nomeArquivo')?.value ? 'Arquivo anexado para conferência.' : 'Envie a foto do documento solicitado.' }}
+                  {{ control.get('nomeArquivo')?.value ? 'Arquivo anexado para conferencia.' : 'Envie a foto do documento solicitado.' }}
                 </p>
                 <p class="document-request__status">
                   {{ control.get('nomeArquivo')?.value || 'Nenhum arquivo selecionado' }}
@@ -870,7 +684,7 @@
                     [class.upload-progress__bar--complete]="uploadProgress[i] === 100"
                   ></div>
                   <p class="upload-progress__label">
-                    {{ uploadProgress[i] === 100 ? 'Envio concluído' : 'Enviando documento...' }}
+                    {{ uploadProgress[i] === 100 ? 'Envio concluido' : 'Enviando documento...' }}
                     ({{ uploadProgress[i] }}%)
                   </p>
                 </div>
@@ -878,7 +692,7 @@
             </div>
           </div>
           <div class="document-request__footer">
-            <p class="document-request__note">Formatos aceitos: JPG, PNG ou PDF. Tamanho máximo: 5MB.</p>
+            <p class="document-request__note">Formatos aceitos: JPG, PNG ou PDF. Tamanho m&aacute;ximo: 5MB.</p>
             <button type="button" class="primary" (click)="confirmDocuments()">Enviar documentos</button>
           </div>
         </div>
@@ -890,21 +704,21 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('familiar') }}</p>
-          <p class="muted">Mapa da convivência familiar e condições de vulnerabilidade.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a família</span></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Responsável legal</span></label>
-        <label class="field">Vínculo familiar<input formControlName="vinculo_familiar" /></label>
-        <label class="field">Composição familiar<textarea formControlName="composicao_familiar"></textarea></label>
-        <label class="field">Crianças/adolescentes no domicílio<input type="number" formControlName="criancas_adolescentes" /></label>
-        <label class="field">Idosos no domicílio<input type="number" formControlName="idosos" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a fam&iacute;lia</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Respons&aacute;vel legal</span></label>
+        <label class="field">V&iacute;nculo familiar<input formControlName="vinculo_familiar" /></label>
+        <label class="field">Composi&ccedil;&atilde;o familiar<textarea formControlName="composicao_familiar"></textarea></label>
+        <label class="field">Crian&ccedil;as/adolescentes no domic&iacute;lio<input type="number" formControlName="criancas_adolescentes" /></label>
+        <label class="field">Idosos no domic&iacute;lio<input type="number" formControlName="idosos" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela saúde (e-SUS)</span></label>
-        <label class="field">Participação comunitária<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
-        <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Instituições, vizinhos, familiares"></textarea></label>
-        <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela sa&uacute;de (e-SUS)</span></label>
+        <label class="field">Participa&ccedil;&atilde;o comunit&aacute;ria<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
+        <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Institui&ccedil;&otilde;es, vizinhos, familiares"></textarea></label>
+        <label class="field full">Situa&ccedil;&atilde;o de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -913,23 +727,23 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('escolaridade') }}</p>
-          <p class="muted">Entenda a escolaridade, ocupação e fontes de renda.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
         <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
-        <label class="field">Nível de escolaridade<select formControlName="nivel_escolaridade">
+        <label class="field">N&iacute;vel de escolaridade<select formControlName="nivel_escolaridade">
             <option value="">Selecione</option>
             <option *ngFor="let option of educationLevelOptions" [value]="option">{{ option }}</option>
           </select></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
-        <label class="field">Ocupação
+        <label class="field">Ocupa&ccedil;&atilde;o
           <input
             formControlName="ocupacao"
-            placeholder="Informe a ocupação"
+            placeholder="Informe a ocupa&ccedil;&atilde;o"
           />
         </label>
-        <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
+        <label class="field">Situa&ccedil;&atilde;o de trabalho<input formControlName="situacao_trabalho" /></label>
         <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
         <label class="field">Renda mensal
           <input
@@ -948,16 +762,16 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('saude') }}</p>
-          <p class="muted">Registro de deficiências, medicações e referência de atendimento.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="possui_deficiencia" /> <span>Possui deficiência</span></label>
-        <label class="field">Tipo de deficiência<input formControlName="tipo_deficiencia" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="possui_deficiencia" /> <span>Possui defici&ecirc;ncia</span></label>
+        <label class="field">Tipo de defici&ecirc;ncia<input formControlName="tipo_deficiencia" /></label>
         <label class="field">CID principal<input formControlName="cid_principal" /></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medicação contínua</span></label>
-        <label class="field full">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
-        <label class="field">Serviço de saúde de referência<input formControlName="servico_saude_referencia" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medica&ccedil;&atilde;o cont&iacute;nua</span></label>
+        <label class="field full">Descri&ccedil;&atilde;o da medica&ccedil;&atilde;o<textarea formControlName="descricao_medicacao"></textarea></label>
+        <label class="field">Servi&ccedil;o de sa&uacute;de de refer&ecirc;ncia<input formControlName="servico_saude_referencia" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -966,16 +780,16 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('beneficios') }}</p>
-          <p class="muted">Indique benefícios ativos e valores aproximados.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe benefício</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe benef&iacute;cio</span></label>
         <label class="field">Valor total
           <input type="text" formControlName="valor_total_beneficios" (input)="formatCurrency($event)" placeholder="R$ 0,00" />
         </label>
         <div class="field full">
-          <p class="field-title">Benefícios recebidos</p>
+          <p class="field-title">Benef&iacute;cios recebidos</p>
           <div class="chips">
             <label *ngFor="let benefit of availableBenefits" class="chip">
               <input type="checkbox" [checked]="selectionChecked(benefit)" (change)="toggleBenefit(benefit)" />
@@ -983,7 +797,7 @@
             </label>
           </div>
         </div>
-        <label class="field full">Descrição dos benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
+        <label class="field full">Descri&ccedil;&atilde;o dos benef&iacute;cios<textarea formControlName="beneficios_descricao"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -992,18 +806,92 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('observacoes') }}</p>
-          <p class="muted">Últimos apontamentos para complementar o cadastro.</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
         <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD*</span></label>
-        <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
+        <label class="field full">Observa&ccedil;&otilde;es<textarea formControlName="observacoes"></textarea></label>
         <p class="field-error full-span" *ngIf="form.get(['observacoes', 'aceite_lgpd'])?.invalid && form.get(['observacoes', 'aceite_lgpd'])?.touched">
           Confirme o aceite LGPD para continuar.
         </p>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+  
+    <div class="tab-card" *ngIf="activeTab === 'lista'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">benefici&aacute;rios cadastrados</p>
+          <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="searchForm" class="list-filters" (ngSubmit)="searchBeneficiaries()">
+        <label class="field">Nome
+          <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+        </label>
+        <label class="field">CPF
+          <input type="text" formControlName="cpf" placeholder="Somente numeros" />
+        </label>
+        <label class="field">Codigo
+          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
+        </label>
+        <label class="field">Nascimento
+          <input type="date" formControlName="data_nascimento" />
+        </label>
+        <div class="list-filters__actions">
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+          <button type="submit" class="btn-outline">Buscar</button>
+        </div>
+      </form>
+
+      <div class="unit-active" *ngIf="selectedBeneficiary">
+        <div>
+          <p class="unit-active__eyebrow">benefici&aacute;rio ativo</p>
+          <p class="unit-active__name">{{ selectedBeneficiary.nome_completo || selectedBeneficiary.nome_social || 'benefici&aacute;rio sem nome' }}</p>
+          <p class="unit-active__meta">
+            {{ selectedBeneficiary.cpf || 'CPF nao informado' }} - {{ selectedBeneficiary.data_nascimento || 'Data nao informada' }}
+          </p>
+        </div>
+        <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(selectedBeneficiary)">
+          Editar
+        </button>
+      </div>
+
+      <div class="unit-list" *ngIf="beneficiariosPaginados.length">
+        <div class="unit-list__item" *ngFor="let beneficiario of beneficiariosPaginados">
+          <div>
+            <p class="unit-list__name">{{ beneficiario.nome_completo || beneficiario.nome_social || 'benefici&aacute;rio sem nome' }}</p>
+            <p class="unit-list__meta">
+              {{ beneficiario.cpf || 'CPF nao informado' }} - {{ beneficiario.data_nascimento || 'Data nao informada' }}
+            </p>
+          </div>
+          <div class="unit-list__actions">
+            <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(beneficiario)">
+              Editar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="unit-list__pagination" *ngIf="filteredBeneficiarios.length && beneficiariosPaginados.length">
+        <span class="unit-list__total">
+          Total: {{ filteredBeneficiarios.length }} benefici&aacute;rios
+        </span>
+        <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
+          Anterior
+        </button>
+        <span class="unit-list__page">
+          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+        </span>
+        <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
+          Proximo
+        </button>
+      </div>
+
+      <p class="muted" *ngIf="!filteredBeneficiarios.length">Nenhum benefici&aacute;rio cadastrado ate o momento.</p>
     </div>
   </form>
 
@@ -1012,8 +900,8 @@
     <div class="modal__content modal__content--wide">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Gestão rápida</p>
-          <h3>Buscar beneficiário</h3>
+          <p class="modal__eyebrow">Gest&atilde;o r&aacute;pida</p>
+          <h3>Buscar benefici&aacute;rio</h3>
         </div>
         <button type="button" class="ghost" (click)="closeQuickSearch()">Fechar</button>
       </div>
@@ -1025,7 +913,7 @@
     <div class="modal__backdrop"></div>
     <div class="modal__content">
       <h3>Motivo do bloqueio</h3>
-      <p class="muted">Descreva o motivo para manter o registro bloqueado.</p>
+      <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         <textarea [formControl]="motivoBloqueioControl" rows="4"></textarea>
       <p *ngIf="blockReasonError" class="field-error">{{ blockReasonError }}</p>
       <div class="modal__actions">
@@ -1043,9 +931,9 @@
           <p class="modal__eyebrow">Erro</p>
           <h3>Falha ao carregar documento PDF.</h3>
         </div>
-        <button type="button" class="ghost" (click)="closePdfErrorDialog()" aria-label="Fechar aviso">×</button>
+        <button type="button" class="ghost" (click)="closePdfErrorDialog()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <p>{{ pdfErrorMessage || 'Não foi possível gerar o termo de autorização.' }}</p>
+      <p>{{ pdfErrorMessage || 'N&atilde;o foi poss&iacute;vel gerar o termo de autoriza&ccedil;&atilde;o.' }}</p>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="closePdfErrorDialog()">Fechar</button>
         <button type="button" class="primary" (click)="retryAuthorizationTerm()">Recarregar</button>
@@ -1058,12 +946,12 @@
     <div class="modal__content">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Campos obrigatórios</p>
+          <p class="modal__eyebrow">Campos obrigat&oacute;rios</p>
           <h3>Complete os itens para ativar o cadastro</h3>
         </div>
-        <button type="button" class="ghost" (click)="closeMissingFieldsModal()" aria-label="Fechar aviso">×</button>
+        <button type="button" class="ghost" (click)="closeMissingFieldsModal()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <p class="muted">Os itens abaixo precisam ser preenchidos ou corrigidos:</p>
+      <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
       <ul class="issue-list">
         <li class="issue-list__item" *ngFor="let item of missingFieldMessages">
           <span class="issue-list__dot"></span>
@@ -1072,8 +960,28 @@
       </ul>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="closeMissingFieldsModal()">Entendi</button>
-        <button type="button" class="primary" (click)="closeMissingFieldsModal()">Voltar ao formulário</button>
+        <button type="button" class="primary" (click)="closeMissingFieldsModal()">Voltar ao formul&aacute;rio</button>
       </div>
     </div>
   </div>
 </section>
+</app-tela-padrao>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

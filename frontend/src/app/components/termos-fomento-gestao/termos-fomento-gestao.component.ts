@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   AditivoPayload,
   SituacaoTermo,
@@ -18,7 +19,7 @@ interface StepTab {
 @Component({
   selector: 'app-termos-fomento-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './termos-fomento-gestao.component.html',
   styleUrl: './termos-fomento-gestao.component.scss'
 })

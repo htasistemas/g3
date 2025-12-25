@@ -63,6 +63,7 @@ export interface BeneficiaryPayload {
   estado?: string;
   uf?: string;
   zona?: string;
+  subzona?: string;
   situacaoImovel?: string;
   tipoMoradia?: string;
   condicoesMoradia?: string[];

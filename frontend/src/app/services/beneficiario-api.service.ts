@@ -65,6 +65,7 @@ export interface BeneficiarioApiPayload {
   municipio?: string;
   uf?: string;
   zona?: string;
+  subzona?: string;
   situacao_imovel?: string;
   tipo_moradia?: string;
   agua_encanada?: boolean;

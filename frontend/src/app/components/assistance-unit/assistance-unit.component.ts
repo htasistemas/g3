@@ -1,9 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { filter } from 'rxjs';
-import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { filter, Subscription } from 'rxjs';
+import { AssistanceUnitPayload, AssistanceUnitService, DiretoriaUnidadePayload } from '../../services/assistance-unit.service';
+import {
+  ConfigAcoesCrud,
+  EstadoAcoesCrud,
+  TelaBaseComponent
+} from '../compartilhado/tela-base.component';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { CityPayload, CityService } from '../../services/city.service';
+import { formatTitleCase, isValidCnpj } from './assistance-unit.util';
 
 interface ViaCepResponse {
   cep?: string;
@@ -17,25 +25,38 @@ interface ViaCepResponse {
 @Component({
   selector: 'app-assistance-unit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, ReactiveFormsModule, HttpClientModule, TelaPadraoComponent],
   templateUrl: './assistance-unit.component.html',
   styleUrl: './assistance-unit.component.scss'
 })
-export class AssistanceUnitComponent implements OnInit, OnDestroy {
+export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs = [
     { id: 'dados', label: 'Dados da Unidade' },
     { id: 'endereco', label: 'Endereço da Unidade' },
     { id: 'imagens', label: 'Imagens da Unidade' },
-    { id: 'diretoria', label: 'Diretoria da Unidade' }
+    { id: 'diretoria', label: 'Diretoria da Unidade' },
+    { id: 'lista', label: 'Unidades cadastradas' }
   ] as const;
 
   unidade: AssistanceUnitPayload | null = null;
+  unidades: AssistanceUnitPayload[] = [];
+  unidadesOrdenadas: AssistanceUnitPayload[] = [];
+  unidadePrincipal: AssistanceUnitPayload | null = null;
+  paginaAtual = 1;
+  readonly tamanhoPagina = 10;
   logoPreview: string | null = null;
   reportLogoPreview: string | null = null;
   feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
   deleteConfirmation = false;
   activeTab: (typeof this.tabs)[number]['id'] = 'dados';
   private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
 
   readonly estados = [
     'AC',
@@ -67,45 +88,116 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     'TO'
   ];
 
+  cidadesMG: CityPayload[] = [];
+  private titleCaseSubscriptions: Subscription[] = [];
+  private readonly titleCaseFields = [
+    'nomeFantasia',
+    'razaoSocial',
+    'horarioFuncionamento',
+    'endereco',
+    'complemento',
+    'bairro',
+    'pontoReferencia',
+    'cidade'
+  ];
+
   form!: FormGroup;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly unitService: AssistanceUnitService,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
+    private readonly cityService: CityService
   ) {
+    super();
     this.form = this.fb.group({
       nomeFantasia: ['', [Validators.required, Validators.minLength(3)]],
       razaoSocial: ['', [this.optionalMinLength(3)]],
-      cnpj: [''],
+      cnpj: ['', this.cnpjValidator()],
       telefone: [''],
       email: ['', Validators.email],
       cep: [''],
       endereco: [''],
       numeroEndereco: [''],
+      complemento: [''],
       bairro: [''],
+      pontoReferencia: [''],
       cidade: [''],
+      zona: [''],
+      subzona: [''],
       estado: [''],
       observacoes: [''],
+      unidadePrincipal: [false],
       logomarca: [''],
       logomarcaRelatorio: [''],
       horarioFuncionamento: [''],
-      responsavelNome: [''],
-      responsavelCpf: ['', [this.optionalCpfValidator()]],
-      responsavelPeriodoMandato: ['']
+      mandatoInicio: [''],
+      mandatoFim: [''],
+      diretoria: this.fb.array([])
     });
+    this.setupTitleCaseFields();
+    this.setDiretoriaForm([]);
   }
 
   ngOnInit(): void {
     this.loadUnit();
+    this.loadUnits();
+    this.loadCidadesMg();
   }
 
   ngOnDestroy(): void {
+    this.titleCaseSubscriptions.forEach((sub) => sub.unsubscribe());
     this.clearFeedbackTimeout();
   }
 
   get activeTabIndex(): number {
     return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get diretoriaForm(): FormArray {
+    return this.form.get('diretoria') as FormArray;
+  }
+
+  addDiretoria(): void {
+    this.diretoriaForm.push(this.createDiretoriaForm());
+  }
+
+  removeDiretoria(index: number): void {
+    if (this.diretoriaForm.length <= 1) {
+      this.diretoriaForm.at(0)?.reset();
+      return;
+    }
+
+    this.diretoriaForm.removeAt(index);
+  }
+
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.form?.invalid ?? false,
+      excluir: !this.unidade?.id,
+      imprimir: !this.unidade
+    };
+  }
+
+  get podeMarcarPrincipal(): boolean {
+    if (!this.unidadePrincipal) {
+      return true;
+    }
+
+    return this.form.get('unidadePrincipal')?.value === true;
+  }
+
+  selecionarUnidade(unidade: AssistanceUnitPayload): void {
+    this.unidade = unidade;
+    this.form.patchValue(unidade);
+    this.setDiretoriaForm(unidade.diretoria ?? []);
+    this.logoPreview = unidade.logomarca || null;
+    this.reportLogoPreview = unidade.logomarcaRelatorio || null;
+    this.unitService.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
+    this.activeTab = 'dados';
+    this.deleteConfirmation = false;
+    this.dismissFeedback();
   }
 
   save(): void {
@@ -114,19 +206,31 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const { itens: diretoria, invalido } = this.buildDiretoriaPayload();
+    if (invalido) {
+      this.setFeedback({
+        type: 'error',
+        message: 'Preencha nome completo, documento e funÇõÇœo para cada membro da diretoria.'
+      });
+      return;
+    }
+
     const payload: AssistanceUnitPayload = {
       ...this.form.value,
       id: this.unidade?.id,
+      diretoria
     };
 
     this.unitService.save(payload).subscribe({
       next: (created) => {
         this.unidade = created;
         this.form.patchValue(created);
+        this.setDiretoriaForm(created.diretoria ?? []);
         this.logoPreview = created.logomarca || null;
         this.reportLogoPreview = created.logomarcaRelatorio || null;
         this.unitService.setActiveUnit(created.nomeFantasia, created.logomarca || null);
         this.deleteConfirmation = false;
+        this.loadUnits();
         this.setFeedback(
           {
             type: 'success',
@@ -174,9 +278,11 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
       next: () => {
         this.unidade = null;
         this.form.reset();
+        this.setDiretoriaForm([]);
         this.logoPreview = null;
         this.reportLogoPreview = null;
         this.deleteConfirmation = false;
+        this.loadUnits();
         this.setFeedback({ type: 'success', message: 'Unidade excluída com sucesso.' }, { autoDismiss: true });
       },
       error: (error) => {
@@ -195,21 +301,91 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
         this.unidade = unidade;
         if (unidade) {
           this.form.patchValue(unidade);
+          this.setDiretoriaForm(unidade.diretoria ?? []);
           this.logoPreview = unidade.logomarca || null;
           this.reportLogoPreview = unidade.logomarcaRelatorio || null;
           if (unidade.cep) {
             this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
           }
-          if (unidade.responsavelCpf) {
-            this.form
-              .get('responsavelCpf')
-              ?.setValue(this.formatCpf(unidade.responsavelCpf), { emitEvent: false });
-          }
           this.unitService.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
+          return;
         }
+        this.form.reset();
+        this.setDiretoriaForm([]);
+        this.logoPreview = null;
+        this.reportLogoPreview = null;
+        this.unitService.setActiveUnit('Navegacao', null);
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
     });
+  }
+
+  private loadUnits(): void {
+    this.unitService.list().subscribe({
+      next: (unidades) => {
+        this.unidades = unidades;
+        this.ordenarUnidades();
+      },
+      error: (error) => console.error('Erro ao listar unidades', error)
+    });
+  }
+
+  private loadCidadesMg(): void {
+    this.cityService.list().subscribe({
+      next: (cidades) => {
+        this.cidadesMG = cidades;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar cidades de Minas Gerais', error);
+      }
+    });
+  }
+
+  get unidadesPaginadas(): AssistanceUnitPayload[] {
+    const unidadesListadas = this.obterUnidadesListadas();
+    const inicio = (this.paginaAtual - 1) * this.tamanhoPagina;
+    return unidadesListadas.slice(inicio, inicio + this.tamanhoPagina);
+  }
+
+  get totalPaginas(): number {
+    const total = this.obterUnidadesListadas().length;
+    return Math.max(1, Math.ceil(total / this.tamanhoPagina));
+  }
+
+  proximaPagina(): void {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual += 1;
+    }
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual -= 1;
+    }
+  }
+
+  private ordenarUnidades(): void {
+    const ordenadas = [...this.unidades].sort((a, b) =>
+      this.normalizarTexto(a.nomeFantasia).localeCompare(this.normalizarTexto(b.nomeFantasia))
+    );
+    this.unidadePrincipal = ordenadas.find((unidade) => unidade.unidadePrincipal) ?? null;
+    this.unidadesOrdenadas = ordenadas.sort((a, b) => {
+      const principalA = a.unidadePrincipal ? 0 : 1;
+      const principalB = b.unidadePrincipal ? 0 : 1;
+      if (principalA !== principalB) {
+        return principalA - principalB;
+      }
+      return this.normalizarTexto(a.nomeFantasia).localeCompare(this.normalizarTexto(b.nomeFantasia));
+    });
+    this.paginaAtual = 1;
+  }
+
+  private obterUnidadesListadas(): AssistanceUnitPayload[] {
+    if (!this.unidadePrincipal) {
+      return this.unidadesOrdenadas;
+    }
+
+    return this.unidadesOrdenadas.filter((unidade) => !unidade.unidadePrincipal);
   }
 
   changeTab(tabId: (typeof this.tabs)[number]['id']): void {
@@ -218,6 +394,104 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
 
   getTabLabel(tabId: (typeof this.tabs)[number]['id']): string {
     return this.tabs.find((tab) => tab.id === tabId)?.label ?? '';
+  }
+
+  private createDiretoriaForm(item?: DiretoriaUnidadePayload): FormGroup {
+    const formGroup = this.fb.group({
+      nomeCompleto: [item?.nomeCompleto ?? ''],
+      documento: [item?.documento ?? '', [this.optionalCpfValidator()]],
+      funcao: [item?.funcao ?? '']
+    });
+    formGroup.setValidators(this.diretoriaGrupoValidator());
+    this.attachDiretoriaTitleCase(formGroup);
+    return formGroup;
+  }
+
+  private setDiretoriaForm(diretoria: DiretoriaUnidadePayload[]): void {
+    this.diretoriaForm.clear();
+    if (!diretoria.length) {
+      this.diretoriaForm.push(this.createDiretoriaForm());
+      return;
+    }
+    diretoria.forEach((item) => this.diretoriaForm.push(this.createDiretoriaForm(item)));
+  }
+
+  private attachDiretoriaTitleCase(formGroup: FormGroup): void {
+    ['nomeCompleto', 'funcao'].forEach((field) => {
+      const control = formGroup.get(field);
+      if (!control) {
+        return;
+      }
+
+      const subscription = control.valueChanges.subscribe((value) => {
+        const stringValue = String(value ?? '');
+        const formatted = formatTitleCase(stringValue);
+        if (formatted && formatted !== stringValue) {
+          control.setValue(formatted, { emitEvent: false });
+        }
+      });
+
+      this.titleCaseSubscriptions.push(subscription);
+    });
+  }
+
+  private diretoriaGrupoValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const group = control as FormGroup;
+      const nomeCompleto = String(group.get('nomeCompleto')?.value || '').trim();
+      const documento = String(group.get('documento')?.value || '').trim();
+      const funcao = String(group.get('funcao')?.value || '').trim();
+      const possuiAlgum = Boolean(nomeCompleto || documento || funcao);
+
+      this.setDiretoriaErro(group.get('nomeCompleto'), !nomeCompleto && possuiAlgum);
+      this.setDiretoriaErro(group.get('documento'), !documento && possuiAlgum);
+      this.setDiretoriaErro(group.get('funcao'), !funcao && possuiAlgum);
+
+      return possuiAlgum && (!nomeCompleto || !documento || !funcao) ? { diretoriaIncompleta: true } : null;
+    };
+  }
+
+  private setDiretoriaErro(control: AbstractControl | null | undefined, aplicar: boolean): void {
+    if (!control) {
+      return;
+    }
+    const erros = { ...(control.errors || {}) };
+    if (aplicar) {
+      erros['requiredDiretoria'] = true;
+      control.setErrors(erros);
+      return;
+    }
+    if (erros['requiredDiretoria']) {
+      delete erros['requiredDiretoria'];
+      control.setErrors(Object.keys(erros).length ? erros : null);
+    }
+  }
+
+  private buildDiretoriaPayload(): { itens: DiretoriaUnidadePayload[]; invalido: boolean } {
+    const itens: DiretoriaUnidadePayload[] = [];
+    let invalido = false;
+    const mandatoInicio = String(this.form.get('mandatoInicio')?.value || '').trim();
+    const mandatoFim = String(this.form.get('mandatoFim')?.value || '').trim();
+
+    this.diretoriaForm.controls.forEach((control) => {
+      const valor = control.value as DiretoriaUnidadePayload;
+      const nomeCompleto = (valor.nomeCompleto || '').trim();
+      const documento = (valor.documento || '').trim();
+      const funcao = (valor.funcao || '').trim();
+
+      if (!nomeCompleto && !documento && !funcao) {
+        return;
+      }
+
+      if (!nomeCompleto || !documento || !funcao) {
+        invalido = true;
+        return;
+      }
+
+      itens.push({ nomeCompleto, documento, funcao, mandatoInicio, mandatoFim });
+    });
+
+    return { itens, invalido };
   }
 
   onLogoSelected(event: Event): void {
@@ -267,21 +541,38 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.form.reset(this.unidade || {});
-    this.logoPreview = this.unidade?.logomarca || null;
-    this.reportLogoPreview = this.unidade?.logomarcaRelatorio || null;
-    this.dismissFeedback();
-    this.deleteConfirmation = false;
+    this.startNew();
   }
 
   startNew(): void {
     this.unidade = null;
     this.form.reset();
+    this.setDiretoriaForm([]);
     this.logoPreview = null;
     this.reportLogoPreview = null;
     this.deleteConfirmation = false;
     this.activeTab = 'dados';
+    this.unitService.setActiveUnit('Navegacao', null);
     this.dismissFeedback();
+  }
+
+  private setupTitleCaseFields(): void {
+    this.titleCaseFields.forEach((field) => {
+      const control = this.form.get(field);
+      if (!control) {
+        return;
+      }
+
+      const subscription = control.valueChanges.subscribe((value) => {
+        const stringValue = String(value ?? '');
+        const formatted = formatTitleCase(stringValue);
+        if (formatted && formatted !== stringValue) {
+          control.setValue(formatted, { emitEvent: false });
+        }
+      });
+
+      this.titleCaseSubscriptions.push(subscription);
+    });
   }
 
   closeForm(): void {
@@ -531,26 +822,33 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
                   </div>
                 </div>
               </div>
-
               <div class="section-card">
-                <p class="section-title">Responsável institucional</p>
+                <p class="section-title">Diretoria institucional</p>
                 <div class="data-grid">
-                  <div class="data-item">
-                    <span class="label">Nome</span>
-                    <p class="value">${unidade.responsavelNome || 'Não informado'}</p>
-                    <p class="muted">Diretor(a), coordenador(a) ou presidente.</p>
-                  </div>
-                  <div class="data-item">
-                    <span class="label">CPF</span>
-                    <p class="value">${unidade.responsavelCpf || 'Não informado'}</p>
-                    <p class="muted">Documento pessoal do responsável.</p>
-                  </div>
-                  <div class="data-item">
-                    <span class="label">Período de mandato</span>
-                    <p class="value">${unidade.responsavelPeriodoMandato || 'Não informado'}</p>
-                    <p class="muted">Vigência da gestão atual.</p>
-                  </div>
+                  ${
+                    unidade.diretoria && unidade.diretoria.length
+                      ? unidade.diretoria
+                          .map(
+                            (membro) => `
+                              <div class="data-item">
+                                <span class="label">${membro.funcao || 'Funcao'}</span>
+                                <p class="value">${membro.nomeCompleto || 'Nao informado'}</p>
+                                <p class="muted">${membro.documento || 'Documento nao informado'}</p>
+                                <p class="muted">
+                                  Mandato: ${membro.mandatoInicio || 'Nao informado'} - ${membro.mandatoFim || 'Nao informado'}
+                                </p>
+                              </div>
+                            `
+                          )
+                          .join('')
+                      : `<div class="data-item">
+                          <span class="label">Diretoria</span>
+                          <p class="value">Nao informada</p>
+                          <p class="muted">Cadastre os membros na aba Diretoria.</p>
+                        </div>`
+                  }
                 </div>
+              </div>
               </div>
 
               <div>
@@ -588,10 +886,11 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     this.form.get('telefone')?.setValue(formatted, { emitEvent: false });
   }
 
-  onCpfInput(event: Event): void {
+  onCnpjInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const formatted = this.formatCpf(input.value);
-    this.form.get('responsavelCpf')?.setValue(formatted, { emitEvent: false });
+    const digits = input.value.replace(/\D/g, '').slice(0, 14);
+    const formatted = this.formatCnpj(digits);
+    this.form.get('cnpj')?.setValue(formatted, { emitEvent: false });
   }
 
   onCepInput(event: Event): void {
@@ -603,6 +902,21 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
 
     if (digits.length === 8) {
       this.fetchAddress(digits);
+    }
+  }
+
+  onCidadeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = input.value.trim();
+    if (!valor) {
+      this.form.get('estado')?.setValue('');
+      return;
+    }
+
+    const match = this.cidadesMG.find((cidade) => cidade.nome.toLowerCase() === valor.toLowerCase());
+
+    if (match) {
+      this.form.get('estado')?.setValue(match.uf);
     }
   }
 
@@ -632,6 +946,31 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     }
 
     return `${digits.slice(0, 5)}-${digits.slice(5, 8)}`;
+  }
+
+  private formatCnpj(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 14);
+
+    if (digits.length <= 2) {
+      return digits;
+    }
+
+    if (digits.length <= 5) {
+      return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+    }
+
+    if (digits.length <= 8) {
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+    }
+
+    if (digits.length <= 12) {
+      return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+    }
+
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(
+      8,
+      12
+    )}-${digits.slice(12, 14)}`;
   }
 
   private formatCpf(value: string): string {
@@ -697,6 +1036,24 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
     };
   }
 
+  onDiretoriaCpfInput(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = this.formatCpf(input.value);
+    this.diretoriaForm.at(index)?.get('documento')?.setValue(formatted, { emitEvent: false });
+  }
+
+  private cnpjValidator() {
+    return (control: AbstractControl) => {
+      const digits = (control.value || '').replace(/\D/g, '');
+
+      if (!digits) {
+        return null;
+      }
+
+      return isValidCnpj(digits) ? null : { cnpjInvalid: true };
+    };
+  }
+
   private setFeedback(
     feedback: { type: 'success' | 'error' | 'warning'; message: string },
     options: { autoDismiss?: boolean; duration?: number } = {}
@@ -739,5 +1096,17 @@ export class AssistanceUnitComponent implements OnInit, OnDestroy {
           estado: response.uf || this.form.value.estado
         });
       });
+  }
+
+  private normalizarTexto(valor: string): string {
+    if (!valor) {
+      return '';
+    }
+
+    return valor
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
+      .trim();
   }
 }

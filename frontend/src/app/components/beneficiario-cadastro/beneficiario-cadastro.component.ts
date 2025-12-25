@@ -19,6 +19,10 @@ import { AuthorizationTermPayload, BeneficiaryReportFilters, ReportService } fro
 import { ConfigService } from '../../services/config.service';
 import { Subject, firstValueFrom, of } from 'rxjs';
 import { catchError, finalize, map, takeUntil } from 'rxjs/operators';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -36,21 +40,24 @@ type PrintListOrder = 'alphabetical' | 'code';
 @Component({
   selector: 'app-beneficiario-cadastro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './beneficiario-cadastro.component.html',
   styleUrl: './beneficiario-cadastro.component.scss'
 })
-export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
+export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
   searchForm: FormGroup;
   activeTab = 'dados';
   saving = false;
   feedback: string | null = null;
+  popupErros: string[] = [];
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
   beneficiaryCode: string | null = null;
   selectedBeneficiary: BeneficiarioApiPayload | null = null;
+  paginaAtual = 1;
+  readonly tamanhoPagina = 10;
   nextSequentialCode = '0001';
   beneficiarios: BeneficiarioApiPayload[] = [];
   filteredBeneficiarios: BeneficiarioApiPayload[] = [];
@@ -281,11 +288,51 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     { id: 'escolaridade', label: 'Escolaridade & Trabalho' },
     { id: 'saude', label: 'Saúde' },
     { id: 'beneficios', label: 'Benefícios' },
-    { id: 'observacoes', label: 'Observações & Anexos' }
+    { id: 'observacoes', label: 'Observações & Anexos' },
+    { id: 'lista', label: 'Beneficiários cadastrados' }
   ];
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving || this.uploadingDocuments,
+      excluir: !this.selectedBeneficiary,
+      novo: this.saving || this.uploadingDocuments,
+      cancelar: this.saving || this.uploadingDocuments,
+      imprimir: this.saving || this.uploadingDocuments
+    };
+  }
 
   get activeTabIndex(): number {
     return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
+  get beneficiariosPaginados(): BeneficiarioApiPayload[] {
+    const inicio = (this.paginaAtual - 1) * this.tamanhoPagina;
+    return this.filteredBeneficiarios.slice(inicio, inicio + this.tamanhoPagina);
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.filteredBeneficiarios.length / this.tamanhoPagina));
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual -= 1;
+    }
+  }
+
+  proximaPagina(): void {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual += 1;
+    }
   }
 
   get hasPreviousTab(): boolean {
@@ -298,6 +345,10 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
   get nextTabLabel(): string {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
   }
 
   getTabLabel(id: string): string {
@@ -354,6 +405,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     private readonly reportService: ReportService,
     private readonly ngZone: NgZone
   ) {
+    super();
     this.searchForm = this.fb.group({
       nome: [''],
       codigo: [''],
@@ -391,13 +443,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         municipio: [''],
         uf: [''],
         zona: ['URBANA'],
-        situacao_imovel: [''],
-        tipo_moradia: [''],
-        agua_encanada: [false],
-        esgoto_tipo: [''],
-        coleta_lixo: [''],
-        energia_eletrica: [false],
-        internet: [false]
+        subzona: ['']
       }),
       contato: this.fb.group({
         telefone_principal: ['', Validators.required],
@@ -496,8 +542,6 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     if (!this.hasNextTab) return;
 
     const targetTab = this.tabs[this.activeTabIndex + 1].id;
-    if (!this.validateCurrentTabRequirements(targetTab)) return;
-
     this.changeTab(targetTab);
   }
 
@@ -589,6 +633,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         municipio: beneficiario.municipio,
         uf: beneficiario.uf,
         zona: beneficiario.zona || 'URBANA',
+        subzona: beneficiario.subzona,
         situacao_imovel: beneficiario.situacao_imovel,
         tipo_moradia: beneficiario.tipo_moradia,
         agua_encanada: beneficiario.agua_encanada,
@@ -1729,36 +1774,45 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const documentsIndex = this.tabs.findIndex((item) => item.id === 'documentos');
-    const targetIndex = this.tabs.findIndex((item) => item.id === tab);
-    const cpfControl = this.form.get(['documentos', 'cpf']);
-
-    if (!this.validateCurrentTabRequirements(tab)) {
-      return;
-    }
-
-    if (documentsIndex >= 0 && targetIndex > documentsIndex && (cpfControl?.invalid || !cpfControl?.value)) {
-      this.feedback = 'Informe um CPF válido antes de continuar.';
-      cpfControl?.markAsTouched();
-      this.form.get('documentos')?.markAllAsTouched();
-      this.activeTab = 'documentos';
-      return;
-    }
-
-    if (this.feedback === 'Informe um CPF válido antes de continuar.' && cpfControl?.valid) {
-      this.feedback = null;
-    }
-
+    this.popupErros = [];
     this.activeTab = tab;
   }
 
   private validateCurrentTabRequirements(targetTab: string): boolean {
+    if (targetTab === 'lista') {
+      return true;
+    }
     const currentIndex = this.activeTabIndex;
     const targetIndex = this.tabs.findIndex((item) => item.id === targetTab);
 
     if (targetIndex <= currentIndex) return true;
 
     const tabId = this.tabs[currentIndex]?.id;
+    if (tabId === 'dados') {
+      const builder = new PopupErrorBuilder();
+      const requiredFields: { path: (string | number)[]; label: string }[] = [
+        { path: ['dadosPessoais', 'nome_completo'], label: 'Nome completo' },
+        { path: ['dadosPessoais', 'data_nascimento'], label: 'Data de nascimento' },
+        { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mae' }
+      ];
+
+      requiredFields.forEach(({ path, label }) => {
+        const control = this.form.get(path);
+        const value = String(control?.value ?? '').trim();
+        if (!value) {
+          builder.adicionar(`${label} e obrigatorio.`);
+        }
+      });
+
+      const mensagens = builder.build();
+      if (mensagens.length) {
+        this.form.get('dadosPessoais')?.markAllAsTouched();
+        this.popupErros = mensagens;
+        return false;
+      }
+      this.popupErros = [];
+    }
+
     const requirements: Record<
       string,
       { controlPath: (string | number)[]; message: string; markGroup?: string }
@@ -1777,7 +1831,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
         controlPath: ['observacoes', 'aceite_lgpd'],
         message: 'Confirme o aceite LGPD antes de avançar.',
         markGroup: 'observacoes'
-      }
+      },
+      documentos: {
+        controlPath: ['documentos', 'cpf'],
+        message: 'Informe um CPF valido antes de avancar.',
+        markGroup: 'documentos'
+      },
     };
 
     const requirement = tabId ? requirements[tabId] : undefined;
@@ -1785,13 +1844,13 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
 
     const control = this.form.get(requirement.controlPath);
 
-    if (control?.valid && this.feedback === requirement.message) {
-      this.feedback = null;
+    if (control?.valid && this.popupErros.length) {
+      this.popupErros = [];
     }
 
     if (!control || control.valid) return true;
 
-    this.feedback = requirement.message;
+    this.popupErros = [requirement.message];
     if (requirement.markGroup) {
       this.form.get(requirement.markGroup)?.markAllAsTouched();
     }
@@ -2080,7 +2139,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       status: 'EM_ANALISE',
       motivo_bloqueio: '',
       foto_3x4: '',
-      endereco: { usa_endereco_familia: true, zona: 'URBANA' },
+      endereco: { usa_endereco_familia: true, zona: 'URBANA', subzona: '' },
       beneficios: { beneficios_recebidos: [] }
     });
     this.resetDocumentArray();
@@ -2171,6 +2230,7 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.filteredBeneficiarios = (this.beneficiarios ?? []).filter(
       (beneficiario) => !status || beneficiario.status === status
     );
+    this.paginaAtual = 1;
   }
 
   onBeneficiarioSelected(beneficiario: BeneficiarioApiPayload): void {
@@ -2230,7 +2290,18 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
   }
 
   private handleBeneficiaryResponse(beneficiarios: BeneficiarioApiPayload[]): void {
-    this.beneficiarios = (beneficiarios ?? []).map((beneficiario) => ({
+    const vistos = new Set<string>();
+    const unicos = (beneficiarios ?? []).filter((beneficiario) => {
+      const chave =
+        beneficiario.id_beneficiario ||
+        `${beneficiario.cpf || ''}-${beneficiario.codigo || ''}-${beneficiario.nome_completo || ''}`;
+      if (vistos.has(chave)) {
+        return false;
+      }
+      vistos.add(chave);
+      return true;
+    });
+    this.beneficiarios = unicos.map((beneficiario) => ({
       ...beneficiario,
       codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined
     }));
@@ -2262,7 +2333,12 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
     this.service.delete(beneficiario.id_beneficiario).subscribe({
       next: () => {
         if (this.beneficiarioId === beneficiario.id_beneficiario) {
-          this.form.reset({ status: 'EM_ANALISE', motivo_bloqueio: '', foto_3x4: '', endereco: { zona: 'URBANA' } });
+          this.form.reset({
+            status: 'EM_ANALISE',
+            motivo_bloqueio: '',
+            foto_3x4: '',
+            endereco: { zona: 'URBANA', subzona: '' }
+          });
           this.beneficiarioId = null;
           this.photoPreview = null;
           this.applyBeneficiaryMetadata(null);
@@ -2295,6 +2371,11 @@ export class BeneficiarioCadastroComponent implements OnInit, OnDestroy {
       this.selectBeneficiario(this.selectedBeneficiary);
       this.changeTab('dados');
     }
+  }
+
+  selecionarBeneficiarioNaLista(beneficiario: BeneficiarioApiPayload): void {
+    this.selectBeneficiario(beneficiario);
+    this.changeTab('dados');
   }
 
   editBeneficiario(beneficiario: BeneficiarioApiPayload): void {

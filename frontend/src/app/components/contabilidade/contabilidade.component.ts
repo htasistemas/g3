@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   faArrowTrendDown,
   faArrowTrendUp,
@@ -79,7 +80,7 @@ interface AmendmentControl {
 @Component({
   selector: 'app-contabilidade',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './contabilidade.component.html',
   styleUrl: './contabilidade.component.scss'
 })

@@ -9,6 +9,7 @@ import {
 } from '../../services/visita-domiciliar.service';
 import { BeneficiaryService } from '../../services/beneficiary.service';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 interface StepTab {
   id: string;
   label: string;
@@ -17,7 +18,7 @@ interface StepTab {
 @Component({
   selector: 'app-visita-domiciliar-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
   templateUrl: './visita-domiciliar-gestao.component.html',
   styleUrl: './visita-domiciliar-gestao.component.scss'
 })

@@ -9,6 +9,7 @@ import { ProfessionalRecord, ProfessionalService } from '../../services/professi
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 import { titleCaseWords } from '../../utils/capitalization.util';
 
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 const generateId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -65,7 +66,7 @@ interface WidgetState {
 @Component({
   selector: 'app-cursos-atendimentos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent],
   templateUrl: './cursos-atendimentos.component.html',
   styleUrl: './cursos-atendimentos.component.scss'
 })
