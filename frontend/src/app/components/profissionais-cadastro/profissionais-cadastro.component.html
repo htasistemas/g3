@@ -1,4 +1,4 @@
-<app-tela-padrao>
+<app-tela-padrao`r`n  [acoes]="acoesToolbar"`r`n  [desabilitado]="acoesDesabilitadas"`r`n  [mostrarFechar]="true"`r`n  (salvar)="onSave()"`r`n  (excluir)="onDelete()"`r`n  (novo)="onNew()"`r`n  (cancelar)="onCancel()"`r`n  (imprimir)="onPrint()"`r`n  (fechar)="onClose()"`r`n>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Cadastros</p>
     <p class="page-title__label">Profissionais para atendimentos</p>
@@ -49,7 +49,7 @@
     </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">`r`n    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
     <ng-template #navigationControls>

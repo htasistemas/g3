@@ -30,10 +30,12 @@ CREATE TABLE IF NOT EXISTS endereco (
 
 CREATE TABLE IF NOT EXISTS cadastro_beneficiario (
   id BIGSERIAL PRIMARY KEY,
+  codigo VARCHAR(20),
   nome_completo VARCHAR(200) NOT NULL,
   nome_social VARCHAR(200),
   apelido VARCHAR(120),
   data_nascimento DATE NOT NULL,
+  foto_3x4 TEXT,
   sexo_biologico VARCHAR(60),
   identidade_genero VARCHAR(120),
   cor_raca VARCHAR(60),
@@ -43,6 +45,26 @@ CREATE TABLE IF NOT EXISTS cadastro_beneficiario (
   naturalidade_uf VARCHAR(2),
   nome_mae VARCHAR(200) NOT NULL,
   nome_pai VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cadastro_profissionais (
+  id BIGSERIAL PRIMARY KEY,
+  nome_completo VARCHAR(200) NOT NULL,
+  categoria VARCHAR(120) NOT NULL,
+  registro_conselho VARCHAR(120),
+  especialidade VARCHAR(120),
+  email VARCHAR(150),
+  telefone VARCHAR(30),
+  unidade VARCHAR(200),
+  carga_horaria INTEGER,
+  disponibilidade TEXT,
+  canais_atendimento TEXT,
+  status VARCHAR(60),
+  tags TEXT,
+  resumo TEXT,
+  observacoes TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -148,6 +170,13 @@ ALTER TABLE diretoria_unidade
   ADD COLUMN IF NOT EXISTS mandato_fim VARCHAR(9);
 
 ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS codigo VARCHAR(20);
+
+UPDATE cadastro_beneficiario
+SET codigo = id::text
+WHERE codigo IS NULL;
+
+ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS nome_completo VARCHAR(200);
 
 ALTER TABLE cadastro_beneficiario
@@ -158,6 +187,9 @@ ALTER TABLE cadastro_beneficiario
 
 ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS data_nascimento DATE;
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS foto_3x4 TEXT;
 
 ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS sexo_biologico VARCHAR(60);
@@ -186,6 +218,48 @@ ALTER TABLE cadastro_beneficiario
 ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS nome_pai VARCHAR(200);
 
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS nome_completo VARCHAR(200);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS categoria VARCHAR(120);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS registro_conselho VARCHAR(120);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS especialidade VARCHAR(120);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS email VARCHAR(150);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS telefone VARCHAR(30);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS unidade VARCHAR(200);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS carga_horaria INTEGER;
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS disponibilidade TEXT;
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS canais_atendimento TEXT;
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS status VARCHAR(60);
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS tags TEXT;
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS resumo TEXT;
+
+ALTER TABLE cadastro_profissionais
+  ADD COLUMN IF NOT EXISTS observacoes TEXT;
+
 ALTER TABLE endereco
   ADD COLUMN IF NOT EXISTS complemento VARCHAR(150);
 
@@ -206,3 +280,111 @@ ALTER TABLE endereco
 
 ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS endereco_id BIGINT REFERENCES endereco(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS contato_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  telefone_principal VARCHAR(30),
+  telefone_principal_whatsapp BOOLEAN DEFAULT FALSE,
+  telefone_secundario VARCHAR(30),
+  telefone_recado_nome VARCHAR(150),
+  telefone_recado_numero VARCHAR(30),
+  email VARCHAR(150),
+  permite_contato_tel BOOLEAN DEFAULT FALSE,
+  permite_contato_whatsapp BOOLEAN DEFAULT FALSE,
+  permite_contato_sms BOOLEAN DEFAULT FALSE,
+  permite_contato_email BOOLEAN DEFAULT FALSE,
+  horario_preferencial_contato VARCHAR(80),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS documentos (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  tipo_documento VARCHAR(80),
+  numero_documento VARCHAR(80),
+  orgao_emissor VARCHAR(120),
+  uf_emissor VARCHAR(2),
+  data_emissao DATE,
+  livro VARCHAR(40),
+  folha VARCHAR(40),
+  termo VARCHAR(60),
+  cartorio VARCHAR(150),
+  municipio VARCHAR(150),
+  uf VARCHAR(2),
+  nome_documento VARCHAR(200),
+  nome_arquivo VARCHAR(200),
+  caminho_arquivo VARCHAR(400),
+  content_type VARCHAR(120),
+  obrigatorio BOOLEAN DEFAULT FALSE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS situacao_social (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  mora_com_familia BOOLEAN DEFAULT FALSE,
+  responsavel_legal BOOLEAN DEFAULT FALSE,
+  vinculo_familiar VARCHAR(150),
+  situacao_vulnerabilidade TEXT,
+  composicao_familiar TEXT,
+  criancas_adolescentes INTEGER,
+  idosos INTEGER,
+  acompanhamento_cras BOOLEAN DEFAULT FALSE,
+  acompanhamento_saude BOOLEAN DEFAULT FALSE,
+  participa_comunidade VARCHAR(200),
+  rede_apoio TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS escolaridade_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  sabe_ler_escrever BOOLEAN DEFAULT FALSE,
+  nivel_escolaridade VARCHAR(150),
+  estuda_atualmente BOOLEAN DEFAULT FALSE,
+  ocupacao VARCHAR(150),
+  situacao_trabalho VARCHAR(150),
+  local_trabalho VARCHAR(150),
+  renda_mensal VARCHAR(60),
+  fonte_renda VARCHAR(150),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS saude_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  possui_deficiencia BOOLEAN DEFAULT FALSE,
+  tipo_deficiencia VARCHAR(200),
+  cid_principal VARCHAR(60),
+  usa_medicacao_continua BOOLEAN DEFAULT FALSE,
+  descricao_medicacao TEXT,
+  servico_saude_referencia VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS beneficios_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  recebe_beneficio BOOLEAN DEFAULT FALSE,
+  beneficios_descricao TEXT,
+  valor_total_beneficios VARCHAR(60),
+  beneficios_recebidos TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS observacoes_beneficiario (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  aceite_lgpd BOOLEAN DEFAULT FALSE,
+  data_aceite_lgpd DATE,
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);

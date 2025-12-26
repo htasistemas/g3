@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import {
   ProfessionalPayload,
   ProfessionalRecord,
@@ -10,6 +11,11 @@ import {
 import { titleCaseWords } from '../../utils/capitalization.util';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { VoluntariadoTermoPrintService } from '../../shared/print/voluntariado-termo-print.service';
 interface StepTab {
   id: string;
   label: string;
@@ -18,32 +24,41 @@ interface StepTab {
 @Component({
   selector: 'app-profissionais-cadastro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './profissionais-cadastro.component.html',
   styleUrl: './profissionais-cadastro.component.scss'
 })
-export class ProfissionaisCadastroComponent implements OnDestroy {
+export class ProfissionaisCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
   feedback: string | null = null;
+  popupErros: string[] = [];
   professionals: ProfessionalRecord[] = [];
   editingId: string | null = null;
   saving = false;
+  unidadeAtual: AssistanceUnitPayload | null = null;
   private readonly capitalizationSubs: Array<() => void> = [];
+  private readonly destroy$ = new Subject<void>();
 
   tabs: StepTab[] = [
     { id: 'perfil', label: 'Perfil profissional' },
     { id: 'agenda', label: 'Agenda e canais' },
-    { id: 'resumo', label: 'Resumo e observações' }
+    { id: 'resumo', label: 'Resumo e observacoes' }
   ];
   activeTab: StepTab['id'] = 'perfil';
 
-  categorias = ['Assistente social', 'Psicólogo(a)', 'Pedagogo(a)', 'Médico(a)', 'Nutricionista'];
-  readonly disponibilidades = ['Manhã', 'Tarde', 'Noite'];
+  categorias = ['Assistente social', 'Psicologo(a)', 'Pedagogo(a)', 'Medico(a)', 'Nutricionista'];
+  readonly disponibilidades = ['Manha', 'Tarde', 'Noite'];
   readonly canais = ['Presencial', 'Online', 'Telefone'];
-  readonly statuses: ProfessionalStatus[] = ['Disponível', 'Em atendimento', 'Em intervalo', 'Indisponível'];
-  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Famílias', 'Juventude', 'Visitas', 'Oficinas'];
+  readonly statuses: ProfessionalStatus[] = ['Disponivel', 'Em atendimento', 'Em intervalo', 'Indisponivel'];
+  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Familias', 'Juventude', 'Visitas', 'Oficinas'];
 
-  constructor(private readonly fb: FormBuilder, private readonly professionalService: ProfessionalService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly professionalService: ProfessionalService,
+    private readonly assistanceUnitService: AssistanceUnitService,
+    private readonly termoPrintService: VoluntariadoTermoPrintService
+  ) {
+    super();
     this.form = this.fb.group({
       nome: ['', Validators.required],
       categoria: [this.categorias[0], Validators.required],
@@ -55,7 +70,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
       cargaHoraria: [20, [Validators.min(1)]],
       disponibilidade: this.fb.control<string[]>([]),
       canaisAtendimento: this.fb.control<string[]>(['Presencial']),
-      status: ['Disponível', Validators.required],
+      status: ['Disponivel', Validators.required],
       tags: this.fb.control<string[]>([]),
       resumo: [''],
       observacoes: ['']
@@ -65,8 +80,21 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
     this.setupCapitalizationRules();
   }
 
+  ngOnInit(): void {
+    this.assistanceUnitService.get().pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ unidade }) => {
+        this.unidadeAtual = unidade ?? null;
+      },
+      error: () => {
+        this.unidadeAtual = null;
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     this.capitalizationSubs.forEach((unsubscribe) => unsubscribe());
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get activeTabIndex(): number {
@@ -83,6 +111,28 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
 
   get nextTabLabel(): string {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving,
+      excluir: !this.editingId,
+      novo: this.saving,
+      cancelar: this.saving,
+      imprimir: this.saving
+    };
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
   }
 
   changeTab(tab: StepTab['id']): void {
@@ -102,7 +152,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
   }
 
   get totalDisponiveis(): number {
-    return this.professionals.filter((p) => p.status === 'Disponível').length;
+    return this.professionals.filter((p) => p.status === 'Disponivel').length;
   }
 
   get totalOnline(): number {
@@ -115,27 +165,53 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
 
   submit(): void {
     this.feedback = null;
+    this.popupErros = [];
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.feedback = 'Preencha os campos obrigatórios para salvar o profissional.';
+      const builder = new PopupErrorBuilder();
+      const requiredFields: { path: string; label: string }[] = [
+        { path: 'nome', label: 'Nome completo' },
+        { path: 'categoria', label: 'Categoria' },
+        { path: 'email', label: 'E-mail' },
+        { path: 'status', label: 'Status' }
+      ];
+
+      requiredFields.forEach(({ path, label }) => {
+        const control = this.form.get(path);
+        const value = String(control?.value ?? '').trim();
+        if (!value) {
+          builder.adicionar(`${label} e obrigatorio.`);
+        }
+      });
+      this.popupErros = builder.build();
+      this.feedback = 'Preencha os campos obrigatorios para salvar o profissional.';
       return;
     }
 
     this.saving = true;
     const payload = this.form.value as ProfessionalPayload;
-    if (this.editingId) {
-      const updated = this.professionalService.update(this.editingId, payload);
-      this.professionals = this.professionals.map((item) => (item.id === updated.id ? updated : item));
-      this.feedback = 'Profissional atualizado com sucesso.';
-    } else {
-      const created = this.professionalService.create(payload);
-      this.professionals = [created, ...this.professionals];
-      this.feedback = 'Profissional cadastrado com sucesso.';
-    }
+    const request = this.editingId
+      ? this.professionalService.update(this.editingId, payload)
+      : this.professionalService.create(payload);
 
-    this.saving = false;
-    this.resetForm();
-    this.changeTab('perfil');
+    request.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (record) => {
+        if (this.editingId) {
+          this.professionals = this.professionals.map((item) => (item.id === record.id ? record : item));
+          this.feedback = 'Profissional atualizado com sucesso.';
+        } else {
+          this.professionals = [record, ...this.professionals];
+          this.feedback = 'Profissional cadastrado com sucesso.';
+        }
+        this.saving = false;
+        this.resetForm();
+        this.changeTab('perfil');
+      },
+      error: () => {
+        this.feedback = 'Nao foi possivel salvar o profissional. Tente novamente.';
+        this.saving = false;
+      }
+    });
   }
 
   addCategoria(value: string): void {
@@ -203,10 +279,19 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
 
   remove(record: ProfessionalRecord): void {
     if (!window.confirm(`Remover ${record.nome} do cadastro?`)) return;
-    this.professionalService.delete(record.id);
-    this.professionals = this.professionals.filter((item) => item.id !== record.id);
-    this.resetForm();
-    this.changeTab('perfil');
+    this.professionalService
+      .delete(record.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.professionals = this.professionals.filter((item) => item.id !== record.id);
+          this.resetForm();
+          this.changeTab('perfil');
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel remover o profissional. Tente novamente.';
+        }
+      });
   }
 
   toggleSelection(path: (string | number)[], option: string): void {
@@ -250,7 +335,7 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
       cargaHoraria: 20,
       disponibilidade: [],
       canaisAtendimento: ['Presencial'],
-      status: 'Disponível',
+      status: 'Disponivel',
       tags: [],
       resumo: '',
       observacoes: ''
@@ -261,8 +346,8 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
     const record = this.editingId ? this.professionals.find((item) => item.id === this.editingId) : null;
     const data = record ?? (this.form.value as ProfessionalPayload);
 
-    const disponibilidade = (data.disponibilidade ?? []).join(' • ') || 'Não informado';
-    const canais = (data.canaisAtendimento ?? []).join(' • ') || 'Não informado';
+    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'Nao informado';
+    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'Nao informado';
     const tags = (data.tags ?? []).join(', ') || 'Sem tags definidas';
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -288,21 +373,21 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
           <p class="pill">${data.status || 'Sem status'}</p>
           <dl>
             <dt>Nome completo</dt>
-            <dd>${data.nome || 'Não informado'}</dd>
+            <dd>${data.nome || 'Nao informado'}</dd>
             <dt>Categoria</dt>
-            <dd>${data.categoria || 'Não informado'}</dd>
+            <dd>${data.categoria || 'Nao informado'}</dd>
             <dt>Especialidade</dt>
-            <dd>${data.especialidade || 'Não informado'}</dd>
+            <dd>${data.especialidade || 'Nao informado'}</dd>
             <dt>Registro em conselho</dt>
-            <dd>${data.registroConselho || 'Não informado'}</dd>
+            <dd>${data.registroConselho || 'Nao informado'}</dd>
             <dt>E-mail</dt>
-            <dd>${data.email || 'Não informado'}</dd>
+            <dd>${data.email || 'Nao informado'}</dd>
             <dt>Telefone/WhatsApp</dt>
-            <dd>${data.telefone || 'Não informado'}</dd>
+            <dd>${data.telefone || 'Nao informado'}</dd>
             <dt>Unidade de atendimento</dt>
-            <dd>${data.unidade || 'Não informado'}</dd>
-            <dt>Carga horária</dt>
-            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Não informado'}</dd>
+            <dd>${data.unidade || 'Nao informado'}</dd>
+            <dt>Carga horaria</dt>
+            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Nao informado'}</dd>
             <dt>Disponibilidade</dt>
             <dd>${disponibilidade}</dd>
             <dt>Canais de atendimento</dt>
@@ -311,8 +396,8 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
             <dd>${tags}</dd>
             <dt>Resumo breve</dt>
             <dd>${data.resumo || 'Sem resumo'}</dd>
-            <dt>Observações internas</dt>
-            <dd>${data.observacoes || 'Sem observações'}</dd>
+            <dt>Observacoes internas</dt>
+            <dd>${data.observacoes || 'Sem observacoes'}</dd>
           </dl>
         </body>
       </html>
@@ -334,17 +419,96 @@ export class ProfissionaisCadastroComponent implements OnDestroy {
 
     if (!window.confirm(`Remover ${current.nome} do cadastro?`)) return;
 
-    this.professionalService.delete(current.id);
-    this.professionals = this.professionals.filter((item) => item.id !== current.id);
-    this.startNew();
+    this.professionalService
+      .delete(current.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.professionals = this.professionals.filter((item) => item.id !== current.id);
+          this.startNew();
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel remover o profissional. Tente novamente.';
+        }
+      });
   }
 
   closeForm(): void {
     window.history.back();
   }
 
+  onSave(): void {
+    this.submit();
+  }
+
+  onCancel(): void {
+    this.resetForm();
+  }
+
+  onDelete(): void {
+    this.removeCurrent();
+  }
+
+  onNew(): void {
+    this.startNew();
+  }
+
+  onPrint(): void {
+    const profissionalAtual = this.editingId
+      ? this.professionals.find((item) => item.id === this.editingId)
+      : (this.form.value as ProfessionalPayload);
+    if (!profissionalAtual) {
+      this.feedback = 'Nao foi possivel obter os dados do profissional para imprimir.';
+      return;
+    }
+
+    this.termoPrintService.printTermoVoluntariado(this.mapUnidadeParaTermo(this.unidadeAtual), this.mapProfissionalParaTermo(profissionalAtual));
+  }
+
+  onClose(): void {
+    this.closeForm();
+  }
+
+  private mapUnidadeParaTermo(unidade: AssistanceUnitPayload | null): any {
+    return {
+      nomeFantasia: unidade?.nomeFantasia,
+      razaoSocial: unidade?.razaoSocial,
+      cnpj: unidade?.cnpj,
+      endereco: unidade?.endereco,
+      numeroEndereco: unidade?.numeroEndereco,
+      complemento: unidade?.complemento,
+      bairro: unidade?.bairro,
+      cidade: unidade?.cidade,
+      estado: unidade?.estado,
+      inscricaoMunicipal: (unidade as any)?.inscricaoMunicipal,
+      coordenadorNome: (unidade as any)?.coordenadorNome
+    };
+  }
+
+  private mapProfissionalParaTermo(profissional: ProfessionalRecord | ProfessionalPayload): any {
+    const value = profissional as ProfessionalPayload;
+    return {
+      nome: value.nome,
+      email: value.email,
+      telefoneCelular: value.telefone,
+      voluntariadoAtividades: value.tags ?? [],
+      voluntariadoOutros: value.resumo,
+      voluntariadoPeriodo: value.unidade
+    };
+  }
+
   private loadProfessionals(): void {
-    this.professionals = this.professionalService.list();
+    this.professionalService
+      .list()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (records) => {
+          this.professionals = records;
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel carregar os profissionais.';
+        }
+      });
   }
 
   private setupCapitalizationRules(): void {
