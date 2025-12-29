@@ -1,0 +1,123 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+export interface ContaBancariaRequest {
+  banco: string;
+  agencia?: string;
+  numero: string;
+  tipo: string;
+  projetoVinculado?: string;
+  pixVinculado?: boolean;
+  tipoChavePix?: string;
+  chavePix?: string;
+  saldo: number;
+  dataAtualizacao: string;
+}
+
+export interface ContaBancariaResponse extends ContaBancariaRequest {
+  id: number;
+}
+
+export interface LancamentoFinanceiroRequest {
+  tipo: string;
+  descricao: string;
+  contraparte: string;
+  vencimento: string;
+  valor: number;
+  situacao: string;
+}
+
+export interface LancamentoFinanceiroResponse extends LancamentoFinanceiroRequest {
+  id: number;
+}
+
+export interface MovimentacaoFinanceiraRequest {
+  tipo: string;
+  descricao: string;
+  contraparte?: string;
+  categoria?: string;
+  contaBancariaId?: number;
+  dataMovimentacao: string;
+  valor: number;
+}
+
+export interface MovimentacaoFinanceiraResponse extends MovimentacaoFinanceiraRequest {
+  id: number;
+  contaBancariaNumero?: string;
+  contaBancariaBanco?: string;
+}
+
+export interface EmendaImpositivaRequest {
+  identificacao: string;
+  referenciaLegal?: string;
+  dataPrevista: string;
+  valorPrevisto: number;
+  diasAlerta: number;
+  status: string;
+  observacoes?: string;
+}
+
+export interface EmendaImpositivaResponse extends EmendaImpositivaRequest {
+  id: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class ContabilidadeService {
+  private readonly baseUrl = `${environment.apiUrl}/api/contabilidade`;
+
+  constructor(private readonly http: HttpClient) {}
+
+  listarContasBancarias(): Observable<ContaBancariaResponse[]> {
+    return this.http.get<ContaBancariaResponse[]>(`${this.baseUrl}/contas-bancarias`);
+  }
+
+  criarContaBancaria(payload: ContaBancariaRequest): Observable<ContaBancariaResponse> {
+    return this.http.post<ContaBancariaResponse>(`${this.baseUrl}/contas-bancarias`, payload);
+  }
+
+  atualizarContaBancaria(id: number, payload: ContaBancariaRequest): Observable<ContaBancariaResponse> {
+    return this.http.put<ContaBancariaResponse>(`${this.baseUrl}/contas-bancarias/${id}`, payload);
+  }
+
+  removerContaBancaria(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/contas-bancarias/${id}`);
+  }
+
+  listarLancamentos(): Observable<LancamentoFinanceiroResponse[]> {
+    return this.http.get<LancamentoFinanceiroResponse[]>(`${this.baseUrl}/lancamentos`);
+  }
+
+  criarLancamento(payload: LancamentoFinanceiroRequest): Observable<LancamentoFinanceiroResponse> {
+    return this.http.post<LancamentoFinanceiroResponse>(`${this.baseUrl}/lancamentos`, payload);
+  }
+
+  atualizarLancamento(id: number, payload: LancamentoFinanceiroRequest): Observable<LancamentoFinanceiroResponse> {
+    return this.http.put<LancamentoFinanceiroResponse>(`${this.baseUrl}/lancamentos/${id}`, payload);
+  }
+
+  atualizarSituacaoLancamento(id: number, status: string): Observable<LancamentoFinanceiroResponse> {
+    return this.http.patch<LancamentoFinanceiroResponse>(`${this.baseUrl}/lancamentos/${id}/status`, { status });
+  }
+
+  listarMovimentacoes(): Observable<MovimentacaoFinanceiraResponse[]> {
+    return this.http.get<MovimentacaoFinanceiraResponse[]>(`${this.baseUrl}/movimentações`);
+  }
+
+  criarMovimentacao(payload: MovimentacaoFinanceiraRequest): Observable<MovimentacaoFinanceiraResponse> {
+    return this.http.post<MovimentacaoFinanceiraResponse>(`${this.baseUrl}/movimentações`, payload);
+  }
+
+  listarEmendas(): Observable<EmendaImpositivaResponse[]> {
+    return this.http.get<EmendaImpositivaResponse[]>(`${this.baseUrl}/emendas`);
+  }
+
+  criarEmenda(payload: EmendaImpositivaRequest): Observable<EmendaImpositivaResponse> {
+    return this.http.post<EmendaImpositivaResponse>(`${this.baseUrl}/emendas`, payload);
+  }
+
+  atualizarStatusEmenda(id: number, status: string): Observable<EmendaImpositivaResponse> {
+    return this.http.patch<EmendaImpositivaResponse>(`${this.baseUrl}/emendas/${id}/status`, { status });
+  }
+}

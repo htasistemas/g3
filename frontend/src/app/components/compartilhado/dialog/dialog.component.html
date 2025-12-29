@@ -1,0 +1,11 @@
+<div class="dialog" *ngIf="aberto">
+  <div class="dialog__overlay" (click)="cancelar.emit()"></div>
+  <div class="dialog__content">
+    <h3>{{ titulo }}</h3>
+    <p>{{ mensagem }}</p>
+    <div class="dialog__actions">
+      <button type="button" class="primary" (click)="confirmar.emit()">{{ confirmarLabel }}</button>
+      <button type="button" class="ghost" (click)="cancelar.emit()">{{ cancelarLabel }}</button>
+    </div>
+  </div>
+</div>

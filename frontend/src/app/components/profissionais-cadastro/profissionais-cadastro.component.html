@@ -1,11 +1,18 @@
-<app-tela-padrao`r`n  [acoes]="acoesToolbar"`r`n  [desabilitado]="acoesDesabilitadas"`r`n  [mostrarFechar]="true"`r`n  (salvar)="onSave()"`r`n  (excluir)="onDelete()"`r`n  (novo)="onNew()"`r`n  (cancelar)="onCancel()"`r`n  (imprimir)="onPrint()"`r`n  (fechar)="onClose()"`r`n>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="onSave()"
+  (excluir)="onDelete()"
+  (novo)="onNew()"
+  (cancelar)="onCancel()"
+  (imprimir)="onPrint()"
+  (fechar)="onClose()"
+>
 <header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Cadastros</p>
-    <p class="page-title__label">Profissionais para atendimentos</p>
-    <p class="page-title__description">
-      Utilize a mesma jornada do cadastro de voluntários para organizar o quadro profissional, com abas e fontes consistentes.
-    </p>
-  </header>
+  <p class="page-title__eyebrow">Profissionais</p>
+  <p class="page-title__label">Cadastro de profissionais</p>
+</header>
 
   <section class="cadastro">
   <div class="tab-shell">
@@ -49,8 +56,12 @@
     </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">`r`n    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
-    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+    <div *ngIf="feedback" class="feedback">
+      <span>{{ feedback }}</span>
+      <button type="button" class="feedback__close" (click)="clearFeedback()" aria-label="Fechar mensagem">X</button>
+    </div>
 
     <ng-template #navigationControls>
       <div class="tab-actions">
@@ -64,154 +75,115 @@
       </div>
     </ng-template>
 
+    <div class="tab-card" *ngIf="activeTab === 'dados'" formGroupName="dadosPessoais">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Dados pessoais do profissional.</p>
+        </div>
+      </div>
+
+      <div class="photo-panel">
+        <div class="photo-panel__preview">
+          <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto do profissional" />
+          <div class="photo-panel__placeholder" *ngIf="!photoPreview">Sem foto</div>
+        </div>
+        <div class="photo-panel__actions">
+          <label class="ghost">
+            Enviar foto 3x4
+            <input type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden />
+          </label>
+          <button type="button" class="ghost" (click)="handleCameraCapture()">
+            {{ cameraActive ? 'Registrar foto' : 'Capturar pela camera' }}
+          </button>
+          <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
+          <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar camera</button>
+          <p class="photo-hint">Status: {{ form.get('status')?.value || 'EM_ANALISE' }}</p>
+          <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
+        </div>
+      </div>
+
+      <div class="camera-panel" *ngIf="cameraActive">
+        <p class="camera-panel__title">Visualizacao da camera</p>
+        <div class="camera-panel__preview">
+          <video #videoElement autoplay muted playsinline></video>
+        </div>
+        <p class="camera-panel__hint">Ajuste o enquadramento e clique em "Registrar foto" para salvar.</p>
+      </div>
+
+      <canvas #canvasElement class="capture-canvas"></canvas>
+      <div class="field-grid cols-3">
+        <label class="field field-nome-completo">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" (input)="applyCapitalization('dadosPessoais.nome_completo', $any($event.target).value)" /></label>
+
+        <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
+        <label class="field">Sexo biologico<select formControlName="sexo_biologico">
+            <option value="">Selecione</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMININO">Feminino</option>
+            <option value="OUTRO">Outro</option>
+          </select></label>
+        <label class="field">Estado civil<select formControlName="estado_civil">
+            <option value=""></option>
+            <option *ngFor="let option of maritalStatusOptions" [value]="option">{{ option }}</option>
+          </select></label>
+        <label class="field">Nacionalidade<select formControlName="nacionalidade">
+            <option value=""></option>
+            <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
+          </select></label>
+
+        <label class="field">Naturalidade (cidade)<input formControlName="naturalidade_cidade" (input)="applyCapitalization('dadosPessoais.naturalidade_cidade', $any($event.target).value)" /></label>
+        <label class="field">Estado<select formControlName="naturalidade_uf">
+            <option value="">Selecione o estado</option>
+            <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
+          </select></label>
+
+        <label class="field field-nome-mae">Nome da mae*<input formControlName="nome_mae" (input)="applyCapitalization('dadosPessoais.nome_mae', $any($event.target).value)" /></label>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'endereço'" formGroupName="endereço">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Endereço completo do profissional.</p>
+        </div>
+      </div>
+
+      <div class="field-grid cols-3">
+        <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+          <p class="field-error" *ngIf="form.get(['endereço', 'cep'])?.invalid && form.get(['endereço', 'cep'])?.touched">
+            Informe um CEP valido com 8 digitos.
+          </p>
+          <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
+        </label>
+        <label class="field">Endereço<input formControlName="logradouro" (input)="applyCapitalization('endereço.logradouro', $any($event.target).value)" /></label>
+        <label class="field">Número<input formControlName="numero" /></label>
+        <label class="field">Complemento<input formControlName="complemento" (input)="applyCapitalization('endereço.complemento', $any($event.target).value)" /></label>
+        <label class="field">Bairro<input formControlName="bairro" (input)="applyCapitalization('endereço.bairro', $any($event.target).value)" /></label>
+        <label class="field">Ponto de referencia<input formControlName="ponto_referencia" (input)="applyCapitalization('endereço.ponto_referencia', $any($event.target).value)" /></label>
+        <label class="field">Município<input formControlName="municipio" (input)="applyCapitalization('endereço.municipio', $any($event.target).value)" /></label>
+        <label class="field">Zona<input formControlName="zona" /></label>
+        <label class="field">Subzona<input formControlName="subzona" /></label>
+        <label class="field">UF<select formControlName="uf">
+            <option value="">Selecione o estado</option>
+            <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
+          </select></label>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
     <div class="tab-card" *ngIf="activeTab === 'perfil'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Identifique o profissional e dados de contato de forma estruturada.</p>
         </div>
-        <div class="tab-card__header-actions">
-          <span class="pill">Obrigatório</span>
-          <div class="nav-buttons" aria-label="Ações rápidas do profissional">
-            <button type="button" class="nav-button" (click)="printProfessional()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M6 4.5C6 3.67157 6.67157 3 7.5 3H12.5C13.3284 3 14 3.67157 14 4.5V6H6V4.5Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M5 6H15C16.1046 6 17 6.89543 17 8V11.5C17 12.3284 16.3284 13 15.5 13H14V14.5C14 15.3284 13.3284 16 12.5 16H7.5C6.67157 16 6 15.3284 6 14.5V13H4.5C3.67157 13 3 12.3284 3 11.5V8C3 6.89543 3.89543 6 5 6ZM7.5 8.75C7.22386 8.75 7 8.97386 7 9.25C7 9.52614 7.22386 9.75 7.5 9.75H12.5C12.7761 9.75 13 9.52614 13 9.25C13 8.97386 12.7761 8.75 12.5 8.75H7.5Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Imprimir dados</span>
-            </button>
-            <button type="button" class="nav-button" (click)="submit()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M5 3C4.44772 3 4 3.44772 4 4V16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16V6.41421C16 6.149 15.8946 5.89464 15.7071 5.70711L13.2929 3.29289C13.1054 3.10536 12.851 3 12.5858 3H5Z"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                  />
-                  <path d="M7 3.5H12V7H7V3.5Z" fill="currentColor" />
-                  <rect x="7" y="11.5" width="6" height="3" rx="0.5" fill="currentColor" />
-                </svg>
-              </span>
-              <span class="nav-button__label">Salvar</span>
-            </button>
-            <button type="button" class="nav-button" (click)="resetForm()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M4.5 10C4.5 7.51472 6.51472 5.5 9 5.5H12.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M12 3.5L14.5 5.75L12 8"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M15.5 10C15.5 12.4853 13.4853 14.5 11 14.5H7.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M8 16.5L5.5 14.25L8 12"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Cancelar</span>
-            </button>
-            <button type="button" class="nav-button nav-button--danger" *ngIf="editingId" (click)="removeCurrent()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M8 3.5H12C12.2761 3.5 12.5 3.72386 12.5 4V4.5H16"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path d="M4 4.5H7.5V4C7.5 3.72386 7.72386 3.5 8 3.5" stroke="currentColor" stroke-width="1.25" />
-                  <path
-                    d="M6.5 7.5V15.5C6.5 16.0523 6.94772 16.5 7.5 16.5H12.5C13.0523 16.5 13.5 16.0523 13.5 15.5V7.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path d="M9.25 9.5V14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
-                  <path d="M10.75 9.5V14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
-                </svg>
-              </span>
-              <span class="nav-button__label">Excluir</span>
-            </button>
-            <button type="button" class="nav-button" (click)="startNew()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M10 4.5V15.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M4.5 10H15.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Novo</span>
-            </button>
-            <button type="button" class="nav-button" (click)="closeForm()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M6.5 6.5L13.5 13.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M13.5 6.5L6.5 13.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Fechar</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       <div class="field-grid cols-3">
-        <label class="field"
-          >Nome completo*<input
-            type="text"
-            formControlName="nome"
-            placeholder="Quem irá atender?"
-            (input)="applyCapitalization('nome', $any($event.target).value)"
-            (blur)="applyCapitalization('nome', $any($event.target).value)"
-        /></label>
         <div class="field category-manager">
           <label class="field-title" for="categoriaSelect">Categoria*</label>
           <select id="categoriaSelect" formControlName="categoria">
@@ -225,21 +197,35 @@
                 placeholder="Nova categoria"
                 (keydown.enter)="addCategoria(novaCategoria.value); novaCategoria.value = ''; $event.preventDefault();"
               />
-              <button type="button" class="ghost" (click)="addCategoria(novaCategoria.value); novaCategoria.value = ''">
-                Adicionar
+              <button
+                type="button"
+                class="ghost"
+                aria-label="Adicionar categoria"
+                title="Adicionar categoria"
+                (click)="addCategoria(novaCategoria.value); novaCategoria.value = ''"
+              >
+                +
               </button>
-            </div>
-            <div class="category-list">
-              <span class="category-chip" *ngFor="let categoria of categorias">
-                {{ categoria }}
-                <button type="button" class="ghost tiny" (click)="editCategoria(categoria)">Editar</button>
-                <button type="button" class="danger ghost tiny" (click)="removeCategoria(categoria)">
-                  Remover
-                </button>
-              </span>
             </div>
           </div>
         </div>
+        <label class="field">CPF*
+          <input
+            type="text"
+            formControlName="cpf"
+            placeholder="000.000.000-00"
+            (input)="onCpfInput($event)"
+            [class.input-error]="form.get('cpf')?.invalid && form.get('cpf')?.touched"
+          />
+          <p class="field-error" *ngIf="form.get('cpf')?.invalid && form.get('cpf')?.touched">
+            Informe um CPF valido.
+          </p>
+        </label>
+        <label class="field">Vínculo
+          <select formControlName="vinculo">
+            <option *ngFor="let vinculo of vinculos" [value]="vinculo.value">{{ vinculo.label }}</option>
+          </select>
+        </label>
         <label class="field"
           >Especialidade<input
             type="text"
@@ -280,19 +266,24 @@
       </div>
 
       <div class="field-grid cols-3">
-        <label class="field"
-          >Unidade de atendimento<input
-            type="text"
-            formControlName="unidade"
-            placeholder="Unidade, polo ou sala"
-            (input)="applyCapitalization('unidade', $any($event.target).value)"
-            (blur)="applyCapitalization('unidade', $any($event.target).value)"
-        /></label>
+        <label class="field">Unidade de atendimento
+          <select formControlName="unidadeId" (change)="onUnidadeSelecionada($event)">
+            <option value="">Selecione...</option>
+            <option *ngFor="let unidade of unidadesDisponiveis" [value]="unidade.id">{{ unidade.nomeFantasia }}</option>
+          </select>
+        </label>
+        <label class="field">Sala de atendimento
+          <select formControlName="salaAtendimento" [disabled]="!salasDisponiveis.length">
+            <option value="">Selecione...</option>
+            <option *ngFor="let sala of salasDisponiveis" [value]="sala.nome">{{ sala.nome }}</option>
+          </select>
+          <div class="search-hint" *ngIf="salasLoading">Carregando salas...</div>
+        </label>
         <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
         <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
           </select></label>
-        <div class="field full">
+<div class="field full">
           <p class="field-title">Disponibilidade</p>
           <div class="chips">
             <label *ngFor="let periodo of disponibilidades" class="chip">
@@ -359,62 +350,91 @@
         </button>
       </div>
     </div>
+    <div class="tab-card" *ngIf="activeTab === 'lista'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Listagem completa para localizar profissionais cadastrados.</p>
+        </div>
+        <div class="tab-card__header-actions">
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+          <button type="button" class="btn-outline" (click)="searchProfessionalsList()">Buscar</button>
+        </div>
+      </div>
+
+      <div [formGroup]="searchForm" class="list-filters">
+        <label class="field">Nome
+          <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
+        </label>
+        <label class="field">Categoria
+          <input type="text" formControlName="categoria" placeholder="Ex.: Psicologo" />
+        </label>
+        <label class="field">E-mail
+          <input type="email" formControlName="email" placeholder="contato@exemplo.com" />
+        </label>
+        <label class="field">Status
+          <select formControlName="status">
+            <option value="">Todos</option>
+            <option *ngFor="let option of statuses" [value]="option">{{ option }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="unit-list" *ngIf="professionalsPaginados.length">
+        <div class="unit-list__item" *ngFor="let professional of professionalsPaginados">
+          <div>
+            <div class="unit-list__name-row">
+              <div class="unit-list__avatar" [class.unit-list__avatar--empty]="!professional.foto3x4">
+                <img *ngIf="professional.foto3x4" [src]="professional.foto3x4" alt="Foto do profissional" />
+                <span *ngIf="!professional.foto3x4" aria-hidden="true">
+                  {{ (professional.nomeCompleto || 'P')[0] }}
+                </span>
+              </div>
+              <div>
+                <div class="unit-list__header-row">
+                  <span class="unit-list__name-text">{{ professional.nomeCompleto }}</span>
+                  <span class="pill" [class.success]="professional.status === 'ATIVO'">{{ professional.status }}</span>
+                </div>
+                <div class="unit-list__info-row">
+                  <span class="unit-list__meta-text">Categoria: {{ professional.categoria }}</span>
+                  <span class="unit-list__separator">&bull;</span>
+                  <span class="unit-list__meta-text">E-mail: {{ professional.email || 'Não informado' }}</span>
+                  <span class="unit-list__separator">&bull;</span>
+                  <span class="unit-list__meta-text">Telefone: {{ professional.telefone || 'Não informado' }}</span>
+                  <span class="unit-list__separator">&bull;</span>
+                  <span class="unit-list__meta-text">Unidade: {{ professional.unidade || 'Não informada' }}</span>
+                  <span class="unit-list__separator">&bull;</span>
+                  <span class="unit-list__meta-text">Sala: {{ professional.salaAtendimento || 'Não informada' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="unit-list__actions">
+            <button type="button" class="btn-outline btn-small" (click)="edit(professional)">Editar</button>
+            <button type="button" class="danger btn-small" (click)="remove(professional)">Excluir</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="unit-list__pagination" *ngIf="filteredProfessionals.length && professionalsPaginados.length">
+        <span class="unit-list__total">
+          Total: {{ filteredProfessionals.length }} profissionais
+        </span>
+        <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
+          Anterior
+        </button>
+        <span class="unit-list__page">
+          Página {{ paginaAtual }} de {{ totalPaginas }}
+        </span>
+        <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
+          Próximo
+        </button>
+      </div>
+
+      <p class="muted" *ngIf="!filteredProfessionals.length">Nenhum profissional cadastrado ate o momento.</p>
+    </div>
+
   </form>
 
-  <div class="list-card">
-    <div class="list-card__header">
-      <div>
-        <p class="page-title__eyebrow">Profissionais cadastrados</p>
-        <p class="page-title__label">Agenda e disponibilidade</p>
-      </div>
-      <div class="list-card__actions">
-        <span class="pill">{{ professionals.length }} no total</span>
-        <span class="pill success">{{ totalDisponiveis }} disponíveis</span>
-      </div>
-    </div>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Especialidade</th>
-            <th>Unidade</th>
-            <th>Status</th>
-            <th>Contato</th>
-            <th class="text-right">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let professional of professionals">
-            <td>
-              <div class="strong">{{ professional.nome }}</div>
-              <div class="muted">{{ professional.categoria }}</div>
-            </td>
-            <td>{{ professional.especialidade || 'Sem especialidade' }}</td>
-            <td>{{ professional.unidade || 'Unidade não informada' }}</td>
-            <td>
-              <span class="pill" [class.success]="professional.status === 'Disponível'">{{ professional.status }}</span>
-              <div class="muted">{{ professional.canaisAtendimento?.join(' • ') || 'Sem canais definidos' }}</div>
-            </td>
-            <td>
-              <div class="muted">{{ professional.email || 'E-mail não informado' }}</div>
-              <div class="muted">{{ professional.telefone || 'Telefone não informado' }}</div>
-            </td>
-            <td class="text-right">
-              <div class="row-actions">
-                <button type="button" class="ghost" (click)="edit(professional)">Editar</button>
-                <button type="button" class="danger" (click)="remove(professional)">Remover</button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="!professionals.length">
-            <td colspan="6" class="muted">Nenhum profissional cadastrado ainda.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </section>
 </app-tela-padrao>
-

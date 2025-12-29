@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CourseRecord, CursosAtendimentosService, Enrollment, EnrollmentStatus, WaitlistEntry } from '../../services/cursos-atendimentos.service';
 import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
+import { AssistanceUnitService } from '../../services/assistance-unit.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
 import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
 import { titleCaseWords } from '../../utils/capitalization.util';
@@ -104,6 +105,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   private professionalSearchSub?: Subscription;
   rooms: SalaRecord[] = [];
   roomsLoading = false;
+  unidadeAtualId: number | null = null;
 
   records: CourseRecord[] = [];
   dashboardSnapshot: DashboardSnapshot = this.buildDashboardSnapshot();
@@ -138,7 +140,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     {
       id: 'conclusao',
       title: 'Taxa de conclusão',
-      description: 'Percentual de beneficiários que concluíram as atividades.',
+      description: 'Percentual de beneficiarios que concluiram as atividades.',
       gradient: 'indigo',
       getValue: (snapshot) => `${snapshot.taxaConclusao}%`,
       getHelper: (snapshot) => `${snapshot.concluidos} concluídos • ${snapshot.cancelados} cancelamentos`,
@@ -169,7 +171,8 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     private readonly service: CursosAtendimentosService,
     private readonly beneficiaryService: BeneficiaryService,
     private readonly salasService: SalasService,
-    private readonly professionalService: ProfessionalService
+    private readonly professionalService: ProfessionalService,
+    private readonly unitService: AssistanceUnitService
   ) {
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
@@ -199,7 +202,16 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.fetchRecords();
     this.setupBeneficiarySearch();
     this.setupProfessionalSearch();
-    this.fetchRooms();
+    this.unitService.get().subscribe({
+      next: ({ unidade }) => {
+        this.unidadeAtualId = unidade?.id ?? null;
+        this.fetchRooms();
+      },
+      error: () => {
+        this.unidadeAtualId = null;
+        this.fetchRooms();
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -210,24 +222,28 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
   fetchRooms(): void {
     this.roomsLoading = true;
-    this.salasService.list().subscribe({
+    this.salasService.list(this.unidadeAtualId ?? undefined).subscribe({
       next: (rooms) => {
         this.rooms = rooms;
         this.roomsLoading = false;
       },
       error: () => {
         this.roomsLoading = false;
-        this.feedback = 'Não foi possível carregar as salas. Tente novamente.';
+        this.feedback = 'Nao foi possível carregar as salas. Tente novamente.';
       }
     });
   }
 
   addRoom(): void {
+    if (!this.unidadeAtualId) {
+      this.feedback = 'Selecione uma unidade ativa para cadastrar salas.';
+      return;
+    }
     const nome = window.prompt('Nome da sala');
     if (!nome || !nome.trim()) return;
 
     this.roomsLoading = true;
-    this.salasService.create({ nome: nome.trim() }).subscribe({
+    this.salasService.create({ nome: nome.trim(), unidadeId: this.unidadeAtualId }).subscribe({
       next: (room) => {
         this.rooms = [...this.rooms, room].sort((a, b) => a.nome.localeCompare(b.nome));
         this.courseForm.patchValue({ salaId: room.id });
@@ -235,7 +251,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.roomsLoading = false;
-        const message = error?.error?.message || 'Não foi possível salvar a sala.';
+        const message = error?.error?.message || 'Nao foi possível salvar a sala.';
         this.feedback = message;
       }
     });
@@ -248,7 +264,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         this.refreshDashboardSnapshot();
       },
       error: () => {
-        this.feedback = 'Não foi possível carregar os registros. Tente novamente.';
+        this.feedback = 'Nao foi possível carregar os registros. Tente novamente.';
       }
     });
   }
@@ -369,7 +385,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     }
 
     if (this.hasRoomConflict(this.courseForm.value, this.editingId)) {
-      this.feedback = 'Já existe um curso/atendimento na mesma sala e horário.';
+      this.feedback = 'ja existe um curso/atendimento na mesma sala e horário.';
       return;
     }
 
@@ -391,7 +407,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
             this.saving = false;
           },
           error: () => {
-            this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
+            this.feedback = 'Nao foi possível salvar o cadastro. Tente novamente.';
             this.saving = false;
           }
         });
@@ -413,7 +429,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
             this.refreshDashboardSnapshot();
           },
           error: () => {
-            this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
+            this.feedback = 'Nao foi possível salvar o cadastro. Tente novamente.';
             this.saving = false;
           }
         });
@@ -497,7 +513,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         this.saving = false;
       },
       error: () => {
-        this.feedback = 'Não foi possível excluir o cadastro. Tente novamente.';
+        this.feedback = 'Nao foi possível excluir o cadastro. Tente novamente.';
         this.saving = false;
       }
     });
@@ -573,7 +589,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     );
 
     if (alreadyRegistered || alreadyOnWaitlist) {
-      this.feedback = 'Este beneficiário já está inscrito ou aguardando neste curso/atendimento.';
+      this.feedback = 'Este beneficiario ja está inscrito ou aguardando neste curso/atendimento.';
       return;
     }
 
@@ -591,7 +607,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
       this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
     } else {
       const confirmWaitlist = window.confirm(
-        'Não há vagas disponíveis. Deseja incluir o beneficiário na lista de espera?'
+        'Nao há vagas disponiveis. Deseja incluir o beneficiario na lista de espera?'
       );
       if (confirmWaitlist) {
         const entry: WaitlistEntry = {
@@ -722,7 +738,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   }
 
   selectProfessional(professional: ProfessionalRecord): void {
-    this.courseForm.patchValue({ profissional: professional.nome });
+    this.courseForm.patchValue({ profissional: professional.nomeCompleto });
     this.professionalResults = [];
   }
 
@@ -794,7 +810,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         this.widgetState = { ...this.widgetState, ...(JSON.parse(saved) as WidgetState) };
       }
     } catch (error) {
-      console.warn('Não foi possível carregar as preferências do dashboard', error);
+      console.warn('Nao foi possível carregar as preferências do dashboard', error);
     }
 
     this.normalizeWidgetState();
@@ -806,7 +822,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
         localStorage.setItem(this.widgetPrefsKey, JSON.stringify(this.widgetState));
       }
     } catch (error) {
-      console.warn('Não foi possível salvar as preferências do dashboard', error);
+      console.warn('Nao foi possível salvar as preferências do dashboard', error);
     }
   }
 
@@ -919,7 +935,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.service.update(course.id, course).subscribe({
       next: (record) => this.replaceRecord(record),
       error: () => {
-        this.feedback = 'Não foi possível salvar as alterações. Tente novamente.';
+        this.feedback = 'Nao foi possível salvar as alterações. Tente novamente.';
       }
     });
   }
@@ -929,3 +945,4 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
     this.persistCourse(this.currentCourse);
   }
 }
+

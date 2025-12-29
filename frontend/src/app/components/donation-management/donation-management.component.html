@@ -1,23 +1,13 @@
 <app-tela-padrao>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimento</p>
-    <p class="page-title__label">Registrar doações</p>
+    <p class="page-title__label">Doa&ccedil;&atilde;o realizada</p>
   </header>
 
-  <section class="cadastro">
-  <div class="page-actions">
-    <button type="button" class="ghost">
-      <fa-icon [icon]="faClipboardList"></fa-icon>
-      Manual de entrega
-    </button>
-    <button type="button" class="ghost">
-      <fa-icon [icon]="faChartPie"></fa-icon>
-      Relatórios rápidos
-    </button>
-  </div>
+  <div class="cadastro">
 
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
+    <p class="tab-shell__title">Navegue pelas Informações</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -38,18 +28,22 @@
       </li>
     </ol>
   </div>
+  <ng-template #navigationControls>
+    <div class="tab-actions">
+      <button type="button" class="ghost" *ngIf="hasPreviousTab()" (click)="goToPreviousTab()">Voltar</button>
+      <button type="button" class="primary" *ngIf="hasNextTab()" (click)="goToNextTab()">
+        Próximo: {{ nextTabLabel() }}
+      </button>
+    </div>
+  </ng-template>
 
   <div class="tab-card" *ngIf="activeTab() === 'identificacao'" [formGroup]="identificationForm">
+    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">
           <fa-icon [icon]="faUserPlus"></fa-icon>
-          Identificação do atendimento
-        </p>
-        <h3>Selecione o beneficiário e registre a entrega imediata</h3>
-        <p class="muted">
-          A seleção do beneficiário mantém o contexto em todas as abas. Escolha itens do almoxarifado e valide o
-          estoque antes de confirmar a entrega.
+          Identificacao do atendimento
         </p>
       </div>
       <span class="pill">Fluxo ativo</span>
@@ -61,14 +55,15 @@
           <div class="search-box">
             <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
             <input
-              placeholder="Buscar beneficiário ou família"
+              placeholder="Buscar Beneficiário ou família"
               [ngModel]="beneficiarySearch()"
+              [ngModelOptions]="{ standalone: true }"
               (ngModelChange)="onBeneficiaryInput($event)"
             />
           </div>
         </label>
         <div class="suggestions suggestions--status" *ngIf="searchingBeneficiaries()">
-          <p class="muted">Buscando beneficiários e famílias...</p>
+          <p class="muted">Buscando Beneficiários e famílias...</p>
         </div>
         <div class="suggestions" *ngIf="!searchingBeneficiaries() && filteredBeneficiaries().length">
           <button
@@ -88,49 +83,50 @@
           class="muted"
           *ngIf="!searchingBeneficiaries() && beneficiarySearch().trim() && !filteredBeneficiaries().length"
         >
-          Nenhum beneficiário ou família encontrado.
+          Nenhum Beneficiário ou família encontrado.
         </p>
         <p class="field-error" *ngIf="beneficiarySearchError()">{{ beneficiarySearchError() }}</p>
 
         <div class="field-grid cols-2 compact">
-          <label class="field">Tipo de doação*
-            <select formControlName="donationType">
-              <option value="">Selecione</option>
-              <option>Cesta básica</option>
-              <option>Roupa</option>
-              <option>Calçado</option>
-              <option>Kit higiene</option>
-              <option>Outro</option>
-            </select>
-          </label>
-          <label class="field">Situação da doação*
-            <select formControlName="donationStatus">
-              <option value="em_analise">Em análise</option>
-              <option value="aprovada">Aprovada</option>
-              <option value="recusada">Recusada</option>
-              <option value="agendada">Agendada</option>
-              <option value="entregue">Entregue</option>
-            </select>
-          </label>
-          <label class="field">Responsável pelo atendimento*
-            <input formControlName="responsible" />
+          <label class="field">Responsavel pelo atendimento*
+            <input formControlName="responsible" readonly />
           </label>
           <label class="field">Observações gerais
-            <input formControlName="notes" placeholder="Descreva a carência" />
+            <input formControlName="notes" placeholder="Descreva a carencia" />
           </label>
         </div>
 
         <div class="info-card" *ngIf="selectedBeneficiary() as beneficiary">
-          <div class="info-card__title">
-            <fa-icon [icon]="faUserCheck"></fa-icon>
+          <div class="info-card__profile">
+            <div class="info-card__avatar" [class.info-card__avatar--empty]="!beneficiary.photoUrl">
+              <img *ngIf="beneficiary.photoUrl" [src]="beneficiary.photoUrl" alt="Foto do beneficiário" />
+              <span *ngIf="!beneficiary.photoUrl">{{ getInitials(beneficiary.name) }}</span>
+            </div>
             <div>
               <p class="eyebrow">Beneficiário selecionado</p>
-              <p class="strong">{{ beneficiary.name }}</p>
+              <p class="strong"><span class="info-label">Nome:</span> <span class="info-value">{{ beneficiary.name }}</span></p>
             </div>
           </div>
-          <p class="muted">Documento: {{ beneficiary.document }}</p>
-          <p class="muted">Contato: {{ beneficiary.phone || 'Não informado' }}</p>
-          <p class="muted">Endereço: {{ beneficiary.address || 'Não informado' }}</p>
+          <p class="muted">
+            <span class="info-label">Idade:</span>
+            {{
+              beneficiary.age !== null && beneficiary.age !== undefined
+                ? (beneficiary.age + ' anos')
+                : 'Não informado'
+            }}
+          </p>
+          <p class="muted">
+            <span class="info-label">CPF:</span>
+            <span class="info-value">{{ beneficiary.cpf ? formatCpf(beneficiary.cpf) : 'Não informado' }}</span>
+          </p>
+          <p class="muted">
+            <span class="info-label">Telefone:</span>
+            <span class="info-value">{{ beneficiary.phone ? formatPhoneValue(beneficiary.phone) : 'Não informado' }}</span>
+          </p>
+          <p class="muted">
+            <span class="info-label">Endereço:</span>
+            <span class="info-value">{{ beneficiary.address || 'Não informado' }}</span>
+          </p>
         </div>
       </div>
 
@@ -205,7 +201,7 @@
         </ng-template>
 
         <div class="tab-actions">
-          <button type="button" class="ghost" (click)="changeTab('historico')">Ver histórico</button>
+          <button type="button" class="ghost" (click)="changeTab('historico')">Ver historico</button>
           <button type="button" class="primary" (click)="registerDonation()">
             <fa-icon [icon]="faCheck"></fa-icon>
             Registrar doação entregue
@@ -213,6 +209,7 @@
         </div>
       </div>
     </div>
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
   <div class="tab-card" *ngIf="activeTab() === 'historico'">
@@ -220,10 +217,10 @@
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">
           <fa-icon [icon]="faClipboardList"></fa-icon>
-          Histórico de doações
+          historico de doações
         </p>
-        <h3>Filtre e visualize tudo que já foi doado</h3>
-        <p class="muted">Sempre atualizado de acordo com o beneficiário selecionado na primeira aba.</p>
+        <h3>Filtre e visualize tudo que ja foi doado</h3>
+        <p class="muted">Sempre atualizado de acordo com o Beneficiário selecionado na primeira aba.</p>
       </div>
     </div>
 
@@ -240,9 +237,13 @@
       <button type="button" class="ghost" (click)="historyFilters.reset({ startDate: '', endDate: '', donationType: '' })">
         Limpar filtros
       </button>
+      <button type="button" class="primary" (click)="applyHistoryFilters()">
+        Buscar
+      </button>
     </form>
+    <p class="field-error" *ngIf="historicoErro()">{{ historicoErro() }}</p>
 
-    <div class="table-wrapper" *ngIf="filteredHistory().length; else emptyHistory">
+    <div class="table-wrapper" *ngIf="selectedBeneficiary() && filteredHistory().length; else emptyHistory">
       <table>
         <thead>
           <tr>
@@ -250,7 +251,7 @@
             <th>Beneficiário</th>
             <th>Itens</th>
             <th>Situação</th>
-            <th>Responsável</th>
+            <th>Responsavel</th>
           </tr>
         </thead>
         <tbody>
@@ -258,7 +259,9 @@
             <td>{{ record.deliveryDate | date: 'shortDate' : undefined : 'pt-BR' }}</td>
             <td>
               <p class="strong">{{ record.beneficiaryName }}</p>
-              <p class="muted">{{ record.beneficiaryDocument }}</p>
+              <p class="muted">
+                {{ record.beneficiaryType === 'familia' ? 'Família' : 'Beneficiário' }}
+              </p>
             </td>
             <td>
               <ul>
@@ -274,9 +277,11 @@
     <ng-template #emptyHistory>
       <div class="empty">
         <fa-icon [icon]="faNotesMedical"></fa-icon>
-        <p>Sem registros para o filtro atual.</p>
+        <p *ngIf="!selectedBeneficiary()">Selecione um beneficiário ou família para ver o historico.</p>
+        <p *ngIf="selectedBeneficiary()">Sem registros para o filtro atual.</p>
       </div>
     </ng-template>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
   <div class="tab-card" *ngIf="activeTab() === 'planejamento'">
@@ -284,22 +289,21 @@
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">
           <fa-icon [icon]="faClock"></fa-icon>
-          Doações a realizar
+          doações a realizar
         </p>
         <h3>Cadastre e acompanhe entregas futuras</h3>
-        <p class="muted">As listas abaixo carregam conforme o beneficiário escolhido em Identificação.</p>
       </div>
-      <span class="pill">Integração com almoxarifado</span>
+      <span class="pill">Integracao com almoxarifado</span>
     </div>
 
-    <div class="field-grid cols-3 compact" [formGroup]="plannedForm">
-      <label class="field">Item do almoxarifado*
+    <div class="field-grid cols-3 compact planned-grid" [formGroup]="plannedForm">
+      <label class="field planned-item">Item do almoxarifado*
         <div class="picker-input">
           <input placeholder="Selecione um item" [value]="selectedPlannedItem?.description || ''" readonly />
           <button type="button" class="ghost" (click)="openStockModal('plan')">Escolher</button>
         </div>
       </label>
-      <label class="field">Quantidade*
+      <label class="field planned-qty">Quantidade*
         <input type="number" min="1" formControlName="quantity" />
       </label>
       <label class="field">Data prevista*
@@ -315,19 +319,19 @@
       <label class="field">Status*
         <select formControlName="status">
           <option value="pendente">Pendente</option>
-          <option value="em_separacao">Em separação</option>
+          <option value="em_separacao">Em separacao</option>
           <option value="pronto">Pronto para entrega</option>
           <option value="entregue">Entregue</option>
           <option value="cancelado">Cancelado</option>
         </select>
       </label>
-      <label class="field">Observações
+      <label class="field planned-notes">Observações
         <input formControlName="notes" placeholder="Informações adicionais" />
       </label>
     </div>
     <p class="field-error" *ngIf="plannedError()">{{ plannedError() }}</p>
     <div class="tab-actions">
-      <button type="button" class="ghost" (click)="clearPlanForm()">Cancelar edição</button>
+      <button type="button" class="ghost" (click)="clearPlanForm()">Cancelar edicao</button>
       <button type="button" class="primary" (click)="submitPlannedDonation()">
         <fa-icon [icon]="faCheck"></fa-icon>
         {{ editingPlanId ? 'Atualizar planejamento' : 'Salvar planejamento' }}
@@ -351,15 +355,18 @@
               <p class="strong">{{ plan.itemDescription }}</p>
               <p class="muted">{{ plan.itemCode }}</p>
               <p class="muted">Beneficiário: {{ plan.beneficiaryName }}</p>
+              <p class="muted" *ngIf="plan.status === 'cancelado' && plan.cancelReason">
+                Motivo do cancelamento: {{ plan.cancelReason }}
+              </p>
             </td>
-            <td>{{ plan.quantity }} {{ plan.unit }} — {{ plan.dueDate | date: 'shortDate' }}</td>
+            <td>{{ plan.quantity }} {{ plan.unit }} a {{ plan.dueDate | date: 'shortDate' }}</td>
             <td><span class="status-chip status-chip--info">{{ plan.priority }}</span></td>
-            <td><span class="status-chip">{{ plan.status }}</span></td>
+            <td><span [ngClass]="getPlanStatusClass(plan.status)">{{ formatPlanStatus(plan.status) }}</span></td>
             <td class="actions-cell">
-              <button type="button" class="link" (click)="editPlan(plan)">Editar</button>
-              <button type="button" class="link" (click)="markPlanAsDelivered(plan)">Marcar entregue</button>
-              <button type="button" class="link danger" (click)="cancelPlan(plan)">Cancelar</button>
-              <p class="muted">Estoque disponível: {{ getStockBalance(plan.itemCode) }} {{ plan.unit }}</p>
+              <button type="button" class="primary" (click)="editPlan(plan)">Editar</button>
+              <button type="button" class="primary" (click)="realizarDoacaoPlanejada(plan)">Realizar doação</button>
+              <button type="button" class="primary primary--danger" (click)="openCancelDialog(plan)">Cancelar</button>
+              <p class="muted">Estoque disponivel: {{ getStockBalance(plan.itemCode) }} {{ plan.unit }}</p>
             </td>
           </tr>
         </tbody>
@@ -368,9 +375,10 @@
     <ng-template #emptyPlans>
       <div class="empty">
         <fa-icon [icon]="faPeopleGroup"></fa-icon>
-        <p>Sem doações planejadas para este beneficiário.</p>
+        <p>Sem doações planejadas para este Beneficiário.</p>
       </div>
     </ng-template>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
   <div class="tab-card" *ngIf="activeTab() === 'dashboard'">
@@ -380,8 +388,8 @@
           <fa-icon [icon]="faChartPie"></fa-icon>
           Dashboard de doações
         </p>
-        <h3>Visão rápida do atendimento</h3>
-        <p class="muted">Resultados filtrados pelo beneficiário selecionado em Identificação.</p>
+        <h3>Visão rapida do atendimento</h3>
+        <p class="muted">Resultados filtrados pelo Beneficiário selecionado em Identificacao.</p>
       </div>
       <span class="pill">Atualizado automaticamente</span>
     </div>
@@ -390,7 +398,7 @@
       <article class="insight-card">
         <p class="eyebrow">Registros entregues</p>
         <h4>{{ dashboardStats().deliveredCount }}</h4>
-        <p class="muted">Doações concluídas</p>
+        <p class="muted">doações concluidas</p>
       </article>
       <article class="insight-card">
         <p class="eyebrow">Quantidade doada</p>
@@ -400,7 +408,7 @@
       <article class="insight-card">
         <p class="eyebrow">Pendentes</p>
         <h4>{{ dashboardStats().pendingPlans }}</h4>
-        <p class="muted">Doações ainda não entregues</p>
+        <p class="muted">doações ainda Não entregues</p>
       </article>
       <article class="insight-card">
         <p class="eyebrow">Itens a entregar</p>
@@ -410,7 +418,7 @@
     </div>
 
     <div class="chart-card" *ngIf="dashboardStats().distribution | keyvalue as distribution">
-      <p class="eyebrow">Distribuição por tipo</p>
+      <p class="eyebrow">Distribuicao por tipo</p>
       <div class="bars" *ngIf="distribution.length; else noData">
         <div class="bar" *ngFor="let entry of distribution">
           <span class="bar__label">{{ entry.key }}</span>
@@ -421,12 +429,36 @@
         </div>
       </div>
       <ng-template #noData>
-        <p class="muted">Ainda não há dados suficientes para gerar o gráfico.</p>
+        <p class="muted">Ainda Não ha dados suficientes para gerar o grafico.</p>
       </ng-template>
     </div>
+    <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
-</section>
-
+</div>
+<div class="modal-backdrop" *ngIf="cancelDialogOpen()">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <p class="eyebrow">Cancelamento</p>
+        <h3>Cancelar doação planejada</h3>
+      </div>
+      <button type="button" class="ghost" (click)="closeCancelDialog()">Fechar</button>
+    </div>
+    <label class="field">
+      Motivo do cancelamento*
+      <input
+        [ngModel]="cancelReason()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="cancelReason.set($event)"
+        placeholder="Descreva o motivo"
+      />
+    </label>
+    <div class="tab-actions">
+      <button type="button" class="ghost" (click)="closeCancelDialog()">Voltar</button>
+      <button type="button" class="primary primary--danger" (click)="confirmCancelPlan()">Confirmar cancelamento</button>
+    </div>
+  </div>
+</div>
 <div class="modal-backdrop" *ngIf="stockModalOpen()">
   <div class="modal">
     <div class="modal__header">
@@ -440,7 +472,7 @@
     <div class="modal__filters">
       <div class="search-box">
         <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-        <input placeholder="Busque por nome, código ou categoria" [ngModel]="stockSearch()" (ngModelChange)="stockSearch.set($event)" />
+        <input placeholder="Busque por nome, codigo ou categoria" [ngModel]="stockSearch()" (ngModelChange)="stockSearch.set($event)" />
       </div>
       <div class="compact-grid">
         <label class="field">Categoria
@@ -448,7 +480,7 @@
             <option value="todos">Todas</option>
             <option value="Higiene">Higiene</option>
             <option value="EPI">EPI</option>
-            <option value="Escritório">Escritório</option>
+            <option value="Escritorio">Escritorio</option>
             <option value="Alimentos">Alimentos</option>
           </select>
         </label>
@@ -466,7 +498,7 @@
       <button type="button" class="stock-row" *ngFor="let item of filteredStock()" (click)="selectStockItem(item)">
         <div>
           <p class="strong">{{ item.description }}</p>
-          <p class="muted">{{ item.code }} · {{ item.category }}</p>
+          <p class="muted">{{ item.code }} A {{ item.category }}</p>
         </div>
         <div class="stock-row__info">
           <span class="pill">{{ item.currentStock }} {{ item.unit }} em estoque</span>
@@ -483,4 +515,24 @@
   </div>
 </div>
 </app-tela-padrao>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

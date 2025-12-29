@@ -51,7 +51,7 @@ export class LoginComponent {
 
   private mapError(err: unknown): string {
     if (err && typeof err === 'object' && 'name' in err && err['name'] === 'TimeoutError') {
-      return 'O servidor não respondeu. Verifique sua conexão ou tente novamente em instantes.';
+      return 'O servidor nao respondeu. Verifique sua conexao ou tente novamente em instantes.';
     }
 
     const fallback =
@@ -70,3 +70,4 @@ export class LoginComponent {
     return 'Falha ao fazer login. Tente novamente.';
   }
 }
+

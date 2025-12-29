@@ -5,278 +5,67 @@
         <span class="material-icons">dashboard_customize</span>
       </div>
       <div>
-        <h1 class="text-2xl font-semibold">Dashboard Assistência Social</h1>
-        <p class="text-white/80">Indicadores consolidados de beneficiários, famílias e termos de fomento.</p>
+        <h1 class="text-2xl font-semibold">Dashboard Assistencia Social</h1>
+        <p class="text-white/80">Indicadores consolidados de beneficiarios, familias e termos de fomento.</p>
       </div>
     </div>
-
-    <form class="grid gap-3 md:grid-cols-3" (ngSubmit)="refresh()">
-      <label class="filter-field">
-        <span>Data inicial</span>
-        <input type="date" [(ngModel)]="filters.startDate" name="startDate" />
-      </label>
-      <label class="filter-field">
-        <span>Data final</span>
-        <input type="date" [(ngModel)]="filters.endDate" name="endDate" />
-      </label>
-      <div class="flex items-end">
-        <button class="btn" type="button" (click)="refresh()" [disabled]="loading">
-          <span class="material-icons text-base">refresh</span>
-          Atualizar
-        </button>
-      </div>
-    </form>
   </div>
 
-  <ng-container *ngIf="!loading && dashboardService.data(); else loadingState">
-    <div class="realtime-panel">
-      <div class="realtime-header">
-        <div>
-          <p class="realtime-label">Painel em tempo real</p>
-          <p class="realtime-hint">Indicadores principais sempre atualizados, sem depender do filtro de data.</p>
-        </div>
-        <div class="pulse">
-          <span class="pulse-dot"></span>
-          <span>Atualização automática a cada 30s</span>
-        </div>
-      </div>
+  <div *ngIf="error && !loading" class="bg-white rounded-xl border border-rose-200 shadow-sm p-6 text-rose-700">
+    <p class="font-semibold">Falha ao carregar o dashboard.</p>
+    <p class="text-sm">{{ error }}</p>
+  </div>
 
-      <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
-        <div class="pulse-card" [class]="'accent-' + card.accent" *ngFor="let card of realtimeHighlights">
-          <div class="pulse-card__icon">
-            <span class="material-icons">{{ card.icon }}</span>
-          </div>
-          <div>
-            <p class="pulse-card__label">{{ card.label }}</p>
-            <p class="pulse-card__value">{{ card.value }}{{ card.suffix || '' }}</p>
-            <p class="pulse-card__hint">Monitoramento instantâneo.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="live-grid">
-        <div class="panel-card live-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="panel-card__label">Execução e ocupação</p>
-            <span class="badge badge-info">Tempo real</span>
-          </div>
-          <p class="panel-card__hint">Cobertura financeira e engajamento das turmas.</p>
-
-          <div class="chart-bar">
-            <div class="chart-bar__fill bg-emerald-500" [style.width]="(top12?.execucaoFinanceira || 0) + '%'">
-            </div>
-          </div>
-          <p class="chart-bar__label">Execução financeira: {{ top12?.execucaoFinanceira | number: '1.0-1' }}%</p>
-
-          <div class="chart-bar mt-3">
-            <div class="chart-bar__fill bg-indigo-500" [style.width]="(top12?.taxaMediaOcupacaoCursos || 0) + '%'">
-            </div>
-          </div>
-          <p class="chart-bar__label">Ocupação média das turmas: {{ top12?.taxaMediaOcupacaoCursos | number: '1.0-1' }}%</p>
-        </div>
-
-        <div class="panel-card live-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="panel-card__label">Doações e distribuição</p>
-            <span class="badge badge-success">Solidariedade</span>
-          </div>
-          <p class="panel-card__value text-emerald-700">{{ top12?.doacoesPeriodo | currency: 'BRL' }}</p>
-          <p class="panel-card__hint">Entradas financeiras no período atual.</p>
-
-          <div class="chip-list mt-2" *ngIf="top12?.itensDoadoResumo | keyvalue as itens">
-            <span class="chip" *ngFor="let item of itens">{{ item.key }}<strong>{{ item.value }}</strong></span>
-          </div>
-
-          <div class="chart-bar mt-3">
-            <div class="chart-bar__fill bg-amber-500" [style.width]="(top12?.itensDoadoResumo?.['cestas'] || 0) + '%'">
-            </div>
-          </div>
-          <p class="chart-bar__label">Cestas e insumos entregues</p>
-        </div>
-
-        <div class="panel-card live-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="panel-card__label">Qualidade de atendimento</p>
-            <span class="badge badge-warn">Operação</span>
-          </div>
-          <p class="panel-card__hint">Variação dinâmica das visitas e absenteísmo.</p>
-
-          <div class="mini-card mb-2">
-            <p class="mini-card__label">Visitas em andamento</p>
-            <p class="mini-card__value text-indigo-700">{{ top12?.visitasDomiciliares ?? 0 }}</p>
-          </div>
-
-          <div class="chart-bar">
-            <div class="chart-bar__fill bg-rose-500" [style.width]="(top12?.absenteismo || 0) + '%'">
-            </div>
-          </div>
-          <p class="chart-bar__label">Absenteísmo médio: {{ top12?.absenteismo | number: '1.0-1' }}%</p>
-
-          <div class="pill mt-2">Certificados emitidos: {{ top12?.certificadosEmitidos ?? 0 }}</div>
-        </div>
-      </div>
-    </div>
-
+  <ng-container *ngIf="!loading && cadastros; else loadingState">
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
-      <div class="stat-card" *ngFor="let card of [
-          { label: 'Beneficiários atendidos', value: top12?.beneficiariosAtendidosPeriodo, icon: 'groups' },
-          { label: 'Famílias extrema pobreza', value: top12?.familiasExtremaPobreza, icon: 'diversity_3' },
-          { label: 'Renda média familiar', value: (top12?.rendaMediaFamiliar || 0) | currency: 'BRL', icon: 'savings' },
-          { label: 'Termos vencendo', value: top12?.termosVencendo, icon: 'warning' }
-        ]">
-        <div class="stat-card__icon bg-white text-g3-green-700">
+      <div class="stat-card stat-card--center" *ngFor="let card of [
+          { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald' },
+          { label: 'Profissionais cadastrados', value: cadastros.profissionais, icon: 'badge', hint: 'Equipe tecnica ativa no cadastro.', tone: 'stat-card--indigo' },
+          { label: 'Voluntarios cadastrados', value: cadastros.voluntarios, icon: 'volunteer_activism', hint: 'Apoio voluntario cadastrado.', tone: 'stat-card--amber' },
+          { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose' }
+        ]" [ngClass]="card.tone">
+        <div class="stat-card__icon">
           <span class="material-icons">{{ card.icon }}</span>
         </div>
         <div>
           <p class="stat-card__label">{{ card.label }}</p>
-          <p class="stat-card__value">{{ card.value ?? '-' }}</p>
-          <p class="stat-card__hint">Resumo da área Top 12.</p>
+          <p class="stat-card__value">{{ card.value }}</p>
+          <p class="stat-card__hint">{{ card.hint }}</p>
         </div>
       </div>
     </div>
 
-    <div class="grid gap-4 xl:grid-cols-3">
-      <div class="panel-card xl:col-span-2">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <p class="panel-card__label">Atendimentos e cadastros</p>
-            <p class="panel-card__hint">Volume de beneficiários e situação cadastral.</p>
-          </div>
-          <span class="badge badge-info">Beneficiários</span>
+    <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2 mt-4">
+      <div class="stat-card stat-card--center" *ngFor="let card of [
+          { label: 'Doacoes realizadas', value: doacoesRealizadas, icon: 'inventory_2', hint: 'Entregas registradas no periodo.', tone: 'stat-card--emerald' },
+          { label: 'Empregos abertos', value: empregosAbertos, icon: 'work_outline', hint: 'Vagas disponiveis para encaminhar.', tone: 'stat-card--sky' },
+          { label: 'Cursos com vagas', value: cursosComVagas, icon: 'school', hint: 'Turmas com vagas abertas.', tone: 'stat-card--indigo' },
+          { label: 'Itens no almoxarifado', value: itensAlmoxarifado, icon: 'inventory', hint: 'Produtos cadastrados em estoque.', tone: 'stat-card--amber' }
+        ]" [ngClass]="card.tone">
+        <div class="stat-card__icon">
+          <span class="material-icons">{{ card.icon }}</span>
         </div>
-
-        <div class="grid md:grid-cols-3 gap-3">
-          <div class="mini-card">
-            <p class="mini-card__label">Total</p>
-            <p class="mini-card__value">{{ atendimento?.totalBeneficiarios ?? 0 }}</p>
-            <p class="mini-card__hint">Cadastros existentes.</p>
-          </div>
-          <div class="mini-card">
-            <p class="mini-card__label">Ativos</p>
-            <p class="mini-card__value text-emerald-700">{{ atendimento?.ativos ?? 0 }}</p>
-            <p class="mini-card__hint">Aptos para atendimento.</p>
-          </div>
-          <div class="mini-card">
-            <p class="mini-card__label">Pendentes</p>
-            <p class="mini-card__value text-amber-600">{{ atendimento?.pendentes ?? 0 }}</p>
-            <p class="mini-card__hint">Em análise ou com pendências.</p>
-          </div>
-        </div>
-
-        <div class="mt-4 grid md:grid-cols-2 gap-4">
-          <div>
-            <p class="panel-card__label">Cadastro completo</p>
-            <div class="progress">
-              <div class="progress__bar bg-emerald-500" [style.width]="(atendimento?.cadastroCompletoPercentual ?? 0) + '%'">
-              </div>
-            </div>
-            <p class="panel-card__hint">{{ atendimento?.cadastroCompletoPercentual | number: '1.0-1' }}% dos cadastros.</p>
-          </div>
-          <div>
-            <p class="panel-card__label">Novos no período</p>
-            <p class="panel-card__value text-indigo-700">{{ atendimento?.novosBeneficiarios ?? 0 }}</p>
-            <p class="panel-card__hint">Filtrados pelo intervalo selecionado.</p>
-          </div>
-        </div>
-
-        <div class="mt-4 grid md:grid-cols-2 gap-3">
-          <div class="chip-card">
-            <p class="chip-card__title">Faixa etária</p>
-            <div class="chip-list">
-              <span class="chip" *ngFor="let item of atendimento?.faixaEtaria | keyvalue">
-                {{ item.key }}<strong>{{ item.value }}</strong>
-              </span>
-            </div>
-          </div>
-          <div class="chip-card">
-            <p class="chip-card__title">Vulnerabilidades</p>
-            <div class="chip-list">
-              <span class="chip" *ngFor="let item of atendimento?.vulnerabilidades | keyvalue">
-                {{ item.key }}<strong>{{ item.value }}</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel-card">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <p class="panel-card__label">Famílias e perfil socioeconômico</p>
-            <p class="panel-card__hint">Distribuição por renda e insegurança alimentar.</p>
-          </div>
-          <span class="badge badge-success">Famílias</span>
-        </div>
-
-        <div class="mini-card">
-          <p class="mini-card__label">Total de famílias</p>
-          <p class="mini-card__value">{{ familias?.total ?? 0 }}</p>
-          <p class="mini-card__hint">Registradas no sistema.</p>
-        </div>
-
-        <div class="mini-card">
-          <p class="mini-card__label">Média de pessoas</p>
-          <p class="mini-card__value">{{ familias?.mediaPessoas | number: '1.1-1' }}</p>
-          <p class="mini-card__hint">Por família cadastrada.</p>
-        </div>
-
-        <div class="mini-card">
-          <p class="mini-card__label">Renda média</p>
-          <p class="mini-card__value">{{ familias?.rendaMediaFamiliar | currency: 'BRL' }}</p>
-          <p class="mini-card__hint">Valor mensal consolidado.</p>
-        </div>
-
-        <div class="chip-card mt-3">
-          <p class="chip-card__title">Faixa de renda per capita</p>
-          <div class="chip-list">
-            <span class="chip" *ngFor="let item of familias?.faixaRenda | keyvalue">
-              {{ item.key }}<strong>{{ item.value }}</strong>
-            </span>
-          </div>
-        </div>
-
-        <div class="chip-card mt-3">
-          <p class="chip-card__title">Insegurança alimentar</p>
-          <div class="chip-list">
-            <span class="chip" *ngFor="let item of familias?.insegurancaAlimentar | keyvalue">
-              {{ item.key }}<strong>{{ item.value }}</strong>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel-card">
-      <div class="flex items-center justify-between mb-3">
         <div>
-          <p class="panel-card__label">Termos de fomento</p>
-          <p class="panel-card__hint">Situação de vigência e alertas de vencimento.</p>
-        </div>
-        <span class="badge badge-info">Projetos</span>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-3">
-        <div class="mini-card">
-          <p class="mini-card__label">Ativos</p>
-          <p class="mini-card__value">{{ termos?.ativos ?? 0 }}</p>
-        </div>
-        <div class="mini-card">
-          <p class="mini-card__label">Valor global</p>
-          <p class="mini-card__value">{{ termos?.valorTotal | currency: 'BRL' }}</p>
-        </div>
-        <div class="mini-card">
-          <p class="mini-card__label">Alertas (60 dias)</p>
-          <p class="mini-card__value text-amber-600">{{ termos?.alertas?.length ?? 0 }}</p>
+          <p class="stat-card__label">{{ card.label }}</p>
+          <p class="stat-card__value">{{ card.value }}</p>
+          <p class="stat-card__hint">{{ card.hint }}</p>
         </div>
       </div>
+    </div>
 
-      <div class="alert-table" *ngIf="termos?.alertas?.length">
-        <div class="alert-row" *ngFor="let alerta of termos?.alertas ?? []">
-          <div>
-            <p class="panel-card__label">Termo {{ alerta.numero }}</p>
-            <p class="panel-card__hint">Vence em {{ alerta.vigenciaFim | date: 'dd/MM/yyyy' }}</p>
-          </div>
-          <span class="badge badge-warn">{{ alerta.status || 'A vencer' }}</span>
+    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 mt-4" *ngIf="financeiro">
+      <div class="stat-card stat-card--center" *ngFor="let card of [
+          { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald' },
+          { label: 'Valores em caixa', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo' },
+          { label: 'Valores em banco', value: financeiro.valoresEmBanco, icon: 'account_balance', hint: 'Saldo em contas nao correntes.', tone: 'stat-card--sky' }
+        ]" [ngClass]="card.tone">
+        <div class="stat-card__icon">
+          <span class="material-icons">{{ card.icon }}</span>
+        </div>
+        <div>
+          <p class="stat-card__label">{{ card.label }}</p>
+          <p class="stat-card__value">{{ card.value | currency: 'BRL' }}</p>
+          <p class="stat-card__hint">{{ card.hint }}</p>
         </div>
       </div>
     </div>

@@ -26,10 +26,10 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
   tabs: StepTab[] = [
     { id: 'identificacao', label: 'Identificação da visita' },
     { id: 'condicoes', label: 'Condições do domicílio' },
-    { id: 'social', label: 'Situação familiar e social' },
+    { id: 'social', label: 'Situação famíliar e social' },
     { id: 'registro', label: 'Registro da visita' },
     { id: 'anexos', label: 'Anexos' },
-    { id: 'historico', label: 'Histórico do beneficiário' }
+    { id: 'historico', label: 'Histórico do beneficiario' }
   ];
 
   readonly tiposVisita = ['Social', 'Técnica', 'Acompanhamento', 'Retorno'];
@@ -78,7 +78,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: ['Social'],
         situacao: ['Agendada', Validators.required],
         usarEnderecoBeneficiario: [true],
-        endereco: this.fb.group({
+        endereço: this.fb.group({
           logradouro: [''],
           numero: [''],
           bairro: [''],
@@ -143,15 +143,15 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
     this.beneficiariosError = null;
 
     this.beneficiaryService.list().subscribe({
-      next: ({ beneficiarios }) => {
+      next: ({ beneficiarios }: { beneficiarios?: any[] }) => {
         this.beneficiarios = (beneficiarios ?? []).map(
-          (beneficiario) => beneficiario.nomeCompleto || (beneficiario as any).nome_completo || 'Beneficiário'
+          (beneficiario: any) => beneficiario.nomeCompleto || (beneficiario as any).nome_completo || 'Beneficiario'
         );
         this.beneficiariosLoading = false;
       },
       error: () => {
         this.beneficiarios = [];
-        this.beneficiariosError = 'Não foi possível carregar os beneficiários.';
+        this.beneficiariosError = 'Não foi possível carregar os beneficiarios.';
         this.beneficiariosLoading = false;
       }
     });
@@ -307,7 +307,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: visita.tipoVisita,
         situacao: visita.situacao,
         usarEnderecoBeneficiario: visita.usarEnderecoBeneficiario,
-        endereco: visita.endereco,
+        endereço: visita.endereço,
         observacoesIniciais: visita.observacoesIniciais
       },
       condicoes: visita.condicoes,
@@ -366,7 +366,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: 'Social',
         situacao: 'Agendada',
         usarEnderecoBeneficiario: true,
-        endereco: {
+        endereço: {
           logradouro: '',
           numero: '',
           bairro: '',
@@ -421,7 +421,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
       tipoVisita: value.identificacao?.tipoVisita || 'Social',
       situacao: (value.identificacao?.situacao as SituacaoVisita) || 'Agendada',
       usarEnderecoBeneficiario: value.identificacao?.usarEnderecoBeneficiario ?? true,
-      endereco: value.identificacao?.endereco || {},
+      endereço: value.identificacao?.endereço || {},
       observacoesIniciais: value.identificacao?.observacoesIniciais,
       condicoes: value.condicoes || {},
       situacaoSocial: value.situacaoSocial || {},
@@ -434,3 +434,4 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
     };
   }
 }
+

@@ -1,146 +1,196 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
-import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
-
+import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+
+declare const L: any;
+
 @Component({
   selector: 'app-georeferenciamento-localizacao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, TelaPadraoComponent],
   templateUrl: './georeferenciamento-localizacao.component.html',
   styleUrl: './georeferenciamento-localizacao.component.scss'
 })
 export class GeoreferenciamentoLocalizacaoComponent implements OnInit, OnDestroy {
-  readonly providers = [
-    { id: 'openstreetmap', label: 'OpenStreetMap' },
-    { id: 'google', label: 'Google Maps (embed)' },
-    { id: 'bing', label: 'Bing Maps (iframe)' }
-  ];
+  readonly tabs = [{ id: 'beneficiarios', label: 'Dados dos beneficiarios' }];
+  activeTab = 'beneficiarios';
 
-  readonly layers = [
-    { id: 'endereco', label: 'Endereço validado', status: 'Pronto' },
-    { id: 'perimetro', label: 'Perímetro de cobertura', status: '2km' },
-    { id: 'rota', label: 'Rotas de acesso', status: 'Sugestões salvas' }
-  ];
-
-  readonly qualityChecklist = [
-    'CEP confirmado',
-    'Latitude e longitude em WGS84',
-    'Revisão humana realizada',
-    'Mapa sincronizado na última hora'
-  ];
-
-  unit: AssistanceUnitPayload | null = null;
-  geoForm: FormGroup;
-  mapPreviewUrl: SafeResourceUrl | null = null;
-  addressSummary = 'Sem endereço informado.';
-
+  beneficiarios: BeneficiarioApiPayload[] = [];
+  carregando = false;
+  erro: string | null = null;
+  private mapInstance: any;
+  private markers: any[] = [];
   private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly unitService: AssistanceUnitService,
-    private readonly sanitizer: DomSanitizer
-  ) {
-    this.geoForm = this.fb.group({
-      latitude: [-23.55052, [Validators.required, Validators.min(-90), Validators.max(90)]],
-      longitude: [-46.633308, [Validators.required, Validators.min(-180), Validators.max(180)]],
-      precision: [5, [Validators.required, Validators.min(1), Validators.max(10)]],
-      provider: ['openstreetmap', Validators.required],
-      addressReference: ['', [Validators.maxLength(200)]],
-      coverageRadius: [2, [Validators.required, Validators.min(0.1)]],
-      accessRoutes: ['', [Validators.maxLength(200)]],
-      geoStatus: ['geocoded'],
-      geocoder: ['OpenStreetMap Nominatim'],
-      lastSync: ['Há poucos minutos'],
-      metadataNotes: ['', [Validators.maxLength(300)]]
-    });
-  }
+  constructor(private readonly beneficiarioService: BeneficiarioApiService) {}
 
   ngOnInit(): void {
-    this.unitService
-      .get()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(({ unidade }) => {
-        this.unit = unidade;
-        this.addressSummary = this.buildAddressSummary(unidade);
-        this.prefillFromUnit(unidade);
-        this.refreshMap();
+    this.loadLeaflet()
+      .then(() => {
+        this.initMap();
+        this.carregarBeneficiarios();
+      })
+      .catch(() => {
+        this.erro = 'Nao foi possivel carregar o mapa.';
       });
-
-    this.geoForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.refreshMap());
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+    }
   }
 
-  useUnitAddress(): void {
-    if (!this.unit) {
+  private initMap(): void {
+    if (!L) {
+      return;
+    }
+    const map = L.map('beneficiarios-map', {
+      zoomControl: true
+    }).setView([-14.235, -51.9253], 4);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    this.mapInstance = map;
+  }
+
+  private carregarBeneficiarios(): void {
+    this.carregando = true;
+    this.erro = null;
+
+    this.beneficiarioService
+      .list()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: { beneficiarios?: BeneficiarioApiPayload[] }) => {
+          this.beneficiarios = response.beneficiarios ?? [];
+          this.atualizarMarcadores();
+          this.geocodificarPendentes();
+        },
+        error: () => {
+          this.erro = 'Nao foi possivel carregar os beneficiarios.';
+        },
+        complete: () => {
+          this.carregando = false;
+        }
+      });
+  }
+
+  private atualizarMarcadores(): void {
+    if (!this.mapInstance || !L) {
       return;
     }
 
-    this.geoForm.patchValue({
-      addressReference: this.buildAddressSummary(this.unit),
-      accessRoutes: 'Acesso principal conforme endereço oficial da unidade.'
+    this.markers.forEach((marker) => marker.remove());
+    this.markers = [];
+
+    const validos = this.beneficiarios
+      .map((beneficiario) => ({
+        ...beneficiario,
+        lat: Number(beneficiario.latitude),
+        lng: Number(beneficiario.longitude)
+      }))
+      .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+
+    validos.forEach((beneficiario) => {
+      const marker = L.marker([beneficiario.lat, beneficiario.lng])
+        .addTo(this.mapInstance)
+        .bindPopup(this.buildPopup(beneficiario));
+      this.markers.push(marker);
     });
   }
 
-  updateToManual(lat: number, lng: number): void {
-    this.geoForm.patchValue({ latitude: lat, longitude: lng });
-  }
+  private geocodificarPendentes(): void {
+    const pendentes = this.beneficiarios.filter((beneficiario) => {
+      const temCoordenadas = this.hasCoordinates(beneficiario);
+      const temEndereco = this.hasAddress(beneficiario);
+      return !temCoordenadas && temEndereco && beneficiario.id_beneficiario;
+    });
 
-  get latControl() {
-    return this.geoForm.get('latitude');
-  }
-
-  get lngControl() {
-    return this.geoForm.get('longitude');
-  }
-
-  private prefillFromUnit(unidade: AssistanceUnitPayload | null | undefined): void {
-    if (!unidade) {
+    if (!pendentes.length) {
       return;
     }
 
-    const reference = this.buildAddressSummary(unidade);
-
-    this.geoForm.patchValue({
-      addressReference: reference,
-      accessRoutes: 'Rotas de chegada via vias principais do bairro.',
-      metadataNotes: 'Coordenadas em WGS84. Ajuste fino conforme visita técnica.'
+    let chain = Promise.resolve();
+    pendentes.forEach((beneficiario) => {
+      chain = chain
+        .then(() => this.delay(1100))
+        .then(() => this.geocodificarBeneficiario(beneficiario))
+        .catch(() => undefined);
     });
   }
 
-  private refreshMap(): void {
-    const lat = Number(this.geoForm.get('latitude')?.value);
-    const lng = Number(this.geoForm.get('longitude')?.value);
-
-    if (!isFinite(lat) || !isFinite(lng)) {
-      this.mapPreviewUrl = null;
-      return;
+  private geocodificarBeneficiario(beneficiario: BeneficiarioApiPayload): Promise<void> {
+    const id = beneficiario.id_beneficiario;
+    if (!id) {
+      return Promise.resolve();
     }
 
-    const bbox = `${lng - 0.01}%2C${lat - 0.01}%2C${lng + 0.01}%2C${lat + 0.01}`;
-    const marker = `${lat}%2C${lng}`;
-    const baseUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
-
-    this.mapPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(baseUrl);
+    return new Promise((resolve) => {
+      this.beneficiarioService.geocodificarEndereco(String(id)).subscribe({
+        next: ({ beneficiario: atualizado }: { beneficiario?: BeneficiarioApiPayload }) => {
+          const index = this.beneficiarios.findIndex((item) => item.id_beneficiario === id);
+          if (index >= 0) {
+            this.beneficiarios[index] = { ...this.beneficiarios[index], ...atualizado };
+            this.atualizarMarcadores();
+          }
+          resolve();
+        },
+        error: () => resolve()
+      });
+    });
   }
 
-  private buildAddressSummary(unidade: AssistanceUnitPayload | null | undefined): string {
-    if (!unidade) {
-      return 'Nenhuma unidade assistencial cadastrada.';
-    }
-
-    const parts = [unidade.endereco, unidade.numeroEndereco, unidade.bairro, unidade.cidade, unidade.estado]
+  private buildPopup(beneficiario: BeneficiarioApiPayload): string {
+    const nome = beneficiario.nome_completo || beneficiario.nome_social || 'Beneficiario';
+    const endereco = [beneficiario.logradouro, beneficiario.numero, beneficiario.bairro, beneficiario.municipio, beneficiario.uf]
       .filter(Boolean)
       .join(', ');
+    return `<strong>${nome}</strong><br/>${endereco || 'Endereco nao informado'}`;
+  }
 
-    return parts || 'Endereço não informado';
+  private hasCoordinates(beneficiario: BeneficiarioApiPayload): boolean {
+    return Boolean(beneficiario.latitude) && Boolean(beneficiario.longitude);
+  }
+
+  private hasAddress(beneficiario: BeneficiarioApiPayload): boolean {
+    return Boolean(beneficiario.logradouro || beneficiario.bairro || beneficiario.municipio || beneficiario.uf);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private loadLeaflet(): Promise<void> {
+    const scriptId = 'leaflet-script';
+    const styleId = 'leaflet-style';
+
+    if (!document.getElementById(styleId)) {
+      const link = document.createElement('link');
+      link.id = styleId;
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    if (document.getElementById(scriptId)) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject();
+      document.body.appendChild(script);
+    });
   }
 }

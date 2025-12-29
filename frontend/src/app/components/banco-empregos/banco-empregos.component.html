@@ -174,7 +174,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[3].label }}</p>
-          <p class="muted">Inclua e acompanhe os encaminhamentos para beneficiários.</p>
+          <p class="muted">Inclua e acompanhe os encaminhamentos para beneficiarios.</p>
         </div>
         <div class="nav-buttons" aria-label="Ações da vaga">
           <button type="button" class="nav-button nav-button--print" (click)="print()">
@@ -198,10 +198,10 @@
       <div class="encaminhamento-shell">
         <form [formGroup]="encaminhamentoForm" class="encaminhamento-form" (ngSubmit)="addEncaminhamento()">
           <div class="field-grid cols-2 narrow">
-            <label class="field full">Buscar beneficiário*
+            <label class="field full">Buscar beneficiario*
               <input type="text" [formControl]="beneficiarioPesquisa" placeholder="Digite para buscar" />
             </label>
-            <label class="field full">Beneficiário selecionado*
+            <label class="field full">Beneficiario selecionado*
               <input type="text" formControlName="beneficiarioNome" placeholder="Escolha na busca" readonly />
             </label>
             <label class="field">Data de encaminhamento*
@@ -243,7 +243,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Beneficiário</th>
+                  <th>Beneficiario</th>
                   <th>Data</th>
                   <th>Status</th>
                   <th>Observações</th>
@@ -299,21 +299,21 @@
         <header class="vaga-card__header">
           <div>
             <p class="vaga-card__title">{{ record.dadosVaga.titulo }}</p>
-            <p class="muted">{{ record.empresaLocal.nomeEmpresa }} • {{ record.empresaLocal.cidade }}</p>
+            <p class="muted">{{ record.empresaLocal?.nomeEmpresa }} • {{ record.empresaLocal?.cidade }}</p>
           </div>
-          <span class="status-pill" [class.status-pill--open]="record.dadosVaga.status === 'Aberta'" [class.status-pill--progress]="record.dadosVaga.status === 'Em andamento'" [class.status-pill--closed]="record.dadosVaga.status === 'Encerrada'">
+          <span class="status-pill" [class.status-pill--open]="record.dadosVaga.status === 'Aberta'" [class.status-pill--progress]="record.dadosVaga.status === 'Pausada'" [class.status-pill--closed]="record.dadosVaga.status === 'Encerrada'">
             {{ record.dadosVaga.status }}
           </span>
         </header>
-        <p class="vaga-card__description">{{ record.requisitos.descricao }}</p>
+        <p class="vaga-card__description">{{ record.requisitos?.descricao }}</p>
         <dl class="vaga-card__meta">
           <div>
             <dt>Aberta em</dt>
-            <dd>{{ record.dadosVaga.dataAbertura || '—' }}</dd>
+            <dd>{{ record.criadoEm || '—' }}</dd>
           </div>
           <div>
             <dt>Contrato</dt>
-            <dd>{{ record.dadosVaga.tipoContrato || '—' }}</dd>
+            <dd>{{ record.dadosVaga?.tipo || '—' }}</dd>
           </div>
           <div>
             <dt>Salário</dt>

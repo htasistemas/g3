@@ -158,7 +158,7 @@
         <ul class="search-results" *ngIf="professionalResults.length">
           <li *ngFor="let professional of professionalResults">
             <button type="button" (click)="selectProfessional(professional)">
-              <span>{{ professional.nome }}</span>
+              <span>{{ professional.nomeCompleto }}</span>
               <small>{{ professional.especialidade || professional.categoria || professional.email }}</small>
             </button>
           </li>

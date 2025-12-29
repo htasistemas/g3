@@ -1,0 +1,84 @@
+.timeline {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.timeline__loading,
+.timeline__empty {
+  padding: 0.85rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.timeline-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.75rem 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.timeline-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.timeline-card__date {
+  margin-left: 0.6rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.timeline-card__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.timeline-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.timeline-card__summary {
+  margin: 0;
+  color: #475569;
+}
+
+.timeline-card__details {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.6rem;
+  color: #475569;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.timeline-card__extra {
+  margin-top: 0.35rem;
+}
+
+.timeline-card__extra-title {
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.timeline__more {
+  display: flex;
+  justify-content: center;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}

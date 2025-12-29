@@ -1,0 +1,325 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="onSalvar()"
+  (excluir)="onExcluir()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (buscar)="onBuscar()"
+>
+<header class="page-title" slot="titulo">
+    <p class="page-title__eyebrow">Atendimentos</p>
+    <p class="page-title__label">Recebimento de doação</p>
+  </header>
+
+  <section class="cadastro">
+  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+
+  <div class="tab-shell">
+    <p class="tab-shell__title">Navegue pelas informacoes</p>
+    <ol class="step-tabs" role="tablist">
+      <li
+        *ngFor="let tab of tabs; index as idx"
+        class="step-tabs__item"
+        [class.active]="activeTab === tab.id"
+        [class.completed]="idx < getTabIndex(activeTab)"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab === tab.id"
+          (click)="changeTab(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ol>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'doador'" [formGroup]="doadorForm">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Cadastro do doador</p>
+      </div>
+    </div>
+
+    <div class="field-grid cols-2">
+      <label class="field">Nome*
+        <input formControlName="nome" (blur)="onSentenceCaseBlur($event)" />
+        <p class="field-error" *ngIf="doadorForm.get('nome')?.invalid && doadorForm.get('nome')?.touched">
+          Informe o nome do doador.
+        </p>
+      </label>
+      <label class="field">Tipo de pessoa
+        <select formControlName="tipoPessoa">
+          <option value="FISICA">Fisica</option>
+          <option value="JURIDICA">Juridica</option>
+        </select>
+      </label>
+      <label class="field">Documento (CPF)
+        <input formControlName="documento" placeholder="000.000.000-00" (input)="onCpfInput($event)" />
+        <p class="field-error" *ngIf="doadorForm.get('documento')?.invalid && doadorForm.get('documento')?.touched">
+          Informe um CPF valido.
+        </p>
+      </label>
+      <label class="field">Email
+        <input formControlName="email" type="email" placeholder="nome@exemplo.com" />
+        <p class="field-error" *ngIf="doadorForm.get('email')?.invalid && doadorForm.get('email')?.touched">
+          Informe um e-mail valido.
+        </p>
+      </label>
+      <label class="field">Telefone
+        <input formControlName="telefone" placeholder="(00) 00000-0000" (input)="onTelefoneInput($event)" (blur)="onSentenceCaseBlur($event)" />
+        <p class="field-error" *ngIf="doadorForm.get('telefone')?.invalid && doadorForm.get('telefone')?.touched">
+          Informe um telefone valido.
+        </p>
+      </label>
+      <label class="field full">Observações
+        <textarea formControlName="observacoes" rows="3" (blur)="onSentenceCaseBlur($event)"></textarea>
+      </label>
+    </div>
+    <div class="tab-actions">
+      <button type="button" class="ghost" (click)="changeTab('dados')">Avancar para doação</button>
+    </div>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'doador'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Listagem de doadores</p>
+        <p class="muted">Doadores cadastrados no sistema.</p>
+      </div>
+      <div class="tab-card__header-actions">
+        <button type="button" class="btn-outline" (click)="carregarDoadores()">Atualizar</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="doadores.length; else emptyDoadores">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Documento</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th class="text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doador of doadores" [class.is-selected]="doador.id === doadorSelecionadoId">
+            <td class="strong">{{ doador.nome }}</td>
+            <td>{{ doador.documento || '---' }}</td>
+            <td>{{ doador.email || '---' }}</td>
+            <td>{{ doador.telefone || '---' }}</td>
+            <td class="text-right">
+              <button type="button" class="ghost" (click)="selecionarDoador(doador)">Selecionar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyDoadores>
+      <div class="empty">
+        <fa-icon [icon]="faUserPlus"></fa-icon>
+        <div class="loading-block" *ngIf="carregandoDoadores">
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Carregando doadores...</p>
+        </div>
+        <p *ngIf="!carregandoDoadores">Nenhum doador cadastrado.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'dados'" [formGroup]="recebimentoForm">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Dados da doação</p>
+      </div>
+    </div>
+
+    <div class="field-grid cols-3">
+      <label class="field">Doador*
+        <select formControlName="doadorId">
+          <option value="">Selecione um doador</option>
+          <option *ngFor="let doador of doadores" [value]="doador.id">{{ doador.nome }}</option>
+        </select>
+      </label>
+      <label class="field">Tipo de doação*
+        <select formControlName="tipoDoacao" (change)="onTipoDoacaoChange()">
+          <option value="DINHEIRO">Dinheiro</option>
+          <option value="BENS">Bens</option>
+          <option value="MATERIAIS">Materiais</option>
+          <option value="SERVICOS">Servicos</option>
+        </select>
+      </label>
+      <label class="field">Data de recebimento*
+        <input type="date" formControlName="dataRecebimento" />
+      </label>
+      <label class="field">Valor
+        <input formControlName="valor" placeholder="R$ 0,00" (input)="onValorInput($event)" />
+      </label>
+      <label class="field">Forma de recebimento
+        <select formControlName="formaRecebimento" [disabled]="!isDoacaoDinheiro">
+          <option value="">Selecione</option>
+          <option value="PIX">Pix</option>
+          <option value="DINHEIRO">Dinheiro</option>
+          <option value="TRANSFERENCIA">Transferencia bancaria</option>
+          <option value="CARTAO_CREDITO">Cartão de credito</option>
+        </select>
+      </label>
+      <label class="field">Status*
+        <select formControlName="status">
+          <option value="RECEBIDA">Recebida</option>
+          <option value="PENDENTE">Pendente</option>
+          <option value="CANCELADA">Cancelada</option>
+        </select>
+      </label>
+      <label class="field full">Descrição
+        <textarea formControlName="descricao" rows="3" (blur)="onSentenceCaseBlur($event)"></textarea>
+      </label>
+      <label class="field full">Observações
+        <textarea formControlName="observacoes" rows="3" (blur)="onSentenceCaseBlur($event)"></textarea>
+      </label>
+    </div>
+    <div class="tab-actions">
+      <button type="button" class="ghost" (click)="changeTab('doador')">Voltar para doador</button>
+      <button type="button" class="ghost" (click)="changeTab('recorrencia')">Configurar recorrencia</button>
+      <button type="button" class="ghost" (click)="changeTab('gestao')">Gestão da doação</button>
+    </div>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'recorrencia'" [formGroup]="recorrenciaForm">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Recorrencia e cobranca</p>
+      </div>
+    </div>
+
+    <div class="field-grid cols-3">
+      <label class="checkbox-field">
+        <input type="checkbox" formControlName="recorrente" />
+        <span>Doação recorrente</span>
+      </label>
+      <label class="field">Periodicidade
+        <select formControlName="periodicidade" [disabled]="!recorrenciaForm.get('recorrente')?.value">
+          <option value="MENSAL">Mensal</option>
+          <option value="TRIMESTRAL">Trimestral</option>
+          <option value="SEMESTRAL">Semestral</option>
+          <option value="ANUAL">Anual</option>
+        </select>
+      </label>
+      <label class="field">Proxima cobranca
+        <input type="date" formControlName="proximaCobranca" [disabled]="!recorrenciaForm.get('recorrente')?.value" />
+      </label>
+    </div>
+    <div class="tab-actions">
+      <button type="button" class="ghost" (click)="atualizarProximaCobranca()" [disabled]="!recorrenciaForm.get('recorrente')?.value">
+        Gerar cobranca mensal
+      </button>
+      <button type="button" class="ghost" (click)="changeTab('dados')">Voltar</button>
+      <button type="button" class="ghost" (click)="changeTab('gestao')">Gestão da doação</button>
+    </div>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'gestao'" [formGroup]="gestaoForm">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Gestão de doação</p>
+        <p class="muted">Envie lembretes, agradecimentos e mensagens de transparencia.</p>
+      </div>
+    </div>
+
+    <div class="field-grid cols-2">
+      <label class="field">Canal de envio
+        <select formControlName="canal">
+          <option value="WHATSAPP">WhatsApp</option>
+          <option value="EMAIL">Email</option>
+        </select>
+      </label>
+      <div class="field template-field">
+        <p class="field-title">Templates rapidos</p>
+        <div class="template-actions">
+          <button type="button" class="ghost" (click)="aplicarTemplateMensagem('lembrete')">Lembrete</button>
+          <button type="button" class="ghost" (click)="aplicarTemplateMensagem('agradecimento')">Agradecimento</button>
+          <button type="button" class="ghost" (click)="aplicarTemplateMensagem('transparencia')">Transparencia</button>
+        </div>
+      </div>
+      <label class="field">Mensagem*
+        <textarea formControlName="mensagem" rows="4" (blur)="onSentenceCaseBlur($event)"></textarea>
+        <p class="field-error" *ngIf="gestaoForm.get('mensagem')?.invalid && gestaoForm.get('mensagem')?.touched">
+          Informe a mensagem que sera enviada ao doador.
+        </p>
+      </label>
+    </div>
+
+    <div class="tab-actions">
+      <button type="button" class="primary" (click)="enviarMensagemGestao()">Enviar mensagem</button>
+      <button type="button" class="ghost" (click)="changeTab('recorrencia')">Voltar</button>
+    </div>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'lista'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Listagem de recebimentos</p>
+        <p class="muted">Acompanhe todas as doações registradas.</p>
+      </div>
+      <div class="tab-card__header-actions">
+        <button type="button" class="btn-outline" (click)="carregarRecebimentos()">Atualizar</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="recebimentos.length; else emptyList">
+      <table>
+        <thead>
+          <tr>
+            <th>Doador</th>
+            <th>Tipo</th>
+            <th>Data</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Contabilidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of recebimentos">
+            <td>
+              <p class="strong">{{ item.doadorNome || getNomeDoador(item.doadorId) }}</p>
+              <p class="muted">{{ item.tipoDoacao }}</p>
+            </td>
+            <td>{{ item.descricao || '---' }}</td>
+            <td>{{ item.dataRecebimento | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ item.valor || 0 | currency: 'BRL' }}</td>
+            <td><span class="status-chip">{{ item.status }}</span></td>
+            <td>
+              <span class="status-chip" [class.status-chip--info]="!item.contabilidadePendente">
+                {{ item.contabilidadePendente ? 'Pendente' : 'Não aplicado' }}
+              </span>
+              <button type="button" class="btn-outline" disabled title="Disponivel quando a contabilidade estiver integrada">
+                Enviar para contabilidade
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyList>
+      <div class="empty">
+        <fa-icon [icon]="faClipboardList"></fa-icon>
+        <div class="loading-block" *ngIf="carregandoRecebimentos">
+          <span class="spinner" aria-hidden="true"></span>
+          <p>Carregando recebimentos...</p>
+        </div>
+        <p *ngIf="!carregandoRecebimentos">Nenhum recebimento cadastrado.</p>
+        <button type="button" class="primary" *ngIf="!carregandoRecebimentos" (click)="changeTab('dados')">
+          Cadastrar recebimento
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</section>
+</app-tela-padrao>

@@ -47,7 +47,7 @@ export class AssistanceUnitService {
   private readonly activeUnitLogoKey = 'g3-active-assistance-logo';
 
   private readonly currentUnitNameSubject = new BehaviorSubject<string>(
-    localStorage.getItem(this.activeUnitKey) || 'Navegação'
+    localStorage.getItem(this.activeUnitKey) || 'Navegacao'
   );
 
   private readonly currentUnitLogoSubject = new BehaviorSubject<string | null>(
@@ -78,7 +78,7 @@ export class AssistanceUnitService {
   remove(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)
-      .pipe(tap(() => this.setActiveUnit('Navegação', null)));
+      .pipe(tap(() => this.setActiveUnit('Navegacao', null)));
   }
 
   setActiveUnit(name: string, logo?: string | null): void {

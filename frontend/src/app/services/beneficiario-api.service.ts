@@ -49,6 +49,7 @@ export interface BeneficiarioApiPayload {
   telefone_secundario?: string;
   telefone_recado_nome?: string;
   telefone_recado_numero?: string;
+  telefone?: string;
   email?: string;
   permite_contato_tel?: boolean;
   permite_contato_whatsapp?: boolean;
@@ -64,6 +65,8 @@ export interface BeneficiarioApiPayload {
   ponto_referencia?: string;
   municipio?: string;
   uf?: string;
+  latitude?: string;
+  longitude?: string;
   zona?: string;
   subzona?: string;
   situacao_imovel?: string;
@@ -142,6 +145,7 @@ export class BeneficiarioApiService {
     nis?: string;
     codigo?: string;
     data_nascimento?: string;
+    status?: string;
   }): Observable<{ beneficiarios: BeneficiarioApiPayload[] }> {
     let httpParams = new HttpParams();
     if (params?.nome) httpParams = httpParams.set('nome', params.nome);
@@ -149,6 +153,7 @@ export class BeneficiarioApiService {
     if (params?.nis) httpParams = httpParams.set('nis', params.nis);
     if (params?.codigo) httpParams = httpParams.set('codigo', params.codigo);
     if (params?.data_nascimento) httpParams = httpParams.set('data_nascimento', params.data_nascimento);
+    if (params?.status) httpParams = httpParams.set('status', params.status);
     return this.http
       .get<{ beneficiarios: BeneficiarioApiPayload[] } | BeneficiarioApiPayload[] | { beneficiario?: BeneficiarioApiPayload }>(
         this.baseUrl,
@@ -173,23 +178,28 @@ export class BeneficiarioApiService {
       .get<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`)
       .pipe(
         map(({ beneficiario }) => ({ beneficiario: this.normalizePayload(beneficiario) })),
-        catchError(this.logAndRethrow('ao buscar beneficiário'))
+        catchError(this.logAndRethrow('ao buscar beneficiario'))
       );
   }
 
   create(payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
     return this.http
       .post<{ beneficiario: BeneficiarioApiPayload }>(this.baseUrl, payload)
-      .pipe(catchError(this.logAndRethrow('ao criar beneficiário')));
+      .pipe(catchError(this.logAndRethrow('ao criar beneficiario')));
   }
 
   update(id: string, payload: BeneficiarioApiPayload): Observable<{ beneficiario: BeneficiarioApiPayload }> {
     return this.http
       .put<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}`, payload)
-      .pipe(catchError(this.logAndRethrow('ao atualizar beneficiário')));
+      .pipe(catchError(this.logAndRethrow('ao atualizar beneficiario')));
   }
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  geocodificarEndereco(id: string, forcar = false): Observable<{ beneficiario: BeneficiarioApiPayload }> {
+    const params = forcar ? new HttpParams().set('forcar', 'true') : undefined;
+    return this.http.post<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, { params });
   }
 }

@@ -49,7 +49,7 @@ export class DashboardBiComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Não foi possível carregar os indicadores do dashboard.';
+        this.error = 'Nao foi possivel carregar os indicadores do dashboard.';
         this.loading = false;
       }
     });
@@ -81,3 +81,4 @@ export class DashboardBiComponent implements OnInit {
     return chart?.values?.[index] ?? 0;
   }
 }
+

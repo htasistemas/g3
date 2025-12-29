@@ -2,7 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
-  (salvar)="submit()"
+  (salvar)="onSave()"
   (excluir)="handleDeleteSelected()"
   (novo)="startNewBeneficiario()"
   (cancelar)="startNewBeneficiario()"
@@ -125,10 +125,10 @@
           Anterior
         </button>
         <span class="unit-list__page">
-          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+          Página {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          Proximo
+          Próximo
         </button>
       </div>
     </section>
@@ -167,6 +167,15 @@
 
     <ng-template #navigationControls>
       <div class="tab-actions">
+        <button
+          type="button"
+          class="ghost"
+          *ngIf="beneficiarioId || selectedBeneficiary?.id_beneficiario"
+          (click)="abrirProntuario()"
+          [disabled]="uploadingDocuments"
+        >
+          Abrir prontuário
+        </button>
         <button
           type="button"
           class="ghost"
@@ -209,7 +218,7 @@
               <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
             </label>
             <button type="button" class="ghost" (click)="handleCameraCapture()">
-              {{ cameraActive ? 'Registrar foto' : 'Capturar pela camera' }}
+              {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
             </button>
             <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
             <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar c&acirc;mera</button>
@@ -246,7 +255,7 @@
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="field-grid cols-3 dados-grid" formGroupName="dadosPessoais">
-        <label class="field field-matricula">Codigo
+        <label class="field field-matricula">Código
           <input [value]="beneficiaryCode || nextSequentialCode" readonly />
         </label>
         <label class="field field-nome-completo">Nome*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
@@ -271,7 +280,7 @@
             <option value="PARDA">Parda</option>
             <option value="AMARELA">Amarela</option>
             <option value="INDIGENA">Indigena</option>
-            <option value="NAO_INFORMADO">Nao informado</option>
+            <option value="NAO_INFORMADO">Não informado</option>
           </select></label>
         <div class="field date-field field-nascimento">
           <label class="field">Data de nascimento*
@@ -303,16 +312,19 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
   </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
+    <div class="tab-card" *ngIf="activeTab === 'endereço'" formGroupName="endereço">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
+          <p class="tab-card__highlight">{{ getTabLabel('endereço') }}</p>
           <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
+        <div class="tab-card__header-actions">
+          <button type="button" class="btn-outline" (click)="geocodificarEnderecoBeneficiario(true)">Regeocodificar endereço</button>
+        </div>
 </div>
-      <div class="field-grid cols-3 endereco-grid">
+      <div class="field-grid cols-3 endereço-grid">
         <label class="field field-cep">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
-          <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
+          <p class="field-error" *ngIf="form.get(['endereço', 'cep'])?.invalid && form.get(['endereço', 'cep'])?.touched">
             Informe um CEP v&aacute;lido com 8 d&iacute;gitos.</p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
@@ -334,7 +346,7 @@
             <option value="ZONA OESTE">Zona Oeste</option>
             <option value="ZONA CENTRAL">Zona Central</option>
           </select></label>
-        <label class="field field-uf-endereco">Estado<input maxlength="2" formControlName="uf" /></label>
+        <label class="field field-uf-endereço">Estado<input maxlength="2" formControlName="uf" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -609,115 +621,99 @@
         <div class="document-request">
           <div class="document-request__header">
             <div>
-              <p class="document-request__title">Envie seus Documentos</p>
-              <p class="document-request__subtitle">Por favor, envie seus documentos para completar seu cadastro.</p>
+              <p class="document-request__title">Envio de documentos</p>
+              <p class="document-request__subtitle">Selecione o tipo de documento, anexe o arquivo e visualize na listagem.</p>
             </div>
-            <button type="button" class="ghost" (click)="addOptionalDocument()">Adicionar documento opcional</button>
           </div>
-          <p class="upload-hint" *ngIf="uploadingDocuments">
-            Aguarde o envio dos documentos selecionados para continuar.
+          <p class="document-count document-count--top">
+            Documentos anexados
+            <span class="document-count__badge">{{ documentosAnexados.length }}</span>
           </p>
-          <div class="document-request__list">
-            <div
-              class="document-request__card"
-              *ngFor="let control of anexos.controls; index as i"
-              [formGroupName]="i"
-              [class.document-request__card--alert]="
-                control.get('obrigatorio')?.value &&
-                !control.get('nomeArquivo')?.value &&
-                !control.get('conteudo')?.value
-              "
-            >
-              <div class="document-request__icon" aria-hidden="true">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M7 4h7l4 4v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  />
-                  <path d="M14 4v4h4" stroke="currentColor" stroke-width="1.5" />
-                  <path d="M8 13h8M8 16h6" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-              </div>
-              <div class="document-request__content">
-                <div class="document-request__title-row">
-                  <ng-container *ngIf="control.get('obrigatorio')?.value; else editableName">
-                    <p class="document-request__name">{{ control.get('nome')?.value }}</p>
-                  </ng-container>
-                  <ng-template #editableName>
-                    <input class="document-request__name-input" formControlName="nome" />
-                  </ng-template>
-                  <span *ngIf="control.get('obrigatorio')?.value" class="pill">Obrigat&oacute;rio</span>
-                </div>
-                <p class="document-request__description">
-                  {{ control.get('nomeArquivo')?.value ? 'Arquivo anexado para conferencia.' : 'Envie a foto do documento solicitado.' }}
-                </p>
-                <p class="document-request__status">
-                  {{ control.get('nomeArquivo')?.value || 'Nenhum arquivo selecionado' }}
-                </p>
-                <div class="document-request__actions">
-                  <label class="upload-btn upload-btn--primary">
-                    Enviar arquivo
-                    <input type="file" (change)="onDocumentFileSelected($event, i)" />
-                  </label>
-                  <button
-                    type="button"
-                    class="ghost"
-                    *ngIf="control.get('conteudo')?.value"
-                    (click)="viewDocument(i)"
-                  >
-                    Visualizar
-                  </button>
-                  <button
-                    type="button"
-                    class="ghost destructive"
-                    *ngIf="control.get('nomeArquivo')?.value || control.get('conteudo')?.value"
-                    (click)="removeUploadedDocument(i)"
-                  >
-                    Remover
-                  </button>
-                </div>
-                <div class="upload-progress" *ngIf="uploadProgress[i] !== undefined">
-                  <div
-                    class="upload-progress__bar"
-                    [style.width]="uploadProgress[i] + '%'"
-                    [class.upload-progress__bar--complete]="uploadProgress[i] === 100"
-                  ></div>
-                  <p class="upload-progress__label">
-                    {{ uploadProgress[i] === 100 ? 'Envio concluido' : 'Enviando documento...' }}
-                    ({{ uploadProgress[i] }}%)
-                  </p>
-                </div>
-              </div>
+          <div class="document-upload-grid">
+            <label class="field">
+              Tipo de documento
+              <select [(ngModel)]="documentoTipoSelecionado" [ngModelOptions]="{ standalone: true }">
+                <option value="">Selecione</option>
+                <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </label>
+            <label class="field">
+              Arquivo
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                (change)="onDocumentTypeFileSelected($event)"
+              />
+            </label>
+            <label class="field">
+              Filtrar por tipo
+              <select [(ngModel)]="filtroTipoDocumento" [ngModelOptions]="{ standalone: true }">
+                <option value="">Todos</option>
+                <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </label>
+            <div class="document-upload-grid__hint">
+              <button type="button" class="ghost ghost--compact" (click)="toggleOrdenacaoDocumentos()">
+                Ordenar: {{ ordenarDocumentosAsc ? 'A-Z' : 'Z-A' }}
+              </button>
+              <p class="upload-hint" *ngIf="uploadingDocuments">Aguarde o envio dos documentos selecionados.</p>
             </div>
           </div>
-          <div class="document-request__footer">
-            <p class="document-request__note">Formatos aceitos: JPG, PNG ou PDF. Tamanho m&aacute;ximo: 5MB.</p>
-            <button type="button" class="primary" (click)="confirmDocuments()">Enviar documentos</button>
+
+          <div class="document-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo</th>
+                  <th>Arquivo</th>
+                  <th class="text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="documentosAnexados.length; else emptyDocs">
+                <tr *ngFor="let item of documentosAnexados">
+                  <td>{{ item.control.get('nome')?.value }}</td>
+                  <td>{{ item.control.get('nomeArquivo')?.value || 'Arquivo anexado' }}</td>
+                  <td class="text-right actions">
+                    <button type="button" class="ghost" (click)="viewDocument(item.index)">Visualizar</button>
+                    <button type="button" class="ghost" (click)="printDocument(item.index)">Imprimir</button>
+                    <button type="button" class="ghost destructive" (click)="removeUploadedDocument(item.index)">
+                      Remover
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #emptyDocs>
+              <tbody>
+                <tr>
+                  <td colspan="3" class="list-panel__empty">Nenhum documento anexado ate o momento.</td>
+                </tr>
+              </tbody>
+            </ng-template>
           </div>
         </div>
         <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
       </div>
     </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
+    <div class="tab-card" *ngIf="activeTab === 'famíliar'" formGroupName="famíliar">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ getTabLabel('familiar') }}</p>
+          <p class="tab-card__highlight">{{ getTabLabel('famíliar') }}</p>
           <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a fam&iacute;lia</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_família" /> <span>Mora com a fam&iacute;lia</span></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Respons&aacute;vel legal</span></label>
-        <label class="field">V&iacute;nculo familiar<input formControlName="vinculo_familiar" /></label>
-        <label class="field">Composi&ccedil;&atilde;o familiar<textarea formControlName="composicao_familiar"></textarea></label>
+        <label class="field">V&iacute;nculo famíliar<input formControlName="vinculo_famíliar" /></label>
+        <label class="field">Composi&ccedil;&atilde;o famíliar<textarea formControlName="composicao_famíliar"></textarea></label>
         <label class="field">Crian&ccedil;as/adolescentes no domic&iacute;lio<input type="number" formControlName="criancas_adolescentes" /></label>
         <label class="field">Idosos no domic&iacute;lio<input type="number" formControlName="idosos" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela sa&uacute;de (e-SUS)</span></label>
         <label class="field">Participa&ccedil;&atilde;o comunit&aacute;ria<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
-        <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Institui&ccedil;&otilde;es, vizinhos, familiares"></textarea></label>
+        <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Institui&ccedil;&otilde;es, vizinhos, famíliares"></textarea></label>
         <label class="field full">Situa&ccedil;&atilde;o de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -823,8 +819,12 @@
     <div class="tab-card" *ngIf="activeTab === 'lista'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">benefici&aacute;rios cadastrados</p>
+          <p class="tab-card__highlight">Listagem de beneficiarios</p>
           <p class="muted">Localiza&ccedil;&atilde;o completa para correspond&ecirc;ncias e visitas.</p>
+        </div>
+        <div class="tab-card__header-actions">
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+          <button type="button" class="btn-outline" (click)="searchBeneficiaries()">Buscar</button>
         </div>
       </div>
 
@@ -835,16 +835,18 @@
         <label class="field">CPF
           <input type="text" formControlName="cpf" placeholder="Somente numeros" />
         </label>
-        <label class="field">Codigo
+        <label class="field">Código
           <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
         </label>
         <label class="field">Nascimento
           <input type="date" formControlName="data_nascimento" />
         </label>
-        <div class="list-filters__actions">
-          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
-          <button type="submit" class="btn-outline">Buscar</button>
-        </div>
+        <label class="field">Status
+          <select formControlName="status">
+            <option value="">Todos</option>
+            <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+          </select>
+        </label>
       </form>
 
       <div class="unit-active" *ngIf="selectedBeneficiary">
@@ -852,7 +854,7 @@
           <p class="unit-active__eyebrow">benefici&aacute;rio ativo</p>
           <p class="unit-active__name">{{ selectedBeneficiary.nome_completo || selectedBeneficiary.nome_social || 'benefici&aacute;rio sem nome' }}</p>
           <p class="unit-active__meta">
-            {{ selectedBeneficiary.cpf || 'CPF nao informado' }} - {{ selectedBeneficiary.data_nascimento || 'Data nao informada' }}
+            {{ selectedBeneficiary.cpf || 'CPF n?o informado' }} - {{ selectedBeneficiary.data_nascimento || 'Data n?o informada' }}
           </p>
         </div>
         <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(selectedBeneficiary)">
@@ -863,10 +865,48 @@
       <div class="unit-list" *ngIf="beneficiariosPaginados.length">
         <div class="unit-list__item" *ngFor="let beneficiario of beneficiariosPaginados">
           <div>
-            <p class="unit-list__name">{{ beneficiario.nome_completo || beneficiario.nome_social || 'benefici&aacute;rio sem nome' }}</p>
-            <p class="unit-list__meta">
-              {{ beneficiario.cpf || 'CPF nao informado' }} - {{ beneficiario.data_nascimento || 'Data nao informada' }}
-            </p>
+            <div class="unit-list__header-row">
+              <span class="unit-list__code">Código: {{ beneficiario.codigo || '---' }}</span>
+              <span class="pill--status" [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span>
+            </div>
+            <div class="unit-list__name-row">
+              <div class="unit-list__avatar" [class.unit-list__avatar--empty]="!beneficiario.foto_3x4">
+                <img *ngIf="beneficiario.foto_3x4" [src]="beneficiario.foto_3x4" alt="Foto do beneficiario" />
+                <span *ngIf="!beneficiario.foto_3x4" aria-hidden="true">
+                  {{ (beneficiario.nome_completo || beneficiario.nome_social || 'B')[0] }}
+                </span>
+              </div>
+              <p class="unit-list__name-text">{{ beneficiario.nome_completo || beneficiario.nome_social || 'benefici&aacute;rio sem nome' }}</p>
+            </div>
+            <div class="unit-list__info-row">
+              <span class="unit-list__meta-text">Idade: {{ formatAge(beneficiario.data_nascimento) }}</span>
+              <span class="unit-list__separator">•</span>
+              <span class="unit-list__meta-text">Nascimento: {{ formatDate(beneficiario.data_nascimento) }}</span>
+              <span class="unit-list__separator">•</span>
+              <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF n?o informado' }}</span>
+              <span class="unit-list__separator">•</span>
+              <span class="unit-list__meta-text" [title]="beneficiario.bairro || 'Bairro n?o informado'">
+                <span class="unit-list__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M12 2.5c-4.14 0-7.5 3.17-7.5 7.09 0 4.73 6.39 11.22 7.02 11.85a.68.68 0 0 0 .96 0c.63-.63 7.02-7.12 7.02-11.85C19.5 5.67 16.14 2.5 12 2.5zm0 10.2a3.1 3.1 0 1 1 0-6.2 3.1 3.1 0 0 1 0 6.2z"
+                    />
+                  </svg>
+                </span>
+                Bairro: {{ beneficiario.bairro || 'Bairro n?o informado' }}
+              </span>
+              <span class="unit-list__separator">•</span>
+              <span class="unit-list__meta-text">
+                <span class="unit-list__meta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.72 11.72 0 0 0 3.68.59 1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1A17.5 17.5 0 0 1 2.5 3a1 1 0 0 1 1-1H7a1 1 0 0 1 1 1 11.72 11.72 0 0 0 .59 3.68 1 1 0 0 1-.24 1.02l-2.2 2.09z"
+                    />
+                  </svg>
+                </span>
+                Tel.: {{ formatListPhone(beneficiario) }}
+              </span>
+            </div>
           </div>
           <div class="unit-list__actions">
             <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(beneficiario)">
@@ -884,10 +924,10 @@
           Anterior
         </button>
         <span class="unit-list__page">
-          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+          Página {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          Proximo
+          Próximo
         </button>
       </div>
 

@@ -9,6 +9,24 @@ export interface BeneficiaryDocumentConfig {
   obrigatorio: boolean;
 }
 
+export interface VersaoSistemaResponse {
+  versao: string;
+  descricao?: string;
+  atualizadoEm?: string;
+}
+
+export interface AtualizarVersaoRequest {
+  versao: string;
+  descricao?: string;
+}
+
+export interface HistoricoVersaoResponse {
+  id: number;
+  versao: string;
+  descricao?: string;
+  criadoEm: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
   private readonly baseUrl = `${environment.apiUrl}/api/config`;
@@ -21,5 +39,17 @@ export class ConfigService {
 
   updateBeneficiaryDocuments(documents: BeneficiaryDocumentConfig[]): Observable<{ documents: BeneficiaryDocumentConfig[] }> {
     return this.http.put<{ documents: BeneficiaryDocumentConfig[] }>(`${this.baseUrl}/beneficiary-documents`, { documents });
+  }
+
+  getVersaoSistema(): Observable<VersaoSistemaResponse> {
+    return this.http.get<VersaoSistemaResponse>(`${this.baseUrl}/versao`);
+  }
+
+  atualizarVersaoSistema(payload: AtualizarVersaoRequest): Observable<VersaoSistemaResponse> {
+    return this.http.put<VersaoSistemaResponse>(`${this.baseUrl}/versao`, payload);
+  }
+
+  listarHistoricoVersoes(): Observable<HistoricoVersaoResponse[]> {
+    return this.http.get<HistoricoVersaoResponse[]>(`${this.baseUrl}/versao/historico`);
   }
 }

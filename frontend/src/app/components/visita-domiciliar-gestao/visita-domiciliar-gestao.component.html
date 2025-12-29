@@ -47,7 +47,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Identifique beneficiário, responsável e parâmetros básicos da agenda.</p>
+          <p class="muted">Identifique beneficiario, responsável e parâmetros básicos da agenda.</p>
         </div>
         <span class="pill">Obrigatório</span>
       </div>
@@ -60,7 +60,7 @@
             <option value=""></option>
             <option *ngFor="let beneficiario of beneficiarios" [value]="beneficiario">{{ beneficiario }}</option>
           </select></label>
-        <p class="muted" *ngIf="beneficiariosLoading">Carregando beneficiários...</p>
+        <p class="muted" *ngIf="beneficiariosLoading">Carregando beneficiarios...</p>
         <p class="muted text-red-600" *ngIf="beneficiariosError">{{ beneficiariosError }}</p>
         <label class="field">Responsável pela visita*<select formControlName="responsavel">
             <option value=""></option>
@@ -80,10 +80,10 @@
         <label class="field full">Observações iniciais<textarea formControlName="observacoesIniciais" rows="3" placeholder="Resumo do objetivo da visita"></textarea></label>
         <div class="feature-grid">
           <label class="checkbox-field"><input type="checkbox" formControlName="usarEnderecoBeneficiario" />
-            <span>Utilizar endereço do beneficiário</span></label>
+            <span>Utilizar endereço do beneficiario</span></label>
         </div>
-        <div class="field full" formGroupName="endereco">
-          <p class="field-title">Endereço da visita (preencha apenas se diferente do beneficiário)</p>
+        <div class="field full" formGroupName="endereço">
+          <p class="field-title">Endereço da visita (preencha apenas se diferente do beneficiario)</p>
           <div class="field-grid cols-3">
             <label class="field">Logradouro<input formControlName="logradouro" /></label>
             <label class="field">Número<input formControlName="numero" /></label>
@@ -152,7 +152,7 @@
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="field">Renda familiar estimada<input formControlName="rendaFamiliar" placeholder="Ex.: R$ 1.800,00" /></label>
+        <label class="field">Renda famíliar estimada<input formControlName="rendaFamiliar" placeholder="Ex.: R$ 1.800,00" /></label>
         <label class="field">Faixa de renda<select formControlName="faixaRenda">
             <option value=""></option>
             <option *ngFor="let faixa of faixasRenda" [value]="faixa">{{ faixa }}</option>
@@ -252,7 +252,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Visualize rapidamente visitas anteriores do mesmo beneficiário.</p>
+          <p class="muted">Visualize rapidamente visitas anteriores do mesmo beneficiario.</p>
         </div>
       </div>
       <div class="list-card compact">
@@ -276,7 +276,7 @@
                 <td>{{ visita.observacoesIniciais || visita.registro.relato || '---' }}</td>
               </tr>
               <tr *ngIf="!historicoBeneficiario.length">
-                <td colspan="5" class="muted">Nenhuma visita anterior encontrada para este beneficiário.</td>
+                <td colspan="5" class="muted">Nenhuma visita anterior encontrada para este beneficiario.</td>
               </tr>
             </tbody>
           </table>

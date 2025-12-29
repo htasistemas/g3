@@ -9,6 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -45,11 +49,12 @@ public class GeocodificacaoService {
     }
 
     try {
-      String url =
-          String.format(
-              "%s?format=json&limit=1&q=%s",
-              baseUrl, java.net.URLEncoder.encode(consulta, "UTF-8"));
-      String body = restTemplate.getForObject(url, String.class);
+      String url = montarUrlConsulta(consulta, endereco);
+      HttpHeaders headers = new HttpHeaders();
+      headers.set(HttpHeaders.USER_AGENT, userAgent);
+      ResponseEntity<String> response =
+          restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+      String body = response.getBody();
       if (body == null || body.trim().isEmpty()) {
         return Optional.empty();
       }
@@ -79,7 +84,47 @@ public class GeocodificacaoService {
     adicionarSeValido(partes, endereco.getCidade());
     adicionarSeValido(partes, endereco.getEstado());
     adicionarSeValido(partes, endereco.getCep());
+    adicionarSeValido(partes, "Brasil");
     return String.join(", ", partes);
+  }
+
+  private String montarUrlConsulta(String consulta, Endereco endereco) {
+    String base = baseUrl != null && !baseUrl.trim().isEmpty()
+        ? baseUrl.trim()
+        : "https://nominatim.openstreetmap.org/search";
+    StringBuilder url = new StringBuilder(base);
+    url.append("?format=json&limit=1&addressdetails=1");
+    url.append("&countrycodes=br");
+    if (temValor(endereco.getCep())) {
+      url.append("&postalcode=").append(urlEncode(endereco.getCep()));
+    }
+    if (temValor(endereco.getCidade())) {
+      url.append("&city=").append(urlEncode(endereco.getCidade()));
+    }
+    if (temValor(endereco.getEstado())) {
+      url.append("&state=").append(urlEncode(endereco.getEstado()));
+    }
+    if (temValor(endereco.getLogradouro()) || temValor(endereco.getNumero())) {
+      List<String> ruaPartes = new ArrayList<>();
+      adicionarSeValido(ruaPartes, endereco.getLogradouro());
+      adicionarSeValido(ruaPartes, endereco.getNumero());
+      String rua = String.join(" ", ruaPartes);
+      if (temValor(rua)) {
+        url.append("&street=").append(urlEncode(rua));
+      }
+    }
+    if (temValor(consulta)) {
+      url.append("&q=").append(urlEncode(consulta));
+    }
+    return url.toString();
+  }
+
+  private String urlEncode(String valor) {
+    try {
+      return java.net.URLEncoder.encode(valor, StandardCharsets.UTF_8.name());
+    } catch (IllegalArgumentException | java.io.UnsupportedEncodingException ex) {
+      return "";
+    }
   }
 
   private void adicionarSeValido(List<String> partes, String valor) {

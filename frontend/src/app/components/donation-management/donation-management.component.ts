@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -21,19 +21,31 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { FamilyService, FamiliaPayload } from '../../services/family.service';
+import { AlmoxarifadoService } from '../../services/almoxarifado.service';
+import { DoacaoRealizadaResponse, DoacaoRealizadaService } from '../../services/doacao-realizada.service';
+import { AuthService } from '../../services/auth.service';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 interface Beneficiary {
   id: string;
   name: string;
   document: string;
+  cpf?: string;
+  birthDate?: string;
+  age?: number | null;
+  photoUrl?: string;
   phone?: string;
   address?: string;
   family?: string;
+  status?: string;
+  blockReason?: string;
   type: 'beneficiario' | 'familia';
 }
 
 interface StockItem {
+  id: number;
   code: string;
   description: string;
   unit: string;
@@ -55,6 +67,7 @@ interface DonationRecord {
   beneficiaryId: string;
   beneficiaryName: string;
   beneficiaryDocument: string;
+  beneficiaryType?: 'beneficiario' | 'familia';
   date: string;
   deliveryDate: string;
   status: string;
@@ -77,6 +90,7 @@ interface PlannedDonation {
   priority: 'baixa' | 'media' | 'alta';
   status: 'pendente' | 'em_separacao' | 'pronto' | 'entregue' | 'cancelado';
   notes?: string;
+  cancelReason?: string;
 }
 
 type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
@@ -84,11 +98,11 @@ type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
 @Component({
   selector: 'app-donation-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './donation-management.component.html',
   styleUrl: './donation-management.component.scss'
 })
-export class DonationManagementComponent {
+export class DonationManagementComponent implements OnInit {
   readonly faUserPlus = faUserPlus;
   readonly faClipboardList = faClipboardList;
   readonly faMagnifyingGlass = faMagnifyingGlass;
@@ -108,17 +122,23 @@ export class DonationManagementComponent {
   private readonly fb = new FormBuilder();
   private readonly beneficiaryService = inject(BeneficiarioApiService);
   private readonly familyService = inject(FamilyService);
+  private readonly almoxarifadoService = inject(AlmoxarifadoService);
+  private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);
+  private readonly authService = inject(AuthService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
   tabs: { id: TabId; label: string }[] = [
-    { id: 'identificacao', label: 'Identificação' },
-    { id: 'historico', label: 'Histórico de Doações' },
+    { id: 'identificacao', label: 'Identificacao' },
+    { id: 'historico', label: 'Histórico de doações' },
     { id: 'planejamento', label: 'Doações a realizar' },
     { id: 'dashboard', label: 'Dashboard' }
   ];
 
   activeTab = signal<TabId>('identificacao');
   activeTabIndex = computed(() => this.tabs.findIndex((tab) => tab.id === this.activeTab()));
+  hasNextTab = computed(() => this.activeTabIndex() < this.tabs.length - 1);
+  hasPreviousTab = computed(() => this.activeTabIndex() > 0);
+  nextTabLabel = computed(() => this.tabs[this.activeTabIndex() + 1]?.label ?? '');
   stockModalOpen = signal(false);
   stockModalContext = signal<'deliver' | 'plan'>('deliver');
   stockSearch = signal('');
@@ -126,84 +146,19 @@ export class DonationManagementComponent {
   stockStatus = signal<'todos' | StockItem['status']>('todos');
   itemError = signal<string | null>(null);
   plannedError = signal<string | null>(null);
+  historicoErro = signal<string | null>(null);
+  popupErros: string[] = [];
 
   beneficiaries = signal<Beneficiary[]>([]);
 
-  stockItems = signal<StockItem[]>([
-    { code: 'ALM-001', description: 'Álcool em gel 70% 500ml', unit: 'Frasco', currentStock: 85, category: 'Higiene', status: 'Ativo' },
-    { code: 'ALM-002', description: 'Luvas descartáveis tamanho M', unit: 'Caixa', currentStock: 18, category: 'EPI', status: 'Ativo' },
-    { code: 'ALM-003', description: 'Papel sulfite A4 75g', unit: 'Resma', currentStock: 120, category: 'Escritório', status: 'Ativo' },
-    { code: 'ALM-004', description: 'Cartucho de impressora HP 664', unit: 'Unidade', currentStock: 6, category: 'Escritório', status: 'Inativo' },
-    { code: 'ALM-005', description: 'Cesta básica padrão', unit: 'Kit', currentStock: 42, category: 'Alimentos', status: 'Ativo' }
-  ]);
+  stockItems = signal<StockItem[]>([]);
 
-  donationHistory = signal<DonationRecord[]>([
-    {
-      id: 'DOA-2025-0004',
-      beneficiaryId: 'B-001',
-      beneficiaryName: 'Maria Fernanda Alves',
-      beneficiaryDocument: '123.456.789-00',
-      date: this.todayIso,
-      deliveryDate: this.todayIso,
-      donationType: 'Cesta básica',
-      status: 'entregue',
-      responsible: 'Equipe Assistência',
-      notes: 'Distribuição mensal programada.',
-      items: [
-        { stockCode: 'ALM-005', description: 'Cesta básica padrão', unit: 'Kit', quantity: 1 }
-      ]
-    },
-    {
-      id: 'DOA-2025-0003',
-      beneficiaryId: 'B-002',
-      beneficiaryName: 'João Pedro Duarte',
-      beneficiaryDocument: '987.654.321-00',
-      date: this.offsetDate(-7),
-      deliveryDate: this.offsetDate(-6),
-      donationType: 'Roupa',
-      status: 'entregue',
-      responsible: 'Ana Costa',
-      notes: 'Tamanho M',
-      items: [
-        { stockCode: 'ALM-002', description: 'Luvas descartáveis tamanho M', unit: 'Caixa', quantity: 2 }
-      ]
-    }
-  ]);
+  donationHistory = signal<DonationRecord[]>([]);
 
-  plannedDonations = signal<PlannedDonation[]>([
-    {
-      id: 'PLAN-001',
-      beneficiaryId: 'B-001',
-      beneficiaryName: 'Maria Fernanda Alves',
-      beneficiaryDocument: '123.456.789-00',
-      itemCode: 'ALM-001',
-      itemDescription: 'Álcool em gel 70% 500ml',
-      unit: 'Frasco',
-      quantity: 2,
-      dueDate: this.offsetDate(3),
-      priority: 'media',
-      status: 'pendente',
-      notes: 'Reposição semanal'
-    },
-    {
-      id: 'PLAN-002',
-      beneficiaryId: 'B-003',
-      beneficiaryName: 'Associação Vila Nova',
-      beneficiaryDocument: '11.111.111/0001-11',
-      itemCode: 'ALM-005',
-      itemDescription: 'Cesta básica padrão',
-      unit: 'Kit',
-      quantity: 5,
-      dueDate: this.offsetDate(10),
-      priority: 'alta',
-      status: 'em_separacao'
-    }
-  ]);
+  plannedDonations = signal<PlannedDonation[]>([]);
 
   identificationForm: FormGroup = this.fb.group({
     beneficiaryName: ['', Validators.required],
-    donationType: ['', Validators.required],
-    donationStatus: ['em_analise', Validators.required],
     responsible: ['Usuário logado', Validators.required],
     notes: ['']
   });
@@ -235,6 +190,9 @@ export class DonationManagementComponent {
   beneficiarySearchError = signal<string | null>(null);
   searchingBeneficiaries = signal(false);
   editingPlanId: string | null = null;
+  cancelDialogOpen = signal(false);
+  cancelReason = signal('');
+  planToCancel = signal<PlannedDonation | null>(null);
 
   filteredBeneficiaries = computed(() => {
     const term = this.beneficiarySearch().toLowerCase();
@@ -263,9 +221,11 @@ export class DonationManagementComponent {
 
   filteredHistory = computed(() => {
     let history = this.donationHistory();
-    if (this.selectedBeneficiary()) {
-      history = history.filter((record) => record.beneficiaryId === this.selectedBeneficiary()!.id);
+    if (!this.selectedBeneficiary()) {
+      return [];
     }
+    const selectedId = String(this.selectedBeneficiary()!.id);
+    history = history.filter((record) => String(record.beneficiaryId) === selectedId);
 
     const filters = this.historyFilters.value;
     if (filters['startDate']) {
@@ -288,6 +248,7 @@ export class DonationManagementComponent {
     if (this.selectedBeneficiary()) {
       plans = plans.filter((plan) => plan.beneficiaryId === this.selectedBeneficiary()!.id);
     }
+    plans = plans.filter((plan) => plan.status !== 'entregue');
     return plans;
   });
 
@@ -314,6 +275,12 @@ export class DonationManagementComponent {
   constructor() {
   }
 
+  ngOnInit(): void {
+    this.loadStockItems();
+    this.loadDoacoesRealizadas();
+    this.preencherResponsavelLogado();
+  }
+
   get selectedDeliveryItem() {
     return this.findStockItem(this.deliveredItemForm.value['itemCode']);
   }
@@ -326,6 +293,36 @@ export class DonationManagementComponent {
     const found = this.tabs.find((tab) => tab.id === id);
     if (found) {
       this.activeTab.set(found.id);
+      if (found.id === 'historico') {
+        this.loadDoacoesRealizadas();
+      }
+    }
+  }
+
+  applyHistoryFilters(): void {
+    this.historicoErro.set(null);
+    this.historyFilters.markAllAsTouched();
+    this.historyFilters.updateValueAndValidity();
+    this.loadDoacoesRealizadas();
+  }
+
+  goToNextTab(): void {
+    if (!this.hasNextTab()) {
+      return;
+    }
+    const nextTab = this.tabs[this.activeTabIndex() + 1];
+    if (nextTab) {
+      this.activeTab.set(nextTab.id);
+    }
+  }
+
+  goToPreviousTab(): void {
+    if (!this.hasPreviousTab()) {
+      return;
+    }
+    const previousTab = this.tabs[this.activeTabIndex() - 1];
+    if (previousTab) {
+      this.activeTab.set(previousTab.id);
     }
   }
 
@@ -333,6 +330,8 @@ export class DonationManagementComponent {
     this.selectedBeneficiary.set(beneficiary);
     this.beneficiarySearch.set(beneficiary.name);
     this.identificationForm.patchValue({ beneficiaryName: beneficiary.name });
+    this.loadDoacoesRealizadas();
+    this.handleBlockedBeneficiary(beneficiary);
   }
 
   async onBeneficiaryInput(value: string): Promise<void> {
@@ -352,11 +351,17 @@ export class DonationManagementComponent {
 
     return {
       id: payload.id_beneficiario ?? '',
-      name: payload.nome_completo || payload.nome_social || 'Beneficiário',
-      document: payload.cpf || payload.nis || 'Documento não informado',
+      name: payload.nome_completo || payload.nome_social || 'Beneficiario',
+      document: payload.cpf || payload.nis || 'Documento n?o informado',
+      cpf: payload.cpf || undefined,
+      birthDate: payload.data_nascimento,
+      age: this.calculateAge(payload.data_nascimento),
+      photoUrl: payload.foto_3x4 || undefined,
       phone: payload.telefone_principal,
       address,
       family: payload.composicao_familiar,
+      status: payload.status,
+      blockReason: payload.motivo_bloqueio,
       type: 'beneficiario'
     };
   }
@@ -373,10 +378,16 @@ export class DonationManagementComponent {
     return {
       id: payload.id_familia ?? '',
       name: payload.nome_familia,
-      document: payload.municipio ? `Município: ${payload.municipio}` : 'Família cadastrada',
+      document: payload.municipio ? `Município: ${payload.municipio}` : 'Familia cadastrada',
+      cpf: undefined,
+      birthDate: undefined,
+      age: null,
+      photoUrl: undefined,
       phone: undefined,
       address,
       family: payload.nome_familia,
+      status: undefined,
+      blockReason: undefined,
       type: 'familia'
     };
   }
@@ -417,7 +428,7 @@ export class DonationManagementComponent {
       }
     } catch (error) {
       console.error('Failed to search beneficiaries', error);
-      this.beneficiarySearchError.set('Não foi possível buscar beneficiários no momento.');
+      this.beneficiarySearchError.set('Nao foi possível buscar beneficiarios no momento.');
     } finally {
       this.searchingBeneficiaries.set(false);
     }
@@ -440,6 +451,7 @@ export class DonationManagementComponent {
       this.deliveredItemForm.patchValue({ itemCode: item.code });
     } else {
       this.plannedForm.patchValue({ itemCode: item.code });
+      this.atualizarDataPrevistaPorUltimaRetirada(item.code);
     }
     this.closeStockModal();
   }
@@ -474,6 +486,7 @@ export class DonationManagementComponent {
   registerDonation(): void {
     this.itemError.set(null);
     if (!this.selectedBeneficiary()) {
+      this.beneficiarySearchError.set('Selecione um beneficiario ou familia para continuar.');
       this.identificationForm.markAllAsTouched();
       return;
     }
@@ -491,35 +504,54 @@ export class DonationManagementComponent {
     }
 
     const formValue = this.identificationForm.value;
-    const record: DonationRecord = {
-      id: `DOA-${new Date().getFullYear()}-${String(this.donationHistory().length + 1).padStart(4, '0')}`,
-      beneficiaryId: this.selectedBeneficiary()!.id,
-      beneficiaryName: this.selectedBeneficiary()!.name,
-      beneficiaryDocument: this.selectedBeneficiary()!.document,
-      date: new Date().toISOString(),
-      deliveryDate: this.todayIso,
-      donationType: formValue['donationType'],
-      status: formValue['donationStatus'],
-      responsible: formValue['responsible'],
-      notes: formValue['notes'],
-      items
+    const selected = this.selectedBeneficiary()!;
+    const payloadItens = items.map((item) => {
+      const estoqueItem = this.findStockItem(item.stockCode);
+      return {
+        itemId: estoqueItem ? estoqueItem.id : 0,
+        quantidade: item.quantity,
+        observacoes: item.notes
+      };
+    });
+
+    if (payloadItens.some((item) => item.itemId === 0)) {
+      this.itemError.set('Selecione itens validos do almoxarifado antes de registrar a doacao.');
+      return;
+    }
+
+    const payload = {
+      beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
+      vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
+      tipoDoacao: 'Nao informado',
+      situacao: 'entregue',
+      responsavel: formValue['responsible'],
+      observacoes: formValue['notes'],
+      dataDoacao: this.todayIso,
+      itens: payloadItens
     };
 
-    items.forEach((item) => this.adjustStock(item.stockCode, -item.quantity));
-
-    this.donationHistory.update((history) => [record, ...history]);
-    this.deliveredItems.set([]);
-    this.identificationForm.patchValue({ notes: '' });
-    if (record.donationType?.toLowerCase().includes('cesta')) {
-      this.scheduleNextBasicBasket(record);
-    }
-    this.changeTab('historico');
+    this.doacaoRealizadaService.criar(payload).subscribe({
+      next: (response) => {
+        items.forEach((item) => this.adjustStock(item.stockCode, -item.quantity));
+        this.donationHistory.update((history) => [this.mapDoacao(response), ...history]);
+        this.loadDoacoesRealizadas();
+        this.deliveredItems.set([]);
+        this.identificationForm.patchValue({ notes: '' });
+        if (response.tipoDoacao?.toLowerCase().includes('cesta')) {
+          this.scheduleNextBasicBasket(this.mapDoacao(response));
+        }
+        this.changeTab('historico');
+      },
+      error: () => {
+        this.itemError.set('Nao foi possível registrar a doacao agora.');
+      }
+    });
   }
 
   submitPlannedDonation(): void {
     this.plannedError.set(null);
     if (!this.selectedBeneficiary()) {
-      this.plannedError.set('Selecione um beneficiário primeiro.');
+      this.plannedError.set('Selecione um Beneficiario primeiro.');
       return;
     }
 
@@ -567,7 +599,11 @@ export class DonationManagementComponent {
 
   cancelPlan(plan: PlannedDonation): void {
     this.plannedDonations.update((plans) =>
-      plans.map((p) => (p.id === plan.id ? { ...p, status: 'cancelado', notes: p.notes ?? 'Cancelado' } : p))
+      plans.map((p) =>
+        p.id === plan.id
+          ? { ...p, status: 'cancelado', cancelReason: this.cancelReason() || p.cancelReason, notes: p.notes }
+          : p
+      )
     );
   }
 
@@ -603,6 +639,106 @@ export class DonationManagementComponent {
     this.changeTab('historico');
   }
 
+  realizarDoacaoPlanejada(plan: PlannedDonation): void {
+    this.plannedError.set(null);
+    if (!this.selectedBeneficiary()) {
+      this.plannedError.set('Selecione um Beneficiario primeiro.');
+      return;
+    }
+
+    if (plan.status === 'entregue') {
+      this.plannedError.set('Esta doacao planejada ja foi entregue.');
+      return;
+    }
+
+    if (!this.ensureStockAvailable(plan.itemCode, plan.quantity)) {
+      return;
+    }
+
+    const estoqueItem = this.findStockItem(plan.itemCode);
+    if (!estoqueItem) {
+      this.plannedError.set('Item n?o encontrado no almoxarifado.');
+      return;
+    }
+
+    const selected = this.selectedBeneficiary()!;
+    const payload = {
+      beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
+      vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
+      tipoDoacao: 'Doação planejada',
+      situacao: 'entregue',
+      responsavel: this.identificationForm.value['responsible'],
+      observacoes: plan.notes,
+      dataDoacao: this.todayIso,
+      itens: [
+        {
+          itemId: estoqueItem.id,
+          quantidade: plan.quantity,
+          observacoes: plan.notes
+        }
+      ]
+    };
+
+    this.doacaoRealizadaService.criar(payload).subscribe({
+      next: (response) => {
+        this.adjustStock(plan.itemCode, -plan.quantity);
+        this.donationHistory.update((history) => [this.mapDoacao(response), ...history]);
+        this.plannedDonations.update((plans) =>
+          plans.map((item) => (item.id === plan.id ? { ...item, status: 'entregue' } : item))
+        );
+        this.changeTab('historico');
+      },
+      error: () => {
+        this.plannedError.set('Nao foi possível registrar a doacao planejada.');
+      }
+    });
+  }
+
+  openCancelDialog(plan: PlannedDonation): void {
+    this.plannedError.set(null);
+    this.cancelReason.set('');
+    this.planToCancel.set(plan);
+    this.cancelDialogOpen.set(true);
+  }
+
+  closeCancelDialog(): void {
+    this.cancelDialogOpen.set(false);
+    this.planToCancel.set(null);
+  }
+
+  confirmCancelPlan(): void {
+    const plan = this.planToCancel();
+    const reason = this.cancelReason().trim();
+    if (!plan) {
+      this.closeCancelDialog();
+      return;
+    }
+    if (!reason) {
+      this.plannedError.set('Informe o motivo do cancelamento.');
+      return;
+    }
+    this.cancelReason.set(reason);
+    this.cancelPlan(plan);
+    this.closeCancelDialog();
+  }
+
+  formatPlanStatus(status: PlannedDonation['status']): string {
+    if (status === 'cancelado') {
+      return 'Doação cancelada';
+    }
+    if (status === 'entregue') {
+      return 'Doação entregue';
+    }
+    return status;
+  }
+
+  getPlanStatusClass(status: PlannedDonation['status']): string {
+    if (status === 'cancelado') {
+      return 'status-chip status-chip--danger';
+    }
+    return 'status-chip';
+  }
+
   getStockBalance(code: string): number {
     return this.findStockItem(code)?.currentStock ?? 0;
   }
@@ -624,16 +760,85 @@ export class DonationManagementComponent {
     return this.stockItems().find((item) => item.code === code);
   }
 
+  private loadStockItems(): void {
+    this.almoxarifadoService.listItems().subscribe({
+      next: (items) => {
+        const mapped = items.map((item) => ({
+          id: Number(item.id),
+          code: item.code,
+          description: item.description,
+          unit: item.unit || '',
+          currentStock: item.currentStock,
+          category: item.category || 'Nao informado',
+          status: item.status
+        }));
+        this.stockItems.set(mapped);
+      },
+      error: () => {
+        this.itemError.set('Nao foi possível carregar itens do almoxarifado.');
+      }
+    });
+  }
+
+  private loadDoacoesRealizadas(): void {
+    this.historicoErro.set(null);
+    this.doacaoRealizadaService.listar().subscribe({
+      next: (records) => {
+        const mapped = records.map((record) => this.mapDoacao(record));
+        this.donationHistory.set(mapped);
+      },
+      error: () => {
+        this.historicoErro.set('Nao foi possível carregar as doações realizadas.');
+      }
+    });
+  }
+
+  private mapDoacao(record: DoacaoRealizadaResponse): DonationRecord {
+    const beneficiarioNome =
+      record.beneficiarioNome ||
+      record.familiaNome ||
+      (record.beneficiarioId ? `Beneficiario ${record.beneficiarioId}` : 'Familia');
+
+    return {
+      id: String(record.id),
+      beneficiaryId: String(record.beneficiarioId ?? record.vinculoFamiliarId ?? ''),
+      beneficiaryName: beneficiarioNome,
+      beneficiaryDocument: 'Nao informado',
+      beneficiaryType: record.beneficiarioId ? 'beneficiario' : 'familia',
+      date: record.dataDoacao,
+      deliveryDate: record.dataDoacao,
+      donationType: record.tipoDoacao,
+      status: record.situacao,
+      responsible: record.responsavel || 'Nao informado',
+      notes: record.observacoes,
+      items: (record.itens || []).map((item) => ({
+        stockCode: item.codigoItem || '',
+        description: item.descricaoItem || 'Item',
+        unit: item.unidadeItem || '-',
+        quantity: item.quantidade,
+        notes: item.observacoes
+      }))
+    };
+  }
+
+  private preencherResponsavelLogado(): void {
+    const usuario = this.authService.user()?.nomeUsuario;
+    if (!usuario) {
+      return;
+    }
+    this.identificationForm.patchValue({ responsible: usuario });
+  }
+
   private ensureStockAvailable(code: string, quantity: number): boolean {
     const item = this.findStockItem(code);
     if (!item) {
-      this.itemError.set('Item não encontrado no almoxarifado.');
+      this.itemError.set('Item n?o encontrado no almoxarifado.');
       return false;
     }
 
     if (quantity > item.currentStock) {
       this.itemError.set(
-        `Estoque insuficiente para ${item.description}. Disponível: ${item.currentStock} ${item.unit}.`
+        `Estoque insuficiente para ${item.description}. Disponivel: ${item.currentStock} ${item.unit}.`
       );
       return false;
     }
@@ -653,6 +858,29 @@ export class DonationManagementComponent {
     return base.toISOString().substring(0, 10);
   }
 
+  private atualizarDataPrevistaPorUltimaRetirada(itemCode: string): void {
+    if (!this.selectedBeneficiary()) {
+      return;
+    }
+    const selectedId = String(this.selectedBeneficiary()!.id);
+    const historico = this.donationHistory().filter((record) => String(record.beneficiaryId) === selectedId);
+    if (!historico.length) {
+      return;
+    }
+    const lastDelivery = historico
+      .filter((record) => record.items.some((item) => item.stockCode === itemCode))
+      .sort((a, b) => b.deliveryDate.localeCompare(a.deliveryDate))[0];
+    if (!lastDelivery) {
+      return;
+    }
+    const base = new Date(lastDelivery.deliveryDate);
+    if (Number.isNaN(base.getTime())) {
+      return;
+    }
+    base.setDate(base.getDate() + 30);
+    this.plannedForm.patchValue({ dueDate: base.toISOString().substring(0, 10) });
+  }
+
   private scheduleNextBasicBasket(record: DonationRecord): void {
     if (!this.selectedBeneficiary()) return;
     const templateItem = record.items[0];
@@ -670,7 +898,7 @@ export class DonationManagementComponent {
       dueDate: this.offsetDate(30),
       priority: 'media',
       status: 'pendente',
-      notes: 'Próxima cesta básica programada automaticamente após a entrega.'
+      notes: 'Proxima cesta basica programada automaticamente apos a entrega.'
     };
 
     this.plannedDonations.update((plans) => [payload, ...plans]);
@@ -684,4 +912,88 @@ export class DonationManagementComponent {
     });
   }
 
+  private calculateAge(dateValue?: string): number | null {
+    if (!dateValue) {
+      return null;
+    }
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+    const today = new Date();
+    let age = today.getFullYear() - parsed.getFullYear();
+    const monthDiff = today.getMonth() - parsed.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
+      age -= 1;
+    }
+    return age;
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (!parts.length) return '';
+    const first = parts[0][0] || '';
+    const last = parts.length > 1 ? parts[parts.length - 1][0] || '' : '';
+    return `${first}${last}`.toUpperCase();
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
+  }
+
+  private handleBlockedBeneficiary(beneficiary: Beneficiary): void {
+    this.popupErros = [];
+    if (beneficiary.type !== 'beneficiario') {
+      return;
+    }
+    if (String(beneficiary.status).toUpperCase() !== 'BLOQUEADO') {
+      return;
+    }
+    const reason = beneficiary.blockReason || 'Nao informado';
+    const builder = new PopupErrorBuilder();
+    builder.adicionar(`Beneficiario bloqueado. Motivo: ${reason}.`);
+    this.popupErros = builder.build();
+  }
+
+  formatCpf(value?: string | null): string {
+    const digits = (value ?? '').replace(/\D/g, '').slice(0, 11);
+    if (!digits) return '';
+    const part1 = digits.slice(0, 3);
+    const part2 = digits.slice(3, 6);
+    const part3 = digits.slice(6, 9);
+    const part4 = digits.slice(9, 11);
+    return [part1, part2, part3].filter(Boolean).join('.') + (part4 ? `-${part4}` : '');
+  }
+
+  formatPhoneValue(value?: string | null): string {
+    const digits = (value ?? '').replace(/\D/g, '').slice(0, 11);
+    if (!digits) return '';
+    const hasNineDigits = digits.length > 10;
+    const part1 = digits.slice(0, 2);
+    const part2 = digits.slice(2, hasNineDigits ? 7 : 6);
+    const part3 = digits.slice(hasNineDigits ? 7 : 6, hasNineDigits ? 11 : 10);
+    return part3 ? `(${part1}) ${part2}-${part3}` : part2 ? `(${part1}) ${part2}` : `(${part1}`;
+  }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

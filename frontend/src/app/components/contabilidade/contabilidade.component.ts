@@ -1,8 +1,19 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import {
+  ContabilidadeService,
+  ContaBancariaRequest,
+  ContaBancariaResponse,
+  EmendaImpositivaRequest,
+  EmendaImpositivaResponse,
+  LancamentoFinanceiroRequest,
+  LancamentoFinanceiroResponse,
+  MovimentacaoFinanceiraRequest,
+  MovimentacaoFinanceiraResponse
+} from '../../services/contabilidade.service';
 import {
   faArrowTrendDown,
   faArrowTrendUp,
@@ -21,8 +32,8 @@ import {
 interface MetricCard {
   label: string;
   value: string;
-  helper: string;
   icon: any;
+  helper?: string;
   trend?: 'up' | 'down';
 }
 
@@ -33,48 +44,10 @@ interface CashFlowEntry {
   projection: number;
 }
 
-interface AgendaEntry {
-  title: string;
-  counterparty: string;
-  dueDate: string;
-  amount: number;
-  type: 'receber' | 'pagar';
-  status: 'aberto' | 'pago' | 'atrasado';
-}
-
 interface FinanceTab {
-  id: 'visao-geral' | 'fluxo' | 'relatorios';
+  id: 'visao-geral' | 'contas' | 'lancamentos' | 'movimentacoes' | 'emendas' | 'relatorios';
   label: string;
-  helper: string;
   badge?: string;
-}
-
-interface BankAccount {
-  bankName: string;
-  accountNumber: string;
-  type: 'corrente' | 'aplicacao' | 'projeto';
-  balance: number;
-  lastUpdate: string;
-}
-
-interface FinancialMovement {
-  description: string;
-  counterparty: string;
-  date: string;
-  accountNumber: string;
-  amount: number;
-  type: 'entrada' | 'saida';
-  category: string;
-}
-
-interface AmendmentControl {
-  name: string;
-  lawReference: string;
-  expectedDate: string;
-  amount: number;
-  alertDays: number;
-  status: 'previsto' | 'empenhado' | 'recebido';
-  notes: string;
 }
 
 @Component({
@@ -84,7 +57,7 @@ interface AmendmentControl {
   templateUrl: './contabilidade.component.html',
   styleUrl: './contabilidade.component.scss'
 })
-export class ContabilidadeComponent {
+export class ContabilidadeComponent implements OnInit {
   readonly faPrint = faPrint;
   readonly faBell = faBell;
   readonly faFileInvoice = faFileInvoice;
@@ -102,70 +75,155 @@ export class ContabilidadeComponent {
     {
       id: 'visao-geral',
       label: 'Visão geral financeira',
-      helper: 'Indicadores e obrigações imediatas',
-      badge: 'Resumo'
+      badge: ''
     },
     {
-      id: 'fluxo',
-      label: 'Fluxo de caixa e projeções',
-      helper: 'Entradas, saídas e saldo esperado',
-      badge: 'Planejamento'
+      id: 'contas',
+      label: 'Contas bancarias',
+      badge: ''
+    },
+    {
+      id: 'lancamentos',
+      label: 'Lançamentos',
+      badge: ''
+    },
+    {
+      id: 'movimentacoes',
+      label: 'Movimentações',
+      badge: ''
+    },
+    {
+      id: 'emendas',
+      label: 'Emendas impositivas',
+      badge: ''
     },
     {
       id: 'relatorios',
       label: 'Relatórios e documentos',
-      helper: 'Demonstrativos e materiais de apoio',
-      badge: 'Exportar'
+      badge: ''
     }
+  ];
+
+  bancosDisponiveis = [
+    'Banco do Brasil',
+    'Caixa Economica Federal',
+    'Itau',
+    'Bradesco',
+    'Santander',
+    'Banrisul',
+    'Banco do Nordeste',
+    'Banco da Amazonia',
+    'Sicredi',
+    'Sicoob',
+    'Banco Inter',
+    'Nubank',
+    'C6 Bank',
+    'Banco Original',
+    'Banco Pan',
+    'Neon',
+    'Next',
+    'PagBank',
+    'Mercado Pago',
+    'PicPay',
+    'BTG Pactual',
+    'Safra',
+    'XP',
+    'Daycoval',
+    'Banco BMG'
+  ];
+
+  tiposConta = [
+    { value: 'corrente', label: 'Conta corrente' },
+    { value: 'poupanca', label: 'Conta poupanca' },
+    { value: 'salario', label: 'Conta salario' },
+    { value: 'pagamento', label: 'Conta pagamento' },
+    { value: 'investimento', label: 'Conta investimento' },
+    { value: 'digital', label: 'Conta digital' },
+    { value: 'conjunta', label: 'Conta conjunta' },
+    { value: 'universitaria', label: 'Conta universitaria' },
+    { value: 'empresarial', label: 'Conta empresarial' },
+    { value: 'projeto', label: 'Conta vinculada a projeto' }
+  ];
+
+  tiposChavePix = [
+    { value: 'cnpj', label: 'CNPJ' },
+    { value: 'email', label: 'Email' },
+    { value: 'telefone', label: 'Telefone' },
+    { value: 'aleatoria', label: 'Aleatoria' }
   ];
 
   activeTab: FinanceTab['id'] = 'visao-geral';
 
   summaryCards: MetricCard[] = [];
   cashFlow: CashFlowEntry[] = [];
-  agenda: AgendaEntry[] = [];
-  bankAccounts: BankAccount[] = [];
-  financialMovements: FinancialMovement[] = [];
-  amendmentControls: AmendmentControl[] = [];
-  upcomingReceivables: AgendaEntry[] = [];
-  upcomingPayables: AgendaEntry[] = [];
+  agenda: LancamentoFinanceiroResponse[] = [];
+  bankAccounts: ContaBancariaResponse[] = [];
+  financialMovements: MovimentacaoFinanceiraResponse[] = [];
+  amendmentControls: EmendaImpositivaResponse[] = [];
+  upcomingReceivables: LancamentoFinanceiroResponse[] = [];
+  upcomingPayables: LancamentoFinanceiroResponse[] = [];
   alerts: string[] = [];
 
-  newEntry: AgendaEntry = {
-    title: '',
-    counterparty: '',
-    dueDate: this.todayISO(),
-    amount: 0,
-    type: 'receber',
-    status: 'aberto'
+  filtrosContas = {
+    banco: '',
+    agencia: '',
+    numero: '',
+    tipo: ''
   };
 
-  newAccount: BankAccount = {
-    bankName: '',
-    accountNumber: '',
-    type: 'corrente',
-    balance: 0,
-    lastUpdate: this.todayISO()
+  filtrosLancamentos = {
+    descricao: '',
+    contraparte: '',
+    tipo: '',
+    situacao: ''
   };
 
-  newAmendment: AmendmentControl = {
-    name: '',
-    lawReference: '',
-    expectedDate: this.todayISO(),
-    amount: 0,
-    alertDays: 15,
+  filtroResumoTipo: '' | 'receber' | 'pagar' = '';
+
+  filtrosMovimentacoes = {
+    descricao: '',
+    categoria: '',
+    tipo: ''
+  };
+
+  filtrosEmendas = {
+    identificacao: '',
+    status: ''
+  };
+
+  newEntry: LancamentoFinanceiroRequest = {
+    tipo: 'receber',
+    descricao: '',
+    contraparte: '',
+    vencimento: this.todayISO(),
+    valor: 0,
+    situacao: 'aberto'
+  };
+  valorLancamentoMascara = 'R$ 0,00';
+  lancamentoEmEdicaoId: number | null = null;
+  salvandoLancamento = false;
+
+  contaEmEdicaoId: number | null = null;
+  saldoContaMascara = '';
+
+  newAmendment: EmendaImpositivaRequest = {
+    identificacao: '',
+    referenciaLegal: '',
+    dataPrevista: this.todayISO(),
+    valorPrevisto: 0,
+    diasAlerta: 15,
     status: 'previsto',
-    notes: ''
+    observacoes: ''
   };
 
-  newMovement: FinancialMovement = {
-    description: '',
-    counterparty: '',
-    date: this.todayISO(),
-    accountNumber: '',
-    amount: 0,
-    type: 'entrada',
-    category: 'Operacional'
+  newMovement: MovimentacaoFinanceiraRequest = {
+    descricao: '',
+    contraparte: '',
+    dataMovimentacao: this.todayISO(),
+    contaBancariaId: undefined,
+    valor: 0,
+    tipo: 'entrada',
+    categoria: 'Operacional'
   };
 
   reportTotals = {
@@ -175,159 +233,403 @@ export class ContabilidadeComponent {
     saldoAReceber: 0
   };
 
-  constructor() {
-    this.refreshPanels();
+  constructor(
+    private readonly contabilidadeService: ContabilidadeService,
+    private readonly changeDetector: ChangeDetectorRef
+  ) {
+  }
+
+  ngOnInit(): void {
+    this.carregarDados();
+    this.saldoContaMascara = this.formatarValorMonetario(this.newAccount.saldo);
+  }
+
+  private carregarDados(): void {
+    this.contabilidadeService.listarContasBancarias().subscribe((lista) => {
+      this.bankAccounts = lista ?? [];
+      this.refreshPanels();
+      this.changeDetector.detectChanges();
+    });
+    this.carregarLancamentos();
+    this.contabilidadeService.listarMovimentacoes().subscribe((lista) => {
+      this.financialMovements = lista ?? [];
+      this.refreshPanels();
+      this.changeDetector.detectChanges();
+    });
+    this.contabilidadeService.listarEmendas().subscribe((lista) => {
+      this.amendmentControls = lista ?? [];
+      this.refreshPanels();
+      this.changeDetector.detectChanges();
+    });
+  }
+
+  private carregarLancamentos(): void {
+    this.contabilidadeService.listarLancamentos().subscribe((lista) => {
+      this.agenda = lista ?? [];
+      this.refreshPanels();
+      this.changeDetector.detectChanges();
+    });
   }
 
   get activeTabIndex(): number {
     return this.tabs.findIndex((tab) => tab.id === this.activeTab);
   }
 
+  get hasPreviousTab(): boolean {
+    return this.activeTabIndex > 0;
+  }
+
+  get hasNextTab(): boolean {
+    return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get nextTabLabel(): string {
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  get previousTabLabel(): string {
+    return this.hasPreviousTab ? this.tabs[this.activeTabIndex - 1].label : '';
+  }
+
+  goToPreviousTab(): void {
+    if (this.hasPreviousTab) {
+      this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    }
+  }
+
+  goToNextTab(): void {
+    if (this.hasNextTab) {
+      this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+    }
+  }
+
   get counterpartySuggestions(): string[] {
-    const fromEntries = this.agenda.map((item) => item.counterparty);
-    const fromMovements = this.financialMovements.map((item) => item.counterparty);
+    const fromEntries = this.agenda.map((item) => item.contraparte);
+    const fromMovements = this.financialMovements.map((item) => item.contraparte || '');
     return Array.from(new Set([...fromEntries, ...fromMovements])).filter(Boolean);
+  }
+
+  get contasFiltradas(): ContaBancariaResponse[] {
+    const filtradas = this.bankAccounts.filter((conta) => {
+      const banco = this.normalizeString(conta.banco);
+      const numero = this.normalizeString(conta.numero);
+      const agencia = this.normalizeString(conta.agencia || '');
+      const tipo = this.normalizeString(conta.tipo);
+      return (
+        (!this.filtrosContas.banco || banco.includes(this.normalizeString(this.filtrosContas.banco))) &&
+        (!this.filtrosContas.agencia || agencia.includes(this.normalizeString(this.filtrosContas.agencia))) &&
+        (!this.filtrosContas.numero || numero.includes(this.normalizeString(this.filtrosContas.numero))) &&
+        (!this.filtrosContas.tipo || tipo === this.normalizeString(this.filtrosContas.tipo))
+      );
+    });
+
+    const ordemTipo: Record<string, number> = {
+      corrente: 0,
+      projeto: 1
+    };
+
+    return filtradas.slice().sort((a, b) => {
+      const ordemA = ordemTipo[a.tipo] ?? 2;
+      const ordemB = ordemTipo[b.tipo] ?? 2;
+      if (ordemA !== ordemB) {
+        return ordemA - ordemB;
+      }
+      return this.normalizeString(a.banco).localeCompare(this.normalizeString(b.banco));
+    });
+  }
+
+  get lancamentosFiltrados(): LancamentoFinanceiroResponse[] {
+    return this.agenda.filter((item) => {
+      const descricao = this.normalizeString(item.descricao);
+      const contraparte = this.normalizeString(item.contraparte);
+      const tipo = this.normalizeString(item.tipo);
+      const situacao = this.normalizeString(item.situacao);
+      return (
+        (!this.filtrosLancamentos.descricao ||
+          descricao.includes(this.normalizeString(this.filtrosLancamentos.descricao))) &&
+        (!this.filtrosLancamentos.contraparte ||
+          contraparte.includes(this.normalizeString(this.filtrosLancamentos.contraparte))) &&
+        (!this.filtrosLancamentos.tipo || tipo === this.normalizeString(this.filtrosLancamentos.tipo)) &&
+        (!this.filtrosLancamentos.situacao || situacao === this.normalizeString(this.filtrosLancamentos.situacao))
+      );
+    });
+  }
+
+  get movimentacoesFiltradas(): MovimentacaoFinanceiraResponse[] {
+    return this.financialMovements.filter((item) => {
+      const descricao = this.normalizeString(item.descricao);
+      const categoria = this.normalizeString(item.categoria || '');
+      const tipo = this.normalizeString(item.tipo);
+      return (
+        (!this.filtrosMovimentacoes.descricao ||
+          descricao.includes(this.normalizeString(this.filtrosMovimentacoes.descricao))) &&
+        (!this.filtrosMovimentacoes.categoria ||
+          categoria.includes(this.normalizeString(this.filtrosMovimentacoes.categoria))) &&
+        (!this.filtrosMovimentacoes.tipo || tipo === this.normalizeString(this.filtrosMovimentacoes.tipo))
+      );
+    });
+  }
+
+  get emendasFiltradas(): EmendaImpositivaResponse[] {
+    return this.amendmentControls.filter((item) => {
+      const identificacao = this.normalizeString(item.identificacao);
+      const status = this.normalizeString(item.status);
+      return (
+        (!this.filtrosEmendas.identificacao ||
+          identificacao.includes(this.normalizeString(this.filtrosEmendas.identificacao))) &&
+        (!this.filtrosEmendas.status || status === this.normalizeString(this.filtrosEmendas.status))
+      );
+    });
   }
 
   changeTab(tabId: FinanceTab['id']): void {
     this.activeTab = tabId;
+    if (tabId === 'visao-geral') {
+      this.carregarLancamentos();
+    }
   }
 
   registerEntry(): void {
-    if (!this.newEntry.title || !this.newEntry.counterparty || !this.newEntry.dueDate || !this.newEntry.amount) {
+    this.onValorLancamentoInput(this.valorLancamentoMascara);
+    if (
+      !this.newEntry.descricao ||
+      !this.newEntry.contraparte ||
+      !this.newEntry.vencimento ||
+      !this.newEntry.valor
+    ) {
       return;
     }
-
-    this.agenda = [
-      ...this.agenda,
-      {
-        ...this.newEntry,
-        amount: Number(this.newEntry.amount)
+    if (this.salvandoLancamento) {
+      return;
+    }
+    this.salvandoLancamento = true;
+    const request$ = this.lancamentoEmEdicaoId
+      ? this.contabilidadeService.atualizarLancamento(this.lancamentoEmEdicaoId, this.newEntry)
+      : this.contabilidadeService.criarLancamento(this.newEntry);
+    const subscription = request$.subscribe((response) => {
+      if (this.lancamentoEmEdicaoId) {
+        this.agenda = this.agenda.map((item) => (item.id === response.id ? response : item));
+      } else {
+        this.agenda = [...this.agenda, response];
       }
-    ];
+      this.newEntry = {
+        tipo: 'receber',
+        descricao: '',
+        contraparte: '',
+        vencimento: this.todayISO(),
+        valor: 0,
+        situacao: 'aberto'
+      };
+      this.valorLancamentoMascara = this.formatarValorMonetario(0);
+      this.lancamentoEmEdicaoId = null;
+      this.salvandoLancamento = false;
+      this.refreshPanels();
+    });
+    subscription.add(() => {
+      this.salvandoLancamento = false;
+    });
+  }
 
+  editarLancamento(item: LancamentoFinanceiroResponse): void {
+    this.lancamentoEmEdicaoId = item.id;
     this.newEntry = {
-      title: '',
-      counterparty: '',
-      dueDate: this.todayISO(),
-      amount: 0,
-      type: 'receber',
-      status: 'aberto'
+      tipo: item.tipo,
+      descricao: item.descricao,
+      contraparte: item.contraparte,
+      vencimento: item.vencimento,
+      valor: Number(item.valor || 0),
+      situacao: item.situacao
     };
+    this.valorLancamentoMascara = this.formatarValorMonetario(Number(item.valor || 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-    this.refreshPanels();
+  cancelarEdicaoLancamento(): void {
+    this.newEntry = {
+      tipo: 'receber',
+      descricao: '',
+      contraparte: '',
+      vencimento: this.todayISO(),
+      valor: 0,
+      situacao: 'aberto'
+    };
+    this.valorLancamentoMascara = this.formatarValorMonetario(0);
+    this.lancamentoEmEdicaoId = null;
+  }
+
+  novoLancamento(): void {
+    this.cancelarEdicaoLancamento();
+  }
+
+  onValorLancamentoInput(valor: string): void {
+    const apenasNumeros = (valor ?? '').replace(/\D/g, '');
+    const numero = Number(apenasNumeros || 0) / 100;
+    this.newEntry = { ...this.newEntry, valor: numero };
+    this.valorLancamentoMascara = this.formatarValorMonetario(numero);
+  }
+
+  newAccount: ContaBancariaRequest = {
+    banco: '',
+    agencia: '',
+    numero: '',
+    tipo: 'corrente',
+    projetoVinculado: '',
+    pixVinculado: false,
+    tipoChavePix: '',
+    chavePix: '',
+    saldo: 0,
+    dataAtualizacao: this.todayISO()
+  };
+  erroChavePix: string | null = null;
+
+  registerMovement(): void {
+    if (!this.newMovement.descricao || !this.newMovement.contaBancariaId || !this.newMovement.dataMovimentacao) {
+      return;
+    }
+    this.contabilidadeService.criarMovimentacao(this.newMovement).subscribe((response) => {
+      this.financialMovements = [...this.financialMovements, response];
+      this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+        this.bankAccounts = contas ?? [];
+        this.refreshPanels();
+      });
+      this.newMovement = {
+        descricao: '',
+        contraparte: '',
+        dataMovimentacao: this.todayISO(),
+        contaBancariaId: undefined,
+        valor: 0,
+        tipo: 'entrada',
+        categoria: 'Operacional'
+      };
+    });
   }
 
   addBankAccount(): void {
-    if (!this.newAccount.bankName || !this.newAccount.accountNumber) {
+    if (!this.newAccount.banco || !this.newAccount.numero) {
       return;
     }
-
-    const normalizedBalance = Number(this.newAccount.balance);
-    const accountExists = this.bankAccounts.some((acc) => acc.accountNumber === this.newAccount.accountNumber);
-
-    if (accountExists) {
-      this.bankAccounts = this.bankAccounts.map((acc) =>
-        acc.accountNumber === this.newAccount.accountNumber ? { ...this.newAccount, balance: normalizedBalance } : acc
-      );
-    } else {
-      this.bankAccounts = [...this.bankAccounts, { ...this.newAccount, balance: normalizedBalance }];
+    if (this.newAccount.tipo === 'projeto' && !this.newAccount.projetoVinculado) {
+      return;
     }
-
-    this.newAccount = {
-      bankName: '',
-      accountNumber: '',
-      type: 'corrente',
-      balance: 0,
-      lastUpdate: this.todayISO()
-    };
-
-    this.refreshPanels();
+    this.erroChavePix = this.validarChavePix();
+    if (this.erroChavePix) {
+      return;
+    }
+    const payload = { ...this.newAccount };
+    const request$ = this.contaEmEdicaoId
+      ? this.contabilidadeService.atualizarContaBancaria(this.contaEmEdicaoId, payload)
+      : this.contabilidadeService.criarContaBancaria(payload);
+    request$.subscribe((response) => {
+      if (this.contaEmEdicaoId) {
+        this.bankAccounts = this.bankAccounts.map((conta) => (conta.id === response.id ? response : conta));
+      } else {
+        this.bankAccounts = [...this.bankAccounts, response];
+      }
+      this.resetContaBancariaForm();
+      this.refreshPanels();
+    });
   }
 
-  registerMovement(): void {
-    if (!this.newMovement.description || !this.newMovement.accountNumber || !this.newMovement.date) {
+  editarContaBancaria(conta: ContaBancariaResponse): void {
+    this.contaEmEdicaoId = conta.id;
+    this.newAccount = {
+      banco: conta.banco,
+      agencia: conta.agencia || '',
+      numero: conta.numero,
+      tipo: conta.tipo,
+      projetoVinculado: conta.projetoVinculado || '',
+      pixVinculado: Boolean(conta.pixVinculado),
+      tipoChavePix: conta.tipoChavePix || '',
+      chavePix: conta.chavePix || '',
+      saldo: Number(conta.saldo || 0),
+      dataAtualizacao: conta.dataAtualizacao
+    };
+    this.saldoContaMascara = this.formatarValorMonetario(Number(conta.saldo || 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelarEdicaoContaBancaria(): void {
+    this.resetContaBancariaForm();
+  }
+
+  removerContaBancaria(conta: ContaBancariaResponse): void {
+    if (!conta.id) {
       return;
     }
-
-    const normalizedAmount = Number(this.newMovement.amount);
-    this.financialMovements = [
-      ...this.financialMovements,
-      {
-        ...this.newMovement,
-        amount: normalizedAmount
+    const confirmado = window.confirm('Tem certeza que deseja excluir esta conta banc?ria? Esta a??o n?o pode ser desfeita.');
+    if (!confirmado) {
+      return;
+    }
+    this.contabilidadeService.removerContaBancaria(conta.id).subscribe(() => {
+      this.bankAccounts = this.bankAccounts.filter((item) => item.id !== conta.id);
+      if (this.contaEmEdicaoId === conta.id) {
+        this.resetContaBancariaForm();
       }
-    ];
-
-    this.bankAccounts = this.bankAccounts.map((account) => {
-      if (account.accountNumber !== this.newMovement.accountNumber) {
-        return account;
-      }
-
-      const newBalance =
-        this.newMovement.type === 'entrada' ? account.balance + normalizedAmount : account.balance - normalizedAmount;
-
-      return { ...account, balance: newBalance, lastUpdate: this.newMovement.date };
+      this.refreshPanels();
     });
+  }
 
-    this.newMovement = {
-      description: '',
-      counterparty: '',
-      date: this.todayISO(),
-      accountNumber: '',
-      amount: 0,
-      type: 'entrada',
-      category: 'Operacional'
-    };
-
-    this.refreshPanels();
+  onSaldoContaInput(valor: string): void {
+    const apenasNumeros = (valor ?? '').replace(/\D/g, '');
+    const numero = Number(apenasNumeros || 0) / 100;
+    this.newAccount = { ...this.newAccount, saldo: numero };
+    this.saldoContaMascara = this.formatarValorMonetario(numero);
   }
 
   addAmendment(): void {
-    if (!this.newAmendment.name || !this.newAmendment.expectedDate || !this.newAmendment.amount) {
+    if (!this.newAmendment.identificacao || !this.newAmendment.dataPrevista || !this.newAmendment.valorPrevisto) {
       return;
     }
-
-    this.amendmentControls = [
-      ...this.amendmentControls,
-      { ...this.newAmendment, amount: Number(this.newAmendment.amount) }
-    ];
-
-    this.newAmendment = {
-      name: '',
-      lawReference: '',
-      expectedDate: this.todayISO(),
-      amount: 0,
-      alertDays: 15,
-      status: 'previsto',
-      notes: ''
-    };
-
-    this.refreshPanels();
+    this.contabilidadeService.criarEmenda(this.newAmendment).subscribe((response) => {
+      this.amendmentControls = [...this.amendmentControls, response];
+      this.newAmendment = {
+        identificacao: '',
+        referenciaLegal: '',
+        dataPrevista: this.todayISO(),
+        valorPrevisto: 0,
+        diasAlerta: 15,
+        status: 'previsto',
+        observacoes: ''
+      };
+      this.refreshPanels();
+    });
   }
 
-  setEntryStatus(entry: AgendaEntry, status: AgendaEntry['status']): void {
-    this.agenda = this.agenda.map((item) => (item === entry ? { ...item, status } : item));
-    this.refreshPanels();
+  setEntryStatus(entry: LancamentoFinanceiroResponse, status: string): void {
+    if (!entry.id) return;
+    const mensagem =
+      status === 'pago'
+        ? 'Confirmar registro de pagamento deste lancamento?'
+        : 'Confirmar marcacao de atraso deste lancamento?';
+    if (!window.confirm(mensagem)) {
+      return;
+    }
+    this.contabilidadeService.atualizarSituacaoLancamento(entry.id, status).subscribe((response) => {
+      this.agenda = this.agenda.map((item) => (item.id === entry.id ? response : item));
+      this.refreshPanels();
+    });
   }
 
-  setAmendmentStatus(amendment: AmendmentControl, status: AmendmentControl['status']): void {
-    this.amendmentControls = this.amendmentControls.map((item) => (item === amendment ? { ...item, status } : item));
-    this.refreshPanels();
+  setAmendmentStatus(amendment: EmendaImpositivaResponse, status: string): void {
+    if (!amendment.id) return;
+    this.contabilidadeService.atualizarStatusEmenda(amendment.id, status).subscribe((response) => {
+      this.amendmentControls = this.amendmentControls.map((item) => (item.id === amendment.id ? response : item));
+      this.refreshPanels();
+    });
   }
 
   printResumo(): void {
     window.print();
   }
 
-  getStatusLabel(entry: AgendaEntry): string {
-    switch (entry.status) {
+  getStatusLabel(entry: LancamentoFinanceiroResponse): string {
+    switch (entry.situacao) {
       case 'pago':
         return 'Pago';
       case 'atrasado':
         return 'Em atraso';
       default:
-        return entry.type === 'receber' ? 'A receber' : 'A pagar';
+        return entry.tipo === 'receber' ? 'A receber' : 'A pagar';
     }
   }
 
@@ -342,7 +644,178 @@ export class ContabilidadeComponent {
   formatDate(date: string): string {
     const parsed = this.parseDate(date);
     if (!parsed) return '';
-    return parsed.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    return parsed.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  getTipoContaLabel(tipo: string): string {
+    const encontrado = this.tiposConta.find((item) => item.value === tipo);
+    return encontrado ? encontrado.label : tipo;
+  }
+
+  getTipoChavePixLabel(tipo: string | undefined): string {
+    if (!tipo) {
+      return 'chave';
+    }
+    const encontrado = this.tiposChavePix.find((item) => item.value === tipo);
+    return encontrado ? encontrado.label : tipo;
+  }
+
+  private resetContaBancariaForm(): void {
+    this.contaEmEdicaoId = null;
+    this.newAccount = {
+      banco: '',
+      agencia: '',
+      numero: '',
+      tipo: 'corrente',
+      projetoVinculado: '',
+      pixVinculado: false,
+      tipoChavePix: '',
+      chavePix: '',
+      saldo: 0,
+      dataAtualizacao: this.todayISO()
+    };
+    this.saldoContaMascara = this.formatarValorMonetario(0);
+  }
+
+  onPixVinculadoChange(valor: boolean): void {
+    this.newAccount = {
+      ...this.newAccount,
+      pixVinculado: valor,
+      tipoChavePix: valor ? this.newAccount.tipoChavePix : '',
+      chavePix: valor ? this.newAccount.chavePix : ''
+    };
+    this.erroChavePix = null;
+  }
+
+  onTipoChavePixChange(valor: string): void {
+    this.newAccount = { ...this.newAccount, tipoChavePix: valor, chavePix: '' };
+    this.erroChavePix = null;
+  }
+
+  onChavePixInput(valor: string): void {
+    const tipo = this.newAccount.tipoChavePix;
+    let atualizado = valor || '';
+    if (tipo === 'cnpj') {
+      atualizado = this.aplicarMascaraCnpj(atualizado);
+    } else if (tipo === 'telefone') {
+      atualizado = this.aplicarMascaraTelefone(atualizado);
+    }
+    this.newAccount = { ...this.newAccount, chavePix: atualizado };
+    this.erroChavePix = null;
+  }
+
+  private aplicarMascaraCnpj(valor: string): string {
+    const numeros = (valor ?? '').replace(/\D/g, '').slice(0, 14);
+    const parte1 = numeros.slice(0, 2);
+    const parte2 = numeros.slice(2, 5);
+    const parte3 = numeros.slice(5, 8);
+    const parte4 = numeros.slice(8, 12);
+    const parte5 = numeros.slice(12, 14);
+    let resultado = '';
+    if (parte1) {
+      resultado = parte1;
+    }
+    if (parte2) {
+      resultado += `.${parte2}`;
+    }
+    if (parte3) {
+      resultado += `.${parte3}`;
+    }
+    if (parte4) {
+      resultado += `/${parte4}`;
+    }
+    if (parte5) {
+      resultado += `-${parte5}`;
+    }
+    return resultado;
+  }
+
+  private aplicarMascaraTelefone(valor: string): string {
+    const numeros = (valor ?? '').replace(/\D/g, '').slice(0, 11);
+    if (!numeros) {
+      return '';
+    }
+    const ddd = numeros.slice(0, 2);
+    const corpo = numeros.slice(2);
+    if (corpo.length <= 4) {
+      return `(${ddd}) ${corpo}`;
+    }
+    if (corpo.length <= 9) {
+      return `(${ddd}) ${corpo.slice(0, 5)}-${corpo.slice(5)}`;
+    }
+    return `(${ddd}) ${corpo.slice(0, 5)}-${corpo.slice(5, 9)}`;
+  }
+
+  private validarChavePix(): string | null {
+    if (!this.newAccount.pixVinculado) {
+      return null;
+    }
+    const tipo = this.newAccount.tipoChavePix || '';
+    const chave = (this.newAccount.chavePix || '').trim();
+    if (!tipo) {
+      return 'Informe o tipo da chave Pix.';
+    }
+    if (!chave) {
+      return 'Informe a chave Pix.';
+    }
+    if (tipo === 'cnpj' && !this.validarCnpj(chave)) {
+      return 'CNPJ invalido na chave Pix.';
+    }
+    if (tipo === 'email' && !this.validarEmail(chave)) {
+      return 'Email invalido na chave Pix.';
+    }
+    if (tipo === 'telefone' && !this.validarTelefone(chave)) {
+      return 'Telefone invalido na chave Pix.';
+    }
+    if (tipo === 'aleatoria' && !this.validarChaveAleatoria(chave)) {
+      return 'Chave aleatoria invalida.';
+    }
+    return null;
+  }
+
+  private validarCnpj(valor: string): boolean {
+    const cnpj = valor.replace(/\D/g, '');
+    if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) {
+      return false;
+    }
+    const pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const calcular = (pesos: number[]) => {
+      let soma = 0;
+      for (let i = 0; i < pesos.length; i += 1) {
+        soma += Number(cnpj.charAt(i)) * pesos[i];
+      }
+      const resto = soma % 11;
+      return resto < 2 ? 0 : 11 - resto;
+    };
+    const digito1 = calcular(pesos1);
+    const digito2 = calcular(pesos2);
+    return (
+      digito1 === Number(cnpj.charAt(12)) &&
+      digito2 === Number(cnpj.charAt(13))
+    );
+  }
+
+  private validarEmail(valor: string): boolean {
+    const email = valor.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  private validarTelefone(valor: string): boolean {
+    const telefone = valor.replace(/\D/g, '');
+    return telefone.length === 10 || telefone.length === 11;
+  }
+
+  private validarChaveAleatoria(valor: string): boolean {
+    const chave = valor.trim();
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(
+      chave
+    );
+  }
+
+  private formatarValorMonetario(valor: number): string {
+    const numero = Number.isFinite(valor) ? valor : 0;
+    return `R$ ${numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   private refreshPanels(): void {
@@ -358,34 +831,33 @@ export class ContabilidadeComponent {
     const payable = this.sumEntries('pagar', 30);
     const cashBalance = this.totalCashBalance();
     const investments = this.bankAccounts
-      .filter((account) => account.type !== 'corrente')
-      .reduce((total, account) => total + account.balance, 0);
+      .filter((account) => account.tipo !== 'corrente')
+      .reduce((total, account) => total + Number(account.saldo || 0), 0);
+
+    const baseReceivable = this.filtroResumoTipo === 'pagar' ? 0 : receivable;
+    const basePayable = this.filtroResumoTipo === 'receber' ? 0 : payable;
 
     this.summaryCards = [
       {
         label: 'A receber (30 dias)',
-        value: this.formatCurrency(receivable),
-        helper: 'Valores lançados e aguardando entrada',
+        value: this.formatCurrency(baseReceivable),
         icon: faWallet,
-        trend: receivable >= payable ? 'up' : undefined
+        trend: baseReceivable >= basePayable ? 'up' : undefined
       },
       {
         label: 'A pagar (30 dias)',
-        value: this.formatCurrency(payable),
-        helper: 'Contas registradas com data limite',
+        value: this.formatCurrency(basePayable),
         icon: faMoneyBillTransfer,
-        trend: payable > receivable ? 'down' : undefined
+        trend: basePayable > baseReceivable ? 'down' : undefined
       },
       {
         label: 'Em caixa',
         value: this.formatCurrency(cashBalance),
-        helper: 'Saldo consolidado das contas bancárias',
         icon: faPiggyBank
       },
       {
         label: 'Aplicado em bancos',
         value: this.formatCurrency(investments),
-        helper: 'Aplicações e recursos vinculados',
         icon: faChartLine
       }
     ];
@@ -393,13 +865,13 @@ export class ContabilidadeComponent {
 
   private refreshPipelines(): void {
     const ordered = [...this.agenda].sort((a, b) => {
-      const dateA = this.parseDate(a.dueDate)?.getTime() ?? 0;
-      const dateB = this.parseDate(b.dueDate)?.getTime() ?? 0;
+      const dateA = this.parseDate(a.vencimento)?.getTime() ?? 0;
+      const dateB = this.parseDate(b.vencimento)?.getTime() ?? 0;
       return dateA - dateB;
     });
 
-    this.upcomingReceivables = ordered.filter((item) => item.type === 'receber' && item.status !== 'pago');
-    this.upcomingPayables = ordered.filter((item) => item.type === 'pagar' && item.status !== 'pago');
+    this.upcomingReceivables = ordered.filter((item) => item.tipo === 'receber' && item.situacao !== 'pago');
+    this.upcomingPayables = ordered.filter((item) => item.tipo === 'pagar' && item.situacao !== 'pago');
   }
 
   private refreshCashFlow(): void {
@@ -428,38 +900,38 @@ export class ContabilidadeComponent {
   private refreshAlerts(): void {
     const today = new Date();
     const dueSoon = this.agenda
-      .filter((item) => item.status !== 'pago')
+      .filter((item) => item.situacao !== 'pago')
       .filter((item) => {
-        const parsed = this.parseDate(item.dueDate);
+        const parsed = this.parseDate(item.vencimento);
         if (!parsed) return false;
         const diff = this.daysBetween(today, parsed);
         return diff <= 7;
       })
-      .map((item) => `${item.title} vence em ${this.formatDate(item.dueDate)}`);
+      .map((item) => `${item.descricao} vence em ${this.formatDate(item.vencimento)}`);
 
     const amendmentAlerts = this.amendmentControls
       .filter((amendment) => amendment.status !== 'recebido')
       .filter((amendment) => {
-        const parsed = this.parseDate(amendment.expectedDate);
+        const parsed = this.parseDate(amendment.dataPrevista);
         if (!parsed) return false;
         const diff = this.daysBetween(today, parsed);
-        return diff <= amendment.alertDays;
+        return diff <= (amendment.diasAlerta ?? 15);
       })
-      .map((amendment) => `Emenda ${amendment.name} prevista para ${this.formatDate(amendment.expectedDate)}`);
+      .map((amendment) => `Emenda ${amendment.identificacao} prevista para ${this.formatDate(amendment.dataPrevista)}`);
 
     this.alerts = [...dueSoon, ...amendmentAlerts];
   }
 
   private refreshReport(): void {
     const recebimentos = this.financialMovements
-      .filter((movement) => movement.type === 'entrada')
-      .reduce((total, movement) => total + movement.amount, 0);
+      .filter((movement) => movement.tipo === 'entrada')
+      .reduce((total, movement) => total + Number(movement.valor || 0), 0);
     const pagamentos = this.financialMovements
-      .filter((movement) => movement.type === 'saida')
-      .reduce((total, movement) => total + movement.amount, 0);
+      .filter((movement) => movement.tipo === 'saida')
+      .reduce((total, movement) => total + Number(movement.valor || 0), 0);
     const saldoAReceber = this.agenda
-      .filter((item) => item.type === 'receber' && item.status !== 'pago')
-      .reduce((total, item) => total + item.amount, 0);
+      .filter((item) => item.tipo === 'receber' && item.situacao !== 'pago')
+      .reduce((total, item) => total + Number(item.valor || 0), 0);
 
     this.reportTotals = {
       recebimentos,
@@ -469,34 +941,40 @@ export class ContabilidadeComponent {
     };
   }
 
-  private sumEntries(type: AgendaEntry['type'], daysAhead: number): number {
-    const today = new Date();
-    const limit = new Date();
+  private sumEntries(type: string, daysAhead: number): number {
+    const today = this.toDateOnly(new Date());
+    const start = this.toDateOnly(new Date());
+    start.setDate(start.getDate() - daysAhead);
+    const limit = this.toDateOnly(new Date());
     limit.setDate(limit.getDate() + daysAhead);
 
     return this.agenda
-      .filter((item) => item.type === type && item.status !== 'pago')
+      .filter((item) => item.tipo === type && item.situacao !== 'pago')
       .filter((item) => {
-        const parsed = this.parseDate(item.dueDate);
+        const parsed = this.parseDate(item.vencimento);
         if (!parsed) return false;
-        return parsed <= limit && parsed >= today;
+        const data = this.toDateOnly(parsed);
+        return data <= limit && data >= start;
       })
-      .reduce((total, item) => total + item.amount, 0);
+      .reduce((total, item) => total + Number(item.valor || 0), 0);
   }
 
-  private sumEntriesInRange(type: AgendaEntry['type'], start: Date, end: Date): number {
+  private sumEntriesInRange(type: string, start: Date, end: Date): number {
     return this.agenda
-      .filter((item) => item.type === type && item.status !== 'pago')
+      .filter((item) => item.tipo === type && item.situacao !== 'pago')
       .filter((item) => {
-        const parsed = this.parseDate(item.dueDate);
+        const parsed = this.parseDate(item.vencimento);
         if (!parsed) return false;
-        return parsed >= start && parsed <= end;
+        const data = this.toDateOnly(parsed);
+        const inicio = this.toDateOnly(start);
+        const fim = this.toDateOnly(end);
+        return data >= inicio && data <= fim;
       })
-      .reduce((total, item) => total + item.amount, 0);
+      .reduce((total, item) => total + Number(item.valor || 0), 0);
   }
 
   private totalCashBalance(): number {
-    return this.bankAccounts.reduce((total, account) => total + account.balance, 0);
+    return this.bankAccounts.reduce((total, account) => total + Number(account.saldo || 0), 0);
   }
 
   private todayISO(): string {
@@ -511,15 +989,23 @@ export class ContabilidadeComponent {
     return result;
   }
 
-  private parseDate(date: string): Date | null {
+  private parseDate(date: string | Date | null | undefined): Date | null {
     if (!date) return null;
-    const parsed = new Date(date);
+    const parsed = new Date(date as any);
     if (isNaN(parsed.getTime())) return null;
     return parsed;
+  }
+
+  private toDateOnly(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   private daysBetween(start: Date, end: Date): number {
     const diff = end.getTime() - start.getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  }
+
+  private normalizeString(value: string): string {
+    return (value || '').toString().trim().toLowerCase();
   }
 }

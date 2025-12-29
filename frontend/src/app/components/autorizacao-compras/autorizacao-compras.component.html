@@ -1,23 +1,30 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="salvarSolicitacao()"
+  (excluir)="removerSolicitacaoSelecionada()"
+  (novo)="iniciarNovaSolicitacao()"
+  (cancelar)="limparFormularioSolicitacao()"
+  (imprimir)="printSection()"
+  (fechar)="fecharTela()"
+>
 <header class="page-title" slot="titulo">
     <div class="page-title__stack">
-      <p class="page-title__eyebrow">Financeiro · Autorização de Compras</p>
+      <p class="page-title__eyebrow">Financeiro</p>
       <div class="page-title__headline">
         <div>
-          <p class="page-title__label">Fluxo enxuto para autorizar compras</p>
-          <p class="muted">
-            Acompanhe cada etapa com clareza, registre pareceres e siga direto para reserva orçamentária e conclusão.
-          </p>
+          <p class="page-title__label">Autoriza&ccedil;&atilde;o de compras</p>
         </div>
         <button type="button" class="ghost" (click)="printSection()">
           <fa-icon [icon]="faPrint"></fa-icon>
-          Imprimir visão geral
+          Imprimir vis&atilde;o geral
         </button>
       </div>
     </div>
   </header>
 
-  <section class="cadastro">
+<section class="cadastro">
   <div class="tab-shell">
     <p class="tab-shell__title">Etapas principais</p>
     <ol class="step-tabs" role="tablist">

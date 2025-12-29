@@ -1,0 +1,26 @@
+<div class="autocomplete">
+  <input
+    class="input"
+    type="text"
+    [value]="termo"
+    [placeholder]="placeholder"
+    (input)="atualizarTermo($any($event.target).value)"
+  />
+
+  <div class="autocomplete__panel" *ngIf="termo">
+    <div class="autocomplete__loading" *ngIf="carregando">Buscando...</div>
+    <div class="autocomplete__error" *ngIf="!carregando && erro">{{ erro }}</div>
+    <button
+      type="button"
+      class="autocomplete__item"
+      *ngFor="let opcao of opcoes"
+      (click)="selecionarOpcao(opcao)"
+    >
+      <span class="autocomplete__label">{{ opcao.label }}</span>
+      <span class="autocomplete__sublabel" *ngIf="opcao.sublabel">{{ opcao.sublabel }}</span>
+    </button>
+    <div class="autocomplete__empty" *ngIf="!carregando && !erro && !opcoes.length">
+      Nenhum resultado encontrado.
+    </div>
+  </div>
+</div>

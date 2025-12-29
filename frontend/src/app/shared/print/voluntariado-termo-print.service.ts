@@ -6,7 +6,7 @@ type UnidadeTermo = {
   razaoSocial?: string;
   cnpj?: string;
   inscricaoMunicipal?: string;
-  endereco?: string;
+  endereço?: string;
   numeroEndereco?: string;
   complemento?: string;
   bairro?: string;
@@ -24,7 +24,7 @@ type ProfissionalTermo = {
   email?: string;
   telefoneCelular?: string;
   telefoneResidencial?: string;
-  endereco?: {
+  endereço?: {
     logradouro?: string;
     numero?: string;
     complemento?: string;
@@ -33,8 +33,8 @@ type ProfissionalTermo = {
     cidade?: string;
     uf?: string;
   };
-  voluntarioOutraInstituicao?: boolean;
-  voluntarioOutraDescricao?: string;
+  voluntárioOutraInstituicao?: boolean;
+  voluntárioOutraDescricao?: string;
   voluntariadoLocalAtividade?: string;
   voluntariadoPeriodo?: string;
   voluntariadoDisponibilidade?: {
@@ -54,8 +54,8 @@ type ProfissionalTermo = {
 
 @Injectable({ providedIn: 'root' })
 export class VoluntariadoTermoPrintService {
-  printTermoVoluntariado(unidade: UnidadeTermo, voluntario: ProfissionalTermo): void {
-    const html = buildTermoVoluntariadoHTML(unidade, voluntario);
+  printTermoVoluntariado(unidade: UnidadeTermo, voluntário: ProfissionalTermo): void {
+    const html = buildTermoVoluntariadoHTML(unidade, voluntário);
     const janela = window.open('', '_blank', 'width=900,height=1200');
     if (!janela) return;
 

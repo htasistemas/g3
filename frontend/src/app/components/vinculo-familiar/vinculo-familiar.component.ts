@@ -8,16 +8,21 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { titleCaseWords } from '../../utils/capitalization.util';
 @Component({
   selector: 'app-vinculo-familiar',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './vinculo-familiar.component.html',
   styleUrl: './vinculo-familiar.component.scss'
 })
-export class VinculoFamiliarComponent implements OnInit, OnDestroy {
+export class VinculoFamiliarComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   familyForm: FormGroup;
   feedback: string | null = null;
+  popupErros: string[] = [];
   saving = false;
   cepLookupError: string | null = null;
   principalSearch = new FormControl('');
@@ -37,24 +42,40 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   applyAddressToMembers = true;
   activeTab = 'cadastro';
   readonly tabs = [
-    { id: 'cadastro', label: 'Cadastro da família' },
-    { id: 'endereco', label: 'Endereço da família' },
+    { id: 'cadastro', label: 'Cadastro da familia' },
+    { id: 'endere�o', label: 'Endere�o da familia' },
     { id: 'membros', label: 'Membros vinculados' },
-    { id: 'indicadores', label: 'Indicadores sociais' }
+    { id: 'indicadores', label: 'Indicadores sociais' },
+    { id: 'lista', label: 'Listagem de familias' }
   ];
+  readonly statusOptions = ['ATIVO', 'INATIVO', 'BLOQUEADO'];
   readonly relationshipOptions = [
-    'Responsável familiar',
-    'Cônjuge/companheiro(a)',
+    'Responsavel familiar',
+    'Conjuge/companheiro(a)',
     'Filho(a)',
     'Enteado(a)',
-    'Pai/Mãe',
-    'Avô/Avó',
-    'Irmão(ã)',
+    'Pai/Mae',
+    'Avo/Avo',
+    'Irmao(a)',
     'Outro'
   ];
-  readonly housingOptions = ['Próprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupação', 'Outro'];
-  readonly housingTypes = ['Casa', 'Apartamento', 'Cômodo', 'Barraco', 'Casa de madeira', 'Sítio/Chácara', 'Outro'];
+  readonly housingOptions = ['Proprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupacao', 'Outro'];
+  readonly housingTypes = ['Casa', 'Apartamento', 'Comodo', 'Barraco', 'Casa de madeira', 'Sitio/Chacara', 'Outro'];
   private readonly destroy$ = new Subject<void>();
+  private feedbackTimeout?: ReturnType<typeof setTimeout>;
+  familias: FamiliaPayload[] = [];
+  familiasFiltradas: FamiliaPayload[] = [];
+  familiaSelecionada: FamiliaPayload | null = null;
+  paginaAtual = 1;
+  readonly tamanhoPagina = 10;
+  listagemForm: FormGroup;
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: false,
+    novo: true,
+    cancelar: true,
+    imprimir: false
+  });
 
   constructor(
     private readonly fb: FormBuilder,
@@ -62,7 +83,9 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     private readonly beneficiaryService: BeneficiarioApiService,
     private readonly http: HttpClient
   ) {
+    super();
     this.familyForm = this.fb.group({
+      status: ['ATIVO', Validators.required],
       nome_familia: ['', Validators.required],
       id_referencia_familiar: ['', Validators.required],
       cep: ['', [this.cepValidator]],
@@ -102,9 +125,18 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       observacoes: [''],
       membros: this.fb.array([])
     });
+    this.listagemForm = this.fb.group({
+      nome: [''],
+      cpf: [''],
+      codigo: [''],
+      dataNascimento: [''],
+      status: ['']
+    });
+    this.setupCapitalizationRules();
   }
 
   ngOnInit(): void {
+    this.loadFamilias();
     this.setupSearch(
       this.principalSearch,
       'principal'
@@ -125,6 +157,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearFeedbackTimeout();
   }
 
   get membros(): FormArray {
@@ -150,6 +183,37 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     return this.tabs[this.activeTabIndex + 1]?.label ?? '';
   }
 
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving || this.familyForm.invalid,
+      excluir: true,
+      novo: this.saving,
+      cancelar: this.saving,
+      imprimir: true
+    };
+  }
+
+  get familiasPaginadas(): FamiliaPayload[] {
+    const inicio = (this.paginaAtual - 1) * this.tamanhoPagina;
+    return this.familiasFiltradas.slice(inicio, inicio + this.tamanhoPagina);
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.familiasFiltradas.length / this.tamanhoPagina));
+  }
+
+  paginaAnterior(): void {
+    this.paginaAtual = Math.max(1, this.paginaAtual - 1);
+  }
+
+  proximaPagina(): void {
+    this.paginaAtual = Math.min(this.totalPaginas, this.paginaAtual + 1);
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
+  }
+
   get familyAddressLabel(): string {
     const value = this.familyForm.getRawValue();
     const parts = [
@@ -164,9 +228,9 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   }
 
   get principalLabel(): string {
-    if (!this.principal) return 'Selecione o responsável principal';
+    if (!this.principal) return 'Selecione o Responsavel principal';
     const doc = this.principal.cpf || this.principal.nis || this.principal.codigo || '';
-    return `${this.principal.nome_completo || this.principal.nome_social}${doc ? ` • ${doc}` : ''}`;
+    return `${this.principal.nome_completo || this.principal.nome_social}${doc ? `  ${doc}` : ''}`;
   }
 
   selectPrincipal(beneficiary: BeneficiarioApiPayload): void {
@@ -174,7 +238,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.familyForm.get('id_referencia_familiar')?.setValue(beneficiary.id_beneficiario ?? '');
     if (!this.familyForm.get('nome_familia')?.value) {
       this.familyForm.get('nome_familia')?.setValue(
-        beneficiary.nome_familia || `Família ${beneficiary.nome_completo || beneficiary.nome_social || ''}`.trim()
+        beneficiary.nome_familia || `familia ${beneficiary.nome_completo || beneficiary.nome_social || ''}`.trim()
       );
     }
     this.principalSearch.setValue(beneficiary.nome_completo || beneficiary.nome_social || '', { emitEvent: false });
@@ -184,6 +248,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
 
   selectFamily(familia: FamiliaPayload): void {
     if (!familia.id_familia) return;
+    this.familiaSelecionada = familia;
     this.familySearch.setValue(familia.nome_familia, { emitEvent: false });
     this.familyResults = [];
     this.familyLoading = true;
@@ -197,6 +262,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
           this.selectedFamilyId = loaded.id_familia ?? familia.id_familia ?? null;
           this.familyForm.patchValue({
             nome_familia: loaded.nome_familia,
+            status: loaded.status ?? 'ATIVO',
             id_referencia_familiar: loaded.id_referencia_familiar ?? '',
             cep: loaded.cep ?? '',
             logradouro: loaded.logradouro ?? '',
@@ -236,7 +302,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
           });
 
           this.membros.clear();
-          (loaded.membros ?? []).forEach((member) => {
+          (loaded.membros ?? []).forEach((member: FamiliaMembroPayload) => {
             this.membros.push(this.buildMemberControlFromExisting(member));
           });
 
@@ -248,7 +314,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
               { emitEvent: false }
             );
           } else {
-            const responsavel = loaded.membros?.find((member) => member.responsavel_familiar)?.beneficiario;
+            const responsavel = loaded.membros?.find((member: FamiliaMembroPayload) => member.responsavel_familiar)?.beneficiario;
             if (responsavel) {
               this.principal = responsavel;
               this.principalSearch.setValue(
@@ -259,7 +325,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.familyError = 'Não foi possível carregar a família selecionada.';
+          this.familyError = 'N�o foi poss�vel carregar a familia selecionada.';
         }
       });
   }
@@ -278,6 +344,10 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     this.activeTab = this.tabs[this.activeTabIndex - 1]?.id ?? this.activeTab;
   }
 
+  closeForm(): void {
+    window.history.back();
+  }
+
   addMember(beneficiary: BeneficiarioApiPayload): void {
     this.upsertMember(beneficiary, false);
     this.memberSearch.setValue('', { emitEvent: false });
@@ -287,7 +357,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   removeMember(index: number): void {
     const member = this.membros.at(index)?.value as FamiliaMembroPayload | undefined;
     if (member?.id_beneficiario && member.id_beneficiario === this.principal?.id_beneficiario) {
-      this.feedback = 'O responsável principal não pode ser removido da família.';
+      this.feedback = 'O Respons�vel principal n�o pode ser removido da familia.';
       return;
     }
     this.membros.removeAt(index);
@@ -322,7 +392,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     if (!cepControl) return;
 
     if (cepControl.invalid) {
-      this.cepLookupError = cepControl.value ? 'Informe um CEP válido para consultar o endereço.' : null;
+      this.cepLookupError = cepControl.value ? 'Informe um CEP vlido para consultar o Endere�o.' : null;
       return;
     }
 
@@ -333,19 +403,32 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
   }
 
   saveFamily(): void {
+    this.popupErros = [];
     if (this.familyForm.invalid) {
       this.familyForm.markAllAsTouched();
-      this.feedback = 'Revise os campos obrigatórios antes de salvar o vínculo familiar.';
+      const builder = new PopupErrorBuilder();
+      const requiredFields: { path: string; label: string }[] = [
+        { path: 'nome_familia', label: 'Nome da familia' },
+        { path: 'id_referencia_familiar', label: 'Responsavel principal' }
+      ];
+      requiredFields.forEach(({ path, label }) => {
+        const control = this.familyForm.get(path);
+        if (!control?.value) {
+          builder.adicionar(`${label} e obrigatorio.`);
+        }
+      });
+      this.popupErros = builder.build();
+      this.setFeedback('Revise os campos obrigatorios antes de salvar o vinculo familiar.');
       return;
     }
 
     if (!this.membros.length) {
-      this.feedback = 'Inclua pelo menos um beneficiário vinculado à família.';
+      this.setFeedback('Inclua pelo menos um beneficiario vinculado a familia.');
       return;
     }
 
     this.saving = true;
-    this.feedback = null;
+    this.clearFeedback();
 
     const payload = this.buildPayload(!this.selectedFamilyId);
 
@@ -364,12 +447,111 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
         next: ({ familia }) => {
           this.selectedFamilyId = familia.id_familia ?? this.selectedFamilyId;
           const nomeFamilia = familia.nome_familia || this.familyForm.get('nome_familia')?.value || '';
-          this.feedback = `Família ${nomeFamilia} registrada com sucesso.`;
+          this.setFeedback(`Familia ${nomeFamilia} registrada com sucesso.`);
+          this.loadFamilias();
         },
         error: () => {
-          this.feedback = 'Não foi possível salvar o vínculo familiar. Tente novamente.';
+          this.setFeedback('N�o foi poss�vel salvar o vinculo familiar. Tente novamente.');
         }
       });
+  }
+
+  startNewFamily(): void {
+    this.selectedFamilyId = null;
+    this.principal = null;
+    this.principalSearch.setValue('', { emitEvent: false });
+    this.familySearch.setValue('', { emitEvent: false });
+    this.memberSearch.setValue('', { emitEvent: false });
+    this.principalResults = [];
+    this.familyResults = [];
+    this.memberResults = [];
+    this.membros.clear();
+    this.applyAddressToMembers = true;
+    this.familyForm.reset({
+      status: 'ATIVO',
+      nome_familia: '',
+      id_referencia_familiar: '',
+      cep: '',
+      logradouro: '',
+      numero: '',
+      complemento: '',
+      bairro: '',
+      ponto_referencia: '',
+      municipio: '',
+      uf: '',
+      zona: '',
+      situacao_imovel: '',
+      tipo_moradia: '',
+      agua_encanada: false,
+      esgoto_tipo: '',
+      coleta_lixo: '',
+      energia_eletrica: false,
+      internet: false,
+      arranjo_familiar: '',
+      qtd_membros: null,
+      qtd_criancas: null,
+      qtd_adolescentes: null,
+      qtd_idosos: null,
+      qtd_pessoas_deficiencia: null,
+      renda_familiar_total: '',
+      renda_per_capita: '',
+      faixa_renda_per_capita: '',
+      principais_fontes_renda: '',
+      situacao_inseguranca_alimentar: '',
+      possui_dividas_relevantes: false,
+      descricao_dividas: '',
+      vulnerabilidades_familia: '',
+      servicos_acompanhamento: '',
+      tecnico_responsavel: '',
+      periodicidade_atendimento: '',
+      proxima_visita_prevista: '',
+      observacoes: '',
+      membros: []
+    });
+    this.activeTab = 'cadastro';
+    this.clearFeedback();
+    this.popupErros = [];
+  }
+
+  aplicarFiltrosListagem(): void {
+    this.applyListFilters();
+  }
+
+  limparFiltrosListagem(): void {
+    this.listagemForm.reset({ nome: '', cpf: '', codigo: '', dataNascimento: '', status: '' });
+    this.applyListFilters();
+  }
+
+  selecionarFamiliaNaLista(familia: FamiliaPayload): void {
+    this.familiaSelecionada = familia;
+  }
+
+  editarFamiliaNaLista(familia: FamiliaPayload): void {
+    if (!familia.id_familia) return;
+    this.selectFamily(familia);
+    this.changeTab('cadastro');
+  }
+
+  formatarStatusLabel(status?: string | null): string {
+    if (!status) return '---';
+    return status
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  getStatusClass(status?: string | null): string {
+    switch (status) {
+      case 'ATIVO':
+        return 'pill--status pill--status-ativo';
+      case 'INATIVO':
+        return 'pill--status pill--status-inativo';
+      case 'BLOQUEADO':
+        return 'pill--status pill--status-bloqueado';
+      default:
+        return 'pill--status';
+    }
   }
 
   private buildPayload(includeMembers: boolean): FamiliaPayload {
@@ -411,6 +593,156 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     return requests.length ? forkJoin(requests) : of([]);
   }
 
+  private loadFamilias(): void {
+    this.familyService.list().subscribe({
+      next: ({ familias }) => {
+        const unique = new Map<string, FamiliaPayload>();
+        (familias ?? []).forEach((familia: FamiliaPayload) => {
+          const id = String(familia.id_familia ?? '');
+          const key = id || familia.nome_familia || '';
+          if (!unique.has(key)) {
+            unique.set(key, familia);
+          }
+        });
+        this.familias = Array.from(unique.values());
+        this.applyListFilters();
+      },
+      error: () => {
+        this.setFeedback('N�o foi poss�vel carregar a listagem de familias.');
+      }
+    });
+  }
+
+  private applyListFilters(): void {
+    const { nome, cpf, codigo, dataNascimento, status } = this.listagemForm.getRawValue();
+    const filtroNome = this.normalizeText(nome);
+    const filtroCpf = this.normalizeText(cpf);
+    const filtroCodigo = this.normalizeText(codigo);
+    const filtroStatus = this.normalizeText(status);
+    const filtroData = (dataNascimento ?? '').toString();
+
+    this.familiasFiltradas = (this.familias ?? [])
+      .filter((familia) => {
+        const referencia = this.getReferenciaFamilia(familia);
+        const nomeFamilia = this.normalizeText(familia.nome_familia);
+        const codigoReferencia = this.normalizeText(referencia?.codigo);
+        const cpfReferencia = this.normalizeText(referencia?.cpf);
+        const statusFamilia = this.normalizeText(familia.status);
+        const dataRef = referencia?.data_nascimento ?? '';
+
+        if (filtroNome && !nomeFamilia.includes(filtroNome)) return false;
+        if (filtroCpf && !cpfReferencia.includes(filtroCpf)) return false;
+        if (filtroCodigo && !codigoReferencia.includes(filtroCodigo) && !this.normalizeText(familia.id_familia).includes(filtroCodigo)) {
+          return false;
+        }
+        if (filtroStatus && statusFamilia !== filtroStatus) return false;
+        if (filtroData && dataRef !== filtroData) return false;
+        return true;
+      })
+      .sort((a, b) => this.normalizeText(a.nome_familia).localeCompare(this.normalizeText(b.nome_familia), 'pt-BR'));
+
+    this.paginaAtual = 1;
+  }
+
+  getReferenciaFamilia(familia: FamiliaPayload): BeneficiarioApiPayload | null {
+    if (familia.referencia_familiar) {
+      return familia.referencia_familiar;
+    }
+    const membroResponsavel = (familia.membros ?? []).find((membro) => membro.responsavel_familiar);
+    return membroResponsavel?.beneficiario ?? null;
+  }
+
+  formatAge(dataNascimento?: string | null): string {
+    if (!dataNascimento) return '--';
+    const birth = new Date(dataNascimento);
+    if (Number.isNaN(birth.getTime())) return '--';
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age -= 1;
+    }
+    return age.toString();
+  }
+
+  formatarMembrosFamilia(familia: FamiliaPayload): string {
+    const nomes = (familia.membros ?? [])
+      .map((membro) => membro.beneficiario?.nome_completo || membro.beneficiario?.nome_social || '')
+      .map((nome) => nome.trim())
+      .filter((nome) => nome.length > 0);
+
+    return nomes.length ? nomes.join(', ') : 'Nenhum membro vinculado';
+  }
+
+  formatDate(dataNascimento?: string | null): string {
+    if (!dataNascimento) return '---';
+    const date = new Date(dataNascimento);
+    if (Number.isNaN(date.getTime())) return '---';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  private normalizeText(value?: string | number | null): string {
+    return (value ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private setupCapitalizationRules(): void {
+    const campos = [
+      'nome_familia',
+      'logradouro',
+      'complemento',
+      'bairro',
+      'ponto_referencia',
+      'municipio',
+      'zona',
+      'arranjo_familiar',
+      'principais_fontes_renda',
+      'tecnico_responsavel',
+      'periodicidade_atendimento'
+    ];
+
+    campos.forEach((campo) => {
+      const control = this.familyForm.get(campo);
+      control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+        if (typeof value !== 'string' || !value.trim()) {
+          return;
+        }
+        const formatted = titleCaseWords(value);
+        if (formatted !== value) {
+          control.setValue(formatted, { emitEvent: false });
+        }
+      });
+    });
+  }
+
+  clearFeedback(): void {
+    this.feedback = null;
+    this.clearFeedbackTimeout();
+  }
+
+  private setFeedback(message: string, timeoutMs = 10000): void {
+    this.feedback = message;
+    this.clearFeedbackTimeout();
+    this.feedbackTimeout = setTimeout(() => {
+      this.feedback = null;
+      this.feedbackTimeout = undefined;
+    }, timeoutMs);
+  }
+
+  private clearFeedbackTimeout(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = undefined;
+    }
+  }
+
   private setupSearch(control: FormControl, context: 'principal' | 'member'): void {
     control.valueChanges
       .pipe(
@@ -446,7 +778,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
           return this.familyService.list({ nome_familia: query }).pipe(
             map(({ familias }) => familias ?? []),
             catchError(() => {
-              this.familyError = 'Não foi possível buscar famílias agora.';
+              this.familyError = 'N�o foi poss�vel buscar familias agora.';
               return of([] as FamiliaPayload[]);
             }),
             finalize(() => {
@@ -482,7 +814,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     return this.beneficiaryService.list(params).pipe(
       map(({ beneficiarios }) => beneficiarios ?? []),
       catchError(() => {
-        this.setSearchState(context, false, 'Não foi possível buscar beneficiários agora.');
+        this.setSearchState(context, false, 'N�o foi poss�vel buscar beneficiarios agora.');
         return of([] as BeneficiarioApiPayload[]);
       }),
       finalize(() => {
@@ -516,9 +848,9 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       const control = this.membros.at(existingIndex);
       if (isReference) {
         control.get('responsavel_familiar')?.setValue(true);
-        control.get('parentesco')?.setValue('Responsável familiar');
+        control.get('parentesco')?.setValue('Responsavel familiar');
       }
-      this.feedback = 'Este beneficiário já está vinculado à família.';
+      this.feedback = 'Este beneficiario ja esta vinculado  familia.';
       return;
     }
 
@@ -532,9 +864,9 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
     return this.fb.group({
       id_familia_membro: [null],
       id_beneficiario: [beneficiary.id_beneficiario, Validators.required],
-      nome: [beneficiary.nome_completo || beneficiary.nome_social || 'Beneficiário'],
+      nome: [beneficiary.nome_completo || beneficiary.nome_social || 'beneficiario'],
       documento: [beneficiary.cpf || beneficiary.nis || beneficiary.codigo || ''],
-      parentesco: [isReference ? 'Responsável familiar' : '', Validators.required],
+      parentesco: [isReference ? 'Responsavel familiar' : '', Validators.required],
       responsavel_familiar: [isReference],
       contribui_renda: [false],
       renda_individual: [''],
@@ -546,7 +878,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
 
   private buildMemberControlFromExisting(member: FamiliaMembroPayload): FormGroup {
     const beneficiary = member.beneficiario;
-    const displayName = beneficiary?.nome_completo || beneficiary?.nome_social || 'Beneficiário';
+    const displayName = beneficiary?.nome_completo || beneficiary?.nome_social || 'beneficiario';
     const document = beneficiary?.cpf || beneficiary?.nis || beneficiary?.codigo || '';
 
     return this.fb.group({
@@ -572,7 +904,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           if (response?.erro) {
-            this.cepLookupError = 'CEP não encontrado.';
+            this.cepLookupError = 'CEP no encontrado.';
             return;
           }
 
@@ -584,7 +916,7 @@ export class VinculoFamiliarComponent implements OnInit, OnDestroy {
           });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'N�o foi poss�vel consultar o CEP.';
         }
       });
   }
@@ -608,3 +940,28 @@ interface ViaCepResponse {
   uf?: string;
   erro?: boolean;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

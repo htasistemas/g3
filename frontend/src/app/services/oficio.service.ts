@@ -55,7 +55,7 @@ export class OficioService {
       const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : null;
       return saved ? (JSON.parse(saved) as OficioPayload[]) : [];
     } catch (error) {
-      console.error('Erro ao ler ofícios do armazenamento local', error);
+      console.error('Erro ao ler oficios do armazenamento local', error);
       return [];
     }
   }
@@ -89,7 +89,7 @@ export class OficioService {
         localStorage.setItem(this.storageKey, JSON.stringify(data));
       }
     } catch (error) {
-      console.error('Erro ao salvar ofícios no armazenamento local', error);
+      console.error('Erro ao salvar oficios no armazenamento local', error);
     }
   }
 }

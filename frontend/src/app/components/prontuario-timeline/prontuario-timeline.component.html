@@ -1,0 +1,42 @@
+<div class="timeline">
+  <div *ngIf="carregando" class="timeline__loading">Carregando registros...</div>
+  <div *ngIf="!carregando && !registros.length" class="timeline__empty">
+    Nenhum registro encontrado para os filtros selecionados.
+  </div>
+
+  <article class="timeline-card" *ngFor="let registro of registros">
+    <div class="timeline-card__header">
+      <div>
+        <span class="badge">{{ registro.tipo }}</span>
+        <span class="timeline-card__date">{{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="timeline-card__actions">
+        <button type="button" class="ghost" (click)="editar.emit(registro)">Editar</button>
+        <button type="button" class="ghost" (click)="remover.emit(registro)">Excluir</button>
+        <button type="button" class="ghost" (click)="toggle(registro)">
+          {{ expandedId === registro.id ? 'Recolher' : 'Detalhes' }}
+        </button>
+      </div>
+    </div>
+    <h4 class="timeline-card__title">{{ registro.titulo || 'Registro sem titulo' }}</h4>
+    <p class="timeline-card__summary">{{ registro.descricao }}</p>
+
+    <div class="timeline-card__details" *ngIf="expandedId === registro.id">
+      <p><strong>Status:</strong> {{ registro.status }}</p>
+      <p><strong>Profissional:</strong> {{ registro.profissionalId || 'Não informado' }}</p>
+      <p><strong>Unidade:</strong> {{ registro.unidadeId || 'Não informado' }}</p>
+      <div *ngIf="registro.dadosExtra && (registro.dadosExtra | keyvalue).length" class="timeline-card__extra">
+        <p class="timeline-card__extra-title">Dados adicionais</p>
+        <ul>
+          <li *ngFor="let item of registro.dadosExtra | keyvalue">
+            <strong>{{ item.key }}:</strong> {{ item.value }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </article>
+
+  <div class="timeline__more" *ngIf="hasMore">
+    <button type="button" class="ghost" (click)="carregarMais.emit()">Carregar mais</button>
+  </div>
+</div>

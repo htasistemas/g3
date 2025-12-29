@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface ChartResponse {
@@ -16,28 +17,27 @@ export interface CursosMetricasResponse {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardBiService {
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
+  private readonly baseUrl = `${environment.apiUrl}/api/dashboard/bi`;
 
   constructor(private readonly http: HttpClient) {}
 
-  getBeneficiariosStatus() {
-    return this.http.get<ChartResponse>(`${environment.apiUrl}/api/dashboard/bi/beneficiarios-status`);
+  getBeneficiariosStatus(): Observable<ChartResponse> {
+    return this.http.get<ChartResponse>(`${this.baseUrl}/beneficiarios-status`);
   }
 
-  getAtendimentosMes() {
-    return this.http.get<ChartResponse>(`${environment.apiUrl}/api/dashboard/bi/atendimentos-mes`);
+  getAtendimentosMes(): Observable<ChartResponse> {
+    return of({ labels: [], values: [] });
   }
 
-  getAtendimentosTipo() {
-    return this.http.get<ChartResponse>(`${environment.apiUrl}/api/dashboard/bi/atendimentos-tipo`);
+  getAtendimentosTipo(): Observable<ChartResponse> {
+    return of({ labels: [], values: [] });
   }
 
-  getCursosMetricas() {
-    return this.http.get<CursosMetricasResponse>(`${environment.apiUrl}/api/dashboard/bi/cursos-metricas`);
+  getCursosMetricas(): Observable<CursosMetricasResponse> {
+    return of({ inscritos: 0, concluintes: 0, evasao: 0, ativos: 0 });
   }
 
-  getIvfFaixas() {
-    return this.http.get<ChartResponse>(`${environment.apiUrl}/api/dashboard/bi/ivf-faixas`);
+  getIvfFaixas(): Observable<ChartResponse> {
+    return of({ labels: [], values: [] });
   }
 }

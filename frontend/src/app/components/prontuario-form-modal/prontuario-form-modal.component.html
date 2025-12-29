@@ -1,0 +1,102 @@
+<div class="modal" *ngIf="aberto">
+  <div class="modal__overlay" (click)="close()"></div>
+  <div class="modal__content">
+    <header class="modal__header">
+      <h3>{{ registro ? 'Editar registro' : 'Novo registro' }}</h3>
+      <button type="button" class="ghost" (click)="close()">Fechar</button>
+    </header>
+
+    <form [formGroup]="formulario" (ngSubmit)="submit()" class="modal__form">
+      <div class="form-grid">
+        <label class="form-field">
+          <span>Tipo</span>
+          <select class="select" formControlName="tipo">
+            <option value="atendimento">Atendimento</option>
+            <option value="procedimento">Procedimento</option>
+            <option value="evolucao">Evolução</option>
+            <option value="encaminhamento">Encaminhamento</option>
+            <option value="visita_domiciliar">Visita domiciliar</option>
+            <option value="outro">Outro</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Data e hora</span>
+          <input type="datetime-local" class="input" formControlName="dataRegistro" />
+        </label>
+        <label class="form-field">
+          <span>Profissional responsavel</span>
+          <input type="number" class="input" formControlName="profissionalId" placeholder="ID do profissional" />
+        </label>
+        <label class="form-field">
+          <span>Unidade</span>
+          <input type="number" class="input" formControlName="unidadeId" placeholder="ID da unidade" />
+        </label>
+        <label class="form-field">
+          <span>Título</span>
+          <input type="text" class="input" formControlName="titulo" placeholder="Resumo do registro" />
+        </label>
+        <label class="form-field">
+          <span>Status</span>
+          <select class="select" formControlName="status">
+            <option value="aberto">Aberto</option>
+            <option value="concluido">Concluido</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="form-field">
+        <span>Descrição detalhada</span>
+        <textarea class="input" rows="4" formControlName="descricao"></textarea>
+      </label>
+
+      <div class="form-grid form-grid--extra">
+        <label class="form-field">
+          <span>Demanda</span>
+          <input type="text" class="input" formControlName="demanda" />
+        </label>
+        <label class="form-field">
+          <span>Orientacoes</span>
+          <input type="text" class="input" formControlName="orientacoes" />
+        </label>
+        <label class="form-field">
+          <span>Desfecho</span>
+          <input type="text" class="input" formControlName="desfecho" />
+        </label>
+        <label class="form-field">
+          <span>Destino</span>
+          <input type="text" class="input" formControlName="destino" />
+        </label>
+        <label class="form-field">
+          <span>Motivo</span>
+          <input type="text" class="input" formControlName="motivo" />
+        </label>
+        <label class="form-field">
+          <span>Endereço confirmado</span>
+          <input type="text" class="input" formControlName="endereçoConfirmado" />
+        </label>
+        <label class="form-field">
+          <span>Procedimento</span>
+          <input type="text" class="input" formControlName="procedimento" />
+        </label>
+        <label class="form-field">
+          <span>Nome do anexo</span>
+          <input type="text" class="input" formControlName="anexoNome" placeholder="Documento ou imagem" />
+        </label>
+        <label class="form-field">
+          <span>URL do anexo</span>
+          <input type="text" class="input" formControlName="anexoUrl" placeholder="https://..." />
+        </label>
+        <label class="form-field">
+          <span>Tipo MIME</span>
+          <input type="text" class="input" formControlName="anexoTipo" placeholder="application/pdf" />
+        </label>
+      </div>
+
+      <div class="modal__actions">
+        <button type="submit" class="primary">Salvar registro</button>
+        <button type="button" class="ghost" (click)="close()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>

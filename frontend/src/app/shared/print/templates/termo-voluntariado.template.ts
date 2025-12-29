@@ -13,13 +13,23 @@ type UnidadeTermo = {
   razaoSocial?: string;
   cnpj?: string;
   inscricaoMunicipal?: string;
-  endereco?: string;
+  endereço?: string;
   numeroEndereco?: string;
   complemento?: string;
   bairro?: string;
   cidade?: string;
   estado?: string;
   coordenadorNome?: string;
+};
+
+type DisponibilidadeSemanal = {
+  dom?: string[];
+  seg?: string[];
+  ter?: string[];
+  qua?: string[];
+  qui?: string[];
+  sex?: string[];
+  sab?: string[];
 };
 
 type ProfissionalTermo = {
@@ -31,27 +41,19 @@ type ProfissionalTermo = {
   email?: string;
   telefoneCelular?: string;
   telefoneResidencial?: string;
-  endereco?: DadosEndereco;
-  voluntarioOutraInstituicao?: boolean;
-  voluntarioOutraDescricao?: string;
+  endereço?: DadosEndereco;
+  voluntárioOutraInstituicao?: boolean;
+  voluntárioOutraDescricao?: string;
   voluntariadoLocalAtividade?: string;
   voluntariadoPeriodo?: string;
-  voluntariadoDisponibilidade?: {
-    dom?: string[];
-    seg?: string[];
-    ter?: string[];
-    qua?: string[];
-    qui?: string[];
-    sex?: string[];
-    sab?: string[];
-  };
+  voluntariadoDisponibilidade?: DisponibilidadeSemanal;
   voluntariadoAtividades?: string[];
   voluntariadoOutros?: string;
   lgpdAceite?: boolean;
   imagemAceite?: boolean;
 };
 
-const diasSemana: Array<{ key: keyof ProfissionalTermo['voluntariadoDisponibilidade']; label: string }> = [
+const diasSemana: Array<{ key: keyof DisponibilidadeSemanal; label: string }> = [
   { key: 'dom', label: 'Dom' },
   { key: 'seg', label: 'Seg' },
   { key: 'ter', label: 'Ter' },
@@ -88,24 +90,24 @@ function joinParts(parts: Array<string | undefined | null>, separator = ' '): st
 }
 
 function formatarEnderecoUnidade(unidade: UnidadeTermo): string {
-  const endereco = joinParts(
-    [unidade.endereco, unidade.numeroEndereco, unidade.complemento, unidade.bairro, unidade.cidade, unidade.estado],
+  const endereço = joinParts(
+    [unidade.endereço, unidade.numeroEndereco, unidade.complemento, unidade.bairro, unidade.cidade, unidade.estado],
     ', '
   );
-  return endereco || 'Nao informado';
+  return endereço || 'Não informado';
 }
 
-function formatarEnderecoVoluntario(endereco?: DadosEndereco): string {
-  if (!endereco) return '';
+function formatarEnderecoVoluntario(endereço?: DadosEndereco): string {
+  if (!endereço) return '';
   return joinParts(
     [
-      endereco.logradouro,
-      endereco.numero,
-      endereco.complemento,
-      endereco.bairro,
-      endereco.cidade,
-      endereco.uf,
-      endereco.cep
+      endereço.logradouro,
+      endereço.numero,
+      endereço.complemento,
+      endereço.bairro,
+      endereço.cidade,
+      endereço.uf,
+      endereço.cep
     ],
     ', '
   );
@@ -118,23 +120,27 @@ function marcarAceite(valor?: boolean): { sim: string; nao: string } {
   };
 }
 
-function possuiTurno(disponibilidade: ProfissionalTermo['voluntariadoDisponibilidade'], diaKey: string, turno: string): boolean {
+function possuiTurno(
+  disponibilidade: DisponibilidadeSemanal | undefined,
+  diaKey: keyof DisponibilidadeSemanal,
+  turno: string
+): boolean {
   if (!disponibilidade) return false;
-  const dia = disponibilidade[diaKey as keyof ProfissionalTermo['voluntariadoDisponibilidade']];
+  const dia = disponibilidade[diaKey];
   return Array.isArray(dia) && dia.includes(turno);
 }
 
-export function buildTermoVoluntariadoHTML(unidade: UnidadeTermo, voluntario: ProfissionalTermo): string {
+export function buildTermoVoluntariadoHTML(unidade: UnidadeTermo, voluntário: ProfissionalTermo): string {
   const nomeUnidade =
     unidade.razaoSocial ||
     unidade.nomeFantasia ||
-    'ADRA - Agencia Adventista de Desenvolvimento e Recursos Assistenciais';
-  const enderecoUnidade = formatarEnderecoUnidade(unidade);
-  const voluntarioEndereco = formatarEnderecoVoluntario(voluntario.endereco);
-  const aceiteLgpd = marcarAceite(voluntario.lgpdAceite);
-  const aceiteImagem = marcarAceite(voluntario.imagemAceite);
-  const outrasAtividades = escapeHtml(voluntario.voluntariadoOutros || '');
-  const atividadesSelecionadas = voluntario.voluntariadoAtividades ?? [];
+    'ADRA - Agência Adventista de Desenvolvimento e Recursos Assistenciais';
+  const endereçoUnidade = formatarEnderecoUnidade(unidade);
+  const voluntárioEndereco = formatarEnderecoVoluntario(voluntário.endereço);
+  const aceiteLgpd = marcarAceite(voluntário.lgpdAceite);
+  const aceiteImagem = marcarAceite(voluntário.imagemAceite);
+  const outrasAtividades = escapeHtml(voluntário.voluntariadoOutros || '');
+  const atividadesSelecionadas = voluntário.voluntariadoAtividades ?? [];
 
   const atividadesHtml = atividadesPadrao
     .map((atividade) => {
@@ -148,7 +154,7 @@ export function buildTermoVoluntariadoHTML(unidade: UnidadeTermo, voluntario: Pr
   const disponibilidadeHtml = diasSemana
     .map((dia) => {
       const cells = turnos
-        .map((turno) => `<td class="center">${possuiTurno(voluntario.voluntariadoDisponibilidade, dia.key, turno) ? 'X' : ''}</td>`)
+        .map((turno) => `<td class="center">${possuiTurno(voluntário.voluntariadoDisponibilidade, dia.key, turno) ? 'X' : ''}</td>`)
         .join('');
       return `<tr><td class="center">${dia.label}</td>${cells}</tr>`;
     })
@@ -186,7 +192,7 @@ export function buildTermoVoluntariadoHTML(unidade: UnidadeTermo, voluntario: Pr
 
       <div class="section">
         <div class="line"><span class="label">CNPJ:</span> ${escapeHtml(unidade.cnpj || '')}</div>
-        <div class="line"><span class="label">Endere&ccedil;o:</span> ${escapeHtml(enderecoUnidade)}</div>
+        <div class="line"><span class="label">Endere&ccedil;o:</span> ${escapeHtml(endereçoUnidade)}</div>
         <div class="line"><span class="label">Cidade/UF:</span> ${escapeHtml(joinParts([unidade.cidade, unidade.estado], ' / '))}</div>
         ${unidade.inscricaoMunicipal ? `<div class="line"><span class="label">Inscri&ccedil;&atilde;o municipal:</span> ${escapeHtml(unidade.inscricaoMunicipal)}</div>` : ''}
       </div>
@@ -194,19 +200,19 @@ export function buildTermoVoluntariadoHTML(unidade: UnidadeTermo, voluntario: Pr
       <div class="section">
         <h2>Dados do volunt&aacute;rio</h2>
         <div class="grid">
-          <div class="line"><span class="label">Nome:</span> ${escapeHtml(voluntario.nome)}</div>
-          <div class="line"><span class="label">RG:</span> ${escapeHtml(voluntario.rg)}</div>
-          <div class="line"><span class="label">CPF:</span> ${escapeHtml(voluntario.cpf)}</div>
-          <div class="line"><span class="label">Data de nascimento:</span> ${escapeHtml(voluntario.dataNascimento)}</div>
-          <div class="line"><span class="label">Estado civil:</span> ${escapeHtml(voluntario.estadoCivil)}</div>
-          <div class="line"><span class="label">Email:</span> ${escapeHtml(voluntario.email)}</div>
-          <div class="line"><span class="label">Celular:</span> ${escapeHtml(voluntario.telefoneCelular)}</div>
-          <div class="line"><span class="label">Residencial:</span> ${escapeHtml(voluntario.telefoneResidencial)}</div>
+          <div class="line"><span class="label">Nome:</span> ${escapeHtml(voluntário.nome)}</div>
+          <div class="line"><span class="label">RG:</span> ${escapeHtml(voluntário.rg)}</div>
+          <div class="line"><span class="label">CPF:</span> ${escapeHtml(voluntário.cpf)}</div>
+          <div class="line"><span class="label">Data de nascimento:</span> ${escapeHtml(voluntário.dataNascimento)}</div>
+          <div class="line"><span class="label">Estado civil:</span> ${escapeHtml(voluntário.estadoCivil)}</div>
+          <div class="line"><span class="label">Email:</span> ${escapeHtml(voluntário.email)}</div>
+          <div class="line"><span class="label">Celular:</span> ${escapeHtml(voluntário.telefoneCelular)}</div>
+          <div class="line"><span class="label">Residencial:</span> ${escapeHtml(voluntário.telefoneResidencial)}</div>
         </div>
-        <div class="line"><span class="label">Endere&ccedil;o completo:</span> ${escapeHtml(voluntarioEndereco)}</div>
-        <div class="line"><span class="label">Volunt&aacute;rio em outra institui&ccedil;&atilde;o?</span> ${voluntario.voluntarioOutraInstituicao ? 'Sim' : 'Nao'} - ${escapeHtml(voluntario.voluntarioOutraDescricao)}</div>
-        <div class="line"><span class="label">Local da atividade requerida:</span> ${escapeHtml(voluntario.voluntariadoLocalAtividade)}</div>
-        <div class="line"><span class="label">Per&iacute;odo do voluntariado:</span> ${escapeHtml(voluntario.voluntariadoPeriodo)}</div>
+        <div class="line"><span class="label">Endere&ccedil;o completo:</span> ${escapeHtml(voluntárioEndereco)}</div>
+        <div class="line"><span class="label">Volunt&aacute;rio em outra institui&ccedil;&atilde;o?</span> ${voluntário.voluntárioOutraInstituicao ? 'Sim' : 'Não'} - ${escapeHtml(voluntário.voluntárioOutraDescricao)}</div>
+        <div class="line"><span class="label">Local da atividade requerida:</span> ${escapeHtml(voluntário.voluntariadoLocalAtividade)}</div>
+        <div class="line"><span class="label">Per&iacute;odo do voluntariado:</span> ${escapeHtml(voluntário.voluntariadoPeriodo)}</div>
       </div>
 
       <div class="section">

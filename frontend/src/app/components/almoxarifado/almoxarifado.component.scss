@@ -22,16 +22,16 @@
 
 .page-title__eyebrow {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   color: #94a3b8;
   font-weight: 800;
 }
 
 .page-title__label {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   color: #0f172a;
@@ -275,4 +275,21 @@
   border-color: rgba(34, 197, 94, 0.25);
   color: #166534;
   background: rgba(187, 247, 208, 0.45);
+}
+
+.alerta-vencimento {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.7rem;
+}
+
+.alerta-vencimento--vencido {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+  background: rgba(254, 202, 202, 0.6);
+}
+
+.alerta-vencimento--vencendo {
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #c2410c;
+  background: rgba(254, 215, 170, 0.7);
 }

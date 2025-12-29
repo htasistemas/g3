@@ -4,8 +4,10 @@ import { environment } from '../../environments/environment';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 export interface DocumentoObrigatorio {
+  id?: number | string;
   nome: string;
   nomeArquivo?: string;
+  caminhoArquivo?: string;
   file?: File;
   obrigatorio?: boolean;
   required?: boolean;
@@ -134,10 +136,7 @@ export interface BeneficiaryPayload {
 @Injectable({ providedIn: 'root' })
 export class BeneficiaryService {
   private readonly apiBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
-  private readonly baseUrls = [
-    `${this.apiBaseUrl}/api/beneficiarios`,
-    `${this.apiBaseUrl}/api/beneficiaries`
-  ];
+  private readonly baseUrls = [`${this.apiBaseUrl}/api/beneficiarios`, `${this.apiBaseUrl}/api/beneficiaries`];
 
   constructor(private readonly http: HttpClient) {}
 
@@ -167,13 +166,9 @@ export class BeneficiaryService {
     ).pipe(
       map((response) => {
         if (Array.isArray(response)) return { beneficiarios: response };
-
         if ('beneficiarios' in response) return { beneficiarios: response.beneficiarios ?? [] };
-
         if ('beneficiaries' in response) return { beneficiarios: response.beneficiaries ?? [] };
-
         if ('data' in response) return { beneficiarios: response.data ?? [] };
-
         return { beneficiarios: [] };
       })
     );
@@ -199,9 +194,7 @@ export class BeneficiaryService {
     const formData = this.buildFormData(payload, photoFile);
 
     if (payload.id) {
-      return this.requestWithFallback((baseUrl) =>
-        this.http.put<BeneficiaryPayload>(`${baseUrl}/${payload.id}`, formData)
-      );
+      return this.requestWithFallback((baseUrl) => this.http.put<BeneficiaryPayload>(`${baseUrl}/${payload.id}`, formData));
     }
 
     return this.requestWithFallback((baseUrl) => this.http.post<BeneficiaryPayload>(baseUrl, formData));
@@ -212,10 +205,7 @@ export class BeneficiaryService {
     const { documentosAnexos, foto, ...rest } = payload;
 
     Object.entries(rest).forEach(([key, value]) => {
-      if (value === undefined || value === null) {
-        return;
-      }
-
+      if (value === undefined || value === null) return;
       formData.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
     });
 
@@ -224,11 +214,7 @@ export class BeneficiaryService {
 
     documentosAnexos?.forEach((doc, index) => {
       if (doc.file) {
-        formData.append(
-          `documentosArquivos[${index}]`,
-          doc.file,
-          doc.file.name || doc.nomeArquivo || `documento-${index + 1}`
-        );
+        formData.append(`documentosArquivos[${index}]`, doc.file, doc.file.name || doc.nomeArquivo || `documento-${index + 1}`);
       }
     });
 
@@ -246,9 +232,7 @@ export class BeneficiaryService {
 
     return requestFactory(primaryUrl).pipe(
       catchError((primaryError) =>
-        requestFactory(secondaryUrl).pipe(
-          catchError((secondaryError) => throwError(() => secondaryError ?? primaryError))
-        )
+        requestFactory(secondaryUrl).pipe(catchError((secondaryError) => throwError(() => secondaryError ?? primaryError)))
       )
     );
   }

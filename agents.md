@@ -45,6 +45,8 @@ Agentes nao devem:
 - Separar smart/dumb components quando aplicavel.
 - Todas as telas devem usar `app-tela-padrao` como base, mantendo o formulario centralizado e o cabecalho alinhado ao padrao da tela de cadastro de unidade.
 - `app-tela-padrao` deve posicionar a `app-barra-acoes-crud` no canto superior direito, alinhada ao titulo (fora de cards e formularios), com as acoes via input; "cancelar" deve limpar todos os campos, mesmo em cadastro novo.
+- Titulos de telas devem seguir o mesmo padrao visual dos cadastros base (classe `page-title__eyebrow` com tamanho 0.95rem e `page-title__label` com tamanho 1.5rem e peso 800).
+- Sempre que for solicitado criar uma listagem, usar como modelo a listagem de beneficiarios (filtros, card de item ativo, lista e paginacao) e manter o mesmo padrao visual.
 
 ### Campos padronizados
 - Sempre aplicar capitalizacao: cada palavra deve iniciar com maiuscula e o restante minusculo em campos de texto (nome fantasia, razao social, endereco, bairro, cidade, horario, responsavel etc.), exceto quando o campo aceita livre texto longo (observacoes) ou emails.
@@ -58,7 +60,17 @@ Agentes nao devem:
 - Mensagens:
   - Formularios: `PopupErrorBuilder` + `app-popup-messages`
   - Globais: `ErrorService` + `ToastComponent`
+  - Feedback local de tela deve ser temporario (10s), com botao "X" para fechar manualmente.
 - Confirmacoes: usar sempre `app-dialog`
+
+### Relatorios (padrao)
+- Todo relatorio deve ser impresso em A4.
+- Estrutura obrigatoria:
+  - Cabecalho: logomarca da instituicao (quando existir), razao social e nome do relatorio.
+  - Corpo: conteudo principal com tabelas e secoes.
+  - Rodape: dados da instituicao (endereco, telefone, email e CNPJ).
+- Tipografia padrao: Arial (ou fallback sans-serif).
+- Manter layout limpo, com margens e espacos consistentes.
 
 ## Backend (Java)
 - Manter separacao clara de camadas:
@@ -133,6 +145,7 @@ app:
 - Nao misturar refatoracao com novas funcionalidades.
 - Decisoes importantes devem ser documentadas.
 - Atualizar README.md ou documentacao tecnica quando necessario.
+- Sempre que houver uma nova versao do sistema, atualizar a versao em "Configuracoes gerais" e registrar no historico a versao, data/hora e mudancas realizadas.
 
 ## Postura esperada do agente
 - Ser direto e objetivo.

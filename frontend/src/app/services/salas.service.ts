@@ -6,10 +6,12 @@ import { environment } from '../../environments/environment';
 export interface SalaRecord {
   id: string;
   nome: string;
+  unidadeId?: number;
 }
 
 export interface SalaPayload {
   nome: string;
+  unidadeId: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -18,11 +20,26 @@ export class SalasService {
 
   constructor(private readonly http: HttpClient) {}
 
-  list(): Observable<SalaRecord[]> {
-    return this.http.get<{ rooms: SalaRecord[] }>(this.baseUrl).pipe(map((response) => response.rooms ?? []));
+  list(unidadeId?: number): Observable<SalaRecord[]> {
+    const params = unidadeId ? { params: { unidadeId } } : undefined;
+    return this.http
+      .get<{ rooms: SalaRecord[] }>(this.baseUrl, params)
+      .pipe(map((response) => response.rooms ?? []));
   }
 
   create(payload: SalaPayload): Observable<SalaRecord> {
-    return this.http.post<{ room: SalaRecord }>(this.baseUrl, payload).pipe(map((response) => response.room));
+    return this.http
+      .post<{ room: SalaRecord }>(this.baseUrl, { nome: payload.nome, unidade_id: payload.unidadeId })
+      .pipe(map((response) => response.room));
+  }
+
+  update(id: string, payload: SalaPayload): Observable<SalaRecord> {
+    return this.http
+      .put<{ room: SalaRecord }>(`${this.baseUrl}/${id}`, { nome: payload.nome, unidade_id: payload.unidadeId })
+      .pipe(map((response) => response.room));
+  }
+
+  remove(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

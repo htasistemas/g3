@@ -327,8 +327,8 @@ export class DocumentosInstitucionaisComponent {
   get documentosCriticos(): DocumentoInstitucional[] {
     const ordered = [...this.documentos].sort((a, b) => (a.validade || '').localeCompare(b.validade || ''));
     const vencidos = ordered.filter((d) => d.situacao === 'vencido');
-    const proximos = ordered.filter((d) => d.situacao === 'vence_em_breve');
-    return [...vencidos, ...proximos].filter((doc) => this.filtrarAlertas(doc));
+    const próximos = ordered.filter((d) => d.situacao === 'vence_em_breve');
+    return [...vencidos, ...próximos].filter((doc) => this.filtrarAlertas(doc));
   }
 
   changeTab(tab: string): void {

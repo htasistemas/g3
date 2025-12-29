@@ -22,7 +22,7 @@ export interface VisitaDomiciliar {
   tipoVisita?: string;
   situacao: SituacaoVisita;
   usarEnderecoBeneficiario: boolean;
-  endereco: EnderecoVisita;
+  endereço: EnderecoVisita;
   observacoesIniciais?: string;
   condicoes: {
     tipoMoradia?: string;

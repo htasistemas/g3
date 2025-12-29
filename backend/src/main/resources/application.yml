@@ -18,3 +18,5 @@ app:
     base-url: https://nominatim.openstreetmap.org/search
     user-agent: g3-geocoder
     enabled: true
+  storage:
+    beneficiarios: storage/beneficiarios

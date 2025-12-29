@@ -23,6 +23,7 @@ export interface FamiliaPayload {
   nome_familia: string;
   id_referencia_familiar?: string;
   referencia_familiar?: BeneficiarioApiPayload;
+  status?: string;
   cep?: string;
   logradouro?: string;
   numero?: string;
@@ -122,9 +123,7 @@ export class FamilyService {
     if (params?.referencia) httpParams = httpParams.set('referencia', params.referencia);
     return this.http
       .get<{ familias: FamiliaPayload[] }>(this.baseUrl, { params: httpParams })
-      .pipe(
-        map(({ familias }) => ({ familias: (familias ?? []).map((item) => this.normalizeFamily(item)) }))
-      );
+      .pipe(map(({ familias }) => ({ familias: (familias ?? []).map((item) => this.normalizeFamily(item)) })));
   }
 
   getById(id: string): Observable<{ familia: FamiliaPayload }> {

@@ -8,7 +8,6 @@ import {
   faChevronDown,
   faChevronUp,
   faClipboardList,
-  faBullhorn,
   faGauge,
   faHandshakeAngle,
   faHouseChimneyUser,
@@ -61,7 +60,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly faSun = faSun;
   readonly faMoon = faMoon;
   readonly faPalette = faPalette;
-  pageTitle = 'Visão geral';
+  pageTitle = 'Visao geral';
   get activeUnitLogo$() {
     return this.assistanceUnitService.currentUnitLogo$;
   }
@@ -75,7 +74,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Dashboard',
       icon: faGauge,
       children: [
-        { label: 'Visão Geral', icon: faGauge, route: '/dashboard/visao-geral' },
+        { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
         { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
         { label: 'BI Gerencial', icon: faGauge, route: '/dashboard/gerencial' }
       ]
@@ -85,8 +84,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
       icon: faUsers,
       children: [
         { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
-        { label: 'Beneficiários', icon: faUserPlus, route: '/cadastros/beneficiarios' },
-        { label: 'Vínculo Familiar', icon: faUserPlus, route: '/cadastros/vinculo-familiar' },
+        { label: 'Beneficiarios', icon: faUserPlus, route: '/cadastros/beneficiarios' },
+        { label: 'Vinculo Familiar', icon: faUserPlus, route: '/cadastros/vinculo-familiar' },
         { label: 'Profissionais', icon: faUserDoctor, route: '/cadastros/profissionais' },
         { label: 'Voluntariados', icon: faClipboardList, route: '/cadastros/voluntariados' }
       ]
@@ -95,10 +94,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Atendimentos',
       icon: faHandshakeAngle,
       children: [
-        { label: 'Prontuário', icon: faClipboardList, route: '/beneficiarios' },
-        { label: 'Registrar Doações', icon: faClipboardList, route: '/atendimentos/doacoes' },
+        { label: 'Doacao Realizada', icon: faClipboardList, route: '/atendimentos/doacoes' },
+        { label: 'Recebimento de doacao', icon: faClipboardList, route: '/atendimentos/recebimento-doacao' },
+        { label: 'Prontuario', icon: faClipboardList, route: '/atendimentos/prontuario' },
         { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
-        { label: 'Matrículas', icon: faClipboardList, route: '/atendimentos/cursos' },
+        { label: 'Matriculas', icon: faClipboardList, route: '/atendimentos/cursos' },
         { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' }
       ]
     },
@@ -106,24 +106,24 @@ export class LayoutComponent implements OnInit, OnDestroy {
       label: 'Administrativo',
       icon: faClipboardList,
       children: [
-        { label: 'Ofícios', icon: faClipboardList, route: '/administrativo/oficios' },
-        { label: 'Documentos da Instituição', icon: faClipboardList, route: '/administrativo/documentos' },
+        { label: 'Oficios', icon: faClipboardList, route: '/administrativo/oficios' },
+        { label: 'Documentos da Instituicao', icon: faClipboardList, route: '/administrativo/documentos' },
         { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
-        { label: 'Patrimônio', icon: faClipboardList, route: '/administrativo/patrimonio' },
-        { label: 'Tarefas e pendências', icon: faClipboardList, route: '/administrativo/tarefas' }
+        { label: 'Patrimonio', icon: faClipboardList, route: '/administrativo/patrimonio' },
+        { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' }
       ]
     },
     {
       label: 'Financeiro',
       icon: faWallet,
       children: [
-        { label: 'Prestação de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
+        { label: 'Prestacao de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
         { label: 'Contabilidade', icon: faWallet, route: '/financeiro/contabilidade' },
-        { label: 'Autorização de Compras', icon: faClipboardList, route: '/financeiro/autorizacao-compras' }
+        { label: 'Autorizacao de Compras', icon: faClipboardList, route: '/financeiro/autorizacao-compras' }
       ]
     },
     {
-      label: 'Jurídico',
+      label: 'Juridico',
       icon: faScaleBalanced,
       children: [
         { label: 'Termo de Fomento', icon: faScaleBalanced, route: '/juridico/termos-fomento' },
@@ -133,17 +133,16 @@ export class LayoutComponent implements OnInit, OnDestroy {
     {
       label: 'Georeferenciamento',
       icon: faMapLocationDot,
-      children: [{ label: 'Localização', icon: faMapLocationDot, route: '/georeferenciamento/localizacao' }]
+      children: [{ label: 'Localizacao', icon: faMapLocationDot, route: '/georeferenciamento/localizacao' }]
     },
     {
-      label: 'Configurações Gerais',
+      label: 'Configuracoes Gerais',
       icon: faWrench,
       children: [
-        { label: 'Parâmetros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
-        { label: 'Versão do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
-        { label: 'Assistente de textos', icon: faBullhorn, route: '/assistente-textos' },
+        { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
+        { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
         { label: 'Gerenciamento de Dados', icon: faDatabase, route: '/configuracoes/gerenciamento-dados' },
-        { label: 'Importação', icon: faFileImport, route: '/configuracoes/importacao' }
+        { label: 'Importacao', icon: faFileImport, route: '/configuracoes/importacao' }
       ]
     }
   ];
@@ -158,7 +157,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const initialRoute = this.findDeepestChild(this.activatedRoute);
-    this.pageTitle = initialRoute.snapshot.data['title'] || 'Visão geral';
+    this.pageTitle = initialRoute.snapshot.data['title'] || 'Visao geral';
 
     this.router.events
       .pipe(
@@ -167,7 +166,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         const deepest = this.findDeepestChild(this.activatedRoute);
-        this.pageTitle = deepest.snapshot.data['title'] || 'Visão geral';
+        this.pageTitle = deepest.snapshot.data['title'] || 'Visao geral';
       });
   }
 

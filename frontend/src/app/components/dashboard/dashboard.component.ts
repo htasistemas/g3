@@ -1,48 +1,70 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import {
   DashboardAssistenciaResponse,
   DashboardAssistenciaService,
   DashboardAtendimento,
+  DashboardCadastros,
   DashboardFamilias,
   DashboardTop12
 } from '../../services/dashboard-assistencia.service';
+import { DoacaoRealizadaService } from '../../services/doacao-realizada.service';
+import { AlmoxarifadoService } from '../../services/almoxarifado.service';
+import { CursosAtendimentosService } from '../../services/cursos-atendimentos.service';
+import { BancoEmpregosService } from '../../services/banco-empregos.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  filters = {
-    startDate: '',
-    endDate: ''
-  };
-
   private liveRefreshId?: ReturnType<typeof setInterval>;
+  private readonly subscriptions = new Subscription();
 
-  constructor(public readonly dashboardService: DashboardAssistenciaService) {}
+  doacoesRealizadas = 0;
+  empregosAbertos = 0;
+  cursosComVagas = 0;
+  itensAlmoxarifado = 0;
+
+  constructor(
+    public readonly dashboardService: DashboardAssistenciaService,
+    private readonly doacaoService: DoacaoRealizadaService,
+    private readonly almoxarifadoService: AlmoxarifadoService,
+    private readonly cursosService: CursosAtendimentosService,
+    private readonly empregosService: BancoEmpregosService
+  ) {}
 
   ngOnInit(): void {
     this.dashboardService.fetch();
     this.startLiveUpdates();
+    this.carregarMetricasExtras();
   }
 
   ngOnDestroy(): void {
     if (this.liveRefreshId) {
       clearInterval(this.liveRefreshId);
     }
+    this.subscriptions.unsubscribe();
   }
 
   get loading(): boolean {
     return this.dashboardService.loading();
   }
 
+  get error(): string | null {
+    return this.dashboardService.error();
+  }
+
   get top12(): DashboardTop12 | null {
     return this.dashboardService.data()?.top12 ?? null;
+  }
+
+  get cadastros(): DashboardCadastros | null {
+    return this.dashboardService.data()?.cadastros ?? null;
   }
 
   get atendimento(): DashboardAtendimento | null {
@@ -56,7 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get realtimeHighlights() {
     return [
       {
-        label: 'Beneficiários agora',
+        label: 'Beneficiarios agora',
         value: this.top12?.beneficiariosAtendidosPeriodo ?? 0,
         icon: 'monitor_heart',
         accent: 'emerald'
@@ -74,7 +96,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         accent: 'amber'
       },
       {
-        label: 'Execução financeira',
+        label: 'Execucao financeira',
         value: this.top12?.execucaoFinanceira ?? 0,
         icon: 'stacked_line_chart',
         accent: 'sky',
@@ -83,24 +105,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ];
   }
 
-  get termos() {
+  get termos(): DashboardAssistenciaResponse['termos'] | null {
     return this.dashboardService.data()?.termos ?? null;
   }
 
+  get financeiro() {
+    return this.dashboardService.data()?.financeiro ?? null;
+  }
+
   refresh() {
-    this.dashboardService.fetch(this.currentFilters());
+    this.dashboardService.fetch();
+    this.carregarMetricasExtras();
   }
 
   private startLiveUpdates() {
     this.liveRefreshId = setInterval(() => {
-      this.dashboardService.fetch(this.currentFilters());
+      this.dashboardService.fetch();
+      this.carregarMetricasExtras();
     }, 30000);
   }
 
-  private currentFilters() {
-    return {
-      startDate: this.filters.startDate || null,
-      endDate: this.filters.endDate || null
-    };
+  private carregarMetricasExtras(): void {
+    this.subscriptions.add(
+      this.doacaoService.listar().subscribe((lista) => {
+        this.doacoesRealizadas = lista.length;
+      })
+    );
+
+    this.subscriptions.add(
+      this.almoxarifadoService.listItems().subscribe((items) => {
+        this.itensAlmoxarifado = items.length;
+      })
+    );
+
+    this.subscriptions.add(
+      this.cursosService.list().subscribe((records) => {
+        this.cursosComVagas = records.filter((item) => (item.vagasDisponiveis ?? 0) > 0).length;
+      })
+    );
+
+    this.subscriptions.add(
+      this.empregosService.list().subscribe((records) => {
+        this.empregosAbertos = records.filter((item) => item.dadosVaga.status === 'Aberta').length;
+      })
+    );
   }
 }

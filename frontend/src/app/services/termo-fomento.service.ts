@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-export type TipoTermo = 'Uniao' | 'Estado' | 'Municipio';
+export type TipoTermo = 'Uniao' | 'Estado' | 'Município';
 export type SituacaoTermo = 'Ativo' | 'Aditivado' | 'Encerrado' | 'Cancelado';
 
 export interface TermoDocumento {

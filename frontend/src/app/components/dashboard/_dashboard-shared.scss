@@ -154,20 +154,21 @@
 }
 
 .stat-card {
-  background: #fff;
-  border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
-  padding: 1.25rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
+  padding: 1.4rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 22px 40px rgba(15, 23, 42, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .stat-card__icon {
@@ -179,6 +180,7 @@
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 700;
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
 }
 
 .stat-card__label {
@@ -191,7 +193,7 @@
 .stat-card__value {
   margin: 0.15rem 0 0;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
   line-height: 1.2;
 }
@@ -200,6 +202,44 @@
   margin: 0.15rem 0 0;
   font-size: 0.85rem;
   color: #94a3b8;
+}
+
+.stat-card--center {
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-card--center .stat-card__icon {
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 0.95rem;
+}
+
+.stat-card--emerald .stat-card__icon {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(5, 150, 105, 0.32));
+  color: #047857;
+}
+
+.stat-card--indigo .stat-card__icon {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(79, 70, 229, 0.32));
+  color: #4338ca;
+}
+
+.stat-card--amber .stat-card__icon {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.32));
+  color: #b45309;
+}
+
+.stat-card--rose .stat-card__icon {
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.18), rgba(244, 63, 94, 0.32));
+  color: #be123c;
+}
+
+.stat-card--sky .stat-card__icon {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(14, 116, 144, 0.32));
+  color: #0e7490;
 }
 
 .panel-card {

@@ -9,9 +9,13 @@ public interface CadastroBeneficiarioRepository {
 
   List<CadastroBeneficiario> listar();
 
+  List<CadastroBeneficiario> listarPorNomeEStatus(String nome, String status);
+
   List<CadastroBeneficiario> buscarPorNome(String nome);
 
   Optional<CadastroBeneficiario> buscarPorId(Long id);
+
+  Integer buscarMaiorCodigo();
 
   void remover(CadastroBeneficiario cadastro);
 }

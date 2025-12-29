@@ -24,7 +24,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
   readonly tabs = [
     { id: 'dadosVaga', label: 'Dados da Vaga' },
     { id: 'empresaLocal', label: 'Empresa e Local' },
-    { id: 'requisitos', label: 'Requisitos e DescriÃ§Ã£o' },
+    { id: 'requisitos', label: 'Requisitos e Descrição' },
     { id: 'encaminhamentos', label: 'Encaminhamentos' }
   ] as const;
 
@@ -129,28 +129,30 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.feedback = 'Preencha os campos obrigatÃ³rios para salvar a vaga.';
+      this.feedback = 'Preencha os campos obrigatórios para salvar a vaga.';
       return;
     }
 
     const payload: JobPayload = {
       ...(this.form.getRawValue() as JobPayload),
-      id: this.selectedJobId ?? undefined,
       encaminhamentos: this.encaminhamentos
     };
 
     this.saving = true;
-    this.service
-      .save(payload)
+    const request$ = this.selectedJobId
+      ? this.service.update(this.selectedJobId, payload)
+      : this.service.create(payload);
+
+    request$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (record) => {
+        next: (record: JobRecord) => {
           this.selectedJobId = record.id;
           this.feedback = 'Dados da vaga salvos com sucesso.';
           this.applyFilters();
         },
         error: () => {
-          this.feedback = 'NÃ£o foi possÃ­vel salvar a vaga no momento.';
+          this.feedback = 'Não foi possível salvar a vaga no momento.';
         }
       })
       .add(() => (this.saving = false));
@@ -206,7 +208,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
 
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
-    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃ¡rio sem nome';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'Beneficiário sem nome';
     this.beneficiarioSelecionado = beneficiario;
     this.encaminhamentoForm.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }
@@ -219,7 +221,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
   deleteRecord(record: JobRecord): void {
     this.deletingId = record.id;
     this.service
-      .delete(record.id)
+      .remove(record.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -228,7 +230,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.feedback = 'NÃ£o foi possÃ­vel remover a vaga.';
+          this.feedback = 'Não foi possível remover a vaga.';
         }
       })
       .add(() => (this.deletingId = null));
@@ -255,7 +257,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
           this.applyFilters();
         },
         error: () => {
-          this.feedback = 'NÃ£o foi possÃ­vel carregar a listagem de vagas.';
+          this.feedback = 'Não foi possível carregar a listagem de vagas.';
         }
       })
       .add(() => (this.listLoading = false));
@@ -289,11 +291,7 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
 
   private setupBeneficiaryLookup(): void {
     this.beneficiarioPesquisa.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((value) => this.buscarBeneficiarios(value ?? ''));
   }
 
@@ -312,12 +310,12 @@ export class BancoEmpregosComponent implements OnInit, OnDestroy {
       .list({ nome: query })
       .pipe(
         catchError(() => {
-          this.beneficiarioErro = 'NÃ£o foi possÃ­vel buscar beneficiÃ¡rios no momento.';
+          this.beneficiarioErro = 'Não foi possível buscar beneficiários no momento.';
           return of({ beneficiarios: [] });
         }),
         takeUntil(this.destroy$)
       )
-      .subscribe((response) => {
+      .subscribe((response: { beneficiarios?: BeneficiarioApiPayload[] }) => {
         this.beneficiarios = response.beneficiarios ?? [];
         this.buscandoBeneficiarios = false;
       });

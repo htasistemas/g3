@@ -1,194 +1,40 @@
 <app-tela-padrao>
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Unidade assistencial</p>
-    <p class="page-title__label">Georeferenciamento da localização</p>
-    <p class="page-title__hint">Visualize e publique o ponto principal no mapa mantendo a mesma jornada do cadastro.</p>
+  <header class="page-title" slot="titulo">
+    <p class="page-title__eyebrow">Georeferenciamento</p>
+    <p class="page-title__label">Georeferenciamento</p>
   </header>
 
-  <section class="georef-page">
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegação por etapas</p>
-    <ol class="step-tabs" role="tablist">
-      <li class="step-tabs__item completed" data-tab="dados">
-        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
-          <span class="step-tabs__index">1</span>
-          <span class="step-tabs__label">Dados da Unidade</span>
-        </button>
-      </li>
-      <li class="step-tabs__item completed" data-tab="endereco">
-        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
-          <span class="step-tabs__index">2</span>
-          <span class="step-tabs__label">Endereço da Unidade</span>
-        </button>
-      </li>
-      <li class="step-tabs__item active" data-tab="georef">
-        <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
-          <span class="step-tabs__index">3</span>
-          <span class="step-tabs__label">Georeferenciamento</span>
-        </button>
-      </li>
-      <li class="step-tabs__item" data-tab="publicacao">
-        <button type="button" class="step-tabs__button" role="tab" aria-selected="false">
-          <span class="step-tabs__index">4</span>
-          <span class="step-tabs__label">Publicação</span>
-        </button>
-      </li>
-    </ol>
-  </div>
-
-  <article class="card card--controls">
-    <div class="status-pills">
-      <span class="status status--success">Pronto para sincronizar</span>
-      <span class="status status--muted">Camadas ativas: {{ layers.length }}</span>
+  <section class="cadastro georef-page">
+    <div class="tab-shell">
+      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <ol class="step-tabs" role="tablist">
+        <li class="step-tabs__item active">
+          <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
+            <span class="step-tabs__index">1</span>
+            <span class="step-tabs__label">Dados dos beneficiarios</span>
+          </button>
+        </li>
+      </ol>
     </div>
-    <div class="nav-buttons">
-      <button type="button" class="nav-button" (click)="useUnitAddress()">Usar endereço da unidade</button>
-      <button type="button" class="nav-button" (click)="updateToManual(-23.533773, -46.62529)">Centralizar em SP</button>
-      <button type="button" class="nav-button nav-button--primary">Publicar no Geo</button>
+
+    <div class="form-shell">
+      <div class="tab-card">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Dados dos beneficiarios</p>
+            <p class="muted">Localizacao dos beneficiarios cadastrados no sistema.</p>
+          </div>
+          <div class="tab-card__header-actions">
+            <span class="pill">OpenStreetMap</span>
+          </div>
+        </div>
+
+        <div class="card__content">
+          <div *ngIf="erro" class="error">{{ erro }}</div>
+          <div *ngIf="carregando" class="loading">Carregando beneficiarios...</div>
+          <div id="beneficiarios-map" class="map"></div>
+        </div>
+      </div>
     </div>
-  </article>
-
-  <section class="grid">
-    <article class="card">
-      <header class="card__header">
-        <div>
-          <p class="card__eyebrow">Contexto</p>
-          <h3 class="card__title">Identificação da unidade</h3>
-          <p class="muted">Validamos todos os pontos antes de publicar no mapa geográfico.</p>
-        </div>
-        <span class="pill">{{ unit?.nomeFantasia || 'Sem unidade carregada' }}</span>
-      </header>
-
-      <div class="card__content">
-        <dl class="details">
-          <div>
-            <dt>Razão social</dt>
-            <dd>{{ unit?.razaoSocial || 'Não informado' }}</dd>
-          </div>
-          <div>
-            <dt>CNPJ</dt>
-            <dd>{{ unit?.cnpj || 'Não informado' }}</dd>
-          </div>
-          <div>
-            <dt>Contato</dt>
-            <dd>{{ unit?.telefone || unit?.email || 'Sem contato registrado' }}</dd>
-          </div>
-          <div class="full">
-            <dt>Endereço consolidado</dt>
-            <dd>{{ addressSummary }}</dd>
-          </div>
-        </dl>
-
-        <div class="chips">
-          <span class="chip" *ngFor="let item of layers">{{ item.label }} • {{ item.status }}</span>
-        </div>
-      </div>
-    </article>
-
-    <article class="card" [formGroup]="geoForm">
-      <header class="card__header">
-        <div>
-          <p class="card__eyebrow">Coordenadas</p>
-          <h3 class="card__title">Ponto principal no mapa</h3>
-          <p class="muted">Latitude e longitude em formato decimal e validadas em WGS84.</p>
-        </div>
-        <span class="pill pill--success">Geocodificado</span>
-      </header>
-
-      <div class="card__content">
-        <div class="field-grid cols-2">
-          <label class="field">Latitude*
-            <input type="number" formControlName="latitude" step="0.000001" />
-            <small class="field__hint" *ngIf="latControl?.invalid">Informe um valor entre -90 e 90.</small>
-          </label>
-          <label class="field">Longitude*
-            <input type="number" formControlName="longitude" step="0.000001" />
-            <small class="field__hint" *ngIf="lngControl?.invalid">Informe um valor entre -180 e 180.</small>
-          </label>
-        </div>
-
-        <div class="field-grid cols-3 compact">
-          <label class="field">Precisão (1-10)
-            <input type="number" formControlName="precision" min="1" max="10" />
-          </label>
-          <label class="field">Cobertura em km
-            <input type="number" formControlName="coverageRadius" step="0.1" min="0.1" />
-          </label>
-          <label class="field">Provedor de mapa
-            <select formControlName="provider">
-              <option *ngFor="let provider of providers" [value]="provider.id">{{ provider.label }}</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="field-grid cols-2">
-          <label class="field">Referência do endereço
-            <textarea rows="3" formControlName="addressReference" placeholder="Rua, número, marcos e pontos de acesso"></textarea>
-          </label>
-          <label class="field">Rotas de chegada
-            <textarea rows="3" formControlName="accessRoutes" placeholder="Sugestão de rota para ambulâncias, caminhões ou visitantes"></textarea>
-          </label>
-        </div>
-
-        <div class="field-grid cols-3 compact">
-          <label class="field">Status de geocodificação
-            <select formControlName="geoStatus">
-              <option value="geocoded">Geocodificado</option>
-              <option value="em_validacao">Em validação</option>
-              <option value="desatualizado">Desatualizado</option>
-            </select>
-          </label>
-          <label class="field">Geocodificador
-            <input formControlName="geocoder" />
-          </label>
-          <label class="field">Última sincronização
-            <input formControlName="lastSync" />
-          </label>
-        </div>
-
-        <label class="field">Observações da malha viária
-          <textarea rows="2" formControlName="metadataNotes" placeholder="Detalhes sobre ruas, acessos ou alinhamento cartográfico"></textarea>
-        </label>
-
-        <div class="buttons">
-          <button type="button" class="ghost" (click)="updateToManual(-23.533773, -46.62529)">Centralizar em SP</button>
-          <button type="button" class="primary">Publicar no Geo</button>
-        </div>
-      </div>
-    </article>
-
-    <article class="card map-card">
-      <header class="card__header">
-        <div>
-          <p class="card__eyebrow">Mapa</p>
-          <h3 class="card__title">Visualização em tempo real</h3>
-          <p class="muted">O marcador representa a localização atual que será exibida no portal geográfico.</p>
-        </div>
-        <span class="pill pill--info">Camada ativa</span>
-      </header>
-
-      <div class="card__content map-wrapper">
-        <div class="map" *ngIf="mapPreviewUrl; else noMap">
-          <iframe [src]="mapPreviewUrl" title="Mapa da unidade" loading="lazy"></iframe>
-        </div>
-        <ng-template #noMap>
-          <div class="map map--empty">
-            <p class="muted">Informe coordenadas válidas para visualizar o mapa.</p>
-          </div>
-        </ng-template>
-
-        <div class="quality">
-          <h4>Checklist de qualidade</h4>
-          <ul>
-            <li *ngFor="let item of qualityChecklist">
-              <span class="dot"></span>
-              {{ item }}
-            </li>
-          </ul>
-        </div>
-      </div>
-    </article>
   </section>
-</section>
 </app-tela-padrao>
-

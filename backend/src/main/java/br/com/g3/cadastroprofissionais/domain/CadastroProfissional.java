@@ -1,12 +1,17 @@
 package br.com.g3.cadastroprofissionais.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import br.com.g3.unidadeassistencial.domain.Endereco;
 
 @Entity
 @Table(name = "cadastro_profissionais")
@@ -17,6 +22,36 @@ public class CadastroProfissional {
 
   @Column(name = "nome_completo", length = 200, nullable = false)
   private String nomeCompleto;
+
+  @Column(name = "cpf", length = 20)
+  private String cpf;
+
+  @Column(name = "data_nascimento")
+  private LocalDate dataNascimento;
+
+  @Column(name = "foto_3x4")
+  private String foto3x4;
+
+  @Column(name = "sexo_biologico", length = 60)
+  private String sexoBiologico;
+
+  @Column(name = "estado_civil", length = 60)
+  private String estadoCivil;
+
+  @Column(name = "nacionalidade", length = 120)
+  private String nacionalidade;
+
+  @Column(name = "naturalidade_cidade", length = 150)
+  private String naturalidadeCidade;
+
+  @Column(name = "naturalidade_uf", length = 2)
+  private String naturalidadeUf;
+
+  @Column(name = "nome_mae", length = 200)
+  private String nomeMae;
+
+  @Column(name = "vinculo", length = 40)
+  private String vinculo;
 
   @Column(name = "categoria", length = 120, nullable = false)
   private String categoria;
@@ -35,6 +70,9 @@ public class CadastroProfissional {
 
   @Column(name = "unidade", length = 200)
   private String unidade;
+
+  @Column(name = "sala_atendimento", length = 120)
+  private String salaAtendimento;
 
   @Column(name = "carga_horaria")
   private Integer cargaHoraria;
@@ -57,6 +95,10 @@ public class CadastroProfissional {
   @Column(name = "observacoes")
   private String observacoes;
 
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "endereco_id")
+  private Endereco endereco;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -77,6 +119,86 @@ public class CadastroProfissional {
 
   public void setNomeCompleto(String nomeCompleto) {
     this.nomeCompleto = nomeCompleto;
+  }
+
+  public String getCpf() {
+    return cpf;
+  }
+
+  public void setCpf(String cpf) {
+    this.cpf = cpf;
+  }
+
+  public LocalDate getDataNascimento() {
+    return dataNascimento;
+  }
+
+  public void setDataNascimento(LocalDate dataNascimento) {
+    this.dataNascimento = dataNascimento;
+  }
+
+  public String getFoto3x4() {
+    return foto3x4;
+  }
+
+  public void setFoto3x4(String foto3x4) {
+    this.foto3x4 = foto3x4;
+  }
+
+  public String getSexoBiologico() {
+    return sexoBiologico;
+  }
+
+  public void setSexoBiologico(String sexoBiologico) {
+    this.sexoBiologico = sexoBiologico;
+  }
+
+  public String getEstadoCivil() {
+    return estadoCivil;
+  }
+
+  public void setEstadoCivil(String estadoCivil) {
+    this.estadoCivil = estadoCivil;
+  }
+
+  public String getNacionalidade() {
+    return nacionalidade;
+  }
+
+  public void setNacionalidade(String nacionalidade) {
+    this.nacionalidade = nacionalidade;
+  }
+
+  public String getNaturalidadeCidade() {
+    return naturalidadeCidade;
+  }
+
+  public void setNaturalidadeCidade(String naturalidadeCidade) {
+    this.naturalidadeCidade = naturalidadeCidade;
+  }
+
+  public String getNaturalidadeUf() {
+    return naturalidadeUf;
+  }
+
+  public void setNaturalidadeUf(String naturalidadeUf) {
+    this.naturalidadeUf = naturalidadeUf;
+  }
+
+  public String getNomeMae() {
+    return nomeMae;
+  }
+
+  public void setNomeMae(String nomeMae) {
+    this.nomeMae = nomeMae;
+  }
+
+  public String getVinculo() {
+    return vinculo;
+  }
+
+  public void setVinculo(String vinculo) {
+    this.vinculo = vinculo;
   }
 
   public String getCategoria() {
@@ -125,6 +247,14 @@ public class CadastroProfissional {
 
   public void setUnidade(String unidade) {
     this.unidade = unidade;
+  }
+
+  public String getSalaAtendimento() {
+    return salaAtendimento;
+  }
+
+  public void setSalaAtendimento(String salaAtendimento) {
+    this.salaAtendimento = salaAtendimento;
   }
 
   public Integer getCargaHoraria() {
@@ -181,6 +311,14 @@ public class CadastroProfissional {
 
   public void setObservacoes(String observacoes) {
     this.observacoes = observacoes;
+  }
+
+  public Endereco getEndereco() {
+    return endereco;
+  }
+
+  public void setEndereco(Endereco endereco) {
+    this.endereco = endereco;
   }
 
   public LocalDateTime getCriadoEm() {

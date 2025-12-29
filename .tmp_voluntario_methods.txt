@@ -1,0 +1,206 @@
+openTermo(): void {
+    const value = this.form.value;
+    const termoWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!termoWindow) return;
+
+    termoWindow.document.write(`
+      <html>
+        <head>
+          <title>Termo de Voluntariado e Uso de Imagem</title>
+          <style>
+            ${this.abntStyles()}
+          </style>
+        </head>
+        <body>
+          <header class="abnt-header">
+            <div>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
+              <h1>RELATÓRIO DE ADESÃO AO VOLUNTARIADO E AUTORIZAÇÃO DE USO DE IMAGEM</h1>
+            </div>
+            <p class="abnt-subtitle">Documento emitido conforme diretrizes de relatório ABNT (margens e fonte 12 pt).</p>
+          </header>
+
+          <section class="abnt-section">
+            <h2>1. IDENTIFICAÇÃO DO(A) VOLUNTÁRIO(A)</h2>
+            <p><strong>Nome completo:</strong> ${value.dadosPessoais?.nomeCompleto || '_____________________'} </p>
+            <p><strong>CPF:</strong> ${value.dadosPessoais?.cpf || '_____________________'} | <strong>RG:</strong> ${
+      value.dadosPessoais?.rg || '_____________________' }
+            </p>
+            <p><strong>Contato:</strong> ${value.contato?.email || '_____________________'} | ${value.contato?.telefone || ''}</p>
+            <p><strong>Área de interesse:</strong> ${value.contato?.areaInteresse || '_____________________'}</p>
+          </section>
+          <section class="abnt-section">
+            <h2>2. TERMO DE ADESÃO AO VOLUNTARIADO (Lei nº 9.608/1998)</h2>
+            <p>O(A) voluntário(a) adere, por livre iniciativa, ao serviço voluntário prestado à <strong>${this.instituicao.razaoSocial}</strong>, sem geração de vínculo empregatício, subordinação ou remuneração, podendo encerrar sua colaboração mediante aviso prévio.</p>
+            <ul>
+              <li>Prestar atividades alinhadas à missão institucional, seguindo normas internas, protocolos de segurança e orientações da equipe técnica.</li>
+              <li>Manter confidencialidade sobre informações estratégicas ou sensíveis de beneficiários, parceiros e colaboradores.</li>
+              <li>Comunicar previamente ausências, zelar pelos materiais fornecidos e devolver equipamentos quando solicitado.</li>
+              <li>Permitir o tratamento de dados pessoais para fins de gestão do voluntariado, respeitando os princípios da LGPD e garantindo direito de acesso, correção e revogação.</li>
+              <li>Declarar estar em condições físicas e psicológicas para exercer as atividades indicadas, assumindo responsabilidade por informações prestadas.</li>
+            </ul>
+          </section>
+          <section class="abnt-section">
+            <h2>3. AUTORIZAÇÃO DE USO DE IMAGEM E VOZ</h2>
+            <p>Autorizo, de forma gratuita, a captação, edição, reprodução e divulgação de minha imagem, voz e nome em fotos, vídeos, transmissões, materiais impressos ou digitais vinculados às ações institucionais.</p>
+            <ul>
+              <li>A autorização é válida por prazo indeterminado e em todo território nacional, podendo ser revogada mediante solicitação formal, preservando-se o uso de materiais já publicados.</li>
+              <li>Não haverá ônus financeiro, tampouco obrigação de contraprestação pela instituição.</li>
+              <li>As imagens poderão ser utilizadas em relatórios, campanhas, redes sociais, websites institucionais, peças gráficas e materiais de prestação de contas a financiadores.</li>
+            </ul>
+          </section>
+          <section class="abnt-section">
+            <h2>4. SAÚDE E SEGURANÇA</h2>
+            <p>Comprometo-me a seguir as orientações de segurança fornecidas, utilizar EPIs quando necessário, comunicar condições de saúde que possam impactar minha atuação e cumprir protocolos emergenciais definidos pela instituição.</p>
+          </section>
+          <section class="abnt-section">
+            <h2>5. VIGÊNCIA E FORO</h2>
+            <p>O presente termo vigora enquanto perdurar a participação voluntária. As partes elegem o foro da comarca da sede da instituição para dirimir eventuais controvérsias.</p>
+          </section>
+          <div class="signature">
+            <p><strong>Local e data:</strong> ________________________________</p>
+            <p><strong>Assinatura do(a) voluntário(a):</strong> _____________________________________________</p>
+            <p><strong>Assinatura do(a) representante da instituição:</strong> _______________________________</p>
+          </div>
+          <footer class="abnt-footer">
+            <p><strong>${this.instituicao.razaoSocial}</strong> · CNPJ ${this.instituicao.cnpj}</p>
+            <p>${this.instituicao.endereco}</p>
+            <p>Contato: ${this.instituicao.telefone} · ${this.instituicao.email}</p>
+          </footer>
+        </body>
+      </html>
+    `);
+
+    termoWindow.document.close();
+    termoWindow.focus();
+    termoWindow.print();
+  }
+
+printVolunteer(volunteer: VolunteerRecord): void {
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha do voluntário ${volunteer.nome}</title>
+          <style>${this.abntStyles()}</style>
+        </head>
+        <body>
+          <header class="abnt-header">
+            <div>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
+              <h1>FICHA DE VOLUNTÁRIO</h1>
+            </div>
+            <p class="abnt-subtitle">Registro completo do voluntário para controle interno.</p>
+          </header>
+          <section class="abnt-section">
+            <h2>1. IDENTIFICAÇÃO</h2>
+            <p><strong>Nome:</strong> ${volunteer.nome}</p>
+            <p><strong>CPF:</strong> ${volunteer.cpf}</p>
+            <p><strong>E-mail:</strong> ${volunteer.email}</p>
+            <p><strong>Telefone:</strong> ${volunteer.telefone || 'Não informado'}</p>
+            <p><strong>Cidade/UF:</strong> ${volunteer.cidade || '---'} / ${volunteer.estado || '--'}</p>
+          </section>
+          <section class="abnt-section">
+            <h2>2. COMPETÊNCIAS E INTERESSES</h2>
+            <p><strong>Área de interesse:</strong> ${volunteer.areaInteresse || 'Não informado'}</p>
+            <p><strong>Habilidades:</strong> ${volunteer.habilidades || 'Não informado'}</p>
+            <p><strong>Idiomas:</strong> ${volunteer.idiomas || 'Não informado'}</p>
+            <p><strong>Motivação:</strong> ${volunteer.motivacao || 'Não informado'}</p>
+          </section>
+          <section class="abnt-section">
+            <h2>3. DISPONIBILIDADE</h2>
+            <p><strong>Dias:</strong> ${this.formatArray(volunteer.disponibilidadeDias)}</p>
+            <p><strong>Períodos:</strong> ${this.formatArray(volunteer.disponibilidadePeriodos)}</p>
+            <p><strong>Carga horária:</strong> ${volunteer.cargaHoraria || 'Não informado'}</p>
+            <p><strong>Formato:</strong> ${(volunteer.presencial ? 'Presencial ' : '') + (volunteer.remoto ? 'Remoto' : '') || 'Não informado'}</p>
+            <p><strong>Início previsto:</strong> ${volunteer.inicioPrevisto || 'Não informado'}</p>
+            <p><strong>Observações:</strong> ${volunteer.observacoes || '---'}</p>
+          </section>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }
+
+printVolunteerList(): void {
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) return;
+
+    const rows = this.volunteers
+      .map(
+        (volunteer, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${volunteer.nome}</td>
+            <td>${volunteer.areaInteresse || '---'}</td>
+            <td>${volunteer.disponibilidadeDias?.join(', ') || '---'}</td>
+            <td>${volunteer.telefone || '---'}</td>
+          </tr>
+        `
+      )
+      .join('');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Relação de voluntários</title>
+          <style>
+            ${this.abntStyles()}
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+            th { background: #f1f5f9; font-weight: 700; }
+          </style>
+        </head>
+        <body>
+          <header class="abnt-header">
+            <div>
+              <p class="abnt-organization">${this.instituicao.razaoSocial}</p>
+              <p class="abnt-organization">CNPJ ${this.instituicao.cnpj}</p>
+              <h1>RELAÇÃO DE VOLUNTÁRIOS</h1>
+            </div>
+            <p class="abnt-subtitle">Lista de voluntários cadastrados para impressão.</p>
+          </header>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Área</th>
+                <th>Disponibilidade</th>
+                <th>Contato</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  }
+
+abntStyles(): string {
+    return `
+      @page { margin: 3cm 2cm 2cm 3cm; }
+      body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; color: #0f172a; }
+      h1 { margin: 0 0 12px; font-size: 14pt; text-align: center; font-weight: 700; letter-spacing: 0.02em; }
+      h2 { margin: 16px 0 8px; font-size: 12pt; text-transform: uppercase; }
+      p, li { margin: 6px 0; }
+      ul { margin: 6px 0 6px 18px; padding: 0; }
+      .abnt-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; }
+      .abnt-organization { margin: 0; text-transform: uppercase; font-size: 10pt; letter-spacing: 0.04em; }
+      .abnt-subtitle { margin: 0; font-size: 10pt; color: #475569; text-align: right; }
+      .abnt-section { margin-top: 8px; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 8px; }
+      .signature { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; display: grid; gap: 10px; }
+      .abnt-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #475569; font-size: 10pt; }
+    `;
+  }

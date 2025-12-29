@@ -11,6 +11,7 @@ import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastr
 import { SystemVersionComponent } from './components/system-version/system-version.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { DonationManagementComponent } from './components/donation-management/donation-management.component';
+import { RecebimentoDoacaoComponent } from './components/recebimento-doacao/recebimento-doacao.component';
 import { AlmoxarifadoComponent } from './components/almoxarifado/almoxarifado.component';
 import { VoluntariadoCadastroComponent } from './components/voluntariado-cadastro/voluntariado-cadastro.component';
 import { ContabilidadeComponent } from './components/contabilidade/contabilidade.component';
@@ -25,8 +26,7 @@ import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
 import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
-import { AssistenteTextosComponent } from './components/assistente-textos/assistente-textos.component';
-import { ProntuarioComponent } from './components/prontuario/prontuario.component';
+import { ProntuarioPageComponent } from './components/prontuario-page/prontuario-page.component';
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
 import { DataManagementComponent } from './components/data-management/data-management.component';
@@ -41,25 +41,31 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard/visao-geral', pathMatch: 'full' },
-      { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visão geral' } },
+      { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visao geral' } },
       { path: 'dashboard/indicadores', component: DashboardIndicatorsComponent, data: { title: 'Indicadores' } },
       { path: 'dashboard/gerencial', component: DashboardBiComponent, data: { title: 'Dashboard gerencial' } },
-      { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiários' } },
+      { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiarios' } },
+      { path: 'beneficiarios/:id/prontuario', redirectTo: 'atendimentos/prontuario/:id', pathMatch: 'full' },
+      { path: 'atendimentos/prontuario', component: ProntuarioPageComponent, data: { title: 'Prontuario' } },
       {
-        path: 'beneficiarios/:id/prontuario',
-        component: ProntuarioComponent,
-        data: { title: 'Prontuário' }
+        path: 'atendimentos/prontuario/:beneficiarioId',
+        component: ProntuarioPageComponent,
+        data: { title: 'Prontuario' }
       },
       { path: 'beneficiarios/novo', redirectTo: 'cadastros/beneficiarios', pathMatch: 'full' },
       { path: 'beneficiarios/editar/:id', redirectTo: 'cadastros/beneficiarios/:id', pathMatch: 'full' },
       { path: 'unidades/cadastro', component: AssistanceUnitComponent, data: { title: 'Unidades assistenciais' } },
-      { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiário' } },
-      { path: 'cadastros/beneficiarios/:id', component: BeneficiarioCadastroComponent, data: { title: 'Editar Beneficiário' } },
-      { path: 'cadastros/vinculo-familiar', component: VinculoFamiliarComponent, data: { title: 'Vínculo familiar' } },
+      { path: 'cadastros/beneficiarios', component: BeneficiarioCadastroComponent, data: { title: 'Cadastro de Beneficiario' } },
+      {
+        path: 'cadastros/beneficiarios/:id',
+        component: BeneficiarioCadastroComponent,
+        data: { title: 'Editar Beneficiario' }
+      },
+      { path: 'cadastros/vinculo-familiar', component: VinculoFamiliarComponent, data: { title: 'Vinculo familiar' } },
       {
         path: 'cadastros/voluntariados',
         component: VoluntariadoCadastroComponent,
-        data: { title: 'Cadastro de Voluntário' }
+        data: { title: 'Cadastro de Voluntario' }
       },
       {
         path: 'cadastros/profissionais',
@@ -69,7 +75,12 @@ export const routes: Routes = [
       {
         path: 'atendimentos/doacoes',
         component: DonationManagementComponent,
-        data: { title: 'Registrar doações' }
+        data: { title: 'Registrar doacoes' }
+      },
+      {
+        path: 'atendimentos/recebimento-doacao',
+        component: RecebimentoDoacaoComponent,
+        data: { title: 'Recebimento de doacao' }
       },
       {
         path: 'atendimentos/visitas',
@@ -94,12 +105,12 @@ export const routes: Routes = [
       {
         path: 'administrativo/oficios',
         component: OficiosGestaoComponent,
-        data: { title: 'Gestão de ofícios' }
+        data: { title: 'Gestao de oficios' }
       },
       {
         path: 'administrativo/documentos',
         component: DocumentosInstitucionaisComponent,
-        data: { title: 'Gestão de Documentos da Instituição' }
+        data: { title: 'Gestao de Documentos da Instituicao' }
       },
       {
         path: 'administrativo/almoxarifado',
@@ -109,17 +120,17 @@ export const routes: Routes = [
       {
         path: 'administrativo/tarefas',
         component: TarefasPendenciasComponent,
-        data: { title: 'Tarefas e pendências' }
+        data: { title: 'Tarefas e pendencias' }
       },
       {
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
-        data: { title: 'Versão do sistema' }
+        data: { title: 'Versao do sistema' }
       },
       {
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
-        data: { title: 'Parâmetros do sistema' }
+        data: { title: 'Parametros do sistema' }
       },
       { path: 'configuracoes/sistema', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
       {
@@ -136,7 +147,7 @@ export const routes: Routes = [
       {
         path: 'configuracoes/importacao',
         component: ImportManagementComponent,
-        data: { title: 'Importação de dados' }
+        data: { title: 'Importacao de dados' }
       },
       {
         path: 'configuracoes/personalizacao',
@@ -151,12 +162,12 @@ export const routes: Routes = [
       {
         path: 'financeiro/prestacao-contas',
         component: PrestacaoContasComponent,
-        data: { title: 'Prestação de contas' }
+        data: { title: 'Prestacao de contas' }
       },
       {
         path: 'financeiro/autorizacao-compras',
         component: AutorizacaoComprasComponent,
-        data: { title: 'Autorização de compras' }
+        data: { title: 'Autorizacao de compras' }
       },
       {
         path: 'juridico/planos-trabalho',
@@ -167,11 +178,6 @@ export const routes: Routes = [
         path: 'juridico/termos-fomento',
         component: TermosFomentoGestaoComponent,
         data: { title: 'Termos de Fomento' }
-      },
-      {
-        path: 'assistente-textos',
-        component: AssistenteTextosComponent,
-        data: { title: 'Assistente de textos' }
       },
       {
         path: 'georeferenciamento/localizacao',

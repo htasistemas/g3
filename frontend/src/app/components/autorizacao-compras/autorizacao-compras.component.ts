@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   faArrowLeft,
   faArrowRight,
@@ -115,7 +116,7 @@ interface SupplierRegistryEntry {
   templateUrl: './autorizacao-compras.component.html',
   styleUrl: './autorizacao-compras.component.scss'
 })
-export class AutorizacaoComprasComponent {
+export class AutorizacaoComprasComponent extends TelaBaseComponent {
   readonly faPrint = faPrint;
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
@@ -127,6 +128,14 @@ export class AutorizacaoComprasComponent {
   readonly faFileSignature = faFileSignature;
   readonly faWarehouse = faWarehouse;
   readonly quotationThreshold = 300;
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
 
   readonly cnpjRegistry: Record<string, SupplierRegistryEntry> = {
     '33000167000101': {
@@ -418,6 +427,56 @@ export class AutorizacaoComprasComponent {
     reservationNumber: '',
     observation: ''
   };
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    const hasSelected = Boolean(this.selectedRequest);
+    const canSave =
+      Boolean(this.newRequestForm.title?.trim()) &&
+      Boolean(this.newRequestForm.requester?.trim()) &&
+      Boolean(this.newRequestForm.justification?.trim());
+
+    return {
+      salvar: !canSave,
+      excluir: !hasSelected,
+      imprimir: false,
+      novo: false,
+      cancelar: false
+    };
+  }
+
+  salvarSolicitacao(): void {
+    this.createRequest();
+  }
+
+  iniciarNovaSolicitacao(): void {
+    this.limparFormularioSolicitacao();
+    this.activeStep = 'solicitacao';
+  }
+
+  limparFormularioSolicitacao(): void {
+    this.newRequestForm = {
+      title: '',
+      type: 'produto',
+      requester: '',
+      area: '',
+      expectedDate: '',
+      value: 0,
+      justification: '',
+      budgetCenter: ''
+    };
+  }
+
+  removerSolicitacaoSelecionada(): void {
+    const selected = this.selectedRequest;
+    if (!selected) return;
+
+    this.requests = this.requests.filter((req) => req.id !== selected.id);
+    this.selectedRequestId = this.requests[0]?.id ?? '';
+  }
+
+  fecharTela(): void {
+    window.history.back();
+  }
 
   conclusionForm = {
     documentNumber: '',

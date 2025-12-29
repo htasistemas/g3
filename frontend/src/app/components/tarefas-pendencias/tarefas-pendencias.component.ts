@@ -209,7 +209,14 @@ export class TarefasPendenciasComponent {
   }
 
   private loadResponsaveis(): void {
-    this.responsaveisSugeridos = this.professionalService.list().map((prof) => prof.nome);
+    this.professionalService.list().subscribe({
+      next: (profissionais) => {
+        this.responsaveisSugeridos = profissionais.map((prof) => prof.nomeCompleto);
+      },
+      error: () => {
+        this.responsaveisSugeridos = [];
+      }
+    });
   }
 
   isOverdue(task: TaskRecord): boolean {

@@ -1,87 +1,126 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export interface ProntuarioIdentificacao {
-  unidadeReferencia?: string;
-  responsavelTecnico?: string;
-  dataAbertura?: string;
-  observacoes?: string;
-}
+export type ProntuarioTipoRegistro =
+  | 'atendimento'
+  | 'procedimento'
+  | 'evolucao'
+  | 'encaminhamento'
+  | 'visita_domiciliar'
+  | 'outro';
 
-export interface ProntuarioComposicaoFamiliarItem {
-  id?: string;
-  nome?: string;
-  parentesco?: string;
-  renda?: string | null;
-  responsavelFamiliar?: boolean;
-}
-
-export interface ProntuarioComposicaoFamiliar {
-  familiaId?: string;
-  resumo?: string;
-  membros?: ProntuarioComposicaoFamiliarItem[];
-}
-
-export interface ProntuarioParticipacao {
-  servicoOuProjeto?: string;
-  papel?: string;
-  situacao?: string;
-  dataInicio?: string;
-  dataFim?: string;
-  observacoes?: string;
-}
-
-export interface ProntuarioAtendimento {
-  idProntuarioAtendimento?: string;
-  dataAtendimento?: string;
-  tipoAtendimento?: string;
-  descricao?: string;
-  responsavel?: string;
-  resultado?: string;
-}
-
-export interface ProntuarioEncaminhamento {
-  idProntuarioEncaminhamento?: string;
-  dataEncaminhamento?: string;
-  destino?: string;
-  motivo?: string;
-  responsavel?: string;
+export interface BeneficiarioResumo {
+  id: number;
+  nomeCompleto: string;
+  cpf?: string;
+  dataNascimento?: string;
+  nomeMae?: string;
+  whatsapp?: string;
+  telefone?: string;
+  endereco?: string;
   status?: string;
-  retornoPrevisto?: string;
-  observacoes?: string;
+  foto3x4?: string;
+  vulnerabilidades?: string[];
 }
 
-export interface ProntuarioPayload {
-  identificacao?: ProntuarioIdentificacao;
-  composicaoFamiliar?: ProntuarioComposicaoFamiliar;
-  situacoesVulnerabilidade?: string[];
-  participacoesServicos?: ProntuarioParticipacao[];
-  parecerTecnico?: string;
-  historicoAtendimentos?: ProntuarioAtendimento[];
-  encaminhamentos?: ProntuarioEncaminhamento[];
+export interface ProntuarioResumoResponse {
+  beneficiario: BeneficiarioResumo;
+  contagens: Record<string, number>;
+  ultimaAtualizacao?: string;
 }
 
-export interface ProntuarioResponse {
-  beneficiario: any;
-  prontuario?: ProntuarioPayload & { idProntuario: string };
-  composicaoFamiliar: any[];
-  historicoAtendimentos: ProntuarioAtendimento[];
-  encaminhamentos: ProntuarioEncaminhamento[];
+export interface ProntuarioRegistroRequest {
+  tipo: ProntuarioTipoRegistro;
+  dataRegistro: string;
+  profissionalId?: number | null;
+  unidadeId?: number | null;
+  titulo?: string;
+  descricao: string;
+  dadosExtra?: Record<string, unknown>;
+  status: 'aberto' | 'concluido' | 'cancelado';
+}
+
+export interface ProntuarioRegistroResponse extends ProntuarioRegistroRequest {
+  id: number;
+  beneficiarioId: number;
+  criadoEm?: string;
+  criadoPor?: number;
+  atualizadoEm?: string;
+  atualizadoPor?: number;
+}
+
+export interface ProntuarioRegistroListaResponse {
+  registros: ProntuarioRegistroResponse[];
+  total: number;
+  pagina: number;
+  tamanhoPagina: number;
+}
+
+export interface ProntuarioFiltro {
+  tipo?: string;
+  de?: string;
+  ate?: string;
+  profissionalId?: number | null;
+  unidadeId?: number | null;
+  status?: string;
+  texto?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProntuarioAnexoRequest {
+  nomeArquivo: string;
+  tipoMime?: string;
+  urlArquivo: string;
+}
+
+export interface ProntuarioAnexoResponse extends ProntuarioAnexoRequest {
+  id: number;
+  registroId: number;
+  criadoEm: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ProntuarioService {
-  private readonly baseUrl = `${environment.apiUrl}/api/prontuario`;
+  private readonly baseUrl = `${environment.apiUrl}/api`;
 
   constructor(private readonly http: HttpClient) {}
 
-  carregar(beneficiarioId: string): Observable<ProntuarioResponse> {
-    return this.http.get<ProntuarioResponse>(`${this.baseUrl}/${beneficiarioId}`);
+  obterResumo(beneficiarioId: number): Observable<ProntuarioResumoResponse> {
+    return this.http.get<ProntuarioResumoResponse>(`${this.baseUrl}/beneficiarios/${beneficiarioId}/prontuario/resumo`);
   }
 
-  salvar(beneficiarioId: string, payload: ProntuarioPayload): Observable<ProntuarioResponse> {
-    return this.http.post<ProntuarioResponse>(`${this.baseUrl}/${beneficiarioId}`, payload);
+  listarRegistros(beneficiarioId: number, filtros: ProntuarioFiltro): Observable<ProntuarioRegistroListaResponse> {
+    let params = new HttpParams();
+    Object.entries(filtros).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+    return this.http.get<ProntuarioRegistroListaResponse>(
+      `${this.baseUrl}/beneficiarios/${beneficiarioId}/prontuario/registros`,
+      { params }
+    );
+  }
+
+  criarRegistro(beneficiarioId: number, payload: ProntuarioRegistroRequest): Observable<ProntuarioRegistroResponse> {
+    return this.http.post<ProntuarioRegistroResponse>(
+      `${this.baseUrl}/beneficiarios/${beneficiarioId}/prontuario/registros`,
+      payload
+    );
+  }
+
+  atualizarRegistro(registroId: number, payload: ProntuarioRegistroRequest): Observable<ProntuarioRegistroResponse> {
+    return this.http.put<ProntuarioRegistroResponse>(`${this.baseUrl}/prontuario/registros/${registroId}`, payload);
+  }
+
+  removerRegistro(registroId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/prontuario/registros/${registroId}`);
+  }
+
+  adicionarAnexo(registroId: number, payload: ProntuarioAnexoRequest): Observable<ProntuarioAnexoResponse> {
+    return this.http.post<ProntuarioAnexoResponse>(`${this.baseUrl}/prontuario/registros/${registroId}/anexos`, payload);
   }
 }

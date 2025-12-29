@@ -13,9 +13,9 @@
   <section class="import-shell">
   <div class="quick-grid">
     <div class="card kpi" *ngFor="let target of targets">
-      <div class="kpi__icon" [ngClass]="{ 'kpi__icon--green': target.id === 'beneficiarios', 'kpi__icon--accent': target.id === 'almoxarifado' }">
+      <div class="kpi__icon" [ngClass]="{ 'kpi__icon--green': target.id === 'beneficiários', 'kpi__icon--accent': target.id === 'almoxarifado' }">
         <fa-icon
-          [icon]="target.id === 'beneficiarios' ? faUserPlus : target.id === 'patrimonio' ? faClipboardList : faWarehouse"
+          [icon]="target.id === 'beneficiários' ? faUserPlus : target.id === 'patrimonio' ? faClipboardList : faWarehouse"
         ></fa-icon>
       </div>
       <div>
@@ -47,7 +47,7 @@
         <label class="field">
           <span>Importar para</span>
           <select class="input" formControlName="entity">
-            <option value="beneficiarios">Cadastro de beneficiário</option>
+            <option value="beneficiários">Cadastro de beneficiário</option>
             <option value="patrimonio">Cadastro de patrimônio</option>
             <option value="almoxarifado">Cadastro de almoxarifado</option>
           </select>

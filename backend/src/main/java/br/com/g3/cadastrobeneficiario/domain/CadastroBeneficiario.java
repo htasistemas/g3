@@ -7,11 +7,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import br.com.g3.unidadeassistencial.domain.Endereco;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "cadastro_beneficiario")
@@ -19,6 +23,9 @@ public class CadastroBeneficiario {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Column(name = "codigo", length = 20)
+  private String codigo;
 
   @Column(name = "nome_completo", length = 200, nullable = false)
   private String nomeCompleto;
@@ -31,6 +38,9 @@ public class CadastroBeneficiario {
 
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
+
+  @Column(name = "foto_3x4")
+  private String foto3x4;
 
   @Column(name = "sexo_biologico", length = 60)
   private String sexoBiologico;
@@ -59,9 +69,61 @@ public class CadastroBeneficiario {
   @Column(name = "nome_pai", length = 200)
   private String nomePai;
 
+  @Column(name = "status", length = 60)
+  private String status;
+
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "endereco_id")
   private Endereco endereco;
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<ContatoBeneficiario> contatos = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<DocumentoBeneficiario> documentos = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<SituacaoSocialBeneficiario> situacoesSociais = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<EscolaridadeBeneficiario> escolaridades = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<SaudeBeneficiario> saudes = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<BeneficiosBeneficiario> beneficios = new ArrayList<>();
+
+  @OneToMany(
+      mappedBy = "beneficiario",
+      cascade = CascadeType.ALL,
+      fetch = FetchType.EAGER,
+      orphanRemoval = true)
+  private List<ObservacoesBeneficiario> observacoesRegistros = new ArrayList<>();
 
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
@@ -75,6 +137,14 @@ public class CadastroBeneficiario {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public String getCodigo() {
+    return codigo;
+  }
+
+  public void setCodigo(String codigo) {
+    this.codigo = codigo;
   }
 
   public String getNomeCompleto() {
@@ -107,6 +177,14 @@ public class CadastroBeneficiario {
 
   public void setDataNascimento(LocalDate dataNascimento) {
     this.dataNascimento = dataNascimento;
+  }
+
+  public String getFoto3x4() {
+    return foto3x4;
+  }
+
+  public void setFoto3x4(String foto3x4) {
+    this.foto3x4 = foto3x4;
   }
 
   public String getSexoBiologico() {
@@ -181,12 +259,76 @@ public class CadastroBeneficiario {
     this.nomePai = nomePai;
   }
 
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
   public Endereco getEndereco() {
     return endereco;
   }
 
   public void setEndereco(Endereco endereco) {
     this.endereco = endereco;
+  }
+
+  public List<ContatoBeneficiario> getContatos() {
+    return contatos;
+  }
+
+  public void setContatos(List<ContatoBeneficiario> contatos) {
+    this.contatos = contatos;
+  }
+
+  public List<DocumentoBeneficiario> getDocumentos() {
+    return documentos;
+  }
+
+  public void setDocumentos(List<DocumentoBeneficiario> documentos) {
+    this.documentos = documentos;
+  }
+
+  public List<SituacaoSocialBeneficiario> getSituacoesSociais() {
+    return situacoesSociais;
+  }
+
+  public void setSituacoesSociais(List<SituacaoSocialBeneficiario> situacoesSociais) {
+    this.situacoesSociais = situacoesSociais;
+  }
+
+  public List<EscolaridadeBeneficiario> getEscolaridades() {
+    return escolaridades;
+  }
+
+  public void setEscolaridades(List<EscolaridadeBeneficiario> escolaridades) {
+    this.escolaridades = escolaridades;
+  }
+
+  public List<SaudeBeneficiario> getSaudes() {
+    return saudes;
+  }
+
+  public void setSaudes(List<SaudeBeneficiario> saudes) {
+    this.saudes = saudes;
+  }
+
+  public List<BeneficiosBeneficiario> getBeneficios() {
+    return beneficios;
+  }
+
+  public void setBeneficios(List<BeneficiosBeneficiario> beneficios) {
+    this.beneficios = beneficios;
+  }
+
+  public List<ObservacoesBeneficiario> getObservacoesRegistros() {
+    return observacoesRegistros;
+  }
+
+  public void setObservacoesRegistros(List<ObservacoesBeneficiario> observacoesRegistros) {
+    this.observacoesRegistros = observacoesRegistros;
   }
 
   public LocalDateTime getCriadoEm() {

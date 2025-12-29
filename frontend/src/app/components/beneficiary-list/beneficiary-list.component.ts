@@ -36,7 +36,7 @@ export class BeneficiaryListComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Não foi possível carregar os beneficiários. Tente novamente.';
+        this.error = 'Nao foi possivel carregar os beneficiarios. Tente novamente.';
         this.loading = false;
       }
     });
@@ -83,16 +83,16 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   getIvfLabel(beneficiary: BeneficiaryPayload): string {
-    return beneficiary.indiceVulnerabilidade?.faixaVulnerabilidade ?? 'Sem cálculo';
+    return beneficiary.indiceVulnerabilidade?.faixaVulnerabilidade ?? 'Sem calculo';
   }
 
   getBadgeClass(faixa?: string): string {
     switch (faixa) {
-      case 'Crítica':
+      case 'Critica':
         return 'bg-red-100 text-red-700';
       case 'Alta':
         return 'bg-orange-100 text-orange-700';
-      case 'Média':
+      case 'Media':
         return 'bg-amber-100 text-amber-700';
       case 'Baixa':
         return 'bg-green-100 text-green-700';

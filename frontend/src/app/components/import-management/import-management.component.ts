@@ -23,7 +23,7 @@ import {
   faWarehouse
 } from '@fortawesome/free-solid-svg-icons';
 
-type ImportEntity = 'beneficiarios' | 'patrimonio' | 'almoxarifado';
+type ImportEntity = 'beneficiários' | 'patrimonio' | 'almoxarifado';
 
 interface ImportField {
   key: string;
@@ -45,7 +45,7 @@ interface TargetConfig {
 
 const TARGET_CONFIGS: TargetConfig[] = [
   {
-    id: 'beneficiarios',
+    id: 'beneficiários',
     label: 'Cadastro de beneficiário',
     description: 'Dados essenciais para pré-preencher a ficha de beneficiário.',
     fields: [
@@ -93,14 +93,14 @@ const TARGET_CONFIGS: TargetConfig[] = [
 ];
 
 const FIELD_SYNONYMS: Record<ImportEntity, Record<string, string[]>> = {
-  beneficiarios: {
-    nome_completo: ['nome', 'beneficiario', 'nome completo'],
+  beneficiários: {
+    nome_completo: ['nome', 'beneficiário', 'nome completo'],
     cpf: ['cpf', 'documento', 'numero_cpf'],
     data_nascimento: ['data_nascimento', 'nascimento', 'dt_nasc', 'data nasc'],
     telefone_principal: ['telefone', 'celular', 'telefone1'],
     email: ['email', 'e-mail'],
     cep: ['cep', 'codigo_postal'],
-    logradouro: ['endereco', 'rua', 'logradouro'],
+    logradouro: ['endereço', 'rua', 'logradouro'],
     bairro: ['bairro'],
     municipio: ['municipio', 'cidade']
   },
@@ -127,7 +127,7 @@ const FIELD_SYNONYMS: Record<ImportEntity, Record<string, string[]>> = {
 };
 
 const SAMPLE_DATA: Record<ImportEntity, Record<string, string>[]> = {
-  beneficiarios: [
+  beneficiários: [
     {
       nome_completo: 'Marina Alves',
       cpf: '123.456.789-10',
@@ -228,7 +228,7 @@ export class ImportManagementComponent {
 
   constructor(private readonly fb: FormBuilder) {
     this.importForm = this.fb.group({
-      entity: new FormControl<ImportEntity>('beneficiarios', { nonNullable: true, validators: Validators.required }),
+      entity: new FormControl<ImportEntity>('beneficiários', { nonNullable: true, validators: Validators.required }),
       applyUppercase: [false]
     });
 

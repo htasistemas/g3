@@ -4,6 +4,7 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { filter, Subscription } from 'rxjs';
 import { AssistanceUnitPayload, AssistanceUnitService, DiretoriaUnidadePayload } from '../../services/assistance-unit.service';
+import { SalaRecord, SalasService } from '../../services/salas.service';
 import {
   ConfigAcoesCrud,
   EstadoAcoesCrud,
@@ -32,7 +33,7 @@ interface ViaCepResponse {
 export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs = [
     { id: 'dados', label: 'Dados da Unidade' },
-    { id: 'endereco', label: 'Endereço da Unidade' },
+    { id: 'endereço', label: 'Endereço da Unidade' },
     { id: 'imagens', label: 'Imagens da Unidade' },
     { id: 'diretoria', label: 'Diretoria da Unidade' },
     { id: 'lista', label: 'Unidades cadastradas' }
@@ -42,6 +43,8 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
   unidades: AssistanceUnitPayload[] = [];
   unidadesOrdenadas: AssistanceUnitPayload[] = [];
   unidadePrincipal: AssistanceUnitPayload | null = null;
+  salasUnidade: SalaRecord[] = [];
+  salasLoading = false;
   paginaAtual = 1;
   readonly tamanhoPagina = 10;
   logoPreview: string | null = null;
@@ -94,7 +97,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     'nomeFantasia',
     'razaoSocial',
     'horarioFuncionamento',
-    'endereco',
+    'endereço',
     'complemento',
     'bairro',
     'pontoReferencia',
@@ -107,7 +110,8 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     private readonly fb: FormBuilder,
     private readonly unitService: AssistanceUnitService,
     private readonly http: HttpClient,
-    private readonly cityService: CityService
+    private readonly cityService: CityService,
+    private readonly salasService: SalasService
   ) {
     super();
     this.form = this.fb.group({
@@ -117,7 +121,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       telefone: [''],
       email: ['', Validators.email],
       cep: [''],
-      endereco: [''],
+      endereço: [''],
       numeroEndereco: [''],
       complemento: [''],
       bairro: [''],
@@ -195,6 +199,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     this.logoPreview = unidade.logomarca || null;
     this.reportLogoPreview = unidade.logomarcaRelatorio || null;
     this.unitService.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
+    this.loadSalasUnidade(unidade.id);
     this.activeTab = 'dados';
     this.deleteConfirmation = false;
     this.dismissFeedback();
@@ -210,7 +215,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     if (invalido) {
       this.setFeedback({
         type: 'error',
-        message: 'Preencha nome completo, documento e funÇõÇœo para cada membro da diretoria.'
+        message: 'Preencha nome completo, documento e função para cada membro da diretoria.'
       });
       return;
     }
@@ -229,6 +234,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.logoPreview = created.logomarca || null;
         this.reportLogoPreview = created.logomarcaRelatorio || null;
         this.unitService.setActiveUnit(created.nomeFantasia, created.logomarca || null);
+        this.loadSalasUnidade(created.id);
         this.deleteConfirmation = false;
         this.loadUnits();
         this.setFeedback(
@@ -308,6 +314,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
             this.form.get('cep')?.setValue(this.formatCep(unidade.cep), { emitEvent: false });
           }
           this.unitService.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
+          this.loadSalasUnidade(unidade.id);
           return;
         }
         this.form.reset();
@@ -315,8 +322,77 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.logoPreview = null;
         this.reportLogoPreview = null;
         this.unitService.setActiveUnit('Navegacao', null);
+        this.salasUnidade = [];
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
+    });
+  }
+
+  addSala(value: string): void {
+    const nomeSala = formatTitleCase(value.trim());
+    if (!nomeSala) {
+      return;
+    }
+    if (!this.unidade?.id) {
+      this.setFeedback({ type: 'error', message: 'Salve a unidade antes de cadastrar salas.' });
+      return;
+    }
+
+    this.salasService.create({ nome: nomeSala, unidadeId: this.unidade.id }).subscribe({
+      next: (sala) => {
+        this.salasUnidade = [...this.salasUnidade, sala];
+        this.loadSalasUnidade(this.unidade?.id);
+        this.setFeedback(
+          { type: 'success', message: 'Sala adicionada com sucesso.' },
+          { autoDismiss: true }
+        );
+      },
+      error: () => {
+        this.setFeedback({ type: 'error', message: 'Não foi possível salvar a sala.' });
+      }
+    });
+  }
+
+  editSala(sala: SalaRecord): void {
+    if (!this.unidade?.id) {
+      return;
+    }
+    const next = window.prompt('Atualizar sala', sala.nome);
+    const nomeSala = formatTitleCase((next ?? '').trim());
+    if (!nomeSala || nomeSala === sala.nome) {
+      return;
+    }
+
+    this.salasService.update(sala.id, { nome: nomeSala, unidadeId: this.unidade.id }).subscribe({
+      next: (updated) => {
+        this.salasUnidade = this.salasUnidade.map((item) => (item.id === updated.id ? updated : item));
+        this.setFeedback(
+          { type: 'success', message: 'Sala atualizada com sucesso.' },
+          { autoDismiss: true }
+        );
+      },
+      error: () => {
+        this.setFeedback({ type: 'error', message: 'Não foi possível atualizar a sala.' });
+      }
+    });
+  }
+
+  removeSala(sala: SalaRecord): void {
+    if (!window.confirm(`Remover a sala "${sala.nome}"?`)) {
+      return;
+    }
+
+    this.salasService.remove(sala.id).subscribe({
+      next: () => {
+        this.salasUnidade = this.salasUnidade.filter((item) => item.id !== sala.id);
+        this.setFeedback(
+          { type: 'success', message: 'Sala removida com sucesso.' },
+          { autoDismiss: true }
+        );
+      },
+      error: () => {
+        this.setFeedback({ type: 'error', message: 'Não foi possível remover a sala.' });
+      }
     });
   }
 
@@ -327,6 +403,25 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.ordenarUnidades();
       },
       error: (error) => console.error('Erro ao listar unidades', error)
+    });
+  }
+
+  private loadSalasUnidade(unidadeId?: number): void {
+    if (!unidadeId) {
+      this.salasUnidade = [];
+      return;
+    }
+
+    this.salasLoading = true;
+    this.salasService.list(unidadeId).subscribe({
+      next: (salas) => {
+        this.salasUnidade = salas;
+        this.salasLoading = false;
+      },
+      error: () => {
+        this.salasUnidade = [];
+        this.salasLoading = false;
+      }
     });
   }
 
@@ -832,10 +927,10 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                             (membro) => `
                               <div class="data-item">
                                 <span class="label">${membro.funcao || 'Funcao'}</span>
-                                <p class="value">${membro.nomeCompleto || 'Nao informado'}</p>
-                                <p class="muted">${membro.documento || 'Documento nao informado'}</p>
+                                <p class="value">${membro.nomeCompleto || 'Não informado'}</p>
+                                <p class="muted">${membro.documento || 'Documento n?o informado'}</p>
                                 <p class="muted">
-                                  Mandato: ${membro.mandatoInicio || 'Nao informado'} - ${membro.mandatoFim || 'Nao informado'}
+                                  Mandato: ${membro.mandatoInicio || 'Não informado'} - ${membro.mandatoFim || 'Não informado'}
                                 </p>
                               </div>
                             `
@@ -843,7 +938,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                           .join('')
                       : `<div class="data-item">
                           <span class="label">Diretoria</span>
-                          <p class="value">Nao informada</p>
+                          <p class="value">N?o informada</p>
                           <p class="muted">Cadastre os membros na aba Diretoria.</p>
                         </div>`
                   }
@@ -871,7 +966,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
 
     printWindow.document.write(content);
     printWindow.document.close();
-    printWindow.history.replaceState({}, '', '/unidades/impressao');
+    printWindow.history.replaceState({}, '', '/unidades/impressão');
     printWindow.document.title = '';
     printWindow.focus();
     setTimeout(() => {
@@ -1090,7 +1185,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       .subscribe((response) => {
         this.form.patchValue({
           cep: this.formatCep(response.cep ?? cep),
-          endereco: response.logradouro || this.form.value.endereco,
+          endereço: response.logradouro || this.form.value.endereço,
           bairro: response.bairro || this.form.value.bairro,
           cidade: response.localidade || this.form.value.cidade,
           estado: response.uf || this.form.value.estado
@@ -1110,3 +1205,4 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       .trim();
   }
 }
+

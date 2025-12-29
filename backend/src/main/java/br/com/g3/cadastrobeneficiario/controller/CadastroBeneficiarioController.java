@@ -1,13 +1,21 @@
 package br.com.g3.cadastrobeneficiario.controller;
 
+import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioConsultaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioListaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
 import br.com.g3.cadastrobeneficiario.service.CadastroBeneficiarioService;
 import jakarta.validation.Valid;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,9 +55,36 @@ public class CadastroBeneficiarioController {
     return new CadastroBeneficiarioConsultaResponse(service.buscarPorId(id));
   }
 
+  @GetMapping("/{id}/documentos/{documentoId}")
+  public ResponseEntity<Resource> baixarDocumento(
+      @PathVariable("id") Long id, @PathVariable("documentoId") Long documentoId) {
+    DocumentoBeneficiario documento = service.obterDocumento(id, documentoId);
+    if (documento.getCaminhoArquivo() == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    Path caminho = java.nio.file.Paths.get(documento.getCaminhoArquivo());
+    if (!Files.exists(caminho)) {
+      return ResponseEntity.notFound().build();
+    }
+
+    String contentType =
+        documento.getContentType() != null ? documento.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+
+    Resource resource = new FileSystemResource(caminho);
+    return ResponseEntity.ok()
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + (documento.getNomeArquivo() != null ? documento.getNomeArquivo() : "documento") + "\"")
+        .contentType(MediaType.parseMediaType(contentType))
+        .body(resource);
+  }
+
   @GetMapping
-  public CadastroBeneficiarioListaResponse listar(@RequestParam(value = "nome", required = false) String nome) {
-    List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome);
+  public CadastroBeneficiarioListaResponse listar(
+      @RequestParam(value = "nome", required = false) String nome,
+      @RequestParam(value = "status", required = false) String status) {
+    List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome, status);
     return new CadastroBeneficiarioListaResponse(beneficiarios);
   }
 
@@ -57,5 +92,12 @@ public class CadastroBeneficiarioController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void remover(@PathVariable("id") Long id) {
     service.remover(id);
+  }
+
+  @PostMapping("/{id}/geocodificar-endereco")
+  public CadastroBeneficiarioConsultaResponse geocodificarEndereco(
+      @PathVariable("id") Long id, @RequestParam(name = "forcar", defaultValue = "false") boolean forcar) {
+    CadastroBeneficiarioResponse response = service.geocodificarEndereco(id, forcar);
+    return new CadastroBeneficiarioConsultaResponse(response);
   }
 }

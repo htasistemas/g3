@@ -1,0 +1,95 @@
+<div class="prontuario-filtros">
+  <div class="prontuario-filtros__topo" *ngIf="mostrarBuscaBeneficiario">
+    <label class="form-field">
+      <span>Buscar beneficiário</span>
+      <app-autocomplete
+        [placeholder]="'Nome ou CPF'"
+        [termo]="termoBusca"
+        [opcoes]="opcoesBeneficiarios"
+        [carregando]="carregandoBeneficiarios"
+        [erro]="erroBeneficiarios"
+        (termoChange)="termoBuscaChange.emit($event)"
+        (selecionar)="selecionarBeneficiario.emit($event)"
+      ></app-autocomplete>
+    </label>
+    <div class="resumo-selecionado" *ngIf="beneficiarioSelecionado">
+      <span class="resumo-selecionado__label">Selecionado:</span>
+      <span class="resumo-selecionado__value">{{ beneficiarioSelecionado.nomeCompleto }}</span>
+    </div>
+  </div>
+
+  <div class="prontuario-filtros__grid">
+    <label class="form-field">
+      <span>Período (de)</span>
+      <input
+        type="date"
+        class="input"
+        [ngModel]="filtros.de"
+        (ngModelChange)="atualizarFiltro('de', $event)"
+      />
+    </label>
+    <label class="form-field">
+      <span>Período (até)</span>
+      <input
+        type="date"
+        class="input"
+        [ngModel]="filtros.ate"
+        (ngModelChange)="atualizarFiltro('ate', $event)"
+      />
+    </label>
+    <label class="form-field">
+      <span>Tipo</span>
+      <select class="select" [ngModel]="filtros.tipo" (ngModelChange)="atualizarFiltro('tipo', $event)">
+        <option value="">Todos</option>
+        <option value="atendimento">Atendimento</option>
+        <option value="procedimento">Procedimento</option>
+        <option value="evolucao">Evolução</option>
+        <option value="encaminhamento">Encaminhamento</option>
+        <option value="visita_domiciliar">Visita domiciliar</option>
+        <option value="outro">Outro</option>
+      </select>
+    </label>
+    <label class="form-field">
+      <span>Status</span>
+      <select class="select" [ngModel]="filtros.status" (ngModelChange)="atualizarFiltro('status', $event)">
+        <option value="">Todos</option>
+        <option value="aberto">Aberto</option>
+        <option value="concluido">Concluído</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </label>
+    <label class="form-field">
+      <span>Profissional</span>
+      <input
+        type="number"
+        class="input"
+        [ngModel]="filtros.profissionalId"
+        (ngModelChange)="atualizarFiltro('profissionalId', toNumber($event))"
+        placeholder="ID do profissional"
+      />
+    </label>
+    <label class="form-field">
+      <span>Unidade</span>
+      <input
+        type="number"
+        class="input"
+        [ngModel]="filtros.unidadeId"
+        (ngModelChange)="atualizarFiltro('unidadeId', toNumber($event))"
+        placeholder="ID da unidade"
+      />
+    </label>
+    <label class="form-field prontuario-filtros__texto">
+      <span>Busca textual</span>
+      <input
+        type="text"
+        class="input"
+        [ngModel]="filtros.texto"
+        (ngModelChange)="atualizarFiltro('texto', $event)"
+        placeholder="Pesquisar no histórico"
+      />
+    </label>
+    <div class="prontuario-filtros__acoes">
+      <button type="button" class="ghost" (click)="limparFiltros()">Limpar filtros</button>
+    </div>
+  </div>
+</div>

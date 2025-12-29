@@ -48,12 +48,25 @@ export interface DashboardTermos {
   alertas: { numero: string; vigenciaFim?: string | null; status?: string | null }[];
 }
 
+export interface DashboardCadastros {
+  beneficiarios: number;
+  profissionais: number;
+  voluntarios: number;
+  familias: number;
+}
+
 export interface DashboardAssistenciaResponse {
   filters: { startDate: string | null; endDate: string | null };
+  cadastros: DashboardCadastros;
   top12: DashboardTop12;
   atendimento: DashboardAtendimento;
   familias: DashboardFamilias;
   termos: DashboardTermos;
+  financeiro: {
+    valoresAReceber: number;
+    valoresEmCaixa: number;
+    valoresEmBanco: number;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -80,8 +93,8 @@ export class DashboardAssistenciaService {
           this.data.set(response);
         },
         error: (error) => {
-          console.error('Erro ao carregar dashboard de assistência', error);
-          this.error.set('Não foi possível carregar os indicadores em tempo real.');
+          console.error('Erro ao carregar dashboard de assistencia', error);
+          this.error.set('Nao foi possivel carregar os indicadores em tempo real.');
         }
       });
   }

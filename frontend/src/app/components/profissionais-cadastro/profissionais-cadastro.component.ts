@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import {
   ProfessionalPayload,
@@ -16,64 +17,217 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { VoluntariadoTermoPrintService } from '../../shared/print/voluntariado-termo-print.service';
+import { SalaRecord, SalasService } from '../../services/salas.service';
 interface StepTab {
   id: string;
   label: string;
 }
 
+type ViaCepResponse = {
+  logradouro?: string;
+  complemento?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+};
+
 @Component({
   selector: 'app-profissionais-cadastro',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './profissionais-cadastro.component.html',
   styleUrl: './profissionais-cadastro.component.scss'
 })
 export class ProfissionaisCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
+  searchForm: FormGroup;
   feedback: string | null = null;
+  private feedbackTimeout?: ReturnType<typeof setTimeout>;
   popupErros: string[] = [];
   professionals: ProfessionalRecord[] = [];
+  filteredProfessionals: ProfessionalRecord[] = [];
   editingId: string | null = null;
   saving = false;
   unidadeAtual: AssistanceUnitPayload | null = null;
+  unidadesDisponiveis: AssistanceUnitPayload[] = [];
+  salasDisponiveis: SalaRecord[] = [];
+  salasLoading = false;
+  photoPreview: string | null = null;
+  cameraActive = false;
+  captureError: string | null = null;
+  private videoStream?: MediaStream;
+  cepLookupError: string | null = null;
+  paginaAtual = 1;
+  readonly tamanhoPagina = 10;
   private readonly capitalizationSubs: Array<() => void> = [];
   private readonly destroy$ = new Subject<void>();
 
   tabs: StepTab[] = [
+    { id: 'dados', label: 'Dados pessoais' },
+    { id: 'endereço', label: 'Endereço' },
     { id: 'perfil', label: 'Perfil profissional' },
     { id: 'agenda', label: 'Agenda e canais' },
-    { id: 'resumo', label: 'Resumo e observacoes' }
+    { id: 'resumo', label: 'Resumo e observacoes' },
+    { id: 'lista', label: 'Listagem de profissionais' }
   ];
-  activeTab: StepTab['id'] = 'perfil';
+  activeTab: StepTab['id'] = 'dados';
 
   categorias = ['Assistente social', 'Psicologo(a)', 'Pedagogo(a)', 'Medico(a)', 'Nutricionista'];
   readonly disponibilidades = ['Manha', 'Tarde', 'Noite'];
   readonly canais = ['Presencial', 'Online', 'Telefone'];
-  readonly statuses: ProfessionalStatus[] = ['Disponivel', 'Em atendimento', 'Em intervalo', 'Indisponivel'];
-  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Familias', 'Juventude', 'Visitas', 'Oficinas'];
+  readonly statuses: ProfessionalStatus[] = [
+    'ATIVO',
+    'INATIVO',
+    'DESATUALIZADO',
+    'INCOMPLETO',
+    'EM_ANALISE',
+    'BLOQUEADO'
+  ];
+  readonly vinculos = [
+    { value: 'VOLUNTARIO', label: 'Voluntario' },
+    { value: 'CLT', label: 'CLT' },
+    { value: 'PJ', label: 'PJ' }
+  ];
+  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Famílias', 'Juventude', 'Visitas', 'Oficinas'];
+  readonly brazilianStates = [
+    'AC',
+    'AL',
+    'AM',
+    'AP',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MG',
+    'MS',
+    'MT',
+    'PA',
+    'PB',
+    'PE',
+    'PI',
+    'PR',
+    'RJ',
+    'RN',
+    'RO',
+    'RR',
+    'RS',
+    'SC',
+    'SE',
+    'SP',
+    'TO'
+  ];
+  readonly maritalStatusOptions = [
+    'Solteiro(a)',
+    'Casado(a)',
+    'Uniao estavel',
+    'Separado(a)',
+    'Divorciado(a)',
+    'Viuvo(a)'
+  ];
+  readonly nationalityOptions = [
+    'Afegao(oa)',
+    'Alemao(oa)',
+    'Angolano(a)',
+    'Argentino(a)',
+    'Australiano(a)',
+    'Belga',
+    'Boliviano(a)',
+    'Brasileira',
+    'Brasileiro',
+    'Canadense',
+    'Chileno(a)',
+    'Chinesa(o)',
+    'Colombiano(a)',
+    'Coreano(a)',
+    'Costa-riquenho(a)',
+    'Cubano(a)',
+    'Dinamarquesa(o)',
+    'Egipcio(a)',
+    'Espanhol(a)',
+    'Estadunidense',
+    'Filipino(a)',
+    'Finlandes(a)',
+    'Frances(a)',
+    'Grego(a)',
+    'Haitiano(a)',
+    'Holandes(a)',
+    'Indiano(a)',
+    'Irlandes(a)',
+    'Italiano(a)',
+    'Japones(a)',
+    'Mexicano(a)',
+    'Mocambicano(a)',
+    'Noruegues(a)',
+    'Paraguaio(a)',
+    'Peruano(a)',
+    'Portugues(a)',
+    'Russo(a)',
+    'Sul-africano(a)',
+    'Sueco(a)',
+    'Suico(a)',
+    'Uruguaio(a)',
+    'Venezuelano(a)'
+  ];
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly professionalService: ProfessionalService,
     private readonly assistanceUnitService: AssistanceUnitService,
-    private readonly termoPrintService: VoluntariadoTermoPrintService
+    private readonly termoPrintService: VoluntariadoTermoPrintService,
+    private readonly http: HttpClient,
+    private readonly salasService: SalasService
   ) {
     super();
     this.form = this.fb.group({
-      nome: ['', Validators.required],
+      dadosPessoais: this.fb.group({
+        nome_completo: ['', Validators.required],
+        data_nascimento: ['', Validators.required],
+        foto_3x4: [''],
+        sexo_biologico: [''],
+        estado_civil: [''],
+        nacionalidade: [''],
+        naturalidade_cidade: [''],
+        naturalidade_uf: [''],
+        nome_mae: ['', Validators.required],
+      }),
+      endereço: this.fb.group({
+        cep: ['', [Validators.required, this.cepValidator]],
+        logradouro: [''],
+        numero: [''],
+        complemento: [''],
+        bairro: [''],
+        ponto_referencia: [''],
+        municipio: [''],
+        zona: [''],
+        subzona: [''],
+        uf: ['']
+      }),
       categoria: [this.categorias[0], Validators.required],
+      cpf: ['', [Validators.required, this.cpfValidator]],
+      vinculo: ['VOLUNTARIO'],
       registroConselho: [''],
       especialidade: [''],
       email: ['', [Validators.required, Validators.email]],
       telefone: [''],
+      unidadeId: [null],
       unidade: [''],
+      salaAtendimento: [''],
       cargaHoraria: [20, [Validators.min(1)]],
       disponibilidade: this.fb.control<string[]>([]),
       canaisAtendimento: this.fb.control<string[]>(['Presencial']),
-      status: ['Disponivel', Validators.required],
+      status: ['EM_ANALISE', Validators.required],
       tags: this.fb.control<string[]>([]),
       resumo: [''],
       observacoes: ['']
+    });
+    this.searchForm = this.fb.group({
+      nome: [''],
+      categoria: [''],
+      email: [''],
+      status: ['']
     });
 
     this.loadProfessionals();
@@ -84,17 +238,102 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     this.assistanceUnitService.get().pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ unidade }) => {
         this.unidadeAtual = unidade ?? null;
+        this.definirUnidadePadrao(unidade ?? null);
       },
       error: () => {
         this.unidadeAtual = null;
       }
     });
+
+    this.assistanceUnitService.list().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (unidades) => {
+        this.unidadesDisponiveis = unidades;
+        this.sincronizarUnidadeSelecionada();
+      },
+      error: () => {
+        this.unidadesDisponiveis = [];
+      }
+    });
+  }
+
+  private definirUnidadePadrao(unidade: AssistanceUnitPayload | null): void {
+    if (!unidade?.id) return;
+
+    const unidadeIdAtual = this.form.get('unidadeId')?.value;
+    const unidadeNomeAtual = (this.form.get('unidade')?.value ?? '').trim();
+    if (unidadeIdAtual || unidadeNomeAtual) return;
+
+    this.form.patchValue({ unidadeId: unidade.id, unidade: unidade.nomeFantasia });
+    this.carregarSalas(unidade.id);
+  }
+
+  private sincronizarUnidadeSelecionada(): void {
+    const unidadeIdAtual = this.form.get('unidadeId')?.value as number | null;
+    if (unidadeIdAtual) {
+      this.carregarSalas(unidadeIdAtual);
+      return;
+    }
+
+    const unidadeNomeAtual = (this.form.get('unidade')?.value ?? '').trim().toLowerCase();
+    if (!unidadeNomeAtual) {
+      this.definirUnidadePadrao(this.unidadeAtual);
+      return;
+    }
+
+    const unidadeEncontrada = this.unidadesDisponiveis.find(
+      (item) => (item.nomeFantasia ?? '').trim().toLowerCase() === unidadeNomeAtual
+    );
+    if (unidadeEncontrada?.id) {
+      this.form.patchValue({ unidadeId: unidadeEncontrada.id });
+      this.carregarSalas(unidadeEncontrada.id);
+    }
+  }
+
+  onUnidadeSelecionada(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    const unidadeId = value ? Number(value) : null;
+    if (!unidadeId) {
+      this.form.patchValue({ unidadeId: null, unidade: '', salaAtendimento: '' });
+      this.salasDisponiveis = [];
+      return;
+    }
+
+    const unidade = this.unidadesDisponiveis.find((item) => item.id === unidadeId);
+    this.form.patchValue({
+      unidadeId,
+      unidade: unidade?.nomeFantasia ?? '',
+      salaAtendimento: ''
+    });
+    this.carregarSalas(unidadeId);
+  }
+
+  private carregarSalas(unidadeId: number | null): void {
+    if (!unidadeId) {
+      this.salasDisponiveis = [];
+      return;
+    }
+
+    this.salasLoading = true;
+    this.salasService
+      .list(unidadeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (salas) => {
+          this.salasDisponiveis = salas;
+          this.salasLoading = false;
+        },
+        error: () => {
+          this.salasDisponiveis = [];
+          this.salasLoading = false;
+        }
+      });
   }
 
   ngOnDestroy(): void {
     this.capitalizationSubs.forEach((unsubscribe) => unsubscribe());
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearFeedbackTimeout();
   }
 
   get activeTabIndex(): number {
@@ -111,6 +350,15 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
 
   get nextTabLabel(): string {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+  }
+
+  get professionalsPaginados(): ProfessionalRecord[] {
+    const inicio = (this.paginaAtual - 1) * this.tamanhoPagina;
+    return this.filteredProfessionals.slice(inicio, inicio + this.tamanhoPagina);
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.filteredProfessionals.length / this.tamanhoPagina));
   }
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
@@ -139,6 +387,24 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     this.activeTab = tab;
   }
 
+  searchProfessionalsList(): void {
+    this.applyListFilters();
+  }
+
+  clearSearchFilters(): void {
+    this.searchForm.reset({ nome: '', categoria: '', email: '', status: '' });
+    this.applyListFilters();
+  }
+
+  paginaAnterior(): void {
+    this.paginaAtual = Math.max(1, this.paginaAtual - 1);
+  }
+
+  proximaPagina(): void {
+    this.paginaAtual = Math.min(this.totalPaginas, this.paginaAtual + 1);
+  }
+
+
   goToNextTab(): void {
     if (this.hasNextTab) {
       this.changeTab(this.tabs[this.activeTabIndex + 1].id);
@@ -152,7 +418,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   }
 
   get totalDisponiveis(): number {
-    return this.professionals.filter((p) => p.status === 'Disponivel').length;
+    return this.professionals.filter((p) => p.status === 'ATIVO').length;
   }
 
   get totalOnline(): number {
@@ -164,16 +430,20 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   }
 
   submit(): void {
-    this.feedback = null;
+    this.clearFeedback();
     this.popupErros = [];
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       const builder = new PopupErrorBuilder();
       const requiredFields: { path: string; label: string }[] = [
-        { path: 'nome', label: 'Nome completo' },
+        { path: 'dadosPessoais.nome_completo', label: 'Nome completo' },
+        { path: 'dadosPessoais.data_nascimento', label: 'Data de nascimento' },
+        { path: 'dadosPessoais.nome_mae', label: 'Nome da mae' },
+        { path: 'cpf', label: 'CPF' },
         { path: 'categoria', label: 'Categoria' },
         { path: 'email', label: 'E-mail' },
-        { path: 'status', label: 'Status' }
+        { path: 'status', label: 'Status' },
+        { path: 'vinculo', label: 'Vínculo' }
       ];
 
       requiredFields.forEach(({ path, label }) => {
@@ -184,12 +454,12 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         }
       });
       this.popupErros = builder.build();
-      this.feedback = 'Preencha os campos obrigatorios para salvar o profissional.';
+      this.setFeedback('Preencha os campos obrigatorios para salvar o profissional.');
       return;
     }
 
     this.saving = true;
-    const payload = this.form.value as ProfessionalPayload;
+    const payload = this.buildPayload();
     const request = this.editingId
       ? this.professionalService.update(this.editingId, payload)
       : this.professionalService.create(payload);
@@ -198,17 +468,18 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       next: (record) => {
         if (this.editingId) {
           this.professionals = this.professionals.map((item) => (item.id === record.id ? record : item));
-          this.feedback = 'Profissional atualizado com sucesso.';
+          this.setFeedback('Profissional atualizado com sucesso.');
         } else {
           this.professionals = [record, ...this.professionals];
-          this.feedback = 'Profissional cadastrado com sucesso.';
+          this.setFeedback('Profissional cadastrado com sucesso.');
         }
         this.saving = false;
         this.resetForm();
-        this.changeTab('perfil');
+        this.changeTab('dados');
+        this.applyListFilters();
       },
       error: () => {
-        this.feedback = 'Nao foi possivel salvar o profissional. Tente novamente.';
+        this.setFeedback('Não foi possível salvar o profissional. Tente novamente.');
         this.saving = false;
       }
     });
@@ -252,7 +523,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
 
   startNew(): void {
     this.editingId = null;
-    this.changeTab('perfil');
+    this.changeTab('dados');
     this.resetForm();
   }
 
@@ -260,12 +531,37 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     this.editingId = record.id;
     this.changeTab('perfil');
     this.form.patchValue({
-      nome: record.nome,
+      dadosPessoais: {
+        nome_completo: record.nomeCompleto,
+        data_nascimento: record.dataNascimento ?? '',
+        foto_3x4: record.foto3x4 ?? '',
+        sexo_biologico: record.sexoBiologico ?? '',
+        estado_civil: record.estadoCivil ?? '',
+        nacionalidade: record.nacionalidade ?? '',
+        naturalidade_cidade: record.naturalidadeCidade ?? '',
+        naturalidade_uf: record.naturalidadeUf ?? '',
+        nome_mae: record.nomeMae ?? ''
+      },
+      endereço: {
+        cep: record.cep ? this.formatCep(record.cep) : '',
+        logradouro: record.logradouro ?? '',
+        numero: record.numero ?? '',
+        complemento: record.complemento ?? '',
+        bairro: record.bairro ?? '',
+        ponto_referencia: record.pontoReferencia ?? '',
+        municipio: record.municipio ?? '',
+        zona: record.zona ?? '',
+        subzona: record.subzona ?? '',
+        uf: record.uf ?? ''
+      },
       categoria: record.categoria,
+      cpf: record.cpf ? this.formatCpf(record.cpf) : '',
+      vinculo: record.vinculo ?? 'VOLUNTARIO',
       registroConselho: record.registroConselho,
       especialidade: record.especialidade,
       email: record.email,
       telefone: record.telefone,
+      salaAtendimento: record.salaAtendimento ?? '',
       unidade: record.unidade,
       cargaHoraria: record.cargaHoraria,
       disponibilidade: record.disponibilidade ?? [],
@@ -275,10 +571,12 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       resumo: record.resumo,
       observacoes: record.observacoes
     });
+    this.photoPreview = record.foto3x4 ?? null;
+    this.sincronizarUnidadeSelecionada();
   }
 
   remove(record: ProfessionalRecord): void {
-    if (!window.confirm(`Remover ${record.nome} do cadastro?`)) return;
+    if (!window.confirm(`Remover ${record.nomeCompleto} do cadastro?`)) return;
     this.professionalService
       .delete(record.id)
       .pipe(takeUntil(this.destroy$))
@@ -286,10 +584,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         next: () => {
           this.professionals = this.professionals.filter((item) => item.id !== record.id);
           this.resetForm();
-          this.changeTab('perfil');
+          this.changeTab('dados');
+          this.applyListFilters();
         },
         error: () => {
-          this.feedback = 'Nao foi possivel remover o profissional. Tente novamente.';
+          this.setFeedback('Não foi possível remover o profissional. Tente novamente.');
         }
       });
   }
@@ -325,29 +624,80 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   resetForm(): void {
     this.editingId = null;
     this.form.reset({
-      nome: '',
+      dadosPessoais: {
+        nome_completo: '',
+        data_nascimento: '',
+        foto_3x4: '',
+        sexo_biologico: '',
+        estado_civil: '',
+        nacionalidade: '',
+        naturalidade_cidade: '',
+        naturalidade_uf: '',
+        nome_mae: ''
+      },
+      endereço: {
+        cep: '',
+        logradouro: '',
+        numero: '',
+        complemento: '',
+        bairro: '',
+        ponto_referencia: '',
+        municipio: '',
+        zona: '',
+        subzona: '',
+        uf: ''
+      },
       categoria: this.categorias[0],
+      cpf: '',
+      vinculo: 'VOLUNTARIO',
       registroConselho: '',
       especialidade: '',
       email: '',
       telefone: '',
+      unidadeId: null,
       unidade: '',
+      salaAtendimento: '',
       cargaHoraria: 20,
       disponibilidade: [],
       canaisAtendimento: ['Presencial'],
-      status: 'Disponivel',
+      status: 'EM_ANALISE',
       tags: [],
       resumo: '',
       observacoes: ''
     });
+    this.photoPreview = null;
+    this.cepLookupError = null;
+    this.salasDisponiveis = [];
+    this.definirUnidadePadrao(this.unidadeAtual);
+  }
+
+  clearFeedback(): void {
+    this.feedback = null;
+    this.clearFeedbackTimeout();
+  }
+
+  private setFeedback(message: string, timeoutMs = 10000): void {
+    this.feedback = message;
+    this.clearFeedbackTimeout();
+    this.feedbackTimeout = setTimeout(() => {
+      this.feedback = null;
+      this.feedbackTimeout = undefined;
+    }, timeoutMs);
+  }
+
+  private clearFeedbackTimeout(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = undefined;
+    }
   }
 
   printProfessional(): void {
     const record = this.editingId ? this.professionals.find((item) => item.id === this.editingId) : null;
-    const data = record ?? (this.form.value as ProfessionalPayload);
+    const data = record ?? (this.buildPayload() as ProfessionalPayload);
 
-    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'Nao informado';
-    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'Nao informado';
+    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'Não informado';
+    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'Não informado';
     const tags = (data.tags ?? []).join(', ') || 'Sem tags definidas';
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -373,21 +723,21 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           <p class="pill">${data.status || 'Sem status'}</p>
           <dl>
             <dt>Nome completo</dt>
-            <dd>${data.nome || 'Nao informado'}</dd>
+            <dd>${data.nomeCompleto || 'Não informado'}</dd>
             <dt>Categoria</dt>
-            <dd>${data.categoria || 'Nao informado'}</dd>
+            <dd>${data.categoria || 'Não informado'}</dd>
             <dt>Especialidade</dt>
-            <dd>${data.especialidade || 'Nao informado'}</dd>
+            <dd>${data.especialidade || 'Não informado'}</dd>
             <dt>Registro em conselho</dt>
-            <dd>${data.registroConselho || 'Nao informado'}</dd>
+            <dd>${data.registroConselho || 'Não informado'}</dd>
             <dt>E-mail</dt>
-            <dd>${data.email || 'Nao informado'}</dd>
+            <dd>${data.email || 'Não informado'}</dd>
             <dt>Telefone/WhatsApp</dt>
-            <dd>${data.telefone || 'Nao informado'}</dd>
+            <dd>${data.telefone || 'Não informado'}</dd>
             <dt>Unidade de atendimento</dt>
-            <dd>${data.unidade || 'Nao informado'}</dd>
+            <dd>${data.unidade || 'Não informado'}</dd>
             <dt>Carga horaria</dt>
-            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Nao informado'}</dd>
+            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Não informado'}</dd>
             <dt>Disponibilidade</dt>
             <dd>${disponibilidade}</dd>
             <dt>Canais de atendimento</dt>
@@ -396,7 +746,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
             <dd>${tags}</dd>
             <dt>Resumo breve</dt>
             <dd>${data.resumo || 'Sem resumo'}</dd>
-            <dt>Observacoes internas</dt>
+            <dt>Observações internas</dt>
             <dd>${data.observacoes || 'Sem observacoes'}</dd>
           </dl>
         </body>
@@ -417,7 +767,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       return;
     }
 
-    if (!window.confirm(`Remover ${current.nome} do cadastro?`)) return;
+    if (!window.confirm(`Remover ${current.nomeCompleto} do cadastro?`)) return;
 
     this.professionalService
       .delete(current.id)
@@ -428,7 +778,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.startNew();
         },
         error: () => {
-          this.feedback = 'Nao foi possivel remover o profissional. Tente novamente.';
+          this.setFeedback('Não foi possível remover o profissional. Tente novamente.');
         }
       });
   }
@@ -456,9 +806,9 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   onPrint(): void {
     const profissionalAtual = this.editingId
       ? this.professionals.find((item) => item.id === this.editingId)
-      : (this.form.value as ProfessionalPayload);
+      : this.buildPayload();
     if (!profissionalAtual) {
-      this.feedback = 'Nao foi possivel obter os dados do profissional para imprimir.';
+      this.setFeedback('Não foi possível obter os dados do profissional para imprimir.');
       return;
     }
 
@@ -474,7 +824,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       nomeFantasia: unidade?.nomeFantasia,
       razaoSocial: unidade?.razaoSocial,
       cnpj: unidade?.cnpj,
-      endereco: unidade?.endereco,
+      endereço: unidade?.endereco,
       numeroEndereco: unidade?.numeroEndereco,
       complemento: unidade?.complemento,
       bairro: unidade?.bairro,
@@ -488,7 +838,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   private mapProfissionalParaTermo(profissional: ProfessionalRecord | ProfessionalPayload): any {
     const value = profissional as ProfessionalPayload;
     return {
-      nome: value.nome,
+      nome: value.nomeCompleto,
+      cpf: value.cpf,
       email: value.email,
       telefoneCelular: value.telefone,
       voluntariadoAtividades: value.tags ?? [],
@@ -504,11 +855,285 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       .subscribe({
         next: (records) => {
           this.professionals = records;
+          this.applyListFilters();
         },
         error: () => {
-          this.feedback = 'Nao foi possivel carregar os profissionais.';
+          this.setFeedback('Não foi possível carregar os profissionais.');
         }
       });
+  }
+
+  private applyListFilters(): void {
+    const { nome, categoria, email, status } = this.searchForm.value;
+    const filtroNome = this.normalizeText(nome);
+    const filtroCategoria = this.normalizeText(categoria);
+    const filtroEmail = this.normalizeText(email);
+    const filtroStatus = (status ?? '').toString().trim();
+
+    this.filteredProfessionals = (this.professionals ?? [])
+      .filter((item) => {
+        if (filtroNome && !this.normalizeText(item.nomeCompleto).includes(filtroNome)) return false;
+        if (filtroCategoria && !this.normalizeText(item.categoria).includes(filtroCategoria)) return false;
+        if (filtroEmail && !this.normalizeText(item.email).includes(filtroEmail)) return false;
+        if (filtroStatus && item.status !== filtroStatus) return false;
+        return true;
+      })
+      .sort((a, b) => this.normalizeText(a.nomeCompleto).localeCompare(this.normalizeText(b.nomeCompleto), 'pt-BR'));
+
+    this.paginaAtual = 1;
+  }
+
+  private normalizeText(value?: string | null): string {
+    return (value ?? '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  onCpfInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = this.formatCpf(input.value);
+    input.value = formatted;
+    this.form.get('cpf')?.setValue(formatted, { emitEvent: false });
+  }
+
+  private normalizeCpf(value?: string | null): string {
+    return (value ?? '').toString().replace(/\D/g, '');
+  }
+
+  private formatCpf(value?: string | null): string {
+    const digits = this.normalizeCpf(value);
+    const p1 = digits.slice(0, 3);
+    const p2 = digits.slice(3, 6);
+    const p3 = digits.slice(6, 9);
+    const p4 = digits.slice(9, 11);
+
+    if (digits.length <= 3) return p1;
+    if (digits.length <= 6) return `${p1}.${p2}`;
+    if (digits.length <= 9) return `${p1}.${p2}.${p3}`;
+    return `${p1}.${p2}.${p3}-${p4}`;
+  }
+
+  private cpfValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = this.normalizeCpf(control.value as string);
+    if (!value) return null;
+    if (value.length !== 11 || /^(\d)\1+$/.test(value)) return { cpfInvalid: true };
+
+    let sum = 0;
+    for (let i = 0; i < 9; i += 1) sum += Number(value.charAt(i)) * (10 - i);
+    let digit = 11 - (sum % 11);
+    if (digit > 9) digit = 0;
+    if (digit !== Number(value.charAt(9))) return { cpfInvalid: true };
+
+    sum = 0;
+    for (let i = 0; i < 10; i += 1) sum += Number(value.charAt(i)) * (11 - i);
+    digit = 11 - (sum % 11);
+    if (digit > 9) digit = 0;
+    return digit === Number(value.charAt(10)) ? null : { cpfInvalid: true };
+  };
+
+  private buildPayload(): ProfessionalPayload {
+    const value = this.form.value as any;
+    const dados = value.dadosPessoais ?? {};
+    const endereço = value.endereço ?? {};
+    return {
+      nomeCompleto: dados.nome_completo,
+      cpf: this.normalizeCpf(value.cpf),
+      dataNascimento: dados.data_nascimento,
+      foto3x4: dados.foto_3x4,
+      sexoBiologico: dados.sexo_biologico,
+      estadoCivil: dados.estado_civil,
+      nacionalidade: dados.nacionalidade,
+      naturalidadeCidade: dados.naturalidade_cidade,
+      naturalidadeUf: dados.naturalidade_uf,
+      nomeMae: dados.nome_mae,
+      cep: this.normalizeCep(endereço.cep),
+      logradouro: endereço.logradouro,
+      numero: endereço.numero,
+      complemento: endereço.complemento,
+      bairro: endereço.bairro,
+      pontoReferencia: endereço.ponto_referencia,
+      municipio: endereço.municipio,
+      zona: endereço.zona,
+      subzona: endereço.subzona,
+      uf: endereço.uf,
+      categoria: value.categoria,
+      vinculo: value.vinculo,
+      registroConselho: value.registroConselho,
+      especialidade: value.especialidade,
+      email: value.email,
+      telefone: value.telefone,
+      unidade: value.unidade,
+      salaAtendimento: value.salaAtendimento,
+      cargaHoraria: value.cargaHoraria,
+      disponibilidade: value.disponibilidade ?? [],
+      canaisAtendimento: value.canaisAtendimento ?? [],
+      status: value.status,
+      tags: value.tags ?? [],
+      resumo: value.resumo,
+      observacoes: value.observacoes
+    };
+  }
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.setPhotoPreview(dataUrl);
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto(): void {
+    this.photoPreview = null;
+    this.form.get(['dadosPessoais', 'foto_3x4'])?.reset();
+  }
+
+  private setPhotoPreview(dataUrl: string): void {
+    this.photoPreview = dataUrl;
+    this.form.get(['dadosPessoais', 'foto_3x4'])?.setValue(dataUrl);
+  }
+
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
+
+  async handleCameraCapture(): Promise<void> {
+    if (this.cameraActive) {
+      this.capturePhoto();
+      return;
+    }
+
+    await this.startCamera();
+  }
+
+  private async startCamera(): Promise<void> {
+    this.captureError = null;
+    try {
+      this.videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = this.videoElement?.nativeElement;
+      if (video) {
+        video.srcObject = this.videoStream;
+        this.cameraActive = true;
+        await video.play();
+      }
+    } catch (error) {
+      console.error('Erro ao iniciar camera', error);
+      this.captureError = 'Não foi possível acessar a camera.';
+      this.cameraActive = false;
+      if (this.videoStream) {
+        this.videoStream.getTracks().forEach((track) => track.stop());
+        this.videoStream = undefined;
+      }
+    }
+  }
+
+  private capturePhoto(): void {
+    const video = this.videoElement?.nativeElement;
+    const canvas = this.canvasElement?.nativeElement;
+    if (!video || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    canvas.width = 480;
+    canvas.height = 640;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/png');
+    this.setPhotoPreview(dataUrl);
+    this.stopCamera();
+  }
+
+  stopCamera(): void {
+    if (this.videoStream) {
+      this.videoStream.getTracks().forEach((track) => track.stop());
+      this.videoStream = undefined;
+    }
+    const video = this.videoElement?.nativeElement;
+    if (video) {
+      video.srcObject = null;
+    }
+    this.cameraActive = false;
+  }
+
+  private cepValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = (control.value as string | null | undefined)?.replace(/\D/g, '') ?? '';
+    if (!value) return null;
+    return value.length === 8 ? null : { cep: true };
+  };
+
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits;
+
+    if (digits.length > 5) {
+      formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    this.form.get(['endereço', 'cep'])?.setValue(formatted, { emitEvent: false });
+    this.cepLookupError = null;
+
+    if (digits.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  onCepBlur(): void {
+    const cepControl = this.form.get(['endereço', 'cep']);
+    if (!cepControl) return;
+
+    if (cepControl.invalid) {
+      this.cepLookupError = cepControl.value ? 'Informe um CEP valido para consultar o endereço.' : null;
+      return;
+    }
+
+    const digits = this.normalizeCep(cepControl.value as string);
+    if (digits?.length === 8) {
+      this.lookupAddressByCep(digits);
+    }
+  }
+
+  private lookupAddressByCep(cep: string): void {
+    this.cepLookupError = null;
+    this.http
+      .get<ViaCepResponse>(`https://viacep.com.br/ws/${cep}/json/`)
+      .pipe()
+      .subscribe({
+        next: (response) => {
+          if (response?.erro) {
+            this.cepLookupError = 'CEP n?o encontrado.';
+            return;
+          }
+
+          this.form.get('endereço')?.patchValue({
+            logradouro: response.logradouro ?? '',
+            bairro: response.bairro ?? '',
+            municipio: response.localidade ?? '',
+            uf: response.uf ?? ''
+          });
+        },
+        error: () => {
+          this.cepLookupError = 'Não foi possível consultar o CEP.';
+        }
+      });
+  }
+
+  private formatCep(value?: string | null): string {
+    const digits = this.normalizeCep(value ?? '');
+    if (!digits) return '';
+    return digits.length === 8 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+  }
+
+  private normalizeCep(value?: string | null): string | undefined {
+    const digits = (value ?? '').replace(/\D/g, '');
+    return digits || undefined;
   }
 
   private setupCapitalizationRules(): void {
@@ -526,7 +1151,21 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       this.capitalizationSubs.push(() => subscription.unsubscribe());
     };
 
-    ['nome', 'categoria', 'registroConselho', 'especialidade', 'telefone', 'unidade'].forEach(applyRule);
+    [
+      'dadosPessoais.nome_completo',
+      'dadosPessoais.naturalidade_cidade',
+      'dadosPessoais.nome_mae',
+      'endereço.logradouro',
+      'endereço.complemento',
+      'endereço.bairro',
+      'endereço.ponto_referencia',
+      'endereço.municipio',
+      'categoria',
+      'registroConselho',
+      'especialidade',
+      'telefone',
+      'unidade'
+    ].forEach(applyRule);
   }
 
   applyCapitalization(controlName: string, rawValue?: string): void {
@@ -543,3 +1182,4 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     }
   }
 }
+

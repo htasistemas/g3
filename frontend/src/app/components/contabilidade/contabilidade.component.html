@@ -1,11 +1,7 @@
 <app-tela-padrao>
 <header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Financeiro · Contabilidade</p>
+    <p class="page-title__eyebrow">Financeiro - Contabilidade</p>
     <p class="page-title__label">Gestão de contas a pagar e a receber</p>
-    <p class="muted">
-      Painel consolidado com fluxo de caixa, obrigações e previsões para o terceiro setor. Lançamentos reais,
-      contas bancárias e controle de emendas impositivas em um só lugar.
-    </p>
   </header>
 
   <section class="cadastro">
@@ -28,7 +24,7 @@
           <span class="step-tabs__index">{{ idx + 1 }}</span>
           <span class="step-tabs__label">
             {{ tab.label }}
-            <small>{{ tab.helper }}</small>
+            
           </span>
           <span *ngIf="tab.badge" class="pill pill--ghost">{{ tab.badge }}</span>
         </button>
@@ -40,7 +36,6 @@
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Resumo financeiro</p>
-        <p class="muted">Indicadores rápidos, saldos reais e obrigações imediatas da instituição.</p>
       </div>
       <div class="tab-card__actions">
         <button type="button" class="ghost" (click)="printResumo()">
@@ -57,7 +52,7 @@
     <div class="section-block">
       <div class="section-heading">
         <p class="section-title">Indicadores rápidos</p>
-        <p class="muted">Valores calculados somente com os lançamentos reais inseridos abaixo.</p>
+        <div class="section-actions"></div>
       </div>
       <div class="card-grid">
         <article class="metric-card" *ngFor="let card of summaryCards">
@@ -67,11 +62,7 @@
           <div class="metric-card__content">
             <p class="eyebrow">{{ card.label }}</p>
             <p class="metric-card__value">{{ card.value }}</p>
-            <p class="muted" [class.positive]="card.trend === 'up'" [class.negative]="card.trend === 'down'">
-              <fa-icon *ngIf="card.trend === 'up'" [icon]="faArrowTrendUp"></fa-icon>
-              <fa-icon *ngIf="card.trend === 'down'" [icon]="faArrowTrendDown"></fa-icon>
-              {{ card.helper }}
-            </p>
+            <p class="muted" [class.positive]="card.trend === 'up'" [class.negative]="card.trend === 'down'"></p>
           </div>
         </article>
       </div>
@@ -81,138 +72,41 @@
       <article class="panel">
         <header class="panel__header">
           <div>
-            <p class="panel__eyebrow">Contas bancárias</p>
-            <p class="panel__title">Saldos consolidados</p>
-          </div>
-          <span class="pill">Saldo real</span>
-        </header>
-
-        <form class="form-grid" (ngSubmit)="addBankAccount()">
-          <label class="form-field">
-            <span>Banco</span>
-            <input
-              type="text"
-              class="input"
-              name="bankName"
-              [(ngModel)]="newAccount.bankName"
-              placeholder="Ex.: Banco do Brasil"
-              list="bankSuggestions"
-              autocomplete="organization"
-              required
-            />
-            <datalist id="bankSuggestions">
-              <option value="Banco do Brasil"></option>
-              <option value="Caixa Econômica"></option>
-              <option value="Bradesco"></option>
-              <option value="Itaú"></option>
-            </datalist>
-          </label>
-          <label class="form-field">
-            <span>Número / agência</span>
-            <input
-              type="text"
-              class="input"
-              name="accountNumber"
-              [(ngModel)]="newAccount.accountNumber"
-              placeholder="0000-0 / 000000-0"
-              autocomplete="account-number"
-              required
-            />
-          </label>
-          <label class="form-field">
-            <span>Tipo</span>
-            <select class="select" name="type" [(ngModel)]="newAccount.type" required>
-              <option value="corrente">Conta corrente</option>
-              <option value="aplicacao">Aplicação / aplicação de curto prazo</option>
-              <option value="projeto">Conta vinculada a projeto</option>
-            </select>
-          </label>
-          <label class="form-field">
-            <span>Saldo informado</span>
-            <input
-              type="number"
-              class="input"
-              name="balance"
-              [(ngModel)]="newAccount.balance"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
-              autocomplete="transaction-amount"
-              required
-            />
-          </label>
-          <label class="form-field">
-            <span>Última atualização</span>
-            <input
-              type="date"
-              class="input"
-              name="lastUpdate"
-              [(ngModel)]="newAccount.lastUpdate"
-              autocomplete="on"
-              required
-            />
-          </label>
-          <div class="form-actions">
-            <button class="primary" type="submit">Salvar conta</button>
-          </div>
-        </form>
-
-        <div class="bank-grid" *ngIf="bankAccounts.length; else emptyBanks">
-          <article class="bank-card" *ngFor="let account of bankAccounts">
-            <div class="bank-card__header">
-              <div>
-                <p class="strong">{{ account.bankName }}</p>
-                <p class="muted">{{ account.accountNumber }}</p>
-              </div>
-              <span class="pill" [class.pill--ghost]="account.type === 'corrente'" [class.pill--warning]="account.type !== 'corrente'">
-                {{ account.type === 'corrente' ? 'Operacional' : 'Vinculada' }}
-              </span>
-            </div>
-            <p class="bank-card__balance">{{ account.balance | currency:'BRL' }}</p>
-            <p class="muted">Atualizado em {{ formatDate(account.lastUpdate) }}</p>
-          </article>
-        </div>
-        <ng-template #emptyBanks>
-          <p class="empty-state">Informe suas contas para controlar saldos reais e projeções.</p>
-        </ng-template>
-      </article>
-
-      <article class="panel">
-        <header class="panel__header">
-          <div>
             <p class="panel__eyebrow">Agenda de pagamentos e recebimentos</p>
-            <p class="panel__title">Registrar lançamento real</p>
           </div>
-          <span class="pill pill--ghost">Operacional</span>
+          <div class="panel__actions">
+            <button type="button" class="ghost" (click)="novoLancamento()">Novo lançamento</button>
+            <span class="pill pill--ghost">Operacional</span>
+          </div>
         </header>
 
         <form class="form-grid" (ngSubmit)="registerEntry()">
           <label class="form-field">
             <span>Tipo</span>
-            <select class="select" name="type" [(ngModel)]="newEntry.type" required>
+            <select class="select" name="type" [(ngModel)]="newEntry.tipo" required>
               <option value="receber">A receber</option>
               <option value="pagar">A pagar</option>
             </select>
           </label>
-          <label class="form-field">
+          <label class="form-field form-field--wide">
             <span>Descrição</span>
             <input
               type="text"
               class="input"
               name="title"
-              [(ngModel)]="newEntry.title"
+              [(ngModel)]="newEntry.descricao"
               placeholder="Ex.: Repasse municipal"
               autocomplete="transaction-purpose"
               required
             />
           </label>
-          <label class="form-field">
+          <label class="form-field form-field--wide">
             <span>Contraparte</span>
             <input
               type="text"
               class="input"
               name="counterparty"
-              [(ngModel)]="newEntry.counterparty"
+              [(ngModel)]="newEntry.contraparte"
               list="counterpartyList"
               placeholder="Prefeitura, fornecedor..."
               autocomplete="organization"
@@ -228,7 +122,7 @@
               type="date"
               class="input"
               name="dueDate"
-              [(ngModel)]="newEntry.dueDate"
+              [(ngModel)]="newEntry.vencimento"
               autocomplete="on"
               required
             />
@@ -236,31 +130,76 @@
           <label class="form-field">
             <span>Valor</span>
             <input
-              type="number"
+              type="text"
               class="input"
               name="amount"
-              [(ngModel)]="newEntry.amount"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
+              [ngModel]="valorLancamentoMascara"
+              (ngModelChange)="onValorLancamentoInput($event)"
+              placeholder="R$ 0,00"
               autocomplete="transaction-amount"
               required
             />
           </label>
           <label class="form-field">
             <span>Situação</span>
-            <select class="select" name="status" [(ngModel)]="newEntry.status" required>
+            <select class="select" name="status" [(ngModel)]="newEntry.situacao" required>
               <option value="aberto">Aberto</option>
               <option value="pago">Pago</option>
               <option value="atrasado">Em atraso</option>
             </select>
           </label>
           <div class="form-actions">
-            <button class="primary" type="submit">Salvar lançamento</button>
+            <button class="primary" type="submit">
+              {{ lancamentoEmEdicaoId ? 'Atualizar lançamento' : 'Salvar lançamento' }}
+            </button>
+            <button class="ghost" type="button" *ngIf="lancamentoEmEdicaoId" (click)="cancelarEdicaoLancamento()">
+              Cancelar
+            </button>
           </div>
         </form>
+      </article>
+    </div>
 
-        <div class="table-wrapper" *ngIf="agenda.length; else emptyAgenda">
+    <div class="panel-grid">
+      <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Lançamentos registrados</p>
+            <p class="panel__title">Pesquise e acompanhe os lançamentos</p>
+          </div>
+          <span class="pill pill--ghost">Listagem</span>
+        </header>
+
+        <div class="filter-bar">
+          <label class="form-field">
+            <span>Descrição</span>
+            <input type="text" class="input" [(ngModel)]="filtrosLancamentos.descricao" name="filtroDescricao" placeholder="Repasse, fornecedor..." />
+          </label>
+          <label class="form-field form-field--wide">
+            <span>Contraparte</span>
+            <input type="text" class="input" [(ngModel)]="filtrosLancamentos.contraparte" name="filtroContraparte" placeholder="Prefeitura, fornecedor..." />
+          </label>
+          <label class="form-field">
+            <span>Tipo</span>
+            <select class="select" [(ngModel)]="filtrosLancamentos.tipo" name="filtroTipoLancamento">
+              <option value="">Todos</option>
+              <option value="receber">A receber</option>
+              <option value="pagar">A pagar</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Situação</span>
+            <select class="select" [(ngModel)]="filtrosLancamentos.situacao" name="filtroSituacao">
+              <option value="">Todas</option>
+              <option value="aberto">Aberto</option>
+              <option value="pago">Pago</option>
+              <option value="atrasado">Em atraso</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="muted list-count">Total: {{ lancamentosFiltrados.length }} lançamentos</p>
+        <div class="table-wrapper" *ngIf="lancamentosFiltrados.length; else emptyAgenda">
           <table>
             <thead>
               <tr>
@@ -274,26 +213,26 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of agenda; index as i">
+              <tr *ngFor="let item of lancamentosFiltrados; index as i">
                 <td>{{ i + 1 }}</td>
                 <td>
-                  <p class="strong">{{ item.title }}</p>
-                  <p class="muted">{{ item.type === 'receber' ? 'Entrada programada' : 'Saída programada' }}</p>
+                  <p class="strong">{{ item.descricao }}</p>
+                  <p class="muted">{{ item.tipo === 'receber' ? 'Entrada programada' : 'Saída programada' }}</p>
                 </td>
-                <td>{{ item.counterparty }}</td>
-                <td>{{ formatDate(item.dueDate) }}</td>
-                <td>{{ item.amount | currency:'BRL' }}</td>
+                <td>{{ item.contraparte }}</td>
+                <td>{{ formatDate(item.vencimento) }}</td>
+                <td>{{ item.valor | currency:'BRL' }}</td>
                 <td>
                   <span
                     class="status"
-                    [class.status--positive]="item.status === 'pago' || item.type === 'receber'"
-                    [class.status--warning]="item.status === 'atrasado'"
+                    [class.status--positive]="item.situacao === 'pago' || item.tipo === 'receber'"
+                    [class.status--warning]="item.situacao === 'atrasado'"
                   >
                     <fa-icon
                       [icon]="
-                        item.status === 'pago'
+                        item.situacao === 'pago'
                           ? faCircleCheck
-                          : item.status === 'atrasado'
+                          : item.situacao === 'atrasado'
                             ? faCircleExclamation
                             : faCircleDot
                       "
@@ -302,8 +241,9 @@
                   </span>
                 </td>
                 <td class="text-right actions">
-                  <button class="link" type="button" (click)="setEntryStatus(item, 'pago')">Registrar pagamento</button>
-                  <button class="link" type="button" (click)="setEntryStatus(item, 'atrasado')">Marcar atraso</button>
+                  <button class="ghost" type="button" (click)="editarLancamento(item)">Editar</button>
+                  <button class="primary" type="button" (click)="setEntryStatus(item, 'pago')">Registrar pagamento</button>
+                  <button class="ghost" type="button" (click)="setEntryStatus(item, 'atrasado')">Marcar atraso</button>
                 </td>
               </tr>
             </tbody>
@@ -316,7 +256,50 @@
     </div>
 
     <div class="panel-grid three-cols">
+      
+
       <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Resumo para impressão</p>
+            <p class="panel__title">Saldos recebidos e a receber</p>
+          </div>
+          <button class="ghost" type="button" (click)="printResumo()">
+            <fa-icon [icon]="faPrint"></fa-icon>
+            Gerar PDF
+          </button>
+        </header>
+        <div class="report-preview">
+          <div class="report-row">
+            <p class="strong">Recebimentos registrados</p>
+            <p>{{ reportTotals.recebimentos | currency:'BRL' }}</p>
+          </div>
+          <div class="report-row">
+            <p class="strong">Pagamentos realizados</p>
+            <p>{{ reportTotals.pagamentos | currency:'BRL' }}</p>
+          </div>
+          <div class="report-row">
+            <p class="strong">Saldo a receber</p>
+            <p>{{ reportTotals.saldoAReceber | currency:'BRL' }}</p>
+          </div>
+          <div class="report-row total">
+            <p class="strong">Saldo projetado</p>
+            <p>{{ reportTotals.saldoProjetado | currency:'BRL' }}</p>
+          </div>
+          <p class="muted">Use os botões de impressão ou exportacao para compartilhar o resumo.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+  <div class="tab-card" *ngIf="activeTab === 'lancamentos'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Lançamentos</p>
+        <p class="muted">Gestão de contas a pagar e a receber.</p>
+      </div>
+    </div>
+
+    <article class="panel">
         <header class="panel__header">
           <div>
             <p class="panel__eyebrow">Emendas impositivas</p>
@@ -327,35 +310,35 @@
 
         <form class="form-grid" (ngSubmit)="addAmendment()">
           <label class="form-field">
-            <span>Identificação</span>
+            <span>Identificacao</span>
             <input
               type="text"
               class="input"
               name="name"
-              [(ngModel)]="newAmendment.name"
+              [(ngModel)]="newAmendment.identificacao"
               placeholder="Emenda 001/2024"
               autocomplete="on"
               required
             />
           </label>
           <label class="form-field">
-            <span>Referência legal</span>
+            <span>Referencia legal</span>
             <input
               type="text"
               class="input"
               name="lawReference"
-              [(ngModel)]="newAmendment.lawReference"
-              placeholder="Lei ou ofício"
+              [(ngModel)]="newAmendment.referenciaLegal"
+              placeholder="Lei ou oficio"
               autocomplete="on"
             />
           </label>
           <label class="form-field">
-            <span>Previsão de recebimento</span>
+            <span>Previsao de recebimento</span>
             <input
               type="date"
               class="input"
               name="expectedDate"
-              [(ngModel)]="newAmendment.expectedDate"
+              [(ngModel)]="newAmendment.dataPrevista"
               required
             />
           </label>
@@ -365,7 +348,7 @@
               type="number"
               class="input"
               name="amount"
-              [(ngModel)]="newAmendment.amount"
+              [(ngModel)]="newAmendment.valorPrevisto"
               step="0.01"
               min="0"
               placeholder="0,00"
@@ -374,12 +357,12 @@
             />
           </label>
           <label class="form-field">
-            <span>Antecedência do alerta (dias)</span>
+            <span>Antecedencia do alerta (dias)</span>
             <input
               type="number"
               class="input"
               name="alertDays"
-              [(ngModel)]="newAmendment.alertDays"
+              [(ngModel)]="newAmendment.diasAlerta"
               min="1"
               autocomplete="on"
               required
@@ -395,22 +378,40 @@
           </label>
           <label class="form-field">
             <span>Observações</span>
-            <textarea class="input" name="notes" [(ngModel)]="newAmendment.notes" rows="2" placeholder="Responsável, etapa ou vínculo"></textarea>
+            <textarea class="input" name="notes" [(ngModel)]="newAmendment.observacoes" rows="2" placeholder="Responsavel, etapa ou vinculo"></textarea>
           </label>
           <div class="form-actions">
             <button class="primary" type="submit">Controlar emenda</button>
           </div>
         </form>
 
-        <ul class="pillars" *ngIf="amendmentControls.length; else emptyAmendments">
-          <li *ngFor="let amendment of amendmentControls">
+        
+        <div class="filter-bar">
+          <label class="form-field">
+            <span>Identificacao</span>
+            <input type="text" class="input" [(ngModel)]="filtrosEmendas.identificacao" name="filtroEmenda" placeholder="Emenda 001/2024" />
+          </label>
+          <label class="form-field">
+            <span>Status</span>
+            <select class="select" [(ngModel)]="filtrosEmendas.status" name="filtroEmendaStatus">
+              <option value="">Todos</option>
+              <option value="previsto">Previsto</option>
+              <option value="empenhado">Empenhado</option>
+              <option value="recebido">Recebido</option>
+            </select>
+          </label>
+        </div>
+
+<p class="muted list-count">Total: {{ emendasFiltradas.length }} emendas</p>
+    <ul class="pillars" *ngIf="emendasFiltradas.length; else emptyAmendments">
+          <li *ngFor="let amendment of emendasFiltradas">
             <div>
-              <p class="strong">{{ amendment.name }}</p>
-              <p class="muted">{{ amendment.lawReference || 'Sem referência' }} · {{ formatDate(amendment.expectedDate) }}</p>
-              <p class="muted">{{ amendment.notes || 'Sem observações' }}</p>
+              <p class="strong">{{ amendment.identificacao }}</p>
+              <p class="muted">{{ amendment.referenciaLegal || 'Sem referencia' }} - {{ formatDate(amendment.dataPrevista) }}</p>
+              <p class="muted">{{ amendment.observacoes || 'Sem observacoes' }}</p>
             </div>
             <div class="tag-wrapper">
-              <span class="tag positive">{{ amendment.amount | currency:'BRL' }}</span>
+              <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
               <button class="pill pill--ghost" type="button" (click)="setAmendmentStatus(amendment, 'recebido')">
                 Marcar recebido
               </button>
@@ -418,7 +419,7 @@
           </li>
         </ul>
         <ng-template #emptyAmendments>
-          <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automáticos.</p>
+          <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automaticos.</p>
         </ng-template>
       </article>
 
@@ -428,7 +429,7 @@
             <p class="panel__eyebrow">Alertas e lembretes</p>
             <p class="panel__title">Próximas datas críticas</p>
           </div>
-          <span class="pill pill--ghost">Automático</span>
+          <span class="pill pill--ghost">Automatico</span>
         </header>
         <ul class="alert-list" *ngIf="alerts.length; else emptyAlerts">
           <li *ngFor="let alert of alerts">
@@ -438,6 +439,560 @@
         </ul>
         <ng-template #emptyAlerts>
           <p class="empty-state">Sem alertas pendentes. Mantenha os vencimentos e emendas atualizados.</p>
+        </ng-template>
+      </article>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'contas'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Contas bancarias</p>
+        <p class="muted">Saldos atualizados das contas cadastradas.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Cadastro</p>
+          <p class="panel__title">Nova conta bancaria</p>
+        </div>
+        <span class="pill">Saldo real</span>
+      </header>
+
+      <form class="form-grid" (ngSubmit)="addBankAccount()">
+        <label class="form-field">
+          <span>Banco</span>
+          <input
+            type="text"
+            class="input"
+            name="bankName"
+            [(ngModel)]="newAccount.banco"
+            placeholder="Ex.: Banco do Brasil"
+            list="bankSuggestions"
+            autocomplete="organization"
+            required
+          />
+          <datalist id="bankSuggestions">
+            <option *ngFor="let banco of bancosDisponiveis" [value]="banco"></option>
+          </datalist>
+        </label>
+        <label class="form-field">
+          <span>Agência</span>
+          <input
+            type="text"
+            class="input"
+            name="agencia"
+            [(ngModel)]="newAccount.agencia"
+            placeholder="0000"
+            autocomplete="account-number"
+          />
+        </label>
+        <label class="form-field">
+          <span>Número da conta</span>
+          <input
+            type="text"
+            class="input"
+            name="numero"
+            [(ngModel)]="newAccount.numero"
+            placeholder="000000-0"
+            autocomplete="account-number"
+            required
+          />
+        </label>
+        <label class="form-field">
+          <span>Tipo</span>
+          <select class="select" name="type" [(ngModel)]="newAccount.tipo" required>
+            <option *ngFor="let tipo of tiposConta" [value]="tipo.value">{{ tipo.label }}</option>
+          </select>
+        </label>
+        <label class="form-field" *ngIf="newAccount.tipo === 'projeto'">
+          <span>Projeto vinculado</span>
+          <input
+            type="text"
+            class="input"
+            name="projetoVinculado"
+            [(ngModel)]="newAccount.projetoVinculado"
+            placeholder="Nome do projeto"
+            required
+          />
+        </label>
+        <label class="checkbox-field full">
+          <input
+            type="checkbox"
+            name="pixVinculado"
+            [ngModel]="newAccount.pixVinculado"
+            (ngModelChange)="onPixVinculadoChange($event)"
+          />
+          <span>Possui Pix vinculado</span>
+        </label>
+        <label class="form-field" *ngIf="newAccount.pixVinculado">
+          <span>Tipo de chave Pix</span>
+          <select class="select" name="tipoChavePix" [ngModel]="newAccount.tipoChavePix" (ngModelChange)="onTipoChavePixChange($event)">
+            <option value="">Selecione</option>
+            <option *ngFor="let tipo of tiposChavePix" [value]="tipo.value">{{ tipo.label }}</option>
+          </select>
+        </label>
+        <label class="form-field" *ngIf="newAccount.pixVinculado">
+          <span>Chave Pix</span>
+          <input
+            type="text"
+            class="input"
+            name="chavePix"
+            [ngModel]="newAccount.chavePix"
+            (ngModelChange)="onChavePixInput($event)"
+          />
+          <p class="field-error" *ngIf="erroChavePix">{{ erroChavePix }}</p>
+        </label>
+        <label class="form-field">
+          <span>Saldo informado</span>
+          <input
+            type="text"
+            class="input"
+            name="balance"
+            [ngModel]="saldoContaMascara"
+            (ngModelChange)="onSaldoContaInput($event)"
+            placeholder="R$ 0,00"
+            autocomplete="transaction-amount"
+            required
+          />
+        </label>
+        <label class="form-field">
+          <span>ultima atualizacao</span>
+          <input
+            type="date"
+            class="input"
+            name="lastUpdate"
+            [(ngModel)]="newAccount.dataAtualizacao"
+            autocomplete="on"
+            required
+          />
+        </label>
+        <div class="form-actions">
+          <button class="primary" type="submit">{{ contaEmEdicaoId ? 'Atualizar conta' : 'Salvar conta' }}</button>
+          <button *ngIf="contaEmEdicaoId" class="ghost" type="button" (click)="cancelarEdicaoContaBancaria()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="filter-bar">
+      <label class="form-field">
+        <span>Banco</span>
+        <input type="text" class="input" [(ngModel)]="filtrosContas.banco" name="filtroBancoContas" placeholder="Nome do banco" />
+      </label>
+      <label class="form-field">
+        <span>Agência</span>
+        <input type="text" class="input" [(ngModel)]="filtrosContas.agencia" name="filtroAgenciaContas" placeholder="Agência" />
+      </label>
+      <label class="form-field">
+        <span>Número</span>
+        <input type="text" class="input" [(ngModel)]="filtrosContas.numero" name="filtroNumeroContas" placeholder="Número da conta" />
+      </label>
+      <label class="form-field">
+        <span>Tipo</span>
+        <select class="select" [(ngModel)]="filtrosContas.tipo" name="filtroTipoContas">
+          <option value="">Todos</option>
+          <option *ngFor="let tipo of tiposConta" [value]="tipo.value">{{ tipo.label }}</option>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button
+          type="button"
+          class="ghost"
+          (click)="filtrosContas = { banco: '', agencia: '', numero: '', tipo: '' }"
+        >
+          Limpar filtros
+        </button>
+      </div>
+    </div>
+
+    <p class="muted list-count">Total: {{ contasFiltradas.length }} contas</p>
+    <div class="bank-grid" *ngIf="contasFiltradas.length; else emptyBanksTab">
+      <article class="bank-card" *ngFor="let account of contasFiltradas">
+        <div class="bank-card__header">
+          <div class="bank-card__type">
+            <span
+              class="pill"
+              [class.pill--ghost]="account.tipo === 'corrente'"
+              [class.pill--warning]="account.tipo !== 'corrente'"
+            >
+              {{ getTipoContaLabel(account.tipo) }}
+            </span>
+            <span class="bank-card__project" *ngIf="account.tipo === 'projeto'">
+              Projeto: {{ account.projetoVinculado || 'Não informado' }}
+            </span>
+          </div>
+          <div>
+            <p class="strong">{{ account.banco }}</p>
+            <p class="muted"><strong>Agência:</strong> {{ account.agencia || 'Não informado' }}</p>
+            <p class="muted"><strong>Conta:</strong> {{ account.numero }}</p>
+            <p class="bank-card__pix" *ngIf="account.pixVinculado || account.chavePix">
+              Pix ({{ getTipoChavePixLabel(account.tipoChavePix) }}): {{ account.chavePix || 'Não informado' }}
+            </p>
+          </div>
+        </div>
+        <p class="bank-card__balance">{{ account.saldo | currency:'BRL' }}</p>
+        <p class="bank-card__updated">Atualizado em {{ formatDate(account.dataAtualizacao) }}</p>
+        <div class="bank-card__actions">
+          <button class="ghost" type="button" (click)="editarContaBancaria(account)">Editar</button>
+          <button class="ghost" type="button" (click)="removerContaBancaria(account)">Excluir</button>
+        </div>
+      </article>
+    </div>
+    <ng-template #emptyBanksTab>
+      <p class="empty-state">Nenhuma conta cadastrada. Registre contas na aba Visão geral.</p>
+    </ng-template>
+  </div>
+
+<div class="tab-card" *ngIf="activeTab === 'movimentacoes'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Fluxo de caixa</p>
+        <p class="muted">Projeções semanais com entradas, saídas e saldo estimado.</p>
+      </div>
+      <span class="pill">Planejamento continuo</span>
+    </div>
+
+    <div class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Fluxo financeiro</p>
+          <p class="panel__title">Projecao semanal de caixa</p>
+        </div>
+        <span class="pill">Relatórios e fluxos</span>
+      </header>
+      <div class="flow-chart" *ngIf="cashFlow.length; else emptyFlow">
+        <div class="flow-chart__bars" *ngFor="let item of cashFlow">
+          <div class="flow-chart__label">{{ item.period }}</div>
+          <div class="flow-chart__bar bar-positive" [style.width.%]="item.receivable / 6.5">
+            <span>A receber</span>
+            <strong>{{ item.receivable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+          </div>
+          <div class="flow-chart__bar bar-negative" [style.width.%]="item.payable / 6.5">
+            <span>A pagar</span>
+            <strong>{{ item.payable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+          </div>
+          <div class="flow-chart__projection">
+            <fa-icon [icon]="faFileInvoice"></fa-icon>
+            <div>
+              <p class="strong">Projecao</p>
+              <p class="muted">Saldo estimado de {{ item.projection | currency:'BRL':'symbol':'1.0-0' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ng-template #emptyFlow>
+        <p class="empty-state">Cadastre lançamentos e contas para gerar projeções semanais de caixa.</p>
+      </ng-template>
+    </div>
+
+    <div class="panel-grid three-cols">
+      <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Movimentação real</p>
+            <p class="panel__title">Registrar entrada ou saída</p>
+          </div>
+          <span class="pill pill--ghost">Atualiza saldo</span>
+        </header>
+
+        <form class="form-grid" (ngSubmit)="registerMovement()">
+          <label class="form-field">
+            <span>Tipo</span>
+            <select class="select" name="movementType" [(ngModel)]="newMovement.tipo" required>
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Descrição</span>
+            <input
+              type="text"
+              class="input"
+              name="movementDescription"
+              [(ngModel)]="newMovement.descricao"
+              placeholder="Ex.: Pagamento de fornecedor"
+              autocomplete="transaction-purpose"
+              required
+            />
+          </label>
+          <label class="form-field">
+            <span>Categoria</span>
+            <input
+              type="text"
+              class="input"
+              name="movementCategory"
+              [(ngModel)]="newMovement.categoria"
+              list="categorySuggestions"
+              placeholder="Operacional, pessoal, projeto..."
+              autocomplete="on"
+            />
+            <datalist id="categorySuggestions">
+              <option value="Operacional"></option>
+              <option value="Pessoal"></option>
+              <option value="Projeto"></option>
+              <option value="Captacao"></option>
+            </datalist>
+          </label>
+          <label class="form-field form-field--wide">
+            <span>Contraparte</span>
+            <input
+              type="text"
+              class="input"
+              name="movementCounterparty"
+              [(ngModel)]="newMovement.contraparte"
+              list="counterpartyList"
+              placeholder="Fornecedor, prefeitura..."
+              autocomplete="organization"
+            />
+          </label>
+          <label class="form-field">
+            <span>Conta bancaria</span>
+            <select class="select" name="movementAccount" [(ngModel)]="newMovement.contaBancariaId" required>
+              <option value="" disabled>Selecione</option>
+              <option *ngFor="let account of bankAccounts" [value]="account.id">
+                {{ account.banco }} - Ag {{ account.agencia || '---' }} / {{ account.numero }}
+              </option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Data</span>
+            <input type="date" class="input" name="movementDate" [(ngModel)]="newMovement.dataMovimentacao" required />
+          </label>
+          <label class="form-field">
+            <span>Valor</span>
+            <input
+              type="number"
+              class="input"
+              name="movementAmount"
+              [(ngModel)]="newMovement.valor"
+              step="0.01"
+              min="0"
+              placeholder="0,00"
+              autocomplete="transaction-amount"
+              required
+            />
+          </label>
+          <div class="form-actions">
+            <button class="primary" type="submit">Registrar movimentacao</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Movimentações registradas</p>
+            <p class="panel__title">Histórico financeiro</p>
+          </div>
+          <span class="pill">Rastreamento</span>
+        </header>
+        
+        <div class="filter-bar">
+          <label class="form-field">
+            <span>Descrição</span>
+            <input type="text" class="input" [(ngModel)]="filtrosMovimentacoes.descricao" name="filtroMovDescricao" placeholder="Pagamento, repasse..." />
+          </label>
+          <label class="form-field">
+            <span>Categoria</span>
+            <input type="text" class="input" [(ngModel)]="filtrosMovimentacoes.categoria" name="filtroMovCategoria" placeholder="Operacional, projeto..." />
+          </label>
+          <label class="form-field">
+            <span>Tipo</span>
+            <select class="select" [(ngModel)]="filtrosMovimentacoes.tipo" name="filtroMovTipo">
+              <option value="">Todos</option>
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </label>
+        </div>
+
+<p class="muted list-count">Total: {{ movimentacoesFiltradas.length }} movimentacoes</p>
+        <div class="table-wrapper" *ngIf="movimentacoesFiltradas.length; else emptyMovements">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Conta</th>
+                <th>Categoria</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let movement of movimentacoesFiltradas; index as i">
+                <td>{{ i + 1 }}</td>
+                <td>{{ formatDate(movement.dataMovimentacao) }}</td>
+                <td>
+                  <p class="strong">{{ movement.descricao }}</p>
+                  <p class="muted">{{ movement.contraparte || 'Não informado' }}</p>
+                </td>
+                <td>{{ movement.contaBancariaNumero || "---" }}</td>
+                <td>{{ movement.categoria }}</td>
+                <td>
+                  <span class="tag" [class.positive]="movement.tipo === 'entrada'">
+                    {{ movement.tipo === 'entrada' ? '+' : '-' }}
+                    {{ movement.valor | currency:'BRL' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #emptyMovements>
+          <p class="empty-state">Inclua lançamentos reais para acompanhar o histórico de entradas e saídas.</p>
+        </ng-template>
+      </article>
+
+      <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Próximas entradas e saídas</p>
+            <p class="panel__title">Prioridades da semana</p>
+          </div>
+          <span class="pill pill--warning">Urgente</span>
+        </header>
+        <div class="pillars" *ngIf="upcomingReceivables.length || upcomingPayables.length; else emptyPipelines">
+          <ng-container *ngFor="let item of upcomingReceivables | slice:0:3">
+            <div class="pipeline-row positive">
+              <div>
+                <p class="strong">{{ item.descricao }}</p>
+                <p class="muted">{{ formatDate(item.vencimento) }} - {{ item.contraparte }}</p>
+              </div>
+              <span class="tag positive">{{ item.valor | currency:'BRL' }}</span>
+            </div>
+          </ng-container>
+          <ng-container *ngFor="let item of upcomingPayables | slice:0:3">
+            <div class="pipeline-row">
+              <div>
+                <p class="strong">{{ item.descricao }}</p>
+                <p class="muted">{{ formatDate(item.vencimento) }} - {{ item.contraparte }}</p>
+              </div>
+              <span class="tag">{{ item.valor | currency:'BRL' }}</span>
+            </div>
+          </ng-container>
+        </div>
+        <ng-template #emptyPipelines>
+          <p class="empty-state">Cadastre contas para acompanhar prioridades da semana.</p>
+        </ng-template>
+      </article>
+    </div>
+  </div>
+  <div class="tab-card" *ngIf="activeTab === 'emendas'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">Emendas impositivas</p>
+        <p class="muted">Controle de valores a receber com alertas e status.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <header class="panel__header">
+        <div>
+          <p class="panel__eyebrow">Emendas</p>
+          <p class="panel__title">Cadastrar nova emenda</p>
+        </div>
+        <span class="pill">Alertas</span>
+      </header>
+
+      <form class="form-grid" (ngSubmit)="addAmendment()">
+        <label class="form-field">
+          <span>Identificacao</span>
+          <input type="text" class="input" name="name" [(ngModel)]="newAmendment.identificacao" placeholder="Emenda 001/2024" required />
+        </label>
+        <label class="form-field">
+          <span>Referencia legal</span>
+          <input type="text" class="input" name="lawReference" [(ngModel)]="newAmendment.referenciaLegal" placeholder="Lei ou oficio" />
+        </label>
+        <label class="form-field">
+          <span>Previsao de recebimento</span>
+          <input type="date" class="input" name="expectedDate" [(ngModel)]="newAmendment.dataPrevista" required />
+        </label>
+        <label class="form-field">
+          <span>Valor previsto</span>
+          <input type="number" class="input" name="amount" [(ngModel)]="newAmendment.valorPrevisto" step="0.01" min="0" placeholder="0,00" required />
+        </label>
+        <label class="form-field">
+          <span>Antecedencia do alerta (dias)</span>
+          <input type="number" class="input" name="alertDays" [(ngModel)]="newAmendment.diasAlerta" min="1" required />
+        </label>
+        <label class="form-field">
+          <span>Status</span>
+          <select class="select" name="status" [(ngModel)]="newAmendment.status" required>
+            <option value="previsto">Previsto</option>
+            <option value="empenhado">Empenhado</option>
+            <option value="recebido">Recebido</option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Observações</span>
+          <textarea class="input" name="notes" [(ngModel)]="newAmendment.observacoes" rows="2" placeholder="Responsavel, etapa ou vinculo"></textarea>
+        </label>
+        <div class="form-actions">
+          <button class="primary" type="submit">Controlar emenda</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="filter-bar">
+      <label class="form-field">
+        <span>Identificacao</span>
+        <input type="text" class="input" [(ngModel)]="filtrosEmendas.identificacao" name="filtroEmenda" placeholder="Emenda 001/2024" />
+      </label>
+      <label class="form-field">
+        <span>Status</span>
+        <select class="select" [(ngModel)]="filtrosEmendas.status" name="filtroEmendaStatus">
+          <option value="">Todos</option>
+          <option value="previsto">Previsto</option>
+          <option value="empenhado">Empenhado</option>
+          <option value="recebido">Recebido</option>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button type="button" class="ghost" (click)="filtrosEmendas = { identificacao: '', status: '' }">Limpar filtros</button>
+      </div>
+    </div>
+
+    <p class="muted list-count">Total: {{ emendasFiltradas.length }} emendas</p>
+    <ul class="pillars" *ngIf="emendasFiltradas.length; else emptyAmendments">
+      <li *ngFor="let amendment of emendasFiltradas">
+        <div>
+          <p class="strong">{{ amendment.identificacao }}</p>
+          <p class="muted">{{ amendment.referenciaLegal || 'Sem referencia' }} - {{ formatDate(amendment.dataPrevista) }}</p>
+          <p class="muted">{{ amendment.observacoes || 'Sem observacoes' }}</p>
+        </div>
+        <div class="tag-wrapper">
+          <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
+          <button class="pill pill--ghost" type="button" (click)="setAmendmentStatus(amendment, 'recebido')">Marcar recebido</button>
+        </div>
+      </li>
+    </ul>
+    <ng-template #emptyAmendments>
+      <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automaticos.</p>
+    </ng-template>
+  </div>
+
+  <div class="tab-card" *ngIf="activeTab === 'relatorios'">
+    <div class="panel-grid three-cols">
+      <article class="panel">
+        <header class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Alertas e lembretes</p>
+            <p class="panel__title">Próximas datas críticas</p>
+          </div>
+          <span class="pill pill--ghost">Automatico</span>
+        </header>
+        <ul class="alert-list" *ngIf="alerts.length; else emptyAlerts">
+          <li *ngFor="let alert of alerts">
+            <fa-icon [icon]="faBell"></fa-icon>
+            <span>{{ alert }}</span>
+          </li>
+        </ul>
+        <ng-template #emptyAlerts>
+          <p class="empty-state">Sem alertas pendentes.</p>
         </ng-template>
       </article>
 
@@ -469,232 +1024,14 @@
             <p class="strong">Saldo projetado</p>
             <p>{{ reportTotals.saldoProjetado | currency:'BRL' }}</p>
           </div>
-          <p class="muted">Use os botões de impressão ou exportação para compartilhar o resumo.</p>
         </div>
       </article>
     </div>
-  </div>
 
-  <div class="tab-card" *ngIf="activeTab === 'fluxo'">
-    <div class="tab-card__header">
-      <div class="tab-card__title-stack">
-        <p class="tab-card__highlight">Fluxo de caixa</p>
-        <p class="muted">Projeções semanais com entradas, saídas e saldo estimado.</p>
-      </div>
-      <span class="pill">Planejamento contínuo</span>
-    </div>
-
-    <div class="panel">
-      <header class="panel__header">
-        <div>
-          <p class="panel__eyebrow">Fluxo financeiro</p>
-          <p class="panel__title">Projeção semanal de caixa</p>
-        </div>
-        <span class="pill">Relatórios e fluxos</span>
-      </header>
-      <div class="flow-chart" *ngIf="cashFlow.length; else emptyFlow">
-        <div class="flow-chart__bars" *ngFor="let item of cashFlow">
-          <div class="flow-chart__label">{{ item.period }}</div>
-          <div class="flow-chart__bar bar-positive" [style.width.%]="item.receivable / 6.5">
-            <span>A receber</span>
-            <strong>{{ item.receivable | currency:'BRL':'symbol':'1.0-0' }}</strong>
-          </div>
-          <div class="flow-chart__bar bar-negative" [style.width.%]="item.payable / 6.5">
-            <span>A pagar</span>
-            <strong>{{ item.payable | currency:'BRL':'symbol':'1.0-0' }}</strong>
-          </div>
-          <div class="flow-chart__projection">
-            <fa-icon [icon]="faFileInvoice"></fa-icon>
-            <div>
-              <p class="strong">Projeção</p>
-              <p class="muted">Saldo estimado de {{ item.projection | currency:'BRL':'symbol':'1.0-0' }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ng-template #emptyFlow>
-        <p class="empty-state">Cadastre lançamentos e contas para gerar projeções semanais de caixa.</p>
-      </ng-template>
-    </div>
-
-    <div class="panel-grid three-cols">
-      <article class="panel">
-        <header class="panel__header">
-          <div>
-            <p class="panel__eyebrow">Movimentação real</p>
-            <p class="panel__title">Registrar entrada ou saída</p>
-          </div>
-          <span class="pill pill--ghost">Atualiza saldo</span>
-        </header>
-
-        <form class="form-grid" (ngSubmit)="registerMovement()">
-          <label class="form-field">
-            <span>Tipo</span>
-            <select class="select" name="movementType" [(ngModel)]="newMovement.type" required>
-              <option value="entrada">Entrada</option>
-              <option value="saida">Saída</option>
-            </select>
-          </label>
-          <label class="form-field">
-            <span>Descrição</span>
-            <input
-              type="text"
-              class="input"
-              name="movementDescription"
-              [(ngModel)]="newMovement.description"
-              placeholder="Ex.: Pagamento de fornecedor"
-              autocomplete="transaction-purpose"
-              required
-            />
-          </label>
-          <label class="form-field">
-            <span>Categoria</span>
-            <input
-              type="text"
-              class="input"
-              name="movementCategory"
-              [(ngModel)]="newMovement.category"
-              list="categorySuggestions"
-              placeholder="Operacional, pessoal, projeto..."
-              autocomplete="on"
-            />
-            <datalist id="categorySuggestions">
-              <option value="Operacional"></option>
-              <option value="Pessoal"></option>
-              <option value="Projeto"></option>
-              <option value="Captação"></option>
-            </datalist>
-          </label>
-          <label class="form-field">
-            <span>Contraparte</span>
-            <input
-              type="text"
-              class="input"
-              name="movementCounterparty"
-              [(ngModel)]="newMovement.counterparty"
-              list="counterpartyList"
-              placeholder="Fornecedor, prefeitura..."
-              autocomplete="organization"
-            />
-          </label>
-          <label class="form-field">
-            <span>Conta bancária</span>
-            <select class="select" name="movementAccount" [(ngModel)]="newMovement.accountNumber" required>
-              <option value="" disabled>Selecione</option>
-              <option *ngFor="let account of bankAccounts" [value]="account.accountNumber">
-                {{ account.bankName }} · {{ account.accountNumber }}
-              </option>
-            </select>
-          </label>
-          <label class="form-field">
-            <span>Data</span>
-            <input type="date" class="input" name="movementDate" [(ngModel)]="newMovement.date" required />
-          </label>
-          <label class="form-field">
-            <span>Valor</span>
-            <input
-              type="number"
-              class="input"
-              name="movementAmount"
-              [(ngModel)]="newMovement.amount"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
-              autocomplete="transaction-amount"
-              required
-            />
-          </label>
-          <div class="form-actions">
-            <button class="primary" type="submit">Registrar movimentação</button>
-          </div>
-        </form>
-      </article>
-
-      <article class="panel">
-        <header class="panel__header">
-          <div>
-            <p class="panel__eyebrow">Movimentações registradas</p>
-            <p class="panel__title">Histórico financeiro</p>
-          </div>
-          <span class="pill">Rastreamento</span>
-        </header>
-        <div class="table-wrapper" *ngIf="financialMovements.length; else emptyMovements">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Conta</th>
-                <th>Categoria</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let movement of financialMovements; index as i">
-                <td>{{ i + 1 }}</td>
-                <td>{{ formatDate(movement.date) }}</td>
-                <td>
-                  <p class="strong">{{ movement.description }}</p>
-                  <p class="muted">{{ movement.counterparty || '—' }}</p>
-                </td>
-                <td>{{ movement.accountNumber }}</td>
-                <td>{{ movement.category }}</td>
-                <td>
-                  <span class="tag" [class.positive]="movement.type === 'entrada'">
-                    {{ movement.type === 'entrada' ? '+' : '-' }}
-                    {{ movement.amount | currency:'BRL' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ng-template #emptyMovements>
-          <p class="empty-state">Inclua lançamentos reais para acompanhar o histórico de entradas e saídas.</p>
-        </ng-template>
-      </article>
-
-      <article class="panel">
-        <header class="panel__header">
-          <div>
-            <p class="panel__eyebrow">Próximas entradas e saídas</p>
-            <p class="panel__title">Prioridades da semana</p>
-          </div>
-          <span class="pill pill--warning">Urgente</span>
-        </header>
-        <div class="pillars" *ngIf="upcomingReceivables.length || upcomingPayables.length; else emptyPipelines">
-          <ng-container *ngFor="let item of upcomingReceivables | slice:0:3">
-            <div class="pipeline-row positive">
-              <div>
-                <p class="strong">{{ item.title }}</p>
-                <p class="muted">{{ formatDate(item.dueDate) }} · {{ item.counterparty }}</p>
-              </div>
-              <span class="tag positive">{{ item.amount | currency:'BRL' }}</span>
-            </div>
-          </ng-container>
-          <ng-container *ngFor="let item of upcomingPayables | slice:0:3">
-            <div class="pipeline-row">
-              <div>
-                <p class="strong">{{ item.title }}</p>
-                <p class="muted">{{ formatDate(item.dueDate) }} · {{ item.counterparty }}</p>
-              </div>
-              <span class="tag">{{ item.amount | currency:'BRL' }}</span>
-            </div>
-          </ng-container>
-        </div>
-        <ng-template #emptyPipelines>
-          <p class="empty-state">Cadastre contas para acompanhar prioridades da semana.</p>
-        </ng-template>
-      </article>
-    </div>
-  </div>
-
-  <div class="tab-card" *ngIf="activeTab === 'relatorios'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Relatórios e exportações</p>
-        <p class="muted">Materiais essenciais para prestação de contas e auditorias.</p>
+        <p class="muted">Materiais essenciais para prestacao de contas e auditorias.</p>
       </div>
       <span class="pill">Documentos</span>
     </div>
@@ -719,14 +1056,14 @@
             <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
             <div>
               <p class="strong">Fluxo de caixa projetado</p>
-              <p class="muted">12 semanas com cenários</p>
+              <p class="muted">12 semanas com cenarios</p>
             </div>
           </button>
           <button type="button" class="report-card" (click)="printResumo()">
             <fa-icon [icon]="faChartLine"></fa-icon>
             <div>
               <p class="strong">Custeio administrativo</p>
-              <p class="muted">Gastos fixos e variáveis</p>
+              <p class="muted">Gastos fixos e variaveis</p>
             </div>
           </button>
         </div>
@@ -735,7 +1072,7 @@
       <article class="panel">
         <header class="panel__header">
           <div>
-            <p class="panel__eyebrow">Agenda crítica</p>
+            <p class="panel__eyebrow">Agenda critica</p>
             <p class="panel__title">Resumo de pendências</p>
           </div>
           <span class="pill pill--ghost">Imediato</span>
@@ -743,10 +1080,10 @@
         <ul class="pillars" *ngIf="agenda.length; else emptyAgendaQuick">
           <li *ngFor="let item of agenda | slice:0:3">
             <div>
-              <p class="strong">{{ item.title }}</p>
-              <p class="muted">{{ formatDate(item.dueDate) }} · {{ item.counterparty }}</p>
+              <p class="strong">{{ item.descricao }}</p>
+              <p class="muted">{{ formatDate(item.vencimento) }} - {{ item.contraparte }}</p>
             </div>
-            <span class="tag" [class.positive]="item.type === 'receber'">{{ item.amount | currency:'BRL' }}</span>
+            <span class="tag" [class.positive]="item.tipo === 'receber'">{{ item.valor | currency:'BRL' }}</span>
           </li>
         </ul>
         <ng-template #emptyAgendaQuick>
@@ -757,18 +1094,20 @@
       <article class="panel">
         <header class="panel__header">
           <div>
-            <p class="panel__eyebrow">Ações rápidas</p>
+            <p class="panel__eyebrow">Ações rapidas</p>
             <p class="panel__title">Registro e notificações</p>
           </div>
         </header>
         <div class="quick-actions">
           <button class="ghost" type="button" (click)="printResumo()">Gerar PDF completo</button>
           <button class="ghost" type="button" (click)="changeTab('visao-geral')">Voltar para lançamentos</button>
-          <button class="ghost" type="button" (click)="changeTab('fluxo')">Ver projeções</button>
+          <button class="ghost" type="button" (click)="changeTab('movimentacoes')">Ver projeções</button>
         </div>
       </article>
     </div>
   </div>
 </section>
 </app-tela-padrao>
+
+
 

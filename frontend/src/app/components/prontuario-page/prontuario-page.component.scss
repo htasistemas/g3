@@ -1,0 +1,162 @@
+:host {
+  display: block;
+  background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 40%, #f7fafc 100%);
+  padding: clamp(1rem, 2vw, 2rem);
+}
+
+.cadastro {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #1f2937;
+}
+
+.page-title__eyebrow {
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.page-title__label {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #0f172a;
+}
+
+.prontuario-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 2fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.prontuario-resumo {
+  display: grid;
+  gap: 1rem;
+}
+
+.resumo-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  background: #ffffff;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.resumo-card__foto {
+  width: 120px;
+  height: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+}
+
+.resumo-card__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.resumo-card__info h3 {
+  margin: 0;
+}
+
+.resumo-card__info p {
+  margin: 0.15rem 0;
+  color: #475569;
+}
+
+.resumo-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.resumo-card__actions {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.prontuario-conteudo {
+  display: grid;
+  gap: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab {
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.tab--active {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+
+.prontuario-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.85rem;
+}
+
+.prontuario-card--timeline {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.print-area {
+  display: none;
+}
+
+.print-area--active {
+  display: block;
+}
+
+@media print {
+  .sidebar,
+  .tab-shell,
+  .prontuario-grid,
+  .prontuario-filtros,
+  .nav-buttons,
+  app-barra-acoes-crud,
+  app-popup-messages,
+  app-prontuario-form-modal {
+    display: none !important;
+  }
+
+  .print-area--active {
+    display: block;
+  }
+}
+
+@media (max-width: 900px) {
+  .prontuario-grid {
+    grid-template-columns: 1fr;
+  }
+}

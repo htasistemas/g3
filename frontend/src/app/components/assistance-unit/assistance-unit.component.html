@@ -140,13 +140,44 @@
             placeholder="Instruções internas, horário de atendimento, etc."
           ></textarea>
         </label>
+
+        <div class="field full room-manager">
+          <label class="field-title">Salas de atendimento</label>
+          <div class="room-manager__actions">
+            <input
+              #novaSala
+              type="text"
+              placeholder="Ex.: Sala 01"
+              [disabled]="!unidade?.id"
+            />
+            <button
+              type="button"
+              class="ghost"
+              (click)="addSala(novaSala.value); novaSala.value = ''"
+              [disabled]="!unidade?.id"
+            >
+              +
+            </button>
+          </div>
+          <div class="search-hint" *ngIf="!unidade?.id">Salve a unidade para cadastrar salas.</div>
+          <div class="search-hint" *ngIf="salasLoading">Carregando salas...</div>
+          <div class="room-list" *ngIf="salasUnidade.length">
+            <div class="room-chip" *ngFor="let sala of salasUnidade">
+              <span>{{ sala.nome }}</span>
+              <div class="room-chip__actions">
+                <button type="button" class="ghost tiny" (click)="editSala(sala)">Editar</button>
+                <button type="button" class="danger ghost tiny" (click)="removeSala(sala)">Remover</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'endereco'">
+    <section class="tab-card" *ngIf="activeTab === 'endereço'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
+          <p class="tab-card__highlight">{{ getTabLabel('endereço') }}</p>
           <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
@@ -165,7 +196,7 @@
         </label>
 
         <label class="field full">Endereço
-          <input id="endereco" type="text" formControlName="endereco" placeholder="Rua, avenida..." />
+          <input id="endereço" type="text" formControlName="endereço" placeholder="Rua, avenida..." />
         </label>
 
         <label class="field">Número
@@ -304,7 +335,7 @@
           <span>Nome completo</span>
           <span>CPF</span>
           <span>Funcao</span>
-          <span>Acoes</span>
+          <span>Ações</span>
         </div>
         <div
           class="diretoria-grid__row"
@@ -401,10 +432,10 @@
         Anterior
       </button>
       <span class="unit-list__page">
-        Pagina {{ paginaAtual }} de {{ totalPaginas }}
+        Página {{ paginaAtual }} de {{ totalPaginas }}
       </span>
       <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-        Proximo
+        Próximo
       </button>
     </div>
 

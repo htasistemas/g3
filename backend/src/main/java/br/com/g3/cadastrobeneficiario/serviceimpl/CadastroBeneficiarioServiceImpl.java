@@ -1,11 +1,18 @@
 package br.com.g3.cadastrobeneficiario.serviceimpl;
 
 import br.com.g3.cadastrobeneficiario.domain.CadastroBeneficiario;
+import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
+import br.com.g3.cadastrobeneficiario.dto.DocumentoUploadRequest;
 import br.com.g3.cadastrobeneficiario.mapper.CadastroBeneficiarioMapper;
 import br.com.g3.cadastrobeneficiario.repository.CadastroBeneficiarioRepository;
+import br.com.g3.cadastrobeneficiario.repositoryimpl.DocumentoBeneficiarioJpaRepository;
+import br.com.g3.cadastrobeneficiario.service.ArmazenamentoDocumentoService;
 import br.com.g3.cadastrobeneficiario.service.CadastroBeneficiarioService;
+import br.com.g3.unidadeassistencial.domain.Endereco;
+import br.com.g3.unidadeassistencial.service.GeocodificacaoService;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -16,17 +23,33 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioService {
   private final CadastroBeneficiarioRepository repository;
+  private final ArmazenamentoDocumentoService armazenamentoDocumentoService;
+  private final DocumentoBeneficiarioJpaRepository documentoRepository;
+  private final GeocodificacaoService geocodificacaoService;
 
-  public CadastroBeneficiarioServiceImpl(CadastroBeneficiarioRepository repository) {
+  public CadastroBeneficiarioServiceImpl(
+      CadastroBeneficiarioRepository repository,
+      ArmazenamentoDocumentoService armazenamentoDocumentoService,
+      DocumentoBeneficiarioJpaRepository documentoRepository,
+      GeocodificacaoService geocodificacaoService) {
     this.repository = repository;
+    this.armazenamentoDocumentoService = armazenamentoDocumentoService;
+    this.documentoRepository = documentoRepository;
+    this.geocodificacaoService = geocodificacaoService;
   }
 
   @Override
   @Transactional
   public CadastroBeneficiarioResponse criar(CadastroBeneficiarioCriacaoRequest request) {
     CadastroBeneficiario cadastro = CadastroBeneficiarioMapper.toDomain(request);
+    if (cadastro.getCodigo() == null || cadastro.getCodigo().trim().isEmpty()) {
+      cadastro.setCodigo(gerarCodigoSequencial());
+    }
     CadastroBeneficiario salvo = repository.salvar(cadastro);
-    return CadastroBeneficiarioMapper.toResponse(salvo);
+    adicionarDocumentosUpload(salvo, request);
+    CadastroBeneficiario atualizado = repository.salvar(salvo);
+    CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
+    return CadastroBeneficiarioMapper.toResponse(geocodificado);
   }
 
   @Override
@@ -36,7 +59,10 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
         repository.buscarPorId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     CadastroBeneficiarioMapper.aplicarAtualizacao(cadastro, request);
     CadastroBeneficiario salvo = repository.salvar(cadastro);
-    return CadastroBeneficiarioMapper.toResponse(salvo);
+    adicionarDocumentosUpload(salvo, request);
+    CadastroBeneficiario atualizado = repository.salvar(salvo);
+    CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
+    return CadastroBeneficiarioMapper.toResponse(geocodificado);
   }
 
   @Override
@@ -47,10 +73,28 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
   }
 
   @Override
-  public List<CadastroBeneficiarioResponse> listar(String nome) {
-    List<CadastroBeneficiario> cadastros =
-        (nome == null || nome.trim().isEmpty()) ? repository.listar() : repository.buscarPorNome(nome);
-    return cadastros.stream().map(CadastroBeneficiarioMapper::toResponse).collect(Collectors.toList());
+  public List<CadastroBeneficiarioResponse> listar(String nome, String status) {
+    boolean temNome = nome != null && !nome.trim().isEmpty();
+    boolean temStatus = status != null && !status.trim().isEmpty();
+
+    List<CadastroBeneficiario> cadastros;
+    if (temNome && temStatus) {
+      cadastros = repository.listarPorNomeEStatus(nome, status);
+    } else if (temNome) {
+      cadastros = repository.buscarPorNome(nome);
+    } else if (temStatus) {
+      cadastros = repository.listar().stream()
+          .filter(cadastro -> status.equalsIgnoreCase(cadastro.getStatus()))
+          .collect(Collectors.toList());
+    } else {
+      cadastros = repository.listar();
+    }
+    return cadastros.stream()
+        .collect(Collectors.toMap(CadastroBeneficiario::getId, cadastro -> cadastro, (a, b) -> a, java.util.LinkedHashMap::new))
+        .values()
+        .stream()
+        .map(CadastroBeneficiarioMapper::toResponse)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -58,5 +102,85 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     CadastroBeneficiario cadastro =
         repository.buscarPorId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     repository.remover(cadastro);
+  }
+
+  @Override
+  public DocumentoBeneficiario obterDocumento(Long beneficiarioId, Long documentoId) {
+    DocumentoBeneficiario documento =
+        documentoRepository
+            .findById(documentoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (documento.getBeneficiario() == null
+        || documento.getBeneficiario().getId() == null
+        || !documento.getBeneficiario().getId().equals(beneficiarioId)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+    return documento;
+  }
+
+  @Override
+  @Transactional
+  public CadastroBeneficiarioResponse geocodificarEndereco(Long id, boolean forcar) {
+    CadastroBeneficiario cadastro =
+        repository.buscarPorId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    CadastroBeneficiario atualizado = tentarGeocodificarEndereco(cadastro, forcar);
+    if (atualizado == cadastro) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Nao foi possivel geocodificar o endereco informado.");
+    }
+    return CadastroBeneficiarioMapper.toResponse(atualizado);
+  }
+
+  private void adicionarDocumentosUpload(CadastroBeneficiario cadastro, CadastroBeneficiarioCriacaoRequest request) {
+    List<DocumentoUploadRequest> documentos = request.getDocumentosObrigatorios();
+    if (documentos == null || documentos.isEmpty()) {
+      return;
+    }
+
+    LocalDateTime agora = LocalDateTime.now();
+    for (DocumentoUploadRequest doc : documentos) {
+      if (doc == null || doc.getConteudo() == null || doc.getConteudo().trim().isEmpty()) {
+        continue;
+      }
+
+      String caminho = armazenamentoDocumentoService.salvarArquivo(cadastro.getId(), doc);
+      DocumentoBeneficiario documento = new DocumentoBeneficiario();
+      documento.setBeneficiario(cadastro);
+      documento.setNomeDocumento(doc.getNome());
+      documento.setNomeArquivo(doc.getNomeArquivo());
+      documento.setContentType(doc.getContentType());
+      documento.setObrigatorio(doc.getObrigatorio());
+      documento.setCaminhoArquivo(caminho);
+      documento.setCriadoEm(agora);
+      documento.setAtualizadoEm(agora);
+      cadastro.getDocumentos().add(documento);
+    }
+  }
+
+  private String gerarCodigoSequencial() {
+    Integer maiorCodigo = repository.buscarMaiorCodigo();
+    int proximoCodigo = (maiorCodigo == null ? 0 : maiorCodigo) + 1;
+    return String.format("%04d", proximoCodigo);
+  }
+
+  private CadastroBeneficiario tentarGeocodificarEndereco(CadastroBeneficiario cadastro, boolean forcar) {
+    Endereco endereco = cadastro.getEndereco();
+    if (endereco == null) {
+      return cadastro;
+    }
+    if (!forcar && endereco.getLatitude() != null && endereco.getLongitude() != null) {
+      return cadastro;
+    }
+    return geocodificacaoService
+        .geocodificar(endereco)
+        .map(
+            coordenadas -> {
+              endereco.setLatitude(coordenadas.getLatitude());
+              endereco.setLongitude(coordenadas.getLongitude());
+              endereco.setAtualizadoEm(LocalDateTime.now());
+              cadastro.setAtualizadoEm(LocalDateTime.now());
+              return repository.salvar(cadastro);
+            })
+        .orElse(cadastro);
   }
 }
