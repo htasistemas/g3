@@ -31,10 +31,30 @@ export interface AutorizacaoCompraRequest {
   quantidadeItens?: number;
 }
 
-export interface AutorizacaoCompraResponse extends AutorizacaoCompraRequest {
+export interface AutorizacaoCompraResponse extends AutorizacaoCompraRequest {   
   id: number;
   criadoEm: string;
   atualizadoEm: string;
+}
+
+export interface AutorizacaoCompraCotacaoRequest {
+  fornecedor: string;
+  razaoSocial?: string;
+  cnpj?: string;
+  valor: number;
+  prazoEntrega?: string;
+  validade?: string;
+  conformidade?: string;
+  observacoes?: string;
+  orcamentoFisicoNome?: string;
+  orcamentoFisicoTipo?: string;
+  orcamentoFisicoConteudo?: string;
+}
+
+export interface AutorizacaoCompraCotacaoResponse extends AutorizacaoCompraCotacaoRequest {
+  id: number;
+  autorizacaoCompraId: number;
+  criadoEm: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,5 +77,16 @@ export class AutorizacaoComprasService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  listQuotes(id: string): Observable<AutorizacaoCompraCotacaoResponse[]> {
+    return this.http.get<AutorizacaoCompraCotacaoResponse[]>(`${this.baseUrl}/${id}/cotacoes`);
+  }
+
+  createQuote(
+    id: string,
+    payload: AutorizacaoCompraCotacaoRequest
+  ): Observable<AutorizacaoCompraCotacaoResponse> {
+    return this.http.post<AutorizacaoCompraCotacaoResponse>(`${this.baseUrl}/${id}/cotacoes`, payload);
   }
 }

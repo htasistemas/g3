@@ -67,10 +67,16 @@
               <span class="pill">Etapa 1/5</span>
             </header>
 
+            <app-popup-messages
+              *ngIf="popupErros.length"
+              [mensagens]="popupErros"
+              (fechar)="fecharPopupErros()"
+            ></app-popup-messages>
+
             <div class="form-grid">
               <div class="form-row form-row--line1">
                 <label class="form-field form-field--type">
-                  <span>Tipo</span>
+                  <span>Tipo*</span>
                   <select class="select" name="type" [(ngModel)]="newRequestForm.type">
                     <option value="produto">Compras de produtos</option>
                     <option value="bem">Compra de bens</option>
@@ -79,7 +85,7 @@
                   </select>
                 </label>
                 <label class="form-field form-field--quantity">
-                  <span>Quantidade</span>
+                  <span>Quant.</span>
                   <input
                     class="input"
                     type="number"
@@ -91,7 +97,7 @@
                   />
                 </label>
                 <label class="form-field form-field--title">
-                  <span>Título da compra</span>
+                  <span>Título da compra*</span>
                   <input
                     class="input"
                     name="title"
@@ -107,7 +113,7 @@
                   <input class="input" name="area" [(ngModel)]="newRequestForm.area" placeholder="Setor / projeto" />
                 </label>
                 <label class="form-field">
-                  <span>Responsável</span>
+                  <span>Responsável*</span>
                   <select class="select" name="requester" [(ngModel)]="newRequestForm.requester" required>
                     <option value="" disabled [selected]="!newRequestForm.requester">Selecione um profissional</option>
                     <option *ngFor="let profissional of profissionais" [value]="profissional.nomeCompleto">
@@ -116,7 +122,7 @@
                   </select>
                 </label>
                 <label class="form-field form-field--value">
-                  <span>Valor estimado</span>
+                  <span>Valor estimado*</span>
                   <input
                     class="input"
                     type="text"
@@ -143,7 +149,7 @@
                 </label>
               </div>
               <label class="form-field form-field--full">
-                <span>Justificativa e escopo</span>
+                <span>Justificativa e escopo*</span>
                 <textarea
                   class="textarea"
                   name="justification"
@@ -156,7 +162,14 @@
             </div>
 
             <div class="form-actions">
-              <button class="primary" type="submit">Salvar solicitação</button>
+              <button
+                class="primary"
+                type="button"
+                [disabled]="!podeSalvarSolicitacao"
+                (click)="createRequest()"
+              >
+                Salvar solicitação
+              </button>
               <button class="ghost" type="button" (click)="navigateStep('next')">Pular para autorização</button>
             </div>
             <div class="pending-grid">
@@ -168,18 +181,35 @@
                 <span class="pill pill--ghost">{{ pendingSolicitacoes.length }} cadastrada(s)</span>
               </header>
               <div *ngIf="pendingSolicitacoes.length; else noPending">
+                <div class="pending-grid__header">
+                  <span>Quant.</span>
+                  <span>Item</span>
+                  <span>Resp.</span>
+                  <span>Local</span>
+                  <span>Prioridade</span>
+                  <span>Prazo</span>
+                  <span>Valor</span>
+                  <span class="text-right">Ações</span>
+                </div>
                 <div class="pending-grid__list">
                   <article class="pending-grid__item" *ngFor="let request of pendingSolicitacoes">
-                    <div>
-                    <div class="pending-grid__info">
-                      <p class="strong">{{ request.title }}</p>
-                      <p class="muted">{{ request.requester }} • {{ request.area }}</p>
-                    </div>
-                    <span class="pill pill--ghost" *ngIf="request.priority">{{ request.priority | titlecase }}</span>
-                    </div>
-                    <p class="muted pending-grid__meta">
-                      Qtd {{ request.quantity }} • Prazo {{ request.expectedDate | date: 'dd/MM/yyyy' }} • {{ request.value | currency: 'BRL' }}
-                    </p>
+                    <span class="pending-grid__quantidade">Qtd {{ request.quantity }}</span>
+                    <span class="pending-grid__title">{{ request.title }}</span>
+                    <span class="pending-grid__responsavel">{{ request.requester }}</span>
+                    <span class="pending-grid__area">{{ request.area || 'Sem área' }}</span>
+                    <span
+                      class="pill pill--ghost pending-grid__priority"
+                      *ngIf="request.priority"
+                      [ngClass]="{
+                        'pill--priority-urgente': request.priority === 'urgente',
+                        'pill--priority-normal': request.priority === 'normal',
+                        'pill--priority-baixa': request.priority === 'baixa'
+                      }"
+                    >
+                      {{ request.priority | titlecase }}
+                    </span>
+                    <span class="pending-grid__prazo">{{ request.expectedDate | date: 'dd/MM/yyyy' }}</span>
+                    <span class="pending-grid__valor">{{ request.value | currency: 'BRL' }}</span>
                     <button class="chip chip--accent" type="button" (click)="avancarParaAutorizacao(request)">
                       Enviar para autorização
                     </button>
@@ -430,40 +460,6 @@
         </div>
         </div>
 
-        <div class="panel panel--wide">
-          <header class="panel__header">
-            <div>
-              <p class="panel__eyebrow">Regras de cotação</p>
-              <p class="panel__title">3 propostas + comprovação de requisitos</p>
-            </div>
-            <span class="pill" [class.pill--accent]="quoteRequirementMet">{{ currentQuotes.length }}/3 cotações</span>
-            <span class="pill pill--warning" *ngIf="!requiresQuotation(selected)">
-              Dispensa até {{ quotationThreshold | currency: 'BRL' }}
-            </span>
-          </header>
-          <div class="quote-guidelines">
-            <div>
-              <p class="strong">Tipos contemplados</p>
-              <p class="muted">Produtos, bens permanentes, serviços e contratos.</p>
-            </div>
-            <div>
-              <p class="strong">Critérios</p>
-              <p class="muted">Preço, prazo, condições comerciais, comprovação fiscal e regularidade.</p>
-            </div>
-            <div>
-              <p class="strong">Integrações</p>
-              <p class="muted">Direcionar vencedor para reserva orçamentária, patrimônio ou almoxarifado conforme o tipo.</p>
-            </div>
-            <div>
-              <p class="strong">Limite de dispensa</p>
-              <p class="muted">
-                Compras abaixo de {{ quotationThreshold | currency: 'BRL' }} podem seguir direto para reserva orçamentária, com
-                registro de motivo e cartão CNPJ do fornecedor ativo.
-              </p>
-            </div>
-          </div>
-        </div>
-
         <div class="callout callout--info" *ngIf="!requiresQuotation(selected)">
           <p class="callout__title">Dispensa de cotação autorizada</p>
           <p class="callout__text">
@@ -490,20 +486,23 @@
               <span class="pill pill--ghost">Etapa 3/5</span>
             </header>
 
+            <app-popup-messages
+              *ngIf="popupErrosCotacao.length"
+              [mensagens]="popupErrosCotacao"
+              (fechar)="popupErrosCotacao = []"
+            ></app-popup-messages>
+
             <div class="form-grid">
               <label class="form-field">
-                <span>CNPJ do fornecedor</span>
+                <span>CNPJ do fornecedor*</span>
                 <input
                   class="input"
                   name="cnpj"
                   [(ngModel)]="newQuoteForm.cnpj"
                   placeholder="00.000.000/0001-00"
                   inputmode="numeric"
-                  (blur)="prefillSupplierFromCnpj()"
                   required
                 />
-                <small class="form-hint">Consulta validada na Receita Federal para aceitar apenas cartões ativos.</small>
-                <p class="form-error" *ngIf="cnpjValidationError">{{ cnpjValidationError }}</p>
               </label>
               <label class="form-field">
                 <span>Razão social (cartão CNPJ)</span>
@@ -515,7 +514,7 @@
                 />
               </label>
               <label class="form-field">
-                <span>Nome fantasia / contato</span>
+                <span>Nome fantasia / contato*</span>
                 <input
                   class="input"
                   name="supplier"
@@ -534,8 +533,17 @@
                 />
               </label>
               <label class="form-field">
-                <span>Valor ofertado</span>
-                <input class="input" type="number" name="value" [(ngModel)]="newQuoteForm.value" min="0" step="0.01" required />
+                <span>Valor ofertado*</span>
+                <input
+                  class="input"
+                  type="text"
+                  name="value"
+                  [value]="valorCotacaoDisplay"
+                  inputmode="decimal"
+                  placeholder="R$ 0,00"
+                  (input)="formatValorCotacaoInput($event.target.value)"
+                  required
+                />
               </label>
               <label class="form-field">
                 <span>Prazo de entrega</span>
@@ -544,6 +552,15 @@
               <label class="form-field">
                 <span>Validade da proposta</span>
                 <input class="input" type="date" name="validity" [(ngModel)]="newQuoteForm.validity" />
+              </label>
+              <label class="form-field">
+                <span>Orçamento físico</span>
+                <input
+                  class="input"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  (change)="onOrcamentoFisicoSelecionado($event)"
+                />
               </label>
               <label class="form-field">
                 <span>Conformidade</span>
@@ -576,7 +593,11 @@
             </header>
 
             <div class="quotes" *ngIf="currentQuotes.length; else noQuotes">
-              <article class="quote-card" *ngFor="let quote of currentQuotes">
+              <article
+                class="quote-card"
+                *ngFor="let quote of currentQuotes"
+                [class.quote-card--winner]="isLowestQuote(quote)"
+              >
                 <div class="quote-card__header">
                   <div>
                     <p class="strong">{{ quote.supplier }}</p>
@@ -586,6 +607,9 @@
                     {{ quote.compliance === 'ok' ? 'Documentação ok' : 'Documentação pendente' }}
                   </span>
                 </div>
+                <span class="pill pill--accent quote-card__winner" *ngIf="isLowestQuote(quote)">
+                  Menor preço
+                </span>
                 <p class="quote-card__cnpj">
                   {{ quote.legalName }}
                   <br />

@@ -3,6 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   faArrowLeft,
@@ -18,6 +20,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { finalize } from 'rxjs/operators';
 import {
+  AutorizacaoCompraCotacaoResponse,
   AutorizacaoCompraRequest,
   AutorizacaoCompraResponse,
   AutorizacaoComprasService
@@ -109,19 +112,11 @@ interface PaymentAuthorization {
   notes?: string;
 }
 
-interface SupplierRegistryEntry {
-  cnpj: string;
-  legalName: string;
-  tradeName?: string;
-  status: CnpjStatus;
-  lastUpdate: string;
-  cnpjCardUrl: string;
-}
 
 @Component({
   selector: 'app-autorizacao-compras',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './autorizacao-compras.component.html',
   styleUrl: './autorizacao-compras.component.scss'
 })
@@ -145,57 +140,6 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     cancelar: true,
     imprimir: true
   });
-
-  readonly cnpjRegistry: Record<string, SupplierRegistryEntry> = {
-    '33000167000101': {
-      cnpj: '33.000.167/0001-01',
-      legalName: 'PETRÓLEO BRASILEIRO S.A. - PETROBRAS',
-      tradeName: 'Petrobras',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(30),
-      cnpjCardUrl: this.receitaCardUrl('33000167000101')
-    },
-    '60746948000112': {
-      cnpj: '60.746.948/0001-12',
-      legalName: 'BANCO BRADESCO S.A.',
-      tradeName: 'Bradesco',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(20),
-      cnpjCardUrl: this.receitaCardUrl('60746948000112')
-    },
-    '00623904000173': {
-      cnpj: '00.623.904/0001-73',
-      legalName: 'BANCO SANTANDER (BRASIL) S.A.',
-      tradeName: 'Santander',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(18),
-      cnpjCardUrl: this.receitaCardUrl('00623904000173')
-    },
-    '53113791000122': {
-      cnpj: '53.113.791/0001-22',
-      legalName: 'TOTVS S.A.',
-      tradeName: 'TOTVS',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(25),
-      cnpjCardUrl: this.receitaCardUrl('53113791000122')
-    },
-    '19131243000197': {
-      cnpj: '19.131.243/0001-97',
-      legalName: 'MERCADO LIVRE COMÉRCIO ATACADISTA S.A.',
-      tradeName: 'Mercado Livre',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(15),
-      cnpjCardUrl: this.receitaCardUrl('19131243000197')
-    },
-    '47960950000121': {
-      cnpj: '47.960.950/0001-21',
-      legalName: 'MAGAZINE LUIZA S.A.',
-      tradeName: 'Magazine Luiza',
-      status: 'ATIVA',
-      lastUpdate: this.todayISO(22),
-      cnpjCardUrl: this.receitaCardUrl('47960950000121')
-    }
-  };
 
   steps: Step[] = [
     {
@@ -256,6 +200,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   feedback: string | null = null;
 
+  popupErros: string[] = [];
+  popupErrosCotacao: string[] = [];
+
   private feedbackTimeout: ReturnType<typeof setTimeout> | undefined;
 
   quotes: Record<string, Quotation[]> = {};
@@ -301,6 +248,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   };
 
   valorEstimadoDisplay = '';
+  valorCotacaoDisplay = '';
 
   approvalForm = {
     director: '',
@@ -318,10 +266,11 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     delivery: this.todayISO(5),
     validity: this.todayISO(20),
     compliance: 'ok' as Quotation['compliance'],
-    notes: ''
+    notes: '',
+    orcamentoFisicoNome: '',
+    orcamentoFisicoTipo: '',
+    orcamentoFisicoConteudo: ''
   };
-
-  cnpjValidationError: string | null = null;
 
   reservationForm = {
     center: '3.3.90.30',
@@ -332,13 +281,8 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
     const hasSelected = Boolean(this.selectedRequest);
-    const canSave =
-      Boolean(this.newRequestForm.title?.trim()) &&
-      Boolean(this.newRequestForm.requester?.trim()) &&
-      Boolean(this.newRequestForm.justification?.trim());
-
     return {
-      salvar: !canSave,
+      salvar: !this.podeSalvarSolicitacao,
       excluir: !hasSelected,
       imprimir: false,
       novo: false,
@@ -452,6 +396,13 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     return this.currentQuotes.length >= 3 && this.currentQuotes.some((quote) => quote.isWinner);
   }
 
+  get lowestQuote(): Quotation | null {
+    if (!this.currentQuotes.length) return null;
+    return this.currentQuotes.reduce((lowest, quote) =>
+      quote.value < lowest.value ? quote : lowest
+    );
+  }
+
   get pendingApprovals(): number {
     return this.requests.filter((req) => req.status === 'autorizacao').length;
   }
@@ -481,6 +432,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   changeStep(step: StepId): void {
     this.activeStep = step;
+    if (step === 'cotacoes') {
+      this.loadQuotes();
+    }
   }
 
   navigateStep(direction: 'next' | 'prev'): void {
@@ -509,10 +463,42 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       date: target?.paymentAuthorization?.date || this.todayISO(),
       notes: target?.paymentAuthorization?.notes || ''
     };
+    if (this.activeStep === 'cotacoes') {
+      this.loadQuotes();
+    }
+  }
+
+  get podeSalvarSolicitacao(): boolean {
+    return (
+      Boolean(this.newRequestForm.type?.trim()) &&
+      Boolean(this.newRequestForm.title?.trim()) &&
+      Boolean(this.newRequestForm.requester?.trim()) &&
+      Boolean(this.newRequestForm.justification?.trim()) &&
+      Number(this.newRequestForm.value) > 0
+    );
   }
 
   createRequest(): void {
-    if (!this.newRequestForm.title || !this.newRequestForm.requester || !this.newRequestForm.justification) {
+    this.popupErros = [];
+    if (!this.podeSalvarSolicitacao) {
+      const builder = new PopupErrorBuilder();
+      if (!this.newRequestForm.type?.trim()) {
+        builder.adicionar('Tipo é obrigatório.');
+      }
+      if (!this.newRequestForm.title?.trim()) {
+        builder.adicionar('Título da compra é obrigatório.');
+      }
+      if (!this.newRequestForm.requester?.trim()) {
+        builder.adicionar('Responsável é obrigatório.');
+      }
+      if (!Number(this.newRequestForm.value)) {
+        builder.adicionar('Valor estimado é obrigatório.');
+      }
+      if (!this.newRequestForm.justification?.trim()) {
+        builder.adicionar('Justificativa e escopo é obrigatório.');
+      }
+      this.popupErros = builder.build();
+      this.setFeedback('Preencha os campos obrigatórios antes de salvar a solicitação.');
       return;
     }
 
@@ -522,12 +508,17 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.requests = [saved, ...this.requests];
         this.selectedRequestId = saved.id;
         this.activeStep = 'autorizacao';
+        this.popupErros = [];
         this.resetNewRequestForm();
       },
       error: () => {
         this.setFeedback('Não foi possível salvar a solicitação. Tente novamente.');
       }
     });
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
   }
 
   avancarParaAutorizacao(request: PurchaseRequest): void {
@@ -556,53 +547,66 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   }
 
   addQuotation(): void {
-    if (!this.selectedRequest || !this.newQuoteForm.value) return;
-
-    const cnpjValidation = this.validateSupplierCnpj(this.newQuoteForm.cnpj);
-    if (!cnpjValidation.valid) {
-      this.cnpjValidationError = cnpjValidation.message ?? 'CNPJ inválido';
+    if (!this.selectedRequest) return;
+    this.popupErrosCotacao = [];
+    const builder = new PopupErrorBuilder();
+    if (!this.newQuoteForm.supplier?.trim()) {
+      builder.adicionar('Fornecedor é obrigatório.');
+    }
+    if (!this.newQuoteForm.cnpj?.trim()) {
+      builder.adicionar('CNPJ do fornecedor é obrigatório.');
+    }
+    if (!Number(this.newQuoteForm.value)) {
+      builder.adicionar('Valor ofertado é obrigatório.');
+    }
+    this.popupErrosCotacao = builder.build();
+    if (this.popupErrosCotacao.length) {
+      this.setFeedback('Preencha os campos obrigatórios antes de adicionar a cotação.');
       return;
     }
-
-    this.cnpjValidationError = null;
-
-    const registry = cnpjValidation.record;
-    const supplierLabel = registry?.tradeName || this.newQuoteForm.supplier || registry?.legalName || '';
-    const legalName = registry?.legalName || this.newQuoteForm.companyName || supplierLabel;
-    const cardUrl = registry?.cnpjCardUrl || this.newQuoteForm.cnpjCardUrl;
-
-    const quotes = this.quotes[this.selectedRequestId] ?? [];
-    this.quotes = {
-      ...this.quotes,
-      [this.selectedRequestId]: [
-        ...quotes,
-        {
-          supplier: supplierLabel,
-          legalName,
-          cnpj: this.formatCnpj(this.newQuoteForm.cnpj),
-          cnpjStatus: registry?.status ?? 'ATIVA',
-          cnpjCheckedAt: this.todayISO(),
-          cnpjCardUrl: cardUrl || this.receitaCardUrl(this.newQuoteForm.cnpj),
-          value: Number(this.newQuoteForm.value),
-          delivery: this.newQuoteForm.delivery,
-          validity: this.newQuoteForm.validity,
-          compliance: this.newQuoteForm.compliance,
-          notes: this.newQuoteForm.notes
-        }
-      ]
+    const supplierLabel = this.newQuoteForm.supplier || this.newQuoteForm.companyName || '';
+    const payload = {
+      fornecedor: supplierLabel,
+      razaoSocial: this.newQuoteForm.companyName || undefined,
+      cnpj: this.newQuoteForm.cnpj ? this.formatCnpj(this.newQuoteForm.cnpj) : undefined,
+      valor: Number(this.newQuoteForm.value),
+      prazoEntrega: this.newQuoteForm.delivery || undefined,
+      validade: this.newQuoteForm.validity || undefined,
+      conformidade: this.newQuoteForm.compliance,
+      observacoes: this.newQuoteForm.notes || undefined,
+      orcamentoFisicoNome: this.newQuoteForm.orcamentoFisicoNome || undefined,
+      orcamentoFisicoTipo: this.newQuoteForm.orcamentoFisicoTipo || undefined,
+      orcamentoFisicoConteudo: this.newQuoteForm.orcamentoFisicoConteudo || undefined
     };
 
-    this.newQuoteForm = {
-      supplier: '',
-      companyName: '',
-      cnpj: '',
-      cnpjCardUrl: '',
-      value: 0,
-      delivery: this.todayISO(5),
-      validity: this.todayISO(20),
-      compliance: 'ok',
-      notes: ''
-    };
+    this.autorizacaoComprasService.createQuote(this.selectedRequest.id, payload).subscribe({
+      next: (response) => {
+        const quotes = this.quotes[this.selectedRequestId] ?? [];
+        this.quotes = {
+          ...this.quotes,
+          [this.selectedRequestId]: [...quotes, this.toQuotation(response)]
+        };
+        this.newQuoteForm = {
+          supplier: '',
+          companyName: '',
+          cnpj: '',
+          cnpjCardUrl: '',
+          value: 0,
+          delivery: this.todayISO(5),
+          validity: this.todayISO(20),
+          compliance: 'ok',
+          notes: '',
+          orcamentoFisicoNome: '',
+          orcamentoFisicoTipo: '',
+          orcamentoFisicoConteudo: ''
+        };
+        this.valorCotacaoDisplay = '';
+        this.popupErrosCotacao = [];
+      },
+      error: () => {
+        this.setFeedback('Não foi possível salvar a cotação. Tente novamente.');
+      }
+    });
   }
 
   markWinner(quote: Quotation): void {
@@ -714,11 +718,22 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     return this.steps.find((step) => step.id === stepId)?.label ?? '';
   }
 
+  isLowestQuote(quote: Quotation): boolean {
+    return this.lowestQuote?.value === quote.value && this.lowestQuote?.supplier === quote.supplier;
+  }
+
   formatValorEstimadoInput(raw: string): void {
     const digits = (raw || '').replace(/\D/g, '');
     const amount = digits ? Number(digits) / 100 : 0;
     this.newRequestForm.value = amount;
     this.valorEstimadoDisplay = digits ? this.formatCurrency(amount) : '';
+  }
+
+  formatValorCotacaoInput(raw: string): void {
+    const digits = (raw || '').replace(/\D/g, '');
+    const amount = digits ? Number(digits) / 100 : 0;
+    this.newQuoteForm.value = amount;
+    this.valorCotacaoDisplay = digits ? this.formatCurrency(amount) : '';
   }
 
   private formatCurrency(value: number): string {
@@ -729,44 +744,6 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     }).format(value);
   }
 
-  prefillSupplierFromCnpj(): void {
-    const registry = this.lookupSupplier(this.newQuoteForm.cnpj);
-    if (!registry) return;
-
-    this.newQuoteForm.companyName = registry.legalName;
-    this.newQuoteForm.supplier = registry.tradeName || registry.legalName;
-    this.newQuoteForm.cnpjCardUrl = registry.cnpjCardUrl;
-    this.cnpjValidationError = null;
-  }
-
-  validateSupplierCnpj(cnpj: string): { valid: boolean; record?: SupplierRegistryEntry; message?: string } {
-    const normalized = this.normalizeCnpj(cnpj);
-    if (!normalized) {
-      return { valid: false, message: 'Informe o CNPJ do fornecedor.' };
-    }
-
-    if (!this.isValidCnpj(normalized)) {
-      return { valid: false, message: 'CNPJ inválido pelo cálculo de dígitos verificadores.' };
-    }
-
-    const registry = this.lookupSupplier(normalized);
-    if (!registry) {
-      return {
-        valid: false,
-        message: 'CNPJ não localizado na consulta da Receita Federal. Inclua apenas fornecedores ativos.'
-      };
-    }
-
-    if (registry.status !== 'ATIVA') {
-      return { valid: false, message: `Situação cadastral: ${registry.status}.` };
-    }
-
-    return { valid: true, record: registry };
-  }
-
-  private lookupSupplier(cnpj: string): SupplierRegistryEntry | undefined {
-    return this.cnpjRegistry[this.normalizeCnpj(cnpj)];
-  }
 
   private normalizeCnpj(cnpj: string): string {
     return (cnpj || '').replace(/\D/g, '');
@@ -797,8 +774,23 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     return digits.endsWith(`${digit1}${digit2}`);
   }
 
-  private receitaCardUrl(cnpj: string): string {
-    return `https://servicos.receita.economia.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp?cnpj=${this.normalizeCnpj(cnpj)}`;
+  onOrcamentoFisicoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      this.newQuoteForm.orcamentoFisicoNome = '';
+      this.newQuoteForm.orcamentoFisicoTipo = '';
+      this.newQuoteForm.orcamentoFisicoConteudo = '';
+      return;
+    }
+    this.newQuoteForm.orcamentoFisicoNome = file.name;
+    this.newQuoteForm.orcamentoFisicoTipo = file.type || 'application/octet-stream';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result?.toString() || '';
+      this.newQuoteForm.orcamentoFisicoConteudo = result;
+    };
+    reader.readAsDataURL(file);
   }
 
   private toPurchaseRequest(response: AutorizacaoCompraResponse): PurchaseRequest {
@@ -843,6 +835,37 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       quantity: Number(response.quantidadeItens ?? 1)
     };
     return purchase;
+  }
+
+  private loadQuotes(): void {
+    if (!this.selectedRequestId) return;
+    this.autorizacaoComprasService.listQuotes(this.selectedRequestId).subscribe({
+      next: (records) => {
+        this.quotes = {
+          ...this.quotes,
+          [this.selectedRequestId]: records.map((record) => this.toQuotation(record))
+        };
+      },
+      error: () => {
+        this.setFeedback('Não foi possível carregar as cotações no momento.');
+      }
+    });
+  }
+
+  private toQuotation(response: AutorizacaoCompraCotacaoResponse): Quotation {
+    return {
+      supplier: response.fornecedor,
+      legalName: response.razaoSocial || response.fornecedor,
+      cnpj: response.cnpj || '',
+      cnpjStatus: 'ATIVA',
+      cnpjCheckedAt: response.criadoEm || this.todayISO(),
+      cnpjCardUrl: '',
+      value: Number(response.valor ?? 0),
+      delivery: response.prazoEntrega ?? '',
+      validity: response.validade ?? '',
+      compliance: (response.conformidade as Quotation['compliance']) ?? 'ok',
+      notes: response.observacoes ?? ''
+    };
   }
 
   private buildPayload(request: PurchaseRequest): AutorizacaoCompraRequest {

@@ -74,6 +74,23 @@ CREATE TABLE IF NOT EXISTS autorizacao_compras (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS autorizacao_compras_cotacoes (
+  id BIGSERIAL PRIMARY KEY,
+  autorizacao_compra_id BIGINT NOT NULL REFERENCES autorizacao_compras(id) ON DELETE CASCADE,
+  fornecedor VARCHAR(200) NOT NULL,
+  razao_social VARCHAR(200),
+  cnpj VARCHAR(20),
+  valor NUMERIC(14, 2) NOT NULL,
+  prazo_entrega DATE,
+  validade DATE,
+  conformidade VARCHAR(30),
+  observacoes TEXT,
+  orcamento_fisico_nome VARCHAR(255),
+  orcamento_fisico_tipo VARCHAR(100),
+  orcamento_fisico_conteudo TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS endereco (
   id BIGSERIAL PRIMARY KEY,
   cep VARCHAR(20),

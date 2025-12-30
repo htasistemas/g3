@@ -35,6 +35,7 @@ Agentes nao devem:
 - Metodos devem ter responsabilidade unica.
 - Evitar logica oculta ou efeitos colaterais inesperados.
 - Todas as telas novas ou ja criadas precisam gerar o popup de error message.
+- Todo campo obrigatorio deve exibir (*) ao lado do titulo do campo e, ao clicar em "salvar" sem preenchimento, deve apresentar mensagem de erro clara ao usuario.
 
 ## Angular (Frontend)
 - Nao adicionar logica pesada em templates.
