@@ -46,11 +46,7 @@ public class TarefaPendencia {
       orphanRemoval = true)
   private List<TarefaPendenciaChecklist> checklist = new ArrayList<>();
 
-  @OneToMany(
-      mappedBy = "tarefa",
-      cascade = CascadeType.ALL,
-      fetch = FetchType.EAGER,
-      orphanRemoval = true)
+  @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<TarefaPendenciaHistorico> historico = new ArrayList<>();
 
   @Column(name = "criado_em", nullable = false)

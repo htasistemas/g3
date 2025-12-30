@@ -181,7 +181,9 @@ C:\g3\backend\src\main\java\br\com\g3\recebimentodoacao\service\RecebimentoDoaca
 C:\g3\backend\src\main\java\br\com\g3\recebimentodoacao\serviceimpl\RecebimentoDoacaoServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\controller\RelatoriosController.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\dto\TermoAutorizacaoRequest.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\service\RelatorioTarefasPendenciasService.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\service\TermoAutorizacaoService.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\serviceimpl\RelatorioTarefasPendenciasServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\serviceimpl\TermoAutorizacaoServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\shared\InitDbConfig.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\controller\TarefasPendenciasController.java

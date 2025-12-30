@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -19,7 +20,8 @@ import org.springframework.stereotype.Service;
 public class RelatorioTarefasPendenciasServiceImpl implements RelatorioTarefasPendenciasService {
   private static final DateTimeFormatter DATA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final DateTimeFormatter DATA_HORA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-  private static final List<String> STATUS_ORDER = List.of("Aberta", "Em andamento", "Em atraso", "Concluída");
+  private static final List<String> STATUS_ORDER =
+      Arrays.asList("Aberta", "Em andamento", "Em atraso", "Concluída");
   private static final String TASK_TEMPLATE = "%-30.30s | %-18.18s | %-12.12s | %-12.12s";
 
   private final TarefaPendenciaRepository repository;

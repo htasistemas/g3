@@ -12,6 +12,8 @@
 
   (excluir)="onDelete()"
 
+  (imprimir)="imprimirRelatorio()"
+
 >
 
   <header class="page-title" slot="titulo">
@@ -209,6 +211,14 @@
 
 
       <div class="tab-actions">
+        <button
+          type="button"
+          class="ghost"
+          (click)="imprimirRelatorio()"
+          [disabled]="imprimindoRelatorio"
+        >
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
+        </button>
 
         <button type="button" class="ghost" (click)="goToPreviousTab()" [disabled]="!hasPreviousTab">
 
@@ -384,6 +394,17 @@
 
       <div class="tab-actions">
 
+        <button
+          type="button"
+          class="ghost"
+          (click)="imprimirRelatorio()"
+          [disabled]="imprimindoRelatorio"
+        >
+
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
+
+        </button>
+
         <button type="button" class="ghost" (click)="goToPreviousTab()" [disabled]="!hasPreviousTab">
 
           Voltar
@@ -539,6 +560,17 @@
 
 
       <div class="tab-actions">
+
+        <button
+          type="button"
+          class="ghost"
+          (click)="imprimirRelatorio()"
+          [disabled]="imprimindoRelatorio"
+        >
+
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
+
+        </button>
 
         <button type="button" class="ghost" (click)="goToPreviousTab()">
 

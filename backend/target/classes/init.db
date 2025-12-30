@@ -43,6 +43,37 @@ CREATE TABLE IF NOT EXISTS tarefas_pendencias_historico (
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS autorizacao_compras (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(255) NOT NULL,
+  tipo VARCHAR(30) NOT NULL,
+  area VARCHAR(150),
+  responsavel VARCHAR(150),
+  data_prevista DATE,
+  valor NUMERIC(14, 2),
+  quantidade_itens INTEGER NOT NULL DEFAULT 1,
+  justificativa TEXT,
+  centro_custo VARCHAR(60),
+  prioridade VARCHAR(20) NOT NULL DEFAULT 'normal',
+  status VARCHAR(40) NOT NULL,
+  aprovador VARCHAR(150),
+  decisao VARCHAR(30),
+  observacoes_aprovacao TEXT,
+  data_aprovacao DATE,
+  dispensar_cotacao BOOLEAN NOT NULL DEFAULT FALSE,
+  motivo_dispensa TEXT,
+  vencedor VARCHAR(255),
+  registro_patrimonio BOOLEAN NOT NULL DEFAULT FALSE,
+  registro_almoxarifado BOOLEAN NOT NULL DEFAULT FALSE,
+  numero_reserva VARCHAR(60),
+  autorizacao_pagamento_numero VARCHAR(100),
+  autorizacao_pagamento_autor VARCHAR(150),
+  autorizacao_pagamento_data DATE,
+  autorizacao_pagamento_observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS endereco (
   id BIGSERIAL PRIMARY KEY,
   cep VARCHAR(20),
@@ -304,6 +335,12 @@ ALTER TABLE usuarios
 
 ALTER TABLE usuarios
   ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE autorizacao_compras
+  ADD COLUMN IF NOT EXISTS quantidade_itens INTEGER NOT NULL DEFAULT 1;
+
+ALTER TABLE autorizacao_compras
+  ADD COLUMN IF NOT EXISTS prioridade VARCHAR(20) NOT NULL DEFAULT 'normal';
 
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS endereco_id BIGINT REFERENCES endereco(id) ON DELETE SET NULL;

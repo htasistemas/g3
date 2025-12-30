@@ -68,7 +68,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     salvar: true,
     excluir: true,
     novo: true,
-    cancelar: true
+    cancelar: true,
+    imprimir: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -76,7 +77,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
       salvar: this.saving,
       excluir: !this.editingId,
       novo: this.saving,
-      cancelar: this.saving
+      cancelar: this.saving,
+      imprimir: this.imprimindoRelatorio
     };
   }
 

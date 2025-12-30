@@ -12,17 +12,13 @@
 <header class="page-title" slot="titulo">
     <div class="page-title__stack">
       <p class="page-title__eyebrow">Financeiro</p>
-      <div class="page-title__headline">
-        <div>
-          <p class="page-title__label">Autoriza&ccedil;&atilde;o de compras</p>
+  <div class="page-title__headline">
+    <div>
+      <p class="page-title__label">Autoriza&ccedil;&atilde;o de compras</p>
         </div>
-        <button type="button" class="ghost" (click)="printSection()">
-          <fa-icon [icon]="faPrint"></fa-icon>
-          Imprimir vis&atilde;o geral
-        </button>
-      </div>
     </div>
-  </header>
+  </div>
+</header>
 
 <section class="cadastro">
   <div class="tab-shell">
@@ -42,54 +38,23 @@
     </ol>
   </div>
 
-  <div class="workspace" *ngIf="selectedRequest as selected">
-    <div class="context-bar">
-      <label class="context-bar__field">
-        <span class="context-bar__label">Processo</span>
-        <select
-          class="select select--dense"
-          name="selectedRequest"
-          [ngModel]="selectedRequestId"
-          (ngModelChange)="selectRequest($event)"
-        >
-          <option *ngFor="let request of requests" [value]="request.id">
-            {{ request.id }} · {{ request.title }}
-          </option>
-        </select>
-      </label>
-      <div class="context-bar__summary">
-        <div class="context-bar__item">
-          <p class="context-bar__hint">Etapa atual</p>
-          <p class="context-bar__value">{{ getStepLabel(selected.status) }}</p>
-        </div>
-        <div class="context-bar__item">
-          <p class="context-bar__hint">Valor estimado</p>
-          <p class="context-bar__value">{{ selected.value | currency: 'BRL' }}</p>
-        </div>
-        <div class="context-bar__item">
-          <p class="context-bar__hint">Responsável</p>
-          <p class="context-bar__value">{{ selected.requester }} — {{ selected.area }}</p>
-        </div>
-      </div>
-    </div>
-
+  <div class="workspace">
     <div class="tab-card" [ngSwitch]="activeStep">
       <ng-container *ngSwitchCase="'solicitacao'">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Solicitação de compras</p>
-            <p class="muted">Cadastre a demanda e gere o relatório de autorização para a diretoria.</p>
           </div>
-          <div class="tab-card__actions">
-            <button class="ghost" type="button" (click)="printSection()">
-              <fa-icon [icon]="faPrint"></fa-icon>
-              Imprimir formulário
-            </button>
-            <button class="primary" type="button" (click)="navigateStep('next')">
-              Próxima etapa
-              <fa-icon [icon]="faArrowRight"></fa-icon>
-            </button>
-          </div>
+            <div class="tab-card__actions">
+              <button class="ghost" type="button" (click)="printSection()">
+                <fa-icon [icon]="faPrint"></fa-icon>
+                Imprimir solicitação
+              </button>
+              <button class="primary" type="button" (click)="navigateStep('next')">
+                Próxima etapa
+                <fa-icon [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
         </div>
 
         <div class="grid-two-columns">
@@ -103,35 +68,80 @@
             </header>
 
             <div class="form-grid">
-              <label class="form-field">
-                <span>Título da compra</span>
-                <input class="input" name="title" [(ngModel)]="newRequestForm.title" placeholder="Ex.: Kits pedagógicos" required />
-              </label>
-              <label class="form-field">
-                <span>Tipo</span>
-                <select class="select" name="type" [(ngModel)]="newRequestForm.type">
-                  <option value="produto">Compras de produtos</option>
-                  <option value="bem">Compra de bens</option>
-                  <option value="servico">Autorização de serviços</option>
-                  <option value="contrato">Contratos</option>
-                </select>
-              </label>
-              <label class="form-field">
-                <span>Área solicitante</span>
-                <input class="input" name="area" [(ngModel)]="newRequestForm.area" placeholder="Setor / projeto" />
-              </label>
-              <label class="form-field">
-                <span>Responsável</span>
-                <input class="input" name="requester" [(ngModel)]="newRequestForm.requester" placeholder="Nome do solicitante" required />
-              </label>
-              <label class="form-field">
-                <span>Previsão / necessidade</span>
-                <input class="input" type="date" name="expectedDate" [(ngModel)]="newRequestForm.expectedDate" />
-              </label>
-              <label class="form-field">
-                <span>Valor estimado</span>
-                <input class="input" type="number" name="value" [(ngModel)]="newRequestForm.value" min="0" step="0.01" />
-              </label>
+              <div class="form-row form-row--line1">
+                <label class="form-field form-field--type">
+                  <span>Tipo</span>
+                  <select class="select" name="type" [(ngModel)]="newRequestForm.type">
+                    <option value="produto">Compras de produtos</option>
+                    <option value="bem">Compra de bens</option>
+                    <option value="servico">Autorização de serviços</option>
+                    <option value="contrato">Contratos</option>
+                  </select>
+                </label>
+                <label class="form-field form-field--quantity">
+                  <span>Quantidade</span>
+                  <input
+                    class="input"
+                    type="number"
+                    min="1"
+                    max="999999"
+                    step="1"
+                    name="quantity"
+                    [(ngModel)]="newRequestForm.quantity"
+                  />
+                </label>
+                <label class="form-field form-field--title">
+                  <span>Título da compra</span>
+                  <input
+                    class="input"
+                    name="title"
+                    [(ngModel)]="newRequestForm.title"
+                    placeholder="Ex.: Kits pedagógicos"
+                    required
+                  />
+                </label>
+              </div>
+              <div class="form-row form-row--line2">
+                <label class="form-field">
+                  <span>Área solicitante</span>
+                  <input class="input" name="area" [(ngModel)]="newRequestForm.area" placeholder="Setor / projeto" />
+                </label>
+                <label class="form-field">
+                  <span>Responsável</span>
+                  <select class="select" name="requester" [(ngModel)]="newRequestForm.requester" required>
+                    <option value="" disabled [selected]="!newRequestForm.requester">Selecione um profissional</option>
+                    <option *ngFor="let profissional of profissionais" [value]="profissional.nomeCompleto">
+                      {{ profissional.nomeCompleto }}<span *ngIf="profissional.categoria"> • {{ profissional.categoria }}</span>
+                    </option>
+                  </select>
+                </label>
+                <label class="form-field form-field--value">
+                  <span>Valor estimado</span>
+                  <input
+                    class="input"
+                    type="text"
+                    name="value"
+                    [value]="valorEstimadoDisplay"
+                    inputmode="decimal"
+                    placeholder="R$ 0,00"
+                    (input)="formatValorEstimadoInput($event.target.value)"
+                  />
+                </label>
+              </div>
+              <div class="form-row form-row--line3">
+                <label class="form-field">
+                  <span>Previsão / necessidade</span>
+                  <input class="input" type="date" name="expectedDate" [(ngModel)]="newRequestForm.expectedDate" />
+                </label>
+                <label class="form-field form-field--priority">
+                  <span>Prioridade</span>
+                  <select class="select" name="priority" [(ngModel)]="newRequestForm.priority">
+                    <option value="urgente">Urgente</option>
+                    <option value="normal">Normal (não urgente)</option>
+                    <option value="baixa">Baixa prioridade</option>
+                  </select>
+                </label>
+              </div>
               <label class="form-field form-field--full">
                 <span>Justificativa e escopo</span>
                 <textarea
@@ -143,53 +153,49 @@
                   required
                 ></textarea>
               </label>
-              <label class="form-field">
-                <span>Centro de custo / conta contábil</span>
-                <select class="select" name="budgetCenter" [(ngModel)]="newRequestForm.budgetCenter">
-                  <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
-                    {{ envelope.center }} · {{ envelope.title }}
-                  </option>
-                </select>
-              </label>
             </div>
 
             <div class="form-actions">
               <button class="primary" type="submit">Salvar solicitação</button>
               <button class="ghost" type="button" (click)="navigateStep('next')">Pular para autorização</button>
             </div>
-          </form>
-
-          <div class="panel">
-            <header class="panel__header">
-              <div>
-                <p class="panel__eyebrow">Relatório para autorização</p>
-                <p class="panel__title">Resumo das solicitações</p>
+            <div class="pending-grid">
+              <header class="pending-grid__header">
+                <div>
+                  <p class="pending-grid__eyebrow">Solicitações pendentes</p>
+                  <p class="pending-grid__title">Aguardando autorização</p>
+                </div>
+                <span class="pill pill--ghost">{{ pendingSolicitacoes.length }} cadastrada(s)</span>
+              </header>
+              <div *ngIf="pendingSolicitacoes.length; else noPending">
+                <div class="pending-grid__list">
+                  <article class="pending-grid__item" *ngFor="let request of pendingSolicitacoes">
+                    <div>
+                    <div class="pending-grid__info">
+                      <p class="strong">{{ request.title }}</p>
+                      <p class="muted">{{ request.requester }} • {{ request.area }}</p>
+                    </div>
+                    <span class="pill pill--ghost" *ngIf="request.priority">{{ request.priority | titlecase }}</span>
+                    </div>
+                    <p class="muted pending-grid__meta">
+                      Qtd {{ request.quantity }} • Prazo {{ request.expectedDate | date: 'dd/MM/yyyy' }} • {{ request.value | currency: 'BRL' }}
+                    </p>
+                    <button class="chip chip--accent" type="button" (click)="avancarParaAutorizacao(request)">
+                      Enviar para autorização
+                    </button>
+                  </article>
+                </div>
               </div>
-              <button class="ghost" type="button" (click)="printSection()">
-                <fa-icon [icon]="faFileSignature"></fa-icon>
-                Gerar PDF
-              </button>
-            </header>
-
-            <div class="report">
-              <div class="report__row report__row--head">
-                <span>Processo</span>
-                <span>Tipo</span>
-                <span>Valor</span>
-                <span>Etapa</span>
-              </div>
-              <div class="report__row" *ngFor="let request of requests">
-                <span class="strong">{{ request.title }}</span>
-                <span class="pill pill--ghost">{{ request.type }}</span>
-                <span>{{ request.value | currency: 'BRL' }}</span>
-                <span>{{ getStepLabel(request.status) }}</span>
-              </div>
+              <ng-template #noPending>
+                <p class="empty-state">Nenhuma solicitação aguardando autorização no momento.</p>
+              </ng-template>
             </div>
-          </div>
+          </form>
         </div>
       </ng-container>
 
       <ng-container *ngSwitchCase="'autorizacao'">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Autorização pela diretoria</p>
@@ -197,20 +203,16 @@
               Registre parecer, encaminhe para contabilidade e defina condicionantes antes de liberar cotações.
             </p>
           </div>
-          <div class="tab-card__actions tab-card__actions--stacked">
-            <button class="ghost" type="button" (click)="changeStep('solicitacao')">
-              <fa-icon [icon]="faArrowLeft"></fa-icon>
-              Revisar solicitação
-            </button>
-            <button class="ghost" type="button" (click)="printSection()">
-              <fa-icon [icon]="faPrint"></fa-icon>
-              Imprimir relatório
-            </button>
-            <button class="primary" type="button" (click)="navigateStep('next')">
-              Ir para cotação
-              <fa-icon [icon]="faArrowRight"></fa-icon>
-            </button>
-          </div>
+            <div class="tab-card__actions tab-card__actions--stacked">
+              <button class="ghost" type="button" (click)="changeStep('solicitacao')">
+                <fa-icon [icon]="faArrowLeft"></fa-icon>
+                Revisar solicitação
+              </button>
+              <button class="primary" type="button" (click)="navigateStep('next')">
+                Ir para cotação
+                <fa-icon [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
         </div>
 
         <div class="authorization-overview">
@@ -410,24 +412,22 @@
             </div>
           </div>
         </div>
+        </ng-container>
       </ng-container>
 
       <ng-container *ngSwitchCase="'cotacoes'">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Cotação prévia e vencedor</p>
             <p class="muted">Cadastre pelo menos 3 cotações, compare condições e selecione o fornecedor vencedor.</p>
           </div>
-          <div class="tab-card__actions">
-            <button class="ghost" type="button" (click)="printSection()">
-              <fa-icon [icon]="faPrint"></fa-icon>
-              Imprimir mapa comparativo
-            </button>
-            <button class="primary" type="button" (click)="navigateStep('next')">
-              Ir para reserva orçamentária
-              <fa-icon [icon]="faArrowRight"></fa-icon>
-            </button>
-          </div>
+        <div class="tab-card__actions">
+          <button class="primary" type="button" (click)="navigateStep('next')">
+            Ir para reserva orçamentária
+            <fa-icon [icon]="faArrowRight"></fa-icon>
+          </button>
+        </div>
         </div>
 
         <div class="panel panel--wide">
@@ -627,24 +627,22 @@
             </ng-template>
           </div>
         </div>
+        </ng-container>
       </ng-container>
 
       <ng-container *ngSwitchCase="'reserva'">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Reserva orçamentária</p>
             <p class="muted">Busque recursos na contabilidade, registre a reserva e siga para a contratação.</p>
           </div>
-          <div class="tab-card__actions">
-            <button class="ghost" type="button" (click)="printSection()">
-              <fa-icon [icon]="faPrint"></fa-icon>
-              Imprimir reserva
-            </button>
-            <button class="primary" type="button" (click)="navigateStep('next')">
-              Ir para conclusão
-              <fa-icon [icon]="faArrowRight"></fa-icon>
-            </button>
-          </div>
+        <div class="tab-card__actions">
+          <button class="primary" type="button" (click)="navigateStep('next')">
+            Ir para conclusão
+            <fa-icon [icon]="faArrowRight"></fa-icon>
+          </button>
+        </div>
         </div>
 
         <div class="grid-two-columns">
@@ -736,24 +734,22 @@
             <p class="empty-state">Nenhuma reserva realizada ainda.</p>
           </ng-template>
         </div>
+        </ng-container>
       </ng-container>
 
       <ng-container *ngSwitchCase="'conclusao'">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Conclusão e integração</p>
             <p class="muted">Finalize a compra, envie para patrimônio ou almoxarifado e gere o termo de conclusão.</p>
           </div>
-          <div class="tab-card__actions">
-            <button class="ghost" type="button" (click)="printSection()">
-              <fa-icon [icon]="faPrint"></fa-icon>
-              Imprimir termo
-            </button>
-            <button class="primary" type="button" (click)="navigateStep('prev')">
-              Voltar para reserva
-              <fa-icon [icon]="faArrowLeft"></fa-icon>
-            </button>
-          </div>
+        <div class="tab-card__actions">
+          <button class="primary" type="button" (click)="navigateStep('prev')">
+            Voltar para reserva
+            <fa-icon [icon]="faArrowLeft"></fa-icon>
+          </button>
+        </div>
         </div>
 
         <div class="grid-two-columns">
@@ -898,9 +894,16 @@
             </article>
           </div>
         </div>
+        </ng-container>
       </ng-container>
     </div>
   </div>
+  <ng-template #noSelection>
+    <div class="empty-state">
+      <p>Selecione uma solicitação existente para visualizar as etapas seguintes.</p>
+      <p class="small">Ainda não há solicitações? Cadastre uma nova na aba “Solicitação de compras”.</p>
+    </div>
+  </ng-template>
 </section>
 </app-tela-padrao>
 

@@ -199,9 +199,9 @@
 }
 
 .description-field textarea {
-  min-height: 64px;
-  height: 100%;
-  resize: vertical;
+  min-height: 48px;
+  height: auto;
+  resize: none;
 }
 
 .status-field {

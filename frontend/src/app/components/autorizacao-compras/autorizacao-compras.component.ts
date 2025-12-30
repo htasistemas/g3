@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -16,6 +16,13 @@ import {
   faCircleCheck,
   faWarehouse
 } from '@fortawesome/free-solid-svg-icons';
+import { finalize } from 'rxjs/operators';
+import {
+  AutorizacaoCompraRequest,
+  AutorizacaoCompraResponse,
+  AutorizacaoComprasService
+} from '../../services/autorizacao-compras.service';
+import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
 
 type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
 type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'reserva' | 'conclusao';
@@ -38,6 +45,7 @@ interface PurchaseRequest {
   area: string;
   expectedDate: string;
   value: number;
+  quantity: number;
   justification: string;
   status: StepId;
   approval?: {
@@ -54,6 +62,7 @@ interface PurchaseRequest {
   patrimonyRegistration?: boolean;
   warehouseRegistration?: boolean;
   paymentAuthorization?: PaymentAuthorization;
+  priority?: 'urgente' | 'normal' | 'baixa';
 }
 
 interface Quotation {
@@ -116,7 +125,7 @@ interface SupplierRegistryEntry {
   templateUrl: './autorizacao-compras.component.html',
   styleUrl: './autorizacao-compras.component.scss'
 })
-export class AutorizacaoComprasComponent extends TelaBaseComponent {
+export class AutorizacaoComprasComponent extends TelaBaseComponent implements OnInit {
   readonly faPrint = faPrint;
   readonly faArrowLeft = faArrowLeft;
   readonly faArrowRight = faArrowRight;
@@ -221,121 +230,35 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
     }
   ];
 
+  constructor(
+    private readonly autorizacaoComprasService: AutorizacaoComprasService,
+    private readonly professionalService: ProfessionalService
+  ) {
+    super();
+  }
+
+  ngOnInit(): void {
+    this.loadProfessionals();
+    this.loadRequests();
+  }
+
   activeStep: StepId = 'solicitacao';
 
-  requests: PurchaseRequest[] = [
-    {
-      id: 'SC-2024/091',
-      title: 'Aquisição de notebooks corporativos Lenovo',
-      type: 'bem',
-      requester: 'Tecnologia da Informação',
-      area: 'TI Corporativa',
-      expectedDate: this.todayISO(10),
-      value: 148000,
-      justification: 'Padronizar estações com Windows 11 Pro, criptografia e suporte remoto para equipes de campo.',
-      status: 'cotacoes',
-      approval: {
-        director: 'Marina Prado (COO)',
-        decision: 'aprovado',
-        date: this.todayISO(14),
-        notes: 'Aprovado com recurso do centro 3.3.90.30 e entrega faseada em dois lotes.'
-      },
-      budgetCenter: '3.3.90.30',
-      winnerSupplier: 'Magazine Luiza'
-    },
-    {
-      id: 'SC-2024/134',
-      title: 'Contrato de manutenção predial preventiva',
-      type: 'servico',
-      requester: 'Infraestrutura',
-      area: 'Operações',
-      expectedDate: this.todayISO(20),
-      value: 12500,
-      justification: 'Plano trimestral de manutenção para evitar paradas das salas.',
-      status: 'reserva',
-      approval: {
-        director: 'Carlos Menezes',
-        decision: 'aprovado',
-        date: this.todayISO(30),
-        notes: 'Priorizar fornecedores homologados.'
-      },
-      budgetCenter: '3.3.90.39',
-      reservationNumber: 'RES-058/2024',
-      winnerSupplier: 'Bradesco Serviços'
-    },
-    {
-      id: 'SC-2024/205',
-      title: 'Compra emergencial de materiais de limpeza',
-      type: 'produto',
-      requester: 'Serviços Gerais',
-      area: 'Administrativo',
-      expectedDate: this.todayISO(40),
-      value: 248,
-      justification: 'Reposição de álcool 70% e detergentes para salas de atendimento. Valor abaixo do limite de dispensa.',
-      status: 'cotacoes',
-      quotationExemptionReason: 'Valor estimado inferior ao limite de R$ 300,00 para cotação prévia.'
-    }
-  ];
+  requests: PurchaseRequest[] = [];
 
-  quotes: Record<string, Quotation[]> = {
-    'SC-2024/091': [
-      {
-        supplier: 'Magazine Luiza',
-        legalName: 'MAGAZINE LUIZA S.A.',
-        cnpj: this.formatCnpj('47960950000121'),
-        cnpjStatus: 'ATIVA',
-        cnpjCheckedAt: this.todayISO(2),
-        cnpjCardUrl: this.receitaCardUrl('47960950000121'),
-        value: 142000,
-        delivery: this.todayISO(7),
-        validity: this.todayISO(20),
-        compliance: 'ok',
-        notes: 'Inclui suporte onsite para configuração inicial dos notebooks.',
-        isWinner: true
-      },
-      {
-        supplier: 'Mercado Livre',
-        legalName: 'MERCADO LIVRE COMÉRCIO ATACADISTA S.A.',
-        cnpj: this.formatCnpj('19131243000197'),
-        cnpjStatus: 'ATIVA',
-        cnpjCheckedAt: this.todayISO(1),
-        cnpjCardUrl: this.receitaCardUrl('19131243000197'),
-        value: 138500,
-        delivery: this.todayISO(8),
-        validity: this.todayISO(22),
-        compliance: 'ok',
-        notes: 'Entrega consolidada no hub Campinas com NF-e emitida.'
-      },
-      {
-        supplier: 'TOTVS',
-        legalName: 'TOTVS S.A.',
-        cnpj: this.formatCnpj('53113791000122'),
-        cnpjStatus: 'ATIVA',
-        cnpjCheckedAt: this.todayISO(3),
-        cnpjCardUrl: this.receitaCardUrl('53113791000122'),
-        value: 168000,
-        delivery: this.todayISO(9),
-        validity: this.todayISO(18),
-        compliance: 'pendente',
-        notes: 'Necessita comprovar cadeia de distribuição autorizada pela Lenovo.'
-      }
-    ],
-    'SC-2024/134': [
-      {
-        supplier: 'Bradesco Serviços',
-        legalName: 'BANCO BRADESCO S.A.',
-        cnpj: this.formatCnpj('60746948000112'),
-        cnpjStatus: 'ATIVA',
-        cnpjCheckedAt: this.todayISO(4),
-        cnpjCardUrl: this.receitaCardUrl('60746948000112'),
-        value: 11800,
-        delivery: this.todayISO(15),
-        validity: this.todayISO(40),
-        compliance: 'ok',
-        notes: 'Equipe técnica credenciada com check-list mensal e plantão 24h.'
-      }
-    ]
-  };
+  profissionais: ProfessionalRecord[] = [];
+
+  get pendingSolicitacoes(): PurchaseRequest[] {
+    return this.requests.filter((request) => request.status === 'solicitacao');
+  }
+
+  loadingRequests = false;
+
+  feedback: string | null = null;
+
+  private feedbackTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  quotes: Record<string, Quotation[]> = {};
 
   budgetEnvelopes: BudgetEnvelope[] = [
     {
@@ -358,36 +281,11 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
     }
   ];
 
-  reservations: BudgetReservation[] = [
-    {
-      requestId: 'SC-2024/134',
-      center: '3.3.90.39',
-      value: 12000,
-      status: 'reservado',
-      observation: 'Reserva vinculada ao contrato trimestral',
-      createdAt: this.todayISO(2)
-    }
-  ];
+  reservations: BudgetReservation[] = [];
 
-  integrationChecklist: Record<string, IntegrationChecklist> = {
-    'SC-2024/091': {
-      patrimony: true,
-      warehouse: false,
-      contracts: false
-    },
-    'SC-2024/134': {
-      patrimony: false,
-      warehouse: false,
-      contracts: true
-    },
-    'SC-2024/205': {
-      patrimony: false,
-      warehouse: true,
-      contracts: false
-    }
-  };
+  integrationChecklist: Record<string, IntegrationChecklist> = {};
 
-  selectedRequestId = this.requests[0]?.id ?? '';
+  selectedRequestId = '';
 
   newRequestForm = {
     title: '',
@@ -397,8 +295,12 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
     expectedDate: this.todayISO(15),
     value: 0,
     justification: '',
-    budgetCenter: '3.3.90.30'
+    budgetCenter: '3.3.90.30',
+    priority: 'normal' as PurchaseRequest['priority'],
+    quantity: 1
   };
+
+  valorEstimadoDisplay = '';
 
   approvalForm = {
     director: '',
@@ -454,24 +356,62 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
   }
 
   limparFormularioSolicitacao(): void {
+    this.resetNewRequestForm();
+  }
+
+  private resetNewRequestForm(): void {
     this.newRequestForm = {
       title: '',
       type: 'produto',
       requester: '',
-      area: '',
-      expectedDate: '',
+      area: 'Operações',
+      expectedDate: this.todayISO(15),
       value: 0,
       justification: '',
-      budgetCenter: ''
+      budgetCenter: '3.3.90.30',
+      priority: 'normal',
+      quantity: 1
     };
+    this.valorEstimadoDisplay = '';
+  }
+
+  private loadProfessionals(): void {
+    this.professionalService.list().subscribe({
+      next: (records) => (this.profissionais = records),
+      error: () => this.setFeedback('Não foi possível carregar os profissionais no momento.')
+    });
+  }
+
+  private loadRequests(): void {
+    this.loadingRequests = true;
+    this.autorizacaoComprasService
+      .list()
+      .pipe(finalize(() => (this.loadingRequests = false)))
+      .subscribe({
+        next: (records) => {
+          this.requests = records.map((record) => this.toPurchaseRequest(record));
+          this.selectedRequestId = this.requests[0]?.id ?? '';
+        },
+        error: () => {
+          this.setFeedback('Não foi possível carregar as solicitações no momento.');
+        }
+      });
   }
 
   removerSolicitacaoSelecionada(): void {
     const selected = this.selectedRequest;
     if (!selected) return;
 
-    this.requests = this.requests.filter((req) => req.id !== selected.id);
-    this.selectedRequestId = this.requests[0]?.id ?? '';
+    this.autorizacaoComprasService.delete(selected.id).subscribe({
+      next: () => {
+        this.requests = this.requests.filter((req) => req.id !== selected.id);
+        this.selectedRequestId = this.requests[0]?.id ?? '';
+        this.setFeedback('Solicitação removida.');
+      },
+      error: () => {
+        this.setFeedback('Não foi possível remover a solicitação. Tente novamente.');
+      }
+    });
   }
 
   fecharTela(): void {
@@ -576,36 +516,26 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
       return;
     }
 
-    const newRequest: PurchaseRequest = {
-      id: `REQ-${Math.floor(Math.random() * 9000) + 1000}`,
-      title: this.newRequestForm.title,
-      type: this.newRequestForm.type,
-      requester: this.newRequestForm.requester,
-      area: this.newRequestForm.area,
-      expectedDate: this.newRequestForm.expectedDate,
-      value: Number(this.newRequestForm.value),
-      justification: this.newRequestForm.justification,
-      status: 'solicitacao',
-      budgetCenter: this.newRequestForm.budgetCenter,
-      quotationExemptionReason:
-        Number(this.newRequestForm.value) < this.quotationThreshold
-          ? `Valor estimado inferior ao limite de R$ ${this.quotationThreshold.toFixed(2)} para cotação prévia.`
-          : undefined
-    };
+    this.autorizacaoComprasService.create(this.buildCreationPayload()).subscribe({
+      next: (response) => {
+        const saved = this.toPurchaseRequest(response);
+        this.requests = [saved, ...this.requests];
+        this.selectedRequestId = saved.id;
+        this.activeStep = 'autorizacao';
+        this.resetNewRequestForm();
+      },
+      error: () => {
+        this.setFeedback('Não foi possível salvar a solicitação. Tente novamente.');
+      }
+    });
+  }
 
-    this.requests = [newRequest, ...this.requests];
-    this.selectedRequestId = newRequest.id;
+  avancarParaAutorizacao(request: PurchaseRequest): void {
+    if (request.status !== 'solicitacao') return;
+    const updated: PurchaseRequest = { ...request, status: 'autorizacao' };
+    this.selectedRequestId = request.id;
     this.activeStep = 'autorizacao';
-    this.newRequestForm = {
-      title: '',
-      type: 'produto',
-      requester: '',
-      area: 'Operações',
-      expectedDate: this.todayISO(15),
-      value: 0,
-      justification: '',
-      budgetCenter: '3.3.90.30'
-    };
+    this.updateRequest(updated);
   }
 
   registerAuthorization(): void {
@@ -784,6 +714,21 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
     return this.steps.find((step) => step.id === stepId)?.label ?? '';
   }
 
+  formatValorEstimadoInput(raw: string): void {
+    const digits = (raw || '').replace(/\D/g, '');
+    const amount = digits ? Number(digits) / 100 : 0;
+    this.newRequestForm.value = amount;
+    this.valorEstimadoDisplay = digits ? this.formatCurrency(amount) : '';
+  }
+
+  private formatCurrency(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(value);
+  }
+
   prefillSupplierFromCnpj(): void {
     const registry = this.lookupSupplier(this.newQuoteForm.cnpj);
     if (!registry) return;
@@ -856,7 +801,133 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent {
     return `https://servicos.receita.economia.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp?cnpj=${this.normalizeCnpj(cnpj)}`;
   }
 
+  private toPurchaseRequest(response: AutorizacaoCompraResponse): PurchaseRequest {
+    const purchase: PurchaseRequest = {
+      id: String(response.id ?? ''),
+      title: response.titulo,
+      type: (response.tipo as PurchaseType) ?? 'produto',
+      requester: response.responsavel ?? '',
+      area: response.area ?? '',
+      expectedDate: response.dataPrevista ?? '',
+      value: Number(response.valor ?? 0),
+      justification: response.justificativa ?? '',
+      status: (response.status as StepId) ?? 'solicitacao',
+      budgetCenter: response.centroCusto,
+      reservationNumber: response.numeroReserva,
+      winnerSupplier: response.vencedor,
+      quotationDispensed: Boolean(response.dispensarCotacao),
+      quotationExemptionReason: response.motivoDispensa,
+      patrimonyRegistration: Boolean(response.registroPatrimonio),
+      warehouseRegistration: Boolean(response.registroAlmoxarifado),
+      approval: response.aprovador
+        ? {
+            director: response.aprovador,
+            decision: (response.decisao as ApprovalDecision) ?? 'aprovado',
+            notes: response.observacoesAprovacao,
+            date: response.dataAprovacao ?? ''
+          }
+        : undefined,
+      paymentAuthorization:
+        response.autorizacaoPagamentoNumero ||
+        response.autorizacaoPagamentoAutor ||
+        response.autorizacaoPagamentoData ||
+        response.autorizacaoPagamentoObservacoes
+          ? {
+              number: response.autorizacaoPagamentoNumero,
+              authorizedBy: response.autorizacaoPagamentoAutor,
+              date: response.autorizacaoPagamentoData ?? '',
+              notes: response.autorizacaoPagamentoObservacoes
+            }
+          : undefined,
+      priority: response.prioridade ?? 'normal',
+      quantity: Number(response.quantidadeItens ?? 1)
+    };
+    return purchase;
+  }
+
+  private buildPayload(request: PurchaseRequest): AutorizacaoCompraRequest {
+    return {
+      titulo: request.title,
+      tipo: request.type,
+      area: request.area,
+      responsavel: request.requester,
+      dataPrevista: request.expectedDate || undefined,
+      valor: request.value,
+      justificativa: request.justification,
+      centroCusto: request.budgetCenter,
+      status: request.status,
+      aprovador: request.approval?.director,
+      decisao: request.approval?.decision,
+      observacoesAprovacao: request.approval?.notes,
+      dataAprovacao: request.approval?.date,
+      dispensarCotacao: request.quotationDispensed,
+      motivoDispensa: request.quotationExemptionReason,
+      vencedor: request.winnerSupplier,
+      registroPatrimonio: request.patrimonyRegistration,
+      registroAlmoxarifado: request.warehouseRegistration,
+      numeroReserva: request.reservationNumber,
+      autorizacaoPagamentoNumero: request.paymentAuthorization?.number,
+      autorizacaoPagamentoAutor: request.paymentAuthorization?.authorizedBy,
+      autorizacaoPagamentoData: request.paymentAuthorization?.date,
+      autorizacaoPagamentoObservacoes: request.paymentAuthorization?.notes
+      ,
+      prioridade: request.priority,
+      quantidadeItens: request.quantity
+    };
+  }
+
+  private buildCreationPayload(): AutorizacaoCompraRequest {
+    const valor = Number(this.newRequestForm.value);
+    const payload: AutorizacaoCompraRequest = {
+      titulo: this.newRequestForm.title,
+      tipo: this.newRequestForm.type,
+      area: this.newRequestForm.area,
+      responsavel: this.newRequestForm.requester,
+      dataPrevista: this.newRequestForm.expectedDate || undefined,
+      valor,
+      justificativa: this.newRequestForm.justification,
+      centroCusto: this.newRequestForm.budgetCenter,
+      status: 'solicitacao',
+      dispensarCotacao: valor < this.quotationThreshold
+      ,
+      prioridade: this.newRequestForm.priority,
+      quantidadeItens: this.newRequestForm.quantity
+    };
+    payload.quantidadeItens = this.newRequestForm.quantity;
+    if (payload.dispensarCotacao) {
+      payload.motivoDispensa = `Valor estimado inferior ao limite de R$ ${this.quotationThreshold.toFixed(
+        2
+      )} para cotação prévia.`;
+    }
+    return payload;
+  }
+
   private updateRequest(updated: PurchaseRequest): void {
     this.requests = this.requests.map((req) => (req.id === updated.id ? updated : req));
+    this.autorizacaoComprasService.update(updated.id, this.buildPayload(updated)).subscribe({
+      next: (response) => {
+        const synced = this.toPurchaseRequest(response);
+        this.requests = this.requests.map((req) => (req.id === synced.id ? synced : req));
+      },
+      error: () => {
+        this.setFeedback('Não foi possível salvar as alterações na solicitação.');
+      }
+    });
+  }
+
+  private setFeedback(message: string, timeoutMs = 10000): void {
+    this.feedback = message;
+    this.clearFeedbackTimeout();
+    this.feedbackTimeout = window.setTimeout(() => {
+      this.feedback = null;
+      this.feedbackTimeout = undefined;
+    }, timeoutMs);
+  }
+
+  private clearFeedbackTimeout(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = undefined;
+    }
   }
 }

@@ -5,10 +5,13 @@ br\com\g3\shared\InitDbConfig.class
 br\com\g3\usuario\domain\Permissao.class
 br\com\g3\autenticacao\dto\LoginRequest.class
 br\com\g3\usuario\repository\UsuarioRepository.class
+br\com\g3\relatorios\serviceimpl\RelatorioTarefasPendenciasServiceImpl.class
 br\com\g3\usuario\service\PermissaoService.class
 br\com\g3\unidadeassistencial\service\Coordenadas.class
+br\com\g3\relatorios\controller\RelatoriosController.class
 br\com\g3\usuario\domain\Usuario.class
 br\com\g3\usuario\dto\UsuarioAtualizacaoRequest.class
+br\com\g3\relatorios\service\RelatorioTarefasPendenciasService.class
 br\com\g3\autenticacao\dto\LoginResponse.class
 br\com\g3\autenticacao\serviceimpl\AutenticacaoServiceImpl.class
 br\com\g3\autenticacao\service\AutenticacaoService.class

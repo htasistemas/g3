@@ -479,8 +479,41 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.65rem;
+  gap: 0.9rem;
+}
+
+.form-row {
+  display: grid;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.form-row .form-field {
+  margin: 0;
+}
+
+.form-row--line1 {
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, 0.9fr) minmax(280px, 1.5fr);
+}
+
+.form-row--line2 {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.form-row--line3 {
+  grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 0.9fr);
+}
+
+.form-field--title .input {
+  min-width: 0;
+}
+
+.form-field--quantity input {
+  max-width: 140px;
+}
+
+.form-field--value {
+  min-width: 0;
 }
 
 .form-field {
@@ -1003,6 +1036,20 @@
   border: 1px dashed #e2e8f0;
   background: #f8fafc;
   color: #475569;
+}
+
+.form-row--line1,
+.form-row--line2,
+.form-row--line3 {
+  grid-auto-rows: minmax(0, auto);
+}
+
+@media (max-width: 1024px) {
+  .form-row--line1,
+  .form-row--line2,
+  .form-row--line3 {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 960px) {
