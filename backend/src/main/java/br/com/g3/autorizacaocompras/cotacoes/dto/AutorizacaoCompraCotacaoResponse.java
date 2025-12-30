@@ -10,6 +10,10 @@ public class AutorizacaoCompraCotacaoResponse {
   private String fornecedor;
   private String razaoSocial;
   private String cnpj;
+  private String cartaoCnpjUrl;
+  private String cartaoCnpjNome;
+  private String cartaoCnpjTipo;
+  private String cartaoCnpjConteudo;
   private BigDecimal valor;
   private LocalDate prazoEntrega;
   private LocalDate validade;
@@ -58,6 +62,38 @@ public class AutorizacaoCompraCotacaoResponse {
 
   public void setCnpj(String cnpj) {
     this.cnpj = cnpj;
+  }
+
+  public String getCartaoCnpjUrl() {
+    return cartaoCnpjUrl;
+  }
+
+  public void setCartaoCnpjUrl(String cartaoCnpjUrl) {
+    this.cartaoCnpjUrl = cartaoCnpjUrl;
+  }
+
+  public String getCartaoCnpjNome() {
+    return cartaoCnpjNome;
+  }
+
+  public void setCartaoCnpjNome(String cartaoCnpjNome) {
+    this.cartaoCnpjNome = cartaoCnpjNome;
+  }
+
+  public String getCartaoCnpjTipo() {
+    return cartaoCnpjTipo;
+  }
+
+  public void setCartaoCnpjTipo(String cartaoCnpjTipo) {
+    this.cartaoCnpjTipo = cartaoCnpjTipo;
+  }
+
+  public String getCartaoCnpjConteudo() {
+    return cartaoCnpjConteudo;
+  }
+
+  public void setCartaoCnpjConteudo(String cartaoCnpjConteudo) {
+    this.cartaoCnpjConteudo = cartaoCnpjConteudo;
   }
 
   public BigDecimal getValor() {

@@ -7,4 +7,12 @@ public interface AutorizacaoCompraCotacaoRepository {
   AutorizacaoCompraCotacao salvar(AutorizacaoCompraCotacao cotacao);
 
   List<AutorizacaoCompraCotacao> listarPorCompraId(Long compraId);
+
+  void remover(AutorizacaoCompraCotacao cotacao);
+
+  boolean existePorIdECompraId(Long cotacaoId, Long compraId);
+
+  AutorizacaoCompraCotacao buscarPorId(Long cotacaoId);
+
+  AutorizacaoCompraCotacao buscarUltimaPorCnpj(String cnpj);
 }

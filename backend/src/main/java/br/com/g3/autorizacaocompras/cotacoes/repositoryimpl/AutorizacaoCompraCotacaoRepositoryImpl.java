@@ -22,4 +22,24 @@ public class AutorizacaoCompraCotacaoRepositoryImpl implements AutorizacaoCompra
   public List<AutorizacaoCompraCotacao> listarPorCompraId(Long compraId) {
     return jpaRepository.findByAutorizacaoCompraIdOrderByCriadoEmDesc(compraId);
   }
+
+  @Override
+  public void remover(AutorizacaoCompraCotacao cotacao) {
+    jpaRepository.delete(cotacao);
+  }
+
+  @Override
+  public boolean existePorIdECompraId(Long cotacaoId, Long compraId) {
+    return jpaRepository.existsByIdAndAutorizacaoCompraId(cotacaoId, compraId);
+  }
+
+  @Override
+  public AutorizacaoCompraCotacao buscarPorId(Long cotacaoId) {
+    return jpaRepository.findById(cotacaoId).orElse(null);
+  }
+
+  @Override
+  public AutorizacaoCompraCotacao buscarUltimaPorCnpj(String cnpj) {
+    return jpaRepository.findUltimaPorCnpj(cnpj).orElse(null);
+  }
 }

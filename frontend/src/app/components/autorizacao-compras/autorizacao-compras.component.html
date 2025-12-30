@@ -173,7 +173,7 @@
               <button class="ghost" type="button" (click)="navigateStep('next')">Pular para autorização</button>
             </div>
             <div class="pending-grid">
-              <header class="pending-grid__header">
+              <header class="pending-grid__header--meta">
                 <div>
                   <p class="pending-grid__eyebrow">Solicitações pendentes</p>
                   <p class="pending-grid__title">Aguardando autorização</p>
@@ -188,8 +188,8 @@
                   <span>Local</span>
                   <span>Prioridade</span>
                   <span>Prazo</span>
-                  <span>Valor</span>
-                  <span class="text-right">Ações</span>
+                  <span>Previsto</span>
+                  <span class="text-center">Ações</span>
                 </div>
                 <div class="pending-grid__list">
                   <article class="pending-grid__item" *ngFor="let request of pendingSolicitacoes">
@@ -210,9 +210,14 @@
                     </span>
                     <span class="pending-grid__prazo">{{ request.expectedDate | date: 'dd/MM/yyyy' }}</span>
                     <span class="pending-grid__valor">{{ request.value | currency: 'BRL' }}</span>
-                    <button class="chip chip--accent" type="button" (click)="avancarParaAutorizacao(request)">
-                      Enviar para autorização
-                    </button>
+                    <div class="pending-grid__acoes">
+                      <button class="chip chip--accent" type="button" (click)="avancarParaAutorizacao(request)">
+                        Enviar para autorização
+                      </button>
+                      <small class="pending-grid__motivo" *ngIf="request.approval?.notes">
+                        Motivo do parecer: {{ request.approval?.notes }}
+                      </small>
+                    </div>
                   </article>
                 </div>
               </div>
@@ -245,57 +250,34 @@
             </div>
         </div>
 
-        <div class="authorization-overview">
-          <div class="authorization-overview__intro">
+        <div class="panel panel--wide">
+          <header class="panel__header">
             <div>
-              <p class="authorization-overview__eyebrow">Processo {{ selected.id }}</p>
-              <p class="authorization-overview__title">{{ selected.title }}</p>
-              <p class="muted">Responsável: {{ selected.requester }} • {{ selected.area }}</p>
+              <p class="panel__eyebrow">Solicitações para parecer</p>
+              <p class="panel__title">Selecione a compra</p>
             </div>
-            <div class="authorization-overview__tags">
-              <span class="pill pill--ghost">{{ getStepLabel(selected.status) }}</span>
-              <span class="pill">{{ selected.type }}</span>
-              <span class="pill pill--accent">Entrega {{ selected.expectedDate | date: 'dd/MM/yyyy' }}</span>
-            </div>
+            <span class="pill pill--ghost">{{ autorizacoesPendentes.length }} pendente(s)</span>
+          </header>
+          <div class="authorization-list" *ngIf="autorizacoesPendentes.length; else noPendingAuthorizations">
+            <button
+              class="authorization-list__item"
+              *ngFor="let request of autorizacoesPendentes"
+              type="button"
+              [class.authorization-list__item--active]="request.id === selectedRequestId"
+              (click)="selectRequest(request.id)"
+            >
+              <div>
+                <p class="authorization-list__title">{{ request.title }}</p>
+                <p class="authorization-list__meta">
+                  {{ request.requester }} • {{ request.area || 'Sem área' }} • {{ request.expectedDate | date: 'dd/MM/yyyy' }}
+                </p>
+              </div>
+              <div class="authorization-list__value">{{ request.value | currency: 'BRL' }}</div>
+            </button>
           </div>
-
-          <div class="authorization-overview__stats">
-            <div class="overview-stat">
-              <p class="overview-stat__label">Valor estimado</p>
-              <p class="overview-stat__value">{{ selected.value | currency: 'BRL' }}</p>
-            </div>
-            <div class="overview-stat">
-              <p class="overview-stat__label">Centro de custo</p>
-              <p class="overview-stat__value">{{ selected.budgetCenter || 'Definir na contabilidade' }}</p>
-            </div>
-            <div class="overview-stat">
-              <p class="overview-stat__label">Último parecer</p>
-              <p class="overview-stat__value">
-                {{ selected.approval?.decision ? (selected.approval?.decision | titlecase) : 'Pendente' }}
-              </p>
-            </div>
-          </div>
-
-          <div class="authorization-overview__actions">
-            <div class="helper-list">
-              <p class="helper-list__title">O que fazer agora</p>
-              <ul>
-                <li>Conferir a justificativa e o orçamento informado.</li>
-                <li>Registrar o parecer com condicionantes claros.</li>
-                <li>Avançar só quando a diretoria sinalizar com “Aprovar”.</li>
-              </ul>
-            </div>
-            <div class="authorization-overview__cta">
-              <button class="chip" type="button" (click)="printSection()">
-                <fa-icon [icon]="faFileSignature"></fa-icon>
-                Baixar relatório em PDF
-              </button>
-              <button class="primary" type="button" (click)="navigateStep('next')">
-                Liberar cotações
-                <fa-icon [icon]="faArrowRight"></fa-icon>
-              </button>
-            </div>
-          </div>
+          <ng-template #noPendingAuthorizations>
+            <p class="empty-state">Nenhuma solicitação aguardando parecer no momento.</p>
+          </ng-template>
         </div>
 
         <div class="grid-two-columns">
@@ -360,7 +342,12 @@
             <div class="form-grid">
               <label class="form-field">
                 <span>Diretor responsável</span>
-                <input class="input" name="director" [(ngModel)]="approvalForm.director" placeholder="Nome" />
+                <select class="select" name="director" [(ngModel)]="approvalForm.director">
+                  <option value="" disabled [selected]="!approvalForm.director">Selecione um profissional</option>
+                  <option *ngFor="let profissional of profissionais" [value]="profissional.nomeCompleto">
+                    {{ profissional.nomeCompleto }}<span *ngIf="profissional.categoria"> • {{ profissional.categoria }}</span>
+                  </option>
+                </select>
               </label>
               <label class="form-field">
                 <span>Data</span>
@@ -494,6 +481,18 @@
 
             <div class="form-grid">
               <label class="form-field">
+                <span>Link do cartão CNPJ</span>
+                <input
+                  class="input"
+                  name="cnpjCardUrl"
+                  [ngModel]="newQuoteForm.cnpjCardUrl"
+                  placeholder="URL do cartão CNPJ consultado"
+                  (ngModelChange)="onCnpjCardUrlChange($event)"
+                  (keydown)="onLinkCnpjKeydown($event)"
+                />
+                <small class="form-hint">Cole o link do cartão CNPJ ou preencha o CNPJ manualmente.</small>
+              </label>
+              <label class="form-field">
                 <span>CNPJ do fornecedor*</span>
                 <input
                   class="input"
@@ -501,8 +500,15 @@
                   [(ngModel)]="newQuoteForm.cnpj"
                   placeholder="00.000.000/0001-00"
                   inputmode="numeric"
+                  (keydown)="onCnpjKeydown($event)"
+                  (blur)="onCnpjBlur()"
                   required
                 />
+                <small class="form-hint" *ngIf="carregandoFornecedor">
+                  <fa-icon [icon]="faSpinner" class="spinner"></fa-icon>
+                  Buscando fornecedor...
+                </small>
+                <small class="form-error" *ngIf="avisoFornecedor">{{ avisoFornecedor }}</small>
               </label>
               <label class="form-field">
                 <span>Razão social (cartão CNPJ)</span>
@@ -511,6 +517,9 @@
                   name="companyName"
                   [(ngModel)]="newQuoteForm.companyName"
                   placeholder="Nome conforme Receita Federal"
+                  (keydown)="onRazaoSocialKeydown($event)"
+                  (blur)="onRazaoSocialBlur()"
+                  (input)="onRazaoSocialInput()"
                 />
               </label>
               <label class="form-field">
@@ -520,16 +529,8 @@
                   name="supplier"
                   [(ngModel)]="newQuoteForm.supplier"
                   placeholder="Responsável comercial"
+                  (input)="onNomeFantasiaInput()"
                   required
-                />
-              </label>
-              <label class="form-field">
-                <span>Link do cartão CNPJ</span>
-                <input
-                  class="input"
-                  name="cnpjCardUrl"
-                  [(ngModel)]="newQuoteForm.cnpjCardUrl"
-                  placeholder="URL do cartão CNPJ consultado"
                 />
               </label>
               <label class="form-field">
@@ -564,7 +565,7 @@
               </label>
               <label class="form-field">
                 <span>Conformidade</span>
-                <select class="select" name="compliance" [(ngModel)]="newQuoteForm.compliance">
+                <select class="select" name="compliance" [(ngModel)]="newQuoteForm.compliance" disabled>
                   <option value="ok">Documentação OK</option>
                   <option value="pendente">Documentação pendente</option>
                 </select>
@@ -635,11 +636,14 @@
                 <p class="muted">Validade até {{ quote.validity | date: 'dd/MM/yyyy' }}</p>
                 <p class="quote-card__notes">{{ quote.notes || 'Sem observações adicionais' }}</p>
                 <div class="quote-card__actions">
-                  <button class="ghost" type="button" (click)="printSection()">
+                  <button class="ghost" type="button" (click)="imprimirOrcamento(quote)">
                     <fa-icon [icon]="faPrint"></fa-icon>
-                    Imprimir
+                    Imprimir orçamento
                   </button>
-                  <button class="primary" type="button" [disabled]="currentQuotes.length < 3" (click)="markWinner(quote)">
+                  <button class="ghost" type="button" (click)="removerCotacao(quote)">
+                    Excluir
+                  </button>
+                  <button class="primary" type="button" (click)="markWinner(quote)">
                     <fa-icon [icon]="faCheckCircle"></fa-icon>
                     Definir vencedor
                   </button>
@@ -673,25 +677,34 @@
           <div class="panel">
             <header class="panel__header">
               <div>
-                <p class="panel__eyebrow">Centros de custo</p>
-                <p class="panel__title">Disponibilidade na contabilidade</p>
+                <p class="panel__eyebrow">Contas bancárias</p>
+                <p class="panel__title">Saldo positivo para reserva</p>
               </div>
               <span class="pill pill--ghost">Etapa 4/5</span>
             </header>
 
-            <div class="budget-grid">
-              <article class="budget-card" *ngFor="let envelope of budgetEnvelopes">
+            <div class="budget-grid" *ngIf="contasBancariasComSaldo.length; else noAccounts">
+              <button
+                type="button"
+                class="budget-card"
+                *ngFor="let conta of contasBancariasComSaldo"
+                [class.budget-card--selected]="reservaBancariaSelecionada?.contaId === conta.id"
+                (click)="reservarSaldoBanco(conta)"
+              >
                 <div class="budget-card__header">
                   <div>
-                    <p class="strong">{{ envelope.center }}</p>
-                    <p class="muted">{{ envelope.title }}</p>
+                    <p class="strong">{{ conta.banco }}</p>
+                    <p class="muted">Agência {{ conta.agencia || '---' }} • {{ conta.numero }}</p>
                   </div>
-                  <span class="pill pill--ghost">{{ envelope.linkedTo }}</span>
+                  <span class="pill pill--ghost">{{ conta.tipo }}</span>
                 </div>
-                <p class="budget-card__value">{{ envelope.available | currency: 'BRL' }}</p>
-                <p class="muted">Saldo disponível para reserva</p>
-              </article>
+                <p class="budget-card__value">{{ conta.saldo | currency: 'BRL' }}</p>
+                <p class="muted">Clique para reservar o valor aprovado</p>
+              </button>
             </div>
+            <ng-template #noAccounts>
+              <p class="empty-state">Nenhuma conta com saldo positivo disponível.</p>
+            </ng-template>
           </div>
 
           <form class="panel" (ngSubmit)="registerReservation()">

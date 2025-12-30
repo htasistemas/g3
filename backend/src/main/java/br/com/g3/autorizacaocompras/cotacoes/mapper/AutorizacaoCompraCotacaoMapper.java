@@ -15,6 +15,7 @@ public final class AutorizacaoCompraCotacaoMapper {
     cotacao.setFornecedor(request.getFornecedor());
     cotacao.setRazaoSocial(request.getRazaoSocial());
     cotacao.setCnpj(request.getCnpj());
+    cotacao.setCartaoCnpjUrl(request.getCartaoCnpjUrl());
     cotacao.setValor(request.getValor());
     cotacao.setPrazoEntrega(request.getPrazoEntrega());
     cotacao.setValidade(request.getValidade());
@@ -34,6 +35,10 @@ public final class AutorizacaoCompraCotacaoMapper {
     response.setFornecedor(cotacao.getFornecedor());
     response.setRazaoSocial(cotacao.getRazaoSocial());
     response.setCnpj(cotacao.getCnpj());
+    response.setCartaoCnpjUrl(cotacao.getCartaoCnpjUrl());
+    response.setCartaoCnpjNome(cotacao.getCartaoCnpjNome());
+    response.setCartaoCnpjTipo(cotacao.getCartaoCnpjTipo());
+    response.setCartaoCnpjConteudo(cotacao.getCartaoCnpjConteudo());
     response.setValor(cotacao.getValor());
     response.setPrazoEntrega(cotacao.getPrazoEntrega());
     response.setValidade(cotacao.getValidade());

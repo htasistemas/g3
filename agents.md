@@ -34,8 +34,12 @@ Agentes nao devem:
 - Preferir composicao a heranca.
 - Metodos devem ter responsabilidade unica.
 - Evitar logica oculta ou efeitos colaterais inesperados.
-- Todas as telas novas ou ja criadas precisam gerar o popup de error message.
+- Todas as telas novas ou ja criadas precisam gerar o popup de error message.   
 - Todo campo obrigatorio deve exibir (*) ao lado do titulo do campo e, ao clicar em "salvar" sem preenchimento, deve apresentar mensagem de erro clara ao usuario.
+- Nenhuma acao deve exigir duplo clique: todo botao de acao/navegacao deve executar com 1 clique.
+- Botoes dentro de `form` devem ser `type="button"` por padrao; usar `type="submit"` apenas quando necessario.
+- E proibido duplicar eventos de clique (ex.: `click` + `mouseup`, multiplos listeners ou `HostListener` duplicado).
+- Evitar overlays capturando clique quando nao estiverem ativos (ajustar `pointer-events`/`z-index` quando aplicavel).
 
 ## Angular (Frontend)
 - Nao adicionar logica pesada em templates.

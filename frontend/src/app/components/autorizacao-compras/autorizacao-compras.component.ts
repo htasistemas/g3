@@ -16,7 +16,8 @@ import {
   faPrint,
   faStamp,
   faCircleCheck,
-  faWarehouse
+  faWarehouse,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { finalize } from 'rxjs/operators';
 import {
@@ -26,6 +27,7 @@ import {
   AutorizacaoComprasService
 } from '../../services/autorizacao-compras.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
+import { ContaBancariaResponse, ContabilidadeService } from '../../services/contabilidade.service';
 
 type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
 type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'reserva' | 'conclusao';
@@ -69,12 +71,17 @@ interface PurchaseRequest {
 }
 
 interface Quotation {
+  id?: string;
   supplier: string;
   legalName: string;
   cnpj: string;
   cnpjStatus: CnpjStatus;
   cnpjCheckedAt: string;
   cnpjCardUrl: string;
+  cnpjCardPdf?: string;
+  orcamentoFisicoNome?: string;
+  orcamentoFisicoTipo?: string;
+  orcamentoFisicoConteudo?: string;
   value: number;
   delivery: string;
   validity: string;
@@ -131,6 +138,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   readonly faStamp = faStamp;
   readonly faFileSignature = faFileSignature;
   readonly faWarehouse = faWarehouse;
+  readonly faSpinner = faSpinner;
   readonly quotationThreshold = 300;
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
@@ -144,13 +152,13 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   steps: Step[] = [
     {
       id: 'solicitacao',
-      label: 'Solicitação de compras',
+      label: 'Solicitação',
       helper: 'Cadastro inicial, escopo e anexos',
       documentLabel: 'Formulário de solicitação'
     },
     {
       id: 'autorizacao',
-      label: 'Autorização de compras',
+      label: 'Autorização',
       helper: 'Parecer da diretoria e reservas',
       documentLabel: 'Relatório para autorização'
     },
@@ -175,8 +183,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   ];
 
   constructor(
-    private readonly autorizacaoComprasService: AutorizacaoComprasService,
-    private readonly professionalService: ProfessionalService
+    private readonly autorizacaoComprasService: AutorizacaoComprasService,      
+    private readonly professionalService: ProfessionalService,
+    private readonly contabilidadeService: ContabilidadeService
   ) {
     super();
   }
@@ -184,6 +193,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   ngOnInit(): void {
     this.loadProfessionals();
     this.loadRequests();
+    this.loadContasBancarias();
   }
 
   activeStep: StepId = 'solicitacao';
@@ -196,12 +206,29 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     return this.requests.filter((request) => request.status === 'solicitacao');
   }
 
+  get autorizacoesPendentes(): PurchaseRequest[] {
+    return this.requests.filter((request) => request.status === 'autorizacao');
+  }
+
+  get contasBancariasComSaldo(): ContaBancariaResponse[] {
+    return this.contasBancarias.filter((conta) => Number(conta.saldo) > 0);
+  }
+
   loadingRequests = false;
 
   feedback: string | null = null;
 
   popupErros: string[] = [];
   popupErrosCotacao: string[] = [];
+  carregandoFornecedor = false;
+  avisoFornecedor = '';
+  ultimoCnpjConsultado = '';
+  cacheFornecedor: { razaoSocial?: string; nomeFantasia?: string } | null = null;
+  razaoSocialAutoPreenchida = false;
+  nomeFantasiaAutoPreenchido = false;
+  contasBancarias: ContaBancariaResponse[] = [];
+  carregandoContas = false;
+  reservaBancariaSelecionada: { contaId: number; valor: number } | null = null;
 
   private feedbackTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -263,9 +290,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     cnpj: '',
     cnpjCardUrl: '',
     value: 0,
-    delivery: this.todayISO(5),
-    validity: this.todayISO(20),
-    compliance: 'ok' as Quotation['compliance'],
+    delivery: this.todayISO(7),
+    validity: this.todayISO(15),
+    compliance: 'pendente' as Quotation['compliance'],
     notes: '',
     orcamentoFisicoNome: '',
     orcamentoFisicoTipo: '',
@@ -323,6 +350,20 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     this.professionalService.list().subscribe({
       next: (records) => (this.profissionais = records),
       error: () => this.setFeedback('Não foi possível carregar os profissionais no momento.')
+    });
+  }
+
+  private loadContasBancarias(): void {
+    this.carregandoContas = true;
+    this.contabilidadeService.listarContasBancarias().subscribe({
+      next: (records) => {
+        this.contasBancarias = records;
+        this.carregandoContas = false;
+      },
+      error: () => {
+        this.setFeedback('Não foi possível carregar as contas bancárias no momento.');
+        this.carregandoContas = false;
+      }
     });
   }
 
@@ -463,6 +504,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       date: target?.paymentAuthorization?.date || this.todayISO(),
       notes: target?.paymentAuthorization?.notes || ''
     };
+    this.reservaBancariaSelecionada = null;
     if (this.activeStep === 'cotacoes') {
       this.loadQuotes();
     }
@@ -540,10 +582,12 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         notes: this.approvalForm.notes,
         date: this.approvalForm.date
       },
-      status: this.approvalForm.decision === 'aprovado' ? 'cotacoes' : 'autorizacao'
+      status: this.approvalForm.decision === 'aprovado' ? 'cotacoes' : 'solicitacao'
     };
 
     this.updateRequest(updated);
+    this.selectedRequestId = updated.id;
+    this.activeStep = updated.status === 'cotacoes' ? 'cotacoes' : 'solicitacao';
   }
 
   addQuotation(): void {
@@ -574,6 +618,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       validade: this.newQuoteForm.validity || undefined,
       conformidade: this.newQuoteForm.compliance,
       observacoes: this.newQuoteForm.notes || undefined,
+      cartaoCnpjUrl: this.newQuoteForm.cnpjCardUrl || undefined,
       orcamentoFisicoNome: this.newQuoteForm.orcamentoFisicoNome || undefined,
       orcamentoFisicoTipo: this.newQuoteForm.orcamentoFisicoTipo || undefined,
       orcamentoFisicoConteudo: this.newQuoteForm.orcamentoFisicoConteudo || undefined
@@ -592,9 +637,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
           cnpj: '',
           cnpjCardUrl: '',
           value: 0,
-          delivery: this.todayISO(5),
-          validity: this.todayISO(20),
-          compliance: 'ok',
+          delivery: this.todayISO(7),
+          validity: this.todayISO(15),
+          compliance: 'pendente',
           notes: '',
           orcamentoFisicoNome: '',
           orcamentoFisicoTipo: '',
@@ -609,8 +654,42 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     });
   }
 
+  removerCotacao(quote: Quotation): void {
+    if (!this.selectedRequest || !quote.id) {
+      return;
+    }
+    this.autorizacaoComprasService.deleteQuote(this.selectedRequest.id, quote.id).subscribe({
+      next: () => {
+        const quotes = this.quotes[this.selectedRequestId] ?? [];
+        this.quotes = {
+          ...this.quotes,
+          [this.selectedRequestId]: quotes.filter((item) => item.id !== quote.id)
+        };
+      },
+      error: () => {
+        this.setFeedback('Não foi possível remover a cotação. Tente novamente.');
+      }
+    });
+  }
+
+  imprimirOrcamento(quote: Quotation): void {
+    if (!quote.orcamentoFisicoConteudo) {
+      this.setFeedback('Nenhum orçamento físico anexado para esta cotação.');
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = quote.orcamentoFisicoConteudo;
+    link.download = quote.orcamentoFisicoNome || 'orcamento-fornecedor';
+    link.target = '_blank';
+    link.click();
+  }
+
   markWinner(quote: Quotation): void {
     if (!this.selectedRequest) return;
+    if (!this.currentQuotes.length) {
+      this.setFeedback('Cadastre ao menos uma cotação antes de definir o vencedor.');
+      return;
+    }
 
     const updatedQuotes = (this.quotes[this.selectedRequestId] ?? []).map((item) => ({
       ...item,
@@ -626,8 +705,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       status: 'reserva'
     };
 
-    this.updateRequest(updatedRequest);
-    this.activeStep = 'reserva';
+    this.updateRequest(updatedRequest, () => {
+      this.activeStep = 'reserva';
+    });
   }
 
   dispenseQuotation(): void {
@@ -642,8 +722,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       status: 'reserva'
     };
 
-    this.updateRequest(updatedRequest);
-    this.activeStep = 'reserva';
+    this.updateRequest(updatedRequest, () => {
+      this.activeStep = 'reserva';
+    });
   }
 
   registerReservation(): void {
@@ -651,10 +732,10 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
     const envelope = this.budgetEnvelopes.find((item) => item.center === this.reservationForm.center);
     const requested = Number(this.reservationForm.value);
-    const hasBalance = envelope ? envelope.available >= requested : false;
+    const hasBalance = this.reservaBancariaSelecionada ? true : envelope ? envelope.available >= requested : false;
     const status: ReservationStatus = hasBalance ? 'reservado' : 'insuficiente';
 
-    if (envelope && hasBalance) {
+    if (envelope && hasBalance && !this.reservaBancariaSelecionada) {
       this.budgetEnvelopes = this.budgetEnvelopes.map((item) =>
         item.center === envelope.center ? { ...item, available: item.available - requested } : item
       );
@@ -679,7 +760,48 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       status: status === 'reservado' ? 'conclusao' : 'reserva'
     };
 
-    this.updateRequest(updatedRequest);
+    this.updateRequest(updatedRequest, (synced) => {
+      this.selectedRequestId = synced.id;
+      this.activeStep = synced.status === 'conclusao' ? 'conclusao' : 'reserva';
+    });
+  }
+
+  reservarSaldoBanco(conta: ContaBancariaResponse): void {
+    if (!this.selectedRequest) return;
+    if (this.reservaBancariaSelecionada) {
+      this.setFeedback('Reserva bancária já definida. Use a reserva contábil para avançar.');
+      return;
+    }
+    const valorReserva = Number(this.selectedRequest.value || 0);
+    if (!valorReserva) {
+      this.setFeedback('Informe o valor da autorização para reservar.');
+      return;
+    }
+    if (Number(conta.saldo) < valorReserva) {
+      this.setFeedback('Saldo insuficiente para reservar este valor.');
+      return;
+    }
+    const payload = {
+      tipo: 'RESERVA',
+      descricao: `Reserva para autorização ${this.selectedRequest.title}`,
+      contraparte: this.selectedRequest.requester,
+      contaBancariaId: conta.id,
+      dataMovimentacao: this.todayISO(),
+      valor: valorReserva
+    };
+    this.contabilidadeService.criarMovimentacao(payload).subscribe({
+      next: () => {
+        this.contasBancarias = this.contasBancarias.map((item) =>
+          item.id === conta.id ? { ...item, saldo: Number(item.saldo) - valorReserva } : item
+        );
+        this.reservaBancariaSelecionada = { contaId: conta.id, valor: valorReserva };
+        this.reservationForm.value = valorReserva;
+        this.setFeedback('Reserva bancária registrada. Selecione o centro de custo para concluir.');
+      },
+      error: () => {
+        this.setFeedback('Não foi possível reservar o saldo bancário.');
+      }
+    });
   }
 
   finalizePurchase(): void {
@@ -781,6 +903,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       this.newQuoteForm.orcamentoFisicoNome = '';
       this.newQuoteForm.orcamentoFisicoTipo = '';
       this.newQuoteForm.orcamentoFisicoConteudo = '';
+      this.atualizarConformidadeCotacao();
       return;
     }
     this.newQuoteForm.orcamentoFisicoNome = file.name;
@@ -789,8 +912,50 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     reader.onload = () => {
       const result = reader.result?.toString() || '';
       this.newQuoteForm.orcamentoFisicoConteudo = result;
+      this.atualizarConformidadeCotacao();
     };
     reader.readAsDataURL(file);
+  }
+
+  onCnpjCardUrlChange(valor: string): void {
+    this.newQuoteForm.cnpjCardUrl = valor;
+    this.atualizarConformidadeCotacao();
+  }
+
+  onLinkCnpjKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    const cnpjExtraido = this.parseCnpjFromLink(this.newQuoteForm.cnpjCardUrl);
+    if (cnpjExtraido) {
+      this.newQuoteForm.cnpj = this.formatCnpj(cnpjExtraido);
+    }
+  }
+
+  onCnpjKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Tab') {
+      this.consultarFornecedorPorCnpj();
+    }
+  }
+
+  onCnpjBlur(): void {
+    this.consultarFornecedorPorCnpj();
+  }
+
+  onRazaoSocialKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Tab') {
+      this.preencherNomeFantasiaSeDisponivel();
+    }
+  }
+
+  onRazaoSocialBlur(): void {
+    this.preencherNomeFantasiaSeDisponivel();
+  }
+
+  onRazaoSocialInput(): void {
+    this.razaoSocialAutoPreenchida = false;
+  }
+
+  onNomeFantasiaInput(): void {
+    this.nomeFantasiaAutoPreenchido = false;
   }
 
   private toPurchaseRequest(response: AutorizacaoCompraResponse): PurchaseRequest {
@@ -854,18 +1019,120 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   private toQuotation(response: AutorizacaoCompraCotacaoResponse): Quotation {
     return {
+      id: response.id ? String(response.id) : undefined,
       supplier: response.fornecedor,
       legalName: response.razaoSocial || response.fornecedor,
       cnpj: response.cnpj || '',
       cnpjStatus: 'ATIVA',
       cnpjCheckedAt: response.criadoEm || this.todayISO(),
-      cnpjCardUrl: '',
+      cnpjCardUrl: response.cartaoCnpjUrl || '',
+      cnpjCardPdf: response.cartaoCnpjConteudo || undefined,
+      orcamentoFisicoNome: response.orcamentoFisicoNome || undefined,
+      orcamentoFisicoTipo: response.orcamentoFisicoTipo || undefined,
+      orcamentoFisicoConteudo: response.orcamentoFisicoConteudo || undefined,
       value: Number(response.valor ?? 0),
       delivery: response.prazoEntrega ?? '',
       validity: response.validade ?? '',
       compliance: (response.conformidade as Quotation['compliance']) ?? 'ok',
       notes: response.observacoes ?? ''
     };
+  }
+
+  private atualizarConformidadeCotacao(): void {
+    const possuiCartao = Boolean(this.newQuoteForm.cnpjCardUrl?.trim());
+    const possuiOrcamento = Boolean(this.newQuoteForm.orcamentoFisicoConteudo?.trim());
+    this.newQuoteForm.compliance = possuiCartao && possuiOrcamento ? 'ok' : 'pendente';
+  }
+
+  private consultarFornecedorPorCnpj(): void {
+    const cnpjLimpo = this.normalizeCnpj(this.newQuoteForm.cnpj);
+    this.avisoFornecedor = '';
+    if (cnpjLimpo.length !== 14) {
+      return;
+    }
+    if (cnpjLimpo === this.ultimoCnpjConsultado) {
+      return;
+    }
+    this.carregandoFornecedor = true;
+    this.autorizacaoComprasService.buscarFornecedorPorCnpj(cnpjLimpo).subscribe({
+      next: (response) => {
+        this.cacheFornecedor = {
+          razaoSocial: response.razaoSocial,
+          nomeFantasia: response.nomeFantasia
+        };
+        if (response.razaoSocial && (!this.newQuoteForm.companyName || this.razaoSocialAutoPreenchida)) {
+          this.newQuoteForm.companyName = response.razaoSocial;
+          this.razaoSocialAutoPreenchida = true;
+        }
+        if (response.nomeFantasia && (!this.newQuoteForm.supplier || this.nomeFantasiaAutoPreenchido)) {
+          this.newQuoteForm.supplier = response.nomeFantasia;
+          this.nomeFantasiaAutoPreenchido = true;
+        }
+        this.ultimoCnpjConsultado = cnpjLimpo;
+        this.carregandoFornecedor = false;
+      },
+      error: () => {
+        this.avisoFornecedor = 'Fornecedor não encontrado, preencha manualmente.';
+        this.cacheFornecedor = null;
+        this.ultimoCnpjConsultado = cnpjLimpo;
+        this.carregandoFornecedor = false;
+      }
+    });
+  }
+
+  private preencherNomeFantasiaSeDisponivel(): void {
+    if (!this.newQuoteForm.supplier && this.cacheFornecedor?.nomeFantasia) {
+      this.newQuoteForm.supplier = this.cacheFornecedor.nomeFantasia;
+      this.nomeFantasiaAutoPreenchido = true;
+    }
+  }
+
+  private parseCnpjFromLink(link: string): string | null {
+    if (!link) return null;
+    const valor = link.trim();
+    const decodificado = this.tryDecode(valor);
+    const parametros = ['cnpj', 'documento', 'doc', 'cpfcnpj'];
+    try {
+      const url = new URL(decodificado);
+      for (const parametro of parametros) {
+        const encontrado = url.searchParams.get(parametro) || url.searchParams.get(parametro.toUpperCase());
+        if (encontrado) {
+          const digits = this.normalizeCnpj(encontrado);
+          if (digits.length === 14) {
+            return digits;
+          }
+        }
+      }
+    } catch {
+      // ignora links sem formato de URL válido
+    }
+
+    const matchParam = decodificado.match(/(?:cnpj|documento|doc|cpfcnpj)=([^&]+)/i);
+    if (matchParam?.[1]) {
+      const digits = this.normalizeCnpj(matchParam[1]);
+      if (digits.length === 14) {
+        return digits;
+      }
+    }
+
+    const matchDigits = decodificado.match(/\d{14}/);
+    if (matchDigits) {
+      return matchDigits[0];
+    }
+    const matchMask = decodificado.match(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/);
+    if (matchMask) {
+      const digits = this.normalizeCnpj(matchMask[0]);
+      return digits.length === 14 ? digits : null;
+    }
+    return null;
+  }
+
+  private tryDecode(valor: string): string {
+    try {
+      return decodeURIComponent(valor);
+    } catch {
+      return valor;
+    }
   }
 
   private buildPayload(request: PurchaseRequest): AutorizacaoCompraRequest {
@@ -925,12 +1192,15 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     return payload;
   }
 
-  private updateRequest(updated: PurchaseRequest): void {
+  private updateRequest(updated: PurchaseRequest, onSuccess?: (synced: PurchaseRequest) => void): void {
     this.requests = this.requests.map((req) => (req.id === updated.id ? updated : req));
     this.autorizacaoComprasService.update(updated.id, this.buildPayload(updated)).subscribe({
       next: (response) => {
         const synced = this.toPurchaseRequest(response);
         this.requests = this.requests.map((req) => (req.id === synced.id ? synced : req));
+        if (onSuccess) {
+          onSuccess(synced);
+        }
       },
       error: () => {
         this.setFeedback('Não foi possível salvar as alterações na solicitação.');

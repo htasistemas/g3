@@ -6,6 +6,7 @@ import br.com.g3.autorizacaocompras.cotacoes.service.AutorizacaoCompraCotacaoSer
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,5 +35,12 @@ public class AutorizacaoCompraCotacaoController {
       @PathVariable("id") Long compraId,
       @Valid @RequestBody AutorizacaoCompraCotacaoRequest request) {
     return service.criar(compraId, request);
+  }
+
+  @DeleteMapping("/{cotacaoId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void remover(
+      @PathVariable("id") Long compraId, @PathVariable("cotacaoId") Long cotacaoId) {
+    service.remover(compraId, cotacaoId);
   }
 }

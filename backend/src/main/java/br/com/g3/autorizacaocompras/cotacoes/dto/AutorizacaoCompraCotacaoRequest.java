@@ -13,6 +13,8 @@ public class AutorizacaoCompraCotacaoRequest {
 
   private String cnpj;
 
+  private String cartaoCnpjUrl;
+
   @NotNull
   private BigDecimal valor;
 
@@ -52,6 +54,14 @@ public class AutorizacaoCompraCotacaoRequest {
 
   public void setCnpj(String cnpj) {
     this.cnpj = cnpj;
+  }
+
+  public String getCartaoCnpjUrl() {
+    return cartaoCnpjUrl;
+  }
+
+  public void setCartaoCnpjUrl(String cartaoCnpjUrl) {
+    this.cartaoCnpjUrl = cartaoCnpjUrl;
   }
 
   public BigDecimal getValor() {

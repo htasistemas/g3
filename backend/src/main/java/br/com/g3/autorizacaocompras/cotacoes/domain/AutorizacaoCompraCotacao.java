@@ -34,6 +34,18 @@ public class AutorizacaoCompraCotacao {
   @Column(name = "cnpj", length = 20)
   private String cnpj;
 
+  @Column(name = "cartao_cnpj_url", length = 400)
+  private String cartaoCnpjUrl;
+
+  @Column(name = "cartao_cnpj_nome", length = 255)
+  private String cartaoCnpjNome;
+
+  @Column(name = "cartao_cnpj_tipo", length = 100)
+  private String cartaoCnpjTipo;
+
+  @Column(name = "cartao_cnpj_conteudo")
+  private String cartaoCnpjConteudo;
+
   @Column(name = "valor", precision = 14, scale = 2, nullable = false)
   private BigDecimal valor;
 
@@ -99,6 +111,38 @@ public class AutorizacaoCompraCotacao {
 
   public void setCnpj(String cnpj) {
     this.cnpj = cnpj;
+  }
+
+  public String getCartaoCnpjUrl() {
+    return cartaoCnpjUrl;
+  }
+
+  public void setCartaoCnpjUrl(String cartaoCnpjUrl) {
+    this.cartaoCnpjUrl = cartaoCnpjUrl;
+  }
+
+  public String getCartaoCnpjNome() {
+    return cartaoCnpjNome;
+  }
+
+  public void setCartaoCnpjNome(String cartaoCnpjNome) {
+    this.cartaoCnpjNome = cartaoCnpjNome;
+  }
+
+  public String getCartaoCnpjTipo() {
+    return cartaoCnpjTipo;
+  }
+
+  public void setCartaoCnpjTipo(String cartaoCnpjTipo) {
+    this.cartaoCnpjTipo = cartaoCnpjTipo;
+  }
+
+  public String getCartaoCnpjConteudo() {
+    return cartaoCnpjConteudo;
+  }
+
+  public void setCartaoCnpjConteudo(String cartaoCnpjConteudo) {
+    this.cartaoCnpjConteudo = cartaoCnpjConteudo;
   }
 
   public BigDecimal getValor() {

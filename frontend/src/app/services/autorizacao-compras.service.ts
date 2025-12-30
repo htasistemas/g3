@@ -41,6 +41,7 @@ export interface AutorizacaoCompraCotacaoRequest {
   fornecedor: string;
   razaoSocial?: string;
   cnpj?: string;
+  cartaoCnpjUrl?: string;
   valor: number;
   prazoEntrega?: string;
   validade?: string;
@@ -55,7 +56,17 @@ export interface AutorizacaoCompraCotacaoResponse extends AutorizacaoCompraCotac
   id: number;
   autorizacaoCompraId: number;
   criadoEm: string;
+  cartaoCnpjNome?: string;
+  cartaoCnpjTipo?: string;
+  cartaoCnpjConteudo?: string;
 }
+
+export interface FornecedorCnpjResponse {
+  cnpj?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+}
+
 
 @Injectable({ providedIn: 'root' })
 export class AutorizacaoComprasService {
@@ -89,4 +100,15 @@ export class AutorizacaoComprasService {
   ): Observable<AutorizacaoCompraCotacaoResponse> {
     return this.http.post<AutorizacaoCompraCotacaoResponse>(`${this.baseUrl}/${id}/cotacoes`, payload);
   }
+
+  deleteQuote(id: string, quoteId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}/cotacoes/${quoteId}`);
+  }
+
+  buscarFornecedorPorCnpj(cnpj: string): Observable<FornecedorCnpjResponse> {
+    return this.http.get<FornecedorCnpjResponse>(
+      `${environment.apiUrl}/api/financeiro/fornecedores/cnpj/${cnpj}`
+    );
+  }
+
 }

@@ -8,4 +8,6 @@ public interface AutorizacaoCompraCotacaoService {
   List<AutorizacaoCompraCotacaoResponse> listarPorCompraId(Long compraId);
 
   AutorizacaoCompraCotacaoResponse criar(Long compraId, AutorizacaoCompraCotacaoRequest request);
+
+  void remover(Long compraId, Long cotacaoId);
 }

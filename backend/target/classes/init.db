@@ -80,6 +80,10 @@ CREATE TABLE IF NOT EXISTS autorizacao_compras_cotacoes (
   fornecedor VARCHAR(200) NOT NULL,
   razao_social VARCHAR(200),
   cnpj VARCHAR(20),
+  cartao_cnpj_url VARCHAR(400),
+  cartao_cnpj_nome VARCHAR(255),
+  cartao_cnpj_tipo VARCHAR(100),
+  cartao_cnpj_conteudo TEXT,
   valor NUMERIC(14, 2) NOT NULL,
   prazo_entrega DATE,
   validade DATE,
@@ -358,6 +362,18 @@ ALTER TABLE autorizacao_compras
 
 ALTER TABLE autorizacao_compras
   ADD COLUMN IF NOT EXISTS prioridade VARCHAR(20) NOT NULL DEFAULT 'normal';
+
+ALTER TABLE autorizacao_compras_cotacoes
+  ADD COLUMN IF NOT EXISTS cartao_cnpj_url VARCHAR(400);
+
+ALTER TABLE autorizacao_compras_cotacoes
+  ADD COLUMN IF NOT EXISTS cartao_cnpj_nome VARCHAR(255);
+
+ALTER TABLE autorizacao_compras_cotacoes
+  ADD COLUMN IF NOT EXISTS cartao_cnpj_tipo VARCHAR(100);
+
+ALTER TABLE autorizacao_compras_cotacoes
+  ADD COLUMN IF NOT EXISTS cartao_cnpj_conteudo TEXT;
 
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS endereco_id BIGINT REFERENCES endereco(id) ON DELETE SET NULL;
