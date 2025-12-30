@@ -12,7 +12,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registro.addMapping("/**")
             .allowedOrigins("http://localhost:4200")
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            .allowedHeaders("authorization", "content-type")
+            .allowedHeaders("authorization", "content-type", "accept", "cache-control", "x-requested-with")
             .allowCredentials(true);
     }
 }

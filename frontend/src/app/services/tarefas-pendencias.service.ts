@@ -23,7 +23,7 @@ export interface TaskPayload {
   descricao: string;
   responsavel: string;
   prioridade: 'Alta' | 'Média' | 'Baixa';
-  prazo?: string;
+  prazo?: string | null;
   status: 'Aberta' | 'Em andamento' | 'Concluída' | 'Em atraso';
   checklist?: ChecklistItem[];
 }
@@ -126,7 +126,7 @@ export class TarefasPendenciasService {
       descricao: task.descricao,
       responsavel: task.responsavel,
       prioridade: task.prioridade,
-      prazo: task.prazo,
+      prazo: task.prazo || undefined,
       status: task.status,
       checklist
     });
@@ -138,10 +138,16 @@ export class TarefasPendenciasService {
       descricao: task.descricao,
       responsavel: task.responsavel,
       prioridade: task.prioridade,
-      prazo: task.prazo,
+      prazo: task.prazo || undefined,
       status,
       checklist: task.checklist
     });
+  }
+
+  imprimirPendencias(): Observable<Blob> {
+    return this.http
+      .get(`${environment.apiUrl}/api/reports/tarefas-pendencias`, { responseType: 'blob' })
+      .pipe(catchError(this.logAndRethrow('ao baixar o relatório de pendências')));
   }
 
   private toApiPayload(payload: TaskPayload): TarefaPendenciaApiRequest {
@@ -158,10 +164,15 @@ export class TarefasPendenciasService {
       descricao: payload.descricao,
       responsavel: payload.responsavel,
       prioridade: payload.prioridade,
-      prazo: payload.prazo,
+      prazo: this.normalizePrazo(payload.prazo),
       status: payload.status,
       checklist
     };
+  }
+
+  private normalizePrazo(value?: string | null): string | undefined {
+    const normalized = value?.trim();
+    return normalized ? normalized : undefined;
   }
 
   private mapResponse(response: TarefaPendenciaApiResponse): TaskRecord {

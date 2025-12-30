@@ -1,0 +1,8 @@
+HTTP/1.1 415 
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Accept: application/json, application/*+json
+Content-Length: 0
+Date: Tue, 30 Dec 2025 00:43:37 GMT
+

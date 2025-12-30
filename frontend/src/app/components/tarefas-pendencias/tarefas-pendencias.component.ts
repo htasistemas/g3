@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
 import { finalize } from 'rxjs/operators';
 import { TarefasPendenciasService, ChecklistItem, TaskPayload, TaskRecord } from '../../services/tarefas-pendencias.service';
 import { ProfessionalService } from '../../services/professional.service';
@@ -11,14 +12,14 @@ import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../comparti
 import { titleCaseWords } from '../../utils/capitalization.util';
 
 interface StepTab {
-  id: 'cadastro' | 'dashboard' | 'lista';
+  id: 'cadastro' | 'lista' | 'dashboard';
   label: string;
 }
 
 @Component({
   selector: 'app-tarefas-pendencias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, PopupMessagesComponent, DragDropModule],
   templateUrl: './tarefas-pendencias.component.html',
   styleUrl: './tarefas-pendencias.component.scss'
 })
@@ -37,14 +38,31 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
   activeTab: StepTab['id'] = 'cadastro';
   tabs: StepTab[] = [
     { id: 'cadastro', label: 'Cadastro e controle' },
-    { id: 'dashboard', label: 'Dashboard e alertas' },
-    { id: 'lista', label: 'Listagem e acompanhamento' }
+    { id: 'lista', label: 'Listagem e acompanhamento' },
+    { id: 'dashboard', label: 'Dashboard e alertas' }
   ];
+  imprimindoRelatorio = false;
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   private readonly capitalizationSubs: Array<() => void> = [];
 
   readonly prioridades: TaskPayload['prioridade'][] = ['Alta', 'Média', 'Baixa'];
   readonly statusOptions: TaskPayload['status'][] = ['Aberta', 'Em andamento', 'Concluída', 'Em atraso'];
+  readonly processStages = [
+    { label: 'Aberta', status: 'Aberta' as TaskRecord['status'], next: 'Em andamento' as TaskRecord['status'] },
+    {
+      label: 'Em andamento',
+      status: 'Em andamento' as TaskRecord['status'],
+      prev: 'Aberta' as TaskRecord['status'],
+      next: 'Em atraso' as TaskRecord['status']
+    },
+    {
+      label: 'Em atraso',
+      status: 'Em atraso' as TaskRecord['status'],
+      prev: 'Em andamento' as TaskRecord['status'],
+      next: 'Concluída' as TaskRecord['status']
+    },
+    { label: 'Concluída', status: 'Concluída' as TaskRecord['status'], prev: 'Em atraso' as TaskRecord['status'] }
+  ];
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     salvar: true,
@@ -112,6 +130,18 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     return `${Math.round((concluidos / totalItens) * 100)}%`;
   }
 
+  @ViewChildren(CdkDropList)
+  private dropLists?: QueryList<CdkDropList<TaskRecord[]>>;
+
+  getTasksByStage(status: TaskRecord['status']): TaskRecord[] {
+    return this.tasks.filter((task) => task.status === status);
+  }
+
+  getConnectedKanbanLists(current: CdkDropList<TaskRecord[]>): CdkDropList<TaskRecord[]>[] {
+    const lists = this.dropLists?.toArray() ?? [];
+    return lists.filter((list) => list !== current);
+  }
+
   get activeTabIndex(): number {
     return this.tabs.findIndex((tab) => tab.id === this.activeTab);
   }
@@ -142,6 +172,18 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     this.changeTab(this.tabs[this.activeTabIndex - 1].id);
   }
 
+  moveTaskToStage(task: TaskRecord, targetStatus: TaskRecord['status']): void {
+    if (task.status === targetStatus) return;
+    this.changeStatus(task, targetStatus);
+  }
+
+  onKanbanDrop(event: CdkDragDrop<TaskRecord[]>, targetStatus: TaskRecord['status']): void {
+    if (event.previousContainer === event.container) return;
+    const task = event.item.data as TaskRecord;
+    if (!task) return;
+    this.moveTaskToStage(task, targetStatus);
+  }
+
   onSave(): void {
     this.saveTask();
   }
@@ -160,6 +202,18 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     if (current) {
       this.removeTask(current);
     }
+  }
+
+  imprimirRelatorio(): void {
+    if (this.imprimindoRelatorio) return;
+    this.imprimindoRelatorio = true;
+    this.tarefasService
+      .imprimirPendencias()
+      .pipe(finalize(() => (this.imprimindoRelatorio = false)))
+      .subscribe({
+        next: (blob) => this.baixarRelatorio(blob),
+        error: () => this.setFeedback('Não foi possível gerar o relatório de pendências.')
+      });
   }
 
   fecharPopupErros(): void {
@@ -360,6 +414,15 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     });
     this.checklistDraft = [];
     this.checklistEntry = '';
+  }
+
+  private baixarRelatorio(blob: Blob): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'relatorio-tarefas-pendencias.pdf';
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   private setFeedback(message: string, timeoutMs = 10000): void {

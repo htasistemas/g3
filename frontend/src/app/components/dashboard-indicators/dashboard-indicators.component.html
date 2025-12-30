@@ -24,15 +24,15 @@
     <p class="text-sm">{{ dashboardService.error() }}</p>
   </div>
 
-  <ng-container *ngIf="!loading && top12; else loadingState">
+  <ng-container *ngIf="!loading && top12 as indicadores; else loadingState">
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
       <div
         class="stat-card stat-card--center"
         *ngFor="let card of [
-          { label: 'Beneficiarios atendidos', value: top12?.beneficiariosAtendidosPeriodo, icon: 'groups', hint: 'Atendimentos no periodo.', tone: 'stat-card--emerald' },
-          { label: 'Familias em extrema pobreza', value: top12?.familiasExtremaPobreza, icon: 'diversity_3', hint: 'Familias em alta vulnerabilidade.', tone: 'stat-card--rose' },
-          { label: 'Renda media familiar', value: (top12?.rendaMediaFamiliar || 0) | currency: 'BRL', icon: 'savings', hint: 'Media registrada no periodo.', tone: 'stat-card--indigo' },
-          { label: 'Termos vencendo', value: top12?.termosVencendo, icon: 'warning', hint: 'Termos proximos do vencimento.', tone: 'stat-card--amber' }
+          { label: 'Beneficiarios atendidos', value: indicadores.beneficiariosAtendidosPeriodo, icon: 'groups', hint: 'Atendimentos no periodo.', tone: 'stat-card--emerald' },
+          { label: 'Familias em extrema pobreza', value: indicadores.familiasExtremaPobreza, icon: 'diversity_3', hint: 'Familias em alta vulnerabilidade.', tone: 'stat-card--rose' },
+          { label: 'Renda media familiar', value: indicadores.rendaMediaFamiliar | currency: 'BRL', icon: 'savings', hint: 'Media registrada no periodo.', tone: 'stat-card--indigo' },
+          { label: 'Termos vencendo', value: indicadores.termosVencendo, icon: 'warning', hint: 'Termos proximos do vencimento.', tone: 'stat-card--amber' }
         ]"
         [ngClass]="card.tone"
       >
@@ -62,27 +62,27 @@
       </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2" *ngIf="familias">
+    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2" *ngIf="familias as grupo">
       <div class="mini-card">
         <p class="mini-card__label">Familias cadastradas</p>
-        <p class="mini-card__value">{{ familias.total ?? 0 }}</p>
+        <p class="mini-card__value">{{ grupo.total }}</p>
       </div>
       <div class="mini-card">
         <p class="mini-card__label">Media de pessoas</p>
-        <p class="mini-card__value">{{ familias.mediaPessoas | number: '1.1-1' }}</p>
+        <p class="mini-card__value">{{ grupo.mediaPessoas | number: '1.1-1' }}</p>
       </div>
       <div class="mini-card">
         <p class="mini-card__label">Renda media familiar</p>
-        <p class="mini-card__value">{{ familias.rendaMediaFamiliar | currency: 'BRL' }}</p>
+        <p class="mini-card__value">{{ grupo.rendaMediaFamiliar | currency: 'BRL' }}</p>
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6" *ngIf="familias">
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6" *ngIf="familias as grupoDetalhes">
       <div class="grid gap-4 lg:grid-cols-2">
         <div>
           <h3 class="text-base font-semibold text-slate-900">Faixa de renda</h3>
           <div class="chip-list mt-3">
-            <span class="chip" *ngFor="let item of familias.faixaRenda | keyvalue">
+            <span class="chip" *ngFor="let item of grupoDetalhes.faixaRenda | keyvalue">
               {{ item.key }}: {{ item.value }}
             </span>
           </div>
@@ -90,7 +90,7 @@
         <div>
           <h3 class="text-base font-semibold text-slate-900">Inseguranca alimentar</h3>
           <div class="chip-list mt-3">
-            <span class="chip" *ngFor="let item of familias.insegurancaAlimentar | keyvalue">
+            <span class="chip" *ngFor="let item of grupoDetalhes.insegurancaAlimentar | keyvalue">
               {{ item.key }}: {{ item.value }}
             </span>
           </div>

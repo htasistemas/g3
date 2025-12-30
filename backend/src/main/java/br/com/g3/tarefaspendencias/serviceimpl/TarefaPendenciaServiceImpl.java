@@ -46,10 +46,9 @@ public class TarefaPendenciaServiceImpl implements TarefaPendenciaService {
     tarefa.setCriadoEm(agora);
     tarefa.setAtualizadoEm(agora);
     tarefa.setStatus(resolveStatus(request.getStatus()));
-    tarefa.setChecklist(construirChecklist(request.getChecklist(), tarefa, agora));
-    List<TarefaPendenciaHistorico> historicoCriacao = new ArrayList<>();
-    historicoCriacao.add(criarHistorico(tarefa, "Tarefa criada com status " + tarefa.getStatus(), agora));
-    tarefa.setHistorico(historicoCriacao);
+    tarefa.getChecklist().clear();
+    tarefa.getChecklist().addAll(construirChecklist(request.getChecklist(), tarefa, agora));
+    registrarHistorico(tarefa, "Tarefa criada com status " + tarefa.getStatus(), agora);
     return TarefaPendenciaMapper.toResponse(repository.salvar(tarefa));
   }
 
@@ -65,10 +64,9 @@ public class TarefaPendenciaServiceImpl implements TarefaPendenciaService {
     tarefa.setPrioridade(request.getPrioridade());
     tarefa.setPrazo(request.getPrazo());
     tarefa.setStatus(resolveStatus(request.getStatus()));
-    tarefa.setChecklist(construirChecklist(request.getChecklist(), tarefa, agora));
-    List<TarefaPendenciaHistorico> historico = new ArrayList<>(tarefa.getHistorico());
-    historico.add(criarHistorico(tarefa, "Tarefa atualizada com status " + tarefa.getStatus(), agora));
-    tarefa.setHistorico(historico);
+    tarefa.getChecklist().clear();
+    tarefa.getChecklist().addAll(construirChecklist(request.getChecklist(), tarefa, agora));
+    registrarHistorico(tarefa, "Tarefa atualizada com status " + tarefa.getStatus(), agora);
     tarefa.setAtualizadoEm(agora);
     return TarefaPendenciaMapper.toResponse(repository.salvar(tarefa));
   }
@@ -119,5 +117,14 @@ public class TarefaPendenciaServiceImpl implements TarefaPendenciaService {
     historico.setMensagem(mensagem);
     historico.setCriadoEm(agora);
     return historico;
+  }
+
+  private void registrarHistorico(TarefaPendencia tarefa, String mensagem, LocalDateTime agora) {
+    List<TarefaPendenciaHistorico> historico = tarefa.getHistorico();
+    if (historico == null) {
+      historico = new ArrayList<>();
+      tarefa.setHistorico(historico);
+    }
+    historico.add(criarHistorico(tarefa, mensagem, agora));
   }
 }

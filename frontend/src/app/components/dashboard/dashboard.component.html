@@ -17,6 +17,23 @@
   </div>
 
   <ng-container *ngIf="!loading && cadastros; else loadingState">
+    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 mt-4" *ngIf="financeiro">
+      <div class="stat-card stat-card--center" *ngFor="let card of [
+          { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald' },
+          { label: 'Valores em caixa', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo' },
+          { label: 'Valores em banco', value: financeiro.valoresEmBanco, icon: 'account_balance', hint: 'Saldo em contas nao correntes.', tone: 'stat-card--sky' }
+        ]" [ngClass]="card.tone">
+        <div class="stat-card__icon">
+          <span class="material-icons">{{ card.icon }}</span>
+        </div>
+        <div>
+          <p class="stat-card__label">{{ card.label }}</p>
+          <p class="stat-card__value">{{ card.value | currency: 'BRL' }}</p>
+          <p class="stat-card__hint">{{ card.hint }}</p>
+        </div>
+      </div>
+    </div>
+
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
       <div class="stat-card stat-card--center" *ngFor="let card of [
           { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald' },
@@ -48,23 +65,6 @@
         <div>
           <p class="stat-card__label">{{ card.label }}</p>
           <p class="stat-card__value">{{ card.value }}</p>
-          <p class="stat-card__hint">{{ card.hint }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 mt-4" *ngIf="financeiro">
-      <div class="stat-card stat-card--center" *ngFor="let card of [
-          { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald' },
-          { label: 'Valores em caixa', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo' },
-          { label: 'Valores em banco', value: financeiro.valoresEmBanco, icon: 'account_balance', hint: 'Saldo em contas nao correntes.', tone: 'stat-card--sky' }
-        ]" [ngClass]="card.tone">
-        <div class="stat-card__icon">
-          <span class="material-icons">{{ card.icon }}</span>
-        </div>
-        <div>
-          <p class="stat-card__label">{{ card.label }}</p>
-          <p class="stat-card__value">{{ card.value | currency: 'BRL' }}</p>
           <p class="stat-card__hint">{{ card.hint }}</p>
         </div>
       </div>

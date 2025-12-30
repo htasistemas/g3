@@ -31,7 +31,7 @@ public class TarefasPendenciasController {
   }
 
   @GetMapping("/{id}")
-  public TarefaPendenciaResponse buscar(@PathVariable Long id) {
+  public TarefaPendenciaResponse buscar(@PathVariable("id") Long id) {
     return service.buscarPorId(id);
   }
 
@@ -43,13 +43,13 @@ public class TarefasPendenciasController {
 
   @PutMapping("/{id}")
   public TarefaPendenciaResponse atualizar(
-      @PathVariable Long id, @Valid @RequestBody TarefaPendenciaRequest request) {
+      @PathVariable("id") Long id, @Valid @RequestBody TarefaPendenciaRequest request) {
     return service.atualizar(id, request);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void remover(@PathVariable Long id) {
+  public void remover(@PathVariable("id") Long id) {
     service.remover(id);
   }
 }

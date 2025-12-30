@@ -13,6 +13,36 @@ CREATE TABLE IF NOT EXISTS unidade_assistencial (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS tarefas_pendencias (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT NOT NULL,
+  responsavel VARCHAR(150) NOT NULL,
+  prioridade VARCHAR(20) NOT NULL,
+  prazo DATE,
+  status VARCHAR(40) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tarefas_pendencias_checklist (
+  id BIGSERIAL PRIMARY KEY,
+  tarefa_id BIGINT NOT NULL REFERENCES tarefas_pendencias(id) ON DELETE CASCADE,
+  titulo VARCHAR(200) NOT NULL,
+  concluido BOOLEAN NOT NULL DEFAULT FALSE,
+  concluido_em TIMESTAMP,
+  ordem INTEGER NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tarefas_pendencias_historico (
+  id BIGSERIAL PRIMARY KEY,
+  tarefa_id BIGINT NOT NULL REFERENCES tarefas_pendencias(id) ON DELETE CASCADE,
+  mensagem VARCHAR(500) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS endereco (
   id BIGSERIAL PRIMARY KEY,
   cep VARCHAR(20),
