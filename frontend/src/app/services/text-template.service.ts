@@ -11,7 +11,14 @@ export class TextTemplateService {
   private readonly storageKey = 'g3_text_templates';
   private readonly defaults: TextTemplates = {
     cession:
-      'Declaro que o bem {{nome}} (patrimônio {{numeroPatrimonio}}) está sob responsabilidade de {{responsavel}} no local {{local}}. Valor de aquisição: {{valor}}.',
+      'TERMO DE CESSÃO DE BEM PATRIMONIAL\n\n' +
+      'Pelo presente instrumento, fica registrado que o bem {{nome}}, identificado pelo número de patrimônio {{numeroPatrimonio}}, ' +
+      'foi cedido para uso e responsabilidade de {{responsavel}}, alocado em {{local}}, com valor de aquisição de {{valor}}.\n\n' +
+      'O responsável declara estar ciente de que o bem permanece de propriedade da instituição, comprometendo-se a zelar pela sua conservação, ' +
+      'utilizá-lo exclusivamente para fins institucionais, comunicar imediatamente qualquer dano, perda ou necessidade de manutenção e devolvê-lo ' +
+      'quando solicitado ou ao término da cessão.\n\n' +
+      'Dados do bem: Categoria {{categoria}} {{subcategoria}}. Estado de conservação {{conservacao}}. Situação {{status}}. Data de aquisição {{dataAquisicao}}.\n\n' +
+      'Este termo é emitido na data de {{dataEmissao}}.',
     loan:
       'Eu, {{responsavel}}, assumo responsabilidade pelo empréstimo do bem {{nome}} (patrimônio {{numeroPatrimonio}}), alocado em {{local}}, comprometendo-me a devolvê-lo nas mesmas condições. Valor de referência: {{valor}}.'
   };

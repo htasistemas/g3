@@ -11,6 +11,7 @@ public class LancamentoFinanceiroResponse {
   private LocalDate vencimento;
   private BigDecimal valor;
   private String situacao;
+  private Long compraId;
 
   public Long getId() {
     return id;
@@ -66,5 +67,13 @@ public class LancamentoFinanceiroResponse {
 
   public void setSituacao(String situacao) {
     this.situacao = situacao;
+  }
+
+  public Long getCompraId() {
+    return compraId;
+  }
+
+  public void setCompraId(Long compraId) {
+    this.compraId = compraId;
   }
 }

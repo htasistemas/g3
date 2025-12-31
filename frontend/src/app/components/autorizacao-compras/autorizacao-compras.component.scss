@@ -1127,6 +1127,31 @@
   color: #0f172a;
 }
 
+.budget-card--selected {
+  border-color: #0f7a43;
+  box-shadow: 0 0 0 2px rgba(15, 122, 67, 0.12);
+}
+
+.budget-card__input {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.budget-card__input span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.budget-card__status {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .reservations {
   display: grid;
   gap: 0.5rem;
@@ -1145,6 +1170,17 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.panel__section-header {
+  margin-bottom: 0.9rem;
+}
+
+.panel__section-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .checkbox {

@@ -35,6 +35,9 @@ public class LancamentoFinanceiro {
   @Column(name = "situacao", nullable = false, length = 20)
   private String situacao;
 
+  @Column(name = "compra_id")
+  private Long compraId;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -95,6 +98,14 @@ public class LancamentoFinanceiro {
 
   public void setSituacao(String situacao) {
     this.situacao = situacao;
+  }
+
+  public Long getCompraId() {
+    return compraId;
+  }
+
+  public void setCompraId(Long compraId) {
+    this.compraId = compraId;
   }
 
   public LocalDateTime getCriadoEm() {

@@ -8,6 +8,8 @@ import br.com.g3.contabilidade.dto.LancamentoFinanceiroRequest;
 import br.com.g3.contabilidade.dto.LancamentoFinanceiroResponse;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraRequest;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraResponse;
+import br.com.g3.contabilidade.dto.PagamentoLancamentoRequest;
+import br.com.g3.contabilidade.dto.ReciboPagamentoResponse;
 import java.util.List;
 
 public interface ContabilidadeService {
@@ -26,6 +28,8 @@ public interface ContabilidadeService {
   List<LancamentoFinanceiroResponse> listarLancamentos();
 
   LancamentoFinanceiroResponse atualizarSituacaoLancamento(Long id, String status);
+
+  ReciboPagamentoResponse pagarLancamento(Long id, PagamentoLancamentoRequest request);
 
   MovimentacaoFinanceiraResponse criarMovimentacao(MovimentacaoFinanceiraRequest request);
 

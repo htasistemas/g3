@@ -4,6 +4,7 @@
       <ng-content select="[slot='titulo']"></ng-content>
     </div>
     <div class="page-actions">
+      <ng-content select="[slot='acoes']"></ng-content>
       <app-barra-acoes-crud
         *ngIf="mostrarToolbar"
         [acoes]="acoes"

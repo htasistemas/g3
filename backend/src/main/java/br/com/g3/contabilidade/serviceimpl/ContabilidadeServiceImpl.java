@@ -12,13 +12,20 @@ import br.com.g3.contabilidade.dto.LancamentoFinanceiroRequest;
 import br.com.g3.contabilidade.dto.LancamentoFinanceiroResponse;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraRequest;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraResponse;
+import br.com.g3.contabilidade.dto.PagamentoLancamentoRequest;
+import br.com.g3.contabilidade.dto.ReciboPagamentoContaResponse;
+import br.com.g3.contabilidade.dto.ReciboPagamentoResponse;
 import br.com.g3.contabilidade.repository.ContaBancariaRepository;
 import br.com.g3.contabilidade.repository.EmendaImpositivaRepository;
 import br.com.g3.contabilidade.repository.LancamentoFinanceiroRepository;
 import br.com.g3.contabilidade.repository.MovimentacaoFinanceiraRepository;
 import br.com.g3.contabilidade.service.ContabilidadeService;
+import br.com.g3.autorizacaocompras.domain.AutorizacaoCompraReservaBancaria;
+import br.com.g3.autorizacaocompras.repository.AutorizacaoCompraReservaBancariaRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,16 +40,19 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
   private final LancamentoFinanceiroRepository lancamentoRepository;
   private final MovimentacaoFinanceiraRepository movimentacaoRepository;
   private final EmendaImpositivaRepository emendaRepository;
+  private final AutorizacaoCompraReservaBancariaRepository reservaBancariaRepository;
 
   public ContabilidadeServiceImpl(
       ContaBancariaRepository contaRepository,
       LancamentoFinanceiroRepository lancamentoRepository,
       MovimentacaoFinanceiraRepository movimentacaoRepository,
-      EmendaImpositivaRepository emendaRepository) {
+      EmendaImpositivaRepository emendaRepository,
+      AutorizacaoCompraReservaBancariaRepository reservaBancariaRepository) {
     this.contaRepository = contaRepository;
     this.lancamentoRepository = lancamentoRepository;
     this.movimentacaoRepository = movimentacaoRepository;
     this.emendaRepository = emendaRepository;
+    this.reservaBancariaRepository = reservaBancariaRepository;
   }
 
   @Override
@@ -108,6 +118,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     lancamento.setVencimento(request.getVencimento());
     lancamento.setValor(normalizarValor(request.getValor()));
     lancamento.setSituacao(request.getSituacao());
+    lancamento.setCompraId(request.getCompraId());
     LocalDateTime agora = LocalDateTime.now();
     lancamento.setCriadoEm(agora);
     lancamento.setAtualizadoEm(agora);
@@ -127,6 +138,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     lancamento.setVencimento(request.getVencimento());
     lancamento.setValor(normalizarValor(request.getValor()));
     lancamento.setSituacao(request.getSituacao());
+    lancamento.setCompraId(request.getCompraId());
     lancamento.setAtualizadoEm(LocalDateTime.now());
     return mapLancamento(lancamentoRepository.salvar(lancamento));
   }
@@ -147,6 +159,71 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     lancamento.setSituacao(status);
     lancamento.setAtualizadoEm(LocalDateTime.now());
     return mapLancamento(lancamentoRepository.salvar(lancamento));
+  }
+
+  @Override
+  @Transactional
+  public ReciboPagamentoResponse pagarLancamento(Long id, PagamentoLancamentoRequest request) {
+    LancamentoFinanceiro lancamento =
+        lancamentoRepository
+            .buscarPorId(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+    if ("pago".equalsIgnoreCase(lancamento.getSituacao())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lancamento ja esta pago.");
+    }
+
+    String responsavel = request.getResponsavel();
+    if (responsavel == null || responsavel.trim().isEmpty()) {
+      responsavel = lancamento.getContraparte();
+    }
+    final String responsavelFinal = responsavel;
+
+    List<AutorizacaoCompraReservaBancaria> reservas =
+        lancamento.getCompraId() == null
+            ? Collections.emptyList()
+            : reservaBancariaRepository.listarPorCompra(lancamento.getCompraId());
+
+    List<ReciboPagamentoContaResponse> contas = reservas.stream()
+        .map(reserva -> {
+          ContaBancaria conta =
+              contaRepository
+                  .buscarPorId(reserva.getContaBancariaId())
+                  .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+          MovimentacaoFinanceira movimentacao = new MovimentacaoFinanceira();
+          movimentacao.setTipo("SAIDA");
+          movimentacao.setDescricao("Pagamento de reserva");
+          movimentacao.setContraparte(responsavelFinal);
+          movimentacao.setCategoria("Pagamento");
+          movimentacao.setDataMovimentacao(LocalDate.now());
+          movimentacao.setValor(normalizarValor(reserva.getValor()));
+          movimentacao.setCriadoEm(LocalDateTime.now());
+          movimentacao.setContaBancaria(conta);
+          atualizarSaldoConta(conta, movimentacao);
+          movimentacaoRepository.salvar(movimentacao);
+
+          ReciboPagamentoContaResponse resposta = new ReciboPagamentoContaResponse();
+          resposta.setContaBancariaId(conta.getId());
+          resposta.setBanco(conta.getBanco());
+          resposta.setNumero(conta.getNumero());
+          resposta.setValor(reserva.getValor());
+          return resposta;
+        })
+        .collect(Collectors.toList());
+
+    lancamento.setSituacao("pago");
+    lancamento.setAtualizadoEm(LocalDateTime.now());
+    lancamentoRepository.salvar(lancamento);
+
+    ReciboPagamentoResponse recibo = new ReciboPagamentoResponse();
+    recibo.setNumeroRecibo(gerarNumeroRecibo(lancamento.getId()));
+    recibo.setDataPagamento(LocalDate.now());
+    recibo.setValorTotal(lancamento.getValor());
+    recibo.setCompraId(lancamento.getCompraId());
+    recibo.setDescricao(lancamento.getDescricao());
+    recibo.setResponsavel(responsavelFinal);
+    recibo.setContas(contas);
+    return recibo;
   }
 
   @Override
@@ -243,6 +320,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     response.setVencimento(lancamento.getVencimento());
     response.setValor(lancamento.getValor());
     response.setSituacao(lancamento.getSituacao());
+    response.setCompraId(lancamento.getCompraId());
     return response;
   }
 
@@ -297,6 +375,12 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
 
   private BigDecimal normalizarValor(BigDecimal valor) {
     return valor == null ? BigDecimal.ZERO : valor;
+  }
+
+  private String gerarNumeroRecibo(Long id) {
+    int ano = LocalDate.now().getYear();
+    long numero = id == null ? 0 : id;
+    return String.format("%04d/%d", numero, ano);
   }
 
   private void validarChavePix(ContaBancariaRequest request) {

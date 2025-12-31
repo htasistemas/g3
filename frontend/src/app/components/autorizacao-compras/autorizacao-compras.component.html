@@ -659,38 +659,51 @@
       </ng-container>
 
       <ng-container *ngSwitchCase="'reserva'">
-        <ng-container *ngIf="selectedRequest as selected; else noSelection">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">    
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Reserva orçamentária</p>
             <p class="muted">Busque recursos na contabilidade, registre a reserva e siga para a contratação.</p>
           </div>
         <div class="tab-card__actions">
-          <button class="primary" type="button" (click)="navigateStep('next')">
+          <button class="primary" type="button" (click)="navigateStep('next')"> 
             Ir para conclusão
             <fa-icon [icon]="faArrowRight"></fa-icon>
           </button>
         </div>
         </div>
 
-        <div class="grid-two-columns">
-          <div class="panel">
-            <header class="panel__header">
-              <div>
-                <p class="panel__eyebrow">Contas bancárias</p>
-                <p class="panel__title">Saldo positivo para reserva</p>
-              </div>
-              <span class="pill pill--ghost">Etapa 4/5</span>
-            </header>
+        <div class="callout callout--info" *ngIf="reservaConfirmada">
+          <p class="callout__title">Reserva registrada com sucesso</p>
+          <p class="callout__text">
+            O valor foi reservado e vinculado ao centro de custo selecionado.
+          </p>
+        </div>
 
-            <div class="budget-grid" *ngIf="contasBancariasComSaldo.length; else noAccounts">
-              <button
-                type="button"
-                class="budget-card"
-                *ngFor="let conta of contasBancariasComSaldo"
-                [class.budget-card--selected]="reservaBancariaSelecionada?.contaId === conta.id"
-                (click)="reservarSaldoBanco(conta)"
-              >
+        <div class="panel panel--wide">
+          <header class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Reserva orçamentária</p>
+              <p class="panel__title">Contas bancárias e reserva contábil</p>
+            </div>
+            <span class="pill pill--ghost">Etapa 4/5</span>
+          </header>
+
+          <div class="grid-two-columns">
+            <div>
+              <div class="panel__section-header">
+                <p class="panel__section-title">Contas bancárias</p>
+                <p class="muted">Saldo positivo para reserva</p>
+              </div>
+
+              <div class="budget-grid" *ngIf="contasBancariasComSaldo.length; else noAccounts">
+                <button
+                  type="button"
+                  class="budget-card"
+                  *ngFor="let conta of contasBancariasComSaldo"
+                  [class.budget-card--selected]="isContaReservada(conta)"
+                  (click)="reservarSaldoBanco(conta)"
+                >
                 <div class="budget-card__header">
                   <div>
                     <p class="strong">{{ conta.banco }}</p>
@@ -698,52 +711,74 @@
                   </div>
                   <span class="pill pill--ghost">{{ conta.tipo }}</span>
                 </div>
+                <span class="pill pill--accent budget-card__status" *ngIf="isContaReservada(conta)">
+                  <fa-icon [icon]="faCircleCheck"></fa-icon>
+                  Reservado
+                </span>
                 <p class="budget-card__value">{{ conta.saldo | currency: 'BRL' }}</p>
-                <p class="muted">Clique para reservar o valor aprovado</p>
-              </button>
-            </div>
-            <ng-template #noAccounts>
-              <p class="empty-state">Nenhuma conta com saldo positivo disponível.</p>
-            </ng-template>
-          </div>
-
-          <form class="panel" (ngSubmit)="registerReservation()">
-            <header class="panel__header">
-              <div>
-                <p class="panel__eyebrow">Reserva contábil</p>
-                <p class="panel__title">Vincular reserva à compra</p>
+                  <label class="budget-card__input">
+                    <span>Valor da reserva</span>
+                    <input
+                      class="input"
+                      type="text"
+                      inputmode="decimal"
+                      [value]="reservaValoresDisplay[conta.id]"
+                      name="reservaValor-{{ conta.id }}"
+                      (input)="atualizarValorReservaConta(conta, $event.target.value)"
+                      (click)="$event.stopPropagation()"
+                    />
+                  </label>
+                  <p class="muted" *ngIf="!isContaReservada(conta)">
+                    Clique para reservar o valor definido
+                  </p>
+                  <p class="muted" *ngIf="isContaReservada(conta)">
+                    Reserva aplicada. Clique para estornar.
+                  </p>
+                </button>
               </div>
-              <span class="pill">{{ selected.title }}</span>
-            </header>
-
-            <div class="form-grid">
-              <label class="form-field">
-                <span>Centro de custo</span>
-                <select class="select" name="center" [(ngModel)]="reservationForm.center">
-                  <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
-                    {{ envelope.center }} · {{ envelope.title }}
-                  </option>
-                </select>
-              </label>
-              <label class="form-field">
-                <span>Valor a reservar</span>
-                <input class="input" type="number" name="value" [(ngModel)]="reservationForm.value" min="0" step="0.01" />
-              </label>
-              <label class="form-field">
-                <span>Número da reserva</span>
-                <input class="input" name="reservationNumber" [(ngModel)]="reservationForm.reservationNumber" placeholder="RES-000/2024" />
-              </label>
-              <label class="form-field form-field--full">
-                <span>Observações</span>
-                <textarea class="textarea" name="observation" [(ngModel)]="reservationForm.observation" rows="3"></textarea>
-              </label>
+              <ng-template #noAccounts>
+                <p class="empty-state">Nenhuma conta com saldo positivo disponível.</p>
+              </ng-template>
             </div>
 
-            <div class="form-actions">
-              <button class="primary" type="submit">Registrar reserva</button>
-              <button class="ghost" type="button" (click)="navigateStep('next')">Avançar</button>
-            </div>
-          </form>
+            <form (ngSubmit)="registerReservation()">
+              <div class="panel__section-header">
+                <p class="panel__section-title">Centro de custo</p>
+              </div>
+
+              <div class="form-grid">
+                <label class="form-field">
+                  <span>Centro de custo</span>
+                  <select class="select" name="center" [(ngModel)]="reservationForm.center">
+                    <option *ngFor="let envelope of budgetEnvelopes" [value]="envelope.center">
+                      {{ envelope.center }} · {{ envelope.title }}
+                    </option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Valor a reservar</span>
+                  <input
+                    class="input"
+                    type="text"
+                    name="value"
+                    [value]="valorReservaDisplay"
+                    inputmode="decimal"
+                    placeholder="0,00"
+                    (input)="formatValorReservaTotalInput($event.target.value)"
+                  />
+                </label>
+                <label class="form-field form-field--full">
+                  <span>Observações</span>
+                  <textarea class="textarea" name="observation" [(ngModel)]="reservationForm.observation" rows="3"></textarea>
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button class="primary" type="submit">Registrar reserva</button>
+                <button class="ghost" type="button" (click)="navigateStep('next')">Avançar</button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div class="panel panel--wide">
@@ -775,18 +810,25 @@
       </ng-container>
 
       <ng-container *ngSwitchCase="'conclusao'">
-        <ng-container *ngIf="selectedRequest as selected; else noSelection">
+        <ng-container *ngIf="selectedRequest as selected; else noSelection">    
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Conclusão e integração</p>
+            <p class="tab-card__highlight">Conclusão e integração</p>        
             <p class="muted">Finalize a compra, envie para patrimônio ou almoxarifado e gere o termo de conclusão.</p>
           </div>
         <div class="tab-card__actions">
-          <button class="primary" type="button" (click)="navigateStep('prev')">
+          <button class="primary" type="button" (click)="navigateStep('prev')"> 
             Voltar para reserva
             <fa-icon [icon]="faArrowLeft"></fa-icon>
           </button>
         </div>
+        </div>
+
+        <div class="callout callout--info" *ngIf="reservaConfirmada">
+          <p class="callout__title">Reserva registrada com sucesso</p>
+          <p class="callout__text">
+            O valor foi reservado e vinculado ao centro de custo selecionado.
+          </p>
         </div>
 
         <div class="grid-two-columns">
@@ -801,12 +843,40 @@
 
             <dl class="definition-list">
               <div>
+                <dt>Quantidade</dt>
+                <dd>{{ selected.quantity }}</dd>
+              </div>
+              <div>
+                <dt>Valor total</dt>
+                <dd>{{ selected.value | currency: 'BRL' }}</dd>
+              </div>
+              <div>
+                <dt>Área solicitante</dt>
+                <dd>{{ selected.area || 'Não informado' }}</dd>
+              </div>
+              <div>
+                <dt>Responsável</dt>
+                <dd>{{ selected.requester }}</dd>
+              </div>
+              <div>
+                <dt>Previsão / necessidade</dt>
+                <dd>{{ selected.expectedDate | date: 'dd/MM/yyyy' }}</dd>
+              </div>
+              <div>
+                <dt>Prioridade</dt>
+                <dd>{{ selected.priority | titlecase }}</dd>
+              </div>
+              <div>
                 <dt>Fornecedor vencedor</dt>
                 <dd>{{ selected.winnerSupplier || 'Selecionar na etapa de cotação' }}</dd>
               </div>
               <div>
                 <dt>Reserva orçamentária</dt>
                 <dd>{{ selected.reservationNumber || 'Registrar número da reserva' }}</dd>
+              </div>
+              <div>
+                <dt>Termo / documento</dt>
+                <dd>{{ selected.documentNumber || 'Gerado automaticamente na conclusão' }}</dd>
               </div>
               <div>
                 <dt>Centro de custo reservado</dt>
@@ -836,6 +906,18 @@
                   <span class="muted" *ngIf="!integrationChecklist[selected.id]">Defina os destinos abaixo</span>
                 </dd>
               </div>
+              <div>
+                <dt>Destino principal</dt>
+                <dd>
+                  <span *ngIf="selected.type === 'produto'">Almoxarifado</span>
+                  <span *ngIf="selected.type === 'bem'">Patrimônio</span>
+                  <span *ngIf="selected.type !== 'produto' && selected.type !== 'bem'">Não aplicável</span>
+                </dd>
+              </div>
+              <div class="definition-list__row definition-list__row--full">
+                <dt>Justificativa</dt>
+                <dd>{{ selected.justification }}</dd>
+              </div>
             </dl>
           </article>
 
@@ -851,15 +933,32 @@
             <div class="form-grid">
               <label class="form-field">
                 <span>Nº do termo / documento</span>
-                <input class="input" name="documentNumber" [(ngModel)]="conclusionForm.documentNumber" placeholder="TERM-2024/001" />
+                <input
+                  class="input"
+                  name="documentNumber"
+                  [(ngModel)]="conclusionForm.documentNumber"
+                  placeholder="0001/2025"
+                  readonly
+                />
               </label>
               <label class="form-field">
                 <span>Autorização de pagamento</span>
-                <input class="input" name="paymentNumber" [(ngModel)]="paymentAuthorizationForm.number" placeholder="AP-2024/001" />
+                <input
+                  class="input"
+                  name="paymentNumber"
+                  [(ngModel)]="paymentAuthorizationForm.number"
+                  placeholder="0001/2025"
+                  readonly
+                />
               </label>
               <label class="form-field">
                 <span>Responsável pela autorização</span>
-                <input class="input" name="authorizedBy" [(ngModel)]="paymentAuthorizationForm.authorizedBy" placeholder="Nome do aprovador" />
+                <select class="select" name="authorizedBy" [(ngModel)]="paymentAuthorizationForm.authorizedBy">
+                  <option value="" disabled [selected]="!paymentAuthorizationForm.authorizedBy">Selecione um profissional</option>
+                  <option *ngFor="let profissional of profissionais" [value]="profissional.nomeCompleto">
+                    {{ profissional.nomeCompleto }}<span *ngIf="profissional.categoria"> • {{ profissional.categoria }}</span>
+                  </option>
+                </select>
               </label>
               <label class="form-field">
                 <span>Data da autorização</span>
@@ -884,6 +983,10 @@
             </div>
 
             <div class="form-actions">
+              <button class="primary" type="button" (click)="gerarAutorizacaoPagamento()">
+                <fa-icon [icon]="faFileSignature"></fa-icon>
+                Gerar autorização de pagamento
+              </button>
               <button class="primary" type="submit">
                 <fa-icon [icon]="faCircleCheck"></fa-icon>
                 Concluir compra

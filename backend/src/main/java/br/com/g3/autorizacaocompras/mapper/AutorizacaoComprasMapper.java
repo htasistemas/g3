@@ -31,6 +31,7 @@ public final class AutorizacaoComprasMapper {
     compra.setRegistroPatrimonio(request.getRegistroPatrimonio() != null ? request.getRegistroPatrimonio() : false);
     compra.setRegistroAlmoxarifado(request.getRegistroAlmoxarifado() != null ? request.getRegistroAlmoxarifado() : false);
     compra.setNumeroReserva(request.getNumeroReserva());
+    compra.setNumeroTermo(request.getNumeroTermo());
     compra.setAutorizacaoPagamentoNumero(request.getAutorizacaoPagamentoNumero());
     compra.setAutorizacaoPagamentoAutor(request.getAutorizacaoPagamentoAutor());
     compra.setAutorizacaoPagamentoData(request.getAutorizacaoPagamentoData());
@@ -60,6 +61,7 @@ public final class AutorizacaoComprasMapper {
     response.setRegistroPatrimonio(domain.getRegistroPatrimonio());
     response.setRegistroAlmoxarifado(domain.getRegistroAlmoxarifado());
     response.setNumeroReserva(domain.getNumeroReserva());
+    response.setNumeroTermo(domain.getNumeroTermo());
     response.setAutorizacaoPagamentoNumero(domain.getAutorizacaoPagamentoNumero());
     response.setAutorizacaoPagamentoAutor(domain.getAutorizacaoPagamentoAutor());
     response.setAutorizacaoPagamentoData(domain.getAutorizacaoPagamentoData());
@@ -93,6 +95,7 @@ public final class AutorizacaoComprasMapper {
     domain.setRegistroPatrimonio(request.getRegistroPatrimonio() != null ? request.getRegistroPatrimonio() : false);
     domain.setRegistroAlmoxarifado(request.getRegistroAlmoxarifado() != null ? request.getRegistroAlmoxarifado() : false);
     domain.setNumeroReserva(request.getNumeroReserva());
+    domain.setNumeroTermo(request.getNumeroTermo());
     domain.setAutorizacaoPagamentoNumero(request.getAutorizacaoPagamentoNumero());
     domain.setAutorizacaoPagamentoAutor(request.getAutorizacaoPagamentoAutor());
     domain.setAutorizacaoPagamentoData(request.getAutorizacaoPagamentoData());

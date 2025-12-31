@@ -32,6 +32,7 @@ public class AutorizacaoCompraRequest {
   private Boolean registroPatrimonio;
   private Boolean registroAlmoxarifado;
   private String numeroReserva;
+  private String numeroTermo;
   private String autorizacaoPagamentoNumero;
   private String autorizacaoPagamentoAutor;
   private LocalDate autorizacaoPagamentoData;
@@ -203,6 +204,14 @@ public class AutorizacaoCompraRequest {
 
   public void setNumeroReserva(String numeroReserva) {
     this.numeroReserva = numeroReserva;
+  }
+
+  public String getNumeroTermo() {
+    return numeroTermo;
+  }
+
+  public void setNumeroTermo(String numeroTermo) {
+    this.numeroTermo = numeroTermo;
   }
 
   public String getAutorizacaoPagamentoNumero() {

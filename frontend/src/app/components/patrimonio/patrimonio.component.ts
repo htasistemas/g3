@@ -20,12 +20,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Patrimonio, PatrimonioService } from '../../services/patrimonio.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
+import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
+import { SalaRecord, SalasService } from '../../services/salas.service';
 import { finalize, timeout } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
-type AssetTabId = 'dados' | 'visual' | 'localizacao' | 'dashboard' | 'movimentacao';
+type AssetTabId = 'dados' | 'visual' | 'localizacao' | 'dashboard' | 'listagem' | 'movimentacao';
 
 type AssetFormTextField =
   | 'patrimonyNumber'
@@ -86,7 +89,7 @@ interface AssetForm {
 @Component({
   selector: 'app-patrimonio',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, AutocompleteComponent],
   templateUrl: './patrimonio.component.html',
   styleUrl: './patrimonio.component.scss'
 })
@@ -109,7 +112,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   assetTabs: { id: AssetTabId; label: string; description: string }[] = [
     {
       id: 'dados',
-      label: 'Dados do patrimônio',
+      label: 'Dados gerais',
       description: 'Campos obrigatórios para identificação e classificação do bem.'
     },
     {
@@ -130,7 +133,12 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     {
       id: 'movimentacao',
       label: 'Movimentação',
-      description: 'Tabela geral de bens, filtros e registro de movimentações.'
+      description: 'Registro de movimentações e baixas do patrimônio.'
+    },
+    {
+      id: 'listagem',
+      label: 'Listagem',
+      description: 'Tabela geral de bens, filtros e impressão.'
     }
   ];
 
@@ -183,6 +191,38 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   isSaving = false;
   isLoading = false;
   errorMessage: string | null = null;
+  numeroPatrimonioErro: string | null = null;
+  requiredErrors: {
+    patrimonyNumber: string | null;
+    name: string | null;
+    category: string | null;
+    conservation: string | null;
+    status: string | null;
+    acquisitionDate: string | null;
+    acquisitionValue: string | null;
+    origin: string | null;
+    unit: string | null;
+    responsibleName: string | null;
+  } = {
+    patrimonyNumber: null,
+    name: null,
+    category: null,
+    conservation: null,
+    status: null,
+    acquisitionDate: null,
+    acquisitionValue: null,
+    origin: null,
+    unit: null,
+    responsibleName: null
+  };
+  modalAberto = false;
+  modalTipo: 'novaCategoria' | 'editarCategorias' | 'novaSubcategoria' | 'editarSubcategorias' | null = null;
+  modalTitulo = '';
+  modalDescricao = '';
+  modalLabel = '';
+  modalPlaceholder = '';
+  modalValor = '';
+  modalErro: string | null = null;
 
   filePreview: string | ArrayBuffer | null = null;
   qrCodeValue = 'QR-PATRIMONIO-001';
@@ -198,11 +238,22 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   movementError: string | null = null;
   textTemplates!: TextTemplates;
   private templatesSubscription?: Subscription;
+  salas: SalaRecord[] = [];
+  salasOpcoes: AutocompleteOpcao[] = [];
+  salasCarregando = false;
+  salasErro: string | null = null;
+  profissionais: ProfessionalRecord[] = [];
+  profissionaisOpcoes: AutocompleteOpcao[] = [];
+  profissionaisCarregando = false;
+  profissionaisErro: string | null = null;
+  acaoCardAberto: string | null = null;
 
   constructor(
     private readonly patrimonioService: PatrimonioService,
     private readonly assistanceUnitService: AssistanceUnitService,
-    private readonly textTemplateService: TextTemplateService
+    private readonly textTemplateService: TextTemplateService,
+    private readonly salasService: SalasService,
+    private readonly professionalService: ProfessionalService
   ) {}
 
   ngOnInit(): void {
@@ -312,7 +363,88 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   loadAssistanceUnit(): void {
     this.assistanceUnitService.get().subscribe(({ unidade }) => {
       this.assistanceUnit = unidade ?? null;
+      this.loadSalas(this.assistanceUnit?.id);
     });
+    this.loadProfissionais();
+  }
+
+  loadSalas(unidadeId?: number): void {
+    this.salasCarregando = true;
+    this.salasErro = null;
+    this.salasService.list(unidadeId).subscribe({
+      next: (salas) => {
+        this.salas = salas;
+        this.salasOpcoes = salas.map((sala) => ({
+          id: sala.id,
+          label: sala.nome
+        }));
+        this.salasCarregando = false;
+      },
+      error: () => {
+        this.salasCarregando = false;
+        this.salasErro = 'Não foi possível carregar as salas.';
+      }
+    });
+  }
+
+  loadProfissionais(nome?: string): void {
+    this.profissionaisCarregando = true;
+    this.profissionaisErro = null;
+    this.professionalService.list(nome).subscribe({
+      next: (profissionais) => {
+        this.profissionais = profissionais;
+        this.profissionaisOpcoes = profissionais.map((prof) => ({
+          id: prof.id,
+          label: prof.nomeCompleto
+        }));
+        this.profissionaisCarregando = false;
+      },
+      error: () => {
+        this.profissionaisCarregando = false;
+        this.profissionaisErro = 'Não foi possível carregar os profissionais.';
+      }
+    });
+  }
+
+  onSalaTermoChange(termo: string): void {
+    this.assetForm.unit = termo;
+    this.validarCampoObrigatorio('unit', termo);
+  }
+
+  onSalaSelecionada(opcao: AutocompleteOpcao): void {
+    this.assetForm.unit = opcao.label;
+    this.validarCampoObrigatorio('unit', this.assetForm.unit);
+  }
+
+  onResponsavelTermoChange(termo: string): void {
+    this.assetForm.responsibleName = termo;
+    this.validarCampoObrigatorio('responsibleName', termo);
+    if (termo.trim().length >= 2) {
+      this.loadProfissionais(termo);
+    } else {
+      this.loadProfissionais();
+    }
+  }
+
+  onResponsavelSelecionado(opcao: AutocompleteOpcao): void {
+    this.assetForm.responsibleName = opcao.label;
+    this.validarCampoObrigatorio('responsibleName', this.assetForm.responsibleName);
+  }
+
+  toggleAcoesCard(assetId: string): void {
+    this.acaoCardAberto = this.acaoCardAberto === assetId ? null : assetId;
+  }
+
+  fecharAcoesCard(): void {
+    this.acaoCardAberto = null;
+  }
+
+  get salasFiltradas(): AutocompleteOpcao[] {
+    return this.filtrarOpcoes(this.salasOpcoes, this.assetForm.unit);
+  }
+
+  get profissionaisFiltrados(): AutocompleteOpcao[] {
+    return this.filtrarOpcoes(this.profissionaisOpcoes, this.assetForm.responsibleName);
   }
 
   private createMovementForm(asset?: Patrimonio) {
@@ -351,6 +483,60 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     }
   }
 
+  validarCampoObrigatorio(
+    campo:
+      | 'patrimonyNumber'
+      | 'name'
+      | 'category'
+      | 'conservation'
+      | 'status'
+      | 'acquisitionDate'
+      | 'acquisitionValue'
+      | 'origin'
+      | 'unit'
+      | 'responsibleName',
+    valor: string | number | null | undefined
+  ): void {
+    let invalido = false;
+    if (typeof valor === 'number') {
+      invalido = valor <= 0;
+    } else {
+      invalido = !String(valor ?? '').trim().length;
+    }
+    this.requiredErrors[campo] = invalido ? 'Campo obrigatório.' : null;
+  }
+
+  validarObrigatorios(): boolean {
+    this.validarCampoObrigatorio('patrimonyNumber', this.assetForm.patrimonyNumber);
+    this.validarCampoObrigatorio('name', this.assetForm.name);
+    this.validarCampoObrigatorio('category', this.assetForm.category);
+    this.validarCampoObrigatorio('conservation', this.assetForm.conservation);
+    this.validarCampoObrigatorio('status', this.assetForm.status);
+    this.validarCampoObrigatorio('acquisitionDate', this.assetForm.acquisitionDate);
+    this.validarCampoObrigatorio('acquisitionValue', this.assetForm.acquisitionValue);
+    this.validarCampoObrigatorio('origin', this.assetForm.origin);
+    this.validarCampoObrigatorio('unit', this.assetForm.unit);
+    this.validarCampoObrigatorio('responsibleName', this.assetForm.responsibleName);
+    return !Object.values(this.requiredErrors).some((error) => Boolean(error));
+  }
+
+  validarNumeroPatrimonio(): void {
+    const numeroPatrimonio = this.assetForm.patrimonyNumber.trim();
+    if (!numeroPatrimonio) {
+      this.numeroPatrimonioErro = null;
+      return;
+    }
+    const numeroDuplicado = this.assetLibrary.some((asset) => {
+      if (this.editingAssetId && asset.idPatrimonio === this.editingAssetId) {
+        return false;
+      }
+      return (asset.numeroPatrimonio || '').trim().toLowerCase() === numeroPatrimonio.toLowerCase();
+    });
+    this.numeroPatrimonioErro = numeroDuplicado
+      ? 'Já existe um patrimônio cadastrado com este número.'
+      : null;
+  }
+
   formatMovementField(field: 'destino' | 'responsavel'): void {
     const value = this.movementForm[field];
     this.movementForm[field] = this.toProperCase(value);
@@ -364,10 +550,22 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.validarObrigatorios()) {
+      this.errorMessage = 'Preencha os campos obrigatórios destacados.';
+      return;
+    }
+
+    this.validarNumeroPatrimonio();
+    const numeroPatrimonio = this.assetForm.patrimonyNumber.trim();
+    if (this.numeroPatrimonioErro) {
+      this.errorMessage = this.numeroPatrimonioErro;
+      return;
+    }
+
     this.errorMessage = null;
     this.isSaving = true;
     const payload = {
-      numeroPatrimonio: this.assetForm.patrimonyNumber || `PAT-${Date.now()}`,
+      numeroPatrimonio: numeroPatrimonio || `PAT-${Date.now()}`,
       nome: this.assetForm.name,
       categoria: this.assetForm.category,
       subcategoria: this.assetForm.subcategory,
@@ -446,6 +644,19 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     this.filePreview = null;
     this.displayedAcquisitionValue = this.formatCurrency(0);
     this.editingAssetId = null;
+    this.numeroPatrimonioErro = null;
+    this.requiredErrors = {
+      patrimonyNumber: null,
+      name: null,
+      category: null,
+      conservation: null,
+      status: null,
+      acquisitionDate: null,
+      acquisitionValue: null,
+      origin: null,
+      unit: null,
+      responsibleName: null
+    };
   }
 
   setSelected(asset: Patrimonio): void {
@@ -544,88 +755,132 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   }
 
   addCategory(): void {
-    const input = prompt('Informe o nome da nova categoria');
-    if (!input) return;
-
-    const formatted = this.toProperCase(input.trim());
-    if (!formatted) return;
-
-    const exists = this.categories.some((category) => category.label.toLowerCase() === formatted.toLowerCase());
-    if (!exists) {
-      this.categories = [...this.categories, { label: formatted, subcategories: [] }];
-    }
-    this.assetForm.category = formatted;
-    this.assetForm.subcategory = '';
+    this.abrirModal('novaCategoria');
   }
 
   addSubcategory(): void {
     if (!this.assetForm.category) return;
-
-    const input = prompt('Informe o nome da nova subcategoria');
-    if (!input) return;
-
-    const formatted = this.toProperCase(input.trim());
-    if (!formatted) return;
-
-    this.categories = this.categories.map((category) => {
-      if (category.label === this.assetForm.category) {
-        const exists = category.subcategories.some((sub) => sub.toLowerCase() === formatted.toLowerCase());
-        if (!exists) {
-          return { ...category, subcategories: [...category.subcategories, formatted] };
-        }
-      }
-      return category;
-    });
-
-    this.assetForm.subcategory = formatted;
+    this.abrirModal('novaSubcategoria');
   }
 
   editCategories(): void {
-    const current = this.categories.map((category) => category.label).join(', ');
-    const input = prompt('Edite as categorias separadas por vírgula', current);
-    if (input === null) return;
-
-    const existingSubcategories = new Map(this.categories.map((category) => [category.label, category.subcategories]));
-    const formatted = input
-      .split(',')
-      .map((item) => this.toProperCase(item.trim()))
-      .filter((item) => item.length > 0);
-
-    if (!formatted.length) return;
-
-    this.categories = formatted.map((label) => ({
-      label,
-      subcategories: existingSubcategories.get(label) ?? []
-    }));
-
-    if (!formatted.includes(this.assetForm.category)) {
-      this.assetForm.category = '';
-      this.assetForm.subcategory = '';
-    }
+    this.abrirModal('editarCategorias');
   }
 
   editSubcategories(): void {
     if (!this.assetForm.category) return;
+    this.abrirModal('editarSubcategorias');
+  }
 
-    const currentCategory = this.categories.find((category) => category.label === this.assetForm.category);
-    const input = prompt(
-      'Edite as subcategorias separadas por vírgula',
-      (currentCategory?.subcategories || []).join(', ')
-    );
-    if (input === null) return;
+  abrirModal(tipo: 'novaCategoria' | 'editarCategorias' | 'novaSubcategoria' | 'editarSubcategorias'): void {
+    this.modalTipo = tipo;
+    this.modalErro = null;
+    this.modalValor = '';
+    if (tipo === 'novaCategoria') {
+      this.modalTitulo = 'Incluir categoria';
+      this.modalDescricao = 'Cadastre uma nova categoria para o patrimônio.';
+      this.modalLabel = 'Nome da categoria';
+      this.modalPlaceholder = 'Ex.: Informática';
+    }
+    if (tipo === 'editarCategorias') {
+      this.modalTitulo = 'Alterar categorias';
+      this.modalDescricao = 'Edite as categorias separando por vírgula.';
+      this.modalLabel = 'Categorias';
+      this.modalPlaceholder = 'Ex.: Informática, Móveis, Veículos';
+      this.modalValor = this.categories.map((category) => category.label).join(', ');
+    }
+    if (tipo === 'novaSubcategoria') {
+      this.modalTitulo = 'Incluir subcategoria';
+      this.modalDescricao = `Categoria selecionada: ${this.assetForm.category}`;
+      this.modalLabel = 'Nome da subcategoria';
+      this.modalPlaceholder = 'Ex.: Notebook';
+    }
+    if (tipo === 'editarSubcategorias') {
+      const currentCategory = this.categories.find((category) => category.label === this.assetForm.category);
+      this.modalTitulo = 'Alterar subcategorias';
+      this.modalDescricao = `Categoria selecionada: ${this.assetForm.category}`;
+      this.modalLabel = 'Subcategorias';
+      this.modalPlaceholder = 'Ex.: Notebook, Desktop, Monitor';
+      this.modalValor = (currentCategory?.subcategories || []).join(', ');
+    }
+    this.modalAberto = true;
+  }
 
-    const formatted = input
-      .split(',')
-      .map((item) => this.toProperCase(item.trim()))
-      .filter((item) => item.length > 0);
+  fecharModal(): void {
+    this.modalAberto = false;
+    this.modalTipo = null;
+    this.modalErro = null;
+    this.modalValor = '';
+  }
 
-    this.categories = this.categories.map((category) =>
-      category.label === this.assetForm.category ? { ...category, subcategories: formatted } : category
-    );
+  salvarModal(): void {
+    const valor = this.modalValor.trim();
+    if (!this.modalTipo) return;
+    if (!valor) {
+      this.modalErro = 'Preencha o campo para continuar.';
+      return;
+    }
 
-    if (!formatted.includes(this.assetForm.subcategory)) {
+    if (this.modalTipo === 'novaCategoria') {
+      const formatted = this.toProperCase(valor);
+      const exists = this.categories.some((category) => category.label.toLowerCase() === formatted.toLowerCase());
+      if (exists) {
+        this.modalErro = 'Esta categoria já existe.';
+        return;
+      }
+      this.categories = [...this.categories, { label: formatted, subcategories: [] }];
+      this.assetForm.category = formatted;
       this.assetForm.subcategory = '';
     }
+
+    if (this.modalTipo === 'editarCategorias') {
+      const existingSubcategories = new Map(this.categories.map((category) => [category.label, category.subcategories]));
+      const formatted = valor
+        .split(',')
+        .map((item) => this.toProperCase(item.trim()))
+        .filter((item) => item.length > 0);
+      if (!formatted.length) {
+        this.modalErro = 'Informe ao menos uma categoria.';
+        return;
+      }
+      this.categories = formatted.map((label) => ({
+        label,
+        subcategories: existingSubcategories.get(label) ?? []
+      }));
+      if (!formatted.includes(this.assetForm.category)) {
+        this.assetForm.category = '';
+        this.assetForm.subcategory = '';
+      }
+    }
+
+    if (this.modalTipo === 'novaSubcategoria') {
+      const formatted = this.toProperCase(valor);
+      this.categories = this.categories.map((category) => {
+        if (category.label === this.assetForm.category) {
+          const exists = category.subcategories.some((sub) => sub.toLowerCase() === formatted.toLowerCase());
+          if (!exists) {
+            return { ...category, subcategories: [...category.subcategories, formatted] };
+          }
+        }
+        return category;
+      });
+      this.assetForm.subcategory = formatted;
+    }
+
+    if (this.modalTipo === 'editarSubcategorias') {
+      const formatted = valor
+        .split(',')
+        .map((item) => this.toProperCase(item.trim()))
+        .filter((item) => item.length > 0);
+      this.categories = this.categories.map((category) =>
+        category.label === this.assetForm.category ? { ...category, subcategories: formatted } : category
+      );
+      if (!formatted.includes(this.assetForm.subcategory)) {
+        this.assetForm.subcategory = '';
+      }
+    }
+
+    this.fecharModal();
   }
 
   generateCessionTerm(): void {
@@ -633,7 +888,12 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     const content = this.fillTemplate(this.textTemplates.cession, asset);
 
     this.cessionTermPreview = content;
-    this.openPrintWindow('Termo de cessão', `<p style="font-size:14px; line-height:1.6">${content}</p>`);
+    const formatted = content
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => `<p>${line}</p>`)
+      .join('');
+    this.openPrintWindow('Termo de cessão', formatted);
   }
 
   generateLoanTerm(): void {
@@ -643,7 +903,11 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     this.loanTermPreview = content;
     this.openPrintWindow(
       'Termo de responsabilidade de empréstimo de bens a terceiros',
-      `<p style="font-size:14px; line-height:1.6">${content}</p>`
+      content
+        .split('\n')
+        .filter((line) => line.trim().length > 0)
+        .map((line) => `<p>${line}</p>`)
+        .join('')
     );
   }
 
@@ -682,20 +946,26 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       )
       .join('');
 
-    const header = `<div style="font-family:Arial,sans-serif; color:#0f172a;">${
-      unitTitle ? `<h1 style="font-size:20px; margin-bottom:4px;">${unitTitle}</h1>` : ''
-    }<p style="margin-top:0; margin-bottom:12px; font-weight:600;">Relação de bens patrimoniais</p></div>`;
+    const header = unitTitle ? `<p class="report-highlight">${unitTitle}</p>` : '';
 
-    this.openPrintWindow('Bens patrimoniais', `${header}${items}`);
+    this.openPrintWindow('Relação de bens patrimoniais', `${header}${items}`);
   }
 
   private fillTemplate(template: string, asset: Patrimonio): string {
+    const dataEmissao = this.formatDate(new Date());
+    const dataAquisicao = asset.dataAquisicao ? this.formatDate(new Date(asset.dataAquisicao)) : 'Não informada';
     const replacements: Record<string, string> = {
       nome: asset.nome || 'Não identificado',
       numeroPatrimonio: asset.numeroPatrimonio || 'não informado',
       local: this.getLocationLabel(asset) || 'Local não informado',
       responsavel: this.getResponsible(asset),
-      valor: this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue)
+      valor: this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue),
+      categoria: asset.categoria || 'Não informada',
+      subcategoria: asset.subcategoria ? `(${asset.subcategoria})` : '',
+      conservacao: asset.conservacao || 'Não informada',
+      status: asset.status || 'Não informada',
+      dataAquisicao,
+      dataEmissao
     };
 
     return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key: string) => replacements[key] ?? '');
@@ -707,6 +977,14 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
 
   private normalizeText(value?: string): string {
     return (value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  private filtrarOpcoes(opcoes: AutocompleteOpcao[], termo: string): AutocompleteOpcao[] {
+    const normalizado = this.normalizeText(termo ?? '');
+    if (!normalizado) {
+      return opcoes.slice(0, 20);
+    }
+    return opcoes.filter((opcao) => this.normalizeText(opcao.label).includes(normalizado)).slice(0, 20);
   }
 
   private isLoanOverdue(asset: Patrimonio): boolean {
@@ -785,25 +1063,100 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     return [asset.unidade, asset.sala].filter((value) => (value ?? '').trim().length > 0).join(' - ');
   }
 
+  getPrimeiroNome(nome?: string | null): string {
+    const valor = (nome ?? '').trim();
+    if (!valor) {
+      return 'Não informado';
+    }
+    return valor.split(/\s+/)[0];
+  }
+
   private openPrintWindow(title: string, content: string): void {
     const win = window.open('', '_blank', 'width=900,height=700');
     if (!win) return;
+
+    const unitTitle = this.assistanceUnit?.razaoSocial || this.assistanceUnit?.nomeFantasia || 'Instituição';
+    const unitName = this.assistanceUnit?.nomeFantasia || this.assistanceUnit?.razaoSocial || '';
+    const unitCnpj = this.assistanceUnit?.cnpj ? `CNPJ: ${this.assistanceUnit.cnpj}` : '';
+    const unitPhone = this.assistanceUnit?.telefone ? `Telefone: ${this.assistanceUnit.telefone}` : '';
+    const unitEmail = this.assistanceUnit?.email ? `Email: ${this.assistanceUnit.email}` : '';
+    const unitAddress = [
+      this.assistanceUnit?.endereco,
+      this.assistanceUnit?.numeroEndereco,
+      this.assistanceUnit?.bairro,
+      this.assistanceUnit?.cidade,
+      this.assistanceUnit?.estado
+    ]
+      .filter((item) => (item ?? '').toString().trim().length > 0)
+      .join(', ');
+    const unitContact = [unitCnpj, unitAddress, unitPhone, unitEmail].filter(Boolean).join(' • ');
+    const timestamp = new Date();
+    const timestampLabel = this.formatDateTime(timestamp);
+    const logo = this.assistanceUnit?.logomarcaRelatorio || this.assistanceUnit?.logomarca || '';
 
     win.document.write(`<!doctype html>
       <html>
         <head>
           <title>${title}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
-            h1 { font-size: 20px; margin-bottom: 16px; }
+            @page { size: A4; margin: 20mm; }
+            body { font-family: Arial, sans-serif; color: #000000; font-size: 12pt; }
+            .report { min-height: 100%; position: relative; }
+            .report-header { text-align: center; margin-bottom: 6mm; }
+            .report-header__logo { max-height: 40mm; margin: 0 auto 6mm; display: block; }
+            .report-header__title { font-size: 14pt; font-weight: 700; margin: 0 0 2mm; }
+            .report-header__subtitle { font-size: 16pt; font-weight: 600; margin: 0 0 4mm; }
+            .divider { border-top: 1px solid #000; margin: 4mm 0; }
+            .report-body { font-size: 12pt; line-height: 1.5; text-align: justify; }
+            .report-body p { margin: 0 0 8px; text-indent: 1.25cm; }
+            .report-highlight { margin: 0 0 8px; font-weight: 600; text-align: left; }
+            .report-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10pt; color: #000; }
+            .report-footer__line { border-top: 1px solid #000; margin-bottom: 2mm; }
+            .report-footer__content { display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
+            .page-number::before { content: "Página " counter(page) " de " counter(pages); }
           </style>
         </head>
         <body>
-          <h1>${title}</h1>
-          ${content}
+          <div class="report">
+            <header class="report-header">
+              ${logo ? `<img src="${logo}" alt="Logomarca" class="report-header__logo" />` : ''}
+              <p class="report-header__title">${unitTitle}</p>
+              <p class="report-header__subtitle">${title}</p>
+              <div class="divider"></div>
+            </header>
+            <section class="report-body">
+              ${content}
+            </section>
+            <footer class="report-footer">
+              <div class="report-footer__line"></div>
+              <div class="report-footer__content">
+                <div>${unitName || unitTitle} ${unitContact ? `• ${unitContact}` : ''}</div>
+                <div class="page-number"></div>
+                <div>Gerado em ${timestampLabel}</div>
+              </div>
+            </footer>
+          </div>
         </body>
       </html>`);
     win.document.close();
     win.print();
+  }
+
+  private formatDate(value: Date): string {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(value);
+  }
+
+  private formatDateTime(value: Date): string {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(value);
   }
 }

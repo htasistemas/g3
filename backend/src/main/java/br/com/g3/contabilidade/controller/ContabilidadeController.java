@@ -8,6 +8,8 @@ import br.com.g3.contabilidade.dto.LancamentoFinanceiroRequest;
 import br.com.g3.contabilidade.dto.LancamentoFinanceiroResponse;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraRequest;
 import br.com.g3.contabilidade.dto.MovimentacaoFinanceiraResponse;
+import br.com.g3.contabilidade.dto.PagamentoLancamentoRequest;
+import br.com.g3.contabilidade.dto.ReciboPagamentoResponse;
 import br.com.g3.contabilidade.dto.StatusRequest;
 import br.com.g3.contabilidade.service.ContabilidadeService;
 import java.util.List;
@@ -71,8 +73,14 @@ public class ContabilidadeController {
 
   @PatchMapping("/lancamentos/{id}/status")
   public ResponseEntity<LancamentoFinanceiroResponse> atualizarStatusLancamento(
-      @PathVariable("id") Long id, @RequestBody StatusRequest request) {
+      @PathVariable("id") Long id, @RequestBody StatusRequest request) {        
     return ResponseEntity.ok(service.atualizarSituacaoLancamento(id, request.getStatus()));
+  }
+
+  @PostMapping("/lancamentos/{id}/pagamento")
+  public ResponseEntity<ReciboPagamentoResponse> pagarLancamento(
+      @PathVariable("id") Long id, @RequestBody PagamentoLancamentoRequest request) {
+    return ResponseEntity.ok(service.pagarLancamento(id, request));
   }
 
   @PostMapping("/movimentacoes")

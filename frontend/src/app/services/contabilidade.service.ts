@@ -27,10 +27,28 @@ export interface LancamentoFinanceiroRequest {
   vencimento: string;
   valor: number;
   situacao: string;
+  compraId?: number;
 }
 
 export interface LancamentoFinanceiroResponse extends LancamentoFinanceiroRequest {
   id: number;
+}
+
+export interface ReciboPagamentoContaResponse {
+  contaBancariaId?: number;
+  banco?: string;
+  numero?: string;
+  valor?: number;
+}
+
+export interface ReciboPagamentoResponse {
+  numeroRecibo?: string;
+  dataPagamento?: string;
+  valorTotal?: number;
+  compraId?: number;
+  descricao?: string;
+  responsavel?: string;
+  contas?: ReciboPagamentoContaResponse[];
 }
 
 export interface MovimentacaoFinanceiraRequest {
@@ -99,6 +117,12 @@ export class ContabilidadeService {
 
   atualizarSituacaoLancamento(id: number, status: string): Observable<LancamentoFinanceiroResponse> {
     return this.http.patch<LancamentoFinanceiroResponse>(`${this.baseUrl}/lancamentos/${id}/status`, { status });
+  }
+
+  pagarLancamento(id: number, responsavel?: string): Observable<ReciboPagamentoResponse> {
+    return this.http.post<ReciboPagamentoResponse>(`${this.baseUrl}/lancamentos/${id}/pagamento`, {
+      responsavel
+    });
   }
 
   listarMovimentacoes(): Observable<MovimentacaoFinanceiraResponse[]> {

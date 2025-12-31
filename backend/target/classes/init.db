@@ -995,6 +995,58 @@ CREATE TABLE IF NOT EXISTS lancamento_financeiro (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE autorizacao_compras
+  ADD COLUMN IF NOT EXISTS numero_termo VARCHAR(20);
+
+CREATE TABLE IF NOT EXISTS autorizacao_compras_reserva_bancaria (
+  id BIGSERIAL PRIMARY KEY,
+  autorizacao_compra_id BIGINT NOT NULL REFERENCES autorizacao_compras(id) ON DELETE CASCADE,
+  conta_bancaria_id BIGINT NOT NULL REFERENCES conta_bancaria(id) ON DELETE RESTRICT,
+  valor NUMERIC(14, 2) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE lancamento_financeiro
+  ADD COLUMN IF NOT EXISTS compra_id BIGINT REFERENCES autorizacao_compras(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS patrimonio_item (
+  id BIGSERIAL PRIMARY KEY,
+  numero_patrimonio VARCHAR(60) NOT NULL,
+  nome VARCHAR(200) NOT NULL,
+  categoria VARCHAR(120),
+  subcategoria VARCHAR(120),
+  conservacao VARCHAR(60),
+  status VARCHAR(60),
+  data_aquisicao DATE,
+  valor_aquisicao NUMERIC(14, 2),
+  origem VARCHAR(120),
+  responsavel VARCHAR(150),
+  unidade VARCHAR(120),
+  sala VARCHAR(120),
+  taxa_depreciacao NUMERIC(5, 2),
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS patrimonio_movimentacao (
+  id BIGSERIAL PRIMARY KEY,
+  patrimonio_id BIGINT NOT NULL REFERENCES patrimonio_item(id) ON DELETE CASCADE,
+  tipo VARCHAR(30) NOT NULL,
+  destino VARCHAR(150),
+  responsavel VARCHAR(150),
+  observacao TEXT,
+  data_movimento DATE NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE patrimonio_movimentacao
+  DROP CONSTRAINT IF EXISTS patrimonio_movimentacao_patrimonio_id_fkey;
+
+ALTER TABLE patrimonio_movimentacao
+  ADD CONSTRAINT patrimonio_movimentacao_patrimonio_id_fkey
+  FOREIGN KEY (patrimonio_id) REFERENCES patrimonio_item(id) ON DELETE CASCADE;
+
 CREATE TABLE IF NOT EXISTS movimentacao_financeira (
   id BIGSERIAL PRIMARY KEY,
   tipo VARCHAR(20) NOT NULL,

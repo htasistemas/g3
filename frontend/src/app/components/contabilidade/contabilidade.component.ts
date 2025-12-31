@@ -12,7 +12,8 @@ import {
   LancamentoFinanceiroRequest,
   LancamentoFinanceiroResponse,
   MovimentacaoFinanceiraRequest,
-  MovimentacaoFinanceiraResponse
+  MovimentacaoFinanceiraResponse,
+  ReciboPagamentoResponse
 } from '../../services/contabilidade.service';
 import {
   faArrowTrendDown,
@@ -163,6 +164,7 @@ export class ContabilidadeComponent implements OnInit {
   upcomingReceivables: LancamentoFinanceiroResponse[] = [];
   upcomingPayables: LancamentoFinanceiroResponse[] = [];
   alerts: string[] = [];
+  reciboPagamento: ReciboPagamentoResponse | null = null;
 
   filtrosContas = {
     banco: '',
@@ -607,6 +609,30 @@ export class ContabilidadeComponent implements OnInit {
     this.contabilidadeService.atualizarSituacaoLancamento(entry.id, status).subscribe((response) => {
       this.agenda = this.agenda.map((item) => (item.id === entry.id ? response : item));
       this.refreshPanels();
+    });
+  }
+
+  pagarLancamento(entry: LancamentoFinanceiroResponse): void {
+    if (!entry.id) return;
+    const confirmado = window.confirm('Confirmar pagamento deste lançamento?');
+    if (!confirmado) {
+      return;
+    }
+    this.contabilidadeService.pagarLancamento(entry.id).subscribe((response) => {
+      this.reciboPagamento = response;
+      this.agenda = this.agenda.map((item) =>
+        item.id === entry.id ? { ...item, situacao: 'pago' } : item
+      );
+      this.refreshPanels();
+      this.contabilidadeService.listarMovimentacoes().subscribe((lista) => {
+        this.financialMovements = lista ?? [];
+        this.refreshPanels();
+      });
+      this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+        this.bankAccounts = contas ?? [];
+        this.refreshPanels();
+      });
+      window.print();
     });
   }
 

@@ -2,6 +2,9 @@ package br.com.g3.autorizacaocompras.controller;
 
 import br.com.g3.autorizacaocompras.dto.AutorizacaoCompraRequest;
 import br.com.g3.autorizacaocompras.dto.AutorizacaoCompraResponse;
+import br.com.g3.autorizacaocompras.dto.AutorizacaoCompraReservaBancariaRequest;
+import br.com.g3.autorizacaocompras.dto.AutorizacaoCompraReservaBancariaResponse;
+import br.com.g3.autorizacaocompras.dto.AutorizacaoPagamentoRequest;
 import br.com.g3.autorizacaocompras.service.AutorizacaoComprasService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -51,5 +54,24 @@ public class AutorizacaoComprasController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void remover(@PathVariable("id") Long id) {
     service.remover(id);
+  }
+
+  @PostMapping("/{id}/reservas-bancarias")
+  public AutorizacaoCompraReservaBancariaResponse registrarReserva(
+      @PathVariable("id") Long id, @RequestBody AutorizacaoCompraReservaBancariaRequest request) {
+    return service.registrarReservaBancaria(id, request);
+  }
+
+  @DeleteMapping("/{id}/reservas-bancarias/{contaId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removerReserva(
+      @PathVariable("id") Long id, @PathVariable("contaId") Long contaId) {
+    service.removerReservaBancaria(id, contaId);
+  }
+
+  @PostMapping("/{id}/autorizacao-pagamento")
+  public AutorizacaoCompraResponse gerarAutorizacaoPagamento(
+      @PathVariable("id") Long id, @RequestBody AutorizacaoPagamentoRequest request) {
+    return service.gerarAutorizacaoPagamento(id, request);
   }
 }

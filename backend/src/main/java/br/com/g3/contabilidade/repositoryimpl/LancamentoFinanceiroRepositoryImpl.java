@@ -28,4 +28,9 @@ public class LancamentoFinanceiroRepositoryImpl implements LancamentoFinanceiroR
   public Optional<LancamentoFinanceiro> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }
+
+  @Override
+  public Optional<LancamentoFinanceiro> buscarPorCompraId(Long compraId) {
+    return jpaRepository.findByCompraId(compraId);
+  }
 }

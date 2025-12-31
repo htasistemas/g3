@@ -23,6 +23,7 @@ export interface AutorizacaoCompraRequest {
   registroPatrimonio?: boolean;
   registroAlmoxarifado?: boolean;
   numeroReserva?: string;
+  numeroTermo?: string;
   autorizacaoPagamentoNumero?: string;
   autorizacaoPagamentoAutor?: string;
   autorizacaoPagamentoData?: string;
@@ -67,6 +68,24 @@ export interface FornecedorCnpjResponse {
   nomeFantasia?: string;
 }
 
+export interface AutorizacaoCompraReservaBancariaRequest {
+  contaBancariaId: number;
+  valor: number;
+}
+
+export interface AutorizacaoCompraReservaBancariaResponse {
+  id: number;
+  autorizacaoCompraId: number;
+  contaBancariaId: number;
+  valor: number;
+}
+
+export interface AutorizacaoPagamentoRequest {
+  autor?: string;
+  data?: string;
+  observacoes?: string;
+}
+
 
 @Injectable({ providedIn: 'root' })
 export class AutorizacaoComprasService {
@@ -105,9 +124,33 @@ export class AutorizacaoComprasService {
     return this.http.delete<void>(`${this.baseUrl}/${id}/cotacoes/${quoteId}`);
   }
 
-  buscarFornecedorPorCnpj(cnpj: string): Observable<FornecedorCnpjResponse> {
+  buscarFornecedorPorCnpj(cnpj: string): Observable<FornecedorCnpjResponse> {   
     return this.http.get<FornecedorCnpjResponse>(
       `${environment.apiUrl}/api/financeiro/fornecedores/cnpj/${cnpj}`
+    );
+  }
+
+  registrarReservaBancaria(
+    id: string,
+    payload: AutorizacaoCompraReservaBancariaRequest
+  ): Observable<AutorizacaoCompraReservaBancariaResponse> {
+    return this.http.post<AutorizacaoCompraReservaBancariaResponse>(
+      `${this.baseUrl}/${id}/reservas-bancarias`,
+      payload
+    );
+  }
+
+  removerReservaBancaria(id: string, contaId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}/reservas-bancarias/${contaId}`);
+  }
+
+  gerarAutorizacaoPagamento(
+    id: string,
+    payload: AutorizacaoPagamentoRequest
+  ): Observable<AutorizacaoCompraResponse> {
+    return this.http.post<AutorizacaoCompraResponse>(
+      `${this.baseUrl}/${id}/autorizacao-pagamento`,
+      payload
     );
   }
 

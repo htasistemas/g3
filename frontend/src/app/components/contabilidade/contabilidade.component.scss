@@ -78,6 +78,74 @@
   background: linear-gradient(135deg, #0f7a43, #16a34a);
 }
 
+.print-report {
+  display: none;
+  font-family: Arial, sans-serif;
+}
+
+.print-report__header,
+.print-report__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.print-report__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.print-report__eyebrow {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.25rem;
+}
+
+.print-report__body {
+  margin-top: 1.5rem;
+}
+
+.print-report__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.print-report__table th,
+.print-report__table td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+
+  .print-report {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 24mm 20mm;
+  }
+}
+
 .step-tabs__button {
   width: 100%;
   display: flex;

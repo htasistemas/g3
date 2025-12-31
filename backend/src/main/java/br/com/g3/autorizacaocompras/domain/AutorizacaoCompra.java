@@ -80,6 +80,9 @@ public class AutorizacaoCompra {
   @Column(name = "numero_reserva", length = 60)
   private String numeroReserva;
 
+  @Column(name = "numero_termo", length = 20)
+  private String numeroTermo;
+
   @Column(name = "autorizacao_pagamento_numero", length = 100)
   private String autorizacaoPagamentoNumero;
 
@@ -272,6 +275,14 @@ public class AutorizacaoCompra {
 
   public void setNumeroReserva(String numeroReserva) {
     this.numeroReserva = numeroReserva;
+  }
+
+  public String getNumeroTermo() {
+    return numeroTermo;
+  }
+
+  public void setNumeroTermo(String numeroTermo) {
+    this.numeroTermo = numeroTermo;
   }
 
   public String getAutorizacaoPagamentoNumero() {

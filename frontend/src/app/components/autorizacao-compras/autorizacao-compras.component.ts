@@ -19,7 +19,8 @@ import {
   faWarehouse,
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
-import { finalize } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
 import {
   AutorizacaoCompraCotacaoResponse,
   AutorizacaoCompraRequest,
@@ -28,6 +29,8 @@ import {
 } from '../../services/autorizacao-compras.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
 import { ContaBancariaResponse, ContabilidadeService } from '../../services/contabilidade.service';
+import { AlmoxarifadoService, StockItemPayload } from '../../services/almoxarifado.service';
+import { PatrimonioPayload, PatrimonioService } from '../../services/patrimonio.service';
 
 type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
 type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'reserva' | 'conclusao';
@@ -61,6 +64,7 @@ interface PurchaseRequest {
   };
   budgetCenter?: string;
   reservationNumber?: string;
+  documentNumber?: string;
   winnerSupplier?: string;
   quotationDispensed?: boolean;
   quotationExemptionReason?: string;
@@ -183,9 +187,11 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   ];
 
   constructor(
-    private readonly autorizacaoComprasService: AutorizacaoComprasService,      
+    private readonly autorizacaoComprasService: AutorizacaoComprasService,
     private readonly professionalService: ProfessionalService,
-    private readonly contabilidadeService: ContabilidadeService
+    private readonly contabilidadeService: ContabilidadeService,
+    private readonly almoxarifadoService: AlmoxarifadoService,
+    private readonly patrimonioService: PatrimonioService
   ) {
     super();
   }
@@ -228,7 +234,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   nomeFantasiaAutoPreenchido = false;
   contasBancarias: ContaBancariaResponse[] = [];
   carregandoContas = false;
-  reservaBancariaSelecionada: { contaId: number; valor: number } | null = null;
+  reservasBancarias: { contaId: number; valor: number }[] = [];
+  reservaValores: Record<number, number> = {};
+  reservaConfirmada = false;
 
   private feedbackTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -276,6 +284,8 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   valorEstimadoDisplay = '';
   valorCotacaoDisplay = '';
+  valorReservaDisplay = '';
+  reservaValoresDisplay: Record<number, string> = {};
 
   approvalForm = {
     director: '',
@@ -358,6 +368,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     this.contabilidadeService.listarContasBancarias().subscribe({
       next: (records) => {
         this.contasBancarias = records;
+        this.syncReservaValores();
         this.carregandoContas = false;
       },
       error: () => {
@@ -473,7 +484,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   changeStep(step: StepId): void {
     this.activeStep = step;
-    if (step === 'cotacoes') {
+    if (step === 'cotacoes' || step === 'reserva') {
       this.loadQuotes();
     }
   }
@@ -498,13 +509,16 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       reservationNumber: target?.reservationNumber || '',
       observation: ''
     };
+    this.conclusionForm.documentNumber = target?.documentNumber || '';
     this.paymentAuthorizationForm = {
       number: target?.paymentAuthorization?.number || '',
       authorizedBy: target?.paymentAuthorization?.authorizedBy || '',
       date: target?.paymentAuthorization?.date || this.todayISO(),
       notes: target?.paymentAuthorization?.notes || ''
     };
-    this.reservaBancariaSelecionada = null;
+    this.reservasBancarias = [];
+    this.reservaValores = {};
+    this.reservaConfirmada = false;
     if (this.activeStep === 'cotacoes') {
       this.loadQuotes();
     }
@@ -732,10 +746,10 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
     const envelope = this.budgetEnvelopes.find((item) => item.center === this.reservationForm.center);
     const requested = Number(this.reservationForm.value);
-    const hasBalance = this.reservaBancariaSelecionada ? true : envelope ? envelope.available >= requested : false;
+    const hasBalance = this.reservasBancarias.length ? true : envelope ? envelope.available >= requested : false;
     const status: ReservationStatus = hasBalance ? 'reservado' : 'insuficiente';
 
-    if (envelope && hasBalance && !this.reservaBancariaSelecionada) {
+    if (envelope && hasBalance && !this.reservasBancarias.length) {
       this.budgetEnvelopes = this.budgetEnvelopes.map((item) =>
         item.center === envelope.center ? { ...item, available: item.available - requested } : item
       );
@@ -762,19 +776,20 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
     this.updateRequest(updatedRequest, (synced) => {
       this.selectedRequestId = synced.id;
+      this.reservaConfirmada = synced.status === 'conclusao';
       this.activeStep = synced.status === 'conclusao' ? 'conclusao' : 'reserva';
     });
   }
 
   reservarSaldoBanco(conta: ContaBancariaResponse): void {
     if (!this.selectedRequest) return;
-    if (this.reservaBancariaSelecionada) {
-      this.setFeedback('Reserva bancária já definida. Use a reserva contábil para avançar.');
+    if (this.isContaReservada(conta)) {
+      this.estornarReservaBanco(conta);
       return;
     }
-    const valorReserva = Number(this.selectedRequest.value || 0);
+    const valorReserva = this.getValorReservaConta(conta);
     if (!valorReserva) {
-      this.setFeedback('Informe o valor da autorização para reservar.');
+      this.setFeedback('Informe o valor da reserva para esta conta.');
       return;
     }
     if (Number(conta.saldo) < valorReserva) {
@@ -794,12 +809,57 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.contasBancarias = this.contasBancarias.map((item) =>
           item.id === conta.id ? { ...item, saldo: Number(item.saldo) - valorReserva } : item
         );
-        this.reservaBancariaSelecionada = { contaId: conta.id, valor: valorReserva };
-        this.reservationForm.value = valorReserva;
+        this.reservasBancarias = [
+          { contaId: conta.id, valor: valorReserva },
+          ...this.reservasBancarias.filter((item) => item.contaId !== conta.id)
+        ];
+        this.reservationForm.value = this.getTotalPlanejado();
         this.setFeedback('Reserva bancária registrada. Selecione o centro de custo para concluir.');
+        const selectedId = this.selectedRequest?.id;
+        if (selectedId) {
+          this.autorizacaoComprasService
+            .registrarReservaBancaria(selectedId, {
+            contaBancariaId: conta.id,
+            valor: valorReserva
+            })
+            .subscribe();
+        }
       },
       error: () => {
         this.setFeedback('Não foi possível reservar o saldo bancário.');
+      }
+    });
+  }
+
+  private estornarReservaBanco(conta: ContaBancariaResponse): void {
+    if (!this.selectedRequest) return;
+    const reserva = this.reservasBancarias.find((item) => item.contaId === conta.id);
+    if (!reserva) return;
+    const valorEstorno = Number(reserva.valor || 0);
+    if (!valorEstorno) return;
+    const payload = {
+      tipo: 'ENTRADA',
+      descricao: `Estorno de reserva para autorização ${this.selectedRequest.title}`,
+      contraparte: this.selectedRequest.requester,
+      contaBancariaId: conta.id,
+      dataMovimentacao: this.todayISO(),
+      valor: valorEstorno
+    };
+    this.contabilidadeService.criarMovimentacao(payload).subscribe({
+      next: () => {
+        this.contasBancarias = this.contasBancarias.map((item) =>
+          item.id === conta.id ? { ...item, saldo: Number(item.saldo) + valorEstorno } : item
+        );
+        this.reservasBancarias = this.reservasBancarias.filter((item) => item.contaId !== conta.id);
+        this.reservationForm.value = this.getTotalPlanejado();
+        this.setFeedback('Reserva estornada para esta conta.');
+        const selectedId = this.selectedRequest?.id;
+        if (selectedId) {
+          this.autorizacaoComprasService.removerReservaBancaria(selectedId, conta.id).subscribe();
+        }
+      },
+      error: () => {
+        this.setFeedback('Não foi possível estornar a reserva bancária.');
       }
     });
   }
@@ -812,11 +872,20 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     const shouldSendToWarehouse =
       this.selectedRequest.type === 'produto' || this.conclusionForm.sendToWarehouse;
 
+    const integracoes = [];
+    if (shouldSendToWarehouse) {
+      integracoes.push(this.criarItemAlmoxarifado(this.selectedRequest));
+    }
+    if (shouldSendToPatrimony) {
+      integracoes.push(this.criarItemPatrimonio(this.selectedRequest));
+    }
+
     const updatedRequest: PurchaseRequest = {
       ...this.selectedRequest,
       patrimonyRegistration: shouldSendToPatrimony,
       warehouseRegistration: shouldSendToWarehouse,
       paymentAuthorization: { ...this.paymentAuthorizationForm },
+      documentNumber: this.conclusionForm.documentNumber || this.selectedRequest.documentNumber,
       status: 'conclusao'
     };
 
@@ -829,11 +898,191 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       }
     };
 
-    this.updateRequest(updatedRequest);
+    const requests$ = integracoes.length ? forkJoin(integracoes) : of([]);
+    requests$.subscribe({
+      next: () => {
+        this.updateRequest(updatedRequest);
+      },
+      error: () => {
+        this.setFeedback('Não foi possível registrar as integrações da compra.');
+        this.updateRequest(updatedRequest);
+      }
+    });
+  }
+
+  gerarAutorizacaoPagamento(): void {
+    if (!this.selectedRequest) return;
+    this.autorizacaoComprasService
+      .gerarAutorizacaoPagamento(this.selectedRequest.id, {
+        autor: this.paymentAuthorizationForm.authorizedBy,
+        data: this.paymentAuthorizationForm.date,
+        observacoes: this.paymentAuthorizationForm.notes
+      })
+      .subscribe({
+        next: (response) => {
+          const synced = this.toPurchaseRequest(response);
+          this.requests = this.requests.map((req) => (req.id === synced.id ? synced : req));
+          this.selectedRequestId = synced.id;
+          this.paymentAuthorizationForm = {
+            number: synced.paymentAuthorization?.number || '',
+            authorizedBy: synced.paymentAuthorization?.authorizedBy || this.paymentAuthorizationForm.authorizedBy,
+            date: synced.paymentAuthorization?.date || this.paymentAuthorizationForm.date,
+            notes: synced.paymentAuthorization?.notes || this.paymentAuthorizationForm.notes
+          };
+        },
+        error: () => {
+          this.setFeedback('Não foi possível gerar a autorização de pagamento.');
+        }
+      });
   }
 
   printSection(): void {
     window.print();
+  }
+
+  private criarItemAlmoxarifado(request: PurchaseRequest) {
+    return this.almoxarifadoService.getNextItemCode().pipe(
+      switchMap((code) => {
+        const quantidade = Number(request.quantity || 1);
+        const valorUnitario = quantidade ? Number(request.value || 0) / quantidade : Number(request.value || 0);
+        const payload: StockItemPayload = {
+          code,
+          description: request.title,
+          category: request.area || 'Compra autorizada',
+          unit: 'un',
+          currentStock: quantidade,
+          minStock: 0,
+          unitValue: valorUnitario,
+          status: 'Ativo',
+          location: request.area || undefined,
+          notes: request.justification
+        };
+        return this.almoxarifadoService.createItem(payload);
+      }),
+      catchError(() => {
+        this.setFeedback('Não foi possível registrar a entrada no almoxarifado.');
+        return of(null);
+      })
+    );
+  }
+
+  private criarItemPatrimonio(request: PurchaseRequest) {
+    const payload: PatrimonioPayload = {
+      numeroPatrimonio: this.gerarNumeroPatrimonio(request),
+      nome: request.title,
+      categoria: request.area,
+      status: 'Ativo',
+      dataAquisicao: this.todayISO(),
+      valorAquisicao: Number(request.value || 0),
+      origem: 'Autorização de compras',
+      responsavel: request.requester,
+      unidade: request.area,
+      observacoes: request.justification
+    };
+    return this.patrimonioService.create(payload).pipe(
+      catchError(() => {
+        this.setFeedback('Não foi possível registrar a entrada no patrimônio.');
+        return of(null);
+      })
+    );
+  }
+
+  private gerarNumeroPatrimonio(request: PurchaseRequest): string {
+    const ano = new Date().getFullYear();
+    const sufixo = String(Date.now()).slice(-4);
+    return `PAT-${ano}-${sufixo}-${request.id}`;
+  }
+
+  isContaReservada(conta: ContaBancariaResponse): boolean {
+    return this.reservasBancarias.some((item) => item.contaId === conta.id);
+  }
+
+  getValorReservaConta(conta: ContaBancariaResponse): number {
+    const valor = this.reservaValores[conta.id];
+    if (Number.isFinite(valor)) {
+      return Number(valor);
+    }
+    return this.getValorReservaPadrao();
+  }
+
+  atualizarValorReservaConta(conta: ContaBancariaResponse, valor: string | number): void {
+    const digits = String(valor ?? '').replace(/\D/g, '');
+    const amount = digits ? Number(digits) / 100 : 0;
+    this.reservaValores = { ...this.reservaValores, [conta.id]: amount };
+    this.reservaValoresDisplay = {
+      ...this.reservaValoresDisplay,
+      [conta.id]: digits ? this.formatMoney(amount) : ''
+    };
+    this.reservationForm.value = this.getTotalPlanejado();
+    this.valorReservaDisplay = this.reservationForm.value ? this.formatMoney(this.reservationForm.value) : '';
+  }
+
+  formatValorReservaTotalInput(raw: string): void {
+    const digits = (raw || '').replace(/\D/g, '');
+    const amount = digits ? Number(digits) / 100 : 0;
+    this.reservationForm.value = amount;
+    this.valorReservaDisplay = digits ? this.formatMoney(amount) : '';
+    this.distribuirReservaEntreContas(amount);
+  }
+
+
+  private getValorReservaPadrao(): number {
+    const vencedor = this.currentQuotes.find((quote) => quote.isWinner);
+    return Number(vencedor?.value ?? this.selectedRequest?.value ?? 0);
+  }
+
+  private getTotalPlanejado(): number {
+    return this.contasBancariasComSaldo.reduce((total, conta) => {
+      const valor = Number(this.reservaValores[conta.id] ?? 0);
+      return total + (Number.isFinite(valor) ? valor : 0);
+    }, 0);
+  }
+
+  private getTotalReservado(): number {
+    return this.reservasBancarias.reduce((total, item) => total + Number(item.valor || 0), 0);
+  }
+
+  private syncReservaValores(): void {
+    if (!this.contasBancarias.length) return;
+    const valorPadrao = this.getValorReservaPadrao();
+    const valoresAtualizados: Record<number, number> = { ...this.reservaValores };
+    const displaysAtualizados: Record<number, string> = { ...this.reservaValoresDisplay };
+    let atualizou = false;
+    this.contasBancarias.forEach((conta) => {
+      if (!Number.isFinite(valoresAtualizados[conta.id])) {
+        valoresAtualizados[conta.id] = valorPadrao;
+        displaysAtualizados[conta.id] = valorPadrao ? this.formatMoney(valorPadrao) : '';
+        atualizou = true;
+      }
+    });
+    if (atualizou) {
+      this.reservaValores = valoresAtualizados;
+      this.reservaValoresDisplay = displaysAtualizados;
+    }
+    this.reservationForm.value = this.getTotalPlanejado();
+    this.valorReservaDisplay = this.reservationForm.value ? this.formatMoney(this.reservationForm.value) : '';
+  }
+
+  private distribuirReservaEntreContas(total: number): void {
+    const contas = this.contasBancariasComSaldo;
+    if (!contas.length) return;
+    const valoresAtualizados: Record<number, number> = {};
+    const displaysAtualizados: Record<number, string> = {};
+    const totalSaldo = contas.reduce((soma, conta) => soma + Number(conta.saldo || 0), 0);
+    let acumulado = 0;
+
+    contas.forEach((conta, index) => {
+      const isLast = index === contas.length - 1;
+      const proporcao = totalSaldo ? Number(conta.saldo || 0) / totalSaldo : 0;
+      const valorCalculado = total ? total * proporcao : 0;
+      const valorConta = isLast ? Number((total - acumulado).toFixed(2)) : Number(valorCalculado.toFixed(2));
+      acumulado += valorConta;
+      valoresAtualizados[conta.id] = valorConta;
+      displaysAtualizados[conta.id] = valorConta ? this.formatMoney(valorConta) : '';
+    });
+
+    this.reservaValores = { ...this.reservaValores, ...valoresAtualizados };
+    this.reservaValoresDisplay = { ...this.reservaValoresDisplay, ...displaysAtualizados };
   }
 
   getStepLabel(stepId: StepId): string {
@@ -863,6 +1112,13 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2
+    }).format(value);
+  }
+
+  private formatMoney(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value);
   }
 
@@ -971,6 +1227,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       status: (response.status as StepId) ?? 'solicitacao',
       budgetCenter: response.centroCusto,
       reservationNumber: response.numeroReserva,
+      documentNumber: response.numeroTermo,
       winnerSupplier: response.vencedor,
       quotationDispensed: Boolean(response.dispensarCotacao),
       quotationExemptionReason: response.motivoDispensa,
@@ -1010,6 +1267,10 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
           ...this.quotes,
           [this.selectedRequestId]: records.map((record) => this.toQuotation(record))
         };
+        this.syncReservaValores();
+        if (this.activeStep === 'reserva' && !this.reservasBancarias.length) {
+          this.reservationForm.value = this.getValorReservaPadrao();
+        }
       },
       error: () => {
         this.setFeedback('Não foi possível carregar as cotações no momento.');
@@ -1156,6 +1417,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       registroPatrimonio: request.patrimonyRegistration,
       registroAlmoxarifado: request.warehouseRegistration,
       numeroReserva: request.reservationNumber,
+      numeroTermo: request.documentNumber,
       autorizacaoPagamentoNumero: request.paymentAuthorization?.number,
       autorizacaoPagamentoAutor: request.paymentAuthorization?.authorizedBy,
       autorizacaoPagamentoData: request.paymentAuthorization?.date,
@@ -1198,6 +1460,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       next: (response) => {
         const synced = this.toPurchaseRequest(response);
         this.requests = this.requests.map((req) => (req.id === synced.id ? synced : req));
+        if (this.selectedRequestId === synced.id) {
+          this.conclusionForm.documentNumber = synced.documentNumber || this.conclusionForm.documentNumber;
+        }
         if (onSuccess) {
           onSuccess(synced);
         }

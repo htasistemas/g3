@@ -68,14 +68,38 @@ Agentes nao devem:
   - Feedback local de tela deve ser temporario (10s), com botao "X" para fechar manualmente.
 - Confirmacoes: usar sempre `app-dialog`
 
-### Relatorios (padrao)
-- Todo relatorio deve ser impresso em A4.
-- Estrutura obrigatoria:
-  - Cabecalho: logomarca da instituicao (quando existir), razao social e nome do relatorio.
-  - Corpo: conteudo principal com tabelas e secoes.
-  - Rodape: dados da instituicao (endereco, telefone, email e CNPJ).
-- Tipografia padrao: Arial (ou fallback sans-serif).
-- Manter layout limpo, com margens e espacos consistentes.
+### Relatorios (padrao oficial G3)
+- Todo relatorio deve ser impresso em A4 (210mm x 297mm).
+- Margens obrigatorias: 20mm em todos os lados.
+- Fonte obrigatoria: Arial.
+- Numeração obrigatoria em todas as paginas no formato "Pagina X de Y".
+- Cabecalho, corpo e rodape devem existir e se repetir em todas as paginas.
+- Cabecalho obrigatorio:
+  - Linha 1: Nome da instituicao (centralizado).
+  - Linha 2: Nome do relatorio (centralizado).
+  - Linha separadora horizontal logo abaixo do titulo.
+  - Dados da instituicao devem ser buscados do cadastro real da unidade (sem dados fixos ou simulados).
+- Corpo:
+  - Conteudo dinamico conforme o relatorio (tabelas, listas ou textos).
+  - Dados sempre reais, vindos do banco de dados.
+  - Quebras de pagina automaticas, evitando quebrar linhas de tabelas quando possivel.
+- Rodape obrigatorio:
+  - Linha horizontal separadora.
+  - Texto institucional com dados reais da unidade (nome, CNPJ, endereco, telefone e/ou site).
+  - Paginacao obrigatoria.
+  - Data e hora de geracao do relatorio (timestamp) habilitado por padrao.
+- Geracao de relatorio:
+  - Deve possuir opcao de visualizacao (HTML) e geracao de PDF.
+  - PDF deve ser gerado a partir do HTML do relatorio usando motor compativel (ex.: Puppeteer ou equivalente do projeto).
+  - Fluxo deve gerar com apenas um clique (sem exigir duplo clique).
+- Arquitetura padrao:
+  - Deve existir um template unico reutilizavel de relatorio.
+  - Cada relatorio fornece apenas: titulo, filtros, logica de busca de dados e conteudo do corpo (body).
+  - Cabecalho, rodape, paginacao e layout A4 sao responsabilidade exclusiva do template padrao.
+- Padronizacao obrigatoria:
+  - Qualquer novo relatorio deve usar este template.
+  - Relatorios existentes devem ser gradualmente migrados para este padrao.
+  - Nenhuma implementacao fora deste padrao deve ser aceita.
 
 ## Backend (Java)
 - Manter separacao clara de camadas:
@@ -139,6 +163,7 @@ app:
 - Usar relacionamento por FK nas tabelas.
 - Quando for solicitado "colocar no banco", sempre atualizar o `init.db` e criar/ajustar toda a infra Java necessaria (Domain, DTO, Repository, Service, Controller) para persistir e retornar os campos.
 
+
 ## Testes
 - Criar ou atualizar testes sempre que alterar comportamento.
 - Priorizar testes de fluxos criticos.
@@ -151,6 +176,7 @@ app:
 - Decisoes importantes devem ser documentadas.
 - Atualizar README.md ou documentacao tecnica quando necessario.
 - Sempre que houver uma nova versao do sistema, atualizar a versao em "Configuracoes gerais" e registrar no historico a versao, data/hora e mudancas realizadas.
+- Sempre que subir uma atualizacao, acessar "Configuracoes gerais" > "Versao do sistema", atualizar a versao com um resumo das mudancas realizadas e criar um card de historico com a versao e o que foi feito.
 
 ## Postura esperada do agente
 - Ser direto e objetivo.

@@ -10,4 +10,6 @@ public interface LancamentoFinanceiroRepository {
   List<LancamentoFinanceiro> listar();
 
   Optional<LancamentoFinanceiro> buscarPorId(Long id);
+
+  Optional<LancamentoFinanceiro> buscarPorCompraId(Long compraId);
 }

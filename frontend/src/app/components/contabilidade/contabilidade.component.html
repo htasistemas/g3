@@ -242,7 +242,19 @@
                 </td>
                 <td class="text-right actions">
                   <button class="ghost" type="button" (click)="editarLancamento(item)">Editar</button>
-                  <button class="primary" type="button" (click)="setEntryStatus(item, 'pago')">Registrar pagamento</button>
+                  <button
+                    class="primary"
+                    type="button"
+                    *ngIf="item.compraId; else pagamentoManual"
+                    (click)="pagarLancamento(item)"
+                  >
+                    Efetuar pagamento
+                  </button>
+                  <ng-template #pagamentoManual>
+                    <button class="primary" type="button" (click)="setEntryStatus(item, 'pago')">
+                      Registrar pagamento
+                    </button>
+                  </ng-template>
                   <button class="ghost" type="button" (click)="setEntryStatus(item, 'atrasado')">Marcar atraso</button>
                 </td>
               </tr>
@@ -291,6 +303,42 @@
       </article>
     </div>
   </div>
+  <section class="print-report" *ngIf="reciboPagamento">
+    <header class="print-report__header">
+      <div>
+        <p class="print-report__eyebrow">Recibo de pagamento</p>
+        <p class="print-report__title">Autorização de pagamento</p>
+      </div>
+      <div class="print-report__meta">
+        <p>Nº {{ reciboPagamento.numeroRecibo }}</p>
+        <p>{{ reciboPagamento.dataPagamento | date: 'dd/MM/yyyy' }}</p>
+      </div>
+    </header>
+    <div class="print-report__body">
+      <p><strong>Descrição:</strong> {{ reciboPagamento.descricao }}</p>
+      <p><strong>Responsável:</strong> {{ reciboPagamento.responsavel || 'Não informado' }}</p>
+      <p><strong>Valor total:</strong> {{ reciboPagamento.valorTotal | currency:'BRL' }}</p>
+      <table class="print-report__table" *ngIf="reciboPagamento.contas?.length">
+        <thead>
+          <tr>
+            <th>Banco</th>
+            <th>Conta</th>
+            <th>Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let conta of reciboPagamento.contas">
+            <td>{{ conta.banco }}</td>
+            <td>{{ conta.numero }}</td>
+            <td>{{ conta.valor | currency:'BRL' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <footer class="print-report__footer">
+      <p>Emitido pelo sistema G3.</p>
+    </footer>
+  </section>
   <div class="tab-card" *ngIf="activeTab === 'lancamentos'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">

@@ -10,6 +10,7 @@ public class LancamentoFinanceiroRequest {
   private LocalDate vencimento;
   private BigDecimal valor;
   private String situacao;
+  private Long compraId;
 
   public String getTipo() {
     return tipo;
@@ -57,5 +58,13 @@ public class LancamentoFinanceiroRequest {
 
   public void setSituacao(String situacao) {
     this.situacao = situacao;
+  }
+
+  public Long getCompraId() {
+    return compraId;
+  }
+
+  public void setCompraId(Long compraId) {
+    this.compraId = compraId;
   }
 }
