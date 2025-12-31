@@ -74,11 +74,12 @@ Agentes nao devem:
 - Fonte obrigatoria: Arial.
 - Numeração obrigatoria em todas as paginas no formato "Pagina X de Y".
 - Cabecalho, corpo e rodape devem existir e se repetir em todas as paginas.
-- Cabecalho obrigatorio:
-  - Linha 1: Nome da instituicao (centralizado).
-  - Linha 2: Nome do relatorio (centralizado).
-  - Linha separadora horizontal logo abaixo do titulo.
-  - Dados da instituicao devem ser buscados do cadastro real da unidade (sem dados fixos ou simulados).
+  - Cabecalho obrigatorio:
+    - Linha 1: Nome da instituicao (centralizado).
+    - Linha 2: Nome do relatorio (centralizado).
+    - Linha separadora horizontal logo abaixo do titulo.
+    - Dados da instituicao devem ser buscados do cadastro real da unidade (sem dados fixos ou simulados).
+    - No topo do relatorio (canto superior), exibir em fonte pequena: nome do usuario que emitiu, data e horario da emissao.
 - Corpo:
   - Conteudo dinamico conforme o relatorio (tabelas, listas ou textos).
   - Dados sempre reais, vindos do banco de dados.
@@ -96,10 +97,10 @@ Agentes nao devem:
   - Deve existir um template unico reutilizavel de relatorio.
   - Cada relatorio fornece apenas: titulo, filtros, logica de busca de dados e conteudo do corpo (body).
   - Cabecalho, rodape, paginacao e layout A4 sao responsabilidade exclusiva do template padrao.
-- Padronizacao obrigatoria:
-  - Qualquer novo relatorio deve usar este template.
-  - Relatorios existentes devem ser gradualmente migrados para este padrao.
-  - Nenhuma implementacao fora deste padrao deve ser aceita.
+  - Padronizacao obrigatoria:
+    - Este formato padrao (cabecalho, corpo e rodape) deve ser aplicado a todos os novos relatorios.
+    - Relatorios existentes devem ser ajustados para este mesmo formato.
+    - Nenhuma implementacao fora deste padrao deve ser aceita.
 
 ## Backend (Java)
 - Manter separacao clara de camadas:
@@ -177,6 +178,9 @@ app:
 - Atualizar README.md ou documentacao tecnica quando necessario.
 - Sempre que houver uma nova versao do sistema, atualizar a versao em "Configuracoes gerais" e registrar no historico a versao, data/hora e mudancas realizadas.
 - Sempre que subir uma atualizacao, acessar "Configuracoes gerais" > "Versao do sistema", atualizar a versao com um resumo das mudancas realizadas e criar um card de historico com a versao e o que foi feito.
+- Formato obrigatorio de versao: `1.00.0` (sempre com tres grupos, sendo o grupo do meio com duas casas e o ultimo com uma casa).
+- Quando for solicitado "atualizar a versao", usar como base a ultima versao registrada no historico e incrementar sequencialmente apenas o ultimo grupo (ex.: `1.00.5` -> `1.00.6`), sem pular numeros.
+- O historico deve registrar as ultimas operacoes realizadas, tomando a ultima entrada como referencia e descrevendo objetivamente tudo o que foi implementado desde entao.
 
 ## Postura esperada do agente
 - Ser direto e objetivo.

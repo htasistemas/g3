@@ -14,10 +14,18 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="space-y-2">
-        <label class="form-label" for="nomeUsuario">Nome de usuário</label>
-        <input id="nomeUsuario" type="text" formControlName="nomeUsuario" class="input" placeholder="usuario" />
-        <p *ngIf="form.get('nomeUsuario')?.touched && form.get('nomeUsuario')?.invalid" class="form-error">
+        <label class="form-label" for="nome">Nome completo *</label>
+        <input id="nome" type="text" formControlName="nome" class="input" placeholder="Nome completo" />
+        <p *ngIf="form.get('nome')?.touched && form.get('nome')?.invalid" class="form-error">
           Informe um nome com pelo menos 3 caracteres.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="form-label" for="email">Email *</label>
+        <input id="email" type="email" formControlName="email" class="input" placeholder="email@exemplo.com" />
+        <p *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="form-error">
+          Informe um email válido.
         </p>
       </div>
 
@@ -41,7 +49,7 @@
     </div>
 
     <div class="space-y-2">
-      <label class="form-label">Permissões</label>
+      <label class="form-label">Permissões *</label>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <label
           *ngFor="let permissao of permissoesDisponiveis"
@@ -83,7 +91,8 @@
       <table class="min-w-full text-sm">
         <thead>
           <tr class="text-left border-b border-slate-200 dark:border-slate-700">
-            <th class="py-2 pr-4">Usuário</th>
+            <th class="py-2 pr-4">Nome completo</th>
+            <th class="py-2 pr-4">Email</th>
             <th class="py-2 pr-4">Permissões</th>
             <th class="py-2 pr-4">Criado em</th>
             <th class="py-2">Ações</th>
@@ -91,7 +100,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let user of users" class="border-b border-slate-100 dark:border-slate-700/50">
-            <td class="py-2 pr-4 font-semibold">{{ user.nomeUsuario }}</td>
+            <td class="py-2 pr-4 font-semibold">{{ user.nome }}</td>
+            <td class="py-2 pr-4 text-slate-600">{{ user.email || user.nomeUsuario }}</td>
             <td class="py-2 pr-4 text-slate-600">
               {{ user.permissoes?.join(', ') }}
             </td>

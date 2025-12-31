@@ -12,6 +12,52 @@
   gap: 1rem;
 }
 
+.print-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.print-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.print-dialog__card {
+  position: relative;
+  width: min(520px, 92vw);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.25);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.print-dialog__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.print-dialog__subtitle {
+  margin: 0.35rem 0 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.print-dialog__actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .page-title {
   display: flex;
   flex-direction: column;

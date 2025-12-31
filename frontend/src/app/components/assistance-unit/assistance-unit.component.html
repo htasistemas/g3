@@ -2,7 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
-  (imprimir)="printUnit()"
+  (imprimir)="openPrintDialog()"
   (salvar)="save()"
   (cancelar)="resetForm()"
   (excluir)="requestDeletion()"
@@ -11,7 +11,7 @@
 >
 <header class="page-title" slot="titulo">
   <p class="page-title__eyebrow">Unidade assistencial</p>
-  <p class="page-title__label">Cadastro da unidade</p>
+  <p class="page-title__label">Cadastro de unidades</p>    
 </header>
 
 <section class="unit-page">
@@ -41,7 +41,29 @@
 
 
   <div class="toolbar-top">
-    
+  </div>
+
+  <div class="print-dialog" *ngIf="printDialogOpen">
+    <div class="print-dialog__backdrop" (click)="closePrintDialog()"></div>
+    <div
+      class="print-dialog__card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Opcoes de impressao"
+    >
+      <div class="print-dialog__header">
+        <p class="print-dialog__title">Opcoes de impressao</p>
+        <p class="print-dialog__subtitle">Escolha o relatorio que deseja gerar.</p>
+      </div>
+      <div class="print-dialog__actions">
+        <button type="button" class="btn-primary" (click)="printUnidadePrincipal()">
+          Imprimir unidade principal
+        </button>
+        <button type="button" class="btn-outline" (click)="printUnitList()">
+          Imprimir listagem de unidade
+        </button>
+      </div>
+    </div>
   </div>
 
   <form [formGroup]="form" class="form-shell" (ngSubmit)="save()">
@@ -196,7 +218,7 @@
         </label>
 
         <label class="field full">Endereço
-          <input id="endereço" type="text" formControlName="endereço" placeholder="Rua, avenida..." />
+          <input id="endereco" type="text" formControlName="endereco" placeholder="Rua, avenida..." />
         </label>
 
         <label class="field">Número

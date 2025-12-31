@@ -171,7 +171,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   get username(): string {
-    return this.auth.user()?.nomeUsuario ?? 'Admin';
+    const usuario = this.auth.user();
+    return usuario?.nome ?? usuario?.nomeUsuario ?? 'Admin';
   }
 
   get activeUnitName$() {

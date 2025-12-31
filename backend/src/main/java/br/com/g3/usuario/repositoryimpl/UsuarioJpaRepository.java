@@ -17,4 +17,7 @@ public interface UsuarioJpaRepository extends JpaRepository<Usuario, Long> {
 
   @EntityGraph(attributePaths = "permissoes")
   Optional<Usuario> findTopByNomeUsuarioIgnoreCase(String nomeUsuario);
+
+  @EntityGraph(attributePaths = "permissoes")
+  Optional<Usuario> findTopByEmailIgnoreCase(String email);
 }

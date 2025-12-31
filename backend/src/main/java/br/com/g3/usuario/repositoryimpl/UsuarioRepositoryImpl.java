@@ -35,6 +35,11 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
   }
 
   @Override
+  public Optional<Usuario> buscarPorEmailIgnoreCase(String email) {
+    return jpaRepository.findTopByEmailIgnoreCase(email);
+  }
+
+  @Override
   public void remover(Usuario usuario) {
     jpaRepository.delete(usuario);
   }

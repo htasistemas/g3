@@ -1,5 +1,6 @@
 package br.com.g3.usuario.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.ArrayList;
@@ -7,7 +8,11 @@ import java.util.List;
 
 public class UsuarioCriacaoRequest {
   @NotBlank
-  private String nomeUsuario;
+  private String nome;
+
+  @NotBlank
+  @Email
+  private String email;
 
   @NotBlank
   private String senha;
@@ -15,11 +20,27 @@ public class UsuarioCriacaoRequest {
   private List<String> permissoes = new ArrayList<>();
 
   public String getNomeUsuario() {
-    return nomeUsuario;
+    return email;
   }
 
   public void setNomeUsuario(String nomeUsuario) {
-    this.nomeUsuario = nomeUsuario;
+    this.email = nomeUsuario;
+  }
+
+  public String getNome() {
+    return nome;
+  }
+
+  public void setNome(String nome) {
+    this.nome = nome;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getSenha() {

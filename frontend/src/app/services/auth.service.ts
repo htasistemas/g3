@@ -7,14 +7,33 @@ import { Router } from '@angular/router';
 
 interface LoginResponse {
   token: string;
-  user?: { id: string; nomeUsuario: string };
+  usuario?: { id: string; nomeUsuario: string; nome?: string; email?: string };
+  user?: { id: string; nomeUsuario: string; nome?: string; email?: string };
+}
+
+interface CadastroContaRequest {
+  nome: string;
+  email: string;
+  senha: string;
+}
+
+interface RecuperarSenhaRequest {
+  email: string;
+}
+
+interface RedefinirSenhaRequest {
+  token: string;
+  senha: string;
+  confirmarSenha: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'g3_session';
   private readonly requestTimeoutMs = 10000;
-  readonly user = signal<{ id: string; nomeUsuario: string } | null>(this.loadUser());
+  readonly user = signal<{ id: string; nomeUsuario: string; nome?: string; email?: string } | null>(
+    this.loadUser()
+  );
 
   constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
@@ -24,12 +43,33 @@ export class AuthService {
       .pipe(
         timeout(this.requestTimeoutMs),
         tap((response) => {
+          const usuario =
+            response.usuario ?? { id: '0', nomeUsuario };
           this.persistSession({
             ...response,
-            user: response.user ?? { id: '0', nomeUsuario },
+            user: usuario,
           });
         })
       );
+  }
+
+  registrarConta(payload: CadastroContaRequest): Observable<void> {
+    return this.http
+      .post<void>(`${environment.apiUrl}/api/auth/registrar`, payload)
+      .pipe(timeout(this.requestTimeoutMs));
+  }
+
+  solicitarRecuperacaoSenha(email: string): Observable<void> {
+    const payload: RecuperarSenhaRequest = { email };
+    return this.http
+      .post<void>(`${environment.apiUrl}/api/auth/recuperar-senha`, payload)
+      .pipe(timeout(this.requestTimeoutMs));
+  }
+
+  redefinirSenha(payload: RedefinirSenhaRequest): Observable<void> {
+    return this.http
+      .post<void>(`${environment.apiUrl}/api/auth/redefinir-senha`, payload)
+      .pipe(timeout(this.requestTimeoutMs));
   }
 
   logout(): void {
@@ -53,7 +93,7 @@ export class AuthService {
     return raw ? (JSON.parse(raw) as LoginResponse) : null;
   }
 
-  private loadUser(): { id: string; nomeUsuario: string } | null {
+  private loadUser(): { id: string; nomeUsuario: string; nome?: string; email?: string } | null {
     return this.loadSession()?.user ?? null;
   }
 

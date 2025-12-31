@@ -13,5 +13,7 @@ public interface UsuarioRepository {
 
   Optional<Usuario> buscarPorNomeUsuarioIgnoreCase(String nomeUsuario);
 
+  Optional<Usuario> buscarPorEmailIgnoreCase(String email);
+
   void remover(Usuario usuario);
 }

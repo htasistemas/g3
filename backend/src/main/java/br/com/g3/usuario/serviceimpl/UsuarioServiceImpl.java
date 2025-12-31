@@ -43,14 +43,19 @@ public class UsuarioServiceImpl implements UsuarioService {
   @Override
   @Transactional
   public UsuarioResponse criar(UsuarioCriacaoRequest request) {
+    String email = request.getEmail().trim().toLowerCase();
     repository
-        .buscarPorNomeUsuarioIgnoreCase(request.getNomeUsuario())
-        .ifPresent(usuario -> {
-          throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um usuário com este nome");
-        });
+        .buscarPorEmailIgnoreCase(email)
+        .ifPresent(
+            usuario -> {
+              throw new ResponseStatusException(
+                  HttpStatus.CONFLICT, "Ja existe um usuario com este email");
+            });
 
     Usuario usuario = new Usuario();
-    usuario.setNomeUsuario(request.getNomeUsuario());
+    usuario.setNomeUsuario(email);
+    usuario.setNome(request.getNome());
+    usuario.setEmail(email);
     usuario.setSenhaHash(passwordEncoder.encode(request.getSenha()));
     usuario.setPermissoes(montarPermissoes(request.getPermissoes()));
     LocalDateTime agora = LocalDateTime.now();
@@ -67,18 +72,25 @@ public class UsuarioServiceImpl implements UsuarioService {
     Usuario usuario =
         repository
             .buscarPorId(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
 
-    if (!usuario.getNomeUsuario().equalsIgnoreCase(request.getNomeUsuario())) {
+    String email = request.getEmail().trim().toLowerCase();
+    if (usuario.getEmail() == null || !usuario.getEmail().equalsIgnoreCase(email)) {
       repository
-          .buscarPorNomeUsuarioIgnoreCase(request.getNomeUsuario())
-          .ifPresent(existente -> {
-            if (!existente.getId().equals(usuario.getId())) {
-              throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um usuário com este nome");
-            }
-          });
-      usuario.setNomeUsuario(request.getNomeUsuario());
+          .buscarPorEmailIgnoreCase(email)
+          .ifPresent(
+              existente -> {
+                if (!existente.getId().equals(usuario.getId())) {
+                  throw new ResponseStatusException(
+                      HttpStatus.CONFLICT, "Ja existe um usuario com este email");
+                }
+              });
+      usuario.setEmail(email);
+      usuario.setNomeUsuario(email);
     }
+
+    usuario.setNome(request.getNome());
 
     String senha = request.getSenha();
     if (senha != null && !senha.trim().isEmpty()) {
@@ -98,7 +110,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     Usuario usuario =
         repository
             .buscarPorId(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
     repository.remover(usuario);
   }
 

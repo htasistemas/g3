@@ -25,7 +25,8 @@ export class UserManagementComponent implements OnInit {
     private readonly permissionService: PermissionService
   ) {
     this.form = this.fb.group({
-      nomeUsuario: ['', [Validators.required, Validators.minLength(3)]],
+      nome: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
       senha: ['', [Validators.minLength(4)]],
       permissoes: [[], [Validators.required]]
     });
@@ -71,16 +72,21 @@ export class UserManagementComponent implements OnInit {
       return;
     }
 
-    const { nomeUsuario, senha } = this.form.value as { nomeUsuario: string; senha?: string };
+    const { nome, email, senha } = this.form.value as {
+      nome: string;
+      email: string;
+      senha?: string;
+    };
     const permissoes = this.getPermissoes();
 
     const request$ = this.editingId
       ? this.userService.update(this.editingId, {
-          nomeUsuario,
+          nome,
+          email,
           ...(senha ? { senha } : {}),
           permissoes
         })
-      : this.userService.create({ nomeUsuario, senha: senha || '', permissoes });
+      : this.userService.create({ nome, email, senha: senha || '', permissoes });
 
     request$.subscribe({
       next: () => {
@@ -99,7 +105,8 @@ export class UserManagementComponent implements OnInit {
   edit(user: UserPayload): void {
     this.editingId = user.id;
     this.form.reset({
-      nomeUsuario: user.nomeUsuario,
+      nome: user.nome ?? '',
+      email: user.email ?? user.nomeUsuario,
       senha: '',
       permissoes: user.permissoes ?? []
     });
@@ -128,7 +135,7 @@ export class UserManagementComponent implements OnInit {
 
   resetForm(): void {
     this.editingId = null;
-    this.form.reset({ nomeUsuario: '', senha: '', permissoes: [] });
+    this.form.reset({ nome: '', email: '', senha: '', permissoes: [] });
   }
 
   togglePermissao(nome: string): void {

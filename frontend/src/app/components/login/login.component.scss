@@ -82,6 +82,78 @@
   }
 }
 
+.support-link button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 40;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.modal__container {
+  position: relative;
+  width: min(480px, 100%);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal__eyebrow {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0b6c56;
+  font-weight: 700;
+}
+
+.modal__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
 @media (max-width: 1023px) {
   .login-hero {
     min-height: 340px;

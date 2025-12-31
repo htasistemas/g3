@@ -15,6 +15,8 @@ public class UsuarioMapper {
     return new UsuarioResponse(
         usuario.getId(),
         usuario.getNomeUsuario(),
+        usuario.getNome(),
+        usuario.getEmail(),
         usuario.getCriadoEm(),
         usuario.getAtualizadoEm(),
         permissoes);

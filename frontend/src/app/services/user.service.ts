@@ -6,13 +6,16 @@ import { map, Observable } from 'rxjs';
 export interface UserPayload {
   id: number;
   nomeUsuario: string;
+  nome?: string;
+  email?: string;
   criadoEm?: string;
   atualizadoEm?: string;
   permissoes?: string[];
 }
 
 export interface UserInput {
-  nomeUsuario: string;
+  nome: string;
+  email: string;
   senha: string;
   permissoes: string[];
 }
@@ -33,7 +36,7 @@ export class UserService {
     return this.http.post<UserPayload>(this.baseUrl, payload);
   }
 
-  update(id: number, payload: Partial<UserInput> & { nomeUsuario?: string }): Observable<UserPayload> {
+  update(id: number, payload: Partial<UserInput>): Observable<UserPayload> {
     return this.http.put<UserPayload>(`${this.baseUrl}/${id}`, payload);
   }
 

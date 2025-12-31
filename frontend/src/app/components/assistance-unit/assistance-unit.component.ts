@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { filter, Subscription } from 'rxjs';
 import { AssistanceUnitPayload, AssistanceUnitService, DiretoriaUnidadePayload } from '../../services/assistance-unit.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
+import { AuthService } from '../../services/auth.service';
 import {
   ConfigAcoesCrud,
   EstadoAcoesCrud,
@@ -60,6 +61,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     cancelar: true,
     imprimir: true
   });
+  printDialogOpen = false;
 
   readonly estados = [
     'AC',
@@ -97,7 +99,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     'nomeFantasia',
     'razaoSocial',
     'horarioFuncionamento',
-    'endereço',
+    'endereco',
     'complemento',
     'bairro',
     'pontoReferencia',
@@ -111,7 +113,8 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     private readonly unitService: AssistanceUnitService,
     private readonly http: HttpClient,
     private readonly cityService: CityService,
-    private readonly salasService: SalasService
+    private readonly salasService: SalasService,
+    private readonly authService: AuthService
   ) {
     super();
     this.form = this.fb.group({
@@ -121,7 +124,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       telefone: [''],
       email: ['', Validators.email],
       cep: [''],
-      endereço: [''],
+      endereco: [''],
       numeroEndereco: [''],
       complemento: [''],
       bairro: [''],
@@ -195,6 +198,8 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
   selecionarUnidade(unidade: AssistanceUnitPayload): void {
     this.unidade = unidade;
     this.form.patchValue(unidade);
+    const enderecoFallback = (unidade as any)?.['endereço'] ?? '';
+    this.form.get('endereco')?.setValue(unidade.endereco ?? enderecoFallback, { emitEvent: false });
     this.setDiretoriaForm(unidade.diretoria ?? []);
     this.logoPreview = unidade.logomarca || null;
     this.reportLogoPreview = unidade.logomarcaRelatorio || null;
@@ -307,6 +312,10 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.unidade = unidade;
         if (unidade) {
           this.form.patchValue(unidade);
+          const enderecoFallback = (unidade as any)?.['endereço'] ?? '';
+          this.form
+            .get('endereco')
+            ?.setValue(unidade.endereco ?? enderecoFallback, { emitEvent: false });
           this.setDiretoriaForm(unidade.diretoria ?? []);
           this.logoPreview = unidade.logomarca || null;
           this.reportLogoPreview = unidade.logomarcaRelatorio || null;
@@ -674,6 +683,25 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     window.history.back();
   }
 
+  openPrintDialog(): void {
+    this.printDialogOpen = true;
+  }
+
+  closePrintDialog(): void {
+    this.printDialogOpen = false;
+  }
+
+  printUnidadePrincipal(): void {
+    const unidade = this.unidadePrincipal ?? this.unidade;
+    if (!unidade) {
+      this.setFeedback({ type: 'warning', message: 'Nenhuma unidade disponivel para imprimir.' });
+      return;
+    }
+    this.closePrintDialog();
+    this.unidade = unidade;
+    this.printUnit();
+  }
+
   printUnit(): void {
     if (!this.unidade) {
       return;
@@ -681,37 +709,77 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
 
     const unidade = this.unidade;
     const printLogo = unidade.logomarcaRelatorio || unidade.logomarca;
+    const emissor =
+      this.authService.user()?.nome ||
+      this.authService.user()?.nomeUsuario ||
+      'Usuario';
+    const dataHora = new Date().toLocaleString('pt-BR');
     const content = `
       <html>
         <head>
-          <title>Dados da unidade</title>
+          <title>Relatorio do cadastro da unidade</title>
           <style>
             @page {
               size: A4;
-              margin: 0;
+              margin: 20mm;
             }
             *, *::before, *::after { box-sizing: border-box; }
             body {
-              font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+              font-family: Arial, sans-serif;
               background: #ffffff;
-              color: #0f172a;
+              color: #000000;
               margin: 0;
-              padding: 12mm;
+              padding: 0;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              font-size: 12px;
             }
             .report {
               width: 100%;
-              max-width: calc(210mm - 24mm);
-              min-height: calc(297mm - 24mm);
               margin: 0 auto;
               background: #ffffff;
-              border-radius: 0;
-              overflow: hidden;
-              box-shadow: none;
               border: none;
               display: flex;
               flex-direction: column;
+              position: relative;
+              min-height: calc(297mm - 40mm);
+            }
+            .header {
+              display: grid;
+              grid-template-columns: 80px 1fr;
+              gap: 12px;
+              align-items: center;
+              padding: 8px 10px;
+              border-radius: 6px;
+              border: 1px solid #000000;
+              box-sizing: border-box;
+              width: 100%;
+            }
+            .header-logo {
+              width: 80px;
+              height: 50px;
+              border: none;
+              display: grid;
+              place-items: center;
+              overflow: hidden;
+            }
+            .header-logo img {
+              max-width: 100%;
+              max-height: 100%;
+              object-fit: contain;
+            }
+            .header-title {
+              text-align: center;
+            }
+            .header-title .instituicao {
+              font-size: 14px;
+              font-weight: 700;
+              margin: 0;
+            }
+            .header-title .relatorio {
+              font-size: 16px;
+              font-weight: 700;
+              margin: 4px 0 0;
             }
             .hero {
               position: relative;
@@ -800,20 +868,34 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
               gap: 18px;
             }
             .section-card {
-              border: 1px solid #e2e8f0;
-              border-radius: 14px;
-              padding: 14px 16px 16px;
-              background: #f8fafc;
-              box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+              border: 1px solid #000000;
+              border-radius: 6px;
+              padding: 8px 10px;
+              background: #ffffff;
+              box-shadow: none;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .section-card--no-border {
+              border: none;
+              padding: 0;
             }
             .section-title {
-              margin: 0 0 12px;
-              font-size: 15px;
-              letter-spacing: 0.02em;
-              color: #0f172a;
-              display: flex;
-              align-items: center;
-              gap: 8px;
+              margin: 0 0 6px;
+              font-size: 11px;
+              letter-spacing: 0.08em;
+              color: #000000;
+              font-weight: 800;
+              text-transform: uppercase;
+              background: #e2e8f0;
+              padding: 8px 10px;
+              border-radius: 4px;
+              display: block;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .section-card--compact .data-grid {
+              gap: 4px 8px;
             }
             .data-grid {
               display: grid;
@@ -827,26 +909,77 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
             }
             .label {
               display: block;
-              font-size: 11px;
+              font-size: 9px;
               letter-spacing: 0.08em;
               text-transform: uppercase;
-              color: #475569;
               margin-bottom: 2px;
               font-weight: 700;
             }
-            .value { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
-            .muted { color: #64748b; font-weight: 500; font-size: 13px; margin: 0; }
+            .value { font-size: 12px; font-weight: 700; color: #000000; margin: 0; }
+            .muted { color: #000000; font-weight: 500; font-size: 11px; margin: 0; }
             .footer-note {
-              padding: 12px 0 0;
+              padding: 8px 10px;
               background: transparent;
-              color: #0f172a;
-              border-radius: 0;
-              border: none;
+              color: #000000;
+              border-radius: 6px;
+              border: 1px solid #000000;
+              margin-bottom: 0;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .footer {
+              margin-top: auto;
+              font-size: 11px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+              gap: 4px;
+              border-radius: 6px;
+              border: 1px solid #000000;
+              padding: 3px 6px;
+              line-height: 1.2;
+              page-break-inside: avoid;
+              margin-bottom: 0;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .footer > div {
+              width: 100%;
+            }
+            .report-meta-top {
+              font-size: 9px;
+              color: #000000;
+              text-align: right;
+              margin-bottom: 4px;
+            }
+            .footer,
+            .footer-note,
+            .header {
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .hero {
+              display: none;
             }
           </style>
         </head>
         <body>
           <div class="report">
+            <div class="report-meta-top">Emitido por ${emissor} · ${dataHora}</div>
+            <div class="header">
+              <div class="header-logo">
+                ${
+                  printLogo
+                    ? `<img src="${printLogo}" alt="Imagem institucional" />`
+                    : `<span>Logo</span>`
+                }
+              </div>
+              <div class="header-title">
+                <p class="instituicao">${unidade.razaoSocial || unidade.nomeFantasia || 'Instituicao'}</p>
+                <p class="relatorio">Relatorio do cadastro da unidade</p>
+              </div>
+            </div>
             <div class="hero">
               <div class="logo-badge">
                 ${
@@ -866,59 +999,56 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
             </div>
 
             <div class="body">
-              <div class="section-card">
+              <div>
                 <p class="section-title">Identidade e contato</p>
+                <div class="section-card section-card--compact">
                 <div class="data-grid">
                   <div class="data-item">
                     <span class="label">Razão social</span>
                     <p class="value">${unidade.razaoSocial || 'Não informada'}</p>
-                    <p class="muted">Nome completo cadastrado.</p>
                   </div>
                   <div class="data-item">
                     <span class="label">CNPJ</span>
                     <p class="value">${unidade.cnpj || 'Não informado'}</p>
-                    <p class="muted">Identificação fiscal da organização.</p>
                   </div>
                   <div class="data-item">
                     <span class="label">Telefone</span>
                     <p class="value">${unidade.telefone || 'Não informado'}</p>
-                    <p class="muted">Canal preferencial para contato direto.</p>
                   </div>
                   <div class="data-item">
                     <span class="label">E-mail</span>
                     <p class="value">${unidade.email || 'Não informado'}</p>
-                    <p class="muted">Endereço eletrônico para comunicação institucional.</p>
                   </div>
                   <div class="data-item">
                     <span class="label">CEP</span>
                     <p class="value">${unidade.cep || 'Não informado'}</p>
-                    <p class="muted">Código de endereçamento para localização.</p>
                   </div>
                   <div class="data-item">
                     <span class="label">Horário de funcionamento</span>
                     <p class="value">${unidade.horarioFuncionamento || 'Não informado'}</p>
-                    <p class="muted">Período de atendimento ao público.</p>
                   </div>
                 </div>
               </div>
+              </div>
 
-              <div class="section-card">
+              <div>
                 <p class="section-title">Localização</p>
+                <div class="section-card">
                 <div class="data-grid">
                   <div class="data-item">
                     <span class="label">Endereço</span>
                     <p class="value">${unidade.endereco || 'Endereço não informado'} ${unidade.numeroEndereco || ''}</p>
-                    <p class="muted">Bairro: ${unidade.bairro || 'Não informado'}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">Cidade / Estado</span>
                     <p class="value">${unidade.cidade || 'Sem cidade'} / ${unidade.estado || 'UF'}</p>
-                    <p class="muted">Referência geográfica da unidade.</p>
                   </div>
                 </div>
               </div>
-              <div class="section-card">
-                <p class="section-title">Diretoria institucional</p>
+              </div>
+              <div>
+                <p class="section-title">Diretor institucional</p>
+                <div class="section-card">
                 <div class="data-grid">
                   ${
                     unidade.diretoria && unidade.diretoria.length
@@ -929,9 +1059,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                                 <span class="label">${membro.funcao || 'Funcao'}</span>
                                 <p class="value">${membro.nomeCompleto || 'Não informado'}</p>
                                 <p class="muted">${membro.documento || 'Documento n?o informado'}</p>
-                                <p class="muted">
-                                  Mandato: ${membro.mandatoInicio || 'Não informado'} - ${membro.mandatoFim || 'Não informado'}
-                                </p>
+                                <p class="muted">Mandato: ${membro.mandatoInicio || 'Não informado'} - ${membro.mandatoFim || 'Não informado'}</p>
                               </div>
                             `
                           )
@@ -939,19 +1067,52 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                       : `<div class="data-item">
                           <span class="label">Diretoria</span>
                           <p class="value">N?o informada</p>
-                          <p class="muted">Cadastre os membros na aba Diretoria.</p>
                         </div>`
                   }
                 </div>
               </div>
               </div>
-
               <div>
+                <p class="section-title">Estrutura da unidade</p>
+                <div class="section-card">
+                <div class="data-grid">
+                  ${
+                    this.salasUnidade && this.salasUnidade.length
+                      ? `
+                        <div class="data-item" style="grid-column: 1 / -1;">
+                          <span class="label">Salas</span>
+                          <p class="value">${this.salasUnidade
+                            .map((sala) => sala.nome)
+                            .filter(Boolean)
+                            .join(', ') || 'Nao cadastradas'}</p>
+                        </div>
+                      `
+                      : `<div class="data-item" style="grid-column: 1 / -1;">
+                          <span class="label">Salas</span>
+                          <p class="value">Nao cadastradas</p>
+                        </div>`
+                  }
+                </div>
+              </div>
+              </div>
+              </div>
+
+              <div class="section-card section-card--no-border">
                 <p class="section-title">Observações</p>
                 <div class="footer-note">
                   ${unidade.observacoes || 'Nenhuma observação registrada até o momento.'}
                 </div>
               </div>
+              <div class="footer">
+                <div>
+                  ${unidade.razaoSocial || unidade.nomeFantasia || 'Instituicao'} · ${unidade.cnpj || 'CNPJ nao informado'}
+                </div>
+                <div>
+                  ${unidade.endereco || 'Endereco nao informado'} ${unidade.numeroEndereco || ''} · ${unidade.bairro || ''}
+                  · ${unidade.cidade || ''} ${unidade.estado || ''} · ${unidade.telefone || 'Telefone nao informado'}
+                  · ${unidade.email || 'Email nao informado'}
+                </div>
+            </div>
             </div>
           </div>
         </body>
@@ -966,7 +1127,205 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
 
     printWindow.document.write(content);
     printWindow.document.close();
-    printWindow.history.replaceState({}, '', '/unidades/impressão');
+    printWindow.document.title = '';
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  }
+
+  printUnitList(): void {
+    if (!this.unidadesOrdenadas.length) {
+      this.setFeedback({ type: 'warning', message: 'Nenhuma unidade cadastrada para listar.' });
+      return;
+    }
+    this.closePrintDialog();
+
+    const unidadeReferencia = this.unidadePrincipal ?? this.unidade ?? this.unidadesOrdenadas[0];
+    const printLogo = unidadeReferencia?.logomarcaRelatorio || unidadeReferencia?.logomarca;
+    const emissor =
+      this.authService.user()?.nome ||
+      this.authService.user()?.nomeUsuario ||
+      'Usuario';
+    const dataHora = new Date().toLocaleString('pt-BR');
+
+    const linhas = this.unidadesOrdenadas
+      .map(
+        (item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.nomeFantasia || 'Nao informado'}</td>
+            <td>${item.razaoSocial || 'Nao informado'}</td>
+            <td>${item.cnpj || 'Nao informado'}</td>
+            <td>${item.cidade || 'Nao informado'} / ${item.estado || 'UF'}</td>
+            <td>${item.telefone || 'Nao informado'}</td>
+          </tr>
+        `
+      )
+      .join('');
+
+    const content = `
+      <html>
+        <head>
+          <title>Listagem de unidades cadastradas</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 20mm;
+            }
+            *, *::before, *::after { box-sizing: border-box; }
+            body {
+              font-family: Arial, sans-serif;
+              background: #ffffff;
+              color: #000000;
+              margin: 0;
+              padding: 0;
+              font-size: 11px;
+            }
+            .report {
+              width: 100%;
+              min-height: calc(297mm - 40mm);
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              position: relative;
+            }
+            .report-meta-top {
+              font-size: 9px;
+              color: #000000;
+              text-align: right;
+              margin-bottom: 4px;
+            }
+            .header {
+              display: grid;
+              grid-template-columns: 80px 1fr;
+              gap: 12px;
+              align-items: center;
+              padding: 8px 10px;
+              border-radius: 12px;
+              border: 1px solid #000000;
+              width: 100%;
+            }
+            .header-logo {
+              width: 80px;
+              height: 50px;
+              border: none;
+              display: grid;
+              place-items: center;
+              overflow: hidden;
+            }
+            .header-logo img {
+              max-width: 100%;
+              max-height: 100%;
+              object-fit: contain;
+            }
+            .header-title {
+              text-align: center;
+            }
+            .header-title .instituicao {
+              font-size: 14px;
+              font-weight: 700;
+              margin: 0;
+            }
+            .header-title .relatorio {
+              font-size: 16px;
+              font-weight: 700;
+              margin: 4px 0 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 10px;
+            }
+            th, td {
+              border: 1px solid #000000;
+              padding: 4px 6px;
+              text-align: left;
+            }
+            th {
+              background: #e2e8f0;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.06em;
+            }
+            .footer {
+              margin-top: auto;
+              border-top: 1px solid #000000;
+              font-size: 10px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+              gap: 4px;
+              border-radius: 6px;
+              border: 1px solid #000000;
+              padding: 4px 6px;
+              line-height: 1.2;
+              width: 100%;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="report">
+            <div class="report-meta-top">Emitido por ${emissor} · ${dataHora}</div>
+            <div class="header">
+              <div class="header-logo">
+                ${
+                  printLogo
+                    ? `<img src="${printLogo}" alt="Imagem institucional" />`
+                    : `<span>Logo</span>`
+                }
+              </div>
+              <div class="header-title">
+                <p class="instituicao">${unidadeReferencia?.razaoSocial || unidadeReferencia?.nomeFantasia || 'Instituicao'}</p>
+              <p class="relatorio">Listagem de unidades cadastradas</p>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome fantasia</th>
+                  <th>Razao social</th>
+                  <th>CNPJ</th>
+                  <th>Cidade/UF</th>
+                  <th>Telefone</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${linhas}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <div>
+                ${unidadeReferencia?.razaoSocial || unidadeReferencia?.nomeFantasia || 'Instituicao'} · ${
+      unidadeReferencia?.cnpj || 'CNPJ nao informado'
+    }
+              </div>
+              <div>
+                ${unidadeReferencia?.endereco || 'Endereco nao informado'} ${unidadeReferencia?.numeroEndereco || ''} · ${
+      unidadeReferencia?.bairro || ''
+    }
+                · ${unidadeReferencia?.cidade || ''} ${unidadeReferencia?.estado || ''} · ${
+      unidadeReferencia?.telefone || 'Telefone nao informado'
+    }
+                · ${unidadeReferencia?.email || 'Email nao informado'}
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) {
+      return;
+    }
+    printWindow.document.write(content);
+    printWindow.document.close();
     printWindow.document.title = '';
     printWindow.focus();
     setTimeout(() => {
@@ -1185,7 +1544,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       .subscribe((response) => {
         this.form.patchValue({
           cep: this.formatCep(response.cep ?? cep),
-          endereço: response.logradouro || this.form.value.endereço,
+          endereco: response.logradouro || this.form.value.endereco,
           bairro: response.bairro || this.form.value.bairro,
           cidade: response.localidade || this.form.value.cidade,
           estado: response.uf || this.form.value.estado

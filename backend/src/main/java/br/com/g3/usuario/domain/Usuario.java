@@ -24,6 +24,12 @@ public class Usuario {
   @Column(name = "nome_usuario", length = 120, nullable = false)
   private String nomeUsuario;
 
+  @Column(name = "nome", length = 150)
+  private String nome;
+
+  @Column(name = "email", length = 150)
+  private String email;
+
   @Column(name = "senha_hash", length = 255, nullable = false)
   private String senhaHash;
 
@@ -54,6 +60,22 @@ public class Usuario {
 
   public void setNomeUsuario(String nomeUsuario) {
     this.nomeUsuario = nomeUsuario;
+  }
+
+  public String getNome() {
+    return nome;
+  }
+
+  public void setNome(String nome) {
+    this.nome = nome;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getSenhaHash() {

@@ -7,7 +7,9 @@
     </div>
     <div class="version-chip">
       <span>Versão atual</span>
-      <strong>{{ formattedVersion }}</strong>
+      <strong *ngIf="!carregandoVersao && currentVersion">{{ currentVersion }}</strong>
+      <strong *ngIf="carregandoVersao">Carregando...</strong>
+      <strong *ngIf="!carregandoVersao && !currentVersion">--</strong>
     </div>
   </header>
 
@@ -20,7 +22,7 @@
       </div>
       <div class="card__meta">
         <p class="meta-label">Identificador técnico</p>
-        <p class="meta-value">{{ formattedVersion }}</p>
+        <p class="meta-value">{{ currentVersion }}</p>
       </div>
     </div>
 
@@ -30,11 +32,18 @@
         <span>Data/Hora</span>
         <span>Resumo</span>
       </div>
-      <article class="release-row" *ngFor="let note of releaseNotes">
-        <span class="release-row__version">{{ note.version }}</span>
-        <span class="release-row__date">{{ note.date }}</span>
+      <p *ngIf="erroHistorico" class="release-empty">{{ erroHistorico }}</p>
+      <p *ngIf="!erroHistorico && carregandoHistorico" class="release-empty">Carregando historico...</p>
+      <p *ngIf="!erroHistorico && !carregandoHistorico && historicoVersoes.length === 0" class="release-empty">
+        Nenhuma atualizacao registrada.
+      </p>
+
+      <article class="release-row" *ngFor="let item of historicoVersoes">
+        <span class="release-row__version">{{ item.versao }}</span>
+        <span class="release-row__date">{{ formatarDataHora(item.criadoEm) }}</span>
         <ul class="release-row__highlights">
-          <li *ngFor="let highlight of note.highlights">{{ highlight }}</li>
+          <li *ngIf="item.descricao">{{ item.descricao }}</li>
+          <li *ngIf="!item.descricao">Sem resumo informado.</li>
         </ul>
       </article>
     </div>

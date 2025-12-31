@@ -6,6 +6,8 @@ import java.util.List;
 public class UsuarioResponse {
   private Long id;
   private String nomeUsuario;
+  private String nome;
+  private String email;
   private LocalDateTime criadoEm;
   private LocalDateTime atualizadoEm;
   private List<String> permissoes;
@@ -13,11 +15,15 @@ public class UsuarioResponse {
   public UsuarioResponse(
       Long id,
       String nomeUsuario,
+      String nome,
+      String email,
       LocalDateTime criadoEm,
       LocalDateTime atualizadoEm,
       List<String> permissoes) {
     this.id = id;
     this.nomeUsuario = nomeUsuario;
+    this.nome = nome;
+    this.email = email;
     this.criadoEm = criadoEm;
     this.atualizadoEm = atualizadoEm;
     this.permissoes = permissoes;
@@ -29,6 +35,14 @@ public class UsuarioResponse {
 
   public String getNomeUsuario() {
     return nomeUsuario;
+  }
+
+  public String getNome() {
+    return nome;
+  }
+
+  public String getEmail() {
+    return email;
   }
 
   public LocalDateTime getCriadoEm() {
