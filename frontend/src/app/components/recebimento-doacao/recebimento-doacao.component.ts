@@ -6,6 +6,7 @@ import { faClipboardList, faHandshake, faIdCard, faListCheck, faUserPlus } from 
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 import {
   DoadorResponse,
   RecebimentoDoacaoResponse,
@@ -21,7 +22,14 @@ interface TabItem {
 @Component({
   selector: 'app-recebimento-doacao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    AutocompleteComponent
+  ],
   templateUrl: './recebimento-doacao.component.html',
   styleUrl: './recebimento-doacao.component.scss'
 })
@@ -68,14 +76,23 @@ export class RecebimentoDoacaoComponent implements OnInit {
   gestaoForm: FormGroup;
 
   doadores: DoadorResponse[] = [];
+  doadoresOpcoes: AutocompleteOpcao[] = [];
+  doadoresCarregando = false;
+  doadoresErro: string | null = null;
+  termoBuscaDoador = '';
   recebimentos: RecebimentoDoacaoResponse[] = [];
   doadorSelecionadoId: number | null = null;
   carregandoDoadores = false;
   carregandoRecebimentos = false;
+  recebimentoEditandoId: number | null = null;
 
   get isDoacaoDinheiro(): boolean {
     const tipo = (this.recebimentoForm.get('tipoDoacao')?.value ?? '').toString().toLowerCase();
     return tipo.includes('dinheiro');
+  }
+
+  get isDoacaoItens(): boolean {
+    return !this.isDoacaoDinheiro;
   }
 
   constructor(
@@ -83,24 +100,31 @@ export class RecebimentoDoacaoComponent implements OnInit {
     private readonly service: RecebimentoDoacaoService
   ) {
     this.doadorForm = this.fb.group({
+      tipoPessoa: ['FISICA', Validators.required],
       nome: ['', [Validators.required, Validators.minLength(3)]],
-      tipoPessoa: ['fisica', Validators.required],
       documento: ['', [Validators.required, this.cpfValidator]],
+      responsavelEmpresa: [''],
       email: ['', [Validators.email]],
       telefone: ['', [this.telefoneValidator]],
       observacoes: ['']
     });
+    this.atualizarTipoPessoaValidators();
 
     this.recebimentoForm = this.fb.group({
       doadorId: [null, Validators.required],
       tipoDoacao: ['', Validators.required],
       dataRecebimento: ['', Validators.required],
       valor: [''],
+      quantidadeItens: [''],
+      valorMedio: [''],
+      valorTotal: [''],
       formaRecebimento: [''],
       status: ['Aguardando', Validators.required],
       descricao: [''],
       observacoes: ['']
     });
+    this.atualizarValidatorsRecebimento();
+    this.onTipoDoacaoChange();
 
     this.recorrenciaForm = this.fb.group({
       recorrente: [false],
@@ -128,6 +152,11 @@ export class RecebimentoDoacaoComponent implements OnInit {
     if (tab === 'lista') {
       this.carregarRecebimentos();
     }
+    if (tab === 'dados') {
+      const selectedId = this.recebimentoForm.get('doadorId')?.value;
+      const selected = this.doadores.find((doador) => doador.id === Number(selectedId));
+      this.termoBuscaDoador = selected?.nome || '';
+    }
   }
 
   getTabIndex(id: TabItem['id']): number {
@@ -152,7 +181,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
   }
 
   onNovo(): void {
-    this.doadorForm.reset({ tipoPessoa: 'fisica' });
+    this.doadorForm.reset({ tipoPessoa: 'FISICA' });
     this.recebimentoForm.reset({ status: 'Aguardando' });
     this.recorrenciaForm.reset({ recorrente: false, periodicidade: 'Mensal' });
     this.gestaoForm.reset({ canal: 'whatsapp' });
@@ -178,14 +207,23 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   carregarDoadores(): void {
     this.carregandoDoadores = true;
+    this.doadoresCarregando = true;
+    this.doadoresErro = null;
     this.service.listarDoadores().subscribe({
       next: (lista: DoadorResponse[]) => {
         this.doadores = lista;
+        this.doadoresOpcoes = lista.map((doador) => ({
+          id: doador.id,
+          label: doador.nome
+        }));
         this.carregandoDoadores = false;
+        this.doadoresCarregando = false;
       },
       error: () => {
         this.doadores = [];
         this.carregandoDoadores = false;
+        this.doadoresCarregando = false;
+        this.doadoresErro = 'Não foi possível carregar os doadores.';
       }
     });
   }
@@ -207,13 +245,63 @@ export class RecebimentoDoacaoComponent implements OnInit {
   selecionarDoador(doador: DoadorResponse): void {
     this.recebimentoForm.get('doadorId')?.setValue(doador.id);
     this.doadorSelecionadoId = doador.id;
+    this.termoBuscaDoador = doador.nome;
+  }
+
+  onDoadorTermoChange(termo: string): void {
+    this.termoBuscaDoador = termo;
+  }
+
+  onDoadorSelecionado(opcao: AutocompleteOpcao): void {
+    this.recebimentoForm.get('doadorId')?.setValue(opcao.id);
+    this.doadorSelecionadoId = Number(opcao.id);
+    this.termoBuscaDoador = opcao.label;
+  }
+
+  get doadoresFiltrados(): AutocompleteOpcao[] {
+    const termo = (this.termoBuscaDoador || '').trim().toLowerCase();
+    if (!termo) {
+      return this.doadoresOpcoes.slice(0, 15);
+    }
+    return this.doadoresOpcoes
+      .filter((doador) => doador.label.toLowerCase().includes(termo))
+      .slice(0, 15);
   }
 
   onTipoDoacaoChange(): void {
     if (!this.isDoacaoDinheiro) {
       this.recebimentoForm.get('formaRecebimento')?.setValue('');
       this.recebimentoForm.get('valor')?.setValue('');
+      this.recebimentoForm.get('formaRecebimento')?.disable({ emitEvent: false });
+    } else {
+      this.recebimentoForm.get('formaRecebimento')?.enable({ emitEvent: false });
+      this.recebimentoForm.get('quantidadeItens')?.setValue('');
+      this.recebimentoForm.get('valorMedio')?.setValue('');
+      this.recebimentoForm.get('valorTotal')?.setValue('');
     }
+    this.atualizarValidatorsRecebimento();
+  }
+
+  private atualizarValidatorsRecebimento(): void {
+    const quantidade = this.recebimentoForm.get('quantidadeItens');
+    const valorMedio = this.recebimentoForm.get('valorMedio');
+    const valorTotal = this.recebimentoForm.get('valorTotal');
+    const valor = this.recebimentoForm.get('valor');
+    if (this.isDoacaoDinheiro) {
+      quantidade?.clearValidators();
+      valorMedio?.clearValidators();
+      valorTotal?.clearValidators();
+      valor?.setValidators([Validators.required]);
+    } else {
+      quantidade?.setValidators([Validators.required]);
+      valorMedio?.setValidators([Validators.required]);
+      valorTotal?.setValidators([Validators.required]);
+      valor?.clearValidators();
+    }
+    quantidade?.updateValueAndValidity({ emitEvent: false });
+    valorMedio?.updateValueAndValidity({ emitEvent: false });
+    valorTotal?.updateValueAndValidity({ emitEvent: false });
+    valor?.updateValueAndValidity({ emitEvent: false });
   }
 
   atualizarProximaCobranca(): void {
@@ -248,11 +336,70 @@ export class RecebimentoDoacaoComponent implements OnInit {
     return found?.nome || '---';
   }
 
+  get isPessoaJuridica(): boolean {
+    return this.doadorForm.get('tipoPessoa')?.value === 'JURIDICA';
+  }
+
+  get documentoLabel(): string {
+    return this.isPessoaJuridica ? 'Documento (CNPJ)' : 'Documento (CPF)';
+  }
+
+  get documentoPlaceholder(): string {
+    return this.isPessoaJuridica ? '00.000.000/0000-00' : '000.000.000-00';
+  }
+
+  onTipoPessoaChange(): void {
+    this.doadorForm.get('documento')?.reset();
+    this.doadorForm.get('responsavelEmpresa')?.reset();
+    this.atualizarTipoPessoaValidators();
+  }
+
+  private atualizarTipoPessoaValidators(): void {
+    const documentoControl = this.doadorForm.get('documento');
+    const responsavelControl = this.doadorForm.get('responsavelEmpresa');
+    if (this.isPessoaJuridica) {
+      documentoControl?.setValidators([Validators.required, this.cnpjValidator]);
+      responsavelControl?.setValidators([Validators.required, Validators.minLength(3)]);
+    } else {
+      documentoControl?.setValidators([Validators.required, this.cpfValidator]);
+      responsavelControl?.clearValidators();
+    }
+    documentoControl?.updateValueAndValidity({ emitEvent: false });
+    responsavelControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  onDocumentoInput(event: Event): void {
+    if (this.isPessoaJuridica) {
+      this.onCnpjInput(event);
+      return;
+    }
+    this.onCpfInput(event);
+  }
+
   onCpfInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '').slice(0, 11);
     const parts = [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 9), digits.slice(9, 11)].filter(Boolean);
     input.value = parts.length > 3 ? `${parts[0]}.${parts[1]}.${parts[2]}-${parts[3]}` : parts.join('.');
+    this.doadorForm.get('documento')?.setValue(input.value, { emitEvent: false });
+  }
+
+  onCnpjInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 14);
+    const parts = [
+      digits.slice(0, 2),
+      digits.slice(2, 5),
+      digits.slice(5, 8),
+      digits.slice(8, 12),
+      digits.slice(12, 14)
+    ].filter(Boolean);
+    let masked = parts[0] ?? '';
+    if (parts[1]) masked += `.${parts[1]}`;
+    if (parts[2]) masked += `.${parts[2]}`;
+    if (parts[3]) masked += `/${parts[3]}`;
+    if (parts[4]) masked += `-${parts[4]}`;
+    input.value = masked;
     this.doadorForm.get('documento')?.setValue(input.value, { emitEvent: false });
   }
 
@@ -268,11 +415,44 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   onValorInput(event: Event): void {
     const input = event.target as HTMLInputElement;
+    const value = this.formatCurrencyInput(input, true);
+    this.recebimentoForm.get('valor')?.setValue(value, { emitEvent: false });
+  }
+
+  onValorMedioInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = this.formatCurrencyInput(input, true);
+    this.recebimentoForm.get('valorMedio')?.setValue(value, { emitEvent: false });
+    this.atualizarValorTotalItens();
+  }
+
+  onValorTotalInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = this.formatCurrencyInput(input, true);
+    this.recebimentoForm.get('valorTotal')?.setValue(value, { emitEvent: false });
+  }
+
+  onQuantidadeItensChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = Number(input.value || 0);
+    this.recebimentoForm.get('quantidadeItens')?.setValue(value, { emitEvent: false });
+    this.atualizarValorTotalItens();
+  }
+
+  private atualizarValorTotalItens(): void {
+    const quantidade = Number(this.recebimentoForm.get('quantidadeItens')?.value || 0);
+    const valorMedio = Number(this.recebimentoForm.get('valorMedio')?.value || 0);
+    if (!quantidade || !valorMedio) return;
+    const total = quantidade * valorMedio;
+    this.recebimentoForm.get('valorTotal')?.setValue(total, { emitEvent: false });
+  }
+
+  private formatCurrencyInput(input: HTMLInputElement, comPrefixo: boolean): number {
     const digits = input.value.replace(/\D/g, '');
     const value = Number(digits) / 100;
     const formatted = value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    input.value = `R$ ${formatted}`;
-    this.recebimentoForm.get('valor')?.setValue(value, { emitEvent: false });
+    input.value = comPrefixo ? `R$ ${formatted}` : formatted;
+    return value;
   }
 
   onSentenceCaseBlur(event: Event): void {
@@ -320,13 +500,52 @@ export class RecebimentoDoacaoComponent implements OnInit {
       proximaCobranca: recorrencia.proximaCobranca || undefined
     };
 
-    this.service.criarRecebimento(payload).subscribe({
+    const action$ = this.recebimentoEditandoId
+      ? this.service.atualizarRecebimento(this.recebimentoEditandoId, payload)
+      : this.service.criarRecebimento(payload);
+
+    action$.subscribe({
       next: (response: RecebimentoDoacaoResponse) => {
-        this.recebimentos = [response, ...this.recebimentos];
+        this.recebimentos = this.recebimentoEditandoId
+          ? this.recebimentos.map((item) => (item.id === response.id ? response : item))
+          : [response, ...this.recebimentos];
+        this.recebimentoEditandoId = null;
         this.changeTab('lista');
       },
       error: () => {
         this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel registrar o recebimento.').build();
+      }
+    });
+  }
+
+  editarRecebimento(item: RecebimentoDoacaoResponse): void {
+    this.recebimentoEditandoId = item.id;
+    this.recebimentoForm.patchValue({
+      doadorId: item.doadorId ?? null,
+      tipoDoacao: item.tipoDoacao,
+      dataRecebimento: item.dataRecebimento,
+      valor: item.valor ?? '',
+      quantidadeItens: item.quantidadeItens ?? '',
+      valorMedio: item.valorMedio ?? '',
+      valorTotal: item.valorTotal ?? '',
+      formaRecebimento: item.formaRecebimento ?? '',
+      status: item.status,
+      descricao: item.descricao ?? '',
+      observacoes: item.observacoes ?? ''
+    });
+    const selected = this.doadores.find((doador) => doador.id === Number(item.doadorId));
+    this.termoBuscaDoador = selected?.nome || item.doadorNome || '';
+    this.onTipoDoacaoChange();
+    this.changeTab('dados');
+  }
+
+  excluirRecebimento(item: RecebimentoDoacaoResponse): void {
+    this.service.excluirRecebimento(item.id).subscribe({
+      next: () => {
+        this.recebimentos = this.recebimentos.filter((registro) => registro.id !== item.id);
+      },
+      error: () => {
+        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o recebimento.').build();
       }
     });
   }
@@ -350,6 +569,33 @@ export class RecebimentoDoacaoComponent implements OnInit {
     const dig2 = calc(10);
     if (dig1 !== parseInt(digits.charAt(9), 10) || dig2 !== parseInt(digits.charAt(10), 10)) {
       return { cpf: true };
+    }
+    return null;
+  }
+
+  private cnpjValidator(control: AbstractControl): ValidationErrors | null {
+    const digits = (control.value || '').replace(/\D/g, '');
+    if (!digits) return null;
+    if (digits.length !== 14) return { cnpj: true };
+    if (/^(\d)\1+$/.test(digits)) return { cnpj: true };
+
+    const calc = (length: number) => {
+      const weights =
+        length === 12
+          ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+          : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+      let sum = 0;
+      for (let i = 0; i < weights.length; i++) {
+        sum += parseInt(digits.charAt(i), 10) * weights[i];
+      }
+      const mod = sum % 11;
+      return mod < 2 ? 0 : 11 - mod;
+    };
+
+    const dig1 = calc(12);
+    const dig2 = calc(13);
+    if (dig1 !== parseInt(digits.charAt(12), 10) || dig2 !== parseInt(digits.charAt(13), 10)) {
+      return { cnpj: true };
     }
     return null;
   }

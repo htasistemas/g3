@@ -10,4 +10,6 @@ public interface RecebimentoDoacaoRepository {
   List<RecebimentoDoacao> listar();
 
   Optional<RecebimentoDoacao> buscarPorId(Long id);
+
+  void remover(RecebimentoDoacao recebimento);
 }

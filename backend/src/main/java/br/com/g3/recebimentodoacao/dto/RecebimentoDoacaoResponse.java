@@ -9,6 +9,9 @@ public class RecebimentoDoacaoResponse {
   private String doadorNome;
   private String tipoDoacao;
   private String descricao;
+  private Integer quantidadeItens;
+  private BigDecimal valorMedio;
+  private BigDecimal valorTotal;
   private BigDecimal valor;
   private LocalDate dataRecebimento;
   private String formaRecebimento;
@@ -57,6 +60,30 @@ public class RecebimentoDoacaoResponse {
 
   public void setDescricao(String descricao) {
     this.descricao = descricao;
+  }
+
+  public Integer getQuantidadeItens() {
+    return quantidadeItens;
+  }
+
+  public void setQuantidadeItens(Integer quantidadeItens) {
+    this.quantidadeItens = quantidadeItens;
+  }
+
+  public BigDecimal getValorMedio() {
+    return valorMedio;
+  }
+
+  public void setValorMedio(BigDecimal valorMedio) {
+    this.valorMedio = valorMedio;
+  }
+
+  public BigDecimal getValorTotal() {
+    return valorTotal;
+  }
+
+  public void setValorTotal(BigDecimal valorTotal) {
+    this.valorTotal = valorTotal;
   }
 
   public BigDecimal getValor() {

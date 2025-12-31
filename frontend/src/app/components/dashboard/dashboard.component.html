@@ -19,12 +19,14 @@
   <ng-container *ngIf="!loading && cadastros; else loadingState">
     <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 mt-4" *ngIf="financeiro">
       <div class="stat-card stat-card--center" *ngFor="let card of [
-          { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald' },
-          { label: 'Valores em caixa', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo' },
-          { label: 'Valores em banco', value: financeiro.valoresEmBanco, icon: 'account_balance', hint: 'Saldo em contas nao correntes.', tone: 'stat-card--sky' }
+          { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald', route: 'financeiro/contabilidade' },
+          { label: 'Valores em bancos', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo', route: 'financeiro/contabilidade' },
+          { label: 'A pagar (30 dias)', value: financeiro.valoresEmBanco, icon: 'account_balance', hint: 'Saldo em contas nao correntes.', tone: 'stat-card--sky', route: 'financeiro/contabilidade' }
         ]" [ngClass]="card.tone">
         <div class="stat-card__icon">
-          <span class="material-icons">{{ card.icon }}</span>
+          <button type="button" class="stat-card__icon-button" (click)="navegarPara(card.route)" [attr.aria-label]="card.label">
+            <span class="material-icons">{{ card.icon }}</span>
+          </button>
         </div>
         <div>
           <p class="stat-card__label">{{ card.label }}</p>
@@ -36,13 +38,15 @@
 
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
       <div class="stat-card stat-card--center" *ngFor="let card of [
-          { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald' },
-          { label: 'Profissionais cadastrados', value: cadastros.profissionais, icon: 'badge', hint: 'Equipe tecnica ativa no cadastro.', tone: 'stat-card--indigo' },
-          { label: 'Voluntarios cadastrados', value: cadastros.voluntarios, icon: 'volunteer_activism', hint: 'Apoio voluntario cadastrado.', tone: 'stat-card--amber' },
-          { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose' }
+          { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald', route: 'cadastros/beneficiarios' },
+          { label: 'Profissionais cadastrados', value: cadastros.profissionais, icon: 'badge', hint: 'Equipe tecnica ativa no cadastro.', tone: 'stat-card--indigo', route: 'cadastros/profissionais' },
+          { label: 'Voluntarios cadastrados', value: cadastros.voluntarios, icon: 'volunteer_activism', hint: 'Apoio voluntario cadastrado.', tone: 'stat-card--amber', route: 'cadastros/voluntariados' },
+          { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose', route: 'cadastros/vinculo-familiar' }
         ]" [ngClass]="card.tone">
         <div class="stat-card__icon">
-          <span class="material-icons">{{ card.icon }}</span>
+          <button type="button" class="stat-card__icon-button" (click)="navegarPara(card.route)" [attr.aria-label]="card.label">
+            <span class="material-icons">{{ card.icon }}</span>
+          </button>
         </div>
         <div>
           <p class="stat-card__label">{{ card.label }}</p>
@@ -54,13 +58,15 @@
 
     <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2 mt-4">
       <div class="stat-card stat-card--center" *ngFor="let card of [
-          { label: 'Doacoes realizadas', value: doacoesRealizadas, icon: 'inventory_2', hint: 'Entregas registradas no periodo.', tone: 'stat-card--emerald' },
-          { label: 'Empregos abertos', value: empregosAbertos, icon: 'work_outline', hint: 'Vagas disponiveis para encaminhar.', tone: 'stat-card--sky' },
-          { label: 'Cursos com vagas', value: cursosComVagas, icon: 'school', hint: 'Turmas com vagas abertas.', tone: 'stat-card--indigo' },
-          { label: 'Itens no almoxarifado', value: itensAlmoxarifado, icon: 'inventory', hint: 'Produtos cadastrados em estoque.', tone: 'stat-card--amber' }
+          { label: 'Doacoes realizadas', value: doacoesRealizadas, icon: 'inventory_2', hint: 'Entregas registradas no periodo.', tone: 'stat-card--emerald', route: 'atendimentos/doacoes' },
+          { label: 'Empregos abertos', value: empregosAbertos, icon: 'work_outline', hint: 'Vagas disponiveis para encaminhar.', tone: 'stat-card--sky', route: 'atendimentos/banco-empregos' },
+          { label: 'Cursos com vagas', value: cursosComVagas, icon: 'school', hint: 'Turmas com vagas abertas.', tone: 'stat-card--indigo', route: 'atendimentos/cursos' },
+          { label: 'Itens no almoxarifado', value: itensAlmoxarifado, icon: 'inventory', hint: 'Produtos cadastrados em estoque.', tone: 'stat-card--amber', route: 'administrativo/almoxarifado' }
         ]" [ngClass]="card.tone">
         <div class="stat-card__icon">
-          <span class="material-icons">{{ card.icon }}</span>
+          <button type="button" class="stat-card__icon-button" (click)="navegarPara(card.route)" [attr.aria-label]="card.label">
+            <span class="material-icons">{{ card.icon }}</span>
+          </button>
         </div>
         <div>
           <p class="stat-card__label">{{ card.label }}</p>

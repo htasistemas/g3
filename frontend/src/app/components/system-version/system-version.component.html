@@ -1,8 +1,8 @@
 <div class="version-page">
   <header class="version-header">
-    <div>
-      <p class="eyebrow">Configuração do Sistema</p>
-      <h1>Versão do sistema</h1>
+    <div class="page-title">
+      <p class="page-title__eyebrow">Configurações gerais</p>
+      <p class="page-title__label">Versão do sistema</p>
       <p class="subtitle">Acompanhe a versão atual e o histórico das últimas entregas.</p>
     </div>
     <div class="version-chip">
@@ -20,20 +20,20 @@
       </div>
       <div class="card__meta">
         <p class="meta-label">Identificador técnico</p>
-        <p class="meta-value">{{ currentVersion }}</p>
+        <p class="meta-value">{{ formattedVersion }}</p>
       </div>
     </div>
 
-    <div class="release-grid">
-      <article class="release" *ngFor="let note of releaseNotes">
-        <div class="release__header">
-          <div>
-            <p class="release__label">Versão</p>
-            <h3>{{ note.version }}</h3>
-          </div>
-          <span class="release__date">{{ note.date }}</span>
-        </div>
-        <ul>
+    <div class="release-list">
+      <div class="release-list__header">
+        <span>Versão</span>
+        <span>Data/Hora</span>
+        <span>Resumo</span>
+      </div>
+      <article class="release-row" *ngFor="let note of releaseNotes">
+        <span class="release-row__version">{{ note.version }}</span>
+        <span class="release-row__date">{{ note.date }}</span>
+        <ul class="release-row__highlights">
           <li *ngFor="let highlight of note.highlights">{{ highlight }}</li>
         </ul>
       </article>

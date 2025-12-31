@@ -227,8 +227,83 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.field-grid.doador-grid {
+  grid-template-columns: 0.9fr 1.6fr 1fr;
+  grid-template-areas:
+    "tipo nome documento"
+    "email email telefone"
+    "observacoes observacoes observacoes";
+}
+
+.field--tipo-pessoa {
+  grid-area: tipo;
+}
+
+.field--nome {
+  grid-area: nome;
+}
+
+.field--documento {
+  grid-area: documento;
+}
+
+.field--responsavel-empresa {
+  grid-area: responsavel;
+}
+
+.field--email {
+  grid-area: email;
+}
+
+.field--telefone {
+  grid-area: telefone;
+}
+
+.field--observacoes {
+  grid-area: observacoes;
+}
+
+.field-grid.doador-grid.doador-grid--juridica {
+  grid-template-areas:
+    "tipo nome documento"
+    "responsavel email email"
+    "telefone email email"
+    "observacoes observacoes observacoes";
+}
+
+@media (max-width: 900px) {
+  .field-grid.doador-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-areas: none;
+  }
+
+  .field--tipo-pessoa,
+  .field--nome,
+  .field--documento,
+  .field--responsavel-empresa,
+  .field--email,
+  .field--telefone,
+  .field--observacoes {
+    grid-area: auto;
+  }
+}
+
 .field-grid.cols-3 {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.field-grid.doacao-grid {
+  grid-template-columns: minmax(320px, 1.4fr) minmax(200px, 1fr) minmax(200px, 1fr);
+}
+
+.field--doador {
+  grid-column: 1;
+}
+
+@media (max-width: 900px) {
+  .field-grid.doacao-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
 }
 
 .field.full,
@@ -262,6 +337,11 @@
   align-items: center;
   gap: 0.35rem;
   cursor: pointer;
+}
+
+.ghost.danger {
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 .primary {

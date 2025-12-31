@@ -15,4 +15,8 @@ public interface RecebimentoDoacaoService {
   RecebimentoDoacaoResponse criarRecebimento(RecebimentoDoacaoRequest request);
 
   RecebimentoDoacaoListaResponse listarRecebimentos();
+
+  RecebimentoDoacaoResponse atualizarRecebimento(Long id, RecebimentoDoacaoRequest request);
+
+  void excluirRecebimento(Long id);
 }

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { Router, RouterModule } from '@angular/router';
 import {
   DashboardAssistenciaResponse,
   DashboardAssistenciaService,
@@ -17,7 +18,7 @@ import { BancoEmpregosService } from '../../services/banco-empregos.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -35,7 +36,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private readonly doacaoService: DoacaoRealizadaService,
     private readonly almoxarifadoService: AlmoxarifadoService,
     private readonly cursosService: CursosAtendimentosService,
-    private readonly empregosService: BancoEmpregosService
+    private readonly empregosService: BancoEmpregosService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -116,6 +118,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   refresh() {
     this.dashboardService.fetch();
     this.carregarMetricasExtras();
+  }
+
+  navegarPara(rota?: string): void {
+    if (!rota) return;
+    this.router.navigate([rota]);
   }
 
   private startLiveUpdates() {

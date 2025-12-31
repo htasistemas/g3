@@ -5,6 +5,7 @@ public class DoadorResponse {
   private String nome;
   private String tipoPessoa;
   private String documento;
+  private String responsavelEmpresa;
   private String email;
   private String telefone;
   private String observacoes;
@@ -39,6 +40,14 @@ public class DoadorResponse {
 
   public void setDocumento(String documento) {
     this.documento = documento;
+  }
+
+  public String getResponsavelEmpresa() {
+    return responsavelEmpresa;
+  }
+
+  public void setResponsavelEmpresa(String responsavelEmpresa) {
+    this.responsavelEmpresa = responsavelEmpresa;
   }
 
   public String getEmail() {

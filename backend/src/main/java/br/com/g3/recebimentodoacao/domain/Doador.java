@@ -24,6 +24,9 @@ public class Doador {
   @Column(name = "documento", length = 30)
   private String documento;
 
+  @Column(name = "responsavel_empresa", length = 200)
+  private String responsavelEmpresa;
+
   @Column(name = "email", length = 150)
   private String email;
 
@@ -69,6 +72,14 @@ public class Doador {
 
   public void setDocumento(String documento) {
     this.documento = documento;
+  }
+
+  public String getResponsavelEmpresa() {
+    return responsavelEmpresa;
+  }
+
+  public void setResponsavelEmpresa(String responsavelEmpresa) {
+    this.responsavelEmpresa = responsavelEmpresa;
   }
 
   public String getEmail() {

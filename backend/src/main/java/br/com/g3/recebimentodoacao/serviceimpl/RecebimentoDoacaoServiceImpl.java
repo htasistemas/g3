@@ -72,9 +72,34 @@ public class RecebimentoDoacaoServiceImpl implements RecebimentoDoacaoService {
   @Transactional(readOnly = true)
   public RecebimentoDoacaoListaResponse listarRecebimentos() {
     List<RecebimentoDoacaoResponse> responses = new ArrayList<RecebimentoDoacaoResponse>();
-    for (RecebimentoDoacao recebimento : recebimentoRepository.listar()) {
+    for (RecebimentoDoacao recebimento : recebimentoRepository.listar()) {      
       responses.add(mapper.toRecebimentoResponse(recebimento));
     }
     return new RecebimentoDoacaoListaResponse(responses);
+  }
+
+  @Override
+  @Transactional
+  public RecebimentoDoacaoResponse atualizarRecebimento(Long id, RecebimentoDoacaoRequest request) {
+    RecebimentoDoacao recebimento =
+        recebimentoRepository.buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Recebimento nao encontrado"));
+    mapper.applyRecebimento(recebimento, request);
+    if (request.getDoadorId() != null) {
+      Optional<Doador> doador = doadorRepository.buscarPorId(request.getDoadorId());
+      doador.ifPresent(recebimento::setDoador);
+    }
+    recebimento.setAtualizadoEm(LocalDateTime.now());
+    recebimento.setContabilidadePendente("RECEBIDA".equalsIgnoreCase(request.getStatus()));
+    return mapper.toRecebimentoResponse(recebimentoRepository.salvar(recebimento));
+  }
+
+  @Override
+  @Transactional
+  public void excluirRecebimento(Long id) {
+    RecebimentoDoacao recebimento =
+        recebimentoRepository.buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Recebimento nao encontrado"));
+    recebimentoRepository.remover(recebimento);
   }
 }

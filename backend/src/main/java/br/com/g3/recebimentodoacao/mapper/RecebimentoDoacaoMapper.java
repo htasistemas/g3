@@ -13,6 +13,7 @@ public class RecebimentoDoacaoMapper {
     doador.setNome(request.getNome());
     doador.setTipoPessoa(request.getTipoPessoa());
     doador.setDocumento(request.getDocumento());
+    doador.setResponsavelEmpresa(request.getResponsavelEmpresa());
     doador.setEmail(request.getEmail());
     doador.setTelefone(request.getTelefone());
     doador.setObservacoes(request.getObservacoes());
@@ -25,6 +26,7 @@ public class RecebimentoDoacaoMapper {
     response.setNome(doador.getNome());
     response.setTipoPessoa(doador.getTipoPessoa());
     response.setDocumento(doador.getDocumento());
+    response.setResponsavelEmpresa(doador.getResponsavelEmpresa());
     response.setEmail(doador.getEmail());
     response.setTelefone(doador.getTelefone());
     response.setObservacoes(doador.getObservacoes());
@@ -34,6 +36,9 @@ public class RecebimentoDoacaoMapper {
   public void applyRecebimento(RecebimentoDoacao recebimento, RecebimentoDoacaoRequest request) {
     recebimento.setTipoDoacao(request.getTipoDoacao());
     recebimento.setDescricao(request.getDescricao());
+    recebimento.setQuantidadeItens(request.getQuantidadeItens());
+    recebimento.setValorMedio(request.getValorMedio());
+    recebimento.setValorTotal(request.getValorTotal());
     recebimento.setValor(request.getValor());
     recebimento.setDataRecebimento(request.getDataRecebimento());
     recebimento.setFormaRecebimento(request.getFormaRecebimento());
@@ -53,6 +58,9 @@ public class RecebimentoDoacaoMapper {
     }
     response.setTipoDoacao(recebimento.getTipoDoacao());
     response.setDescricao(recebimento.getDescricao());
+    response.setQuantidadeItens(recebimento.getQuantidadeItens());
+    response.setValorMedio(recebimento.getValorMedio());
+    response.setValorTotal(recebimento.getValorTotal());
     response.setValor(recebimento.getValor());
     response.setDataRecebimento(recebimento.getDataRecebimento());
     response.setFormaRecebimento(recebimento.getFormaRecebimento());

@@ -30,6 +30,15 @@ public class RecebimentoDoacao {
   @Column(name = "descricao")
   private String descricao;
 
+  @Column(name = "quantidade_itens")
+  private Integer quantidadeItens;
+
+  @Column(name = "valor_medio", precision = 12, scale = 2)
+  private BigDecimal valorMedio;
+
+  @Column(name = "valor_total", precision = 12, scale = 2)
+  private BigDecimal valorTotal;
+
   @Column(name = "valor", precision = 12, scale = 2)
   private BigDecimal valor;
 
@@ -93,6 +102,30 @@ public class RecebimentoDoacao {
 
   public void setDescricao(String descricao) {
     this.descricao = descricao;
+  }
+
+  public Integer getQuantidadeItens() {
+    return quantidadeItens;
+  }
+
+  public void setQuantidadeItens(Integer quantidadeItens) {
+    this.quantidadeItens = quantidadeItens;
+  }
+
+  public BigDecimal getValorMedio() {
+    return valorMedio;
+  }
+
+  public void setValorMedio(BigDecimal valorMedio) {
+    this.valorMedio = valorMedio;
+  }
+
+  public BigDecimal getValorTotal() {
+    return valorTotal;
+  }
+
+  public void setValorTotal(BigDecimal valorTotal) {
+    this.valorTotal = valorTotal;
   }
 
   public BigDecimal getValor() {

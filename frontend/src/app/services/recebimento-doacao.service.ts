@@ -8,6 +8,7 @@ export interface DoadorRequest {
   nome: string;
   tipoPessoa?: string;
   documento?: string;
+  responsavelEmpresa?: string;
   email?: string;
   telefone?: string;
   observacoes?: string;
@@ -21,6 +22,9 @@ export interface RecebimentoDoacaoRequest {
   doadorId?: number;
   tipoDoacao: string;
   descricao?: string;
+  quantidadeItens?: number;
+  valorMedio?: number;
+  valorTotal?: number;
   valor?: number;
   dataRecebimento: string;
   formaRecebimento?: string;
@@ -59,5 +63,16 @@ export class RecebimentoDoacaoService {
 
   criarRecebimento(payload: RecebimentoDoacaoRequest): Observable<RecebimentoDoacaoResponse> {
     return this.http.post<RecebimentoDoacaoResponse>(this.baseUrl, payload);
+  }
+
+  atualizarRecebimento(
+    id: number,
+    payload: RecebimentoDoacaoRequest
+  ): Observable<RecebimentoDoacaoResponse> {
+    return this.http.put<RecebimentoDoacaoResponse>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  excluirRecebimento(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

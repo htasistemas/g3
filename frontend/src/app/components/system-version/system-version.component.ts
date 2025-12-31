@@ -21,16 +21,23 @@ export class SystemVersionComponent {
   readonly releaseNotes: ReleaseNote[] = [
     {
       version: this.formattedVersion,
-      date: 'Última atualização',
+      date: new Date().toLocaleString('pt-BR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
       highlights: [
-        'Ajustes visuais na navegação do cadastro de beneficiários',
-        'Padronização automática de texto durante o preenchimento dos formulários',
-        'Cálculo instantâneo de idade a partir da data de nascimento'
+        'Ajustes na gestão patrimonial (listagem em grid e validações em tempo real)',
+        'Melhorias no recebimento de doações (cadastro de doador e itens doados)',
+        'Atualizações no dashboard assistencial com cards clicáveis'
       ]
     },
     {
-      version: '1.004',
-      date: '15/04/2024',
+      version: '1.003',
+      date: '15/04/2024, 10:00:00',
       highlights: [
         'Melhorias de desempenho no carregamento das listas',
         'Otimizações gerais na experiência de cadastro'

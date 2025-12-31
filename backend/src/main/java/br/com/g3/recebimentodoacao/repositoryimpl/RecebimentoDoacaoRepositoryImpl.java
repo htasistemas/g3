@@ -28,4 +28,9 @@ public class RecebimentoDoacaoRepositoryImpl implements RecebimentoDoacaoReposit
   public Optional<RecebimentoDoacao> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }
+
+  @Override
+  public void remover(RecebimentoDoacao recebimento) {
+    jpaRepository.delete(recebimento);
+  }
 }

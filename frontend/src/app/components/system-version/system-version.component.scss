@@ -24,6 +24,23 @@
   color: #0f172a;
 }
 
+.page-title__eyebrow {
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.page-title__label {
+  margin: 0.15rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #0f172a;
+}
+
 .subtitle {
   margin: 0;
   color: #475569;
@@ -98,56 +115,71 @@
   font-size: 1.1rem;
 }
 
-.release-grid {
+.release-list {
   margin-top: 1rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.release {
+.release-list__header,
+.release-row {
+  display: grid;
+  grid-template-columns: 0.7fr 1.2fr 2.1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.release-list__header {
+  background: #f1f5f9;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.release-row {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
   background: #f8fafc;
 }
 
-.release__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.release__label {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.7rem;
-  color: #0ea5e9;
-  font-weight: 700;
-}
-
-.release__date {
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 0.25rem 0.65rem;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.release h3 {
-  margin: 0.25rem 0;
+.release-row__version {
+  font-weight: 800;
   color: #0f172a;
 }
 
-.release ul {
-  margin: 0.35rem 0 0;
-  padding-left: 1.1rem;
+.release-row__date {
+  text-align: center;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.release-row__highlights {
+  margin: 0;
+  padding-left: 1rem;
   color: #334155;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.2rem;
   font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .release-list__header {
+    display: none;
+  }
+
+  .release-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .release-row__highlights {
+    padding-left: 1.1rem;
+  }
 }
