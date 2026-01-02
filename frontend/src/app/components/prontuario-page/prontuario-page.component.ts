@@ -67,10 +67,14 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     { id: 'procedimentos', label: 'Procedimentos', tipo: 'procedimento' },
     { id: 'evolucoes', label: 'Evoluções', tipo: 'evolucao' },
     { id: 'encaminhamentos', label: 'Encaminhamentos', tipo: 'encaminhamento' },
-    { id: 'documentos', label: 'Documentos/Anexos', tipo: '' },
+    { id: 'documentos', label: 'Documentos/Anexos', tipo: 'documento' },
     { id: 'indicadores', label: 'Indicadores', tipo: '' }
   ];
   abaAtiva = 'linha';
+
+  get abaAtivaIndex(): number {
+    return this.abas.findIndex((aba) => aba.id === this.abaAtiva);
+  }
 
   private buscarBeneficiario$ = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -152,7 +156,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
       this.atualizarFiltros({ ...this.filtros, tipo: '' });
       return;
     }
-    if (id === 'documentos' || id === 'indicadores') {
+    if (id === 'indicadores') {
       return;
     }
     this.atualizarFiltros({ ...this.filtros, tipo });
@@ -160,7 +164,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
 
   abrirNovoRegistro(tipo?: ProntuarioRegistroRequest['tipo']): void {
     this.registroEmEdicao = null;
-    this.tipoNovoRegistro = tipo ?? null;
+    this.tipoNovoRegistro = tipo ?? this.obterTipoPorAba();
     this.modalAberto = true;
   }
 
@@ -251,6 +255,11 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
 
   cancelarSelecao(): void {
     this.router.navigate(['/atendimentos/prontuario']);
+  }
+
+  private obterTipoPorAba(): ProntuarioRegistroRequest['tipo'] | null {
+    const aba = this.abas.find((item) => item.id === this.abaAtiva);
+    return (aba?.tipo as ProntuarioRegistroRequest['tipo']) || 'atendimento';
   }
 
   private carregarResumo(): void {

@@ -1,6 +1,7 @@
 package br.com.g3.cadastrobeneficiario.controller;
 
 import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
+import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioConsultaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioListaResponse;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -98,6 +100,12 @@ public class CadastroBeneficiarioController {
   public CadastroBeneficiarioConsultaResponse geocodificarEndereco(
       @PathVariable("id") Long id, @RequestParam(name = "forcar", defaultValue = "false") boolean forcar) {
     CadastroBeneficiarioResponse response = service.geocodificarEndereco(id, forcar);
+    return new CadastroBeneficiarioConsultaResponse(response);
+  }
+  @PatchMapping("/{id}/aptidao-cesta-basica")
+  public CadastroBeneficiarioConsultaResponse atualizarAptidaoCestaBasica(
+      @PathVariable("id") Long id, @RequestBody AptidaoCestaBasicaRequest request) {
+    CadastroBeneficiarioResponse response = service.atualizarAptidaoCestaBasica(id, request);
     return new CadastroBeneficiarioConsultaResponse(response);
   }
 }

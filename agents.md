@@ -164,6 +164,25 @@ app:
 - Usar relacionamento por FK nas tabelas.
 - Quando for solicitado "colocar no banco", sempre atualizar o `init.db` e criar/ajustar toda a infra Java necessaria (Domain, DTO, Repository, Service, Controller) para persistir e retornar os campos.
 
+### Prontuario do beneficiario
+- Tabelas:
+  - `prontuario_registros` (registro principal do prontuario).
+  - `prontuario_anexos` (anexos vinculados ao registro).
+- Campos reaproveitados (equivalentes):
+  - `data_registro` = data do evento do prontuario.
+  - `dados_extra` (JSONB) = campos especificos por tipo (atendimento, procedimento, evolucao, encaminhamento, documento).
+- Campos novos adicionados em `prontuario_registros` (quando inexistentes):
+  - `familia_id` (FK para `vinculo_familiar`).
+  - `referencia_origem_tipo` e `referencia_origem_id` (referencias externas, ex.: visita domiciliar).
+  - `nivel_sigilo` (controle de sigilo do registro).
+- Relacionamentos:
+  - `prontuario_anexos.registro_id` -> `prontuario_registros.id` (ON DELETE CASCADE).
+  - `prontuario_registros.beneficiario_id` -> `cadastro_beneficiario.id`.
+  - `prontuario_registros.familia_id` -> `vinculo_familiar.id` (quando informado).
+- Fluxo real de dados:
+  - Cada registro do prontuario e salvo via API, com tipo e campos especificos em `dados_extra`.
+  - Mudancas de status e novas interacoes sempre geram um novo registro.
+  - A aba de documentos salva o anexo em `prontuario_anexos` vinculado ao registro correspondente.
 
 ## Testes
 - Criar ou atualizar testes sempre que alterar comportamento.

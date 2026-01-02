@@ -8,6 +8,7 @@ import br.com.g3.autenticacao.dto.RedefinirSenhaRequest;
 import br.com.g3.autenticacao.service.AutenticacaoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,12 +32,12 @@ public class AutenticacaoController {
     autenticacaoService.cadastrarConta(request);
   }
 
-  @PostMapping("/recuperar-senha")
+  @RequestMapping(path = "/recuperar-senha", method = {RequestMethod.POST, RequestMethod.PUT})
   public void recuperarSenha(@Valid @RequestBody RecuperarSenhaRequest request) {
     autenticacaoService.solicitarRecuperacaoSenha(request);
   }
 
-  @PostMapping("/redefinir-senha")
+  @RequestMapping(path = "/redefinir-senha", method = {RequestMethod.POST, RequestMethod.PUT})
   public void redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest request) {
     autenticacaoService.redefinirSenha(request);
   }

@@ -16,6 +16,13 @@ public class RecebimentoDoacaoMapper {
     doador.setResponsavelEmpresa(request.getResponsavelEmpresa());
     doador.setEmail(request.getEmail());
     doador.setTelefone(request.getTelefone());
+    doador.setLogradouro(request.getLogradouro());
+    doador.setNumero(request.getNumero());
+    doador.setComplemento(request.getComplemento());
+    doador.setBairro(request.getBairro());
+    doador.setCidade(request.getCidade());
+    doador.setUf(request.getUf());
+    doador.setCep(request.getCep());
     doador.setObservacoes(request.getObservacoes());
     return doador;
   }
@@ -29,6 +36,13 @@ public class RecebimentoDoacaoMapper {
     response.setResponsavelEmpresa(doador.getResponsavelEmpresa());
     response.setEmail(doador.getEmail());
     response.setTelefone(doador.getTelefone());
+    response.setLogradouro(doador.getLogradouro());
+    response.setNumero(doador.getNumero());
+    response.setComplemento(doador.getComplemento());
+    response.setBairro(doador.getBairro());
+    response.setCidade(doador.getCidade());
+    response.setUf(doador.getUf());
+    response.setCep(doador.getCep());
     response.setObservacoes(doador.getObservacoes());
     return response;
   }

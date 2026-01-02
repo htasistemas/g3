@@ -1,7 +1,20 @@
-<app-tela-padrao>
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Atendimento</p>
-    <p class="page-title__label">Doa&ccedil;&atilde;o realizada</p>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="onSalvar()"
+  (excluir)="onExcluir()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
+>
+<header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">Atendimento</p>
+      <p class="page-title__label">Doa&ccedil;&atilde;o realizada</p>
+    </div>
+    <p class="page-title__note">Doa&ccedil;&atilde;o realizada ao benefici&aacute;rio</p>
   </header>
 
   <div class="cadastro">
@@ -46,7 +59,39 @@
           Identificacao do atendimento
         </p>
       </div>
-      <span class="pill">Fluxo ativo</span>
+      <div class="tab-card__status" *ngIf="selectedBeneficiary() as beneficiary">
+        <p
+          class="aptidao-status"
+          [class.aptidao-status--ok]="beneficiary.aptoReceberCestaBasica === true"
+          [class.aptidao-status--alert]="beneficiary.aptoReceberCestaBasica === false"
+        >
+          {{ formatarAptidaoDoacao(beneficiary) }}
+        </p>
+        <button
+          type="button"
+          class="motivo-toggle"
+          *ngIf="beneficiary.aptoReceberCestaBasica === false && motivoCestaBasica()"
+          (click)="alternarMotivoCestaBasica()"
+        >
+          Motivo
+        </button>
+      </div>
+    </div>
+    <div class="modal-backdrop" *ngIf="mostrarMotivoCestaBasica()">
+      <div class="modal">
+        <div class="modal__header">
+          <h3 class="modal__title modal__title--alert">Não Apto para Receber Doações</h3>
+          <button type="button" class="ghost" (click)="alternarMotivoCestaBasica()" aria-label="Fechar">
+            &times;
+          </button>
+        </div>
+        <div class="modal__content">
+          <p class="motivo-texto">{{ motivoCestaBasica() || 'Motivo não informado.' }}</p>
+        </div>
+        <div class="modal__actions">
+          <button type="button" class="ghost" (click)="alternarMotivoCestaBasica()">Fechar</button>
+        </div>
+      </div>
     </div>
 
     <div class="tab-card__hero">
@@ -102,14 +147,18 @@
               <img *ngIf="beneficiary.photoUrl" [src]="beneficiary.photoUrl" alt="Foto do beneficiário" />
               <span *ngIf="!beneficiary.photoUrl">{{ getInitials(beneficiary.name) }}</span>
             </div>
-            <div>
-              <p class="eyebrow">Beneficiário selecionado</p>
-              <p class="strong"><span class="info-label">Nome:</span> <span class="info-value">{{ beneficiary.name }}</span></p>
-            </div>
+          <div>
+            <p class="eyebrow">Beneficiário selecionado</p>
+            <p class="strong"><span class="info-label">Nome:</span> <span class="info-value">{{ beneficiary.name }}</span></p>
           </div>
-          <p class="muted">
-            <span class="info-label">Idade:</span>
-            {{
+        </div>
+        <p class="muted">
+          <span class="info-label">Aptidão para doações:</span>
+          <span class="info-value">{{ formatarAptidaoDoacao(beneficiary) }}</span>
+        </p>
+        <p class="muted">
+          <span class="info-label">Idade:</span>
+          {{
               beneficiary.age !== null && beneficiary.age !== undefined
                 ? (beneficiary.age + ' anos')
                 : 'Não informado'

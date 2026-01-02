@@ -49,6 +49,8 @@ public class CadastroBeneficiarioMapper {
     cadastro.setNomeMae(request.getNomeMae());
     cadastro.setNomePai(request.getNomePai());
     cadastro.setStatus(normalizarStatus(request.getStatus()));
+    cadastro.setOptaReceberCestaBasica(request.getOptaReceberCestaBasica());
+    cadastro.setAptoReceberCestaBasica(request.getAptoReceberCestaBasica());
     LocalDateTime agora = LocalDateTime.now();
     cadastro.setCriadoEm(agora);
     cadastro.setAtualizadoEm(agora);
@@ -80,6 +82,8 @@ public class CadastroBeneficiarioMapper {
     cadastro.setNomeMae(request.getNomeMae());
     cadastro.setNomePai(request.getNomePai());
     cadastro.setStatus(normalizarStatus(request.getStatus()));
+    cadastro.setOptaReceberCestaBasica(request.getOptaReceberCestaBasica());
+    cadastro.setAptoReceberCestaBasica(request.getAptoReceberCestaBasica());
     LocalDateTime agora = LocalDateTime.now();
     cadastro.setAtualizadoEm(agora);
     aplicarEndereco(cadastro, request);
@@ -153,6 +157,8 @@ public class CadastroBeneficiarioMapper {
         cadastro.getNomeMae(),
         cadastro.getNomePai(),
         cadastro.getStatus(),
+        cadastro.getOptaReceberCestaBasica(),
+        cadastro.getAptoReceberCestaBasica(),
         endereco != null ? endereco.getCep() : null,
         endereco != null ? endereco.getLogradouro() : null,
         endereco != null ? endereco.getNumero() : null,

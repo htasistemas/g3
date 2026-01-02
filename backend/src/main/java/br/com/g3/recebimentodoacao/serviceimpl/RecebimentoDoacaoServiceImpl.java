@@ -52,6 +52,16 @@ public class RecebimentoDoacaoServiceImpl implements RecebimentoDoacaoService {
 
   @Override
   @Transactional
+  public void excluirDoador(Long id) {
+    Doador doador =
+        doadorRepository
+            .buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Doador nao encontrado"));
+    doadorRepository.remover(doador);
+  }
+
+  @Override
+  @Transactional
   public RecebimentoDoacaoResponse criarRecebimento(RecebimentoDoacaoRequest request) {
     RecebimentoDoacao recebimento = new RecebimentoDoacao();
     mapper.applyRecebimento(recebimento, request);

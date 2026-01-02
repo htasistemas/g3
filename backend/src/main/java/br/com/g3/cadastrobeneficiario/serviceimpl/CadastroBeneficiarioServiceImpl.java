@@ -2,6 +2,7 @@ package br.com.g3.cadastrobeneficiario.serviceimpl;
 
 import br.com.g3.cadastrobeneficiario.domain.CadastroBeneficiario;
 import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
+import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
 import br.com.g3.cadastrobeneficiario.dto.DocumentoUploadRequest;
@@ -129,6 +130,24 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
           HttpStatus.BAD_REQUEST, "Nao foi possivel geocodificar o endereco informado.");
     }
     return CadastroBeneficiarioMapper.toResponse(atualizado);
+  }
+
+  @Override
+  public CadastroBeneficiarioResponse atualizarAptidaoCestaBasica(
+      Long id, AptidaoCestaBasicaRequest request) {
+    CadastroBeneficiario cadastro =
+        repository
+            .buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Beneficiario nao encontrado."));
+
+    Boolean opta = request.getOptaReceberCestaBasica();
+    Boolean apto = request.getAptoReceberCestaBasica();
+
+    cadastro.setOptaReceberCestaBasica(opta);
+    cadastro.setAptoReceberCestaBasica(Boolean.FALSE.equals(opta) ? null : apto);
+
+    CadastroBeneficiario salvo = repository.salvar(cadastro);
+    return CadastroBeneficiarioMapper.toResponse(salvo);
   }
 
   private void adicionarDocumentosUpload(CadastroBeneficiario cadastro, CadastroBeneficiarioCriacaoRequest request) {

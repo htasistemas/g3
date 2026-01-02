@@ -101,6 +101,8 @@ export interface BeneficiarioApiPayload {
   aceite_lgpd?: boolean;
   data_aceite_lgpd?: string;
   observacoes?: string;
+  opta_receber_cesta_basica?: boolean;
+  apto_receber_cesta_basica?: boolean;
   documentosObrigatorios?: DocumentoObrigatorio[];
   documentos_obrigatorios?: DocumentoObrigatorio[];
   composicao_familiar?: string;

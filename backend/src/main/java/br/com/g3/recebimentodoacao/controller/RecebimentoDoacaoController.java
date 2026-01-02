@@ -57,4 +57,10 @@ public class RecebimentoDoacaoController {
   public ResponseEntity<List<DoadorResponse>> listarDoadores() {
     return ResponseEntity.ok(service.listarDoadores());
   }
+
+  @DeleteMapping("/doadores/{id}")
+  public ResponseEntity<Void> excluirDoador(@PathVariable("id") Long id) {
+    service.excluirDoador(id);
+    return ResponseEntity.noContent().build();
+  }
 }

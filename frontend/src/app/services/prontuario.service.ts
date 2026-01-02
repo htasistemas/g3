@@ -8,13 +8,15 @@ export type ProntuarioTipoRegistro =
   | 'procedimento'
   | 'evolucao'
   | 'encaminhamento'
-  | 'visita_domiciliar'
+  | 'documento'
+  | 'visita_ref'
   | 'outro';
 
 export interface BeneficiarioResumo {
   id: number;
   nomeCompleto: string;
   cpf?: string;
+  nis?: string;
   dataNascimento?: string;
   nomeMae?: string;
   whatsapp?: string;
@@ -23,11 +25,24 @@ export interface BeneficiarioResumo {
   status?: string;
   foto3x4?: string;
   vulnerabilidades?: string[];
+  familiaReferencia?: string;
+}
+
+export interface ProntuarioIndicadoresResponse {
+  totalAtendimentos: number;
+  totalEncaminhamentos: number;
+  taxaEncaminhamentosConcluidos: number;
+  tempoMedioRetornoDias?: number | null;
+  ultimoContato?: string | null;
+  pendenciasAbertas: number;
+  classificacaoRiscoAtual?: string | null;
+  statusAcompanhamento?: string | null;
 }
 
 export interface ProntuarioResumoResponse {
   beneficiario: BeneficiarioResumo;
   contagens: Record<string, number>;
+  indicadores?: ProntuarioIndicadoresResponse;
   ultimaAtualizacao?: string;
 }
 
@@ -36,10 +51,14 @@ export interface ProntuarioRegistroRequest {
   dataRegistro: string;
   profissionalId?: number | null;
   unidadeId?: number | null;
+  familiaId?: number | null;
   titulo?: string;
   descricao: string;
   dadosExtra?: Record<string, unknown>;
   status: 'aberto' | 'concluido' | 'cancelado';
+  referenciaOrigemTipo?: string;
+  referenciaOrigemId?: number | null;
+  nivelSigilo?: string;
 }
 
 export interface ProntuarioRegistroResponse extends ProntuarioRegistroRequest {

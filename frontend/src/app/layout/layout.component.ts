@@ -110,7 +110,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
         { label: 'Documentos da Instituicao', icon: faClipboardList, route: '/administrativo/documentos' },
         { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
         { label: 'Patrimonio', icon: faClipboardList, route: '/administrativo/patrimonio' },
-        { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' }
+        { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' },
+        { label: 'Fotos e Eventos', icon: faClipboardList, route: '/administrativo/fotos-eventos' }
       ]
     },
     {

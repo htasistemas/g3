@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService, HistoricoVersaoResponse } from '../../services/config.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subject, filter, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-system-version',
@@ -9,7 +11,7 @@ import { ConfigService, HistoricoVersaoResponse } from '../../services/config.se
   templateUrl: './system-version.component.html',
   styleUrl: './system-version.component.scss'
 })
-export class SystemVersionComponent implements OnInit {
+export class SystemVersionComponent implements OnInit, OnDestroy {
   currentVersion = '';
   historicoVersoes: HistoricoVersaoResponse[] = [];
   carregandoVersao = false;
@@ -17,9 +19,33 @@ export class SystemVersionComponent implements OnInit {
   erroVersao: string | null = null;
   erroHistorico: string | null = null;
 
-  constructor(private readonly configService: ConfigService) {}
+  private readonly destroy$ = new Subject<void>();
+
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.recarregarDados();
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (this.router.url.includes('/configuracoes/versao')) {
+          this.recarregarDados();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private recarregarDados(): void {
     this.loadVersaoAtual();
     this.loadHistorico();
   }

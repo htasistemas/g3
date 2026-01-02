@@ -10,10 +10,14 @@ public class ProntuarioRegistroResponse {
   private LocalDateTime dataRegistro;
   private Long profissionalId;
   private Long unidadeId;
+  private Long familiaId;
   private String titulo;
   private String descricao;
   private Map<String, Object> dadosExtra;
   private String status;
+  private String referenciaOrigemTipo;
+  private Long referenciaOrigemId;
+  private String nivelSigilo;
   private LocalDateTime criadoEm;
   private Long criadoPor;
   private LocalDateTime atualizadoEm;
@@ -67,6 +71,14 @@ public class ProntuarioRegistroResponse {
     this.unidadeId = unidadeId;
   }
 
+  public Long getFamiliaId() {
+    return familiaId;
+  }
+
+  public void setFamiliaId(Long familiaId) {
+    this.familiaId = familiaId;
+  }
+
   public String getTitulo() {
     return titulo;
   }
@@ -97,6 +109,30 @@ public class ProntuarioRegistroResponse {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getReferenciaOrigemTipo() {
+    return referenciaOrigemTipo;
+  }
+
+  public void setReferenciaOrigemTipo(String referenciaOrigemTipo) {
+    this.referenciaOrigemTipo = referenciaOrigemTipo;
+  }
+
+  public Long getReferenciaOrigemId() {
+    return referenciaOrigemId;
+  }
+
+  public void setReferenciaOrigemId(Long referenciaOrigemId) {
+    this.referenciaOrigemId = referenciaOrigemId;
+  }
+
+  public String getNivelSigilo() {
+    return nivelSigilo;
+  }
+
+  public void setNivelSigilo(String nivelSigilo) {
+    this.nivelSigilo = nivelSigilo;
   }
 
   public LocalDateTime getCriadoEm() {

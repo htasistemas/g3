@@ -33,6 +33,27 @@ public class Doador {
   @Column(name = "telefone", length = 30)
   private String telefone;
 
+  @Column(name = "logradouro", length = 200)
+  private String logradouro;
+
+  @Column(name = "numero", length = 40)
+  private String numero;
+
+  @Column(name = "complemento", length = 120)
+  private String complemento;
+
+  @Column(name = "bairro", length = 120)
+  private String bairro;
+
+  @Column(name = "cidade", length = 120)
+  private String cidade;
+
+  @Column(name = "uf", length = 2)
+  private String uf;
+
+  @Column(name = "cep", length = 12)
+  private String cep;
+
   @Column(name = "observacoes")
   private String observacoes;
 
@@ -96,6 +117,62 @@ public class Doador {
 
   public void setTelefone(String telefone) {
     this.telefone = telefone;
+  }
+
+  public String getLogradouro() {
+    return logradouro;
+  }
+
+  public void setLogradouro(String logradouro) {
+    this.logradouro = logradouro;
+  }
+
+  public String getNumero() {
+    return numero;
+  }
+
+  public void setNumero(String numero) {
+    this.numero = numero;
+  }
+
+  public String getComplemento() {
+    return complemento;
+  }
+
+  public void setComplemento(String complemento) {
+    this.complemento = complemento;
+  }
+
+  public String getBairro() {
+    return bairro;
+  }
+
+  public void setBairro(String bairro) {
+    this.bairro = bairro;
+  }
+
+  public String getCidade() {
+    return cidade;
+  }
+
+  public void setCidade(String cidade) {
+    this.cidade = cidade;
+  }
+
+  public String getUf() {
+    return uf;
+  }
+
+  public void setUf(String uf) {
+    this.uf = uf;
+  }
+
+  public String getCep() {
+    return cep;
+  }
+
+  public void setCep(String cep) {
+    this.cep = cep;
   }
 
   public String getObservacoes() {

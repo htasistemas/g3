@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AbstractControl,
   FormArray,
@@ -17,6 +18,7 @@ import { BeneficiarioApiService, BeneficiarioApiPayload } from '../../services/b
 import { BeneficiaryPayload, BeneficiaryService, DocumentoObrigatorio } from '../../services/beneficiary.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { AuthorizationTermPayload, BeneficiaryReportFilters, ReportService } from '../../services/report.service';
+import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { environment } from '../../../environments/environment';
 import { Subject, firstValueFrom, of } from 'rxjs';
@@ -77,27 +79,27 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     { value: 'bairro', label: 'Bairro' }
   ];
   genderIdentityOptions = [
-    'Mulher cisgênero',
-    'Homem cisgênero',
-    'Mulher transgênero',
-    'Homem transgênero',
-    'Pessoa não binária',
+    'Mulher cisg??nero',
+    'Homem cisg??nero',
+    'Mulher transg??nero',
+    'Homem transg??nero',
+    'Pessoa n??o bin??ria',
     'Travesti',
-    'Gênero fluido',
+    'G??nero fluido',
     'Outro',
-    'Prefiro não informar'
+    'Prefiro n??o informar'
   ];
   maritalStatusOptions = [
     'Solteiro(a)',
     'Casado(a)',
-    'União estável',
+    'Uni??o est??vel',
     'Separado(a)',
     'Divorciado(a)',
-    'Viúvo(a)'
+    'Vi??vo(a)'
   ];
   nationalityOptions = [
-    'Afegã(o)',
-    'Alemã(o)',
+    'Afeg??(o)',
+    'Alem??(o)',
     'Angolana(o)',
     'Argentina(o)',
     'Australiana(o)',
@@ -113,7 +115,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Costa-riquenha(o)',
     'Cubana(o)',
     'Dinamarquesa(o)',
-    'Egípcia(o)',
+    'Eg??pcia(o)',
     'Espanhola(o)',
     'Estadunidense',
     'Filipina(o)',
@@ -132,7 +134,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Japonesa(e)',
     'Marroquina(o)',
     'Mexicana(o)',
-    'Moçambicana(o)',
+    'Mo??ambicana(o)',
     'Norueguesa(o)',
     'Paraguaia(o)',
     'Peruana(o)',
@@ -142,7 +144,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Senegalesa(o)',
     'Sul-africana(o)',
     'Sueca(o)',
-    'Suíça(o)',
+    'Su????a(o)',
     'Turca(o)',
     'Uruguaia(o)',
     'Venezuelana(o)'
@@ -179,11 +181,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   listLoading = false;
   listError: string | null = null;
   preferredContactOptions = [
-    { value: 'MANHA', label: 'Manhã' },
+    { value: 'MANHA', label: 'Manh??' },
     { value: 'TARDE', label: 'Tarde' },
     { value: 'NOITE', label: 'Noite' },
-    { value: 'COMERCIAL', label: 'Horário comercial' },
-    { value: 'QUALQUER', label: 'Qualquer horário' }
+    { value: 'COMERCIAL', label: 'Hor??rio comercial' },
+    { value: 'QUALQUER', label: 'Qualquer hor??rio' }
   ];
   statusOptions: BeneficiarioApiPayload['status'][] = [
     'ATIVO',
@@ -204,8 +206,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   captureError: string | null = null;
   cepLookupError: string | null = null;
   quickSearchModalOpen = false;
-  situacaoImovelOptions = ['Próprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupação', 'Outro'];
-  tipoMoradiaOptions = ['Casa', 'Apartamento', 'Cômodo', 'Barraco', 'Casa de madeira', 'Sítio/Chácara', 'Outro'];
+  mapaModalOpen = false;
+  mapaEnderecoUrl: SafeResourceUrl | null = null;
+  mapaEnderecoLink = '';
+  situacaoImovelOptions = ['Pr??prio', 'Alugado', 'Cedido', 'Financiado', 'Ocupa????o', 'Outro'];
+  tipoMoradiaOptions = ['Casa', 'Apartamento', 'C??modo', 'Barraco', 'Casa de madeira', 'S??tio/Ch??cara', 'Outro'];
   private isUpdatingNationality = false;
   private nationalityManuallyChanged = false;
   private videoStream?: MediaStream;
@@ -215,7 +220,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   uploadProgress: Record<number, number> = {};
   uploadingDocuments = false;
   documentoTipoSelecionado = '';
-  tiposDocumento = ['CPF', 'RG', 'Certidao', 'Título', 'CNH', 'Cartão SUS', 'Outros'];
+  tiposDocumento = ['CPF', 'RG', 'Certidao', 'T??tulo', 'CNH', 'Cart??o SUS', 'Outros'];
   filtroTipoDocumento = '';
   ordenarDocumentosAsc = true;
   private readonly documentosOrdenacaoKey = 'g3.documentos.ordenacao';
@@ -268,36 +273,36 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Sem escolaridade formal',
     'Ensino fundamental incompleto',
     'Ensino fundamental completo',
-    'Ensino médio incompleto',
-    'Ensino médio completo',
-    'Ensino técnico',
+    'Ensino m??dio incompleto',
+    'Ensino m??dio completo',
+    'Ensino t??cnico',
     'Ensino superior incompleto',
     'Ensino superior completo',
-    'Pós-graduação',
+    'P??s-gradua????o',
     'Mestrado',
     'Doutorado'
   ];
   availableBenefits: string[] = [
-    'Bolsa Família / PTR',
+    'Bolsa Fam??lia / PTR',
     'BPC - Idoso',
-    'BPC - Pessoa com deficiência',
-    'Benefício eventual',
+    'BPC - Pessoa com defici??ncia',
+    'Benef??cio eventual',
     'Programa de moradia',
-    'Auxílio-doença',
+    'Aux??lio-doen??a',
     'Seguro-desemprego',
     'Outros'
   ];
 
   tabs = [
     { id: 'dados', label: 'Dados Pessoais' },
-    { id: 'endereco', label: 'Endereço' },
+    { id: 'endereco', label: 'Endereco' },
     { id: 'contato', label: 'Contato' },
     { id: 'documentos', label: 'Documentos' },
-    { id: 'familiar', label: 'Situação Familiar e Social' },
+    { id: 'familiar', label: 'Situacao Familiar e Social' },
     { id: 'escolaridade', label: 'Escolaridade e trabalho' },
-    { id: 'saude', label: 'Saúde' },
-    { id: 'beneficios', label: 'Benefícios' },
-    { id: 'observacoes', label: 'Observa\u00e7\u00f5es e aceite' },
+    { id: 'saude', label: 'Saude' },
+    { id: 'beneficios', label: 'Beneficios' },
+    { id: 'observacoes', label: 'Observacoes e aceite' },
     { id: 'lista', label: 'Listagem de beneficiarios' }
   ];
 
@@ -412,7 +417,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     private readonly http: HttpClient,
     private readonly assistanceUnitService: AssistanceUnitService,
     private readonly reportService: ReportService,
-    private readonly ngZone: NgZone
+    private readonly authService: AuthService,
+    private readonly ngZone: NgZone,
+    private readonly sanitizer: DomSanitizer
   ) {
     super();
     this.searchForm = this.fb.group({
@@ -757,9 +764,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
 
   formatDateTime(dateValue: string | null): string {
-    if (!dateValue) return 'Não informado';
+    if (!dateValue) return 'N??o informado';
     const parsed = new Date(dateValue);
-    if (isNaN(parsed.getTime())) return 'Não informado';
+    if (isNaN(parsed.getTime())) return 'N??o informado';
 
     return new Intl.DateTimeFormat('pt-BR', {
       dateStyle: 'short',
@@ -768,7 +775,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
 
   getFamilyRegistrationLabel(): string {
-    return this.familyRegistration || 'Não vinculado';
+    return this.familyRegistration || 'N??o vinculado';
   }
 
   private getFamilyRegistrationValue(beneficiario: BeneficiarioApiPayload | null): string | null {
@@ -1043,7 +1050,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.updateUploadState();
     };
     reader.onerror = () => {
-      this.feedback = 'Não foi possível carregar o arquivo selecionado. Tente novamente.';
+      this.feedback = 'N??o foi poss??vel carregar o arquivo selecionado. Tente novamente.';
       delete this.uploadProgress[index];
       this.updateUploadState();
     };
@@ -1130,7 +1137,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const missing = this.getMissingRequiredDocuments();
 
     if (missing.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missing.join(', ')}`;
       this.changeTab('documentos');
       return false;
     }
@@ -1142,7 +1149,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const missing = this.getMissingRequiredDocuments();
 
     if (missing.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missing.join(', ')}`;
       this.changeTab('documentos');
       return;
     }
@@ -1160,14 +1167,14 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       { path: ['status'], label: 'Status do beneficiario' },
       { path: ['dadosPessoais', 'nome_completo'], label: 'Nome completo' },
       { path: ['dadosPessoais', 'data_nascimento'], label: 'Data de nascimento' },
-      { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mãe' },
-      { path: ['endereco', 'cep'], label: 'CEP', message: 'Informe um CEP válido.' },
+      { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da m??e' },
+      { path: ['endereco', 'cep'], label: 'CEP', message: 'Informe um CEP v??lido.' },
       { path: ['contato', 'telefone_principal'], label: 'Telefone principal' },
-      { path: ['documentos', 'cpf'], label: 'CPF', message: 'Informe um CPF válido.' },
+      { path: ['documentos', 'cpf'], label: 'CPF', message: 'Informe um CPF v??lido.' },
       {
         path: ['contato', 'email'],
         label: 'E-mail',
-        message: 'Informe um e-mail válido ou deixe o campo vazio.',
+        message: 'Informe um e-mail v??lido ou deixe o campo vazio.',
         validate: (control) => !!control.value && control.invalid
       },
       {
@@ -1185,7 +1192,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         if (validate) return validate(control);
         return control.invalid;
       })
-      .map(({ label, message }) => message ?? `${label} é obrigatório.`);
+      .map(({ label, message }) => message ?? `${label} ?? obrigat??rio.`);
   }
 
   private showMissingFieldsModal(messages: string[]): void {
@@ -1320,6 +1327,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
 
+  reimprimirTermoConsentimento(): void {
+    const aceite = this.form.get(['observacoes', 'aceite_lgpd'])?.value;
+    if (!aceite) {
+      this.showTemporaryFeedback('Confirme o aceite LGPD antes de reimprimir o termo.');
+      return;
+    }
+    void this.printConsentDocument();
+  }
+
   private getCurrentLocalDateTime(): string {
     const now = new Date();
     const offsetMs = now.getTimezoneOffset() * 60000;
@@ -1336,7 +1352,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.openPdfInNewWindow(pdfBlob);
       this.closePdfErrorDialog();
     } catch (error) {
-      console.error('Erro ao gerar termo de autorização', error);
+      console.error('Erro ao gerar termo de autoriza????o', error);
       const message = await this.extractPdfErrorMessage(error);
       this.pdfErrorMessage = message;
       this.pdfErrorDialogOpen = true;
@@ -1344,25 +1360,35 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
 
   private buildAuthorizationTermPayload(): AuthorizationTermPayload {
-    const value = this.form.value as any;
-    const personal = value.dadosPessoais ?? {};
-    const documents = value.documentos ?? {};
-    const contact = value.contato ?? {};
-    const address = value.endereco ?? {};
-    const today = this.formatDate(new Date().toISOString());
+      const value = this.form.value as any;
+      const personal = value.dadosPessoais ?? {};
+      const documents = value.documentos ?? {};
+      const address = value.endereco ?? {};
+      const now = new Date();
+      const today = this.formatDate(now.toISOString());
+      const issuedBy =
+        this.authService.user()?.nome ||
+        this.authService.user()?.nomeUsuario ||
+        'Usuario nao informado';
 
-    return {
-      beneficiaryName: personal.nome_completo || personal.nome_social || 'Beneficiário',
-      birthDate: this.formatDate(personal.data_nascimento),
-      motherName: personal.nome_mae,
-      cpf: documents.cpf,
-      rg: documents.rg_numero,
-      nis: documents.nis,
-      address: this.formatAddress(address),
-      contact: this.joinParts([contact.telefone_principal, contact.email], ' | '),
-      issueDate: today,
-      unit: this.assistanceUnit
-    };
+      const beneficiarioNome =
+        personal.nome_completo || personal.nome_social || 'Beneficiario';
+      const enderecoCompleto = this.formatAddress(address);
+      const cidade = address.municipio || address.cidade || '';
+      const uf = address.uf || '';
+
+      return {
+        beneficiarioNome,
+        rg: documents.rg_numero,
+        cpf: documents.cpf,
+        enderecoCompleto,
+        cidade,
+        uf,
+        localAssinatura: this.joinParts([cidade, uf], '-'),
+        dataAssinatura: today,
+        representanteNome: issuedBy,
+        issuedBy
+              };
   }
 
   private openPdfInNewWindow(blob: Blob): void {
@@ -1454,8 +1480,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       const blob = await firstValueFrom(this.reportService.generateBeneficiaryList(filters));
       this.openPdfInNewWindow(blob);
     } catch (error) {
-      console.error('Erro ao gerar relação de beneficiarios', error);
-      this.feedback = 'Falha ao gerar a relação de beneficiarios. Tente novamente.';
+      console.error('Erro ao gerar rela????o de beneficiarios', error);
+      this.feedback = 'Falha ao gerar a rela????o de beneficiarios. Tente novamente.';
     }
   }
   async printIndividualRecord(): Promise<void> {
@@ -1543,7 +1569,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const statusClass = status === 'BLOQUEADO' ? 'status status--blocked' : 'status status--active';
     const benefitsLabel = benefits.recebe_beneficio
       ? displayValue(benefits.beneficios_descricao, 'Sim')
-      : 'Não';
+      : 'N??o';
 
     const programaVinculado = displayValue(personal.programa_vinculado);
 
@@ -1553,7 +1579,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Ficha Individual do Beneficiário - Sistema G3</title>
+          <title>Ficha Individual do Benefici??rio - Sistema G3</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
             :root {
@@ -1622,7 +1648,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
                   <div class="logo">${
                     logo
                       ? `<img src="${logo}" alt="Logomarca da unidade" />`
-                      : '<span aria-hidden="true">🏛️</span>'
+                      : '<span aria-hidden="true">???????</span>'
                   }</div>
                   <div>
                     <p class="unit-name">${socialName}</p>
@@ -1646,9 +1672,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
                 <div class="headline">
                   <p class="headline__name">${beneficiaryName}</p>
                   <div class="chips">
-                    <div class="chip"><strong>Código</strong>${codigo}</div>
+                    <div class="chip"><strong>C??digo</strong>${codigo}</div>
                     <div class="chip"><strong>CPF</strong>${displayValue(documents.cpf)}</div>
-                    <div class="chip"><strong>Data de inclusão</strong>${formattedInclusionDate}</div>
+                    <div class="chip"><strong>Data de inclus??o</strong>${formattedInclusionDate}</div>
                     <div class="chip"><strong>Categoria</strong>${displayValue(personal.categoria || personal.tipo_cadastro)}</div>
                   </div>
                   <div class="chip" style="margin-top: 10px; border-style: solid; border-color: #e0f2fe; background: #f0f9ff;">
@@ -1664,7 +1690,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
                   </div>
                   <div class="fields">
                     <div class="field">
-                      <p class="field__label">RG / Órgão emissor</p>
+                      <p class="field__label">RG / ??rg??o emissor</p>
                       <p class="field__value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</p>
                     </div>
                     <div class="field">
@@ -1680,7 +1706,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
                       <p class="field__value">${displayValue(personal.sexo_biologico)}</p>
                     </div>
                     <div class="field">
-                      <p class="field__label">Nome da mãe</p>
+                      <p class="field__label">Nome da m??e</p>
                       <p class="field__value">${displayValue(personal.nome_mae)}</p>
                     </div>
                     <div class="field">
@@ -1700,15 +1726,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
 
                 <div class="card">
                   <div class="card__title">
-                    <h2>Endereço & contato</h2>
+                    <h2>Endere??o & contato</h2>
                   </div>
                   <div class="fields">
                     <div class="field" style="grid-column: span 2;">
-                      <p class="field__label">Endereço</p>
+                      <p class="field__label">Endere??o</p>
                       <p class="field__value">${addressLabel}</p>
                     </div>
                     <div class="field">
-                      <p class="field__label">Ponto de referência</p>
+                      <p class="field__label">Ponto de refer??ncia</p>
                       <p class="field__value">${displayValue(address.ponto_referencia)}</p>
                     </div>
                     <div class="field">
@@ -1729,7 +1755,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
 
               <section class="card">
                 <div class="card__title">
-                  <h2>Dados socioeconômicos</h2>
+                  <h2>Dados socioecon??micos</h2>
                 </div>
                 <div class="fields" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
                   <div class="field">
@@ -1745,13 +1771,13 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
                     <p class="field__value">${displayValue(familyMembers)}</p>
                   </div>
                   <div class="field">
-                    <p class="field__label">Benefício governamental</p>
+                    <p class="field__label">Benef??cio governamental</p>
                     <p class="field__value">${benefitsLabel}</p>
                   </div>
                 </div>
                 <div class="note">
-                  <strong>Observações do assistente social:</strong><br />
-                  ${displayValue(observacoes, 'Sem observações registradas.')}
+                  <strong>Observa????es do assistente social:</strong><br />
+                  ${displayValue(observacoes, 'Sem observa????es registradas.')}
                 </div>
               </section>
             </div>
@@ -1890,7 +1916,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
 
   private formatBoolean(value?: boolean): string {
-    return value ? 'Sim' : 'Não';
+    return value ? 'Sim' : 'N??o';
   }
 
   formatDate(value?: string | null): string {
@@ -2005,17 +2031,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     > = {
       endereco: {
         controlPath: ['endereco', 'cep'],
-        message: 'Preencha o CEP (campo obrigatório) antes de avançar.',
+        message: 'Preencha o CEP (campo obrigat??rio) antes de avan??ar.',
         markGroup: 'endereco'
       },
       contato: {
         controlPath: ['contato', 'telefone_principal'],
-        message: 'Informe o telefone principal (campo obrigatório) antes de avançar.',
+        message: 'Informe o telefone principal (campo obrigat??rio) antes de avan??ar.',
         markGroup: 'contato'
       },
       observacoes: {
         controlPath: ['observacoes', 'aceite_lgpd'],
-        message: 'Confirme o aceite LGPD antes de avançar.',
+        message: 'Confirme o aceite LGPD antes de avan??ar.',
         markGroup: 'observacoes'
       },
       documentos: {
@@ -2050,7 +2076,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.form.get('status')?.setValue(statusForSave);
 
     if (!skipValidation && missingDocuments.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missingDocuments.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missingDocuments.join(', ')}`;
       this.changeTab('documentos');
       return;
     }
@@ -2060,18 +2086,18 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (!skipValidation && fieldIssues.length) {
       this.form.markAllAsTouched();
       this.showMissingFieldsModal(fieldIssues);
-      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
       return;
     }
 
     if (!skipValidation && this.form.invalid && !this.feedback) {
       this.form.markAllAsTouched();
-      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+      this.feedback = 'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
       return;
     }
 
     if (!skipValidation && this.form.get('status')?.value === 'INCOMPLETO' && statusForSave === 'INCOMPLETO') {
-      this.feedback = this.feedback ?? 'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+      this.feedback = this.feedback ?? 'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
     }
     if (this.uploadingDocuments) {
       this.feedback = 'Aguarde o envio dos documentos antes de salvar o cadastro.';
@@ -2109,7 +2135,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
               : error?.error?.message || error.message || 'Erro ao salvar beneficiario';
 
           if (error.status === 0) {
-            this.feedback = 'Não foi possível comunicar com a API. Verifique a conexão e tente novamente.';
+            this.feedback = 'N??o foi poss??vel comunicar com a API. Verifique a conex??o e tente novamente.';
             return;
           }
 
@@ -2118,7 +2144,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       });
     } catch (error) {
       console.error('Erro ao preparar salvamento', error);
-      this.feedback = 'Não foi possível salvar o beneficiario. Tente novamente.';
+      this.feedback = 'N??o foi poss??vel salvar o beneficiario. Tente novamente.';
       this.saving = false;
     }
   }
@@ -2177,13 +2203,13 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
           latitude: beneficiario.latitude ?? '',
           longitude: beneficiario.longitude ?? ''
         });
-        this.feedback = 'Endereço geocodificado com sucesso.';
+        this.feedback = 'Endere??o geocodificado com sucesso.';
       },
       error: (error) => {
         const serverMessage =
           typeof error?.error === 'string'
             ? error.error
-            : error?.error?.message || 'Não foi possível geocodificar o endereco.';
+            : error?.error?.message || 'N??o foi poss??vel geocodificar o endereco.';
         this.feedback = serverMessage;
       }
     });
@@ -2247,7 +2273,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const normalized = value.toLowerCase();
     if (!normalized.trim()) return '';
 
-    return normalized.replace(/(^|\s)([A-Za-zÀ-ÿ])/g, (match) => match.toUpperCase());
+    return normalized.replace(/(^|\s)([A-Za-z??-??])/g, (match) => match.toUpperCase());
   }
 
   private watchBirthDate(): void {
@@ -2352,7 +2378,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (!id) {
       return;
     }
-    this.router.navigate(['/acompanhamento/prontuário', id]);
+    this.router.navigate(['/acompanhamento/prontu??rio', id]);
   }
 
   startNewBeneficiario(): void {
@@ -2527,7 +2553,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
             this.handleBeneficiaryResponse(normalized);
           },
           error: () => {
-          this.listError = 'Não foi possível carregar os beneficiarios. Tente novamente.';
+          this.listError = 'N??o foi poss??vel carregar os beneficiarios. Tente novamente.';
         }
       });
   }
@@ -2597,7 +2623,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         this.searchBeneficiaries();
       },
       error: () => {
-        this.listError = 'Não foi possível excluir o beneficiario.';
+        this.listError = 'N??o foi poss??vel excluir o beneficiario.';
         this.listLoading = false;
       }
     });
@@ -2635,7 +2661,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   async startCamera(): Promise<void> {
     this.captureError = null;
     if (!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-      this.captureError = 'Seu navegador não permite capturar a câmera.';
+      this.captureError = 'Seu navegador n??o permite capturar a c??mera.';
       return;
     }
 
@@ -2651,8 +2677,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         await video.play();
       }
     } catch (error) {
-      console.error('Erro ao iniciar câmera', error);
-      this.captureError = 'Não foi possível acessar a câmera.';
+      console.error('Erro ao iniciar c??mera', error);
+      this.captureError = 'N??o foi poss??vel acessar a c??mera.';
       this.cameraActive = false;
 
       if (this.videoStream) {
@@ -2735,7 +2761,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.form.get(['documentos', 'cpf'])?.setValue(formatted, { emitEvent: false });
     input.value = formatted;
 
-    if (this.feedback === 'Informe um CPF válido antes de continuar.' && this.form.get(['documentos', 'cpf'])?.valid) {
+    if (this.feedback === 'Informe um CPF v??lido antes de continuar.' && this.form.get(['documentos', 'cpf'])?.valid) {
       this.feedback = null;
     }
   }
@@ -2769,7 +2795,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   openWhatsapp(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para abrir o WhatsApp.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para abrir o WhatsApp.');
       return;
     }
 
@@ -2779,7 +2805,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   startCall(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para iniciar a ligação.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para iniciar a liga????o.');
       return;
     }
 
@@ -2789,7 +2815,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   sendSms(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para enviar SMS.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para enviar SMS.');
       return;
     }
 
@@ -2855,7 +2881,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (!cepControl) return;
 
     if (cepControl.invalid) {
-      this.cepLookupError = cepControl.value ? 'Informe um CEP válido para consultar o endereco.' : null;
+      this.cepLookupError = cepControl.value ? 'Informe um CEP v??lido para consultar o endereco.' : null;
       return;
     }
 
@@ -2863,6 +2889,78 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (digits?.length === 8) {
       this.lookupAddressByCep(digits);
     }
+  }
+
+  abrirMapaEndereco(): void {
+    const coordenadas = this.obterCoordenadasEndereco();
+    if (coordenadas) {
+      this.definirMapaEndereco(coordenadas);
+      return;
+    }
+
+    const consulta = this.montarConsultaEndereco();
+    if (!consulta) {
+      this.showTemporaryFeedback('Informe o endereco completo para consultar no Google Maps.');
+      return;
+    }
+
+    this.definirMapaEndereco(consulta);
+  }
+
+  fecharMapaEndereco(): void {
+    this.mapaModalOpen = false;
+    this.mapaEnderecoUrl = null;
+    this.mapaEnderecoLink = '';
+  }
+
+  private obterCoordenadasEndereco(): string | null {
+    const latitude = (this.form.get(['endereco', 'latitude'])?.value as string | null | undefined)?.trim();
+    const longitude = (this.form.get(['endereco', 'longitude'])?.value as string | null | undefined)?.trim();
+
+    if (!latitude || !longitude) {
+      return null;
+    }
+
+    return `${latitude},${longitude}`;
+  }
+
+  private montarConsultaEndereco(): string | null {
+    const endereco = this.form.get('endereco')?.value as
+      | {
+          logradouro?: string | null;
+          numero?: string | null;
+          bairro?: string | null;
+          municipio?: string | null;
+          uf?: string | null;
+          cep?: string | null;
+        }
+      | null
+      | undefined;
+
+    if (!endereco) {
+      return null;
+    }
+
+    const partes = [
+      endereco.logradouro,
+      endereco.numero,
+      endereco.bairro,
+      endereco.municipio,
+      endereco.uf,
+      endereco.cep
+    ]
+      .map((valor) => (valor ?? '').toString().trim())
+      .filter((valor) => valor);
+
+    return partes.length ? partes.join(', ') : null;
+  }
+
+  private definirMapaEndereco(consulta: string): void {
+    const query = encodeURIComponent(consulta);
+    const link = `https://www.google.com/maps?q=${query}`;
+    this.mapaEnderecoLink = link;
+    this.mapaEnderecoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(`${link}&output=embed`);
+    this.mapaModalOpen = true;
   }
 
   private lookupAddressByCep(cep: string): void {
@@ -2873,7 +2971,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       .subscribe({
         next: (response) => {
           if (response?.erro) {
-            this.cepLookupError = 'CEP não encontrado.';
+            this.cepLookupError = 'CEP n??o encontrado.';
             return;
           }
 
@@ -2885,7 +2983,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
           });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'N??o foi poss??vel consultar o CEP.';
         }
       });
   }
@@ -2929,7 +3027,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   };
 
   formatStatusLabel(status?: string | null): string {
-    if (!status) return '—';
+    if (!status) return '???';
 
     return status
       .toLowerCase()
@@ -2956,4 +3054,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
 }
+
+
+
 

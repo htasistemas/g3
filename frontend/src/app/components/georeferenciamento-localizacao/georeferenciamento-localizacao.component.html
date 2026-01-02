@@ -1,38 +1,76 @@
 <app-tela-padrao>
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Georeferenciamento</p>
-    <p class="page-title__label">Georeferenciamento</p>
+    <p class="page-title__label">Localizacao</p>
   </header>
 
   <section class="cadastro georef-page">
     <div class="tab-shell">
       <p class="tab-shell__title">Navegue pelas informacoes</p>
       <ol class="step-tabs" role="tablist">
-        <li class="step-tabs__item active">
-          <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
-            <span class="step-tabs__index">1</span>
-            <span class="step-tabs__label">Dados dos beneficiarios</span>
+        <li
+          *ngFor="let tab of tabs; index as idx"
+          class="step-tabs__item"
+          [class.active]="activeTab === tab.id"
+        >
+          <button
+            type="button"
+            class="step-tabs__button"
+            role="tab"
+            [attr.aria-selected]="activeTab === tab.id"
+            (click)="changeTab(tab.id)"
+          >
+            <span class="step-tabs__index">{{ idx + 1 }}</span>
+            <span class="step-tabs__label">{{ tab.label }}</span>
           </button>
         </li>
       </ol>
     </div>
 
     <div class="form-shell">
-      <div class="tab-card">
+      <div class="tab-card" *ngIf="activeTab === 'beneficiarios'">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Dados dos beneficiarios</p>
+            <p class="tab-card__highlight">Localizacao de Beneficiarios</p>
             <p class="muted">Localizacao dos beneficiarios cadastrados no sistema.</p>
-          </div>
-          <div class="tab-card__header-actions">
-            <span class="pill">OpenStreetMap</span>
           </div>
         </div>
 
         <div class="card__content">
-          <div *ngIf="erro" class="error">{{ erro }}</div>
-          <div *ngIf="carregando" class="loading">Carregando beneficiarios...</div>
-          <div id="beneficiarios-map" class="map"></div>
+          <div *ngIf="erroTabs.beneficiarios" class="error">{{ erroTabs.beneficiarios }}</div>
+          <div *ngIf="avisoTabs.beneficiarios" class="warning">{{ avisoTabs.beneficiarios }}</div>
+          <div *ngIf="carregandoTabs.beneficiarios" class="loading">Carregando beneficiarios...</div>
+          <div [id]="mapId('beneficiarios')" class="map"></div>
+        </div>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'profissionais'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Localizacao de Profissionais</p>
+            <p class="muted">Localizacao dos profissionais cadastrados no sistema.</p>
+          </div>
+        </div>
+        <div class="card__content">
+          <div *ngIf="erroTabs.profissionais" class="error">{{ erroTabs.profissionais }}</div>
+          <div *ngIf="avisoTabs.profissionais" class="warning">{{ avisoTabs.profissionais }}</div>
+          <div *ngIf="carregandoTabs.profissionais" class="loading">Carregando profissionais...</div>
+          <div [id]="mapId('profissionais')" class="map"></div>
+        </div>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'doadores'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Localizacao de Doadores</p>
+            <p class="muted">Localizacao dos doadores cadastrados no sistema.</p>
+          </div>
+        </div>
+        <div class="card__content">
+          <div *ngIf="erroTabs.doadores" class="error">{{ erroTabs.doadores }}</div>
+          <div *ngIf="avisoTabs.doadores" class="warning">{{ avisoTabs.doadores }}</div>
+          <div *ngIf="carregandoTabs.doadores" class="loading">Carregando doadores...</div>
+          <div [id]="mapId('doadores')" class="map"></div>
         </div>
       </div>
     </div>

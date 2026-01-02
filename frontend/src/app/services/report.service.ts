@@ -1,20 +1,26 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AssistanceUnitPayload } from './assistance-unit.service';
 import { environment } from '../../environments/environment';
 
 export interface AuthorizationTermPayload {
-  beneficiaryName: string;
-  birthDate?: string | null;
-  motherName?: string | null;
-  cpf?: string | null;
+  beneficiarioNome: string;
   rg?: string | null;
-  nis?: string | null;
-  address?: string | null;
-  contact?: string | null;
-  issueDate: string;
-  unit?: AssistanceUnitPayload | null;
+  cpf?: string | null;
+  enderecoCompleto?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
+  finalidadeDados?: string | null;
+  finalidadeImagem?: string | null;
+  vigencia?: string | null;
+  localAssinatura?: string | null;
+  dataAssinatura?: string | null;
+  responsavelNome?: string | null;
+  responsavelCpf?: string | null;
+  responsavelRelacao?: string | null;
+  representanteNome?: string | null;
+  representanteCargo?: string | null;
+  issuedBy?: string | null;
 }
 
 export interface BeneficiaryReportFilters {

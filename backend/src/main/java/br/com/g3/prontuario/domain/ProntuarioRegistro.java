@@ -18,6 +18,9 @@ public class ProntuarioRegistro {
   @Column(name = "beneficiario_id", nullable = false)
   private Long beneficiarioId;
 
+  @Column(name = "familia_id")
+  private Long familiaId;
+
   @Column(name = "tipo", nullable = false, length = 40)
   private String tipo;
 
@@ -41,6 +44,15 @@ public class ProntuarioRegistro {
 
   @Column(name = "status", nullable = false, length = 20)
   private String status;
+
+  @Column(name = "referencia_origem_tipo", length = 40)
+  private String referenciaOrigemTipo;
+
+  @Column(name = "referencia_origem_id")
+  private Long referenciaOrigemId;
+
+  @Column(name = "nivel_sigilo", length = 30)
+  private String nivelSigilo;
 
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
@@ -68,6 +80,14 @@ public class ProntuarioRegistro {
 
   public void setBeneficiarioId(Long beneficiarioId) {
     this.beneficiarioId = beneficiarioId;
+  }
+
+  public Long getFamiliaId() {
+    return familiaId;
+  }
+
+  public void setFamiliaId(Long familiaId) {
+    this.familiaId = familiaId;
   }
 
   public String getTipo() {
@@ -132,6 +152,30 @@ public class ProntuarioRegistro {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getReferenciaOrigemTipo() {
+    return referenciaOrigemTipo;
+  }
+
+  public void setReferenciaOrigemTipo(String referenciaOrigemTipo) {
+    this.referenciaOrigemTipo = referenciaOrigemTipo;
+  }
+
+  public Long getReferenciaOrigemId() {
+    return referenciaOrigemId;
+  }
+
+  public void setReferenciaOrigemId(Long referenciaOrigemId) {
+    this.referenciaOrigemId = referenciaOrigemId;
+  }
+
+  public String getNivelSigilo() {
+    return nivelSigilo;
+  }
+
+  public void setNivelSigilo(String nivelSigilo) {
+    this.nivelSigilo = nivelSigilo;
   }
 
   public LocalDateTime getCriadoEm() {

@@ -2,6 +2,7 @@ package br.com.g3.prontuario.repositoryimpl;
 
 import br.com.g3.prontuario.domain.ProntuarioRegistro;
 import br.com.g3.prontuario.dto.ProntuarioRegistroResponse;
+import br.com.g3.prontuario.repository.ProntuarioEncaminhamentoIndicadores;
 import br.com.g3.prontuario.repository.ProntuarioRegistroConsultaResultado;
 import br.com.g3.prontuario.repository.ProntuarioRegistroRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -62,7 +63,7 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
       int tamanhoPagina) {
     StringBuilder sql =
         new StringBuilder(
-            "SELECT id, beneficiario_id, tipo, data_registro, profissional_id, unidade_id, titulo, descricao, dados_extra, status, criado_em, criado_por, atualizado_em, atualizado_por "
+            "SELECT id, beneficiario_id, familia_id, tipo, data_registro, profissional_id, unidade_id, titulo, descricao, dados_extra, status, referencia_origem_tipo, referencia_origem_id, nivel_sigilo, criado_em, criado_por, atualizado_em, atualizado_por "
                 + "FROM prontuario_registros WHERE beneficiario_id = ?");
     List<Object> params = new ArrayList<>();
     params.add(beneficiarioId);
@@ -125,6 +126,42 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
   }
 
   @Override
+  public long contarPendencias(Long beneficiarioId) {
+    String sql =
+        "SELECT COUNT(*) FROM prontuario_registros WHERE beneficiario_id = ? AND status = 'aberto'";
+    return jdbcTemplate.queryForObject(sql, new Object[] {beneficiarioId}, Long.class);
+  }
+
+  @Override
+  public ProntuarioEncaminhamentoIndicadores buscarIndicadoresEncaminhamentos(Long beneficiarioId) {
+    String sql =
+        "SELECT "
+            + "COUNT(*) FILTER (WHERE tipo = 'encaminhamento') AS total, "
+            + "COUNT(*) FILTER (WHERE tipo = 'encaminhamento' AND LOWER(COALESCE(dados_extra->>'statusEncaminhamento', '')) = 'concluido') AS concluidos, "
+            + "AVG(EXTRACT(EPOCH FROM ((dados_extra->>'prazoRetorno')::timestamp - data_registro)) / 86400.0) AS media_dias "
+            + "FROM prontuario_registros WHERE beneficiario_id = ?";
+    return jdbcTemplate.queryForObject(
+        sql,
+        new Object[] {beneficiarioId},
+        (rs, rowNum) ->
+            new ProntuarioEncaminhamentoIndicadores(
+                rs.getLong("total"),
+                rs.getLong("concluidos"),
+                (Double) rs.getObject("media_dias")));
+  }
+
+  @Override
+  public String buscarUltimaClassificacaoRisco(Long beneficiarioId) {
+    String sql =
+        "SELECT dados_extra->>'classificacaoRisco' FROM prontuario_registros "
+            + "WHERE beneficiario_id = ? AND tipo = 'atendimento' "
+            + "ORDER BY data_registro DESC LIMIT 1";
+    List<String> resultado =
+        jdbcTemplate.query(sql, new Object[] {beneficiarioId}, (rs, rowNum) -> rs.getString(1));
+    return resultado.isEmpty() ? null : resultado.get(0);
+  }
+
+  @Override
   public LocalDateTime buscarUltimaAtualizacao(Long beneficiarioId) {
     String sql =
         "SELECT MAX(atualizado_em) FROM prontuario_registros WHERE beneficiario_id = ?";
@@ -146,6 +183,7 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
       ProntuarioRegistroResponse response = new ProntuarioRegistroResponse();
       response.setId(rs.getLong("id"));
       response.setBeneficiarioId(rs.getLong("beneficiario_id"));
+      response.setFamiliaId((Long) rs.getObject("familia_id"));
       response.setTipo(rs.getString("tipo"));
       response.setDataRegistro(rs.getTimestamp("data_registro").toLocalDateTime());
       response.setProfissionalId((Long) rs.getObject("profissional_id"));
@@ -165,6 +203,9 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
         response.setDadosExtra(Collections.emptyMap());
       }
       response.setStatus(rs.getString("status"));
+      response.setReferenciaOrigemTipo(rs.getString("referencia_origem_tipo"));
+      response.setReferenciaOrigemId((Long) rs.getObject("referencia_origem_id"));
+      response.setNivelSigilo(rs.getString("nivel_sigilo"));
       response.setCriadoEm(rs.getTimestamp("criado_em").toLocalDateTime());
       response.setCriadoPor((Long) rs.getObject("criado_por"));
       response.setAtualizadoEm(rs.getTimestamp("atualizado_em").toLocalDateTime());

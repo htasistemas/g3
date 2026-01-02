@@ -7,6 +7,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import {
   DoadorResponse,
   RecebimentoDoacaoResponse,
@@ -14,7 +15,7 @@ import {
 } from '../../services/recebimento-doacao.service';
 
 interface TabItem {
-  id: 'doador' | 'dados' | 'recorrencia' | 'gestao' | 'lista';
+  id: 'doador' | 'doadores' | 'dados' | 'recorrencia' | 'gestao' | 'lista';
   label: string;
   icon: any;
 }
@@ -28,7 +29,8 @@ interface TabItem {
     FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
-    AutocompleteComponent
+    AutocompleteComponent,
+    DialogComponent
   ],
   templateUrl: './recebimento-doacao.component.html',
   styleUrl: './recebimento-doacao.component.scss'
@@ -42,10 +44,11 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   tabs: TabItem[] = [
     { id: 'doador', label: 'Cadastro do doador', icon: faUserPlus },
+    { id: 'doadores', label: 'Listagem de doadores', icon: faClipboardList },
     { id: 'dados', label: 'Dados da doacao', icon: faHandshake },
     { id: 'recorrencia', label: 'Recorrencia', icon: faListCheck },
     { id: 'gestao', label: 'Gestao de doacao', icon: faIdCard },
-    { id: 'lista', label: 'Listagem', icon: faClipboardList }
+    { id: 'lista', label: 'Listagem de doacoes', icon: faClipboardList }
   ];
 
   activeTab: TabItem['id'] = 'doador';
@@ -85,6 +88,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
   carregandoDoadores = false;
   carregandoRecebimentos = false;
   recebimentoEditandoId: number | null = null;
+  dialogExcluirDoadorAberto = false;
+  doadorParaExcluir: DoadorResponse | null = null;
 
   get isDoacaoDinheiro(): boolean {
     const tipo = (this.recebimentoForm.get('tipoDoacao')?.value ?? '').toString().toLowerCase();
@@ -102,10 +107,17 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.doadorForm = this.fb.group({
       tipoPessoa: ['FISICA', Validators.required],
       nome: ['', [Validators.required, Validators.minLength(3)]],
-      documento: ['', [Validators.required, this.cpfValidator]],
+      documento: ['', [Validators.required, this.cpfValidator]], 
       responsavelEmpresa: [''],
       email: ['', [Validators.email]],
       telefone: ['', [this.telefoneValidator]],
+      logradouro: [''],
+      numero: [''],
+      complemento: [''],
+      bairro: [''],
+      cidade: [''],
+      uf: [''],
+      cep: [''],
       observacoes: ['']
     });
     this.atualizarTipoPessoaValidators();
@@ -145,7 +157,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   changeTab(tab: TabItem['id']): void {
     this.activeTab = tab;
-    if (tab === 'doador') {
+    if (tab === 'doador' || tab === 'doadores') {
       this.doadorSelecionadoId = null;
       this.carregarDoadores();
     }
@@ -246,6 +258,42 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.recebimentoForm.get('doadorId')?.setValue(doador.id);
     this.doadorSelecionadoId = doador.id;
     this.termoBuscaDoador = doador.nome;
+  }
+
+  abrirDialogoExcluirDoador(doador: DoadorResponse): void {
+    this.doadorParaExcluir = doador;
+    this.dialogExcluirDoadorAberto = true;
+  }
+
+  cancelarExcluirDoador(): void {
+    this.dialogExcluirDoadorAberto = false;
+    this.doadorParaExcluir = null;
+  }
+
+  confirmarExcluirDoador(): void {
+    if (!this.doadorParaExcluir) {
+      this.cancelarExcluirDoador();
+      return;
+    }
+    const doador = this.doadorParaExcluir;
+    this.service.excluirDoador(doador.id).subscribe({
+      next: () => {
+        this.doadores = this.doadores.filter((item) => item.id !== doador.id);
+        this.doadoresOpcoes = this.doadores.map((item) => ({
+          id: item.id,
+          label: item.nome
+        }));
+        if (this.doadorSelecionadoId === doador.id) {
+          this.doadorSelecionadoId = null;
+          this.recebimentoForm.get('doadorId')?.setValue(null);
+          this.termoBuscaDoador = '';
+        }
+        this.cancelarExcluirDoador();
+      },
+      error: () => {
+        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o doador.').build();
+      }
+    });
   }
 
   onDoadorTermoChange(termo: string): void {
@@ -413,6 +461,14 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.doadorForm.get('telefone')?.setValue(input.value, { emitEvent: false });
   }
 
+  onCepInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    const masked = digits.replace(/(\d{5})(\d{0,3})/, (_, p1, p2) => (p2 ? `${p1}-${p2}` : p1));
+    input.value = masked;
+    this.doadorForm.get('cep')?.setValue(masked, { emitEvent: false });
+  }
+
   onValorInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = this.formatCurrencyInput(input, true);
@@ -441,18 +497,43 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   private atualizarValorTotalItens(): void {
     const quantidade = Number(this.recebimentoForm.get('quantidadeItens')?.value || 0);
-    const valorMedio = Number(this.recebimentoForm.get('valorMedio')?.value || 0);
+    const valorMedio = this.parseCurrencyValue(this.recebimentoForm.get('valorMedio')?.value);
     if (!quantidade || !valorMedio) return;
     const total = quantidade * valorMedio;
-    this.recebimentoForm.get('valorTotal')?.setValue(total, { emitEvent: false });
+    this.recebimentoForm
+      .get('valorTotal')
+      ?.setValue(this.formatCurrencyValue(total, true), { emitEvent: false });
   }
 
-  private formatCurrencyInput(input: HTMLInputElement, comPrefixo: boolean): number {
+  private formatCurrencyInput(input: HTMLInputElement, comPrefixo: boolean): string {
     const digits = input.value.replace(/\D/g, '');
     const value = Number(digits) / 100;
-    const formatted = value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    input.value = comPrefixo ? `R$ ${formatted}` : formatted;
-    return value;
+    const formatted = value.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    const formattedValue = comPrefixo ? `R$ ${formatted}` : formatted;
+    input.value = formattedValue;
+    return formattedValue;
+  }
+
+  private formatCurrencyValue(value: number, comPrefixo: boolean): string {
+    const formatted = value.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    return comPrefixo ? `R$ ${formatted}` : formatted;
+  }
+
+  private parseCurrencyValue(value: string | number | null | undefined): number {
+    if (value === null || value === undefined || value === '') {
+      return 0;
+    }
+    if (typeof value === 'number') {
+      return value;
+    }
+    const digits = String(value).replace(/\D/g, '');
+    return digits ? Number(digits) / 100 : 0;
   }
 
   onSentenceCaseBlur(event: Event): void {
@@ -469,7 +550,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
     control?.setValue(normalized, { emitEvent: false });
   }
 
-  private salvarDoador(): void {
+  private salvarDoador(manterNaAba = false): void {
     if (this.doadorForm.invalid) {
       this.doadorForm.markAllAsTouched();
       return;
@@ -478,12 +559,20 @@ export class RecebimentoDoacaoComponent implements OnInit {
       next: (response: DoadorResponse) => {
         this.doadores = [response, ...this.doadores];
         this.recebimentoForm.get('doadorId')?.setValue(response.id);
-        this.changeTab('dados');
+        this.doadorSelecionadoId = response.id;
+        this.termoBuscaDoador = response.nome;
+        if (!manterNaAba) {
+          this.changeTab('dados');
+        }
       },
       error: () => {
         this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o doador.').build();
       }
     });
+  }
+
+  salvarDoadorSemDoacao(): void {
+    this.salvarDoador(true);
   }
 
   private salvarRecebimento(): void {
@@ -493,8 +582,12 @@ export class RecebimentoDoacaoComponent implements OnInit {
     }
 
     const recorrencia = this.recorrenciaForm.getRawValue();
+    const raw = this.recebimentoForm.getRawValue();
     const payload = {
-      ...this.recebimentoForm.getRawValue(),
+      ...raw,
+      valor: this.parseCurrencyValue(raw.valor),
+      valorMedio: this.parseCurrencyValue(raw.valorMedio),
+      valorTotal: this.parseCurrencyValue(raw.valorTotal),
       recorrente: !!recorrencia.recorrente,
       periodicidade: recorrencia.periodicidade,
       proximaCobranca: recorrencia.proximaCobranca || undefined
@@ -524,10 +617,16 @@ export class RecebimentoDoacaoComponent implements OnInit {
       doadorId: item.doadorId ?? null,
       tipoDoacao: item.tipoDoacao,
       dataRecebimento: item.dataRecebimento,
-      valor: item.valor ?? '',
+      valor: item.valor !== null && item.valor !== undefined
+        ? this.formatCurrencyValue(Number(item.valor), true)
+        : '',
       quantidadeItens: item.quantidadeItens ?? '',
-      valorMedio: item.valorMedio ?? '',
-      valorTotal: item.valorTotal ?? '',
+      valorMedio: item.valorMedio !== null && item.valorMedio !== undefined
+        ? this.formatCurrencyValue(Number(item.valorMedio), true)
+        : '',
+      valorTotal: item.valorTotal !== null && item.valorTotal !== undefined
+        ? this.formatCurrencyValue(Number(item.valorTotal), true)
+        : '',
       formaRecebimento: item.formaRecebimento ?? '',
       status: item.status,
       descricao: item.descricao ?? '',

@@ -1,8 +1,9 @@
 package br.com.g3.cadastrobeneficiario.service;
 
+import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
+import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
-import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import java.util.List;
 
 public interface CadastroBeneficiarioService {
@@ -19,4 +20,7 @@ public interface CadastroBeneficiarioService {
   DocumentoBeneficiario obterDocumento(Long beneficiarioId, Long documentoId);
 
   CadastroBeneficiarioResponse geocodificarEndereco(Long id, boolean forcar);
+
+  CadastroBeneficiarioResponse atualizarAptidaoCestaBasica(
+      Long id, AptidaoCestaBasicaRequest request);
 }

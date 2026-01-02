@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EMPTY } from 'rxjs';
@@ -14,8 +15,8 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  nomeUsuario = 'admin';
-  senha = '123';
+  nomeUsuario = '';
+  senha = '';
   loading = false;
   error: string | null = null;
   success: string | null = null;
@@ -39,10 +40,13 @@ export class LoginComponent {
   recuperacaoConfirmarSenha = '';
   recuperacaoErro: string | null = null;
   recuperacaoMensagem: string | null = null;
+  recuperando = false;
+  redefinindo = false;
 
   constructor(
     private readonly auth: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   submit(): void {
@@ -56,6 +60,8 @@ export class LoginComponent {
         .pipe(
           catchError((err) => {
             this.error = this.mapError(err);
+            this.loading = false;
+            this.cdr.detectChanges();
             return EMPTY;
           }),
           finalize(() => {
@@ -117,11 +123,16 @@ export class LoginComponent {
   }
 
   solicitarRecuperacao(): void {
+    if (this.recuperando) {
+      return;
+    }
+    this.recuperando = true;
     this.recuperacaoSubmetida = true;
     this.recuperacaoErro = null;
     this.recuperacaoMensagem = null;
 
     if (!this.recuperacaoEmailValido()) {
+      this.recuperando = false;
       return;
     }
 
@@ -129,23 +140,37 @@ export class LoginComponent {
       .solicitarRecuperacaoSenha(this.recuperacaoEmail.trim())
       .pipe(
         catchError((err) => {
-          this.recuperacaoErro = this.mapError(err);
+          const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+          if (status === 404) {
+            this.recuperacaoErro = 'Email nao esta registrado em nosso banco de dados.';
+          } else {
+            this.recuperacaoErro = this.mapError(err);
+          }
           return EMPTY;
+        }),
+        finalize(() => {
+          this.recuperando = false;
         })
       )
       .subscribe(() => {
-        this.recuperacaoMensagem =
-          'Se o e-mail estiver cadastrado, voce recebera as instrucoes para recuperar a senha.';
+        this.recuperacaoMensagem = 'Token enviado para o email informado.';
         this.recuperacaoEtapa = 'redefinir';
+        this.recuperarSenhaAberto = true;
+        this.cdr.detectChanges();
       });
   }
 
   redefinirSenha(): void {
+    if (this.redefinindo) {
+      return;
+    }
+    this.redefinindo = true;
     this.redefinicaoSubmetida = true;
     this.recuperacaoErro = null;
     this.recuperacaoMensagem = null;
 
     if (!this.redefinicaoValida()) {
+      this.redefinindo = false;
       return;
     }
 
@@ -159,6 +184,9 @@ export class LoginComponent {
         catchError((err) => {
           this.recuperacaoErro = this.mapError(err);
           return EMPTY;
+        }),
+        finalize(() => {
+          this.redefinindo = false;
         })
       )
       .subscribe(() => {
@@ -208,7 +236,8 @@ export class LoginComponent {
   }
 
   emailValido(email: string): boolean {
-    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim());
+    const sanitized = email.replace(/\s+/g, '').trim().toLowerCase();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized);
   }
 
   private resetCadastro(): void {
@@ -235,6 +264,19 @@ export class LoginComponent {
   private mapError(err: unknown): string {
     if (err && typeof err === 'object' && 'name' in err && err['name'] === 'TimeoutError') {
       return 'O servidor nao respondeu. Verifique sua conexao ou tente novamente em instantes.';
+    }
+
+    const status =
+      err instanceof HttpErrorResponse
+        ? err.status
+        : err && typeof err === 'object' && 'status' in err
+          ? (err as any).status
+          : null;
+    if (status === 400 || status === 401 || status === 404) {
+      return 'Seus dados nao foram encontrados tente novamente ou entre em contato com sua instituicao';
+    }
+    if (status === 422) {
+      return 'Token invalido ou expirado. Solicite uma nova recuperacao.';
     }
 
     const fallback =

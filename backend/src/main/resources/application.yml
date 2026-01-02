@@ -3,6 +3,24 @@ spring:
     url: jdbc:postgresql://localhost:5432/g3
     username: postgres
     password: admin
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 60000
+          timeout: 60000
+          writetimeout: 60000
+        transport:
+          protocol: smtp
+        debug: false
+    default-encoding: UTF-8
   jpa:
     open-in-view: false
     hibernate:
@@ -20,3 +38,8 @@ app:
     enabled: true
   storage:
     beneficiarios: storage/beneficiarios
+    fotos-eventos: storage/fotos-eventos
+  email:
+    habilitado: ${APP_EMAIL_HABILITADO:false}
+    remetente: ${APP_EMAIL_REMETENTE:}
+    nome-remetente: ${APP_EMAIL_NOME:HTA Sistemas}

@@ -131,6 +131,8 @@ export interface BeneficiaryPayload {
   documentosAnexos: DocumentoObrigatorio[];
   foto?: string | null;
   indiceVulnerabilidade?: VulnerabilityIndexPayload | null;
+  optaReceberCestaBasica?: boolean;
+  aptoReceberCestaBasica?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -198,6 +200,18 @@ export class BeneficiaryService {
     }
 
     return this.requestWithFallback((baseUrl) => this.http.post<BeneficiaryPayload>(baseUrl, formData));
+  }
+
+  atualizarAptidaoCestaBasica(
+    id: number,
+    payload: { optaReceberCestaBasica?: boolean; aptoReceberCestaBasica?: boolean | null }
+  ): Observable<BeneficiaryPayload> {
+    return this.requestWithFallback((baseUrl) =>
+      this.http.patch<BeneficiaryPayload>(`${baseUrl}/${id}/aptidao-cesta-basica`, {
+        opta_receber_cesta_basica: payload.optaReceberCestaBasica,
+        apto_receber_cesta_basica: payload.aptoReceberCestaBasica
+      })
+    );
   }
 
   private buildFormData(payload: BeneficiaryPayload, photoFile?: File | null): FormData {

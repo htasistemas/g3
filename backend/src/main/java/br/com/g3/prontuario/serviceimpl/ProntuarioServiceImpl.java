@@ -2,6 +2,7 @@ package br.com.g3.prontuario.serviceimpl;
 
 import br.com.g3.cadastrobeneficiario.domain.CadastroBeneficiario;
 import br.com.g3.cadastrobeneficiario.domain.ContatoBeneficiario;
+import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.domain.SituacaoSocialBeneficiario;
 import br.com.g3.cadastrobeneficiario.repository.CadastroBeneficiarioRepository;
 import br.com.g3.prontuario.domain.ProntuarioAnexo;
@@ -9,10 +10,12 @@ import br.com.g3.prontuario.domain.ProntuarioRegistro;
 import br.com.g3.prontuario.dto.BeneficiarioResumoResponse;
 import br.com.g3.prontuario.dto.ProntuarioAnexoRequest;
 import br.com.g3.prontuario.dto.ProntuarioAnexoResponse;
+import br.com.g3.prontuario.dto.ProntuarioIndicadoresResponse;
 import br.com.g3.prontuario.dto.ProntuarioRegistroListaResponse;
 import br.com.g3.prontuario.dto.ProntuarioRegistroRequest;
 import br.com.g3.prontuario.dto.ProntuarioRegistroResponse;
 import br.com.g3.prontuario.dto.ProntuarioResumoResponse;
+import br.com.g3.prontuario.repository.ProntuarioEncaminhamentoIndicadores;
 import br.com.g3.prontuario.repository.ProntuarioAnexoRepository;
 import br.com.g3.prontuario.repository.ProntuarioRegistroConsultaResultado;
 import br.com.g3.prontuario.repository.ProntuarioRegistroRepository;
@@ -28,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,16 +42,19 @@ public class ProntuarioServiceImpl implements ProntuarioService {
   private final ProntuarioRegistroRepository registroRepository;
   private final ProntuarioAnexoRepository anexoRepository;
   private final ObjectMapper objectMapper;
+  private final JdbcTemplate jdbcTemplate;
 
   public ProntuarioServiceImpl(
       CadastroBeneficiarioRepository beneficiarioRepository,
       ProntuarioRegistroRepository registroRepository,
       ProntuarioAnexoRepository anexoRepository,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      JdbcTemplate jdbcTemplate) {
     this.beneficiarioRepository = beneficiarioRepository;
     this.registroRepository = registroRepository;
     this.anexoRepository = anexoRepository;
     this.objectMapper = objectMapper;
+    this.jdbcTemplate = jdbcTemplate;
   }
 
   @Override
@@ -62,12 +69,14 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     resumo.setId(beneficiario.getId());
     resumo.setNomeCompleto(beneficiario.getNomeCompleto());
     resumo.setCpf(extrairCpf(beneficiario));
+    resumo.setNis(extrairNis(beneficiario));
     LocalDate dataNascimento = beneficiario.getDataNascimento();
     resumo.setDataNascimento(dataNascimento != null ? dataNascimento.toString() : null);
     resumo.setNomeMae(beneficiario.getNomeMae());
     resumo.setFoto3x4(beneficiario.getFoto3x4());
     resumo.setStatus(beneficiario.getStatus());
     resumo.setEndereco(formatarEndereco(beneficiario));
+    resumo.setFamiliaReferencia(buscarFamiliaReferencia(beneficiarioId));
 
     Optional<ContatoBeneficiario> contatoPrincipal =
         beneficiario.getContatos().stream().findFirst();
@@ -87,7 +96,26 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     Map<String, Long> contagens = new HashMap<>(registroRepository.contarPorTipo(beneficiarioId));
     LocalDateTime ultimaAtualizacao = registroRepository.buscarUltimaAtualizacao(beneficiarioId);
 
-    return new ProntuarioResumoResponse(resumo, contagens, ultimaAtualizacao);
+    ProntuarioEncaminhamentoIndicadores encaminhamentos =
+        registroRepository.buscarIndicadoresEncaminhamentos(beneficiarioId);
+    ProntuarioIndicadoresResponse indicadores = new ProntuarioIndicadoresResponse();
+    long totalEncaminhamentos = encaminhamentos != null ? encaminhamentos.getTotal() : 0;
+    long encaminhamentosConcluidos = encaminhamentos != null ? encaminhamentos.getConcluidos() : 0;
+    indicadores.setTotalAtendimentos(contagens.getOrDefault("atendimento", 0L));
+    indicadores.setTotalEncaminhamentos(totalEncaminhamentos);
+    indicadores.setTaxaEncaminhamentosConcluidos(
+        totalEncaminhamentos > 0
+            ? (encaminhamentosConcluidos * 100.0) / totalEncaminhamentos
+            : 0.0);
+    indicadores.setTempoMedioRetornoDias(
+        encaminhamentos != null ? encaminhamentos.getTempoMedioDias() : null);
+    indicadores.setUltimoContato(ultimaAtualizacao);
+    indicadores.setPendenciasAbertas(registroRepository.contarPendencias(beneficiarioId));
+    indicadores.setClassificacaoRiscoAtual(
+        registroRepository.buscarUltimaClassificacaoRisco(beneficiarioId));
+    indicadores.setStatusAcompanhamento(beneficiario.getStatus());
+
+    return new ProntuarioResumoResponse(resumo, contagens, indicadores, ultimaAtualizacao);
   }
 
   @Override
@@ -168,9 +196,13 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     registro.setDataRegistro(request.getDataRegistro());
     registro.setProfissionalId(request.getProfissionalId());
     registro.setUnidadeId(request.getUnidadeId());
+    registro.setFamiliaId(request.getFamiliaId());
     registro.setTitulo(request.getTitulo());
     registro.setDescricao(request.getDescricao());
     registro.setStatus(request.getStatus());
+    registro.setReferenciaOrigemTipo(request.getReferenciaOrigemTipo());
+    registro.setReferenciaOrigemId(request.getReferenciaOrigemId());
+    registro.setNivelSigilo(request.getNivelSigilo());
     registro.setDadosExtra(serializeExtra(request.getDadosExtra()));
   }
 
@@ -182,9 +214,13 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     response.setDataRegistro(registro.getDataRegistro());
     response.setProfissionalId(registro.getProfissionalId());
     response.setUnidadeId(registro.getUnidadeId());
+    response.setFamiliaId(registro.getFamiliaId());
     response.setTitulo(registro.getTitulo());
     response.setDescricao(registro.getDescricao());
     response.setStatus(registro.getStatus());
+    response.setReferenciaOrigemTipo(registro.getReferenciaOrigemTipo());
+    response.setReferenciaOrigemId(registro.getReferenciaOrigemId());
+    response.setNivelSigilo(registro.getNivelSigilo());
     response.setDadosExtra(deserializeExtra(registro.getDadosExtra()));
     response.setCriadoEm(registro.getCriadoEm());
     response.setCriadoPor(registro.getCriadoPor());
@@ -263,5 +299,30 @@ public class ProntuarioServiceImpl implements ProntuarioService {
         .filter(item -> item != null && !item.trim().isEmpty())
         .findFirst()
         .orElse(null);
+  }
+
+  private String extrairNis(CadastroBeneficiario beneficiario) {
+    if (beneficiario.getDocumentos() == null || beneficiario.getDocumentos().isEmpty()) {
+      return null;
+    }
+    for (DocumentoBeneficiario documento : beneficiario.getDocumentos()) {
+      String tipo = documento.getTipoDocumento();
+      if (tipo == null) {
+        continue;
+      }
+      String tipoNormalizado = tipo.toLowerCase();
+      if (tipoNormalizado.contains("nis") || tipoNormalizado.contains("pis")) {
+        return documento.getNumeroDocumento();
+      }
+    }
+    return null;
+  }
+
+  private String buscarFamiliaReferencia(Long beneficiarioId) {
+    String sql =
+        "SELECT nome_familia FROM vinculo_familiar WHERE id_referencia_familiar = ? LIMIT 1";
+    List<String> familias =
+        jdbcTemplate.query(sql, new Object[] {beneficiarioId}, (rs, rowNum) -> rs.getString(1));
+    return familias.isEmpty() ? null : familias.get(0);
   }
 }

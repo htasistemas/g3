@@ -11,6 +11,13 @@ export interface DoadorRequest {
   responsavelEmpresa?: string;
   email?: string;
   telefone?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  cep?: string;
   observacoes?: string;
 }
 
@@ -52,7 +59,11 @@ export class RecebimentoDoacaoService {
   }
 
   criarDoador(payload: DoadorRequest): Observable<DoadorResponse> {
-    return this.http.post<DoadorResponse>(`${this.baseUrl}/doadores`, payload);
+    return this.http.post<DoadorResponse>(`${this.baseUrl}/doadores`, payload); 
+  }
+
+  excluirDoador(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/doadores/${id}`);
   }
 
   listarRecebimentos(): Observable<RecebimentoDoacaoResponse[]> {

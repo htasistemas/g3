@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -7,9 +7,23 @@ import {
   VisitaDomiciliar,
   VisitaDomiciliarService
 } from '../../services/visita-domiciliar.service';
-import { BeneficiaryService } from '../../services/beneficiary.service';
+import { BeneficiaryPayload } from '../../services/beneficiary.service';
+import { AssistanceUnitService } from '../../services/assistance-unit.service';
+import {
+  BeneficiarioApiPayload,
+  BeneficiarioApiService
+} from '../../services/beneficiario-api.service';
 
+import {
+  ConfigAcoesCrud,
+  EstadoAcoesCrud,
+  TelaBaseComponent
+} from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import {
+  AutocompleteComponent,
+  AutocompleteOpcao
+} from '../compartilhado/autocomplete/autocomplete.component';
 interface StepTab {
   id: string;
   label: string;
@@ -18,27 +32,47 @@ interface StepTab {
 @Component({
   selector: 'app-visita-domiciliar-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TelaPadraoComponent,
+    AutocompleteComponent
+  ],
   templateUrl: './visita-domiciliar-gestao.component.html',
   styleUrl: './visita-domiciliar-gestao.component.scss'
 })
-export class VisitaDomiciliarGestaoComponent implements OnInit {
+export class VisitaDomiciliarGestaoComponent
+  extends TelaBaseComponent
+  implements OnInit
+{
   tabs: StepTab[] = [
-    { id: 'identificacao', label: 'Identificação da visita' },
+    { id: 'identificacao', label: 'Identificacao da visita' },
     { id: 'condicoes', label: 'Condições do domicílio' },
-    { id: 'social', label: 'Situação famíliar e social' },
+    { id: 'social', label: 'Situação familiar e social' },
     { id: 'registro', label: 'Registro da visita' },
     { id: 'anexos', label: 'Anexos' },
-    { id: 'historico', label: 'Histórico do beneficiario' }
+    { id: 'historico', label: 'Histórico do beneficiário' }
   ];
 
   readonly tiposVisita = ['Social', 'Técnica', 'Acompanhamento', 'Retorno'];
   readonly situacoes: SituacaoVisita[] = ['Agendada', 'Em andamento', 'Realizada', 'Cancelada'];
-  readonly unidades = ['Unidade Central', 'Polo Norte', 'Polo Sul'];
+  unidades: string[] = [];
+  unidadePrincipalNome: string | null = null;
   readonly responsaveis = ['Equipe Social', 'Equipe Técnica', 'Voluntário dedicado'];
-  beneficiarios: string[] = [];
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
+  beneficiariosDados: BeneficiaryPayload[] = [];
+  beneficiarioOpcoes: AutocompleteOpcao[] = [];
+  beneficiarioTermo = '';
   beneficiariosLoading = false;
   beneficiariosError: string | null = null;
+  beneficiarioSelecionado: BeneficiaryPayload | null = null;
+  beneficiarioSelecionadoId: number | null = null;
 
   readonly situacaoMoradia = ['Própria', 'Alugada', 'Cedida', 'Ocupação'];
   readonly situacaoPosse = ['Regular', 'Irregular'];
@@ -60,13 +94,15 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
 
   feedback: string | null = null;
   saving = false;
-  editingId: string | null = null;
+  editingId: number | null = null;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly visitaService: VisitaDomiciliarService,
-    private readonly beneficiaryService: BeneficiaryService
+    private readonly beneficiarioApiService: BeneficiarioApiService,
+    private readonly assistanceUnitService: AssistanceUnitService
   ) {
+    super();
     this.visitForm = this.fb.group({
       identificacao: this.fb.group({
         unidade: ['', Validators.required],
@@ -78,7 +114,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: ['Social'],
         situacao: ['Agendada', Validators.required],
         usarEnderecoBeneficiario: [true],
-        endereço: this.fb.group({
+        endereco: this.fb.group({
           logradouro: [''],
           numero: [''],
           bairro: [''],
@@ -112,7 +148,10 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         necessidades: [''],
         encaminhamentos: [''],
         orientacoes: [''],
-        plano: ['']
+        plano: [''],
+        optaReceberCestaBasica: [null],
+        aptoReceberCestaBasica: [null],
+        motivoNaoReceberCestaBasica: ['']
       }),
       anexos: this.fb.control<VisitaAnexo[]>([])
     });
@@ -134,6 +173,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadUnidadePrincipal();
     this.loadBeneficiarios();
     this.loadVisitas();
   }
@@ -142,17 +182,38 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
     this.beneficiariosLoading = true;
     this.beneficiariosError = null;
 
-    this.beneficiaryService.list().subscribe({
-      next: ({ beneficiarios }: { beneficiarios?: any[] }) => {
-        this.beneficiarios = (beneficiarios ?? []).map(
-          (beneficiario: any) => beneficiario.nomeCompleto || (beneficiario as any).nome_completo || 'Beneficiario'
+    this.beneficiarioApiService.list().subscribe({
+      next: ({ beneficiarios }) => {
+        this.beneficiariosDados = (beneficiarios ?? []).map((item) =>
+          this.mapBeneficiarioApi(item)
         );
+        this.atualizarOpcoesBeneficiario();
         this.beneficiariosLoading = false;
       },
       error: () => {
-        this.beneficiarios = [];
-        this.beneficiariosError = 'Não foi possível carregar os beneficiarios.';
+        this.beneficiariosDados = [];
+        this.beneficiariosError = 'Nao foi possivel carregar os beneficiarios.';
+        this.beneficiarioOpcoes = [];
         this.beneficiariosLoading = false;
+      }
+    });
+  }
+
+  private loadUnidadePrincipal(): void {
+    this.assistanceUnitService.get().subscribe({
+      next: ({ unidade }) => {
+        const nome =
+          unidade?.nomeFantasia?.trim() || unidade?.razaoSocial?.trim() || '';
+        if (!nome) return;
+        this.unidadePrincipalNome = nome;
+        this.unidades = [nome];
+        this.visitForm
+          .get('identificacao.unidade')
+          ?.setValue(nome, { emitEvent: false });
+      },
+      error: () => {
+        this.unidadePrincipalNome = null;
+        this.unidades = [];
       }
     });
   }
@@ -170,7 +231,23 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
   }
 
   get nextTabLabel(): string {
-    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';     
+  }
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving || this.visitForm.invalid,
+      excluir: !this.editingId,
+      imprimir: !this.editingId
+    };
+  }
+
+  get beneficiarioAptidao(): boolean {
+    if (!this.beneficiarioSelecionado) return false;
+    return (
+      this.beneficiarioSelecionado.aptoReceberCestaBasica !== undefined ||
+      this.beneficiarioSelecionado.optaReceberCestaBasica !== undefined
+    );
   }
 
   get historicoBeneficiario(): VisitaDomiciliar[] {
@@ -211,7 +288,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
 
     const anexos = this.visitForm.get('anexos')?.value ?? [];
     const novo: VisitaAnexo = {
-      id: crypto.randomUUID(),
+      id: Date.now(),
       nome: this.anexoForm.value.nome,
       tipo: this.anexoForm.value.tipo,
       tamanho: this.anexoForm.value.tamanho
@@ -278,24 +355,37 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
     this.saving = true;
 
     const payload = this.buildPayload();
+    const request$ = this.editingId
+      ? this.visitaService.update(this.editingId, payload)
+      : this.visitaService.create(payload);
 
-    if (this.editingId) {
-      this.visitaService.update(this.editingId, payload);
-      this.feedback = 'Visita domiciliar atualizada com sucesso.';
-    } else {
-      this.visitaService.create(payload);
-      this.feedback = 'Visita domiciliar registrada com sucesso.';
-    }
-
-    this.loadVisitas();
-    this.saving = false;
-    this.editingId = null;
-    this.resetForm();
+    request$.subscribe({
+      next: () => {
+        this.feedback = this.editingId
+          ? 'Visita domiciliar atualizada com sucesso.'
+          : 'Visita domiciliar registrada com sucesso.';
+        this.loadVisitas();
+        this.editingId = null;
+        this.resetForm();
+      },
+      error: () => {
+        this.feedback = 'Não foi possível salvar a visita domiciliar.';
+      },
+      complete: () => {
+        this.saving = false;
+      }
+    });
   }
 
   editarVisita(visita: VisitaDomiciliar): void {
     this.editingId = visita.id;
     this.changeTab('identificacao');
+    this.beneficiarioSelecionadoId = visita.beneficiarioId;
+    this.beneficiarioTermo = visita.beneficiario;
+    this.beneficiarioSelecionado =
+      this.beneficiariosDados.find(
+        (beneficiario) => Number(beneficiario.id) === visita.beneficiarioId
+      ) ?? null;
     this.visitForm.patchValue({
       identificacao: {
         unidade: visita.unidade,
@@ -307,7 +397,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: visita.tipoVisita,
         situacao: visita.situacao,
         usarEnderecoBeneficiario: visita.usarEnderecoBeneficiario,
-        endereço: visita.endereço,
+        endereco: visita.endereco,
         observacoesIniciais: visita.observacoesIniciais
       },
       condicoes: visita.condicoes,
@@ -324,24 +414,37 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
     }
 
     const atualizado = { ...visita, situacao: 'Cancelada' as SituacaoVisita };
-    this.visitaService.update(visita.id, atualizado);
-    this.feedback = 'Visita cancelada e registrada com sucesso.';
-    this.loadVisitas();
+    this.visitaService.update(visita.id, atualizado).subscribe({
+      next: () => {
+        this.feedback = 'Visita cancelada e registrada com sucesso.';
+        this.loadVisitas();
+      },
+      error: () => {
+        this.feedback = 'Não foi possível cancelar a visita.';
+      }
+    });
   }
 
   excluirVisita(visita: VisitaDomiciliar): void {
     if (visita.situacao === 'Realizada') {
-      this.feedback = 'Visitas realizadas não podem ser excluídas. Utilize a ação de cancelamento se necessário.';
+      this.feedback =
+        'Visitas realizadas não podem ser excluídas. Utilize a ação de cancelamento se necessário.';
       return;
     }
 
-    this.visitaService.delete(visita.id);
-    this.feedback = 'Visita removida do histórico.';
-    if (this.editingId === visita.id) {
-      this.editingId = null;
-      this.resetForm();
-    }
-    this.loadVisitas();
+    this.visitaService.delete(visita.id).subscribe({
+      next: () => {
+        this.feedback = 'Visita removida do histórico.';
+        if (this.editingId === visita.id) {
+          this.editingId = null;
+          this.resetForm();
+        }
+        this.loadVisitas();
+      },
+      error: () => {
+        this.feedback = 'Não foi possível excluir a visita.';
+      }
+    });
   }
 
   novaVisita(): void {
@@ -350,14 +453,23 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
   }
 
   private loadVisitas(): void {
-    this.visitas = this.visitaService.list();
-    this.aplicarFiltros();
+    this.visitaService.list().subscribe({
+      next: (visitas) => {
+        this.visitas = visitas;
+        this.aplicarFiltros();
+      },
+      error: () => {
+        this.visitas = [];
+        this.filteredVisitas = [];
+        this.feedback = 'Não foi possível carregar as visitas domiciliares.';
+      }
+    });
   }
 
-  private resetForm(): void {
+  resetForm(): void {
     this.visitForm.reset({
       identificacao: {
-        unidade: '',
+        unidade: this.unidadePrincipalNome ?? '',
         beneficiario: '',
         responsavel: '',
         dataVisita: '',
@@ -366,7 +478,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         tipoVisita: 'Social',
         situacao: 'Agendada',
         usarEnderecoBeneficiario: true,
-        endereço: {
+        endereco: {
           logradouro: '',
           numero: '',
           bairro: '',
@@ -400,18 +512,174 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
         necessidades: '',
         encaminhamentos: '',
         orientacoes: '',
-        plano: ''
+        plano: '',
+        optaReceberCestaBasica: null,
+        aptoReceberCestaBasica: null,
+        motivoNaoReceberCestaBasica: ''
       },
       anexos: []
     });
     this.anexoForm.reset({ tipo: 'PDF' });
     this.activeTab = 'identificacao';
+    this.beneficiarioSelecionado = null;
+    this.beneficiarioSelecionadoId = null;
+    this.beneficiarioTermo = '';
+    this.beneficiarioOpcoes = [];
+  }
+
+  dismissFeedback(): void {
+    this.feedback = null;
+  }
+
+  closeForm(): void {
+    window.history.back();
+  }
+
+  handleExcluir(): void {
+    if (!this.editingId) {
+      this.feedback = 'Selecione uma visita para excluir.';
+      return;
+    }
+    const visita = this.visitas.find((item) => item.id === this.editingId);
+    if (!visita) {
+      this.feedback = 'Visita não encontrada para exclusão.';
+      return;
+    }
+    this.excluirVisita(visita);
+  }
+
+  imprimirVisita(): void {
+    window.print();
+  }
+
+  formatarAptidaoDoacoes(): string {
+    const beneficiario = this.beneficiarioSelecionado;
+    if (!beneficiario) return 'Não informado';
+    if (beneficiario.optaReceberCestaBasica === false) {
+      return 'Não opta por cesta básica';
+    }
+    if (beneficiario.aptoReceberCestaBasica === true) {
+      return 'Apto para receber doações';
+    }
+    if (beneficiario.aptoReceberCestaBasica === false) {
+      return 'Não apto para receber doações';
+    }
+    return 'Não informado';
+  }
+
+  atualizarTermoBeneficiario(termo: string): void {
+    this.beneficiarioTermo = termo;
+    this.atualizarOpcoesBeneficiario();
+  }
+
+  selecionarBeneficiario(opcao: AutocompleteOpcao): void {
+    this.beneficiarioTermo = opcao.label;
+    this.visitForm.get('identificacao.beneficiario')?.setValue(opcao.label);
+    this.beneficiarioSelecionadoId = Number(opcao.id);
+    this.beneficiarioSelecionado =
+      this.beneficiariosDados.find(
+        (beneficiario) => Number(beneficiario.id) === this.beneficiarioSelecionadoId
+      ) ?? null;
+    this.atualizarOpcoesBeneficiario();
+    this.onToggleEnderecoBeneficiario();
+  }
+
+  onToggleEnderecoBeneficiario(): void {
+    const usarEndereco =
+      this.visitForm.get('identificacao.usarEnderecoBeneficiario')?.value ?? false;
+    if (!usarEndereco || !this.beneficiarioSelecionado) return;
+
+    const beneficiario = this.beneficiarioSelecionado;
+    this.visitForm.get('identificacao.endereco')?.patchValue({
+      logradouro: beneficiario.logradouro ?? beneficiario.endereco ?? '',
+      numero: beneficiario.numero ?? beneficiario.numeroEndereco ?? '',
+      bairro: beneficiario.bairro ?? '',
+      cidade: beneficiario.cidade ?? '',
+      uf: beneficiario.uf ?? beneficiario.estado ?? '',
+      cep: beneficiario.cep ?? ''
+    });
+  }
+
+  onOptaCestaBasicaChange(): void {
+    const opta = this.visitForm.get('registro.optaReceberCestaBasica')?.value;
+    if (opta !== true) {
+      this.visitForm.get('registro.aptoReceberCestaBasica')?.setValue(null);
+      this.visitForm.get('registro.motivoNaoReceberCestaBasica')?.setValue('');
+    }
+  }
+
+  onAptoCestaBasicaChange(): void {
+    const apto = this.visitForm.get('registro.aptoReceberCestaBasica')?.value;
+    if (apto === true) {
+      this.visitForm.get('registro.motivoNaoReceberCestaBasica')?.setValue('');
+    }
+  }
+
+  marcarVisitaRealizada(visita: VisitaDomiciliar): void {
+    if (visita.situacao === 'Realizada') return;
+    const atualizado = { ...visita, situacao: 'Realizada' as SituacaoVisita };
+    this.visitaService.update(visita.id, atualizado).subscribe({
+      next: () => {
+        this.feedback = 'Visita marcada como realizada.';
+        this.loadVisitas();
+      },
+      error: () => {
+        this.feedback = 'Não foi possível atualizar a visita.';
+      }
+    });
+  }
+
+  private atualizarOpcoesBeneficiario(): void {
+    const termoNormalizado = this.normalizarTexto(this.beneficiarioTermo);
+    this.beneficiarioOpcoes = this.beneficiariosDados
+      .filter((beneficiario) => {
+        if (!termoNormalizado) return true;
+        const nome = beneficiario.nomeCompleto ?? '';
+        return this.normalizarTexto(nome).includes(termoNormalizado);
+      })
+      .slice(0, 20)
+      .map((beneficiario) => ({
+        id: beneficiario.id ?? '',
+        label: beneficiario.nomeCompleto || 'Beneficiario'
+      }));
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  private mapBeneficiarioApi(beneficiario: BeneficiarioApiPayload): BeneficiaryPayload {
+    const nomeCompleto =
+      beneficiario.nome_completo || beneficiario.nome_social || 'Beneficiario';
+    return {
+      id: beneficiario.id_beneficiario ? Number(beneficiario.id_beneficiario) : undefined,
+      nomeCompleto,
+      cep: beneficiario.cep ?? '',
+      documentos: beneficiario.cpf ?? '',
+      dataNascimento: beneficiario.data_nascimento ?? '',
+      email: beneficiario.email ?? '',
+      logradouro: beneficiario.logradouro ?? '',
+      endereco: beneficiario.logradouro ?? '',
+      numero: beneficiario.numero ?? '',
+      numeroEndereco: beneficiario.numero ?? '',
+      bairro: beneficiario.bairro ?? '',
+      cidade: beneficiario.municipio ?? '',
+      uf: beneficiario.uf ?? '',
+      optaReceberCestaBasica: beneficiario.opta_receber_cesta_basica,
+      aptoReceberCestaBasica: beneficiario.apto_receber_cesta_basica,
+      documentosAnexos: []
+    };
   }
 
   private buildPayload(): VisitaDomiciliar {
     const value = this.visitForm.value;
     return {
-      id: this.editingId ?? crypto.randomUUID(),
+      id: this.editingId ?? 0,
+      beneficiarioId: this.beneficiarioSelecionadoId ?? 0,
       unidade: value.identificacao?.unidade || '',
       beneficiario: value.identificacao?.beneficiario || '',
       responsavel: value.identificacao?.responsavel || '',
@@ -421,7 +689,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
       tipoVisita: value.identificacao?.tipoVisita || 'Social',
       situacao: (value.identificacao?.situacao as SituacaoVisita) || 'Agendada',
       usarEnderecoBeneficiario: value.identificacao?.usarEnderecoBeneficiario ?? true,
-      endereço: value.identificacao?.endereço || {},
+      endereco: value.identificacao?.endereco || {},
       observacoesIniciais: value.identificacao?.observacoesIniciais,
       condicoes: value.condicoes || {},
       situacaoSocial: value.situacaoSocial || {},
@@ -429,9 +697,7 @@ export class VisitaDomiciliarGestaoComponent implements OnInit {
       anexos: value.anexos ?? [],
       createdAt: this.editingId
         ? this.visitas.find((v) => v.id === this.editingId)?.createdAt ?? new Date().toISOString()
-        : new Date().toISOString(),
-      createdBy: 'admin'
+        : new Date().toISOString()
     };
   }
 }
-

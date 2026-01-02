@@ -1,0 +1,10 @@
+
+  
+    set APP_EMAIL_HABILITADO=true
+  set APP_EMAIL_REMETENTE=htasistemas@gmail.com
+  set APP_EMAIL_NOME=HTA Sistemas
+  set MAIL_HOST=smtp.gmail.com
+  set MAIL_PORT=587
+  set MAIL_USER=htasistemas@gmail.com
+  set MAIL_PASS=hggl hsdi wgon tftn
+  .\mvnw.cmd -q -DskipTests clean spring-boot:run

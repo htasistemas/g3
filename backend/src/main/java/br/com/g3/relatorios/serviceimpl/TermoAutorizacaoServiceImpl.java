@@ -2,109 +2,147 @@ package br.com.g3.relatorios.serviceimpl;
 
 import br.com.g3.relatorios.dto.TermoAutorizacaoRequest;
 import br.com.g3.relatorios.service.TermoAutorizacaoService;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import br.com.g3.relatorios.util.HtmlPdfRenderer;
+import br.com.g3.relatorios.util.RelatorioTemplatePadrao;
+import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialResponse;
+import br.com.g3.unidadeassistencial.service.UnidadeAssistencialService;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
+  private final UnidadeAssistencialService unidadeService;
+
+  public TermoAutorizacaoServiceImpl(UnidadeAssistencialService unidadeService) {
+    this.unidadeService = unidadeService;
+  }
+
   @Override
   public byte[] gerarPdf(TermoAutorizacaoRequest request) {
-    String conteudo = montarConteudoPdf(request);
-    return gerarPdfSimples(conteudo);
+    UnidadeAssistencialResponse unidade = unidadeService.obterAtual();
+    String corpoHtml = montarCorpoHtml(request, unidade);
+    String html =
+        RelatorioTemplatePadrao.buildHtml(
+            "Termo de Consentimento para Uso de Dados Pessoais e Imagem",
+            corpoHtml,
+            unidade,
+            textoSeguro(request.getIssuedBy()),
+            LocalDateTime.now(),
+            unidade != null ? unidade.getRazaoSocial() : null);
+    return HtmlPdfRenderer.render(html);
   }
 
-  private String montarConteudoPdf(TermoAutorizacaoRequest request) {
-    List<String> linhas = new ArrayList<>();
-    linhas.add("TERMO DE AUTORIZACAO PARA TRATAMENTO DE DADOS");
-    linhas.add(" ");
-    linhas.add("Eu, " + textoSeguro(request.getBeneficiaryName()) + ", autorizo a unidade a tratar");
-    linhas.add("meus dados pessoais para fins de atendimento social, conforme a LGPD.");
-    linhas.add(" ");
-    adicionarDadosUnidade(request, linhas);
-    linhas.add(" ");
-    linhas.add("Dados do beneficiario:");
-    linhas.add("Nome: " + textoSeguro(request.getBeneficiaryName()));
-    linhas.add("Data de nascimento: " + textoSeguro(request.getBirthDate()));
-    linhas.add("Mae: " + textoSeguro(request.getMotherName()));
-    linhas.add("CPF: " + textoSeguro(request.getCpf()));
-    linhas.add("RG: " + textoSeguro(request.getRg()));
-    linhas.add("NIS: " + textoSeguro(request.getNis()));
-    linhas.add("Endereco: " + textoSeguro(request.getAddress()));
-    linhas.add("Contato: " + textoSeguro(request.getContact()));
-    linhas.add("Data de emissao: " + textoSeguro(request.getIssueDate()));
-    linhas.add(" ");
-    linhas.add("Declaro estar ciente dos meus direitos de acesso, correcao e revogacao.");
-    linhas.add("A autorizacao pode ser revogada a qualquer momento mediante solicitacao.");
-    return montarStreamTexto(linhas);
-  }
+  private String montarCorpoHtml(TermoAutorizacaoRequest request, UnidadeAssistencialResponse unidade) {
+    String beneficiario = textoSeguro(request.getBeneficiarioNome());
+    String rg = textoSeguro(request.getRg());
+    String cpf = textoSeguro(request.getCpf());
+    String endereco = textoSeguro(request.getEnderecoCompleto());
+    String cidade = textoSeguro(request.getCidade());
+    String uf = textoSeguro(request.getUf());
+    String finalidadeDados =
+        textoSeguroComPadrao(
+            request.getFinalidadeDados(),
+            "cadastro, analise de elegibilidade para programas sociais, acompanhamento familiar e emissao de relatorios a orgaos publicos.");
+    String finalidadeImagem =
+        textoSeguroComPadrao(
+            request.getFinalidadeImagem(),
+            "divulgacao institucional, prestacao de contas a parceiros, campanhas de conscientizacao e publicacoes em canais oficiais.");
+    String vigencia = textoSeguroComPadrao(request.getVigencia(), "prazo indeterminado");
+    String localAssinatura =
+        textoSeguroComPadrao(request.getLocalAssinatura(), montarLocal(cidade, uf));
+    String dataAssinatura = textoSeguroComPadrao(request.getDataAssinatura(), "data nao informada");
+    String responsavelNome = textoSeguro(request.getResponsavelNome());
+    String responsavelCpf = textoSeguro(request.getResponsavelCpf());
+    String responsavelRelacao = textoSeguro(request.getResponsavelRelacao());
+    String representanteNome =
+        textoSeguroComPadrao(request.getRepresentanteNome(), textoSeguro(request.getIssuedBy()));
+    String representanteCargo = textoSeguro(request.getRepresentanteCargo());
 
-  private void adicionarDadosUnidade(TermoAutorizacaoRequest request, List<String> linhas) {
-    TermoAutorizacaoRequest.UnidadeAssistencialRequest unidade = request.getUnit();
-    if (unidade == null) {
-      return;
-    }
+    String instituicaoNome =
+        unidade != null && unidade.getNomeFantasia() != null && !unidade.getNomeFantasia().trim().isEmpty()
+            ? unidade.getNomeFantasia().trim()
+            : "Instituicao nao informada";
+    String instituicaoCnpj = unidade != null ? textoSeguro(unidade.getCnpj()) : "Nao informado";
 
-    linhas.add("Dados da unidade:");
-    linhas.add("Unidade: " + textoSeguro(unidade.getNomeFantasia()));
-    linhas.add("Razao social: " + textoSeguro(unidade.getRazaoSocial()));
-    linhas.add("CNPJ: " + textoSeguro(unidade.getCnpj()));
-    linhas.add("Telefone: " + textoSeguro(unidade.getTelefone()));
-    linhas.add("E-mail: " + textoSeguro(unidade.getEmail()));
-    linhas.add("Endereco: " + montarEnderecoUnidade(unidade));
-  }
-
-  private String montarEnderecoUnidade(TermoAutorizacaoRequest.UnidadeAssistencialRequest unidade) {
-    List<String> partes = new ArrayList<>();
-    if (temValor(unidade.getEndereco())) {
-      partes.add(unidade.getEndereco().trim());
-    }
-    if (temValor(unidade.getNumeroEndereco())) {
-      partes.add("Numero " + unidade.getNumeroEndereco().trim());
-    }
-    if (temValor(unidade.getComplemento())) {
-      partes.add(unidade.getComplemento().trim());
-    }
-    if (temValor(unidade.getBairro())) {
-      partes.add(unidade.getBairro().trim());
-    }
-    if (temValor(unidade.getPontoReferencia())) {
-      partes.add("Ref: " + unidade.getPontoReferencia().trim());
-    }
-    if (temValor(unidade.getCidade())) {
-      partes.add(unidade.getCidade().trim());
-    }
-    if (temValor(unidade.getEstado())) {
-      partes.add(unidade.getEstado().trim());
-    }
-
-    if (partes.isEmpty()) {
-      return "Nao informado";
-    }
-
-    return String.join(" - ", partes);
-  }
-
-  private boolean temValor(String valor) {
-    return valor != null && !valor.trim().isEmpty();
-  }
-
-  private String montarStreamTexto(List<String> linhas) {
     StringBuilder sb = new StringBuilder();
-    sb.append("BT\n");
-    sb.append("/F1 12 Tf\n");
-    sb.append("72 720 Td\n");
-    boolean primeira = true;
-    for (String linha : linhas) {
-      if (!primeira) {
-        sb.append("0 -16 Td\n");
-      }
-      sb.append("(").append(escapePdf(linha)).append(") Tj\n");
-      primeira = false;
-    }
-    sb.append("ET\n");
+    sb.append("<h3>MODELO DE TERMO DE CONSENTIMENTO PARA USO DE DADOS PESSOAIS E IMAGEM (ASSISTENCIA SOCIAL)</h3>");
+    sb.append("<p>Pelo presente instrumento, eu, <strong>")
+        .append(escapeHtml(beneficiario))
+        .append("</strong>, portador(a) do documento de identidade RG n&#186; ")
+        .append(escapeHtml(rg))
+        .append(" e CPF n&#186; ")
+        .append(escapeHtml(cpf))
+        .append(", residente e domiciliado(a) na Rua ")
+        .append(escapeHtml(endereco))
+        .append(", na cidade de ")
+        .append(escapeHtml(cidade))
+        .append("-")
+        .append(escapeHtml(uf))
+        .append(" (ou o responsavel legal, se aplicavel), doravante denominado(a) TITULAR, declaro que consinto, de forma livre, informada e inequivoca, com o tratamento dos meus dados pessoais e com o uso da minha imagem pela instituicao ")
+        .append(escapeHtml(instituicaoNome))
+        .append(", inscrita no CNPJ sob o n&#186; ")
+        .append(escapeHtml(instituicaoCnpj))
+        .append(", doravante denominada CONTROLADOR(A).</p>");
+
+    sb.append("<ol>");
+    sb.append("<li><strong>DA FINALIDADE DO TRATAMENTO E USO</strong><br/>");
+    sb.append("Tratamento de Dados Pessoais: Coleta, armazenamento e processamento de dados (como nome, CPF, endereco, renda, composicao familiar e informacoes de saude, se pertinentes) para fins de ")
+        .append(escapeHtml(finalidadeDados))
+        .append(".<br/>");
+    sb.append("Uso de Imagem: Utilizacao de minha imagem, voz e/ou depoimento (em fotos, videos, audios) para fins de ")
+        .append(escapeHtml(finalidadeImagem))
+        .append(".</li>");
+
+    sb.append("<li><strong>DA FORMA DE DIVULGACAO (PARA USO DE IMAGEM)</strong><br/>");
+    sb.append("A autorizacao para uso de imagem abrange a divulgacao em todo territorio nacional e, se necessario, no exterior, por meio de midias impressas (cartazes, folders, relatorios) e digitais (website, e-mail marketing, redes sociais como Facebook, Instagram, YouTube), sem finalidade comercial.</li>");
+
+    sb.append("<li><strong>DA GRATUIDADE E VIGENCIA</strong><br/>");
+    sb.append("A presente autorizacao e concedida a titulo gratuito (sem qualquer remuneracao) e por ")
+        .append(escapeHtml(vigencia))
+        .append(".</li>");
+
+    sb.append("<li><strong>DOS DIREITOS DO TITULAR</strong><br/>");
+    sb.append("Estou ciente de que a Lei n&#186; 13.709/2018 (LGPD) me garante direitos como acesso aos dados, correcao, anonimizacao, bloqueio ou eliminacao de dados desnecessarios ou excessivos. A qualquer momento, posso revogar este consentimento, mediante manifestacao expressa, por escrito, junto a instituicao.</li>");
+
+    sb.append("<li><strong>DA SEGURANCA E RESPONSABILIDADES</strong><br/>");
+    sb.append("O(A) CONTROLADOR(A) se compromete a adotar medidas de seguranca, tecnicas e administrativas, aptas a proteger os dados pessoais e a imagem de acessos nao autorizados e de situacoes acidentais ou ilicitas de destruicao, perda, alteracao, comunicacao ou difusao.</li>");
+    sb.append("</ol>");
+
+    sb.append("<p>Por estar de acordo com os termos e condicoes acima, firmo o presente documento.</p>");
+    sb.append("<p>").append(escapeHtml(localAssinatura)).append(", ").append(escapeHtml(dataAssinatura)).append(".</p>");
+
+    sb.append("<div class=\"signature\">");
+    sb.append("  <div class=\"signature__line\">Assinatura do(a) Beneficiario(a) / Titular dos Dados</div>");
+    sb.append("  <div class=\"signature__line\">Assinatura do(a) Representante da Instituicao</div>");
+    sb.append("</div>");
+
+    sb.append("<table class=\"print-table\">\n<tbody>");
+    sb.append(linhaTabela("Nome completo (beneficiario)", beneficiario));
+    sb.append(linhaTabela("CPF (beneficiario)", cpf));
+    sb.append(linhaTabela("Assinatura do Responsavel Legal (se aplicavel)", ""));
+    sb.append(linhaTabela("Nome completo (responsavel)", responsavelNome));
+    sb.append(linhaTabela("CPF (responsavel)", responsavelCpf));
+    sb.append(linhaTabela("Grau de parentesco / relacao legal", responsavelRelacao));
+    sb.append(linhaTabela("Representante da instituicao - nome", representanteNome));
+    sb.append(linhaTabela("Representante da instituicao - cargo", representanteCargo));
+    sb.append("</tbody>\n</table>");
+
     return sb.toString();
+  }
+
+  private String montarLocal(String cidade, String uf) {
+    String cidadeOk = textoSeguro(cidade);
+    String ufOk = textoSeguro(uf);
+    if ("Nao informado".equals(cidadeOk) && "Nao informado".equals(ufOk)) {
+      return "Local";
+    }
+    if ("Nao informado".equals(cidadeOk)) {
+      return ufOk;
+    }
+    if ("Nao informado".equals(ufOk)) {
+      return cidadeOk;
+    }
+    return cidadeOk + "-" + ufOk;
   }
 
   private String textoSeguro(String valor) {
@@ -118,56 +156,19 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     return limpo;
   }
 
-  private String escapePdf(String valor) {
-    return valor.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)");
+  private String textoSeguroComPadrao(String valor, String padrao) {
+    String limpo = textoSeguro(valor);
+    return "Nao informado".equals(limpo) ? padrao : limpo;
   }
 
-  private byte[] gerarPdfSimples(String streamConteudo) {
-    byte[] conteudoBytes = streamConteudo.getBytes(StandardCharsets.US_ASCII);
-    StringBuilder pdf = new StringBuilder();
-    List<Integer> offsets = new ArrayList<>();
+  private String linhaTabela(String titulo, String valor) {
+    return "<tr><th>" + escapeHtml(titulo) + "</th><td>" + escapeHtml(textoSeguro(valor)) + "</td></tr>";
+  }
 
-    pdf.append("%PDF-1.4\n");
-    offsets.add(pdf.length());
-    pdf.append("1 0 obj\n");
-    pdf.append("<< /Type /Catalog /Pages 2 0 R >>\n");
-    pdf.append("endobj\n");
-    offsets.add(pdf.length());
-    pdf.append("2 0 obj\n");
-    pdf.append("<< /Type /Pages /Kids [3 0 R] /Count 1 >>\n");
-    pdf.append("endobj\n");
-    offsets.add(pdf.length());
-    pdf.append("3 0 obj\n");
-    pdf.append("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]\n");
-    pdf.append("/Resources << /Font << /F1 4 0 R >> >>\n");
-    pdf.append("/Contents 5 0 R >>\n");
-    pdf.append("endobj\n");
-    offsets.add(pdf.length());
-    pdf.append("4 0 obj\n");
-    pdf.append("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n");
-    pdf.append("endobj\n");
-    offsets.add(pdf.length());
-    pdf.append("5 0 obj\n");
-    pdf.append("<< /Length ").append(conteudoBytes.length).append(" >>\n");
-    pdf.append("stream\n");
-    String conteudoTexto = new String(conteudoBytes, StandardCharsets.US_ASCII);
-    pdf.append(conteudoTexto);
-    pdf.append("endstream\n");
-    pdf.append("endobj\n");
-
-    int xrefOffset = pdf.length();
-    pdf.append("xref\n");
-    pdf.append("0 6\n");
-    pdf.append("0000000000 65535 f \n");
-    for (Integer offset : offsets) {
-      pdf.append(String.format("%010d 00000 n \n", offset));
+  private String escapeHtml(String valor) {
+    if (valor == null) {
+      return "";
     }
-    pdf.append("trailer\n");
-    pdf.append("<< /Size 6 /Root 1 0 R >>\n");
-    pdf.append("startxref\n");
-    pdf.append(xrefOffset).append("\n");
-    pdf.append("%%EOF\n");
-
-    return pdf.toString().getBytes(StandardCharsets.US_ASCII);
+    return valor.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
   }
 }

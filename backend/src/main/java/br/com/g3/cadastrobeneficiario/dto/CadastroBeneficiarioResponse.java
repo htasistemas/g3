@@ -59,6 +59,12 @@ public class CadastroBeneficiarioResponse {
   @JsonProperty("status")
   private final String status;
 
+  @JsonProperty("opta_receber_cesta_basica")
+  private final Boolean optaReceberCestaBasica;
+
+  @JsonProperty("apto_receber_cesta_basica")
+  private final Boolean aptoReceberCestaBasica;
+
   @JsonProperty("cep")
   private final String cep;
 
@@ -299,6 +305,8 @@ public class CadastroBeneficiarioResponse {
       String nomeMae,
       String nomePai,
       String status,
+      Boolean optaReceberCestaBasica,
+      Boolean aptoReceberCestaBasica,
       String cep,
       String logradouro,
       String numero,
@@ -390,6 +398,8 @@ public class CadastroBeneficiarioResponse {
     this.nomeMae = nomeMae;
     this.nomePai = nomePai;
     this.status = status;
+    this.optaReceberCestaBasica = optaReceberCestaBasica;
+    this.aptoReceberCestaBasica = aptoReceberCestaBasica;
     this.cep = cep;
     this.logradouro = logradouro;
     this.numero = numero;
@@ -530,8 +540,16 @@ public class CadastroBeneficiarioResponse {
     return nomePai;
   }
 
-  public String getStatus() {
+  public String getStatus() {    
     return status;
+  }
+
+  public Boolean getOptaReceberCestaBasica() {
+    return optaReceberCestaBasica;
+  }
+
+  public Boolean getAptoReceberCestaBasica() {
+    return aptoReceberCestaBasica;
   }
 
   public String getCep() {

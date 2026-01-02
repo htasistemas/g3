@@ -77,6 +77,12 @@ public class CadastroBeneficiarioCriacaoRequest {
   @JsonProperty("status")
   private String status;
 
+  @JsonProperty("opta_receber_cesta_basica")
+  private Boolean optaReceberCestaBasica;
+
+  @JsonProperty("apto_receber_cesta_basica")
+  private Boolean aptoReceberCestaBasica;
+
   @Size(max = 20)
   @JsonProperty("cep")
   private String cep;
@@ -462,8 +468,24 @@ public class CadastroBeneficiarioCriacaoRequest {
     return status;
   }
 
-  public void setStatus(String status) {
+  public void setStatus(String status) {  
     this.status = status;
+  }
+
+  public Boolean getOptaReceberCestaBasica() {
+    return optaReceberCestaBasica;
+  }
+
+  public void setOptaReceberCestaBasica(Boolean optaReceberCestaBasica) {
+    this.optaReceberCestaBasica = optaReceberCestaBasica;
+  }
+
+  public Boolean getAptoReceberCestaBasica() {
+    return aptoReceberCestaBasica;
+  }
+
+  public void setAptoReceberCestaBasica(Boolean aptoReceberCestaBasica) {
+    this.aptoReceberCestaBasica = aptoReceberCestaBasica;
   }
 
   public String getCep() {

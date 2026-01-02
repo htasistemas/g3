@@ -187,11 +187,11 @@ SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.00.5',
-    descricao = 'Opcao de impressao e ajustes no relatorio de listagem de unidades.',
+SET versao = '1.00.6',
+    descricao = 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.00.5';
+  AND versao <> '1.00.6';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -199,12 +199,12 @@ WHERE id = 1
   AND versao = '1.0.0';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.5', 'Opcao de impressao e ajustes no relatorio de listagem de unidades.', NOW()
+SELECT '1.00.6', 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.00.5'
-    AND descricao = 'Opcao de impressao e ajustes no relatorio de listagem de unidades.'
+  WHERE versao = '1.00.6'
+    AND descricao = 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.'
 );
 
 UPDATE historico_versao_sistema
@@ -502,6 +502,12 @@ ALTER TABLE cadastro_beneficiario
 
 ALTER TABLE cadastro_beneficiario
   ADD COLUMN IF NOT EXISTS status VARCHAR(60);
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS opta_receber_cesta_basica BOOLEAN;
+
+ALTER TABLE cadastro_beneficiario
+  ADD COLUMN IF NOT EXISTS apto_receber_cesta_basica BOOLEAN;
 
 UPDATE cadastro_beneficiario
 SET status = 'EM_ANALISE'
@@ -998,10 +1004,34 @@ CREATE TABLE IF NOT EXISTS doador (
   responsavel_empresa VARCHAR(200),
   email VARCHAR(150),
   telefone VARCHAR(30),
+  logradouro VARCHAR(200),
+  numero VARCHAR(40),
+  complemento VARCHAR(120),
+  bairro VARCHAR(120),
+  cidade VARCHAR(120),
+  uf VARCHAR(2),
+  cep VARCHAR(12),
   observacoes TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS responsavel_empresa VARCHAR(200);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS logradouro VARCHAR(200);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS numero VARCHAR(40);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS complemento VARCHAR(120);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS bairro VARCHAR(120);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS cidade VARCHAR(120);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS uf VARCHAR(2);
+ALTER TABLE doador
+  ADD COLUMN IF NOT EXISTS cep VARCHAR(12);
 
 CREATE TABLE IF NOT EXISTS recebimento_doacao (
   id BIGSERIAL PRIMARY KEY,
@@ -1147,6 +1177,7 @@ CREATE TABLE IF NOT EXISTS emenda_impositiva (
 CREATE TABLE IF NOT EXISTS prontuario_registros (
   id BIGSERIAL PRIMARY KEY,
   beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  familia_id BIGINT REFERENCES vinculo_familiar(id) ON DELETE SET NULL,
   tipo VARCHAR(40) NOT NULL,
   data_registro TIMESTAMP NOT NULL,
   profissional_id BIGINT REFERENCES cadastro_profissionais(id) ON DELETE SET NULL,
@@ -1155,6 +1186,9 @@ CREATE TABLE IF NOT EXISTS prontuario_registros (
   descricao TEXT NOT NULL,
   dados_extra JSONB,
   status VARCHAR(20) NOT NULL DEFAULT 'aberto',
+  referencia_origem_tipo VARCHAR(40),
+  referencia_origem_id BIGINT,
+  nivel_sigilo VARCHAR(30),
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   criado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -1168,6 +1202,21 @@ CREATE INDEX IF NOT EXISTS prontuario_registros_tipo_idx
 CREATE INDEX IF NOT EXISTS prontuario_registros_profissional_idx
   ON prontuario_registros (profissional_id);
 
+ALTER TABLE prontuario_registros
+  ADD COLUMN IF NOT EXISTS familia_id BIGINT REFERENCES vinculo_familiar(id) ON DELETE SET NULL;
+
+ALTER TABLE prontuario_registros
+  ADD COLUMN IF NOT EXISTS referencia_origem_tipo VARCHAR(40);
+
+ALTER TABLE prontuario_registros
+  ADD COLUMN IF NOT EXISTS referencia_origem_id BIGINT;
+
+ALTER TABLE prontuario_registros
+  ADD COLUMN IF NOT EXISTS nivel_sigilo VARCHAR(30);
+
+CREATE INDEX IF NOT EXISTS prontuario_registros_familia_idx
+  ON prontuario_registros (familia_id);
+
 CREATE TABLE IF NOT EXISTS prontuario_anexos (
   id BIGSERIAL PRIMARY KEY,
   registro_id BIGINT NOT NULL REFERENCES prontuario_registros(id) ON DELETE CASCADE,
@@ -1176,3 +1225,65 @@ CREATE TABLE IF NOT EXISTS prontuario_anexos (
   url_arquivo TEXT NOT NULL,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS visita_domiciliar (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE CASCADE,
+  unidade VARCHAR(200) NOT NULL,
+  responsavel VARCHAR(150) NOT NULL,
+  data_visita DATE NOT NULL,
+  horario_inicial TIME NOT NULL,
+  horario_final TIME,
+  tipo_visita VARCHAR(80),
+  situacao VARCHAR(30) NOT NULL,
+  usar_endereco_beneficiario BOOLEAN NOT NULL DEFAULT TRUE,
+  endereco JSONB,
+  observacoes_iniciais TEXT,
+  condicoes JSONB,
+  situacao_social JSONB,
+  registro JSONB,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS visita_domiciliar_beneficiario_idx
+  ON visita_domiciliar (beneficiario_id);
+
+CREATE INDEX IF NOT EXISTS visita_domiciliar_data_idx
+  ON visita_domiciliar (data_visita DESC);
+
+CREATE TABLE IF NOT EXISTS visita_domiciliar_anexo (
+  id BIGSERIAL PRIMARY KEY,
+  visita_id BIGINT NOT NULL REFERENCES visita_domiciliar(id) ON DELETE CASCADE, 
+  nome VARCHAR(200) NOT NULL,
+  tipo VARCHAR(60) NOT NULL,
+  tamanho VARCHAR(40),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS fotos_eventos (
+  id BIGSERIAL PRIMARY KEY,
+  unidade_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  data_evento DATE NOT NULL,
+  local VARCHAR(200),
+  tags TEXT,
+  foto_principal TEXT NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS fotos_eventos_fotos (
+  id BIGSERIAL PRIMARY KEY,
+  evento_id BIGINT NOT NULL REFERENCES fotos_eventos(id) ON DELETE CASCADE,
+  arquivo TEXT NOT NULL,
+  legenda VARCHAR(255),
+  ordem INTEGER,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS fotos_eventos_data_idx
+  ON fotos_eventos (data_evento DESC);
+CREATE INDEX IF NOT EXISTS fotos_eventos_titulo_idx
+  ON fotos_eventos (titulo);

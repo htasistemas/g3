@@ -32,6 +32,7 @@ import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-
 import { DataManagementComponent } from './components/data-management/data-management.component';
 import { ImportManagementComponent } from './components/import-management/import-management.component';
 import { AutorizacaoComprasComponent } from './components/autorizacao-compras/autorizacao-compras.component';
+import { FotosEventosComponent } from './components/fotos-eventos/fotos-eventos.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -121,6 +122,11 @@ export const routes: Routes = [
         path: 'administrativo/tarefas',
         component: TarefasPendenciasComponent,
         data: { title: 'Tarefas e pendencias' }
+      },
+      {
+        path: 'administrativo/fotos-eventos',
+        component: FotosEventosComponent,
+        data: { title: 'Fotos e Eventos' }
       },
       {
         path: 'configuracoes/versao',

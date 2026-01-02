@@ -9,9 +9,12 @@
   (imprimir)="onImprimir()"
   (buscar)="onBuscar()"
 >
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Recebimento de doação</p>
+<header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">Atendimentos</p>
+      <p class="page-title__label">Recebimento de doação</p>
+    </div>
+    <p class="page-title__note">Doações recebidas para a instituição</p>
   </header>
 
   <section class="cadastro">
@@ -84,16 +87,38 @@
           Informe um telefone valido.
         </p>
       </label>
+      <label class="field full">Logradouro
+        <input formControlName="logradouro" (blur)="onSentenceCaseBlur($event)" />
+      </label>
+      <label class="field">Numero
+        <input formControlName="numero" />
+      </label>
+      <label class="field">Complemento
+        <input formControlName="complemento" (blur)="onSentenceCaseBlur($event)" />
+      </label>
+      <label class="field">Bairro
+        <input formControlName="bairro" (blur)="onSentenceCaseBlur($event)" />
+      </label>
+      <label class="field">Cidade
+        <input formControlName="cidade" (blur)="onSentenceCaseBlur($event)" />
+      </label>
+      <label class="field">UF
+        <input formControlName="uf" maxlength="2" />
+      </label>
+      <label class="field">CEP
+        <input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" />
+      </label>
       <label class="field full field--observacoes">Observações
         <textarea formControlName="observacoes" rows="3" (blur)="onSentenceCaseBlur($event)"></textarea>
       </label>
     </div>
     <div class="tab-actions">
+      <button type="button" class="primary" (click)="salvarDoadorSemDoacao()">Salvar doador</button>
       <button type="button" class="ghost" (click)="changeTab('dados')">Avancar para doação</button>
     </div>
   </div>
 
-  <div class="tab-card" *ngIf="activeTab === 'doador'">
+  <div class="tab-card" *ngIf="activeTab === 'doadores'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Listagem de doadores</p>
@@ -123,6 +148,7 @@
             <td>{{ doador.telefone || '---' }}</td>
             <td class="text-right">
               <button type="button" class="ghost" (click)="selecionarDoador(doador)">Selecionar</button>
+              <button type="button" class="ghost ghost--danger" (click)="abrirDialogoExcluirDoador(doador)">Excluir</button>
             </td>
           </tr>
         </tbody>
@@ -139,6 +165,16 @@
       </div>
     </ng-template>
   </div>
+
+  <app-dialog
+    [aberto]="dialogExcluirDoadorAberto"
+    titulo="Excluir doador"
+    mensagem="Deseja excluir este doador?"
+    confirmarLabel="Excluir"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarExcluirDoador()"
+    (cancelar)="cancelarExcluirDoador()"
+  ></app-dialog>
 
   <div class="tab-card" *ngIf="activeTab === 'dados'" [formGroup]="recebimentoForm">
     <div class="tab-card__header">

@@ -28,4 +28,9 @@ public class DoadorRepositoryImpl implements DoadorRepository {
   public Optional<Doador> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }
+
+  @Override
+  public void remover(Doador doador) {
+    jpaRepository.delete(doador);
+  }
 }

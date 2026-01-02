@@ -19,6 +19,22 @@
   color: #1f2937;
 }
 
+.page-title--row {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title__note {
+  margin: 0 0 0 auto;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+  align-self: flex-start;
+  text-align: right;
+}
+
 .page-title__eyebrow {
   margin: 0;
   font-size: 0.95rem;

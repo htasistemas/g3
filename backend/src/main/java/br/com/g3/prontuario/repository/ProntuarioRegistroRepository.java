@@ -26,5 +26,11 @@ public interface ProntuarioRegistroRepository {
 
   Map<String, Long> contarPorTipo(Long beneficiarioId);
 
+  long contarPendencias(Long beneficiarioId);
+
+  ProntuarioEncaminhamentoIndicadores buscarIndicadoresEncaminhamentos(Long beneficiarioId);
+
+  String buscarUltimaClassificacaoRisco(Long beneficiarioId);
+
   LocalDateTime buscarUltimaAtualizacao(Long beneficiarioId);
 }

@@ -17,6 +17,8 @@ public class ProntuarioRegistroRequest {
 
   private Long unidadeId;
 
+  private Long familiaId;
+
   private String titulo;
 
   @NotBlank
@@ -27,6 +29,12 @@ public class ProntuarioRegistroRequest {
 
   @NotBlank
   private String status;
+
+  private String referenciaOrigemTipo;
+
+  private Long referenciaOrigemId;
+
+  private String nivelSigilo;
 
   private Long criadoPor;
 
@@ -64,6 +72,14 @@ public class ProntuarioRegistroRequest {
     this.unidadeId = unidadeId;
   }
 
+  public Long getFamiliaId() {
+    return familiaId;
+  }
+
+  public void setFamiliaId(Long familiaId) {
+    this.familiaId = familiaId;
+  }
+
   public String getTitulo() {
     return titulo;
   }
@@ -94,6 +110,30 @@ public class ProntuarioRegistroRequest {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getReferenciaOrigemTipo() {
+    return referenciaOrigemTipo;
+  }
+
+  public void setReferenciaOrigemTipo(String referenciaOrigemTipo) {
+    this.referenciaOrigemTipo = referenciaOrigemTipo;
+  }
+
+  public Long getReferenciaOrigemId() {
+    return referenciaOrigemId;
+  }
+
+  public void setReferenciaOrigemId(Long referenciaOrigemId) {
+    this.referenciaOrigemId = referenciaOrigemId;
+  }
+
+  public String getNivelSigilo() {
+    return nivelSigilo;
+  }
+
+  public void setNivelSigilo(String nivelSigilo) {
+    this.nivelSigilo = nivelSigilo;
   }
 
   public Long getCriadoPor() {

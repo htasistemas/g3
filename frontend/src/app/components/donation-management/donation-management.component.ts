@@ -25,14 +25,25 @@ import { AlmoxarifadoService } from '../../services/almoxarifado.service';
 import { DoacaoRealizadaResponse, DoacaoRealizadaService } from '../../services/doacao-realizada.service';
 import { AuthService } from '../../services/auth.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import {
+  VisitaDomiciliar,
+  VisitaDomiciliarService
+} from '../../services/visita-domiciliar.service';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import {
+  ConfigAcoesCrud,
+  EstadoAcoesCrud,
+  TelaBaseComponent
+} from '../compartilhado/tela-base.component';
 interface Beneficiary {
   id: string;
   name: string;
   document: string;
   cpf?: string;
+  optaReceberCestaBasica?: boolean;
+  aptoReceberCestaBasica?: boolean;
   birthDate?: string;
   age?: number | null;
   photoUrl?: string;
@@ -102,7 +113,7 @@ type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
   templateUrl: './donation-management.component.html',
   styleUrl: './donation-management.component.scss'
 })
-export class DonationManagementComponent implements OnInit {
+export class DonationManagementComponent extends TelaBaseComponent implements OnInit {
   readonly faUserPlus = faUserPlus;
   readonly faClipboardList = faClipboardList;
   readonly faMagnifyingGlass = faMagnifyingGlass;
@@ -118,13 +129,31 @@ export class DonationManagementComponent implements OnInit {
   readonly faChartPie = faChartPie;
   readonly faPeopleGroup = faPeopleGroup;
   readonly Math = Math;
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: false,
+      excluir: !this.selectedBeneficiary(),
+      novo: false,
+      cancelar: false,
+      imprimir: false
+    };
+  }
 
   private readonly fb = new FormBuilder();
   private readonly beneficiaryService = inject(BeneficiarioApiService);
   private readonly familyService = inject(FamilyService);
   private readonly almoxarifadoService = inject(AlmoxarifadoService);
-  private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);
+  private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);     
   private readonly authService = inject(AuthService);
+  private readonly visitaService = inject(VisitaDomiciliarService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
   tabs: { id: TabId; label: string }[] = [
@@ -189,6 +218,8 @@ export class DonationManagementComponent implements OnInit {
   beneficiarySearch = signal('');
   beneficiarySearchError = signal<string | null>(null);
   searchingBeneficiaries = signal(false);
+  motivoCestaBasica = signal<string | null>(null);
+  mostrarMotivoCestaBasica = signal(false);
   editingPlanId: string | null = null;
   cancelDialogOpen = signal(false);
   cancelReason = signal('');
@@ -273,6 +304,7 @@ export class DonationManagementComponent implements OnInit {
   });
 
   constructor() {
+    super();
   }
 
   ngOnInit(): void {
@@ -332,11 +364,14 @@ export class DonationManagementComponent implements OnInit {
     this.identificationForm.patchValue({ beneficiaryName: beneficiary.name });
     this.loadDoacoesRealizadas();
     this.handleBlockedBeneficiary(beneficiary);
+    this.carregarMotivoCestaBasica(beneficiary.name);
   }
 
   async onBeneficiaryInput(value: string): Promise<void> {
     this.beneficiarySearch.set(value);
     this.identificationForm.get('beneficiaryName')?.setValue(value);
+    this.motivoCestaBasica.set(null);
+    this.mostrarMotivoCestaBasica.set(false);
     await this.lookupBeneficiaries(value);
   }
 
@@ -354,6 +389,8 @@ export class DonationManagementComponent implements OnInit {
       name: payload.nome_completo || payload.nome_social || 'Beneficiario',
       document: payload.cpf || payload.nis || 'Documento n?o informado',
       cpf: payload.cpf || undefined,
+      optaReceberCestaBasica: payload.opta_receber_cesta_basica,
+      aptoReceberCestaBasica: payload.apto_receber_cesta_basica,
       birthDate: payload.data_nascimento,
       age: this.calculateAge(payload.data_nascimento),
       photoUrl: payload.foto_3x4 || undefined,
@@ -972,8 +1009,93 @@ export class DonationManagementComponent implements OnInit {
     const hasNineDigits = digits.length > 10;
     const part1 = digits.slice(0, 2);
     const part2 = digits.slice(2, hasNineDigits ? 7 : 6);
-    const part3 = digits.slice(hasNineDigits ? 7 : 6, hasNineDigits ? 11 : 10);
+    const part3 = digits.slice(hasNineDigits ? 7 : 6, hasNineDigits ? 11 : 10); 
     return part3 ? `(${part1}) ${part2}-${part3}` : part2 ? `(${part1}) ${part2}` : `(${part1}`;
+  }
+
+  formatarAptidaoDoacao(beneficiary: Beneficiary): string {
+    if (beneficiary.optaReceberCestaBasica === false) {
+      return 'Nao opta por cesta basica';
+    }
+    if (beneficiary.aptoReceberCestaBasica === true) {
+      return 'Apto para Receber Doações';
+    }
+    if (beneficiary.aptoReceberCestaBasica === false) {
+      return 'Não Apto para Receber Doações';
+    }
+    return 'Nao informado';
+  }
+
+  alternarMotivoCestaBasica(): void {
+    this.mostrarMotivoCestaBasica.set(!this.mostrarMotivoCestaBasica());
+  }
+
+  private carregarMotivoCestaBasica(nomeBeneficiario: string): void {
+    const termo = this.normalizarTexto(nomeBeneficiario);
+    if (!termo) {
+      this.motivoCestaBasica.set(null);
+      return;
+    }
+
+    this.visitaService.list().subscribe({
+      next: (visitas: VisitaDomiciliar[]) => {
+        const encontrada = visitas.find(
+          (visita) => this.normalizarTexto(visita.beneficiario) === termo
+        );
+        const motivo = encontrada?.registro?.motivoNaoReceberCestaBasica;
+        this.motivoCestaBasica.set(
+          motivo && motivo.trim().length ? motivo : null
+        );
+        this.mostrarMotivoCestaBasica.set(false);
+      },
+      error: () => {
+        this.motivoCestaBasica.set(null);
+        this.mostrarMotivoCestaBasica.set(false);
+      }
+    });
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  onSalvar(): void {
+    this.registerDonation();
+  }
+
+  onExcluir(): void {
+    this.selectedBeneficiary.set(null);
+    this.beneficiarySearch.set('');
+    this.motivoCestaBasica.set(null);
+    this.mostrarMotivoCestaBasica.set(false);
+    this.identificationForm.reset({
+      beneficiaryName: '',
+      responsible: this.identificationForm.value['responsible'] || 'UsuÃ¡rio logado',
+      notes: ''
+    });
+    this.deliveredItems.set([]);
+    this.itemError.set(null);
+  }
+
+  onNovo(): void {
+    this.onExcluir();
+    this.activeTab.set('identificacao');
+  }
+
+  onCancelar(): void {
+    this.onExcluir();
+  }
+
+  onImprimir(): void {
+    window.print();
+  }
+
+  onFechar(): void {
+    window.history.back();
   }
 
 }

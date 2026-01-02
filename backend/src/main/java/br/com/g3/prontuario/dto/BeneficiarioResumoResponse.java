@@ -4,6 +4,7 @@ public class BeneficiarioResumoResponse {
   private Long id;
   private String nomeCompleto;
   private String cpf;
+  private String nis;
   private String dataNascimento;
   private String nomeMae;
   private String whatsapp;
@@ -12,6 +13,7 @@ public class BeneficiarioResumoResponse {
   private String status;
   private String foto3x4;
   private java.util.List<String> vulnerabilidades;
+  private String familiaReferencia;
 
   public Long getId() {
     return id;
@@ -35,6 +37,14 @@ public class BeneficiarioResumoResponse {
 
   public void setCpf(String cpf) {
     this.cpf = cpf;
+  }
+
+  public String getNis() {
+    return nis;
+  }
+
+  public void setNis(String nis) {
+    this.nis = nis;
   }
 
   public String getDataNascimento() {
@@ -91,6 +101,14 @@ public class BeneficiarioResumoResponse {
 
   public void setFoto3x4(String foto3x4) {
     this.foto3x4 = foto3x4;
+  }
+
+  public String getFamiliaReferencia() {
+    return familiaReferencia;
+  }
+
+  public void setFamiliaReferencia(String familiaReferencia) {
+    this.familiaReferencia = familiaReferencia;
   }
 
   public java.util.List<String> getVulnerabilidades() {

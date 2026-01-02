@@ -72,6 +72,12 @@ public class CadastroBeneficiario {
   @Column(name = "status", length = 60)
   private String status;
 
+  @Column(name = "opta_receber_cesta_basica")
+  private Boolean optaReceberCestaBasica;
+
+  @Column(name = "apto_receber_cesta_basica")
+  private Boolean aptoReceberCestaBasica;
+
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "endereco_id")
   private Endereco endereco;
@@ -265,6 +271,22 @@ public class CadastroBeneficiario {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public Boolean getOptaReceberCestaBasica() {
+    return optaReceberCestaBasica;
+  }
+
+  public void setOptaReceberCestaBasica(Boolean optaReceberCestaBasica) {
+    this.optaReceberCestaBasica = optaReceberCestaBasica;
+  }
+
+  public Boolean getAptoReceberCestaBasica() {
+    return aptoReceberCestaBasica;
+  }
+
+  public void setAptoReceberCestaBasica(Boolean aptoReceberCestaBasica) {
+    this.aptoReceberCestaBasica = aptoReceberCestaBasica;
   }
 
   public Endereco getEndereco() {

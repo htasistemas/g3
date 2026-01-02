@@ -169,6 +169,13 @@
   font-weight: 500;
 }
 
+.release-empty {
+  margin: 0.5rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 @media (max-width: 860px) {
   .release-list__header {
     display: none;

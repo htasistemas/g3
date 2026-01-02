@@ -10,4 +10,6 @@ public interface DoadorRepository {
   List<Doador> listar();
 
   Optional<Doador> buscarPorId(Long id);
+
+  void remover(Doador doador);
 }

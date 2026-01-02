@@ -1,0 +1,320 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  (novo)="abrirFormularioNovo()"
+>
+  <header class="page-title" slot="titulo">
+    <p class="page-title__eyebrow">Administrativo</p>
+    <p class="page-title__label">Fotos e Eventos</p>
+  </header>
+
+  <section class="fotos-eventos cadastro">
+    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+
+    <div *ngIf="feedback" class="feedback">
+      <span>{{ feedback }}</span>
+      <button type="button" class="feedback__close" (click)="dismissFeedback()" aria-label="Fechar aviso">&times;</button>
+    </div>
+
+    <div class="tab-shell">
+      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <ol class="step-tabs" role="tablist">
+        <li class="step-tabs__item active">
+          <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
+            <span class="step-tabs__index">1</span>
+            <span class="step-tabs__label">Galeria de eventos</span>
+          </button>
+        </li>
+      </ol>
+    </div>
+
+    <div class="form-shell">
+      <div class="tab-card">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Galeria institucional</p>
+            <p class="muted">Busque por titulo, descricao ou tags e filtre por periodo.</p>
+          </div>
+          <div class="tab-card__header-actions">
+            <button type="button" class="ghost" (click)="limparFiltros()">Limpar filtros</button>
+            <button type="button" class="primary" (click)="abrirFormularioNovo()">Novo evento</button>
+          </div>
+        </div>
+
+        <form [formGroup]="filtrosForm" class="field-grid cols-4" (ngSubmit)="aplicarFiltros()">
+          <label class="field">
+            Busca
+            <input type="text" formControlName="busca" placeholder="Titulo, descricao ou tags" />
+          </label>
+          <label class="field">
+            Data inicial
+            <input type="date" formControlName="dataInicio" />
+          </label>
+          <label class="field">
+            Data final
+            <input type="date" formControlName="dataFim" />
+          </label>
+          <label class="field">
+            Unidade
+            <select formControlName="unidadeId">
+              <option value="">Todas</option>
+              <option *ngFor="let unidade of unidades" [value]="unidade.id">{{ unidade.nomeFantasia }}</option>
+            </select>
+          </label>
+          <div class="field full">
+            <button type="submit" class="primary">Aplicar filtros</button>
+          </div>
+        </form>
+
+        <div class="card__content">
+          <div *ngIf="listLoading" class="loading">Carregando eventos...</div>
+
+          <div class="eventos-grid" *ngIf="!listLoading && eventos.length">
+            <article class="evento-card" *ngFor="let evento of eventos" (click)="abrirDetalhe(evento)">
+              <div class="evento-card__media">
+                <img *ngIf="evento.fotoPrincipalUrl" [src]="evento.fotoPrincipalUrl" alt="Foto do evento" />
+                <div class="evento-card__placeholder" *ngIf="!evento.fotoPrincipalUrl">Sem foto</div>
+              </div>
+              <div class="evento-card__body">
+                <div class="evento-card__header">
+                  <h3>{{ evento.titulo }}</h3>
+                  <span class="evento-card__date">{{ evento.dataEvento | date: 'dd/MM/yyyy' }}</span>
+                </div>
+                <p class="evento-card__local" *ngIf="evento.local">{{ evento.local }}</p>
+                <p class="evento-card__descricao" *ngIf="evento.descricao">{{ recortarTexto(evento.descricao) }}</p>
+                <div class="evento-card__tags" *ngIf="obterTags(evento.tags).length">
+                  <span class="chip" *ngFor="let tag of obterTags(evento.tags)">{{ tag }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div *ngIf="!listLoading && !eventos.length" class="empty-state">
+            Nenhum evento encontrado com os filtros atuais.
+          </div>
+        </div>
+
+        <div class="unit-list__pagination" *ngIf="!listLoading && totalPaginas > 1">
+          <span class="unit-list__total">
+            Total: {{ totalRegistros }} eventos
+          </span>
+          <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 0">
+            Anterior
+          </button>
+          <span class="unit-list__page">
+            Pagina {{ paginaAtual + 1 }} de {{ totalPaginas }}
+          </span>
+          <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual + 1 >= totalPaginas">
+            Proxima
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-tela-padrao>
+
+<div class="modal" *ngIf="detalheAberto">
+  <div class="modal__backdrop" (click)="fecharDetalhe()"></div>
+  <div class="modal__content modal__content--wide">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Detalhe do evento</p>
+        <h3>{{ eventoSelecionado?.titulo }}</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharDetalhe()" aria-label="Fechar">&times;</button>
+    </div>
+
+    <div *ngIf="detalheLoading" class="loading">Carregando detalhes...</div>
+    <ng-container *ngIf="!detalheLoading && eventoSelecionado">
+      <div class="evento-hero">
+        <img *ngIf="eventoSelecionado.fotoPrincipalUrl" [src]="eventoSelecionado.fotoPrincipalUrl" alt="Foto principal" />
+        <div class="evento-hero__info">
+          <p><strong>Data:</strong> {{ eventoSelecionado.dataEvento | date: 'dd/MM/yyyy' }}</p>
+          <p *ngIf="eventoSelecionado.local"><strong>Local:</strong> {{ eventoSelecionado.local }}</p>
+          <p *ngIf="eventoSelecionado.descricao"><strong>Descricao:</strong> {{ eventoSelecionado.descricao }}</p>
+          <div class="card__tags" *ngIf="obterTags(eventoSelecionado.tags).length">
+            <span class="chip" *ngFor="let tag of obterTags(eventoSelecionado.tags)">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__actions">
+        <button type="button" class="ghost" (click)="abrirFormularioEdicao()">Editar</button>
+        <button type="button" class="ghost" (click)="abrirUploadFotos()">Adicionar fotos</button>
+        <button type="button" class="ghost ghost--danger" (click)="confirmarExcluirEvento()">Excluir</button>
+      </div>
+
+      <div class="galeria">
+        <h4>Galeria</h4>
+        <div class="galeria__grid" *ngIf="fotosEvento.length; else galeriaVazia">
+          <div class="galeria__item" *ngFor="let foto of fotosEvento">
+            <button type="button" class="galeria__thumb" (click)="abrirLightbox(foto)">
+              <img *ngIf="foto.arquivoUrl" [src]="foto.arquivoUrl" alt="Foto do evento" />
+            </button>
+            <div class="galeria__meta">
+              <span class="galeria__legenda">{{ foto.legenda || 'Sem legenda' }}</span>
+              <span class="galeria__ordem" *ngIf="foto.ordem">Ordem {{ foto.ordem }}</span>
+            </div>
+            <div class="galeria__actions">
+              <button type="button" class="ghost" (click)="abrirEdicaoFoto(foto)">Editar</button>
+              <button type="button" class="ghost" (click)="definirFotoPrincipal(foto)">Definir principal</button>
+              <button type="button" class="ghost ghost--danger" (click)="confirmarExcluirFoto(foto)">Remover</button>
+            </div>
+          </div>
+        </div>
+        <ng-template #galeriaVazia>
+          <p class="muted">Sem fotos adicionais no momento.</p>
+        </ng-template>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<div class="modal" *ngIf="formularioAberto">
+  <div class="modal__backdrop" (click)="fecharFormulario()"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">{{ eventoEmEdicaoId ? 'Editar evento' : 'Novo evento' }}</p>
+        <h3>Cadastro de evento</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharFormulario()" aria-label="Fechar">&times;</button>
+    </div>
+    <form [formGroup]="eventoForm" class="form">
+      <label class="field">
+        Titulo*
+        <input formControlName="titulo" placeholder="Informe o titulo" />
+      </label>
+      <label class="field">
+        Data do evento*
+        <input type="date" formControlName="dataEvento" />
+      </label>
+      <label class="field">
+        Local
+        <input formControlName="local" placeholder="Ex.: Quadra da comunidade" />
+      </label>
+      <label class="field">
+        Tags
+        <input formControlName="tags" placeholder="Separadas por virgula" />
+      </label>
+      <label class="field">
+        Unidade
+        <select formControlName="unidadeId">
+          <option value="">Selecione</option>
+          <option *ngFor="let unidade of unidades" [value]="unidade.id">{{ unidade.nomeFantasia }}</option>
+        </select>
+      </label>
+      <label class="field full">
+        Descricao
+        <textarea formControlName="descricao" rows="3"></textarea>
+      </label>
+      <div class="field full">
+        <p class="field-title">Foto principal*</p>
+        <div class="foto-principal">
+          <div class="foto-principal__preview">
+            <img *ngIf="uploadPrincipalPreview" [src]="uploadPrincipalPreview" alt="Foto principal" />
+            <span *ngIf="!uploadPrincipalPreview">Selecione uma foto principal</span>
+          </div>
+          <label class="upload-btn">
+            Selecionar foto
+            <input type="file" accept="image/png, image/jpeg, image/webp" (change)="onFotoPrincipalSelecionada($event)" />
+          </label>
+        </div>
+      </div>
+    </form>
+    <div class="modal__actions">
+      <button type="button" class="ghost" (click)="fecharFormulario()">Cancelar</button>
+      <button type="button" class="primary" (click)="salvarEvento()" [disabled]="salvandoEvento">
+        {{ salvandoEvento ? 'Salvando...' : 'Salvar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="galeriaUploadAberta">
+  <div class="modal__backdrop" (click)="fecharUploadFotos()"></div>
+  <div class="modal__content modal__content--wide">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Galeria do evento</p>
+        <h3>Adicionar fotos</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharUploadFotos()" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="upload-panel">
+      <label class="upload-btn">
+        Selecionar fotos
+        <input type="file" accept="image/png, image/jpeg, image/webp" multiple (change)="onFotosSelecionadas($event)" />
+      </label>
+      <div class="upload-grid" *ngIf="fotosUpload.length; else uploadVazio">
+        <div class="upload-card" *ngFor="let foto of fotosUpload; index as i">
+          <img [src]="foto.preview" alt="Preview da foto" />
+          <label class="field">
+            Legenda
+            <input [(ngModel)]="foto.legenda" name="legenda-{{ i }}" />
+          </label>
+          <label class="field">
+            Ordem
+            <input type="number" [(ngModel)]="foto.ordem" name="ordem-{{ i }}" />
+          </label>
+          <button type="button" class="ghost ghost--danger" (click)="removerFotoUpload(i)">Remover</button>
+        </div>
+      </div>
+      <ng-template #uploadVazio>
+        <p class="muted">Selecione fotos para montar a galeria.</p>
+      </ng-template>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="ghost" (click)="fecharUploadFotos()">Cancelar</button>
+      <button type="button" class="primary" (click)="enviarFotos()" [disabled]="enviandoFotos">
+        {{ enviandoFotos ? 'Enviando...' : 'Salvar fotos' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="editarFotoAberto">
+  <div class="modal__backdrop" (click)="fecharEdicaoFoto()"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Editar foto</p>
+        <h3>Legenda e ordem</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharEdicaoFoto()" aria-label="Fechar">&times;</button>
+    </div>
+    <form [formGroup]="fotoForm" class="form">
+      <label class="field">
+        Legenda
+        <input formControlName="legenda" />
+      </label>
+      <label class="field">
+        Ordem
+        <input type="number" formControlName="ordem" />
+      </label>
+    </form>
+    <div class="modal__actions">
+      <button type="button" class="ghost" (click)="fecharEdicaoFoto()">Cancelar</button>
+      <button type="button" class="primary" (click)="salvarEdicaoFoto()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="lightboxAberto">
+  <div class="modal__backdrop" (click)="fecharLightbox()"></div>
+  <div class="lightbox">
+    <button type="button" class="lightbox__close" (click)="fecharLightbox()">&times;</button>
+    <img *ngIf="lightboxUrl" [src]="lightboxUrl" alt="Foto em destaque" />
+    <p *ngIf="lightboxLegenda" class="lightbox__caption">{{ lightboxLegenda }}</p>
+  </div>
+</div>
+
+<app-dialog
+  [aberto]="confirmarExclusaoAberta"
+  [titulo]="'Confirmar exclusao'"
+  [mensagem]="confirmarExclusaoMensagem"
+  [confirmarLabel]="'Excluir'"
+  [cancelarLabel]="'Cancelar'"
+  (confirmar)="executarExcluir()"
+  (cancelar)="cancelarExcluir()"
+></app-dialog>

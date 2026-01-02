@@ -9,10 +9,13 @@ import br.com.g3.autenticacao.dto.RedefinirSenhaRequest;
 import br.com.g3.autenticacao.dto.UsuarioInfo;
 import br.com.g3.autenticacao.repository.UsuarioRecuperacaoSenhaRepository;
 import br.com.g3.autenticacao.service.AutenticacaoService;
+import br.com.g3.shared.service.EmailService;
 import br.com.g3.usuario.domain.Usuario;
 import br.com.g3.usuario.repository.UsuarioRepository;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -26,17 +29,22 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class AutenticacaoServiceImpl implements AutenticacaoService {
   private final UsuarioRepository repository;
-  private final UsuarioRecuperacaoSenhaRepository recuperacaoRepository;
+  private final UsuarioRecuperacaoSenhaRepository recuperacaoRepository;        
   private final PasswordEncoder passwordEncoder;
+  private final EmailService emailService;
   private final SecureRandom secureRandom = new SecureRandom();
+  private static final DateTimeFormatter DATA_HORA_FORMATO =
+      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", new Locale("pt", "BR"));
 
   public AutenticacaoServiceImpl(
       UsuarioRepository repository,
       UsuarioRecuperacaoSenhaRepository recuperacaoRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      EmailService emailService) {
     this.repository = repository;
     this.recuperacaoRepository = recuperacaoRepository;
     this.passwordEncoder = passwordEncoder;
+    this.emailService = emailService;
   }
 
   @Override
@@ -89,12 +97,15 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
 
   @Override
   @Transactional
-  public void solicitarRecuperacaoSenha(RecuperarSenhaRequest request) {
+  public void solicitarRecuperacaoSenha(RecuperarSenhaRequest request) {        
     String email = request.getEmail().trim().toLowerCase();
-    Usuario usuario = repository.buscarPorEmailIgnoreCase(email).orElse(null);
-    if (usuario == null) {
-      return;
-    }
+    Usuario usuario =
+        repository
+            .buscarPorEmailIgnoreCase(email)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Email nao encontrado"));
 
     LocalDateTime agora = LocalDateTime.now();
     recuperacaoRepository.marcarTokensComoUsados(usuario, agora);
@@ -105,6 +116,13 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     token.setCriadoEm(agora);
     token.setExpiraEm(agora.plusHours(2));
     recuperacaoRepository.salvar(token);
+
+    String validade = token.getExpiraEm().format(DATA_HORA_FORMATO);
+    emailService.enviarRecuperacaoSenha(
+        usuario.getEmail(),
+        usuario.getNome(),
+        token.getToken(),
+        validade);
   }
 
   @Override
@@ -152,8 +170,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
   }
 
   private String gerarTokenSeguro() {
-    byte[] bytes = new byte[32];
-    secureRandom.nextBytes(bytes);
-    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    int valor = secureRandom.nextInt(1_000_000);
+    return String.format("%06d", valor);
   }
 }

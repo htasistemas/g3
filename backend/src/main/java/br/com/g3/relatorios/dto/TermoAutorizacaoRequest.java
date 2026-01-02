@@ -3,66 +3,63 @@ package br.com.g3.relatorios.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TermoAutorizacaoRequest {
-  @JsonProperty("beneficiaryName")
-  private String beneficiaryName;
-
-  @JsonProperty("birthDate")
-  private String birthDate;
-
-  @JsonProperty("motherName")
-  private String motherName;
-
-  @JsonProperty("cpf")
-  private String cpf;
+  @JsonProperty("beneficiarioNome")
+  private String beneficiarioNome;
 
   @JsonProperty("rg")
   private String rg;
 
-  @JsonProperty("nis")
-  private String nis;
+  @JsonProperty("cpf")
+  private String cpf;
 
-  @JsonProperty("address")
-  private String address;
+  @JsonProperty("enderecoCompleto")
+  private String enderecoCompleto;
 
-  @JsonProperty("contact")
-  private String contact;
+  @JsonProperty("cidade")
+  private String cidade;
 
-  @JsonProperty("issueDate")
-  private String issueDate;
+  @JsonProperty("uf")
+  private String uf;
 
-  @JsonProperty("unit")
-  private UnidadeAssistencialRequest unit;
+  @JsonProperty("finalidadeDados")
+  private String finalidadeDados;
 
-  public String getBeneficiaryName() {
-    return beneficiaryName;
+  @JsonProperty("finalidadeImagem")
+  private String finalidadeImagem;
+
+  @JsonProperty("vigencia")
+  private String vigencia;
+
+  @JsonProperty("localAssinatura")
+  private String localAssinatura;
+
+  @JsonProperty("dataAssinatura")
+  private String dataAssinatura;
+
+  @JsonProperty("responsavelNome")
+  private String responsavelNome;
+
+  @JsonProperty("responsavelCpf")
+  private String responsavelCpf;
+
+  @JsonProperty("responsavelRelacao")
+  private String responsavelRelacao;
+
+  @JsonProperty("representanteNome")
+  private String representanteNome;
+
+  @JsonProperty("representanteCargo")
+  private String representanteCargo;
+
+  @JsonProperty("issuedBy")
+  private String issuedBy;
+
+  public String getBeneficiarioNome() {
+    return beneficiarioNome;
   }
 
-  public void setBeneficiaryName(String beneficiaryName) {
-    this.beneficiaryName = beneficiaryName;
-  }
-
-  public String getBirthDate() {
-    return birthDate;
-  }
-
-  public void setBirthDate(String birthDate) {
-    this.birthDate = birthDate;
-  }
-
-  public String getMotherName() {
-    return motherName;
-  }
-
-  public void setMotherName(String motherName) {
-    this.motherName = motherName;
-  }
-
-  public String getCpf() {
-    return cpf;
-  }
-
-  public void setCpf(String cpf) {
-    this.cpf = cpf;
+  public void setBeneficiarioNome(String beneficiarioNome) {
+    this.beneficiarioNome = beneficiarioNome;
   }
 
   public String getRg() {
@@ -73,177 +70,123 @@ public class TermoAutorizacaoRequest {
     this.rg = rg;
   }
 
-  public String getNis() {
-    return nis;
+  public String getCpf() {
+    return cpf;
   }
 
-  public void setNis(String nis) {
-    this.nis = nis;
+  public void setCpf(String cpf) {
+    this.cpf = cpf;
   }
 
-  public String getAddress() {
-    return address;
+  public String getEnderecoCompleto() {
+    return enderecoCompleto;
   }
 
-  public void setAddress(String address) {
-    this.address = address;
+  public void setEnderecoCompleto(String enderecoCompleto) {
+    this.enderecoCompleto = enderecoCompleto;
   }
 
-  public String getContact() {
-    return contact;
+  public String getCidade() {
+    return cidade;
   }
 
-  public void setContact(String contact) {
-    this.contact = contact;
+  public void setCidade(String cidade) {
+    this.cidade = cidade;
   }
 
-  public String getIssueDate() {
-    return issueDate;
+  public String getUf() {
+    return uf;
   }
 
-  public void setIssueDate(String issueDate) {
-    this.issueDate = issueDate;
+  public void setUf(String uf) {
+    this.uf = uf;
   }
 
-  public UnidadeAssistencialRequest getUnit() {
-    return unit;
+  public String getFinalidadeDados() {
+    return finalidadeDados;
   }
 
-  public void setUnit(UnidadeAssistencialRequest unit) {
-    this.unit = unit;
+  public void setFinalidadeDados(String finalidadeDados) {
+    this.finalidadeDados = finalidadeDados;
   }
 
-  public static class UnidadeAssistencialRequest {
-    @JsonProperty("nomeFantasia")
-    private String nomeFantasia;
+  public String getFinalidadeImagem() {
+    return finalidadeImagem;
+  }
 
-    @JsonProperty("razaoSocial")
-    private String razaoSocial;
+  public void setFinalidadeImagem(String finalidadeImagem) {
+    this.finalidadeImagem = finalidadeImagem;
+  }
 
-    @JsonProperty("cnpj")
-    private String cnpj;
+  public String getVigencia() {
+    return vigencia;
+  }
 
-    @JsonProperty("telefone")
-    private String telefone;
+  public void setVigencia(String vigencia) {
+    this.vigencia = vigencia;
+  }
 
-    @JsonProperty("email")
-    private String email;
+  public String getLocalAssinatura() {
+    return localAssinatura;
+  }
 
-    @JsonProperty("endereco")
-    private String endereco;
+  public void setLocalAssinatura(String localAssinatura) {
+    this.localAssinatura = localAssinatura;
+  }
 
-    @JsonProperty("numeroEndereco")
-    private String numeroEndereco;
+  public String getDataAssinatura() {
+    return dataAssinatura;
+  }
 
-    @JsonProperty("complemento")
-    private String complemento;
+  public void setDataAssinatura(String dataAssinatura) {
+    this.dataAssinatura = dataAssinatura;
+  }
 
-    @JsonProperty("bairro")
-    private String bairro;
+  public String getResponsavelNome() {
+    return responsavelNome;
+  }
 
-    @JsonProperty("pontoReferencia")
-    private String pontoReferencia;
+  public void setResponsavelNome(String responsavelNome) {
+    this.responsavelNome = responsavelNome;
+  }
 
-    @JsonProperty("cidade")
-    private String cidade;
+  public String getResponsavelCpf() {
+    return responsavelCpf;
+  }
 
-    @JsonProperty("estado")
-    private String estado;
+  public void setResponsavelCpf(String responsavelCpf) {
+    this.responsavelCpf = responsavelCpf;
+  }
 
-    public String getNomeFantasia() {
-      return nomeFantasia;
-    }
+  public String getResponsavelRelacao() {
+    return responsavelRelacao;
+  }
 
-    public void setNomeFantasia(String nomeFantasia) {
-      this.nomeFantasia = nomeFantasia;
-    }
+  public void setResponsavelRelacao(String responsavelRelacao) {
+    this.responsavelRelacao = responsavelRelacao;
+  }
 
-    public String getRazaoSocial() {
-      return razaoSocial;
-    }
+  public String getRepresentanteNome() {
+    return representanteNome;
+  }
 
-    public void setRazaoSocial(String razaoSocial) {
-      this.razaoSocial = razaoSocial;
-    }
+  public void setRepresentanteNome(String representanteNome) {
+    this.representanteNome = representanteNome;
+  }
 
-    public String getCnpj() {
-      return cnpj;
-    }
+  public String getRepresentanteCargo() {
+    return representanteCargo;
+  }
 
-    public void setCnpj(String cnpj) {
-      this.cnpj = cnpj;
-    }
+  public void setRepresentanteCargo(String representanteCargo) {
+    this.representanteCargo = representanteCargo;
+  }
 
-    public String getTelefone() {
-      return telefone;
-    }
+  public String getIssuedBy() {
+    return issuedBy;
+  }
 
-    public void setTelefone(String telefone) {
-      this.telefone = telefone;
-    }
-
-    public String getEmail() {
-      return email;
-    }
-
-    public void setEmail(String email) {
-      this.email = email;
-    }
-
-    public String getEndereco() {
-      return endereco;
-    }
-
-    public void setEndereco(String endereco) {
-      this.endereco = endereco;
-    }
-
-    public String getNumeroEndereco() {
-      return numeroEndereco;
-    }
-
-    public void setNumeroEndereco(String numeroEndereco) {
-      this.numeroEndereco = numeroEndereco;
-    }
-
-    public String getComplemento() {
-      return complemento;
-    }
-
-    public void setComplemento(String complemento) {
-      this.complemento = complemento;
-    }
-
-    public String getBairro() {
-      return bairro;
-    }
-
-    public void setBairro(String bairro) {
-      this.bairro = bairro;
-    }
-
-    public String getPontoReferencia() {
-      return pontoReferencia;
-    }
-
-    public void setPontoReferencia(String pontoReferencia) {
-      this.pontoReferencia = pontoReferencia;
-    }
-
-    public String getCidade() {
-      return cidade;
-    }
-
-    public void setCidade(String cidade) {
-      this.cidade = cidade;
-    }
-
-    public String getEstado() {
-      return estado;
-    }
-
-    public void setEstado(String estado) {
-      this.estado = estado;
-    }
+  public void setIssuedBy(String issuedBy) {
+    this.issuedBy = issuedBy;
   }
 }

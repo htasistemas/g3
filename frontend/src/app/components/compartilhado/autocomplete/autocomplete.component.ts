@@ -21,15 +21,31 @@ export class AutocompleteComponent {
   @Input() erro: string | null = null;
   @Input() opcoes: AutocompleteOpcao[] = [];
   @Input() termo = '';
+  aberto = false;
 
   @Output() termoChange = new EventEmitter<string>();
   @Output() selecionar = new EventEmitter<AutocompleteOpcao>();
 
   atualizarTermo(valor: string): void {
     this.termoChange.emit(valor);
+    this.aberto = !!valor;
   }
 
   selecionarOpcao(opcao: AutocompleteOpcao): void {
     this.selecionar.emit(opcao);
+    this.aberto = false;
+    setTimeout(() => {
+      this.aberto = false;
+    }, 0);
+  }
+
+  abrirPainel(): void {
+    this.aberto = true;
+  }
+
+  fecharPainelComDelay(): void {
+    setTimeout(() => {
+      this.aberto = false;
+    }, 150);
   }
 }

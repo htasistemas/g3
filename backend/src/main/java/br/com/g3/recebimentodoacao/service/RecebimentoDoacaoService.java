@@ -12,6 +12,8 @@ public interface RecebimentoDoacaoService {
 
   List<DoadorResponse> listarDoadores();
 
+  void excluirDoador(Long id);
+
   RecebimentoDoacaoResponse criarRecebimento(RecebimentoDoacaoRequest request);
 
   RecebimentoDoacaoListaResponse listarRecebimentos();
