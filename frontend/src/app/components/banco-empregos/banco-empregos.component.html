@@ -1,12 +1,24 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="onSalvar()"
+  (excluir)="onExcluir()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
+>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
     <p class="page-title__label">Banco de Empregos</p>
   </header>
 
+  <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
+
   <section class="job-page">
   <section class="tab-shell">
-    <p class="tab-shell__title">Navegação por etapas</p>
+    <p class="tab-shell__title">Navegacao por etapas</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -29,60 +41,38 @@
   </section>
 
   <form [formGroup]="form" class="form-shell">
-    <div *ngIf="feedback" class="alert alert-warning">
-      <span class="alert__message">{{ feedback }}</span>
-      <button type="button" class="alert__close" aria-label="Fechar aviso" (click)="feedback = null">×</button>
-    </div>
-
     <section class="tab-card" *ngIf="activeTab === 'dadosVaga'" formGroupName="dadosVaga">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[0].label }}</p>
-          <p class="muted">Informações principais da vaga.</p>
-        </div>
-        <div class="nav-buttons" aria-label="Ações da vaga">
-          <button type="button" class="nav-button nav-button--print" (click)="print()">
-            <span class="nav-button__label">Imprimir dados</span>
-          </button>
-          <button type="button" class="nav-button" (click)="save()" [disabled]="saving">
-            <span class="nav-button__label">{{ saving ? 'Salvando...' : 'Salvar' }}</span>
-          </button>
-          <button type="button" class="nav-button" (click)="cancel()">
-            <span class="nav-button__label">Cancelar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="startNew()">
-            <span class="nav-button__label">Novo</span>
-          </button>
-          <button type="button" class="nav-button" (click)="close()">
-            <span class="nav-button__label">Fechar</span>
-          </button>
+          <p class="muted">Informacoes principais da vaga.</p>
         </div>
       </div>
 
       <div class="field-grid cols-2">
-        <label class="field full">Título da vaga*
+        <label class="field full">Titulo da vaga *
           <input type="text" formControlName="titulo" placeholder="Ex.: Assistente administrativo" />
         </label>
-        <label class="field">Status da vaga
+        <label class="field">Status da vaga *
           <select formControlName="status">
             <option value="Aberta">Aberta</option>
             <option value="Em andamento">Em andamento</option>
             <option value="Encerrada">Encerrada</option>
           </select>
         </label>
-        <label class="field">Data de abertura*
+        <label class="field">Data de abertura *
           <input type="date" formControlName="dataAbertura" />
         </label>
         <label class="field">Data de encerramento
           <input type="date" formControlName="dataEncerramento" />
         </label>
         <label class="field">Tipo de contrato
-          <input type="text" formControlName="tipoContrato" placeholder="CLT, estágio, temporário..." />
+          <input type="text" formControlName="tipoContrato" placeholder="CLT, estagio, temporario..." />
         </label>
-        <label class="field">Carga horária
+        <label class="field">Carga horaria
           <input type="text" formControlName="cargaHoraria" placeholder="Ex.: 40h semanais" />
         </label>
-        <label class="field">Salário
+        <label class="field">Salario
           <input type="text" formControlName="salario" placeholder="Ex.: R$ 2.500,00" />
         </label>
       </div>
@@ -94,36 +84,19 @@
           <p class="tab-card__highlight">{{ tabs[1].label }}</p>
           <p class="muted">Dados da empresa e local de trabalho.</p>
         </div>
-        <div class="nav-buttons" aria-label="Ações da vaga">
-          <button type="button" class="nav-button nav-button--print" (click)="print()">
-            <span class="nav-button__label">Imprimir dados</span>
-          </button>
-          <button type="button" class="nav-button" (click)="save()">
-            <span class="nav-button__label">Salvar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="cancel()">
-            <span class="nav-button__label">Cancelar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="startNew()">
-            <span class="nav-button__label">Novo</span>
-          </button>
-          <button type="button" class="nav-button" (click)="close()">
-            <span class="nav-button__label">Fechar</span>
-          </button>
-        </div>
       </div>
 
       <div class="field-grid cols-2">
-        <label class="field full">Nome da empresa
+        <label class="field full">Nome da empresa *
           <input type="text" formControlName="nomeEmpresa" />
         </label>
         <label class="field">CNPJ
           <input type="text" formControlName="cnpj" />
         </label>
-        <label class="field">Cidade
+        <label class="field">Cidade *
           <input type="text" formControlName="cidade" />
         </label>
-        <label class="field">Endereço
+        <label class="field">Endereco
           <input type="text" formControlName="endereco" />
         </label>
         <label class="field">Bairro
@@ -136,24 +109,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[2].label }}</p>
-          <p class="muted">Requisitos, descrição e observações.</p>
-        </div>
-        <div class="nav-buttons" aria-label="Ações da vaga">
-          <button type="button" class="nav-button nav-button--print" (click)="print()">
-            <span class="nav-button__label">Imprimir dados</span>
-          </button>
-          <button type="button" class="nav-button" (click)="save()">
-            <span class="nav-button__label">Salvar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="cancel()">
-            <span class="nav-button__label">Cancelar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="startNew()">
-            <span class="nav-button__label">Novo</span>
-          </button>
-          <button type="button" class="nav-button" (click)="close()">
-            <span class="nav-button__label">Fechar</span>
-          </button>
+          <p class="muted">Requisitos, descricao e observacoes.</p>
         </div>
       </div>
 
@@ -161,10 +117,10 @@
         <label class="field">Requisitos
           <textarea formControlName="requisitos" rows="4" placeholder="Liste os requisitos essenciais"></textarea>
         </label>
-        <label class="field">Descrição
+      <label class="field">Descricao *
           <textarea formControlName="descricao" rows="4" placeholder="Descreva a vaga"></textarea>
         </label>
-        <label class="field">Outras observações
+        <label class="field">Outras observacoes
           <textarea formControlName="observacoes" rows="3" placeholder="Detalhes adicionais"></textarea>
         </label>
       </div>
@@ -176,41 +132,24 @@
           <p class="tab-card__highlight">{{ tabs[3].label }}</p>
           <p class="muted">Inclua e acompanhe os encaminhamentos para beneficiarios.</p>
         </div>
-        <div class="nav-buttons" aria-label="Ações da vaga">
-          <button type="button" class="nav-button nav-button--print" (click)="print()">
-            <span class="nav-button__label">Imprimir dados</span>
-          </button>
-          <button type="button" class="nav-button" (click)="save()">
-            <span class="nav-button__label">Salvar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="cancel()">
-            <span class="nav-button__label">Cancelar</span>
-          </button>
-          <button type="button" class="nav-button" (click)="startNew()">
-            <span class="nav-button__label">Novo</span>
-          </button>
-          <button type="button" class="nav-button" (click)="close()">
-            <span class="nav-button__label">Fechar</span>
-          </button>
-        </div>
       </div>
 
       <div class="encaminhamento-shell">
         <form [formGroup]="encaminhamentoForm" class="encaminhamento-form" (ngSubmit)="addEncaminhamento()">
           <div class="field-grid cols-2 narrow">
-            <label class="field full">Buscar beneficiario*
+            <label class="field full">Buscar beneficiario *
               <input type="text" [formControl]="beneficiarioPesquisa" placeholder="Digite para buscar" />
             </label>
-            <label class="field full">Beneficiario selecionado*
+            <label class="field full">Beneficiario selecionado *
               <input type="text" formControlName="beneficiarioNome" placeholder="Escolha na busca" readonly />
             </label>
-            <label class="field">Data de encaminhamento*
+            <label class="field">Data de encaminhamento *
               <input type="date" formControlName="data" />
             </label>
-            <label class="field">Status*
+            <label class="field">Status *
               <input type="text" formControlName="status" />
             </label>
-            <label class="field full">Observações
+            <label class="field full">Observacoes
               <textarea formControlName="observacoes" rows="2" placeholder="Notas do encaminhamento"></textarea>
             </label>
           </div>
@@ -246,7 +185,7 @@
                   <th>Beneficiario</th>
                   <th>Data</th>
                   <th>Status</th>
-                  <th>Observações</th>
+                  <th>Observacoes</th>
                   <th></th>
                 </tr>
               </thead>
@@ -258,7 +197,7 @@
                   <td>{{ item.beneficiarioNome }}</td>
                   <td>{{ item.data }}</td>
                   <td>{{ item.status }}</td>
-                  <td>{{ item.observacoes || '—' }}</td>
+                  <td>{{ item.observacoes || 'â' }}</td>
                   <td>
                     <button type="button" class="nav-button nav-button--danger" (click)="removeEncaminhamento(item.id)">Remover</button>
                   </td>
@@ -280,7 +219,7 @@
       <div class="listing-filters">
         <label class="field">
           <span class="muted">Pesquisar</span>
-          <input type="text" [formControl]="listSearch" placeholder="Título, empresa ou cidade" />
+          <input type="text" [formControl]="listSearch" placeholder="Titulo, empresa ou cidade" />
         </label>
         <label class="field">
           <span class="muted">Status</span>
@@ -299,7 +238,7 @@
         <header class="vaga-card__header">
           <div>
             <p class="vaga-card__title">{{ record.dadosVaga.titulo }}</p>
-            <p class="muted">{{ record.empresaLocal?.nomeEmpresa }} • {{ record.empresaLocal?.cidade }}</p>
+            <p class="muted">{{ record.empresaLocal?.nomeEmpresa }} â¢ {{ record.empresaLocal?.cidade }}</p>
           </div>
           <span class="status-pill" [class.status-pill--open]="record.dadosVaga.status === 'Aberta'" [class.status-pill--progress]="record.dadosVaga.status === 'Pausada'" [class.status-pill--closed]="record.dadosVaga.status === 'Encerrada'">
             {{ record.dadosVaga.status }}
@@ -309,15 +248,15 @@
         <dl class="vaga-card__meta">
           <div>
             <dt>Aberta em</dt>
-            <dd>{{ record.criadoEm || '—' }}</dd>
+            <dd>{{ record.criadoEm || 'â' }}</dd>
           </div>
           <div>
             <dt>Contrato</dt>
-            <dd>{{ record.dadosVaga.tipo || '—' }}</dd>
+            <dd>{{ record.dadosVaga.tipo || 'â' }}</dd>
           </div>
           <div>
-            <dt>Salário</dt>
-            <dd>{{ record.dadosVaga.salario || '—' }}</dd>
+            <dt>Salario</dt>
+            <dd>{{ record.dadosVaga.salario || 'â' }}</dd>
           </div>
         </dl>
         <div class="vaga-card__actions">
@@ -334,5 +273,15 @@
     </ng-template>
   </section>
 </section>
+
+<app-dialog
+  [aberto]="dialogConfirmacaoAberta"
+  [titulo]="dialogTitulo"
+  [mensagem]="dialogMensagem"
+  [confirmarLabel]="dialogConfirmarLabel"
+  [cancelarLabel]="dialogCancelarLabel"
+  (confirmar)="confirmarDialogo()"
+  (cancelar)="cancelarDialogo()"
+></app-dialog>
 </app-tela-padrao>
 

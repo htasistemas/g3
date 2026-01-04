@@ -40,6 +40,11 @@ Agentes nao devem:
 - Botoes dentro de `form` devem ser `type="button"` por padrao; usar `type="submit"` apenas quando necessario.
 - E proibido duplicar eventos de clique (ex.: `click` + `mouseup`, multiplos listeners ou `HostListener` duplicado).
 - Evitar overlays capturando clique quando nao estiverem ativos (ajustar `pointer-events`/`z-index` quando aplicavel).
+- Padrão oficial de botoes de navegacao G3:
+  - Ordem: Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar.
+  - Agrupamento visual: grupo esquerdo (Buscar, Novo), grupo central (Salvar), grupo direito (Cancelar, Excluir, Imprimir, Fechar).
+  - Observacoes: Excluir deve ficar isolado de Salvar com espacamento padrao; Fechar deve ser o ultimo botao à direita.
+  - Referencia: seguir layout do Cadastro de Beneficiario.
 
 ## Angular (Frontend)
 - Nao adicionar logica pesada em templates.
