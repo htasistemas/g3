@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.List;
 
 public class FotoEventoRequest {
   @NotBlank
@@ -16,7 +17,9 @@ public class FotoEventoRequest {
 
   private String local;
 
-  private String tags;
+  private String status;
+
+  private List<String> tags;
 
   private Long unidadeId;
 
@@ -57,11 +60,19 @@ public class FotoEventoRequest {
     this.local = local;
   }
 
-  public String getTags() {
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public List<String> getTags() {
     return tags;
   }
 
-  public void setTags(String tags) {
+  public void setTags(List<String> tags) {
     this.tags = tags;
   }
 

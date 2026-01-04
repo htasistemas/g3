@@ -1,8 +1,20 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="onSalvar()"
+  (excluir)="onExcluir()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
+>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Financeiro - Contabilidade</p>
-    <p class="page-title__label">Gestão de contas a pagar e a receber</p>
+    <p class="page-title__label">Gestao de contas a pagar e a receber</p>
   </header>
+
+  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 
   <section class="cadastro">
   <div class="tab-shell">
@@ -82,14 +94,14 @@
 
         <form class="form-grid" (ngSubmit)="registerEntry()">
           <label class="form-field">
-            <span>Tipo</span>
+            <span>Tipo *</span>
             <select class="select" name="type" [(ngModel)]="newEntry.tipo" required>
               <option value="receber">A receber</option>
               <option value="pagar">A pagar</option>
             </select>
           </label>
           <label class="form-field form-field--wide">
-            <span>Descrição</span>
+            <span>Descricao *</span>
             <input
               type="text"
               class="input"
@@ -101,7 +113,7 @@
             />
           </label>
           <label class="form-field form-field--wide">
-            <span>Contraparte</span>
+            <span>Contraparte *</span>
             <input
               type="text"
               class="input"
@@ -117,7 +129,7 @@
             </datalist>
           </label>
           <label class="form-field">
-            <span>Vencimento</span>
+            <span>Vencimento *</span>
             <input
               type="date"
               class="input"
@@ -128,7 +140,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Valor</span>
+            <span>Valor *</span>
             <input
               type="text"
               class="input"
@@ -141,7 +153,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Situação</span>
+            <span>Situacao *</span>
             <select class="select" name="status" [(ngModel)]="newEntry.situacao" required>
               <option value="aberto">Aberto</option>
               <option value="pago">Pago</option>
@@ -180,7 +192,7 @@
             <input type="text" class="input" [(ngModel)]="filtrosLancamentos.contraparte" name="filtroContraparte" placeholder="Prefeitura, fornecedor..." />
           </label>
           <label class="form-field">
-            <span>Tipo</span>
+            <span>Tipo *</span>
             <select class="select" [(ngModel)]="filtrosLancamentos.tipo" name="filtroTipoLancamento">
               <option value="">Todos</option>
               <option value="receber">A receber</option>
@@ -358,7 +370,7 @@
 
         <form class="form-grid" (ngSubmit)="addAmendment()">
           <label class="form-field">
-            <span>Identificacao</span>
+            <span>Identificacao *</span>
             <input
               type="text"
               class="input"
@@ -381,7 +393,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Previsao de recebimento</span>
+            <span>Previsao de recebimento *</span>
             <input
               type="date"
               class="input"
@@ -391,7 +403,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Valor previsto</span>
+            <span>Valor previsto *</span>
             <input
               type="number"
               class="input"
@@ -405,7 +417,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Antecedencia do alerta (dias)</span>
+            <span>Antecedencia do alerta (dias) *</span>
             <input
               type="number"
               class="input"
@@ -417,7 +429,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Status</span>
+            <span>Status *</span>
             <select class="select" name="status" [(ngModel)]="newAmendment.status" required>
               <option value="previsto">Previsto</option>
               <option value="empenhado">Empenhado</option>
@@ -510,7 +522,7 @@
 
       <form class="form-grid" (ngSubmit)="addBankAccount()">
         <label class="form-field">
-          <span>Banco</span>
+          <span>Banco *</span>
           <input
             type="text"
             class="input"
@@ -526,7 +538,7 @@
           </datalist>
         </label>
         <label class="form-field">
-          <span>Agência</span>
+          <span>Agencia</span>
           <input
             type="text"
             class="input"
@@ -537,7 +549,7 @@
           />
         </label>
         <label class="form-field">
-          <span>Número da conta</span>
+          <span>Numero da conta *</span>
           <input
             type="text"
             class="input"
@@ -549,7 +561,7 @@
           />
         </label>
         <label class="form-field">
-          <span>Tipo</span>
+          <span>Tipo *</span>
           <select class="select" name="type" [(ngModel)]="newAccount.tipo" required>
             <option *ngFor="let tipo of tiposConta" [value]="tipo.value">{{ tipo.label }}</option>
           </select>
@@ -755,7 +767,7 @@
             </select>
           </label>
           <label class="form-field">
-            <span>Descrição</span>
+            <span>Descricao *</span>
             <input
               type="text"
               class="input"
@@ -797,7 +809,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Conta bancaria</span>
+            <span>Conta bancaria *</span>
             <select class="select" name="movementAccount" [(ngModel)]="newMovement.contaBancariaId" required>
               <option value="" disabled>Selecione</option>
               <option *ngFor="let account of bankAccounts" [value]="account.id">
@@ -806,11 +818,11 @@
             </select>
           </label>
           <label class="form-field">
-            <span>Data</span>
+            <span>Data *</span>
             <input type="date" class="input" name="movementDate" [(ngModel)]="newMovement.dataMovimentacao" required />
           </label>
           <label class="form-field">
-            <span>Valor</span>
+            <span>Valor *</span>
             <input
               type="number"
               class="input"
@@ -948,7 +960,7 @@
 
       <form class="form-grid" (ngSubmit)="addAmendment()">
         <label class="form-field">
-          <span>Identificacao</span>
+          <span>Identificacao *</span>
           <input type="text" class="input" name="name" [(ngModel)]="newAmendment.identificacao" placeholder="Emenda 001/2024" required />
         </label>
         <label class="form-field">
@@ -956,19 +968,19 @@
           <input type="text" class="input" name="lawReference" [(ngModel)]="newAmendment.referenciaLegal" placeholder="Lei ou oficio" />
         </label>
         <label class="form-field">
-          <span>Previsao de recebimento</span>
+          <span>Previsao de recebimento *</span>
           <input type="date" class="input" name="expectedDate" [(ngModel)]="newAmendment.dataPrevista" required />
         </label>
         <label class="form-field">
-          <span>Valor previsto</span>
+          <span>Valor previsto *</span>
           <input type="number" class="input" name="amount" [(ngModel)]="newAmendment.valorPrevisto" step="0.01" min="0" placeholder="0,00" required />
         </label>
         <label class="form-field">
-          <span>Antecedencia do alerta (dias)</span>
+          <span>Antecedencia do alerta (dias) *</span>
           <input type="number" class="input" name="alertDays" [(ngModel)]="newAmendment.diasAlerta" min="1" required />
         </label>
         <label class="form-field">
-          <span>Status</span>
+          <span>Status *</span>
           <select class="select" name="status" [(ngModel)]="newAmendment.status" required>
             <option value="previsto">Previsto</option>
             <option value="empenhado">Empenhado</option>
@@ -1155,6 +1167,16 @@
     </div>
   </div>
 </section>
+
+<app-dialog
+  [aberto]="dialogConfirmacaoAberta"
+  [titulo]="dialogTitulo"
+  [mensagem]="dialogMensagem"
+  [confirmarLabel]="dialogConfirmarLabel"
+  [cancelarLabel]="dialogCancelarLabel"
+  (confirmar)="confirmarDialogo()"
+  (cancelar)="cancelarDialogo()"
+></app-dialog>
 </app-tela-padrao>
 
 

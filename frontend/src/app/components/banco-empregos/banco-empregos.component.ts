@@ -65,6 +65,7 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
   beneficiarioSelecionado: BeneficiarioApiPayload | null = null;
   buscandoBeneficiarios = false;
   beneficiarioErro: string | null = null;
+  cnpjErro: string | null = null;
   listSearch = new FormControl('');
   statusFilter = new FormControl<'todos' | JobStatus>('todos');
   private readonly destroy$ = new Subject<void>();
@@ -167,6 +168,9 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
         .adicionar('Preencha os campos obrigatorios para salvar a vaga.')
         .build();
       this.abrirPopupTemporario();
+      return;
+    }
+    if (!this.validarCnpjEmpresa()) {
       return;
     }
 
@@ -483,30 +487,136 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
 
   private aplicarCapitalizacaoPayload(payload: JobPayload): JobPayload {
     const dadosVaga = { ...(payload.dadosVaga || {}) };
-    const empresaLocal = { ...(payload.empresaLocal || {}) };
+    const empresaLocal = payload.empresaLocal ? { ...payload.empresaLocal } : undefined;
+    const requisitos = payload.requisitos ? { ...payload.requisitos } : undefined;
     if (dadosVaga.titulo) {
       dadosVaga.titulo = titleCaseWords(dadosVaga.titulo);
+    }
+    if (dadosVaga.area) {
+      dadosVaga.area = titleCaseWords(dadosVaga.area);
+    }
+    if (dadosVaga.tipo) {
+      dadosVaga.tipo = titleCaseWords(dadosVaga.tipo);
+    }
+    if (dadosVaga.nivel) {
+      dadosVaga.nivel = titleCaseWords(dadosVaga.nivel);
+    }
+    if (dadosVaga.modelo) {
+      dadosVaga.modelo = titleCaseWords(dadosVaga.modelo);
     }
     if (dadosVaga.tipoContrato) {
       dadosVaga.tipoContrato = titleCaseWords(dadosVaga.tipoContrato);
     }
-    if (empresaLocal.nomeEmpresa) {
+    if (dadosVaga.cargaHoraria) {
+      dadosVaga.cargaHoraria = titleCaseWords(dadosVaga.cargaHoraria);
+    }
+    if (empresaLocal?.nomeEmpresa) {
       empresaLocal.nomeEmpresa = titleCaseWords(empresaLocal.nomeEmpresa);
     }
-    if (empresaLocal.cidade) {
+    if (empresaLocal?.cidade) {
       empresaLocal.cidade = titleCaseWords(empresaLocal.cidade);
     }
-    if (empresaLocal.endereco) {
+    if (empresaLocal?.endereco) {
       empresaLocal.endereco = titleCaseWords(empresaLocal.endereco);
     }
-    if (empresaLocal.bairro) {
+    if (empresaLocal?.bairro) {
       empresaLocal.bairro = titleCaseWords(empresaLocal.bairro);
+    }
+    if (empresaLocal?.cnpj) {
+      empresaLocal.cnpj = this.aplicarMascaraCnpj(empresaLocal.cnpj);
+    }
+    if (requisitos?.escolaridade) {
+      requisitos.escolaridade = titleCaseWords(requisitos.escolaridade);
+    }
+    if (requisitos?.experiencia) {
+      requisitos.experiencia = titleCaseWords(requisitos.experiencia);
+    }
+    if (requisitos?.habilidades) {
+      requisitos.habilidades = titleCaseWords(requisitos.habilidades);
+    }
+    if (requisitos?.observacoes) {
+      requisitos.observacoes = titleCaseWords(requisitos.observacoes);
     }
     return {
       ...payload,
       dadosVaga,
-      empresaLocal
+      ...(empresaLocal ? { empresaLocal } : {}),
+      ...(requisitos ? { requisitos } : {})
     };
+  }
+
+  onCnpjInput(valor: string): void {
+    const dados = this.form.get('empresaLocal') as FormGroup;
+    const mascarado = this.aplicarMascaraCnpj(valor || '');
+    dados.patchValue({ cnpj: mascarado }, { emitEvent: false });
+    this.cnpjErro = null;
+  }
+
+  private validarCnpjEmpresa(): boolean {
+    const dados = this.form.get('empresaLocal') as FormGroup;
+    const cnpj = (dados.get('cnpj')?.value || '').toString();
+    if (!cnpj) {
+      this.cnpjErro = null;
+      return true;
+    }
+    if (!this.validarCnpj(cnpj)) {
+      this.cnpjErro = 'CNPJ invalido.';
+      this.popupTitulo = 'Campos obrigatorios';
+      this.popupErros = new PopupErrorBuilder().adicionar('CNPJ invalido.').build();
+      this.abrirPopupTemporario();
+      return false;
+    }
+    this.cnpjErro = null;
+    return true;
+  }
+
+  private aplicarMascaraCnpj(valor: string): string {
+    const numeros = (valor ?? '').replace(/\D/g, '').slice(0, 14);
+    const parte1 = numeros.slice(0, 2);
+    const parte2 = numeros.slice(2, 5);
+    const parte3 = numeros.slice(5, 8);
+    const parte4 = numeros.slice(8, 12);
+    const parte5 = numeros.slice(12, 14);
+    let resultado = '';
+    if (parte1) {
+      resultado = parte1;
+    }
+    if (parte2) {
+      resultado += `.${parte2}`;
+    }
+    if (parte3) {
+      resultado += `.${parte3}`;
+    }
+    if (parte4) {
+      resultado += `/${parte4}`;
+    }
+    if (parte5) {
+      resultado += `-${parte5}`;
+    }
+    return resultado;
+  }
+
+  private validarCnpj(valor: string): boolean {
+    const cnpj = valor.replace(/\D/g, '');
+    if (cnpj.length != 14 || /^(\d)\1+$/.test(cnpj)) {
+      return false;
+    }
+    const pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const calcular = (pesos: number[]) => {
+      let soma = 0;
+      for (let i = 0; i < pesos.length; i += 1) {
+        soma += Number(cnpj.charAt(i)) * pesos[i];
+      }
+      const resto = soma % 11;
+      return resto < 2 ? 0 : 11 - resto;
+    };
+    const digito1 = calcular(pesos1);
+    const digito2 = calcular(pesos2);
+    return (
+      digito1 === Number(cnpj.charAt(12)) &&
+      digito2 === Number(cnpj.charAt(13))
+    );
   }
 
 }

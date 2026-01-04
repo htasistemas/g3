@@ -41,7 +41,6 @@ br\com\g3\fotoseventos\service\ArmazenamentoFotoEventoService.class
 br\com\g3\almoxarifado\dto\AlmoxarifadoMovimentacaoRequest.class
 br\com\g3\vinculofamiliar\dto\VinculoFamiliarCriacaoRequest.class
 br\com\g3\autorizacaocompras\service\AutorizacaoComprasService.class
-br\com\g3\relatorios\dto\TermoAutorizacaoRequest$UnidadeAssistencialRequest.class
 br\com\g3\autenticacao\domain\UsuarioRecuperacaoSenha.class
 br\com\g3\fotoseventos\service\FotoEventoService.class
 br\com\g3\vinculofamiliar\repositoryimpl\VinculoFamiliarRepositoryImpl.class

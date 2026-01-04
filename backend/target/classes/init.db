@@ -1,4 +1,5 @@
 -- Arquivo SQL idempotente executado no startup
+CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE TABLE IF NOT EXISTS unidade_assistencial (
   id BIGSERIAL PRIMARY KEY,
   nome_fantasia VARCHAR(200) NOT NULL,
@@ -187,11 +188,11 @@ SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.00.6',
-    descricao = 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.',
+SET versao = '1.00.7',
+    descricao = 'Padronizacao dos botoes de navegacao (Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar) e ajustes nas telas de Banco de Empregos, Contabilidade, Transparencia, Termos de Fomento, Plano de Trabalho e Fotos e Eventos.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.00.6';
+  AND versao <> '1.00.7';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -199,12 +200,12 @@ WHERE id = 1
   AND versao = '1.0.0';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.6', 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.', NOW()
+SELECT '1.00.7', 'Padronizacao dos botoes de navegacao (Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar) e ajustes nas telas de Banco de Empregos, Contabilidade, Transparencia, Termos de Fomento, Plano de Trabalho e Fotos e Eventos.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.00.6'
-    AND descricao = 'Reimpressao do termo de consentimento LGPD, cabecalho do termo com razao social, ficha do beneficiario somente com campos preenchidos, ajustes na visita domiciliar e abas sem acento no cadastro de beneficiario.'
+  WHERE versao = '1.00.7'
+    AND descricao = 'Padronizacao dos botoes de navegacao (Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar) e ajustes nas telas de Banco de Empregos, Contabilidade, Transparencia, Termos de Fomento, Plano de Trabalho e Fotos e Eventos.'
 );
 
 UPDATE historico_versao_sistema
@@ -1268,22 +1269,407 @@ CREATE TABLE IF NOT EXISTS fotos_eventos (
   descricao TEXT,
   data_evento DATE NOT NULL,
   local VARCHAR(200),
+  status VARCHAR(20) NOT NULL DEFAULT 'PLANEJADO',
   tags TEXT,
-  foto_principal TEXT NOT NULL,
+  foto_principal_id BIGINT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  criado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+ALTER TABLE IF EXISTS fotos_eventos_fotos RENAME TO fotos_eventos_itens;
+
+CREATE TABLE IF NOT EXISTS fotos_eventos_itens (
+  id BIGSERIAL PRIMARY KEY,
+  evento_id BIGINT NOT NULL REFERENCES fotos_eventos(id) ON DELETE CASCADE,
+  arquivo TEXT NOT NULL,
+  nome_arquivo VARCHAR(255),
+  mime_type VARCHAR(120),
+  tamanho_bytes BIGINT,
+  largura INTEGER,
+  altura INTEGER,
+  legenda TEXT,
+  creditos VARCHAR(200),
+  tags TEXT,
+  ordem INTEGER,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS fotos_eventos_fotos (
+CREATE TABLE IF NOT EXISTS fotos_eventos_tags (
   id BIGSERIAL PRIMARY KEY,
   evento_id BIGINT NOT NULL REFERENCES fotos_eventos(id) ON DELETE CASCADE,
-  arquivo TEXT NOT NULL,
-  legenda VARCHAR(255),
-  ordem INTEGER,
-  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+  tag VARCHAR(120) NOT NULL
 );
+
+ALTER TABLE fotos_eventos
+  ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'PLANEJADO';
+ALTER TABLE fotos_eventos
+  ADD COLUMN IF NOT EXISTS tags TEXT;
+ALTER TABLE fotos_eventos
+  ADD COLUMN IF NOT EXISTS foto_principal_id BIGINT;
+ALTER TABLE fotos_eventos
+  ADD COLUMN IF NOT EXISTS criado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL;
+ALTER TABLE fotos_eventos
+  ALTER COLUMN tags TYPE TEXT USING convert_from(tags::bytea, 'UTF8');
+ALTER TABLE fotos_eventos
+  ALTER COLUMN titulo TYPE VARCHAR(200) USING convert_from(titulo::bytea, 'UTF8');
+ALTER TABLE fotos_eventos
+  ALTER COLUMN descricao TYPE TEXT USING convert_from(descricao::bytea, 'UTF8');
+ALTER TABLE fotos_eventos
+  ALTER COLUMN local TYPE VARCHAR(200) USING convert_from(local::bytea, 'UTF8');
+ALTER TABLE fotos_eventos
+  DROP COLUMN IF EXISTS foto_principal;
+
+ALTER TABLE fotos_eventos
+  DROP CONSTRAINT IF EXISTS fotos_eventos_foto_principal_id_fkey;
+ALTER TABLE fotos_eventos
+  ADD CONSTRAINT fotos_eventos_foto_principal_id_fkey
+  FOREIGN KEY (foto_principal_id) REFERENCES fotos_eventos_itens(id) ON DELETE SET NULL;
+
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS nome_arquivo VARCHAR(255);
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS mime_type VARCHAR(120);
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS tamanho_bytes BIGINT;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS largura INTEGER;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS altura INTEGER;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS legenda TEXT;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS creditos VARCHAR(200);
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS tags TEXT;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS ordem INTEGER;
+ALTER TABLE fotos_eventos_itens
+  ALTER COLUMN tags TYPE TEXT;
+ALTER TABLE fotos_eventos_itens
+  ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMP NOT NULL DEFAULT NOW();
 
 CREATE INDEX IF NOT EXISTS fotos_eventos_data_idx
   ON fotos_eventos (data_evento DESC);
 CREATE INDEX IF NOT EXISTS fotos_eventos_titulo_idx
   ON fotos_eventos (titulo);
+CREATE INDEX IF NOT EXISTS fotos_eventos_tags_evento_idx
+  ON fotos_eventos_tags (evento_id);
+CREATE INDEX IF NOT EXISTS fotos_eventos_tags_tag_idx
+  ON fotos_eventos_tags (tag);
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos (
+  id BIGSERIAL PRIMARY KEY,
+  tipo VARCHAR(20) NOT NULL,
+  nome VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  imagem TEXT,
+  vagas_totais INTEGER NOT NULL DEFAULT 0,
+  vagas_disponiveis INTEGER NOT NULL DEFAULT 0,
+  carga_horaria INTEGER,
+  horario_inicial TIME,
+  duracao_horas INTEGER NOT NULL DEFAULT 0,
+  dias_semana TEXT,
+  restricoes TEXT,
+  profissional VARCHAR(150),
+  sala_id BIGINT REFERENCES salas_unidade(id) ON DELETE SET NULL,
+  status VARCHAR(30) NOT NULL,
+  data_triagem DATE,
+  data_encaminhamento DATE,
+  data_conclusao DATE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS cursos_atendimentos_status_idx
+  ON cursos_atendimentos (status);
+CREATE INDEX IF NOT EXISTS cursos_atendimentos_sala_idx
+  ON cursos_atendimentos (sala_id);
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_matriculas (
+  id BIGSERIAL PRIMARY KEY,
+  curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,
+  beneficiario_nome VARCHAR(200) NOT NULL,
+  cpf VARCHAR(20),
+  status VARCHAR(20) NOT NULL,
+  data_matricula TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_fila_espera (
+  id BIGSERIAL PRIMARY KEY,
+  curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,
+  beneficiario_nome VARCHAR(200) NOT NULL,
+  cpf VARCHAR(20),
+  data_entrada TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_status (
+  id BIGSERIAL PRIMARY KEY,
+  curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,
+  status VARCHAR(30) NOT NULL,
+  data_alteracao TIMESTAMP NOT NULL DEFAULT NOW(),
+  justificativa TEXT
+);
+
+CREATE TABLE IF NOT EXISTS banco_empregos (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(200) NOT NULL,
+  area VARCHAR(120),
+  tipo VARCHAR(80),
+  nivel VARCHAR(80),
+  modelo VARCHAR(80),
+  status VARCHAR(20) NOT NULL,
+  salario VARCHAR(80),
+  beneficios TEXT,
+  nome_empresa VARCHAR(200),
+  responsavel VARCHAR(150),
+  telefone VARCHAR(60),
+  email VARCHAR(150),
+  endereco VARCHAR(200),
+  bairro VARCHAR(120),
+  cidade VARCHAR(120),
+  uf VARCHAR(10),
+  escolaridade VARCHAR(120),
+  experiencia VARCHAR(200),
+  habilidades TEXT,
+  descricao TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS banco_empregos_encaminhamentos (
+  id BIGSERIAL PRIMARY KEY,
+  emprego_id BIGINT NOT NULL REFERENCES banco_empregos(id) ON DELETE CASCADE,
+  beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
+  beneficiario_nome VARCHAR(200),
+  data_encaminhamento DATE NOT NULL,
+  status VARCHAR(40) NOT NULL,
+  observacoes TEXT
+);
+
+CREATE INDEX IF NOT EXISTS banco_empregos_status_idx
+  ON banco_empregos (status);
+CREATE INDEX IF NOT EXISTS banco_empregos_encaminhamentos_emprego_idx
+  ON banco_empregos_encaminhamentos (emprego_id);
+
+CREATE TABLE IF NOT EXISTS termo_fomento (
+  id BIGSERIAL PRIMARY KEY,
+  numero_termo VARCHAR(120) NOT NULL,
+  tipo_termo VARCHAR(20) NOT NULL,
+  orgao_concedente VARCHAR(200),
+  data_assinatura DATE,
+  data_inicio_vigencia DATE,
+  data_fim_vigencia DATE,
+  situacao VARCHAR(20) NOT NULL,
+  descricao_objeto TEXT,
+  valor_global NUMERIC(14, 2),
+  responsavel_interno VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS termo_fomento_aditivos (
+  id BIGSERIAL PRIMARY KEY,
+  termo_fomento_id BIGINT NOT NULL REFERENCES termo_fomento(id) ON DELETE CASCADE,
+  tipo_aditivo VARCHAR(60) NOT NULL,
+  data_aditivo DATE NOT NULL,
+  nova_data_fim DATE,
+  novo_valor NUMERIC(14, 2),
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS termo_fomento_documentos (
+  id BIGSERIAL PRIMARY KEY,
+  termo_fomento_id BIGINT NOT NULL REFERENCES termo_fomento(id) ON DELETE CASCADE,
+  aditivo_id BIGINT REFERENCES termo_fomento_aditivos(id) ON DELETE CASCADE,
+  tipo_documento VARCHAR(20) NOT NULL,
+  nome VARCHAR(255) NOT NULL,
+  data_url TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS termo_fomento_numero_idx
+  ON termo_fomento (numero_termo);
+CREATE INDEX IF NOT EXISTS termo_fomento_situacao_idx
+  ON termo_fomento (situacao);
+CREATE INDEX IF NOT EXISTS termo_fomento_documentos_termo_idx
+  ON termo_fomento_documentos (termo_fomento_id);
+CREATE INDEX IF NOT EXISTS termo_fomento_aditivos_termo_idx
+  ON termo_fomento_aditivos (termo_fomento_id);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho (
+  id BIGSERIAL PRIMARY KEY,
+  codigo_interno VARCHAR(40) NOT NULL,
+  titulo VARCHAR(200) NOT NULL,
+  descricao_geral TEXT NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  orgao_concedente VARCHAR(40),
+  orgao_outro_descricao VARCHAR(200),
+  area_programa VARCHAR(120),
+  data_elaboracao DATE,
+  data_aprovacao DATE,
+  vigencia_inicio DATE,
+  vigencia_fim DATE,
+  termo_fomento_id BIGINT NOT NULL REFERENCES termo_fomento(id) ON DELETE RESTRICT,
+  numero_processo VARCHAR(120),
+  modalidade VARCHAR(120),
+  observacoes_vinculacao TEXT,
+  arquivo_formato VARCHAR(20),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho_metas (
+  id BIGSERIAL PRIMARY KEY,
+  plano_trabalho_id BIGINT NOT NULL REFERENCES plano_trabalho(id) ON DELETE CASCADE,
+  codigo VARCHAR(60),
+  descricao TEXT NOT NULL,
+  indicador TEXT,
+  unidade_medida VARCHAR(60),
+  quantidade_prevista NUMERIC(14, 2),
+  resultado_esperado TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho_atividades (
+  id BIGSERIAL PRIMARY KEY,
+  meta_id BIGINT NOT NULL REFERENCES plano_trabalho_metas(id) ON DELETE CASCADE,
+  descricao TEXT NOT NULL,
+  justificativa TEXT,
+  publico_alvo TEXT,
+  local_execucao TEXT,
+  produto_esperado TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho_etapas (
+  id BIGSERIAL PRIMARY KEY,
+  atividade_id BIGINT NOT NULL REFERENCES plano_trabalho_atividades(id) ON DELETE CASCADE,
+  descricao TEXT NOT NULL,
+  status VARCHAR(30),
+  data_inicio_prevista DATE,
+  data_fim_prevista DATE,
+  data_conclusao DATE,
+  responsavel VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho_cronograma (
+  id BIGSERIAL PRIMARY KEY,
+  plano_trabalho_id BIGINT NOT NULL REFERENCES plano_trabalho(id) ON DELETE CASCADE,
+  referencia_tipo VARCHAR(40),
+  referencia_id VARCHAR(40),
+  referencia_descricao TEXT,
+  competencia VARCHAR(20) NOT NULL,
+  descricao_resumida TEXT,
+  valor_previsto NUMERIC(14, 2),
+  fonte_recurso VARCHAR(60),
+  natureza_despesa VARCHAR(120),
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS plano_trabalho_equipe (
+  id BIGSERIAL PRIMARY KEY,
+  plano_trabalho_id BIGINT NOT NULL REFERENCES plano_trabalho(id) ON DELETE CASCADE,
+  nome VARCHAR(200) NOT NULL,
+  funcao VARCHAR(200),
+  cpf VARCHAR(20),
+  carga_horaria VARCHAR(80),
+  tipo_vinculo VARCHAR(120),
+  contato VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS plano_trabalho_termo_idx
+  ON plano_trabalho (termo_fomento_id);
+CREATE INDEX IF NOT EXISTS plano_trabalho_status_idx
+  ON plano_trabalho (status);
+CREATE INDEX IF NOT EXISTS plano_trabalho_metas_plano_idx
+  ON plano_trabalho_metas (plano_trabalho_id);
+CREATE INDEX IF NOT EXISTS plano_trabalho_atividades_meta_idx
+  ON plano_trabalho_atividades (meta_id);
+CREATE INDEX IF NOT EXISTS plano_trabalho_etapas_atividade_idx
+  ON plano_trabalho_etapas (atividade_id);
+CREATE INDEX IF NOT EXISTS plano_trabalho_cronograma_plano_idx
+  ON plano_trabalho_cronograma (plano_trabalho_id);
+CREATE INDEX IF NOT EXISTS plano_trabalho_equipe_plano_idx
+  ON plano_trabalho_equipe (plano_trabalho_id);
+
+CREATE TABLE IF NOT EXISTS transparencia (
+  id BIGSERIAL PRIMARY KEY,
+  unidade_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  total_recebido NUMERIC(14, 2),
+  total_recebido_helper VARCHAR(200),
+  total_aplicado NUMERIC(14, 2),
+  total_aplicado_helper VARCHAR(200),
+  saldo_disponivel NUMERIC(14, 2),
+  saldo_disponivel_helper VARCHAR(200),
+  prestado_mes NUMERIC(14, 2),
+  prestado_mes_helper VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transparencia_recebimentos (
+  id BIGSERIAL PRIMARY KEY,
+  transparencia_id BIGINT NOT NULL REFERENCES transparencia(id) ON DELETE CASCADE,
+  fonte VARCHAR(200) NOT NULL,
+  valor NUMERIC(14, 2),
+  periodicidade VARCHAR(200),
+  status VARCHAR(60),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transparencia_destinacoes (
+  id BIGSERIAL PRIMARY KEY,
+  transparencia_id BIGINT NOT NULL REFERENCES transparencia(id) ON DELETE CASCADE,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  percentual INTEGER,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transparencia_comprovantes (
+  id BIGSERIAL PRIMARY KEY,
+  transparencia_id BIGINT NOT NULL REFERENCES transparencia(id) ON DELETE CASCADE,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  arquivo_nome VARCHAR(255),
+  arquivo_url TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transparencia_timelines (
+  id BIGSERIAL PRIMARY KEY,
+  transparencia_id BIGINT NOT NULL REFERENCES transparencia(id) ON DELETE CASCADE,
+  titulo VARCHAR(200) NOT NULL,
+  detalhe TEXT,
+  status VARCHAR(30),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS transparencia_checklist (
+  id BIGSERIAL PRIMARY KEY,
+  transparencia_id BIGINT NOT NULL REFERENCES transparencia(id) ON DELETE CASCADE,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  status VARCHAR(30),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS transparencia_unidade_idx
+  ON transparencia (unidade_id);
+CREATE INDEX IF NOT EXISTS transparencia_recebimentos_idx
+  ON transparencia_recebimentos (transparencia_id);
+CREATE INDEX IF NOT EXISTS transparencia_destinacoes_idx
+  ON transparencia_destinacoes (transparencia_id);
+CREATE INDEX IF NOT EXISTS transparencia_comprovantes_idx
+  ON transparencia_comprovantes (transparencia_id);
+CREATE INDEX IF NOT EXISTS transparencia_timelines_idx
+  ON transparencia_timelines (transparencia_id);
+CREATE INDEX IF NOT EXISTS transparencia_checklist_idx
+  ON transparencia_checklist (transparencia_id);

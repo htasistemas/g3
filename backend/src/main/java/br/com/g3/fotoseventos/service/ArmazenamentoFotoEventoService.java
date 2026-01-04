@@ -1,6 +1,8 @@
 package br.com.g3.fotoseventos.service;
 
 import br.com.g3.fotoseventos.dto.FotoEventoUploadRequest;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
+import javax.imageio.ImageIO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,7 +26,7 @@ public class ArmazenamentoFotoEventoService {
     this.baseDir = Paths.get(baseDir);
   }
 
-  public String salvarArquivo(Long eventoId, FotoEventoUploadRequest request) {
+  public FotoEventoArquivoInfo salvarArquivo(Long eventoId, FotoEventoUploadRequest request) { 
     if (request == null || request.getConteudo() == null || request.getConteudo().trim().isEmpty()) {
       return null;
     }
@@ -40,7 +43,19 @@ public class ArmazenamentoFotoEventoService {
     try {
       Files.createDirectories(destino.getParent());
       Files.write(destino, bytes);
-      return destino.toString();
+      Integer largura = null;
+      Integer altura = null;
+      try (ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
+        BufferedImage imagem = ImageIO.read(input);
+        if (imagem != null) {
+          largura = imagem.getWidth();
+          altura = imagem.getHeight();
+        }
+      } catch (IOException ex) {
+        largura = null;
+        altura = null;
+      }
+      return new FotoEventoArquivoInfo(destino.toString(), (long) bytes.length, largura, altura);
     } catch (IOException ex) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao salvar imagem.");
     }
@@ -90,6 +105,36 @@ public class ArmazenamentoFotoEventoService {
       base64 = conteudo.substring(indice + 7);
     }
     return Base64.getDecoder().decode(base64);
+  }
+
+  public static class FotoEventoArquivoInfo {
+    private final String caminho;
+    private final Long tamanhoBytes;
+    private final Integer largura;
+    private final Integer altura;
+
+    public FotoEventoArquivoInfo(String caminho, Long tamanhoBytes, Integer largura, Integer altura) {
+      this.caminho = caminho;
+      this.tamanhoBytes = tamanhoBytes;
+      this.largura = largura;
+      this.altura = altura;
+    }
+
+    public String getCaminho() {
+      return caminho;
+    }
+
+    public Long getTamanhoBytes() {
+      return tamanhoBytes;
+    }
+
+    public Integer getLargura() {
+      return largura;
+    }
+
+    public Integer getAltura() {
+      return altura;
+    }
   }
 
   private String obterExtensao(String nomeArquivo, String contentType) {

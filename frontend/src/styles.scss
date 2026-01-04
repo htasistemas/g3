@@ -102,3 +102,20 @@ body {
   @apply text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100;
   color: var(--text-primary);
 }
+
+.field input.input-error,
+.field select.input-error,
+.field textarea.input-error,
+input[formcontrolname='cpf'].ng-invalid.ng-touched,
+input[formcontrolname='cpf'].ng-invalid.ng-dirty,
+input[formcontrolname='documento'].ng-invalid.ng-touched,
+input[formcontrolname='documento'].ng-invalid.ng-dirty {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+}

@@ -264,11 +264,16 @@ C:\g3\backend\src\main\java\br\com\g3\recebimentodoacao\repositoryimpl\Recebimen
 C:\g3\backend\src\main\java\br\com\g3\recebimentodoacao\service\RecebimentoDoacaoService.java
 C:\g3\backend\src\main\java\br\com\g3\recebimentodoacao\serviceimpl\RecebimentoDoacaoServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\controller\RelatoriosController.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\dto\BeneficiarioFichaRequest.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\dto\TermoAutorizacaoRequest.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\service\BeneficiarioFichaService.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\service\RelatorioTarefasPendenciasService.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\service\TermoAutorizacaoService.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\serviceimpl\BeneficiarioFichaServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\serviceimpl\RelatorioTarefasPendenciasServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\relatorios\serviceimpl\TermoAutorizacaoServiceImpl.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\util\HtmlPdfRenderer.java
+C:\g3\backend\src\main\java\br\com\g3\relatorios\util\RelatorioTemplatePadrao.java
 C:\g3\backend\src\main\java\br\com\g3\shared\InitDbConfig.java
 C:\g3\backend\src\main\java\br\com\g3\shared\service\EmailService.java
 C:\g3\backend\src\main\java\br\com\g3\shared\serviceimpl\EmailServiceImpl.java

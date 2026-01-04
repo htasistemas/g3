@@ -2,6 +2,8 @@ package br.com.g3.fotoseventos.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,11 +33,18 @@ public class FotoEvento {
   @Column(name = "local", length = 200)
   private String local;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", length = 20, nullable = false)
+  private StatusFotoEvento status;
+
   @Column(name = "tags", columnDefinition = "TEXT")
   private String tags;
 
-  @Column(name = "foto_principal", columnDefinition = "TEXT", nullable = false)
-  private String fotoPrincipal;
+  @Column(name = "foto_principal_id")
+  private Long fotoPrincipalId;
+
+  @Column(name = "criado_por")
+  private Long criadoPor;
 
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
@@ -91,6 +100,14 @@ public class FotoEvento {
     this.local = local;
   }
 
+  public StatusFotoEvento getStatus() {
+    return status;
+  }
+
+  public void setStatus(StatusFotoEvento status) {
+    this.status = status;
+  }
+
   public String getTags() {
     return tags;
   }
@@ -99,12 +116,20 @@ public class FotoEvento {
     this.tags = tags;
   }
 
-  public String getFotoPrincipal() {
-    return fotoPrincipal;
+  public Long getFotoPrincipalId() {
+    return fotoPrincipalId;
   }
 
-  public void setFotoPrincipal(String fotoPrincipal) {
-    this.fotoPrincipal = fotoPrincipal;
+  public void setFotoPrincipalId(Long fotoPrincipalId) {
+    this.fotoPrincipalId = fotoPrincipalId;
+  }
+
+  public Long getCriadoPor() {
+    return criadoPor;
+  }
+
+  public void setCriadoPor(Long criadoPor) {
+    this.criadoPor = criadoPor;
   }
 
   public LocalDateTime getCriadoEm() {

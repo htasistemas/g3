@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.List;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,9 +42,14 @@ public class FotoEventoController {
       @RequestParam(value = "dataInicio", required = false) LocalDate dataInicio,
       @RequestParam(value = "dataFim", required = false) LocalDate dataFim,
       @RequestParam(value = "unidadeId", required = false) Long unidadeId,
+      @RequestParam(value = "status", required = false) String status,
+      @RequestParam(value = "tags", required = false) List<String> tags,
+      @RequestParam(value = "ordenacao", required = false) String ordenacao,
       @RequestParam(value = "pagina", defaultValue = "0") int pagina,
       @RequestParam(value = "tamanho", defaultValue = "12") int tamanho) {
-    return ResponseEntity.ok(service.listar(busca, dataInicio, dataFim, unidadeId, pagina, tamanho));
+    return ResponseEntity.ok(
+        service.listar(
+            busca, dataInicio, dataFim, unidadeId, status, tags, ordenacao, pagina, tamanho));
   }
 
   @GetMapping("/{id}")

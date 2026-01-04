@@ -8,11 +8,20 @@ import br.com.g3.fotoseventos.dto.FotoEventoListaResponse;
 import br.com.g3.fotoseventos.dto.FotoEventoRequest;
 import br.com.g3.fotoseventos.dto.FotoEventoResponse;
 import java.time.LocalDate;
+import java.util.List;
 import org.springframework.core.io.Resource;
 
 public interface FotoEventoService {
   FotoEventoListaResponse listar(
-      String busca, LocalDate dataInicio, LocalDate dataFim, Long unidadeId, int pagina, int tamanho);
+      String busca,
+      LocalDate dataInicio,
+      LocalDate dataFim,
+      Long unidadeId,
+      String status,
+      List<String> tags,
+      String ordenacao,
+      int pagina,
+      int tamanho);
 
   FotoEventoDetalheResponse obter(Long id);
 

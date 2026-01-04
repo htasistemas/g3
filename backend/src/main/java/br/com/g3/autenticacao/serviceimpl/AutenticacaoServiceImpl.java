@@ -133,9 +133,11 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
           HttpStatus.BAD_REQUEST, "Senha e confirmacao nao conferem");
     }
 
+    String tokenInformado = request.getToken() == null ? "" : request.getToken().trim();
+
     UsuarioRecuperacaoSenha token =
         recuperacaoRepository
-            .buscarPorToken(request.getToken())
+            .buscarPorToken(tokenInformado)
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
@@ -174,3 +176,4 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
     return String.format("%06d", valor);
   }
 }
+

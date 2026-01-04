@@ -1,6 +1,10 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
-export type TipoTermo = 'Uniao' | 'Estado' | 'Município';
+export type TipoTermo = 'Uniao' | 'Estado' | 'Municipio';
 export type SituacaoTermo = 'Ativo' | 'Aditivado' | 'Encerrado' | 'Cancelado';
 
 export interface TermoDocumento {
@@ -39,71 +43,64 @@ export interface TermoFomentoPayload {
 
 @Injectable({ providedIn: 'root' })
 export class TermoFomentoService {
-  private readonly storageKey = 'g3.termosFomento';
+  private readonly baseUrl = `${environment.apiUrl}/api/termos-fomento`;
 
-  list(): TermoFomentoPayload[] {
-    try {
-      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : null;
-      return saved ? (JSON.parse(saved) as TermoFomentoPayload[]) : [];
-    } catch (error) {
-      console.error('Erro ao ler termos de fomento do armazenamento local', error);
-      return [];
-    }
+  constructor(private readonly http: HttpClient) {}
+
+  list(): Observable<TermoFomentoPayload[]> {
+    return this.http
+      .get<TermoFomentoPayload[]>(this.baseUrl)
+      .pipe(map((items) => (items ?? []).map((item) => this.normalizarTermo(item))))
+      .pipe(catchError(this.logAndRethrow('ao carregar termos de fomento')));
   }
 
-  getById(id: string): TermoFomentoPayload | undefined {
-    return this.list().find((item) => item.id === id);
+  getById(id: string): Observable<TermoFomentoPayload> {
+    return this.http
+      .get<TermoFomentoPayload>(`${this.baseUrl}/${id}`)
+      .pipe(map((item) => this.normalizarTermo(item)))
+      .pipe(catchError(this.logAndRethrow('ao carregar o termo de fomento')));
   }
 
-  create(payload: TermoFomentoPayload): TermoFomentoPayload {
-    const record: TermoFomentoPayload = {
-      ...payload,
-      id: payload.id ?? crypto.randomUUID(),
-      aditivos: payload.aditivos ?? []
-    };
-    const all = [record, ...this.list()];
-    this.persist(all);
-    return record;
+  create(payload: TermoFomentoPayload): Observable<TermoFomentoPayload> {
+    return this.http
+      .post<TermoFomentoPayload>(this.baseUrl, payload)
+      .pipe(map((item) => this.normalizarTermo(item)))
+      .pipe(catchError(this.logAndRethrow('ao criar o termo de fomento')));
   }
 
-  update(id: string, payload: TermoFomentoPayload): TermoFomentoPayload {
-    const updated: TermoFomentoPayload = { ...payload, id };
-    const all = this.list().map((item) => (item.id === id ? updated : item));
-    this.persist(all);
-    return updated;
+  update(id: string, payload: TermoFomentoPayload): Observable<TermoFomentoPayload> {
+    return this.http
+      .put<TermoFomentoPayload>(`${this.baseUrl}/${id}`, payload)
+      .pipe(map((item) => this.normalizarTermo(item)))
+      .pipe(catchError(this.logAndRethrow('ao atualizar o termo de fomento')));
   }
 
-  delete(id: string): void {
-    const filtered = this.list().filter((item) => item.id !== id);
-    this.persist(filtered);
+  delete(id: string): Observable<void> {
+    return this.http
+      .delete<void>(`${this.baseUrl}/${id}`)
+      .pipe(catchError(this.logAndRethrow('ao excluir o termo de fomento')));
   }
 
-  addAditivo(termoId: string, aditivo: AditivoPayload): TermoFomentoPayload | undefined {
-    const termo = this.getById(termoId);
-    if (!termo) return undefined;
+  addAditivo(termoId: string, aditivo: AditivoPayload): Observable<TermoFomentoPayload> {
+    return this.http
+      .post<TermoFomentoPayload>(`${this.baseUrl}/${termoId}/aditivos`, aditivo)
+      .pipe(map((item) => this.normalizarTermo(item)))
+      .pipe(catchError(this.logAndRethrow('ao salvar o aditivo')));
+  }
 
-    const aditivoRegistrado: AditivoPayload = { ...aditivo, id: aditivo.id ?? crypto.randomUUID() };
-    const aditivosAtualizados = [aditivoRegistrado, ...(termo.aditivos ?? [])];
-
-    const termoAtualizado: TermoFomentoPayload = {
+  private normalizarTermo(termo: TermoFomentoPayload): TermoFomentoPayload {
+    return {
       ...termo,
-      aditivos: aditivosAtualizados,
-      dataFimVigencia: aditivo.novaDataFim || termo.dataFimVigencia,
-      valorGlobal: aditivo.novoValor ?? termo.valorGlobal,
-      situacao: termo.situacao === 'Encerrado' || termo.situacao === 'Cancelado' ? termo.situacao : 'Aditivado'
+      id: termo.id ? String(termo.id) : undefined,
+      aditivos: termo.aditivos ?? [],
+      documentosRelacionados: termo.documentosRelacionados ?? []
     };
-
-    this.update(termoId, termoAtualizado);
-    return termoAtualizado;
   }
 
-  private persist(data: TermoFomentoPayload[]): void {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(this.storageKey, JSON.stringify(data));
-      }
-    } catch (error) {
-      console.error('Erro ao salvar termos de fomento no armazenamento local', error);
-    }
+  private logAndRethrow(operation: string) {
+    return (error: unknown) => {
+      console.error(`Erro ${operation}`, error);
+      return throwError(() => error);
+    };
   }
 }

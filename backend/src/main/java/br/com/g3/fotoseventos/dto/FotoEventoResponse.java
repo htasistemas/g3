@@ -2,6 +2,7 @@ package br.com.g3.fotoseventos.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class FotoEventoResponse {
   private final Long id;
@@ -10,9 +11,11 @@ public class FotoEventoResponse {
   private final String descricao;
   private final LocalDate dataEvento;
   private final String local;
-  private final String tags;
-  private final String fotoPrincipal;
+  private final String status;
+  private final List<String> tags;
+  private final Long fotoPrincipalId;
   private final String fotoPrincipalUrl;
+  private final Long totalFotos;
   private final LocalDateTime criadoEm;
   private final LocalDateTime atualizadoEm;
 
@@ -23,9 +26,11 @@ public class FotoEventoResponse {
       String descricao,
       LocalDate dataEvento,
       String local,
-      String tags,
-      String fotoPrincipal,
+      String status,
+      List<String> tags,
+      Long fotoPrincipalId,
       String fotoPrincipalUrl,
+      Long totalFotos,
       LocalDateTime criadoEm,
       LocalDateTime atualizadoEm) {
     this.id = id;
@@ -34,9 +39,11 @@ public class FotoEventoResponse {
     this.descricao = descricao;
     this.dataEvento = dataEvento;
     this.local = local;
+    this.status = status;
     this.tags = tags;
-    this.fotoPrincipal = fotoPrincipal;
+    this.fotoPrincipalId = fotoPrincipalId;
     this.fotoPrincipalUrl = fotoPrincipalUrl;
+    this.totalFotos = totalFotos;
     this.criadoEm = criadoEm;
     this.atualizadoEm = atualizadoEm;
   }
@@ -65,16 +72,24 @@ public class FotoEventoResponse {
     return local;
   }
 
-  public String getTags() {
+  public String getStatus() {
+    return status;
+  }
+
+  public List<String> getTags() {
     return tags;
   }
 
-  public String getFotoPrincipal() {
-    return fotoPrincipal;
+  public Long getFotoPrincipalId() {
+    return fotoPrincipalId;
   }
 
   public String getFotoPrincipalUrl() {
     return fotoPrincipalUrl;
+  }
+
+  public Long getTotalFotos() {
+    return totalFotos;
   }
 
   public LocalDateTime getCriadoEm() {

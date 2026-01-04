@@ -2,7 +2,12 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Router } from '@angular/router';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   ContabilidadeService,
   ContaBancariaRequest,
@@ -54,11 +59,18 @@ interface FinanceTab {
 @Component({
   selector: 'app-contabilidade',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    DialogComponent
+  ],
   templateUrl: './contabilidade.component.html',
   styleUrl: './contabilidade.component.scss'
 })
-export class ContabilidadeComponent implements OnInit {
+export class ContabilidadeComponent extends TelaBaseComponent implements OnInit {
   readonly faPrint = faPrint;
   readonly faBell = faBell;
   readonly faFileInvoice = faFileInvoice;
@@ -72,10 +84,27 @@ export class ContabilidadeComponent implements OnInit {
   readonly faArrowTrendUp = faArrowTrendUp;
   readonly faArrowTrendDown = faArrowTrendDown;
 
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
+
+  popupErros: string[] = [];
+  private popupTimeout?: ReturnType<typeof setTimeout>;
+  dialogConfirmacaoAberta = false;
+  dialogTitulo = 'Confirmar acao';
+  dialogMensagem = 'Deseja continuar?';
+  dialogConfirmarLabel = 'Confirmar';
+  dialogCancelarLabel = 'Cancelar';
+  private dialogAcao?: () => void;
+
   tabs: FinanceTab[] = [
     {
       id: 'visao-geral',
-      label: 'Visão geral financeira',
+      label: 'Visao geral financeira',
       badge: ''
     },
     {
@@ -85,12 +114,12 @@ export class ContabilidadeComponent implements OnInit {
     },
     {
       id: 'lancamentos',
-      label: 'Lançamentos',
+      label: 'Lancamentos',
       badge: ''
     },
     {
       id: 'movimentacoes',
-      label: 'Movimentações',
+      label: 'Movimentacoes',
       badge: ''
     },
     {
@@ -100,7 +129,7 @@ export class ContabilidadeComponent implements OnInit {
     },
     {
       id: 'relatorios',
-      label: 'Relatórios e documentos',
+      label: 'Relatorios e documentos',
       badge: ''
     }
   ];
@@ -237,13 +266,26 @@ export class ContabilidadeComponent implements OnInit {
 
   constructor(
     private readonly contabilidadeService: ContabilidadeService,
-    private readonly changeDetector: ChangeDetectorRef
+    private readonly changeDetector: ChangeDetectorRef,
+    private readonly router: Router
   ) {
+    super();
   }
 
   ngOnInit(): void {
     this.carregarDados();
     this.saldoContaMascara = this.formatarValorMonetario(this.newAccount.saldo);
+  }
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    const bloqueado = this.salvandoLancamento;
+    return {
+      salvar: bloqueado,
+      excluir: bloqueado,
+      novo: bloqueado,
+      cancelar: bloqueado,
+      imprimir: false
+    };
   }
 
   private carregarDados(): void {
@@ -399,6 +441,10 @@ export class ContabilidadeComponent implements OnInit {
       !this.newEntry.vencimento ||
       !this.newEntry.valor
     ) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios do lancamento.')
+        .build();
+      this.abrirPopupTemporario();
       return;
     }
     if (this.salvandoLancamento) {
@@ -486,6 +532,10 @@ export class ContabilidadeComponent implements OnInit {
 
   registerMovement(): void {
     if (!this.newMovement.descricao || !this.newMovement.contaBancariaId || !this.newMovement.dataMovimentacao) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios da movimentacao.')
+        .build();
+      this.abrirPopupTemporario();
       return;
     }
     this.contabilidadeService.criarMovimentacao(this.newMovement).subscribe((response) => {
@@ -508,13 +558,23 @@ export class ContabilidadeComponent implements OnInit {
 
   addBankAccount(): void {
     if (!this.newAccount.banco || !this.newAccount.numero) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Informe banco e numero da conta.')
+        .build();
+      this.abrirPopupTemporario();
       return;
     }
     if (this.newAccount.tipo === 'projeto' && !this.newAccount.projetoVinculado) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Informe o projeto vinculado para conta de projeto.')
+        .build();
+      this.abrirPopupTemporario();
       return;
     }
     this.erroChavePix = this.validarChavePix();
     if (this.erroChavePix) {
+      this.popupErros = new PopupErrorBuilder().adicionar(this.erroChavePix).build();
+      this.abrirPopupTemporario();
       return;
     }
     const payload = { ...this.newAccount };
@@ -558,17 +618,20 @@ export class ContabilidadeComponent implements OnInit {
     if (!conta.id) {
       return;
     }
-    const confirmado = window.confirm('Tem certeza que deseja excluir esta conta banc?ria? Esta a??o n?o pode ser desfeita.');
-    if (!confirmado) {
-      return;
-    }
-    this.contabilidadeService.removerContaBancaria(conta.id).subscribe(() => {
-      this.bankAccounts = this.bankAccounts.filter((item) => item.id !== conta.id);
-      if (this.contaEmEdicaoId === conta.id) {
-        this.resetContaBancariaForm();
+    this.abrirDialogoConfirmacao(
+      'Excluir conta bancaria',
+      'Deseja excluir esta conta bancaria? Esta acao nao pode ser desfeita.',
+      'Excluir',
+      () => {
+        this.contabilidadeService.removerContaBancaria(conta.id).subscribe(() => {
+          this.bankAccounts = this.bankAccounts.filter((item) => item.id !== conta.id);
+          if (this.contaEmEdicaoId === conta.id) {
+            this.resetContaBancariaForm();
+          }
+          this.refreshPanels();
+        });
       }
-      this.refreshPanels();
-    });
+    );
   }
 
   onSaldoContaInput(valor: string): void {
@@ -580,6 +643,10 @@ export class ContabilidadeComponent implements OnInit {
 
   addAmendment(): void {
     if (!this.newAmendment.identificacao || !this.newAmendment.dataPrevista || !this.newAmendment.valorPrevisto) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios da emenda.')
+        .build();
+      this.abrirPopupTemporario();
       return;
     }
     this.contabilidadeService.criarEmenda(this.newAmendment).subscribe((response) => {
@@ -603,36 +670,33 @@ export class ContabilidadeComponent implements OnInit {
       status === 'pago'
         ? 'Confirmar registro de pagamento deste lancamento?'
         : 'Confirmar marcacao de atraso deste lancamento?';
-    if (!window.confirm(mensagem)) {
-      return;
-    }
-    this.contabilidadeService.atualizarSituacaoLancamento(entry.id, status).subscribe((response) => {
-      this.agenda = this.agenda.map((item) => (item.id === entry.id ? response : item));
-      this.refreshPanels();
+    this.abrirDialogoConfirmacao('Confirmar alteracao', mensagem, 'Confirmar', () => {
+      this.contabilidadeService.atualizarSituacaoLancamento(entry.id, status).subscribe((response) => {
+        this.agenda = this.agenda.map((item) => (item.id === entry.id ? response : item));
+        this.refreshPanels();
+      });
     });
   }
 
   pagarLancamento(entry: LancamentoFinanceiroResponse): void {
     if (!entry.id) return;
-    const confirmado = window.confirm('Confirmar pagamento deste lançamento?');
-    if (!confirmado) {
-      return;
-    }
-    this.contabilidadeService.pagarLancamento(entry.id).subscribe((response) => {
-      this.reciboPagamento = response;
-      this.agenda = this.agenda.map((item) =>
-        item.id === entry.id ? { ...item, situacao: 'pago' } : item
-      );
-      this.refreshPanels();
-      this.contabilidadeService.listarMovimentacoes().subscribe((lista) => {
-        this.financialMovements = lista ?? [];
+    this.abrirDialogoConfirmacao('Confirmar pagamento', 'Confirmar pagamento deste lancamento?', 'Confirmar', () => {
+      this.contabilidadeService.pagarLancamento(entry.id).subscribe((response) => {
+        this.reciboPagamento = response;
+        this.agenda = this.agenda.map((item) =>
+          item.id === entry.id ? { ...item, situacao: 'pago' } : item
+        );
         this.refreshPanels();
+        this.contabilidadeService.listarMovimentacoes().subscribe((lista) => {
+          this.financialMovements = lista ?? [];
+          this.refreshPanels();
+        });
+        this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+          this.bankAccounts = contas ?? [];
+          this.refreshPanels();
+        });
+        window.print();
       });
-      this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
-        this.bankAccounts = contas ?? [];
-        this.refreshPanels();
-      });
-      window.print();
     });
   }
 
@@ -646,6 +710,147 @@ export class ContabilidadeComponent implements OnInit {
 
   printResumo(): void {
     window.print();
+  }
+
+  onSalvar(): void {
+    switch (this.activeTab) {
+      case 'visao-geral':
+      case 'lancamentos':
+        this.registerEntry();
+        return;
+      case 'contas':
+        this.addBankAccount();
+        return;
+      case 'movimentacoes':
+        this.registerMovement();
+        return;
+      case 'emendas':
+        this.addAmendment();
+        return;
+      default:
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Nada para salvar nesta aba.')
+          .build();
+        this.abrirPopupTemporario();
+    }
+  }
+
+  onExcluir(): void {
+    if (this.activeTab === 'contas') {
+      const conta = this.bankAccounts.find((item) => item.id === this.contaEmEdicaoId);
+      if (!conta) {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Selecione uma conta para excluir.')
+          .build();
+        this.abrirPopupTemporario();
+        return;
+      }
+      this.removerContaBancaria(conta);
+      return;
+    }
+
+    this.popupErros = new PopupErrorBuilder()
+      .adicionar('Exclusao disponivel apenas para contas bancarias.')
+      .build();
+    this.abrirPopupTemporario();
+  }
+
+  onNovo(): void {
+    switch (this.activeTab) {
+      case 'visao-geral':
+      case 'lancamentos':
+        this.novoLancamento();
+        return;
+      case 'contas':
+        this.resetContaBancariaForm();
+        return;
+      case 'movimentacoes':
+        this.newMovement = {
+          descricao: '',
+          contraparte: '',
+          dataMovimentacao: this.todayISO(),
+          contaBancariaId: undefined,
+          valor: 0,
+          tipo: 'entrada',
+          categoria: 'Operacional'
+        };
+        return;
+      case 'emendas':
+        this.newAmendment = {
+          identificacao: '',
+          referenciaLegal: '',
+          dataPrevista: this.todayISO(),
+          valorPrevisto: 0,
+          diasAlerta: 15,
+          status: 'previsto',
+          observacoes: ''
+        };
+        return;
+      default:
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Nada para limpar nesta aba.')
+          .build();
+        this.abrirPopupTemporario();
+    }
+  }
+
+  onCancelar(): void {
+    if (this.activeTab === 'visao-geral' || this.activeTab === 'lancamentos') {
+      this.cancelarEdicaoLancamento();
+      return;
+    }
+    if (this.activeTab === 'contas') {
+      this.cancelarEdicaoContaBancaria();
+      return;
+    }
+    this.onNovo();
+  }
+
+  onImprimir(): void {
+    this.printResumo();
+  }
+
+  onFechar(): void {
+    this.router.navigate(['/financeiro/contabilidade']);
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
+    if (this.popupTimeout) {
+      clearTimeout(this.popupTimeout);
+      this.popupTimeout = undefined;
+    }
+  }
+
+  private abrirPopupTemporario(): void {
+    if (this.popupTimeout) {
+      clearTimeout(this.popupTimeout);
+    }
+    this.popupTimeout = setTimeout(() => {
+      this.fecharPopupErros();
+    }, 10000);
+  }
+
+  abrirDialogoConfirmacao(titulo: string, mensagem: string, confirmarLabel: string, acao: () => void): void {
+    this.dialogTitulo = titulo;
+    this.dialogMensagem = mensagem;
+    this.dialogConfirmarLabel = confirmarLabel;
+    this.dialogAcao = acao;
+    this.dialogConfirmacaoAberta = true;
+  }
+
+  confirmarDialogo(): void {
+    const acao = this.dialogAcao;
+    this.dialogConfirmacaoAberta = false;
+    this.dialogAcao = undefined;
+    if (acao) {
+      acao();
+    }
+  }
+
+  cancelarDialogo(): void {
+    this.dialogConfirmacaoAberta = false;
+    this.dialogAcao = undefined;
   }
 
   getStatusLabel(entry: LancamentoFinanceiroResponse): string {

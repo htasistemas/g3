@@ -129,6 +129,11 @@ export const routes: Routes = [
         data: { title: 'Fotos e Eventos' }
       },
       {
+        path: 'administrativo/fotos-eventos/:id',
+        component: FotosEventosComponent,
+        data: { title: 'Detalhe do evento' }
+      },
+      {
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
         data: { title: 'Versao do sistema' }

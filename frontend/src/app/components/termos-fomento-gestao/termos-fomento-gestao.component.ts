@@ -1,7 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { titleCaseWords } from '../../utils/capitalization.util';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   AditivoPayload,
   SituacaoTermo,
@@ -19,21 +25,31 @@ interface StepTab {
 @Component({
   selector: 'app-termos-fomento-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './termos-fomento-gestao.component.html',
   styleUrl: './termos-fomento-gestao.component.scss'
 })
-export class TermosFomentoGestaoComponent {
+export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   form: FormGroup;
   activeTab = 'dados';
   saving = false;
   feedback: string | null = null;
   editingTermoId: string | null = null;
+  popupErros: string[] = [];
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
 
   tabs: StepTab[] = [
     { id: 'dados', label: 'Dados do Termo' },
     { id: 'anexos', label: 'Anexos' },
-    { id: 'aditivos', label: 'Histórico / Aditivos' }
+    { id: 'aditivos', label: 'Historico / Aditivos' },
+    { id: 'listagem', label: 'Listagem de Termos' }
   ];
 
   termos: TermoFomentoPayload[] = [];
@@ -43,7 +59,12 @@ export class TermosFomentoGestaoComponent {
   situacaoFiltro: SituacaoTermo | '' = '';
   somenteVencidos = false;
 
-  constructor(private readonly fb: FormBuilder, private readonly termoService: TermoFomentoService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly termoService: TermoFomentoService,
+    private readonly router: Router
+  ) {
+    super();
     this.form = this.fb.group({
       dadosTermo: this.fb.group({
         numeroTermo: ['', Validators.required],
@@ -62,8 +83,8 @@ export class TermosFomentoGestaoComponent {
         documentosRelacionados: this.fb.control<TermoDocumento[]>([])
       }),
       aditivo: this.fb.group({
-        tipoAditivo: ['', Validators.required],
-        dataAditivo: ['', Validators.required],
+        tipoAditivo: [''],
+        dataAditivo: [''],
         novaDataFim: [''],
         novoValor: [''],
         observacoes: [''],
@@ -72,6 +93,16 @@ export class TermosFomentoGestaoComponent {
     });
 
     this.loadTermos();
+  }
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving,
+      excluir: !this.editingTermoId,
+      novo: this.saving,
+      cancelar: this.saving,
+      imprimir: this.saving
+    };
   }
 
   get activeTabIndex(): number {
@@ -111,8 +142,19 @@ export class TermosFomentoGestaoComponent {
   }
 
   loadTermos(): void {
-    this.termos = this.termoService.list();
-    this.applyFilters();
+    this.termoService.list().subscribe({
+      next: (termos) => {
+        this.termos = termos;
+        this.applyFilters();
+      },
+      error: () => {
+        this.termos = [];
+        this.applyFilters();
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Nao foi possivel carregar os termos de fomento.')
+          .build();
+      }
+    });
   }
 
   onSearchInput(event: Event): void {
@@ -129,13 +171,13 @@ export class TermosFomentoGestaoComponent {
   }
 
   applyFilters(): void {
-    const query = this.search.toLowerCase();
+    const query = this.normalizarTexto(this.search);
     this.filteredTermos = this.termos.filter((termo) => {
       const matchesQuery =
         !query ||
-        termo.numeroTermo.toLowerCase().includes(query) ||
-        (termo.orgaoConcedente ?? '').toLowerCase().includes(query) ||
-        (termo.responsavelInterno ?? '').toLowerCase().includes(query);
+        this.normalizarTexto(termo.numeroTermo).includes(query) ||
+        this.normalizarTexto(termo.orgaoConcedente ?? '').includes(query) ||
+        this.normalizarTexto(termo.responsavelInterno ?? '').includes(query);
       const matchesSituacao = !this.situacaoFiltro || termo.situacao === this.situacaoFiltro;
       const matchesVencido = !this.somenteVencidos || this.isVencido(termo);
       return matchesQuery && matchesSituacao && matchesVencido;
@@ -174,9 +216,11 @@ export class TermosFomentoGestaoComponent {
     this.activeTab = 'dados';
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.form.invalid) {
-      this.feedback = 'Preencha os campos obrigatórios antes de salvar.';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios antes de salvar.')
+        .build();
       return;
     }
 
@@ -192,24 +236,31 @@ export class TermosFomentoGestaoComponent {
       dataFimVigencia: value.dadosTermo?.dataFimVigencia ?? '',
       situacao: value.dadosTermo?.situacao ?? 'Ativo',
       descricaoObjeto: value.dadosTermo?.descricaoObjeto ?? '',
-      valorGlobal: value.dadosTermo?.valorGlobal ? Number(value.dadosTermo.valorGlobal) : undefined,
+      valorGlobal: this.parseCurrencyValue(value.dadosTermo?.valorGlobal),
       responsavelInterno: value.dadosTermo?.responsavelInterno ?? '',
       termoDocumento: value.anexos?.termoDocumento ?? null,
       documentosRelacionados: value.anexos?.documentosRelacionados ?? [],
-      aditivos: this.editingTermoId ? this.termoService.getById(this.editingTermoId)?.aditivos ?? [] : []
+      aditivos: this.termoEmEdicao?.aditivos ?? []
     };
 
-    if (this.editingTermoId) {
-      this.termoService.update(this.editingTermoId, payload);
-      this.feedback = 'Termo atualizado com sucesso.';
-    } else {
-      const created = this.termoService.create(payload);
-      this.editingTermoId = created.id ?? null;
-      this.feedback = 'Termo criado e salvo.';
+    try {
+      if (this.editingTermoId) {
+        const updated = await firstValueFrom(this.termoService.update(this.editingTermoId, payload));
+        this.editingTermoId = updated.id ?? null;
+        this.feedback = 'Termo atualizado com sucesso.';
+      } else {
+        const created = await firstValueFrom(this.termoService.create(payload));
+        this.editingTermoId = created.id ?? null;
+        this.feedback = 'Termo criado e salvo.';
+      }
+      this.loadTermos();
+    } catch {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Nao foi possivel salvar o termo de fomento.')
+        .build();
+    } finally {
+      this.saving = false;
     }
-
-    this.loadTermos();
-    this.saving = false;
   }
 
   editTermo(termo: TermoFomentoPayload): void {
@@ -224,7 +275,10 @@ export class TermosFomentoGestaoComponent {
         dataFimVigencia: termo.dataFimVigencia,
         situacao: termo.situacao,
         descricaoObjeto: termo.descricaoObjeto,
-        valorGlobal: termo.valorGlobal,
+        valorGlobal:
+          termo.valorGlobal !== undefined && termo.valorGlobal !== null
+            ? this.formatCurrencyValue(termo.valorGlobal, true)
+            : '',
         responsavelInterno: termo.responsavelInterno
       },
       anexos: {
@@ -236,24 +290,35 @@ export class TermosFomentoGestaoComponent {
     this.feedback = 'Editando termo selecionado.';
   }
 
-  deleteTermo(termo: TermoFomentoPayload): void {
+  async deleteTermo(termo: TermoFomentoPayload): Promise<void> {
     if (!termo.id) return;
-    this.termoService.delete(termo.id);
-    this.loadTermos();
-    if (this.editingTermoId === termo.id) {
-      this.resetForm();
+    try {
+      await firstValueFrom(this.termoService.delete(termo.id));
+      this.loadTermos();
+      if (this.editingTermoId === termo.id) {
+        this.resetForm();
+      }
+      this.feedback = 'Termo excluido com sucesso.';
+    } catch {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Nao foi possivel excluir o termo de fomento.')
+        .build();
     }
   }
 
-  saveAditivo(): void {
+  async saveAditivo(): Promise<void> {
     if (!this.editingTermoId) {
-      this.feedback = 'Salve o termo antes de registrar um aditivo.';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Salve o termo antes de registrar um aditivo.')
+        .build();
       return;
     }
 
     const value = this.form.get('aditivo')?.value;
     if (!value?.tipoAditivo || !value?.dataAditivo) {
-      this.feedback = 'Preencha os campos obrigatórios do aditivo.';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios do aditivo.')
+        .build();
       return;
     }
 
@@ -261,21 +326,24 @@ export class TermosFomentoGestaoComponent {
       tipoAditivo: value.tipoAditivo,
       dataAditivo: value.dataAditivo,
       novaDataFim: value.novaDataFim,
-      novoValor: value.novoValor ? Number(value.novoValor) : undefined,
+      novoValor: this.parseCurrencyValue(value.novoValor),
       observacoes: value.observacoes,
       anexo: value.anexo ?? null
     };
 
-    const updated = this.termoService.addAditivo(this.editingTermoId, aditivo);
-    if (updated) {
-      this.feedback = 'Aditivo salvo e histórico atualizado.';
-      this.loadTermos();
-      const termoAtualizado = this.termoService.getById(this.editingTermoId);
+    try {
+      const updated = await firstValueFrom(this.termoService.addAditivo(this.editingTermoId, aditivo));
+      this.feedback = 'Aditivo salvo e historico atualizado.';
+      this.termos = this.termos.map((item) => (item.id === updated.id ? updated : item));
+      this.applyFilters();
       this.form.patchValue({
         dadosTermo: {
-          dataFimVigencia: termoAtualizado?.dataFimVigencia,
-          valorGlobal: termoAtualizado?.valorGlobal,
-          situacao: termoAtualizado?.situacao
+          dataFimVigencia: updated.dataFimVigencia,
+          valorGlobal:
+            updated.valorGlobal !== undefined && updated.valorGlobal !== null
+              ? this.formatCurrencyValue(updated.valorGlobal, true)
+              : '',
+          situacao: updated.situacao
         }
       });
       this.form.get('aditivo')?.reset({
@@ -287,6 +355,10 @@ export class TermosFomentoGestaoComponent {
         anexo: null
       });
       this.activeTab = 'aditivos';
+    } catch {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Nao foi possivel salvar o aditivo.')
+        .build();
     }
   }
 
@@ -316,6 +388,25 @@ export class TermosFomentoGestaoComponent {
     input.value = '';
   }
 
+  onValorGlobalInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = this.formatCurrencyInput(input, true);
+    this.form.get(['dadosTermo', 'valorGlobal'])?.setValue(valor, { emitEvent: false });
+  }
+
+  onNovoValorInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const valor = this.formatCurrencyInput(input, true);
+    this.form.get(['aditivo', 'novoValor'])?.setValue(valor, { emitEvent: false });
+  }
+
+  capitalizarCampo(caminho: (string | number)[]): void {
+    const control = this.form.get(caminho);
+    const valor = control?.value as string;
+    if (!control || !valor) return;
+    control.setValue(titleCaseWords(valor), { emitEvent: false });
+  }
+
   isVencido(termo: TermoFomentoPayload): boolean {
     if (!termo.dataFimVigencia) return false;
     const fim = new Date(termo.dataFimVigencia);
@@ -336,7 +427,7 @@ export class TermosFomentoGestaoComponent {
       return { label: 'Vencido', tone: 'danger' };
     }
     if (this.isProximoVencimento(termo)) {
-      return { label: 'Próximo do vencimento', tone: 'warning' };
+      return { label: 'Proximo do vencimento', tone: 'warning' };
     }
     if (termo.situacao === 'Aditivado') {
       return { label: 'Aditivado', tone: 'info' };
@@ -358,12 +449,70 @@ export class TermosFomentoGestaoComponent {
 
   visualizarTermo(termo: TermoFomentoPayload): void {
     if (!termo.termoDocumento?.dataUrl) {
-      alert('Ainda não há PDF do termo de fomento vinculado.');
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Ainda nao ha PDF do termo de fomento vinculado.')
+        .build();
       return;
     }
 
     const win = window.open('', '_blank');
     if (!win) return;
-    win.document.write(`<iframe src="${termo.termoDocumento.dataUrl}" style="width:100%;height:100%" frameborder="0"></iframe>`);
+    win.document.write(
+      `<iframe src="${termo.termoDocumento.dataUrl}" style="width:100%;height:100%" frameborder="0"></iframe>`
+    );
+  }
+
+  imprimir(): void {
+    if (this.termoEmEdicao) {
+      this.visualizarTermo(this.termoEmEdicao);
+    } else {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione um termo para imprimir.')
+        .build();
+    }
+  }
+
+  cancelar(): void {
+    this.resetForm();
+  }
+
+  fechar(): void {
+    this.router.navigate(['/juridico/termos-fomento']);
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  private formatCurrencyInput(input: HTMLInputElement, comPrefixo: boolean): string {
+    const digits = (input.value || '').replace(/\D/g, '');
+    const numberValue = digits ? Number(digits) / 100 : 0;
+    const masked = this.formatCurrencyValue(numberValue, comPrefixo);
+    input.value = masked;
+    return masked;
+  }
+
+  private formatCurrencyValue(value: number, comPrefixo: boolean): string {
+    const formatted = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+    return comPrefixo ? formatted : formatted.replace('R$', '').trim();
+  }
+
+  private parseCurrencyValue(value: string | number | null | undefined): number | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'number') return value;
+    const digits = value.toString().replace(/\D/g, '');
+    if (!digits) return undefined;
+    return Number(digits) / 100;
   }
 }

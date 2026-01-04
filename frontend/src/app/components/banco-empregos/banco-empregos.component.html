@@ -91,7 +91,8 @@
           <input type="text" formControlName="nomeEmpresa" />
         </label>
         <label class="field">CNPJ
-          <input type="text" formControlName="cnpj" />
+          <input type="text" formControlName="cnpj" (input)="onCnpjInput($event.target.value)" />
+          <span class="text-error" *ngIf="cnpjErro">{{ cnpjErro }}</span>
         </label>
         <label class="field">Cidade *
           <input type="text" formControlName="cidade" />

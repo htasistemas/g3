@@ -15,7 +15,8 @@ export interface FotoEventoRequestPayload {
   descricao?: string;
   dataEvento: string;
   local?: string;
-  tags?: string;
+  status?: string;
+  tags?: string[];
   unidadeId?: number | null;
   fotoPrincipalUpload?: FotoEventoUpload | null;
   fotoPrincipalId?: number | null;
@@ -28,9 +29,11 @@ export interface FotoEventoResponse {
   descricao?: string | null;
   dataEvento: string;
   local?: string | null;
-  tags?: string | null;
-  fotoPrincipal?: string | null;
+  status?: string | null;
+  tags?: string[] | null;
+  fotoPrincipalId?: number | null;
   fotoPrincipalUrl?: string | null;
+  totalFotos?: number | null;
   criadoEm?: string | null;
   atualizadoEm?: string | null;
 }
@@ -40,9 +43,17 @@ export interface FotoEventoFotoResponse {
   eventoId: number;
   arquivo?: string | null;
   arquivoUrl?: string | null;
+  nomeArquivo?: string | null;
+  mimeType?: string | null;
+  tamanhoBytes?: number | null;
+  largura?: number | null;
+  altura?: number | null;
   legenda?: string | null;
+  creditos?: string | null;
+  tags?: string[] | null;
   ordem?: number | null;
   criadoEm?: string | null;
+  atualizadoEm?: string | null;
 }
 
 export interface FotoEventoDetalheResponse {
@@ -69,6 +80,9 @@ export class FotosEventosService {
     dataInicio?: string;
     dataFim?: string;
     unidadeId?: number | null;
+    status?: string;
+    tags?: string[];
+    ordenacao?: string;
     pagina?: number;
     tamanho?: number;
   }): Observable<FotoEventoListaResponse> {
@@ -103,7 +117,13 @@ export class FotosEventosService {
 
   adicionarFoto(
     id: number,
-    payload: { arquivo: FotoEventoUpload; legenda?: string; ordem?: number | null }
+    payload: {
+      arquivo: FotoEventoUpload;
+      legenda?: string;
+      creditos?: string;
+      tags?: string[];
+      ordem?: number | null;
+    }
   ): Observable<FotoEventoFotoResponse> {
     return this.http
       .post<FotoEventoFotoResponse>(`${this.baseUrl}/${id}/fotos`, payload)
@@ -113,7 +133,7 @@ export class FotosEventosService {
   atualizarFoto(
     id: number,
     fotoId: number,
-    payload: { legenda?: string | null; ordem?: number | null }
+    payload: { legenda?: string | null; creditos?: string | null; tags?: string[] | null; ordem?: number | null }
   ): Observable<FotoEventoFotoResponse> {
     return this.http
       .put<FotoEventoFotoResponse>(`${this.baseUrl}/${id}/fotos/${fotoId}`, payload)
@@ -131,6 +151,9 @@ export class FotosEventosService {
     dataInicio?: string;
     dataFim?: string;
     unidadeId?: number | null;
+    status?: string;
+    tags?: string[];
+    ordenacao?: string;
     pagina?: number;
     tamanho?: number;
   }): Record<string, string> {
@@ -146,6 +169,15 @@ export class FotosEventosService {
     }
     if (params.unidadeId) {
       result['unidadeId'] = String(params.unidadeId);
+    }
+    if (params.status) {
+      result['status'] = params.status;
+    }
+    if (params.tags && params.tags.length) {
+      result['tags'] = params.tags.join(',');
+    }
+    if (params.ordenacao) {
+      result['ordenacao'] = params.ordenacao;
     }
     if (params.pagina !== undefined) {
       result['pagina'] = String(params.pagina);

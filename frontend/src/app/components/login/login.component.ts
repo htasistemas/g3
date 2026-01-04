@@ -23,6 +23,8 @@ export class LoginComponent {
 
   criarContaAberto = false;
   recuperarSenhaAberto = false;
+  termoUsoAberto = false;
+  politicaPrivacidadeAberto = false;
   cadastroSubmetido = false;
   recuperacaoSubmetida = false;
   redefinicaoSubmetida = false;
@@ -86,6 +88,22 @@ export class LoginComponent {
     this.criarContaAberto = false;
   }
 
+  abrirTermoUso(): void {
+    this.termoUsoAberto = true;
+  }
+
+  fecharTermoUso(): void {
+    this.termoUsoAberto = false;
+  }
+
+  abrirPoliticaPrivacidade(): void {
+    this.politicaPrivacidadeAberto = true;
+  }
+
+  fecharPoliticaPrivacidade(): void {
+    this.politicaPrivacidadeAberto = false;
+  }
+
   abrirRecuperarSenha(): void {
     this.resetRecuperacao();
     this.recuperarSenhaAberto = true;
@@ -143,6 +161,9 @@ export class LoginComponent {
           const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
           if (status === 404) {
             this.recuperacaoErro = 'Email nao esta registrado em nosso banco de dados.';
+          } else if (status === 503) {
+            this.recuperacaoErro =
+              'Envio de email indisponivel no momento. Entre em contato com sua instituicao.';
           } else {
             this.recuperacaoErro = this.mapError(err);
           }
@@ -174,9 +195,11 @@ export class LoginComponent {
       return;
     }
 
+    const token = this.normalizarToken(this.recuperacaoToken);
+
     this.auth
       .redefinirSenha({
-        token: this.recuperacaoToken.trim(),
+        token,
         senha: this.recuperacaoSenha,
         confirmarSenha: this.recuperacaoConfirmarSenha
       })
@@ -220,7 +243,9 @@ export class LoginComponent {
   }
 
   private redefinicaoValida(): boolean {
-    if (!this.recuperacaoToken.trim() || !this.recuperacaoSenha) {
+    const token = this.normalizarToken(this.recuperacaoToken);
+
+    if (!token || !this.recuperacaoSenha) {
       return false;
     }
 
@@ -238,6 +263,10 @@ export class LoginComponent {
   emailValido(email: string): boolean {
     const sanitized = email.replace(/\s+/g, '').trim().toLowerCase();
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized);
+  }
+
+  private normalizarToken(token: string): string {
+    return token.replace(/\\s+/g, '').trim();
   }
 
   private resetCadastro(): void {
@@ -295,4 +324,5 @@ export class LoginComponent {
     return 'Falha ao processar a solicitacao. Tente novamente.';
   }
 }
+
 

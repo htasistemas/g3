@@ -1,6 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   PlanoTrabalhoService,
   PlanoTrabalho,
@@ -8,8 +17,12 @@ import {
   PlanoStatus
 } from '../../services/plano-trabalho.service';
 import { TermoFomentoPayload, TermoFomentoService } from '../../services/termo-fomento.service';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { titleCaseWords } from '../../utils/capitalization.util';
 
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 interface StepTab {
   id: string;
   label: string;
@@ -18,16 +31,25 @@ interface StepTab {
 @Component({
   selector: 'app-plano-trabalho-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './plano-trabalho-gestao.component.html',
   styleUrl: './plano-trabalho-gestao.component.scss'
 })
-export class PlanoTrabalhoGestaoComponent implements OnInit {
+export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements OnInit {
   form: FormGroup;
   activeTab = 'identificacao';
   saving = false;
-  feedback: string | null = null;
   editingId: string | null = null;
+  popupErros: string[] = [];
+  private popupTimeout?: ReturnType<typeof setTimeout>;
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    salvar: true,
+    excluir: true,
+    novo: true,
+    cancelar: true,
+    imprimir: true
+  });
 
   tabs: StepTab[] = [
     { id: 'identificacao', label: 'Identificação' },
@@ -35,7 +57,8 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
     { id: 'metas', label: 'Metas e Atividades' },
     { id: 'cronograma', label: 'Cronograma Físico-Financeiro' },
     { id: 'equipe', label: 'Equipe / Responsáveis' },
-    { id: 'arquivos', label: 'Arquivos e Exportação' }
+    { id: 'arquivos', label: 'Arquivos e Exportação' },
+    { id: 'listagem', label: 'Listagem de Planos' }
   ];
 
   statusOptions: { value: PlanoStatus; label: string }[] = [
@@ -53,12 +76,19 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
 
   planos: PlanoTrabalho[] = [];
   termos: TermoFomentoPayload[] = [];
+  planosFiltrados: PlanoTrabalho[] = [];
+  searchPlano = '';
+  statusFiltro: PlanoStatus | '' = '';
+  somenteVencidos = false;
+  ordenacao: 'maisRecente' | 'maisAntigo' | 'az' = 'maisRecente';
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly planoService: PlanoTrabalhoService,
-    private readonly termoService: TermoFomentoService
+    private readonly termoService: TermoFomentoService,
+    private readonly router: Router
   ) {
+    super();
     this.form = this.buildForm();
   }
 
@@ -77,6 +107,16 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
 
   get hasNextTab(): boolean {
     return this.activeTabIndex < this.tabs.length - 1;
+  }
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving,
+      excluir: !this.editingId,
+      novo: this.saving,
+      cancelar: this.saving,
+      imprimir: this.saving
+    };
   }
 
   get nextTabLabel(): string {
@@ -225,7 +265,10 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
         referenciaDescricao: [item?.referenciaDescricao || ''],
         competencia: [item?.competencia || '', Validators.required],
         descricaoResumida: [item?.descricaoResumida || ''],
-        valorPrevisto: [item?.valorPrevisto ?? null],
+        valorPrevisto:
+          item?.valorPrevisto !== undefined && item?.valorPrevisto !== null
+            ? this.formatCurrencyValue(item.valorPrevisto, true)
+            : '',
         fonteRecurso: [item?.fonteRecurso || ''],
         naturezaDespesa: [item?.naturezaDespesa || ''],
         observacoes: [item?.observacoes || '']
@@ -243,7 +286,7 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
         id: [membro?.id],
         nome: [membro?.nome || '', Validators.required],
         funcao: [membro?.funcao || ''],
-        cpf: [membro?.cpf || ''],
+        cpf: [membro?.cpf ? this.formatCpf(membro.cpf) : '', [this.cpfValidator]],
         cargaHoraria: [membro?.cargaHoraria || ''],
         tipoVinculo: [membro?.tipoVinculo || ''],
         contato: [membro?.contato || '']
@@ -278,11 +321,11 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
   }
 
   submit(): void {
-    this.feedback = null;
+    this.popupErros = [];
     this.saving = true;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.feedback = 'Preencha os campos obrigatórios para prosseguir.';
+      this.mostrarPopup('Preencha os campos obrigatorios para prosseguir.');
       this.saving = false;
       return;
     }
@@ -291,18 +334,28 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
     const vinculo = this.form.get('vinculo')!.value;
 
     if (identificacao.vigenciaInicio && identificacao.vigenciaFim && identificacao.vigenciaInicio > identificacao.vigenciaFim) {
-      this.feedback = 'A data inicial da vigência deve ser anterior ou igual à final.';
+      this.mostrarPopup('A data inicial da vigencia deve ser anterior ou igual a final.');
       this.saving = false;
       this.activeTab = 'identificacao';
       return;
     }
 
     if (!vinculo.termoFomentoId) {
-      this.feedback = 'Selecione um Termo de Fomento para salvar o plano de trabalho.';
+      this.mostrarPopup('Selecione um Termo de Fomento para salvar o plano de trabalho.');
       this.saving = false;
       this.activeTab = 'vinculo';
       return;
     }
+
+    const cronogramaPayload = (this.cronograma.value as any[]).map((item) => ({
+      ...item,
+      valorPrevisto: this.parseCurrencyValue(item.valorPrevisto)
+    }));
+
+    const equipePayload = (this.equipe.value as any[]).map((membro) => ({
+      ...membro,
+      cpf: this.normalizeCpf(membro.cpf)
+    }));
 
     const payload: PlanoTrabalhoPayload = {
       ...identificacao,
@@ -311,9 +364,10 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
       modalidade: vinculo.modalidade,
       observacoesVinculacao: vinculo.observacoesVinculacao,
       metas: this.metas.value,
-      cronograma: this.cronograma.value,
-      equipe: this.equipe.value,
-      status: identificacao.status
+      cronograma: cronogramaPayload,
+      equipe: equipePayload,
+      status: identificacao.status,
+      arquivoFormato: this.form.get('arquivos.formato')?.value
     };
 
     const request$ = this.editingId
@@ -323,14 +377,14 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
     request$.subscribe({
       next: (plano) => {
         this.saving = false;
-        this.feedback = 'Plano de trabalho salvo com sucesso.';
+        this.mostrarPopup('Plano de trabalho salvo com sucesso.');
         this.editingId = plano.id;
         this.loadPlanos();
         this.patchForm(plano);
       },
       error: () => {
         this.saving = false;
-        this.feedback = 'Não foi possível salvar o plano de trabalho.';
+        this.mostrarPopup('Nao foi possivel salvar o plano de trabalho.');
       }
     });
   }
@@ -361,6 +415,9 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
         numeroProcesso: plano.numeroProcesso,
         modalidade: plano.modalidade,
         observacoesVinculacao: plano.observacoesVinculacao
+      },
+      arquivos: {
+        formato: plano.arquivoFormato || 'PDF'
       }
     });
 
@@ -371,14 +428,14 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
 
   editPlano(plano: PlanoTrabalho): void {
     this.editingId = plano.id;
-    this.feedback = null;
+    this.popupErros = [];
     this.patchForm(plano);
     this.activeTab = 'identificacao';
   }
 
   startNovo(): void {
     this.editingId = null;
-    this.feedback = null;
+    this.popupErros = [];
     this.form = this.buildForm();
     this.metas.clear();
     this.cronograma.clear();
@@ -388,28 +445,50 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
 
   deletePlano(plano: PlanoTrabalho): void {
     if (!confirm('Deseja remover o plano selecionado?')) return;
-    this.planoService.delete(plano.id).subscribe(() => {
-      this.loadPlanos();
-      if (this.editingId === plano.id) {
-        this.startNovo();
+    this.planoService.delete(plano.id).subscribe({
+      next: () => {
+        this.loadPlanos();
+        if (this.editingId === plano.id) {
+          this.startNovo();
+        }
+        this.mostrarPopup('Plano de trabalho excluido com sucesso.');
+      },
+      error: () => {
+        this.mostrarPopup('Nao foi possivel excluir o plano de trabalho.');
       }
     });
   }
 
   loadPlanos(): void {
-    this.planoService.list().subscribe((planos) => {
-      this.planos = planos;
+    this.planoService.list().subscribe({
+      next: (planos) => {
+        this.planos = planos;
+        this.applyPlanosFilters();
+      },
+      error: () => {
+        this.planos = [];
+        this.planosFiltrados = [];
+        this.mostrarPopup('Nao foi possivel carregar os planos de trabalho.');
+      }
     });
   }
 
   loadTermos(): void {
-    this.termos = this.termoService.list();
+    this.termoService.list().subscribe({
+      next: (termos) => {
+        this.termos = termos;
+      },
+      error: () => {
+        this.termos = [];
+        this.mostrarPopup('Nao foi possivel carregar os termos de fomento.');
+      }
+    });
   }
 
   totalCronogramaPorFonte(): Record<string, number> {
     return this.cronograma.value.reduce((acc: Record<string, number>, item: any) => {
       const fonte = item.fonteRecurso || 'Não informado';
-      const valor = item.valorPrevisto ? Number(item.valorPrevisto) : 0;
+      const valor = this.parseCurrencyValue(item.valorPrevisto) || 0;
       acc[fonte] = (acc[fonte] || 0) + valor;
       return acc;
     }, {});
@@ -423,18 +502,245 @@ export class PlanoTrabalhoGestaoComponent implements OnInit {
     return this.statusOptions.find((item) => item.value === status)?.label || status;
   }
 
+  onSearchPlanoInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.searchPlano = target?.value ?? '';
+    this.applyPlanosFilters();
+  }
+
+  onStatusPlanoFiltroChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value ?? '';
+    this.statusFiltro = (value as PlanoStatus) || '';
+    this.applyPlanosFilters();
+  }
+
+  applyPlanosFilters(): void {
+    const query = this.normalizarTexto(this.searchPlano);
+    const filtrados = this.planos.filter((plano) => {
+      const termoNumero = plano.termoFomento?.numero || '';
+      const matchesQuery =
+        !query ||
+        this.normalizarTexto(plano.codigoInterno).includes(query) ||
+        this.normalizarTexto(plano.titulo).includes(query) ||
+        this.normalizarTexto(termoNumero).includes(query);
+      const matchesStatus = !this.statusFiltro || plano.status === this.statusFiltro;
+      const matchesVencido = !this.somenteVencidos || this.isVencido(plano);
+      return matchesQuery && matchesStatus && matchesVencido;
+    });
+    this.planosFiltrados = this.ordenarPlanos(filtrados);
+  }
+
+  onOrdenacaoPlanoChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value ?? 'maisRecente';
+    this.ordenacao = (value as 'maisRecente' | 'maisAntigo' | 'az') || 'maisRecente';
+    this.applyPlanosFilters();
+  }
+
+  resumoStatusPlanos(): { label: string; total: number }[] {
+    const total = this.planos.length;
+    const emElaboracao = this.contarPorStatus('EM_ELABORACAO');
+    const emExecucao = this.contarPorStatus('EM_EXECUCAO');
+    const aprovados = this.contarPorStatus('APROVADO');
+    const concluidos = this.contarPorStatus('CONCLUIDO');
+    const reprovados = this.contarPorStatus('REPROVADO');
+    const enviados = this.contarPorStatus('ENVIADO_ANALISE');
+    return [
+      { label: 'Total', total },
+      { label: 'Em elaboracao', total: emElaboracao },
+      { label: 'Enviado', total: enviados },
+      { label: 'Aprovado', total: aprovados },
+      { label: 'Em execucao', total: emExecucao },
+      { label: 'Concluido', total: concluidos },
+      { label: 'Reprovado', total: reprovados }
+    ];
+  }
+
+  private contarPorStatus(status: PlanoStatus): number {
+    return this.planos.filter((plano) => plano.status === status).length;
+  }
+
+  private ordenarPlanos(planos: PlanoTrabalho[]): PlanoTrabalho[] {
+    const copia = [...planos];
+    switch (this.ordenacao) {
+      case 'maisAntigo':
+        return copia.sort((a, b) => this.dataPlano(a) - this.dataPlano(b));
+      case 'az':
+        return copia.sort((a, b) =>
+          this.normalizarTexto(a.titulo).localeCompare(this.normalizarTexto(b.titulo))
+        );
+      case 'maisRecente':
+      default:
+        return copia.sort((a, b) => this.dataPlano(b) - this.dataPlano(a));
+    }
+  }
+
+  private dataPlano(plano: PlanoTrabalho): number {
+    if (!plano.vigenciaInicio) return 0;
+    const data = new Date(plano.vigenciaInicio);
+    return Number.isNaN(data.getTime()) ? 0 : data.getTime();
+  }
+
+  isVencido(plano: PlanoTrabalho): boolean {
+    if (!plano.vigenciaFim) return false;
+    const fim = new Date(plano.vigenciaFim);
+    const hoje = new Date();
+    return fim.getTime() < hoje.setHours(0, 0, 0, 0);
+  }
+
   gerarArquivo(planoSelecionado?: PlanoTrabalho): void {
     const targetId = planoSelecionado?.id || this.editingId;
     if (!targetId) {
-      this.feedback = 'Salve o plano antes de gerar o arquivo de exportação.';
+      this.mostrarPopup('Salve o plano antes de gerar o arquivo de exportacao.');
       this.changeTab('identificacao');
       return;
     }
 
-    this.planoService.export(targetId).subscribe((payload) => {
-      const popup = window.open('', '_blank', 'width=900,height=700');
-      if (!popup) return;
-      popup.document.write('<pre>' + JSON.stringify(payload, null, 2) + '</pre>');
+    this.planoService.export(targetId).subscribe({
+      next: (payload) => {
+        const popup = window.open('', '_blank', 'width=900,height=700');
+        if (!popup) return;
+        popup.document.write('<pre>' + JSON.stringify(payload, null, 2) + '</pre>');
+      },
+      error: () => {
+        this.mostrarPopup('Nao foi possivel gerar o arquivo de exportacao.');
+      }
     });
+  }
+
+  salvar(): void {
+    this.submit();
+  }
+
+  novo(): void {
+    this.startNovo();
+  }
+
+  cancelar(): void {
+    this.startNovo();
+  }
+
+  excluirAtual(): void {
+    if (!this.editingId) return;
+    const plano = this.planos.find((item) => item.id === this.editingId);
+    if (!plano) return;
+    this.deletePlano(plano);
+  }
+
+  imprimir(): void {
+    this.gerarArquivo();
+  }
+
+  fechar(): void {
+    this.router.navigate(['/juridico/planos-trabalho']);
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
+    if (this.popupTimeout) {
+      clearTimeout(this.popupTimeout);
+      this.popupTimeout = undefined;
+    }
+  }
+
+  onValorPrevistoInput(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const valor = this.formatCurrencyInput(input, true);
+    this.cronograma.at(index).get('valorPrevisto')?.setValue(valor, { emitEvent: false });
+  }
+
+  onCpfInput(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const formatted = this.formatCpf(input.value);
+    this.equipe.at(index).get('cpf')?.setValue(formatted, { emitEvent: false });
+  }
+
+  capitalizarCampo(caminho: (string | number)[]): void {
+    const control = this.form.get(caminho);
+    const valor = control?.value as string;
+    if (!control || !valor) return;
+    control.setValue(titleCaseWords(valor), { emitEvent: false });
+  }
+
+  private mostrarPopup(mensagem: string): void {
+    this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
+    if (this.popupTimeout) {
+      clearTimeout(this.popupTimeout);
+    }
+    this.popupTimeout = setTimeout(() => {
+      this.popupErros = [];
+      this.popupTimeout = undefined;
+    }, 10000);
+  }
+
+  private formatCurrencyInput(input: HTMLInputElement, comPrefixo: boolean): string {
+    const digits = (input.value || '').replace(/\D/g, '');
+    const numberValue = digits ? Number(digits) / 100 : 0;
+    const masked = this.formatCurrencyValue(numberValue, comPrefixo);
+    input.value = masked;
+    return masked;
+  }
+
+  private formatCurrencyValue(value: number, comPrefixo: boolean): string {
+    const formatted = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+    return comPrefixo ? formatted : formatted.replace('R$', '').trim();
+  }
+
+  private normalizeCpf(value?: string | null): string {
+    return (value || '').replace(/\D/g, '');
+  }
+
+  private formatCpf(value?: string | null): string {
+    const digits = this.normalizeCpf(value);
+    if (!digits) return '';
+    const part1 = digits.slice(0, 3);
+    const part2 = digits.slice(3, 6);
+    const part3 = digits.slice(6, 9);
+    const part4 = digits.slice(9, 11);
+    let formatted = part1;
+    if (part2) formatted += `.${part2}`;
+    if (part3) formatted += `.${part3}`;
+    if (part4) formatted += `-${part4}`;
+    return formatted;
+  }
+
+  private cpfValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = this.normalizeCpf(control.value as string);
+    if (!value) return null;
+    if (value.length !== 11 || /^(\d)\1+$/.test(value)) return { cpfInvalid: true };
+    let soma = 0;
+    for (let i = 0; i < 9; i += 1) {
+      soma += Number(value.charAt(i)) * (10 - i);
+    }
+    let resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+    if (resto !== Number(value.charAt(9))) return { cpfInvalid: true };
+    soma = 0;
+    for (let i = 0; i < 10; i += 1) {
+      soma += Number(value.charAt(i)) * (11 - i);
+    }
+    resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+    return resto === Number(value.charAt(10)) ? null : { cpfInvalid: true };
+  };
+
+  private parseCurrencyValue(value: string | number | null | undefined): number | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'number') return value;
+    const digits = value.toString().replace(/\D/g, '');
+    if (!digits) return undefined;
+    return Number(digits) / 100;
+  }
+
+  private normalizarTexto(valor: string): string {
+    return (valor || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 }

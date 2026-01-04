@@ -1,4 +1,15 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="submit()"
+  (excluir)="termoEmEdicao && deleteTermo(termoEmEdicao)"
+  (novo)="resetForm()"
+  (cancelar)="cancelar()"
+  (imprimir)="imprimir()"
+  (fechar)="fechar()"
+>
+  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Convênios e Fomentos</p>
     <p class="page-title__label">Gestão de Termos de Fomento</p>
@@ -96,7 +107,7 @@
             <option value="Município">Município</option>
           </select>
         </label>
-        <label class="field">Órgão concedente<input formControlName="orgaoConcedente" placeholder="Nome do órgão" /></label>
+        <label class="field">Órgão concedente<input formControlName="orgaoConcedente" placeholder="Nome do órgão" (blur)="capitalizarCampo(['dadosTermo','orgaoConcedente'])" /></label>
         <label class="field">Data de assinatura<input type="date" formControlName="dataAssinatura" /></label>
         <label class="field">Início da vigência<input type="date" formControlName="dataInicioVigencia" /></label>
         <label class="field">Fim da vigência<input type="date" formControlName="dataFimVigencia" /></label>
@@ -108,8 +119,8 @@
             <option value="Cancelado">Cancelado</option>
           </select>
         </label>
-        <label class="field">Valor global<input type="number" formControlName="valorGlobal" placeholder="0,00" /></label>
-        <label class="field">Responsável interno<input formControlName="responsavelInterno" placeholder="Selecione o responsável" /></label>
+        <label class="field">Valor global<input type="text" formControlName="valorGlobal" placeholder="R$ 0,00" (input)="onValorGlobalInput($event)" /></label>
+        <label class="field">Responsável interno<input formControlName="responsavelInterno" placeholder="Selecione o responsável" (blur)="capitalizarCampo(['dadosTermo','responsavelInterno'])" /></label>
         <label class="field full">Objeto / descrição<textarea formControlName="descricaoObjeto" rows="3" placeholder="Descreva o objeto do termo"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -190,7 +201,7 @@
         </label>
         <label class="field">Data do aditivo*<input type="date" formControlName="dataAditivo" /></label>
         <label class="field">Nova data fim<input type="date" formControlName="novaDataFim" /></label>
-        <label class="field">Novo valor<input type="number" formControlName="novoValor" placeholder="0,00" /></label>
+        <label class="field">Novo valor<input type="text" formControlName="novoValor" placeholder="R$ 0,00" (input)="onNovoValorInput($event)" /></label>
         <label class="field full">Observações<textarea rows="2" formControlName="observacoes" placeholder="Resumo das alterações"></textarea></label>
         <div class="upload-card full">
           <div class="upload-card__header">
@@ -265,55 +276,63 @@
     </div>
   </form>
 
-  <div class="list-card">
-    <div class="list-card__header">
-      <div>
-        <p class="page-title__eyebrow">Termos cadastrados</p>
-        <p class="page-title__label">Painel de gestão</p>
+  <div class="tab-card" *ngIf="activeTab === 'listagem'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        <p class="muted">Acompanhe todos os termos cadastrados.</p>
       </div>
     </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Número</th>
-            <th>Tipo</th>
-            <th>Órgão concedente</th>
-            <th>Vigência</th>
-            <th>Situação</th>
-            <th>Valor</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let termo of filteredTermos; index as i">
-            <td>{{ i + 1 }}</td>
-            <td>
-              <div class="strong">{{ termo.numeroTermo }}</div>
-              <div class="muted">{{ termo.responsavelInterno || 'Sem responsável' }}</div>
-            </td>
-            <td>{{ termo.tipoTermo }}</td>
-            <td>{{ termo.orgaoConcedente || '—' }}</td>
-            <td>{{ formatDate(termo.dataInicioVigencia) }} — {{ formatDate(termo.dataFimVigencia) }}</td>
-            <td>
-              <span class="badge" [ngClass]="statusBadge(termo)?.tone">{{ statusBadge(termo)?.label }}</span>
-              <div class="muted">{{ termo.situacao }}</div>
-            </td>
-            <td>{{ formatCurrency(termo.valorGlobal) }}</td>
-            <td class="text-right">
-              <div class="table-actions">
-                <button class="ghost" type="button" (click)="editTermo(termo)">Editar</button>
-                <button class="danger" type="button" (click)="deleteTermo(termo)">Excluir</button>
-                <button class="primary" type="button" (click)="visualizarTermo(termo)">Visualizar termo</button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="!filteredTermos.length">
-            <td colspan="8" class="muted">Nenhum termo encontrado com os filtros atuais.</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="list-card">
+      <div class="list-card__header">
+        <div>
+          <p class="page-title__eyebrow">Termos cadastrados</p>
+          <p class="page-title__label">Painel de gestão</p>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Número</th>
+              <th>Tipo</th>
+              <th>Órgão concedente</th>
+              <th>Vigência</th>
+              <th>Situação</th>
+              <th>Valor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let termo of filteredTermos; index as i">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="strong">{{ termo.numeroTermo }}</div>
+                <div class="muted">{{ termo.responsavelInterno || 'Sem responsável' }}</div>
+              </td>
+              <td>{{ termo.tipoTermo }}</td>
+              <td>{{ termo.orgaoConcedente || '—' }}</td>
+              <td>{{ formatDate(termo.dataInicioVigencia) }} — {{ formatDate(termo.dataFimVigencia) }}</td>
+              <td>
+                <span class="badge" [ngClass]="statusBadge(termo)?.tone">{{ statusBadge(termo)?.label }}</span>
+                <div class="muted">{{ termo.situacao }}</div>
+              </td>
+              <td>{{ formatCurrency(termo.valorGlobal) }}</td>
+              <td class="text-right">
+                <div class="table-actions">
+                  <button class="ghost" type="button" (click)="editTermo(termo)">Editar</button>
+                  <button class="danger" type="button" (click)="deleteTermo(termo)">Excluir</button>
+                  <button class="primary" type="button" (click)="visualizarTermo(termo)">Visualizar termo</button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!filteredTermos.length">
+              <td colspan="8" class="muted">Nenhum termo encontrado com os filtros atuais.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>

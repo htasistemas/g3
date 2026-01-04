@@ -17,16 +17,21 @@ export interface JobEncaminhamento {
 export interface JobPayload {
   dadosVaga: {
     titulo: string;
-    area: string;
-    tipo: string;
-    nivel: string;
-    modelo: string;
+    area?: string;
+    tipo?: string;
+    nivel?: string;
+    modelo?: string;
     status: JobStatus;
+    dataAbertura?: string;
+    dataEncerramento?: string;
+    tipoContrato?: string;
+    cargaHoraria?: string;
     salario?: string;
     beneficios?: string;
   };
   empresaLocal?: {
     nomeEmpresa: string;
+    cnpj?: string;
     responsavel?: string;
     telefone?: string;
     email?: string;
@@ -39,7 +44,9 @@ export interface JobPayload {
     escolaridade?: string;
     experiencia?: string;
     habilidades?: string;
+    requisitos?: string;
     descricao?: string;
+    observacoes?: string;
   };
   encaminhamentos?: JobEncaminhamento[];
 }

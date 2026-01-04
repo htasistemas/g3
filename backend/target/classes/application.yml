@@ -28,8 +28,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 60MB
+      max-request-size: 60MB
 server:
   port: 8080
+  tomcat:
+    max-http-form-post-size: 60MB
+    max-swallow-size: 60MB
 
 app:
   geocoding:
@@ -40,6 +47,6 @@ app:
     beneficiarios: storage/beneficiarios
     fotos-eventos: storage/fotos-eventos
   email:
-    habilitado: ${APP_EMAIL_HABILITADO:false}
+    habilitado: ${APP_EMAIL_HABILITADO:true}
     remetente: ${APP_EMAIL_REMETENTE:}
     nome-remetente: ${APP_EMAIL_NOME:HTA Sistemas}

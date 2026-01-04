@@ -1,9 +1,16 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import {
   FotoEventoDetalheResponse,
   FotoEventoFotoResponse,
@@ -11,17 +18,21 @@ import {
   FotoEventoResponse,
   FotosEventosService
 } from '../../services/fotos-eventos.service';
-import { environment } from '../../../environments/environment';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { titleCaseWords } from '../../utils/capitalization.util';
+import { environment } from '../../../environments/environment';
 
 type FotoUploadItem = {
   arquivo: File;
   preview: string;
   legenda: string;
+  creditos: string;
+  tags: string;
   ordem: number | null;
   upload: { nomeArquivo: string; contentType: string; conteudo: string };
 };
@@ -44,6 +55,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   filtrosForm: FormGroup;
   eventoForm: FormGroup;
   fotoForm: FormGroup;
+
   feedback: string | null = null;
   popupErros: string[] = [];
   listLoading = false;
@@ -53,14 +65,13 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   totalPaginas = 1;
   totalRegistros = 0;
 
-  detalheAberto = false;
+  detalheLoading = false;
   eventoSelecionado: FotoEventoResponse | null = null;
   fotosEvento: FotoEventoFotoResponse[] = [];
-  detalheLoading = false;
 
   formularioAberto = false;
-  uploadPrincipalPreview: string | null = null;
   eventoEmEdicaoId: number | null = null;
+  uploadPrincipalPreview: string | null = null;
   salvandoEvento = false;
 
   galeriaUploadAberta = false;
@@ -81,40 +92,69 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
 
   private readonly destroy$ = new Subject<void>();
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
+  private detalheId: number | null = null;
+
+  readonly statusOpcoes = [
+    { valor: 'PLANEJADO', label: 'Planejado' },
+    { valor: 'REALIZADO', label: 'Realizado' },
+    { valor: 'CANCELADO', label: 'Cancelado' },
+    { valor: 'ARQUIVADO', label: 'Arquivado' }
+  ];
+
+  readonly ordenacaoOpcoes = [
+    { valor: 'MAIS_RECENTE', label: 'Mais recente' },
+    { valor: 'MAIS_ANTIGO', label: 'Mais antigo' },
+    { valor: 'A_Z', label: 'A-Z' },
+    { valor: 'Z_A', label: 'Z-A' },
+    { valor: 'MAIS_FOTOS', label: 'Mais fotos' }
+  ];
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
-    novo: true
+    novo: true,
+    cancelar: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
     return {
-      novo: this.salvandoEvento || this.enviandoFotos
+      novo: this.salvandoEvento || this.enviandoFotos,
+      cancelar: this.salvandoEvento || this.enviandoFotos
     };
+  }
+
+  get mostrandoDetalhe(): boolean {
+    return this.detalheId !== null;
   }
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: FotosEventosService,
-    private readonly unidadeService: AssistanceUnitService
+    private readonly unidadeService: AssistanceUnitService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
   ) {
     super();
     this.filtrosForm = this.fb.group({
       busca: [''],
       dataInicio: [''],
       dataFim: [''],
-      unidadeId: ['']
+      status: [''],
+      tags: [''],
+      ordenacao: ['MAIS_RECENTE']
     });
     this.eventoForm = this.fb.group({
       titulo: ['', Validators.required],
       dataEvento: ['', Validators.required],
       local: [''],
       descricao: [''],
+      status: ['PLANEJADO'],
       tags: [''],
       unidadeId: [''],
       fotoPrincipalUpload: [null as FotoEventoRequestPayload['fotoPrincipalUpload'] | null, Validators.required]
     });
     this.fotoForm = this.fb.group({
       legenda: [''],
+      creditos: [''],
+      tags: [''],
       ordem: ['']
     });
   }
@@ -122,8 +162,20 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   ngOnInit(): void {
     this.carregarUnidades();
     this.carregarEventos();
+
     this.filtrosForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.paginaAtual = 0;
+    });
+
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const idParam = params.get('id');
+      this.detalheId = idParam ? Number(idParam) : null;
+      if (this.detalheId) {
+        this.carregarDetalhe(this.detalheId);
+      } else {
+        this.eventoSelecionado = null;
+        this.fotosEvento = [];
+      }
     });
   }
 
@@ -140,10 +192,12 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.listLoading = true;
     this.service
       .listar({
-        busca: filtros.busca?.trim() || undefined,
+        busca: this.normalizarTexto(filtros.busca),
         dataInicio: filtros.dataInicio || undefined,
         dataFim: filtros.dataFim || undefined,
-        unidadeId: filtros.unidadeId ? Number(filtros.unidadeId) : undefined,
+        status: filtros.status || undefined,
+        tags: this.normalizarTags(filtros.tags),
+        ordenacao: filtros.ordenacao || undefined,
         pagina: this.paginaAtual,
         tamanho: 12
       })
@@ -184,7 +238,14 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   }
 
   limparFiltros(): void {
-    this.filtrosForm.reset({ busca: '', dataInicio: '', dataFim: '', unidadeId: '' });
+    this.filtrosForm.reset({
+      busca: '',
+      dataInicio: '',
+      dataFim: '',
+      status: '',
+      tags: '',
+      ordenacao: 'MAIS_RECENTE'
+    });
     this.paginaAtual = 0;
     this.carregarEventos();
   }
@@ -202,15 +263,11 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   }
 
   abrirDetalhe(evento: FotoEventoResponse): void {
-    this.detalheAberto = true;
-    this.eventoSelecionado = evento;
-    this.carregarDetalhe(evento.id);
+    this.router.navigate(['/administrativo/fotos-eventos', evento.id]);
   }
 
-  fecharDetalhe(): void {
-    this.detalheAberto = false;
-    this.eventoSelecionado = null;
-    this.fotosEvento = [];
+  voltarLista(): void {
+    this.router.navigate(['/administrativo/fotos-eventos']);
   }
 
   carregarDetalhe(id: number): void {
@@ -242,6 +299,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       dataEvento: '',
       local: '',
       descricao: '',
+      status: 'PLANEJADO',
       tags: '',
       unidadeId: '',
       fotoPrincipalUpload: null
@@ -249,21 +307,24 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.uploadPrincipalPreview = null;
   }
 
-  abrirFormularioEdicao(): void {
-    if (!this.eventoSelecionado) return;
+  abrirFormularioEdicao(evento?: FotoEventoResponse): void {
+    const alvo = evento ?? this.eventoSelecionado;
+    if (!alvo) return;
+    this.eventoSelecionado = alvo;
     this.formularioAberto = true;
-    this.eventoEmEdicaoId = this.eventoSelecionado.id;
+    this.eventoEmEdicaoId = alvo.id;
     this.atualizarValidacaoFotoPrincipal(false);
     this.eventoForm.reset({
-      titulo: this.eventoSelecionado.titulo || '',
-      dataEvento: this.eventoSelecionado.dataEvento || '',
-      local: this.eventoSelecionado.local || '',
-      descricao: this.eventoSelecionado.descricao || '',
-      tags: this.eventoSelecionado.tags || '',
-      unidadeId: this.eventoSelecionado.unidadeId ? String(this.eventoSelecionado.unidadeId) : '',
+      titulo: alvo.titulo || '',
+      dataEvento: alvo.dataEvento || '',
+      local: alvo.local || '',
+      descricao: alvo.descricao || '',
+      status: alvo.status || 'PLANEJADO',
+      tags: (alvo.tags || []).join(', '),
+      unidadeId: alvo.unidadeId ? String(alvo.unidadeId) : '',
       fotoPrincipalUpload: null
     });
-    this.uploadPrincipalPreview = this.eventoSelecionado.fotoPrincipalUrl || null;
+    this.uploadPrincipalPreview = alvo.fotoPrincipalUrl || null;
   }
 
   fecharFormulario(): void {
@@ -283,7 +344,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     }
 
     const payload = this.montarPayloadEvento();
-    if (!payload.fotoPrincipalUpload && !this.eventoEmEdicaoId) {
+    const idEdicao = this.eventoEmEdicaoId ?? this.eventoSelecionado?.id ?? null;
+    if (!payload.fotoPrincipalUpload && !idEdicao) {
       this.popupErros = new PopupErrorBuilder()
         .adicionar('Informe a foto principal do evento.')
         .build();
@@ -292,14 +354,14 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
 
     this.salvandoEvento = true;
     try {
-      const response = this.eventoEmEdicaoId
-        ? await firstValueFrom(this.service.atualizar(this.eventoEmEdicaoId, payload))
+      const response = idEdicao
+        ? await firstValueFrom(this.service.atualizar(idEdicao, payload))
         : await firstValueFrom(this.service.criar(payload));
       this.salvandoEvento = false;
       this.formularioAberto = false;
       this.mostrarFeedback('Evento salvo com sucesso.');
       this.carregarEventos();
-      this.abrirDetalhe(response);
+      this.router.navigate(['/administrativo/fotos-eventos', response.id]);
     } catch {
       this.salvandoEvento = false;
       this.popupErros = new PopupErrorBuilder()
@@ -308,10 +370,11 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     }
   }
 
-  confirmarExcluirEvento(): void {
-    if (!this.eventoSelecionado) return;
+  confirmarExcluirEvento(evento?: FotoEventoResponse): void {
+    const alvo = evento ?? this.eventoSelecionado;
+    if (!alvo) return;
     this.confirmarExclusaoMensagem = 'Deseja excluir este evento?';
-    this.eventoParaExcluir = this.eventoSelecionado;
+    this.eventoParaExcluir = alvo;
     this.fotoParaExcluir = null;
     this.confirmarExclusaoAberta = true;
   }
@@ -336,7 +399,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       try {
         await firstValueFrom(this.service.excluir(id));
         this.mostrarFeedback('Evento removido com sucesso.');
-        this.fecharDetalhe();
+        this.voltarLista();
         this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
@@ -354,6 +417,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         await firstValueFrom(this.service.removerFoto(eventoId, fotoId));
         this.mostrarFeedback('Foto removida com sucesso.');
         this.carregarDetalhe(eventoId);
+        this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
           .adicionar('Nao foi possivel remover a foto.')
@@ -362,8 +426,10 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     }
   }
 
-  abrirUploadFotos(): void {
-    if (!this.eventoSelecionado) return;
+  abrirUploadFotos(evento?: FotoEventoResponse): void {
+    const alvo = evento ?? this.eventoSelecionado;
+    if (!alvo) return;
+    this.eventoSelecionado = alvo;
     this.galeriaUploadAberta = true;
     this.fotosUpload = [];
   }
@@ -386,6 +452,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
           this.service.adicionarFoto(this.eventoSelecionado.id, {
             arquivo: foto.upload,
             legenda: foto.legenda,
+            creditos: foto.creditos,
+            tags: this.normalizarTags(foto.tags),
             ordem: foto.ordem
           })
         );
@@ -394,6 +462,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       this.galeriaUploadAberta = false;
       this.mostrarFeedback('Fotos adicionadas com sucesso.');
       this.carregarDetalhe(this.eventoSelecionado.id);
+      this.carregarEventos();
     } catch {
       this.enviandoFotos = false;
       this.popupErros = new PopupErrorBuilder()
@@ -419,6 +488,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.editarFotoAberto = true;
     this.fotoForm.reset({
       legenda: foto.legenda || '',
+      creditos: foto.creditos || '',
+      tags: (foto.tags || []).join(', '),
       ordem: foto.ordem ?? ''
     });
   }
@@ -431,12 +502,16 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   async salvarEdicaoFoto(): Promise<void> {
     if (!this.fotoEmEdicao || !this.eventoSelecionado) return;
     const legenda = (this.fotoForm.get('legenda')?.value as string) || '';
+    const creditos = (this.fotoForm.get('creditos')?.value as string) || '';
+    const tags = this.normalizarTags(this.fotoForm.get('tags')?.value as string);
     const ordemRaw = this.fotoForm.get('ordem')?.value as string;
     const ordem = ordemRaw !== '' ? Number(ordemRaw) : null;
     try {
       await firstValueFrom(
         this.service.atualizarFoto(this.eventoSelecionado.id, this.fotoEmEdicao.id, {
           legenda,
+          creditos,
+          tags,
           ordem
         })
       );
@@ -490,6 +565,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         arquivo: file,
         preview: upload.conteudo,
         legenda: '',
+        creditos: '',
+        tags: '',
         ordem: this.fotosUpload.length + index + 1,
         upload
       });
@@ -501,6 +578,32 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.fotosUpload.splice(index, 1);
   }
 
+  acaoCancelar(): void {
+    if (this.formularioAberto) {
+      this.limparFormulario();
+      return;
+    }
+    if (this.mostrandoDetalhe) {
+      this.voltarLista();
+      return;
+    }
+    this.limparFiltros();
+  }
+
+  limparFormulario(): void {
+    this.eventoForm.reset({
+      titulo: '',
+      dataEvento: '',
+      local: '',
+      descricao: '',
+      status: 'PLANEJADO',
+      tags: '',
+      unidadeId: '',
+      fotoPrincipalUpload: null
+    });
+    this.uploadPrincipalPreview = null;
+  }
+
   fecharPopupErros(): void {
     this.popupErros = [];
   }
@@ -509,18 +612,46 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.feedback = null;
   }
 
-  obterTags(tags?: string | null): string[] {
-    if (!tags) return [];
-    return tags
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => item);
+  obterTags(tags?: string[] | null): string[] {
+    if (!tags || !tags.length) return [];
+    return tags.filter((item) => item && item.trim());
   }
 
   recortarTexto(texto?: string | null, limite = 120): string {
     if (!texto) return '';
     if (texto.length <= limite) return texto;
     return `${texto.slice(0, limite)}...`;
+  }
+
+  formatarStatus(status?: string | null): string {
+    const match = this.statusOpcoes.find((item) => item.valor === status);
+    return match ? match.label : 'Planejado';
+  }
+
+  classeStatus(status?: string | null): string {
+    switch (status) {
+      case 'REALIZADO':
+        return 'pill--success';
+      case 'CANCELADO':
+        return 'pill--danger';
+      case 'ARQUIVADO':
+        return 'pill--muted';
+      default:
+        return 'pill--warning';
+    }
+  }
+
+  totalFotos(evento: FotoEventoResponse | null): number {
+    if (!evento) return 0;
+    return evento.totalFotos ? Number(evento.totalFotos) : 0;
+  }
+
+  capitalizarCampo(controlName: string): void {
+    const control = this.eventoForm.get(controlName) as FormControl | null;
+    if (!control) return;
+    const valor = control.value as string;
+    if (!valor) return;
+    control.setValue(titleCaseWords(valor));
   }
 
   private montarPayloadEvento(): FotoEventoRequestPayload {
@@ -530,7 +661,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       descricao: value.descricao || undefined,
       dataEvento: value.dataEvento,
       local: value.local || undefined,
-      tags: value.tags || undefined,
+      status: value.status || 'PLANEJADO',
+      tags: this.normalizarTags(value.tags),
       unidadeId: value.unidadeId ? Number(value.unidadeId) : null,
       fotoPrincipalUpload: value.fotoPrincipalUpload || undefined
     };
@@ -550,7 +682,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       descricao: evento.descricao || undefined,
       dataEvento: evento.dataEvento,
       local: evento.local || undefined,
-      tags: evento.tags || undefined,
+      status: evento.status || 'PLANEJADO',
+      tags: evento.tags || [],
       unidadeId: evento.unidadeId ?? null,
       fotoPrincipalUpload: undefined
     };
@@ -606,5 +739,23 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.feedbackTimeout = setTimeout(() => {
       this.feedback = null;
     }, 10000);
+  }
+
+  private normalizarTags(tagsInput?: string | string[] | null): string[] | undefined {
+    if (!tagsInput) return undefined;
+    const raw = Array.isArray(tagsInput) ? tagsInput : tagsInput.split(',');
+    const tags = raw
+      .map((item) => item.trim())
+      .filter((item) => item);
+    return tags.length ? tags : undefined;
+  }
+
+  private normalizarTexto(valor?: string | null): string | undefined {
+    if (!valor) return undefined;
+    return valor
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 }
