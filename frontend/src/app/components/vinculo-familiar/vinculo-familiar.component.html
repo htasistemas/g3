@@ -5,11 +5,13 @@
   (salvar)="saveFamily()"
   (novo)="startNewFamily()"
   (cancelar)="startNewFamily()"
+  (buscar)="onBuscar()"
   (fechar)="closeForm()"
 >
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Vínculo familiar</p>
-    <p class="page-title__label">Cadastro de familias</p>
+    <p class="page-title__label">Cadastro de familias</p>
+    <p class="page-title__note">Cadastro e gestao de vinculos familiares.</p>
   </header>
 
   <section class="cadastro">
@@ -408,4 +410,7 @@
     </form>
   </section>
 </app-tela-padrao>
+
+
+
 

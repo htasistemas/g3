@@ -1,12 +1,26 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (salvar)="submit()"
+  (excluir)="editingId && delete(editingId)"
+  (novo)="startNew()"
+  (cancelar)="resetForm()"
+  (imprimir)="printCurrent()"
+  (buscar)="onBuscar()"
+  (fechar)="closeForm()"
+>
+  <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 <header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Administrativo • Ofícios</p>
-    <p class="page-title__label">Gestão de criação, envio, recebimento e tramitação</p>
+    <p class="page-title__eyebrow">Administrativo � Oficios</p>
+    <p class="page-title__label">Gestao de criacao, envio, recebimento e tramitacao</p>
+
+    <p class="page-title__note">Controle de criacao, envio e tramitacao de oficios.</p>
   </header>
 
   <section class="cadastro">
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas etapas do ofício</p>
+    <p class="tab-shell__title">Navegue pelas etapas do oficio</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -29,16 +43,15 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
-    <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
 
     <ng-template #navigationControls>
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Próximo: {{ nextTabLabel }}
+          Proximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
-          {{ saving ? 'Salvando...' : 'Salvar ofício' }}
+          {{ saving ? 'Salvando...' : 'Salvar oficio' }}
         </button>
       </div>
     </ng-template>
@@ -47,143 +60,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Defina quem emite, quem recebe e registre protocolos de envio e recebimento.</p>
-        </div>
-        <div class="tab-card__actions">
-          <span class="pill">Controle de fluxo</span>
-          <div class="nav-buttons" aria-label="Ações rápidas do ofício">
-            <button type="button" class="nav-button" (click)="printCurrent()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M6 4.5C6 3.67157 6.67157 3 7.5 3H12.5C13.3284 3 14 3.67157 14 4.5V6H6V4.5Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M5 6H15C16.1046 6 17 6.89543 17 8V11.5C17 12.3284 16.3284 13 15.5 13H14V14.5C14 15.3284 13.3284 16 12.5 16H7.5C6.67157 16 6 15.3284 6 14.5V13H4.5C3.67157 13 3 12.3284 3 11.5V8C3 6.89543 3.89543 6 5 6ZM7.5 8.75C7.22386 8.75 7 8.97386 7 9.25C7 9.52614 7.22386 9.75 7.5 9.75H12.5C12.7761 9.75 13 9.52614 13 9.25C13 8.97386 12.7761 8.75 12.5 8.75H7.5Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Imprimir dados</span>
-            </button>
-            <button type="button" class="nav-button" (click)="submit()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M5 3C4.44772 3 4 3.44772 4 4V16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16V6.41421C16 6.149 15.8946 5.89464 15.7071 5.70711L13.2929 3.29289C13.1054 3.10536 12.851 3 12.5858 3H5Z"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                  />
-                  <path d="M7 3.5H12V7H7V3.5Z" fill="currentColor" />
-                  <rect x="7" y="11.5" width="6" height="3" rx="0.5" fill="currentColor" />
-                </svg>
-              </span>
-              <span class="nav-button__label">Salvar</span>
-            </button>
-            <button type="button" class="nav-button" (click)="resetForm()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M4.5 10C4.5 7.51472 6.51472 5.5 9 5.5H12.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M12 3.5L14.5 5.75L12 8"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M15.5 10C15.5 12.4853 13.4853 14.5 11 14.5H7.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M8 16.5L5.5 14.25L8 12"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Cancelar</span>
-            </button>
-            <button
-              type="button"
-              class="nav-button nav-button--danger"
-              *ngIf="editingId"
-              (click)="delete(editingId)"
-            >
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M8 3.5H12C12.2761 3.5 12.5 3.72386 12.5 4V4.5H16"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path d="M4 4.5H7.5V4C7.5 3.72386 7.72386 3.5 8 3.5" stroke="currentColor" stroke-width="1.25" />
-                  <path
-                    d="M6.5 7.5V15.5C6.5 16.0523 6.94772 16.5 7.5 16.5H12.5C13.0523 16.5 13.5 16.0523 13.5 15.5V7.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path d="M9.25 9.5V14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
-                  <path d="M10.75 9.5V14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" />
-                </svg>
-              </span>
-              <span class="nav-button__label">Excluir</span>
-            </button>
-            <button type="button" class="nav-button" (click)="startNew()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M10 4.5V15.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M4.5 10H15.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Novo</span>
-            </button>
-            <button type="button" class="nav-button" (click)="closeForm()">
-              <span class="nav-button__icon" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M6.5 6.5L13.5 13.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M13.5 6.5L6.5 13.5"
-                    stroke="currentColor"
-                    stroke-width="1.25"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </span>
-              <span class="nav-button__label">Fechar</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -191,11 +67,11 @@
         <div class="field-grid cols-3">
           <label class="field">Tipo de registro*
             <select formControlName="tipo">
-              <option value="emissao">Emissão</option>
+              <option value="emissao">Emissao</option>
               <option value="recebimento">Recebimento</option>
             </select>
           </label>
-          <label class="field">Número do ofício*
+          <label class="field">Numero do oficio*
             <input formControlName="numero" placeholder="Ex.: 013/2025" />
           </label>
           <label class="field">Data*
@@ -204,10 +80,10 @@
           <label class="field">Setor/Unidade de origem*
             <input formControlName="setorOrigem" />
           </label>
-          <label class="field">Responsável pela emissão*
+          <label class="field">Responsavel pela emissao*
             <input formControlName="responsavel" />
           </label>
-          <label class="field">Destinatário*
+          <label class="field">Destinatario*
             <input formControlName="destinatario" />
           </label>
           <label class="field">Meio de envio*
@@ -218,8 +94,8 @@
           <label class="field">Prazo de resposta
             <input formControlName="prazoResposta" placeholder="Ex.: 10 dias" />
           </label>
-          <label class="field">Classificação
-            <input formControlName="classificacao" placeholder="Solicitação, Resposta, Circular..." />
+          <label class="field">Classificacao
+            <input formControlName="classificacao" placeholder="Solicitacao, Resposta, Circular..." />
           </label>
         </div>
       </div>
@@ -227,7 +103,7 @@
       <div class="divider"></div>
 
       <div formGroupName="protocolo" class="field-grid cols-3">
-        <label class="field">Situação do ofício*
+        <label class="field">Situacao do oficio*
           <select formControlName="status">
             <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
           </select>
@@ -244,11 +120,11 @@
         <label class="field">Data de recebimento
           <input type="date" formControlName="dataRecebimento" />
         </label>
-        <label class="field">Próximo destino
-          <input formControlName="proximoDestino" placeholder="Quem receberá o próximo passo" />
+        <label class="field">Proximo destino
+          <input formControlName="proximoDestino" placeholder="Quem recebera o proximo passo" />
         </label>
-        <label class="field full">Observações
-          <textarea rows="2" formControlName="observacoes" placeholder="Instruções de protocolo ou pendências"></textarea>
+        <label class="field full">Observacoes
+          <textarea rows="2" formControlName="observacoes" placeholder="Instrucoes de protocolo ou pendencias"></textarea>
         </label>
         <div class="feature-grid">
           <button type="button" class="primary" (click)="registrarEnvio()">Registrar envio</button>
@@ -265,30 +141,30 @@
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Estruture o texto conforme o modelo institucional apresentado.</p>
         </div>
-        <span class="pill">Layout do ofício</span>
+        <span class="pill">Layout do oficio</span>
       </div>
 
       <div formGroupName="conteudo" class="field-grid cols-2">
-        <label class="field">Razão social com logomarca*
-          <input formControlName="razaoSocial" placeholder="Título com razão social" />
+        <label class="field">Razao social com logomarca*
+          <input formControlName="razaoSocial" placeholder="Titulo com razao social" />
         </label>
         <label class="field">URL da logomarca (opcional)
-          <input formControlName="logoUrl" placeholder="Cole o endereço da imagem da logomarca" />
+          <input formControlName="logoUrl" placeholder="Cole o endereco da imagem da logomarca" />
         </label>
-        <label class="field">Título do documento
-          <input formControlName="titulo" placeholder="OFÍCIO ..." />
+        <label class="field">Titulo do documento
+          <input formControlName="titulo" placeholder="OFICIO ..." />
         </label>
-        <label class="field">Saudação
+        <label class="field">Saudacao
           <input formControlName="saudacao" placeholder="Prezado(a)," />
         </label>
         <label class="field full">Assunto*
           <input formControlName="assunto" placeholder="Assunto em destaque" />
         </label>
-        <label class="field full">Corpo do ofício*
-          <textarea rows="6" formControlName="corpo" placeholder="Texto principal escrito pelo usuário"></textarea>
+        <label class="field full">Corpo do oficio*
+          <textarea rows="6" formControlName="corpo" placeholder="Texto principal escrito pelo usuario"></textarea>
         </label>
-        <label class="field full">Finalização
-          <textarea rows="2" formControlName="finalizacao" placeholder="Agradecimento e considerações finais"></textarea>
+        <label class="field full">Finalizacao
+          <textarea rows="2" formControlName="finalizacao" placeholder="Agradecimento e consideracoes finais"></textarea>
         </label>
         <label class="field">Assinatura - Nome
           <input formControlName="assinaturaNome" />
@@ -296,8 +172,8 @@
         <label class="field">Assinatura - Cargo
           <input formControlName="assinaturaCargo" />
         </label>
-        <label class="field full">Rodapé com dados da instituição
-          <textarea rows="2" formControlName="rodape" placeholder="Endereço, CNPJ, contatos e site"></textarea>
+        <label class="field full">Rodape com dados da instituicao
+          <textarea rows="2" formControlName="rodape" placeholder="Endereco, CNPJ, contatos e site"></textarea>
         </label>
       </div>
 
@@ -312,7 +188,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Controle a trilha do ofício: onde está, quem assinou e qual o próximo passo.</p>
+          <p class="muted">Controle a trilha do oficio: onde esta, quem assinou e qual o proximo passo.</p>
         </div>
       </div>
 
@@ -326,25 +202,25 @@
         <label class="field">Destino
           <input formControlName="destino" placeholder="Para onde segue" />
         </label>
-        <label class="field">Responsável
+        <label class="field">Responsavel
           <input formControlName="responsavel" placeholder="Quem movimentou" />
         </label>
-        <label class="field full">Ação realizada*
-          <input formControlName="acao" placeholder="Envio, Análise, Assinatura, Devolução..." />
+        <label class="field full">Acao realizada*
+          <input formControlName="acao" placeholder="Envio, Analise, Assinatura, Devolucao..." />
         </label>
-        <label class="field full">Observações
-          <textarea rows="2" formControlName="observacoes" placeholder="Pendências, documentos anexos ou prazos"></textarea>
+        <label class="field full">Observacoes
+          <textarea rows="2" formControlName="observacoes" placeholder="Pendencias, documentos anexos ou prazos"></textarea>
         </label>
       </div>
 
       <div class="actions">
-        <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitação</button>
+        <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitacao</button>
       </div>
 
       <div class="timeline" *ngIf="tramites.length > 0">
         <div class="timeline__header">
           <div>
-            <p class="page-title__eyebrow">Histórico de tramitação</p>
+            <p class="page-title__eyebrow">Historico de tramitacao</p>
             <p class="page-title__label">Controle de onde parou e para onde vai</p>
           </div>
         </div>
@@ -353,8 +229,8 @@
             <div class="timeline__bullet"></div>
             <div class="timeline__content">
               <p class="timeline__title">{{ tramite.acao }}</p>
-              <p class="muted">{{ tramite.data | date: 'dd/MM/yyyy' }} • {{ tramite.origem || 'Origem não informada' }} → {{ tramite.destino || 'Destino não informado' }}</p>
-              <p class="muted">Responsável: {{ tramite.responsavel || 'Sem responsável' }}</p>
+              <p class="muted">{{ tramite.data | date: 'dd/MM/yyyy' }} � {{ tramite.origem || 'Origem nao informada' }} ? {{ tramite.destino || 'Destino nao informado' }}</p>
+              <p class="muted">Responsavel: {{ tramite.responsavel || 'Sem responsavel' }}</p>
               <p class="muted" *ngIf="tramite.observacoes">Notas: {{ tramite.observacoes }}</p>
             </div>
           </li>
@@ -376,9 +252,9 @@
         <div class="summary-card">
           <p class="summary-card__title">Dados principais</p>
           <ul>
-            <li><strong>Nº do ofício:</strong> {{ form.value.identificacao?.numero || '—' }}</li>
+            <li><strong>N� do oficio:</strong> {{ form.value.identificacao?.numero || '-' }}</li>
             <li><strong>Origem:</strong> {{ form.value.identificacao?.setorOrigem }}</li>
-            <li><strong>Destinatário:</strong> {{ form.value.identificacao?.destinatario }}</li>
+            <li><strong>Destinatario:</strong> {{ form.value.identificacao?.destinatario }}</li>
             <li><strong>Meio:</strong> {{ form.value.identificacao?.meioEnvio }}</li>
             <li><strong>Status:</strong> {{ form.value.protocolo?.status }}</li>
           </ul>
@@ -386,72 +262,73 @@
         <div class="summary-card">
           <p class="summary-card__title">Protocolos</p>
           <ul>
-            <li><strong>Envio:</strong> {{ form.value.protocolo?.protocoloEnvio || '—' }} {{ form.value.protocolo?.dataEnvio ? '(' + (form.value.protocolo?.dataEnvio | date:'dd/MM/yyyy') + ')' : '' }}</li>
-            <li><strong>Recebimento:</strong> {{ form.value.protocolo?.protocoloRecebimento || '—' }} {{ form.value.protocolo?.dataRecebimento ? '(' + (form.value.protocolo?.dataRecebimento | date:'dd/MM/yyyy') + ')' : '' }}</li>
-            <li><strong>Próximo destino:</strong> {{ form.value.protocolo?.proximoDestino || '—' }}</li>
-            <li><strong>Observações:</strong> {{ form.value.protocolo?.observacoes || 'Sem observações' }}</li>
+            <li><strong>Envio:</strong> {{ form.value.protocolo?.protocoloEnvio || '-' }} {{ form.value.protocolo?.dataEnvio ? '(' + (form.value.protocolo?.dataEnvio | date:'dd/MM/yyyy') + ')' : '' }}</li>
+            <li><strong>Recebimento:</strong> {{ form.value.protocolo?.protocoloRecebimento || '-' }} {{ form.value.protocolo?.dataRecebimento ? '(' + (form.value.protocolo?.dataRecebimento | date:'dd/MM/yyyy') + ')' : '' }}</li>
+            <li><strong>Proximo destino:</strong> {{ form.value.protocolo?.proximoDestino || '-' }}</li>
+            <li><strong>Observacoes:</strong> {{ form.value.protocolo?.observacoes || 'Sem observacoes' }}</li>
           </ul>
         </div>
         <div class="summary-card full">
-          <p class="summary-card__title">Conteúdo</p>
+          <p class="summary-card__title">Conteudo</p>
           <p><strong>Assunto:</strong> {{ form.value.conteudo?.assunto }}</p>
           <p><strong>Corpo:</strong> {{ form.value.conteudo?.corpo }}</p>
-          <p><strong>Finalização:</strong> {{ form.value.conteudo?.finalizacao }}</p>
-          <p><strong>Assinatura:</strong> {{ form.value.conteudo?.assinaturaNome }} • {{ form.value.conteudo?.assinaturaCargo }}</p>
+          <p><strong>Finalizacao:</strong> {{ form.value.conteudo?.finalizacao }}</p>
+          <p><strong>Assinatura:</strong> {{ form.value.conteudo?.assinaturaNome }} � {{ form.value.conteudo?.assinaturaCargo }}</p>
         </div>
       </div>
 
       <div class="actions">
-        <button type="button" class="ghost" (click)="imprimirRascunho()">Gerar ofício para impressão</button>
+        <button type="button" class="ghost" (click)="imprimirRascunho()">Gerar oficio para impressao</button>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
-  </form>
 
-  <div class="list-card">
-    <div class="list-card__header">
-      <div>
-        <p class="page-title__eyebrow">Ofícios registrados</p>
-        <p class="page-title__label">Acompanhe a situação, local atual e protocolos</p>
+    <div class="tab-card" *ngIf="activeTab === 'listagem'">
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Oficios registrados</p>
+            <p class="page-title__label">Acompanhe a situacao, local atual e protocolos</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N�</th>
+                <th>Assunto</th>
+                <th>Status</th>
+                <th>Local atual</th>
+                <th>Destino</th>
+                <th>Protocolos</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let oficio of oficios">
+                <td>{{ oficio.identificacao.numero }}</td>
+                <td>{{ oficio.conteudo.assunto }}</td>
+                <td><span class="status-pill">{{ oficio.protocolo.status }}</span></td>
+                <td>{{ getLocalAtual(oficio) }}</td>
+                <td>{{ oficio.protocolo.proximoDestino || oficio.identificacao.destinatario }}</td>
+                <td>
+                  <div class="muted">Envio: {{ oficio.protocolo.protocoloEnvio || '-' }}</div>
+                  <div class="muted">Receb.: {{ oficio.protocolo.protocoloRecebimento || '-' }}</div>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button type="button" class="ghost" (click)="edit(oficio)">Editar</button>
+                    <button type="button" class="ghost" (click)="imprimirModelo(oficio)">Visualizar</button>
+                    <button type="button" class="ghost" (click)="delete(oficio.id)">Excluir</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Nº</th>
-            <th>Assunto</th>
-            <th>Status</th>
-            <th>Local atual</th>
-            <th>Destino</th>
-            <th>Protocolos</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let oficio of oficios">
-            <td>{{ oficio.identificacao.numero }}</td>
-            <td>{{ oficio.conteudo.assunto }}</td>
-            <td><span class="status-pill">{{ oficio.protocolo.status }}</span></td>
-            <td>{{ getLocalAtual(oficio) }}</td>
-            <td>{{ oficio.protocolo.proximoDestino || oficio.identificacao.destinatario }}</td>
-            <td>
-              <div class="muted">Envio: {{ oficio.protocolo.protocoloEnvio || '—' }}</div>
-              <div class="muted">Receb.: {{ oficio.protocolo.protocoloRecebimento || '—' }}</div>
-            </td>
-            <td>
-              <div class="table-actions">
-                <button type="button" class="ghost" (click)="edit(oficio)">Editar</button>
-                <button type="button" class="ghost" (click)="imprimirModelo(oficio)">Visualizar</button>
-                <button type="button" class="ghost" (click)="delete(oficio.id)">Excluir</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  </form>
 </section>
 </app-tela-padrao>
-

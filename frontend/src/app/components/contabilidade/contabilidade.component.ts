@@ -84,12 +84,13 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   readonly faArrowTrendUp = faArrowTrendUp;
   readonly faArrowTrendDown = faArrowTrendDown;
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   popupErros: string[] = [];
@@ -284,7 +285,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       excluir: bloqueado,
       novo: bloqueado,
       cancelar: bloqueado,
-      imprimir: false
+      imprimir: false,
+      buscar: false
     };
   }
 
@@ -808,6 +810,10 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   onImprimir(): void {
     this.printResumo();
+  }
+
+  onBuscar(): void {
+    this.changeTab('lancamentos');
   }
 
   onFechar(): void {

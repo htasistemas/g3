@@ -7,11 +7,13 @@
   (novo)="novaVisita()"
   (cancelar)="resetForm()"
   (imprimir)="imprimirVisita()"
+  (buscar)="onBuscar()"
   (fechar)="closeForm()"
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Visita domiciliar</p>
+    <p class="page-title__label">Visita domiciliar</p>
+    <p class="page-title__note">Registro e acompanhamento de visitas domiciliares.</p>
   </header>
 
   <section class="cadastro">
@@ -428,4 +430,6 @@
   </form>
 </section>
 </app-tela-padrao>
+
+
 

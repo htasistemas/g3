@@ -1,12 +1,14 @@
-﻿<app-tela-padrao
+<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   (novo)="abrirFormularioNovo()"
   (cancelar)="acaoCancelar()"
+  (buscar)="onBuscar()"
 >
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Administrativo</p>
     <p class="page-title__label">Fotos e Eventos</p>
+    <p class="page-title__note">Gestao de eventos e galeria de fotos.</p>
     <p class="page-title__description">
       Registre eventos da instituicao, organize a galeria e mantenha os registros sempre acessiveis.
     </p>
@@ -388,3 +390,5 @@
   (confirmar)="executarExcluir()"
   (cancelar)="cancelarExcluir()"
 ></app-dialog>
+
+

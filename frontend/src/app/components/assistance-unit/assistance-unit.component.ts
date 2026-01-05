@@ -54,12 +54,13 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
   deleteConfirmation = false;
   activeTab: (typeof this.tabs)[number]['id'] = 'dados';
   private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
   printDialogOpen = false;
 
@@ -183,8 +184,14 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     return {
       salvar: this.form?.invalid ?? false,
       excluir: !this.unidade?.id,
-      imprimir: !this.unidade
+      imprimir: !this.unidade,
+      buscar: false
     };
+  }
+
+  onBuscar(): void {
+    this.activeTab = 'lista';
+    this.loadUnits();
   }
 
   get podeMarcarPrincipal(): boolean {

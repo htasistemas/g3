@@ -119,3 +119,28 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
   font-size: 0.75rem;
   color: #dc2626;
 }
+
+.page-title {
+  position: relative;
+}
+
+.page-title__note {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  max-width: 45%;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .page-title__note {
+    position: static;
+    max-width: 100%;
+    text-align: left;
+    margin-top: 0.35rem;
+  }
+}

@@ -59,12 +59,13 @@ export class VisitaDomiciliarGestaoComponent
   unidades: string[] = [];
   unidadePrincipalNome: string | null = null;
   readonly responsaveis = ['Equipe Social', 'Equipe Técnica', 'Voluntário dedicado'];
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
   beneficiariosDados: BeneficiaryPayload[] = [];
   beneficiarioOpcoes: AutocompleteOpcao[] = [];
@@ -238,7 +239,8 @@ export class VisitaDomiciliarGestaoComponent
     return {
       salvar: this.saving || this.visitForm.invalid,
       excluir: !this.editingId,
-      imprimir: !this.editingId
+      imprimir: !this.editingId,
+      buscar: false
     };
   }
 
@@ -333,6 +335,11 @@ export class VisitaDomiciliarGestaoComponent
     });
 
     this.filteredVisitas.sort((a, b) => (a.dataVisita < b.dataVisita ? 1 : -1));
+  }
+
+  onBuscar(): void {
+    this.changeTab('historico');
+    this.aplicarFiltros();
   }
 
   submit(): void {

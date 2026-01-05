@@ -1,7 +1,8 @@
-﻿<app-tela-padrao
+<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  (buscar)="searchBeneficiaries()"
   (salvar)="onSave()"
   (excluir)="handleDeleteSelected()"
   (novo)="startNewBeneficiario()"
@@ -11,7 +12,8 @@
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Beneficiario</p>
-    <p class="page-title__label">Cadastro de beneficiario</p>
+    <p class="page-title__label">Cadastro de beneficiario</p>
+    <p class="page-title__note">Cadastro e acompanhamento de beneficiarios.</p>
   </header>
 
   <section class="cadastro">
@@ -1046,6 +1048,8 @@
   </div>
 </section>
 </app-tela-padrao>
+
+
 
 
 

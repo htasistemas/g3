@@ -1,31 +1,9 @@
 .nav-buttons {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.nav-buttons__group {
-  display: flex;
-  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 0.4rem;
-  min-width: 0;
-}
-
-.nav-buttons__group--left,
-.nav-buttons__group--right {
-  flex: 1;
-}
-
-.nav-buttons__group--center {
-  flex: 0 0 auto;
-  justify-content: center;
-}
-
-.nav-buttons__group--right {
-  justify-content: flex-end;
 }
 
 .nav-button {

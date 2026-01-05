@@ -7,6 +7,7 @@
   (novo)="iniciarNovaSolicitacao()"
   (cancelar)="limparFormularioSolicitacao()"
   (imprimir)="printSection()"
+  (buscar)="onBuscar()"
   (fechar)="fecharTela()"
 >
 <header class="page-title" slot="titulo">
@@ -15,6 +16,7 @@
   <div class="page-title__headline">
     <div>
       <p class="page-title__label">Autoriza&ccedil;&atilde;o de compras</p>
+      <p class="page-title__note">Gestao de solicitacoes e autorizacoes de compras.</p>
         </div>
     </div>
   </div>
@@ -1046,4 +1048,6 @@
   </ng-template>
 </section>
 </app-tela-padrao>
+
+
 

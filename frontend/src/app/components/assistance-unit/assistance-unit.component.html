@@ -7,11 +7,15 @@
   (cancelar)="resetForm()"
   (excluir)="requestDeletion()"
   (novo)="startNew()"
+  (buscar)="onBuscar()"
   (fechar)="closeForm()"
 >
-<header class="page-title" slot="titulo">
-  <p class="page-title__eyebrow">Unidade assistencial</p>
-  <p class="page-title__label">Cadastro de unidades</p>    
+<header class="page-title page-title--row" slot="titulo">
+  <div>
+    <p class="page-title__eyebrow">Unidade assistencial</p>
+    <p class="page-title__label">Cadastro de unidades</p>
+  </div>
+  <p class="page-title__note">Cadastro e gestao das unidades assistenciais.</p>
 </header>
 
 <section class="unit-page">
@@ -468,4 +472,5 @@
   </section>
 </section>
 </app-tela-padrao>
+
 

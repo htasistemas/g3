@@ -30,7 +30,6 @@ import { ProntuarioPageComponent } from './components/prontuario-page/prontuario
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
 import { DataManagementComponent } from './components/data-management/data-management.component';
-import { ImportManagementComponent } from './components/import-management/import-management.component';
 import { AutorizacaoComprasComponent } from './components/autorizacao-compras/autorizacao-compras.component';
 import { FotosEventosComponent } from './components/fotos-eventos/fotos-eventos.component';
 
@@ -155,11 +154,7 @@ export const routes: Routes = [
         component: DataManagementComponent,
         data: { title: 'Gerenciamento de Dados' }
       },
-      {
-        path: 'configuracoes/importacao',
-        component: ImportManagementComponent,
-        data: { title: 'Importacao de dados' }
-      },
+      { path: 'configuracoes/importacao', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
       {
         path: 'configuracoes/personalizacao',
         redirectTo: 'configuracoes/parametros',

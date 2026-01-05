@@ -109,15 +109,17 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     { valor: 'MAIS_FOTOS', label: 'Mais fotos' }
   ];
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     novo: true,
-    cancelar: true
+    cancelar: true,
+    buscar: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
     return {
       novo: this.salvandoEvento || this.enviandoFotos,
-      cancelar: this.salvandoEvento || this.enviandoFotos
+      cancelar: this.salvandoEvento || this.enviandoFotos,
+      buscar: this.salvandoEvento || this.enviandoFotos
     };
   }
 
@@ -248,6 +250,14 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     });
     this.paginaAtual = 0;
     this.carregarEventos();
+  }
+
+  onBuscar(): void {
+    if (this.mostrandoDetalhe) {
+      this.voltarLista();
+      return;
+    }
+    this.aplicarFiltros();
   }
 
   proximaPagina(): void {

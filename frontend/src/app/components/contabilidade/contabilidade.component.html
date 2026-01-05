@@ -7,11 +7,13 @@
   (novo)="onNovo()"
   (cancelar)="onCancelar()"
   (imprimir)="onImprimir()"
+  (buscar)="onBuscar()"
   (fechar)="onFechar()"
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Financeiro - Contabilidade</p>
     <p class="page-title__label">Gestao de contas a pagar e a receber</p>
+    <p class="page-title__note">Gestao de contas a pagar, receber e movimentacoes.</p>
   </header>
 
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
@@ -1178,6 +1180,8 @@
   (cancelar)="cancelarDialogo()"
 ></app-dialog>
 </app-tela-padrao>
+
+
 
 
 

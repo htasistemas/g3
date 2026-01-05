@@ -176,7 +176,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     novo: true,
     cancelar: true,
     imprimir: true,
-    buscar: false
+    buscar: true
   });
 
   ngOnInit(): void {
@@ -270,7 +270,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       novo: this.saving,
       cancelar: this.saving,
       imprimir: this.saving,
-      buscar: true
+      buscar: this.saving
     };
   }
 
@@ -291,6 +291,11 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   onCancelarToolbar(): void {
     this.saving = false;
     this.resetItemForm();
+  }
+
+  onBuscarToolbar(): void {
+    this.changeTab('itens');
+    this.loadItems();
   }
 
   onExcluirToolbar(): void {

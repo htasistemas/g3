@@ -41,10 +41,8 @@ Agentes nao devem:
 - E proibido duplicar eventos de clique (ex.: `click` + `mouseup`, multiplos listeners ou `HostListener` duplicado).
 - Evitar overlays capturando clique quando nao estiverem ativos (ajustar `pointer-events`/`z-index` quando aplicavel).
 - Padrão oficial de botoes de navegacao G3:
-  - Ordem: Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar.
-  - Agrupamento visual: grupo esquerdo (Buscar, Novo), grupo central (Salvar), grupo direito (Cancelar, Excluir, Imprimir, Fechar).
-  - Observacoes: Excluir deve ficar isolado de Salvar com espacamento padrao; Fechar deve ser o ultimo botao à direita.
-  - Referencia: seguir layout do Cadastro de Beneficiario.
+  - Ordem (linha unica): Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar.
+  - Observacoes: manter o layout do Cadastro de Beneficiario; Excluir nao deve ficar colado em Salvar; Fechar deve ser o ultimo botao.
 
 ## Angular (Frontend)
 - Nao adicionar logica pesada em templates.
@@ -57,6 +55,7 @@ Agentes nao devem:
 - `app-tela-padrao` deve posicionar a `app-barra-acoes-crud` no canto superior direito, alinhada ao titulo (fora de cards e formularios), com as acoes via input; "cancelar" deve limpar todos os campos, mesmo em cadastro novo.
 - Titulos de telas devem seguir o mesmo padrao visual dos cadastros base (classe `page-title__eyebrow` com tamanho 0.95rem e `page-title__label` com tamanho 1.5rem e peso 800).
 - Sempre que for solicitado criar uma listagem, usar como modelo a listagem de beneficiarios (filtros, card de item ativo, lista e paginacao) e manter o mesmo padrao visual.
+- Toda nova tela deve incluir um comentario didatico no topo direito da area de titulo explicando o objetivo da tela (ex.: "Doacao realizada ao beneficiario"), seguindo o mesmo padrao visual ja usado nas telas existentes.
 
 ### Campos padronizados
 - Sempre aplicar capitalizacao: cada palavra deve iniciar com maiuscula e o restante minusculo em campos de texto (nome fantasia, razao social, endereco, bairro, cidade, horario, responsavel etc.), exceto quando o campo aceita livre texto longo (observacoes) ou emails.

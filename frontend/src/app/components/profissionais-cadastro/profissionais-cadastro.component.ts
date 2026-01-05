@@ -366,7 +366,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -375,7 +376,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       excluir: !this.editingId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.saving
+      imprimir: this.saving,
+      buscar: this.saving
     };
   }
 
@@ -861,6 +863,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.setFeedback('Não foi possível carregar os profissionais.');
         }
       });
+  }
+
+  onBuscar(): void {
+    this.changeTab('lista');
+    this.applyListFilters();
   }
 
   private applyListFilters(): void {

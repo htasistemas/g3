@@ -1,7 +1,11 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface TramiteRegistro {
-  data: string;
+  data?: string;
   origem?: string;
   destino?: string;
   responsavel?: string;
@@ -26,13 +30,13 @@ export interface OficioPayload {
     razaoSocial: string;
     logoUrl?: string;
     titulo?: string;
-    saudacao: string;
+    saudacao?: string;
     assunto: string;
     corpo: string;
-    finalizacao: string;
-    assinaturaNome: string;
-    assinaturaCargo: string;
-    rodape: string;
+    finalizacao?: string;
+    assinaturaNome?: string;
+    assinaturaCargo?: string;
+    rodape?: string;
   };
   protocolo: {
     status: string;
@@ -46,50 +50,55 @@ export interface OficioPayload {
   tramites: TramiteRegistro[];
 }
 
+interface OficioListaResponse {
+  oficios: OficioPayload[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class OficioService {
-  private readonly storageKey = 'g3.oficios';
+  private readonly baseUrl = `${environment.apiUrl}/api/oficios`;
 
-  list(): OficioPayload[] {
-    try {
-      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(this.storageKey) : null;
-      return saved ? (JSON.parse(saved) as OficioPayload[]) : [];
-    } catch (error) {
-      console.error('Erro ao ler oficios do armazenamento local', error);
-      return [];
-    }
+  constructor(private readonly http: HttpClient) {}
+
+  list(): Observable<OficioPayload[]> {
+    return this.http
+      .get<OficioListaResponse>(this.baseUrl)
+      .pipe(map((response) => (response?.oficios ?? []).map((item) => this.normalizar(item))))
+      .pipe(catchError(this.logAndRethrow('ao carregar oficios')));
   }
 
-  create(payload: OficioPayload): OficioPayload {
-    const record: OficioPayload = {
-      ...payload,
-      id: payload.id ?? crypto.randomUUID(),
-      tramites: payload.tramites ?? []
+  create(payload: OficioPayload): Observable<OficioPayload> {
+    return this.http
+      .post<OficioPayload>(this.baseUrl, payload)
+      .pipe(map((item) => this.normalizar(item)))
+      .pipe(catchError(this.logAndRethrow('ao criar oficio')));
+  }
+
+  update(id: string, payload: OficioPayload): Observable<OficioPayload> {
+    return this.http
+      .put<OficioPayload>(`${this.baseUrl}/${id}`, payload)
+      .pipe(map((item) => this.normalizar(item)))
+      .pipe(catchError(this.logAndRethrow('ao atualizar oficio')));
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http
+      .delete<void>(`${this.baseUrl}/${id}`)
+      .pipe(catchError(this.logAndRethrow('ao excluir oficio')));
+  }
+
+  private normalizar(oficio: OficioPayload): OficioPayload {
+    return {
+      ...oficio,
+      id: oficio.id ? String(oficio.id) : undefined,
+      tramites: oficio.tramites ?? []
     };
-    const all = [record, ...this.list()];
-    this.persist(all);
-    return record;
   }
 
-  update(id: string, payload: OficioPayload): OficioPayload {
-    const updated: OficioPayload = { ...payload, id };
-    const all = this.list().map((item) => (item.id === id ? updated : item));
-    this.persist(all);
-    return updated;
-  }
-
-  delete(id: string): void {
-    const filtered = this.list().filter((item) => item.id !== id);
-    this.persist(filtered);
-  }
-
-  private persist(data: OficioPayload[]): void {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(this.storageKey, JSON.stringify(data));
-      }
-    } catch (error) {
-      console.error('Erro ao salvar oficios no armazenamento local', error);
-    }
+  private logAndRethrow(operacao: string) {
+    return (error: unknown) => {
+      console.error(`Erro ${operacao}`, error);
+      return throwError(() => error);
+    };
   }
 }

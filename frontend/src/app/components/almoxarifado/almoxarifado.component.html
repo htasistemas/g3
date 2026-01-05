@@ -7,11 +7,13 @@
   (novo)="onNovoToolbar()"
   (cancelar)="onCancelarToolbar()"
   (imprimir)="onImprimirToolbar()"
+  (buscar)="onBuscarToolbar()"
   (fechar)="onFecharToolbar()"
 >
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Almoxarifado</p>
-    <p class="page-title__label">Controle de Estoque</p>
+    <p class="page-title__label">Controle de Estoque</p>
+    <p class="page-title__note">Controle de estoque e movimentacoes do almoxarifado.</p>
   </header>
 
   <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
@@ -631,3 +633,5 @@
     </div>
   </div>
 </app-tela-padrao>
+
+

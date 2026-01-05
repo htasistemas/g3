@@ -150,7 +150,8 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   steps: Step[] = [
@@ -323,7 +324,8 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       excluir: !hasSelected,
       imprimir: false,
       novo: false,
-      cancelar: false
+      cancelar: false,
+      buscar: false
     };
   }
 
@@ -338,6 +340,10 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
 
   limparFormularioSolicitacao(): void {
     this.resetNewRequestForm();
+  }
+
+  onBuscar(): void {
+    this.loadRequests();
   }
 
   private resetNewRequestForm(): void {

@@ -43,12 +43,13 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
   popupErros: string[] = [];
   private popupTimeout?: ReturnType<typeof setTimeout>;
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   tabs: StepTab[] = [
@@ -115,7 +116,8 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
       excluir: !this.editingId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.saving
+      imprimir: this.saving,
+      buscar: this.saving
     };
   }
 
@@ -512,6 +514,11 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
     const target = event.target as HTMLSelectElement | null;
     const value = target?.value ?? '';
     this.statusFiltro = (value as PlanoStatus) || '';
+    this.applyPlanosFilters();
+  }
+
+  onBuscar(): void {
+    this.changeTab('listagem');
     this.applyPlanosFilters();
   }
 

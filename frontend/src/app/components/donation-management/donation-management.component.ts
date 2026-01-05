@@ -134,7 +134,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -143,7 +144,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       excluir: !this.selectedBeneficiary(),
       novo: false,
       cancelar: false,
-      imprimir: false
+      imprimir: false,
+      buscar: false
     };
   }
 
@@ -1088,6 +1090,11 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   onCancelar(): void {
     this.onExcluir();
+  }
+
+  onBuscar(): void {
+    this.changeTab('historico');
+    this.loadDoacoesRealizadas();
   }
 
   onImprimir(): void {

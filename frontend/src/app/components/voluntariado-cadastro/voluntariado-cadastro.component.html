@@ -7,11 +7,13 @@
   (cancelar)="cancelEdit()"
   (excluir)="deleteCurrentVolunteer()"
   (novo)="startNewVolunteer()"
+  (buscar)="onBuscar()"
   (fechar)="closeForm()"
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Voluntariado</p>
-    <p class="page-title__label">Cadastro de voluntário</p>
+    <p class="page-title__label">Cadastro de voluntário</p>
+    <p class="page-title__note">Cadastramento de voluntarios da instituicao.</p>
   </header>
 
   <section class="cadastro">
@@ -393,5 +395,7 @@
   </div>
 </section>
 </app-tela-padrao>
+
+
 
 

@@ -65,12 +65,13 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
   volunteers: VolunteerRecord[] = [];
   listagemForm: FormGroup;
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   readonly diasSemana = ['Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado'];
@@ -195,7 +196,8 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       excluir: !this.editingVolunteerId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.saving
+      imprimir: this.saving,
+      buscar: this.saving
     };
   }
 
@@ -1144,6 +1146,11 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
   limparFiltrosListagem(): void {
     this.listagemForm.reset({ nome: '', cpf: '', codigo: '', dataNascimento: '', status: '' });
+    this.applyListFilters();
+  }
+
+  onBuscar(): void {
+    this.changeTab('lista');
     this.applyListFilters();
   }
 

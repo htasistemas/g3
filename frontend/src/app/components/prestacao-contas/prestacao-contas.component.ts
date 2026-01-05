@@ -61,12 +61,13 @@ export class PrestacaoContasComponent extends TelaBaseComponent {
   readonly faArrowTrendUp = faArrowTrendUp;
   readonly faChartPie = faChartPie;
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   popupErros: string[] = [];
@@ -126,6 +127,11 @@ export class PrestacaoContasComponent extends TelaBaseComponent {
     this.activeTab = tabId;
   }
 
+  onBuscar(): void {
+    this.changeTab('listagem');
+    this.loadTransparencias();
+  }
+
   get recebimentos(): FormArray {
     return this.form.get('recebimentos') as FormArray;
   }
@@ -152,7 +158,8 @@ export class PrestacaoContasComponent extends TelaBaseComponent {
       excluir: !this.editingId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.saving
+      imprimir: this.saving,
+      buscar: this.saving
     };
   }
 

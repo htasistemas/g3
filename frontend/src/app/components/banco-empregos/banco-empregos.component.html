@@ -7,11 +7,13 @@
   (novo)="onNovo()"
   (cancelar)="onCancelar()"
   (imprimir)="onImprimir()"
+  (buscar)="onBuscar()"
   (fechar)="onFechar()"
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Banco de Empregos</p>
+    <p class="page-title__label">Banco de Empregos</p>
+    <p class="page-title__note">Cadastro e acompanhamento de vagas e encaminhamentos.</p>
   </header>
 
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
@@ -285,4 +287,6 @@
   (cancelar)="cancelarDialogo()"
 ></app-dialog>
 </app-tela-padrao>
+
+
 

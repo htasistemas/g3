@@ -4,6 +4,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { OficioPayload, OficioService, TramiteRegistro } from '../../services/oficio.service';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+
 interface StepTab {
   id: string;
   label: string;
@@ -12,29 +16,40 @@ interface StepTab {
 @Component({
   selector: 'app-oficios-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './oficios-gestao.component.html',
   styleUrl: './oficios-gestao.component.scss'
 })
-export class OficiosGestaoComponent {
+export class OficiosGestaoComponent extends TelaBaseComponent {
   form: FormGroup;
   tabs: StepTab[] = [
-    { id: 'identificacao', label: 'Identificação e protocolo' },
-    { id: 'conteudo', label: 'Redação do ofício' },
-    { id: 'tramitacao', label: 'Tramitação e acompanhamento' },
-    { id: 'confirmacao', label: 'Resumo e emissão' }
+    { id: 'identificacao', label: 'Identificacao e protocolo' },
+    { id: 'conteudo', label: 'Redacao do oficio' },
+    { id: 'tramitacao', label: 'Tramitacao e acompanhamento' },
+    { id: 'confirmacao', label: 'Resumo e emissao' },
+    { id: 'listagem', label: 'Oficios registrados' }
   ];
   activeTab = 'identificacao';
   saving = false;
-  feedback: string | null = null;
+  popupErros: string[] = [];
+  popupTitulo = 'Aviso';
   tramites: TramiteRegistro[] = [];
   oficios: OficioPayload[] = [];
   editingId: string | null = null;
 
-  readonly statusOptions = ['Rascunho', 'Em preparação', 'Enviado', 'Recebido', 'Em análise', 'Arquivado'];
+  readonly statusOptions = ['Rascunho', 'Em preparacao', 'Enviado', 'Recebido', 'Em analise', 'Arquivado'];
   readonly meiosEnvio = ['E-mail', 'Correio', 'Entrega presencial', 'Sistema SEI', 'Mensageria'];
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    buscar: true,
+    novo: true,
+    salvar: true,
+    cancelar: true,
+    excluir: true,
+    imprimir: true
+  });
 
   constructor(private readonly fb: FormBuilder, private readonly oficioService: OficioService) {
+    super();
     const initialState = this.buildInitialFormValue();
     this.form = this.fb.group({
       identificacao: this.fb.group({
@@ -98,6 +113,17 @@ export class OficiosGestaoComponent {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
   }
 
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.saving,
+      cancelar: this.saving,
+      novo: this.saving,
+      excluir: !this.editingId,
+      imprimir: this.saving,
+      buscar: this.saving
+    };
+  }
+
   changeTab(tab: string): void {
     this.activeTab = tab;
   }
@@ -129,7 +155,8 @@ export class OficiosGestaoComponent {
   submit(): void {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
-      this.feedback = 'Preencha os campos obrigatórios antes de salvar.';
+      this.popupTitulo = 'Campos obrigatorios';
+      this.popupErros = new PopupErrorBuilder().adicionar('Preencha os campos obrigatorios antes de salvar.').build();
       return;
     }
 
@@ -145,16 +172,39 @@ export class OficiosGestaoComponent {
     };
 
     if (this.editingId) {
-      this.oficioService.update(this.editingId, payload);
-      this.feedback = 'Registro de ofício atualizado com sucesso!';
-    } else {
-      this.oficioService.create(payload);
-      this.feedback = 'Ofício cadastrado e protocolado localmente.';
+      this.oficioService.update(this.editingId, payload).subscribe({
+        next: () => {
+          this.popupTitulo = 'Sucesso';
+          this.popupErros = new PopupErrorBuilder().adicionar('Registro de oficio atualizado com sucesso.').build();
+          this.loadOficios();
+          this.resetState();
+        },
+        error: () => {
+          this.popupTitulo = 'Erro ao salvar';
+          this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o oficio.').build();
+        },
+        complete: () => {
+          this.saving = false;
+        }
+      });
+      return;
     }
 
-    this.loadOficios();
-    this.resetState();
-    this.saving = false;
+    this.oficioService.create(payload).subscribe({
+      next: () => {
+        this.popupTitulo = 'Sucesso';
+        this.popupErros = new PopupErrorBuilder().adicionar('Oficio cadastrado e protocolado com sucesso.').build();
+        this.loadOficios();
+        this.resetState();
+      },
+      error: () => {
+        this.popupTitulo = 'Erro ao salvar';
+        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o oficio.').build();
+      },
+      complete: () => {
+        this.saving = false;
+      }
+    });
   }
 
   imprimirRascunho(): void {
@@ -189,16 +239,26 @@ export class OficiosGestaoComponent {
       }
     });
     this.activeTab = 'identificacao';
-    this.feedback = 'Edição ativa. Atualize os dados e salve para registrar uma nova versão local.';
+    this.popupTitulo = 'Edicao ativa';
+    this.popupErros = new PopupErrorBuilder().adicionar('Edicao ativa. Atualize os dados e salve para registrar a nova versao.').build();
   }
 
   delete(id: string | undefined): void {
     if (!id) return;
-    this.oficioService.delete(id);
-    this.loadOficios();
-    if (this.editingId === id) {
-      this.resetState();
-    }
+    this.oficioService.delete(id).subscribe({
+      next: () => {
+        this.popupTitulo = 'Sucesso';
+        this.popupErros = new PopupErrorBuilder().adicionar('Oficio excluido com sucesso.').build();
+        this.loadOficios();
+        if (this.editingId === id) {
+          this.resetState();
+        }
+      },
+      error: () => {
+        this.popupTitulo = 'Erro ao excluir';
+        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o oficio.').build();
+      }
+    });
   }
 
   printCurrent(): void {
@@ -235,14 +295,21 @@ export class OficiosGestaoComponent {
     const hoje = new Date().toISOString().split('T')[0];
     protocoloGroup?.patchValue({
       dataRecebimento: hoje,
-      protocoloRecebimento:
-        protocoloGroup?.value.protocoloRecebimento || crypto.randomUUID().slice(0, 8),
+      protocoloRecebimento: protocoloGroup?.value.protocoloRecebimento || crypto.randomUUID().slice(0, 8),
       status: 'Recebido'
     });
   }
 
   loadOficios(): void {
-    this.oficios = this.oficioService.list();
+    this.oficioService.list().subscribe({
+      next: (oficios) => {
+        this.oficios = oficios;
+      },
+      error: () => {
+        this.popupTitulo = 'Erro ao carregar';
+        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os oficios.').build();
+      }
+    });
   }
 
   resetForm(): void {
@@ -264,7 +331,7 @@ export class OficiosGestaoComponent {
           }
         });
         this.changeTab('identificacao');
-        this.feedback = null;
+        this.popupErros = [];
         return;
       }
     }
@@ -276,15 +343,19 @@ export class OficiosGestaoComponent {
     this.resetState();
   }
 
+  onBuscar(): void {
+    this.changeTab('listagem');
+  }
+
   closeForm(): void {
     window.history.back();
   }
 
   getLocalAtual(oficio: OficioPayload): string {
     if (oficio.tramites && oficio.tramites.length > 0) {
-      return oficio.tramites[0].destino || oficio.tramites[0].origem || 'Em trânsito';
+      return oficio.tramites[0].destino || oficio.tramites[0].origem || 'Em transito';
     }
-    return oficio.protocolo?.proximoDestino || oficio.identificacao.destinatario || '—';
+    return oficio.protocolo?.proximoDestino || oficio.identificacao.destinatario || '-';
   }
 
   imprimirModelo(oficio: OficioPayload): void {
@@ -298,7 +369,7 @@ export class OficiosGestaoComponent {
     w.document.write(`
       <html>
         <head>
-          <title>${conteudo.titulo || 'Modelo de ofício'}</title>
+          <title>${conteudo.titulo || 'Modelo de oficio'}</title>
           <style>
             body { font-family: 'Times New Roman', serif; margin: 2.5cm; font-size: 12pt; line-height: 1.6; }
             .header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
@@ -317,21 +388,21 @@ export class OficiosGestaoComponent {
             ${logo}
             <div>
               <h1>${conteudo.razaoSocial}</h1>
-              <p class="meta">Ofício nº ${identificacao.numero} | ${identificacao.setorOrigem}</p>
+              <p class="meta">Oficio n� ${identificacao.numero} | ${identificacao.setorOrigem}</p>
               <p class="meta">Data: ${this.formatDate(identificacao.data)}</p>
             </div>
           </div>
-          <div class="meta">Destinatário: ${identificacao.destinatario}</div>
+          <div class="meta">Destinatario: ${identificacao.destinatario}</div>
           <div class="assunto">Assunto: ${conteudo.assunto}</div>
-          <p class="saudacao">${conteudo.saudacao}</p>
+          <p class="saudacao">${conteudo.saudacao || ''}</p>
           <div class="corpo">${conteudo.corpo}</div>
-          <p class="saudacao">${conteudo.finalizacao}</p>
+          <p class="saudacao">${conteudo.finalizacao || ''}</p>
           <div class="assinatura">
-            ${conteudo.assinaturaNome}<br />
-            ${conteudo.assinaturaCargo}
+            ${conteudo.assinaturaNome || ''}<br />
+            ${conteudo.assinaturaCargo || ''}
           </div>
           <div class="rodape">
-            ${conteudo.rodape}<br />
+            ${conteudo.rodape || ''}<br />
             Status: ${protocolo.status}${
       protocolo.protocoloEnvio ? ` | Protocolo de envio: ${protocolo.protocoloEnvio}` : ''
     }${protocolo.protocoloRecebimento ? ` | Protocolo de recebimento: ${protocolo.protocoloRecebimento}` : ''}
@@ -357,26 +428,24 @@ export class OficiosGestaoComponent {
         tipo: 'emissao',
         numero: '',
         data: today,
-        setorOrigem: 'Núcleo de Uberlândia',
-        responsavel: 'Adriano Martins Torres',
-        destinatario: 'Bítrvic Brasil',
+        setorOrigem: '',
+        responsavel: '',
+        destinatario: '',
         meioEnvio: 'E-mail',
         prazoResposta: '',
-        classificacao: 'Solicitação'
+        classificacao: ''
       },
       conteudo: {
-        razaoSocial: 'Justiça em Ação - ADRA Núcleo Uberlândia',
+        razaoSocial: '',
         logoUrl: '',
-        titulo: 'OFÍCIO DE SOLICITAÇÃO DE DOAÇÕES',
-        saudacao: 'Prezado(a),',
-        assunto: 'Solicitação de doação de alimentos e serviços para Feira Solidária',
-        corpo:
-          'A ADRA - Agência Adventista de Desenvolvimento e Recursos Assistenciais Unidade Uberlândia promove a Feira Solidária visando apoiar famílias em situação de vulnerabilidade. Solicitamos apoio na forma de alimentos, serviços e equipe para atendimento ao público durante o evento.',
-        finalizacao: 'Agradecemos antecipadamente e permanecemos à disposição para esclarecimentos.',
-        assinaturaNome: 'Adriano Martins Torres',
-        assinaturaCargo: 'Diretor - ADRA Núcleo Uberlândia',
-        rodape:
-          'ADRA Núcleo de Uberlândia | CNPJ: 60.974.622/0001-71 | Avenida João Pinheiro, 400 - Uberlândia/MG | (34) 3229-9958 | uberlandia@adra.org.br'
+        titulo: '',
+        saudacao: '',
+        assunto: '',
+        corpo: '',
+        finalizacao: '',
+        assinaturaNome: '',
+        assinaturaCargo: '',
+        rodape: ''
       },
       protocolo: {
         status: 'Rascunho',
@@ -403,8 +472,12 @@ export class OficiosGestaoComponent {
     this.tramites = [];
     this.editingId = null;
     this.form.reset(initialState);
-    this.feedback = null;
+    this.popupErros = [];
     this.saving = false;
     this.changeTab('identificacao');
+  }
+
+  fecharPopupErros(): void {
+    this.popupErros = [];
   }
 }

@@ -23,8 +23,7 @@ import {
   faUsers,
   faWallet,
   faWrench,
-  faDatabase,
-  faFileImport
+  faDatabase
 } from '@fortawesome/free-solid-svg-icons';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
@@ -142,8 +141,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       children: [
         { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
         { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
-        { label: 'Gerenciamento de Dados', icon: faDatabase, route: '/configuracoes/gerenciamento-dados' },
-        { label: 'Importacao', icon: faFileImport, route: '/configuracoes/importacao' }
+        { label: 'Gerenciamento de Dados', icon: faDatabase, route: '/configuracoes/gerenciamento-dados' }
       ]
     }
   ];

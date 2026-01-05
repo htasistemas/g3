@@ -37,12 +37,13 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   editingTermoId: string | null = null;
   popupErros: string[] = [];
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   tabs: StepTab[] = [
@@ -101,7 +102,8 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
       excluir: !this.editingTermoId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.saving
+      imprimir: this.saving,
+      buscar: this.saving
     };
   }
 
@@ -167,6 +169,11 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
     const target = event.target as HTMLSelectElement | null;
     const value = target?.value ?? '';
     this.situacaoFiltro = (value as SituacaoTermo) || '';
+    this.applyFilters();
+  }
+
+  onBuscar(): void {
+    this.changeTab('listagem');
     this.applyFilters();
   }
 

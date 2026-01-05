@@ -74,7 +74,8 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
     excluir: false,
     novo: true,
     cancelar: true,
-    imprimir: false
+    imprimir: false,
+    buscar: true
   });
 
   constructor(
@@ -189,7 +190,8 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
       excluir: true,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: true
+      imprimir: true,
+      buscar: this.saving
     };
   }
 
@@ -519,6 +521,11 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
 
   limparFiltrosListagem(): void {
     this.listagemForm.reset({ nome: '', cpf: '', codigo: '', dataNascimento: '', status: '' });
+    this.applyListFilters();
+  }
+
+  onBuscar(): void {
+    this.changeTab('lista');
     this.applyListFilters();
   }
 
@@ -940,6 +947,7 @@ interface ViaCepResponse {
   uf?: string;
   erro?: boolean;
 }
+
 
 
 

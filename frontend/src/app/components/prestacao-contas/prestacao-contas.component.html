@@ -7,12 +7,14 @@
   (novo)="novo()"
   (cancelar)="cancelar()"
   (imprimir)="imprimir()"
+  (buscar)="onBuscar()"
   (fechar)="fechar()"
 >
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Financeiro · Prestacao de contas</p>
     <p class="page-title__label">Transparencia de recursos e destino das doacoes</p>
+    <p class="page-title__note">Transparencia de recursos e destino das doacoes.</p>
     <p class="muted">Demonstracao pensada para organizacoes do terceiro setor e comunicacao direta com doadores.</p>
   </header>
 
@@ -378,3 +380,6 @@
     </form>
   </section>
 </app-tela-padrao>
+
+
+

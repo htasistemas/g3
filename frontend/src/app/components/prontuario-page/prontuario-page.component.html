@@ -5,11 +5,13 @@
   (imprimir)="imprimirCompleto()"
   (novo)="abrirNovoRegistro()"
   (cancelar)="cancelarSelecao()"
+  (buscar)="onBuscar()"
   (fechar)="cancelarSelecao()"
 >
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Benefici&aacute;rio</p>
-    <p class="page-title__label">Prontu&aacute;rio do benefici&aacute;rio</p>
+    <p class="page-title__label">Prontu&aacute;rio do benefici&aacute;rio</p>
+    <p class="page-title__note">Historico e registros do prontuario do beneficiario.</p>
   </header>
 
   <section class="cadastro">
@@ -172,4 +174,6 @@
     </ul>
   </div>
 </app-tela-padrao>
+
+
 

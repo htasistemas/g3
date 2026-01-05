@@ -64,12 +64,13 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     { label: 'Concluída', status: 'Concluída' as TaskRecord['status'], prev: 'Em atraso' as TaskRecord['status'] }
   ];
 
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -78,7 +79,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
       excluir: !this.editingId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: this.imprimindoRelatorio
+      imprimir: this.imprimindoRelatorio,
+      buscar: this.saving
     };
   }
 
@@ -162,6 +164,10 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
 
   changeTab(tabId: StepTab['id']): void {
     this.activeTab = tabId;
+  }
+
+  onBuscar(): void {
+    this.changeTab('lista');
   }
 
   goToNextTab(): void {

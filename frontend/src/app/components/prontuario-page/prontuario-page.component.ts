@@ -84,12 +84,14 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     excluir: true,
     imprimir: true,
     novo: true,
-    cancelar: true
+    cancelar: true,
+    buscar: true
   };
 
   acoesDesabilitadas = {
     salvar: true,
-    excluir: true
+    excluir: true,
+    buscar: false
   };
 
   constructor(
@@ -148,6 +150,14 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     if (this.beneficiarioId) {
       this.carregarRegistros(true);
     }
+  }
+
+  onBuscar(): void {
+    if (this.beneficiarioId) {
+      this.carregarRegistros(true);
+      return;
+    }
+    this.buscarBeneficiario$.next(this.termoBusca);
   }
 
   selecionarAba(id: string, tipo: string): void {

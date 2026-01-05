@@ -26,12 +26,13 @@ import {
   styleUrl: './banco-empregos.component.scss'
 })
 export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
-  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
     excluir: true,
     novo: true,
     cancelar: true,
-    imprimir: true
+    imprimir: true,
+    buscar: true
   });
 
   readonly tabs = [
@@ -128,7 +129,8 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       excluir: this.saving || !this.selectedJobId,
       novo: this.saving,
       cancelar: this.saving,
-      imprimir: false
+      imprimir: false,
+      buscar: false
     };
   }
 
@@ -316,7 +318,7 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
   }
 
   private applyFilters(): void {
-    const term = (this.listSearch.value ?? '').toString().toLowerCase().trim();
+    const term = (this.listSearch.value ?? '').toString().toLowerCase().trim(); 
     const status = this.statusFilter.value ?? 'todos';
 
     this.filteredRecords = this.records.filter((record) => {
@@ -334,6 +336,10 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       const matchesStatus = status === 'todos' ? true : record.dadosVaga?.status === status;
       return matchesTerm && matchesStatus;
     });
+  }
+
+  onBuscar(): void {
+    this.applyFilters();
   }
 
   private setupBeneficiaryLookup(): void {

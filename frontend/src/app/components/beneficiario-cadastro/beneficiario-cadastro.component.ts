@@ -307,6 +307,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   ];
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    buscar: true,
     salvar: true,
     excluir: true,
     novo: true,
@@ -316,6 +317,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
     return {
+      buscar: this.saving || this.uploadingDocuments,
       salvar: this.saving || this.uploadingDocuments,
       excluir: !this.selectedBeneficiary,
       novo: this.saving || this.uploadingDocuments,
