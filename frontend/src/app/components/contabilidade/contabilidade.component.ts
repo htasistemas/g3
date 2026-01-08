@@ -1134,6 +1134,23 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     });
   }
 
+  get cashFlowMax(): number {
+    if (!this.cashFlow.length) {
+      return 0;
+    }
+    return this.cashFlow.reduce((maximo, item) => {
+      const maior = Math.max(item.receivable, item.payable);
+      return maior > maximo ? maior : maximo;
+    }, 0);
+  }
+
+  calcularPercentual(valor: number, maximo: number): number {
+    if (!maximo) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, (valor / maximo) * 100));
+  }
+
   private refreshAlerts(): void {
     const today = new Date();
     const dueSoon = this.agenda

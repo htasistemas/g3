@@ -66,6 +66,15 @@
           <fa-icon [icon]="faUserCircle" class="text-white"></fa-icon>
           <span class="capitalize">{{ username }}</span>
         </span>
+        <button
+          type="button"
+          (click)="toggleTheme()"
+          class="theme-toggle-button"
+          [attr.title]="themeService.currentTheme() === 'dark' ? 'Tema claro' : 'Tema escuro'"
+          [attr.aria-label]="themeService.currentTheme() === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'"
+        >
+          <fa-icon [icon]="themeService.currentTheme() === 'dark' ? faSun : faMoon"></fa-icon>
+        </button>
         <button type="button"
           (click)="logout()"
           class="logout-button"

@@ -71,10 +71,10 @@
         <button
           type="button"
           class="motivo-toggle"
-          *ngIf="beneficiary.aptoReceberCestaBasica === false && motivoCestaBasica()"
+          *ngIf="beneficiary.aptoReceberCestaBasica === false"
           (click)="alternarMotivoCestaBasica()"
         >
-          Motivo
+          Ver motivo
         </button>
       </div>
     </div>
@@ -302,6 +302,7 @@
             <th>Itens</th>
             <th>Situação</th>
             <th>Responsavel</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -320,6 +321,17 @@
             </td>
             <td><span class="status-chip">{{ record.status }}</span></td>
             <td>{{ record.responsible }}</td>
+            <td class="text-right">
+              <button
+                type="button"
+                class="primary"
+                (click)="abrirEdicaoDoacao(record)"
+                [disabled]="!podeEditarDoacao(record)"
+                [attr.title]="podeEditarDoacao(record) ? 'Editar doação' : 'Edição permitida apenas até 10 dias'"
+              >
+                Editar
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -483,6 +495,110 @@
       </ng-template>
     </div>
     <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+  </div>
+</div>
+<div class="modal-backdrop" *ngIf="editModalOpen()">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <p class="eyebrow">Edição</p>
+        <h3>Editar doação realizada</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharEdicaoDoacao()">Fechar</button>
+    </div>
+    <form class="field-grid cols-2 compact" [formGroup]="editForm">
+      <label class="field">Data da doação*
+        <input type="date" formControlName="dataDoacao" />
+      </label>
+      <label class="field">Tipo de doação*
+        <input formControlName="tipoDoacao" placeholder="Ex.: cesta, roupa" />
+      </label>
+      <label class="field">Situação*
+        <input formControlName="situacao" placeholder="Ex.: entregue" />
+      </label>
+      <label class="field">Responsavel*
+        <input formControlName="responsavel" />
+      </label>
+      <label class="field">Observações
+        <input formControlName="observacoes" />
+      </label>
+    </form>
+
+    <div class="stock-picker">
+      <label class="field">Item do almoxarifado*
+        <div class="picker-input">
+          <input placeholder="Selecione um item" [value]="selectedEditItemDescription" readonly />
+          <button type="button" class="ghost" (click)="openStockModal('edit')">Escolher item</button>
+        </div>
+      </label>
+      <div class="field-grid cols-2 compact" [formGroup]="editItemForm">
+        <label class="field">Quantidade*
+          <input type="number" min="1" formControlName="quantity" />
+        </label>
+        <label class="field">Observações do item
+          <input formControlName="notes" placeholder="Ex.: caixa fechada" />
+        </label>
+      </div>
+      <div class="actions-row">
+        <button type="button" class="ghost" (click)="editItemForm.reset({ itemCode: '', quantity: 1, notes: '' })">
+          Limpar item
+        </button>
+        <button type="button" class="primary" (click)="addEditItem()">
+          Incluir item
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="editItems().length; else emptyEditItems">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Quantidade</th>
+            <th>Observações</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of editItems(); index as i">
+            <td>
+              <p class="strong">{{ item.description }}</p>
+              <p class="muted">{{ item.stockCode }}</p>
+            </td>
+            <td>
+              <input
+                type="number"
+                min="1"
+                [ngModel]="item.quantity"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="atualizarQuantidadeEditItem(i, $event)"
+              />
+            </td>
+            <td>
+              <input
+                [ngModel]="item.notes"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="atualizarObservacoesEditItem(i, $event)"
+              />
+            </td>
+            <td class="text-right">
+              <button type="button" class="link danger" (click)="removerEditItem(i)">Remover</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyEditItems>
+      <div class="empty">
+        <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+        <p>Adicione itens para atualizar a doação.</p>
+      </div>
+    </ng-template>
+    <p class="field-error" *ngIf="editError()">{{ editError() }}</p>
+    <div class="tab-actions">
+      <button type="button" class="ghost" (click)="fecharEdicaoDoacao()">Cancelar</button>
+      <button type="button" class="primary" (click)="salvarEdicaoDoacao()">Salvar alterações</button>
+    </div>
   </div>
 </div>
 <div class="modal-backdrop" *ngIf="cancelDialogOpen()">

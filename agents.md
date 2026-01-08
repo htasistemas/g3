@@ -79,6 +79,7 @@ Agentes nao devem:
 - Numeração obrigatoria em todas as paginas no formato "Pagina X de Y".
 - Cabecalho, corpo e rodape devem existir e se repetir em todas as paginas.
   - Cabecalho obrigatorio:
+    - Logomarca da instituicao deve aparecer na lateral (nunca centralizada).
     - Linha 1: Nome da instituicao (centralizado).
     - Linha 2: Nome do relatorio (centralizado).
     - Linha separadora horizontal logo abaixo do titulo.

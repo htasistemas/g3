@@ -47,7 +47,7 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
             "Ficha do Beneficiario",
             corpoHtml,
             unidade,
-            "Sistema",
+            textoSeguro(request.getUsuarioEmissor()),
             LocalDateTime.now());
 
     return HtmlPdfRenderer.render(html);
@@ -55,170 +55,165 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
 
   private String montarCorpo(CadastroBeneficiarioResponse b) {
     StringBuilder sb = new StringBuilder();
-    sb.append("<section>");
-    sb.append("<h3>Dados pessoais</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "Codigo", b.getCodigo());
-    appendLinhaSePreenchido(sb, "Nome completo", b.getNomeCompleto());
-    appendLinhaSePreenchido(sb, "Nome social", b.getNomeSocial());
-    appendLinhaSePreenchido(sb, "Apelido", b.getApelido());
-    appendLinhaSePreenchido(sb, "Data de nascimento", formatarData(b.getDataNascimento()));
-    appendLinhaSePreenchido(sb, "Sexo biologico", b.getSexoBiologico());
-    appendLinhaSePreenchido(sb, "Identidade de genero", b.getIdentidadeGenero());
-    appendLinhaSePreenchido(sb, "Cor raca", b.getCorRaca());
-    appendLinhaSePreenchido(sb, "Estado civil", b.getEstadoCivil());
-    appendLinhaSePreenchido(sb, "Nacionalidade", b.getNacionalidade());
-    appendLinhaSePreenchido(
-        sb, "Naturalidade", juntar(b.getNaturalidadeCidade(), b.getNaturalidadeUf()));
-    appendLinhaSePreenchido(sb, "Nome da mae", b.getNomeMae());
-    appendLinhaSePreenchido(sb, "Nome do pai", b.getNomePai());
-    appendLinhaSePreenchido(sb, "Status", b.getStatus());
-    appendLinhaSePreenchido(
-        sb, "Opta receber cesta basica", formatarBoolean(b.getOptaReceberCestaBasica()));
-    appendLinhaSePreenchido(
-        sb, "Apto receber cesta basica", formatarBoolean(b.getAptoReceberCestaBasica()));
-    sb.append("</table>");
+    sb.append("<section class=\"hero\">");
+    sb.append("<div class=\"hero__photo\">");
+    if (isPreenchido(b.getFoto3x4())) {
+      sb.append("<img src=\"").append(escape(b.getFoto3x4())).append("\" alt=\"Foto 3x4\" />");
+    } else {
+      sb.append("<span>Sem foto</span>");
+    }
+    sb.append("</div>");
+    sb.append("<div class=\"hero__summary\">");
+    sb.append("<p class=\"hero__name\">").append(escape(valorOuNaoInformado(b.getNomeCompleto()))).append("</p>");
+    appendResumo(sb, "Codigo", b.getCodigo());
+    appendResumo(sb, "CPF", b.getCpf());
+    appendResumo(sb, "Nascimento", formatarData(b.getDataNascimento()));
+    sb.append("<span class=\"status-badge ")
+        .append(statusClasse(b.getStatus()))
+        .append("\">")
+        .append(escape(valorOuNaoInformado(b.getStatus())))
+        .append("</span>");
+    sb.append("</div>");
     sb.append("</section>");
 
-    sb.append("<section>");
-    sb.append("<h3>Endereco</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "CEP", b.getCep());
-    appendLinhaSePreenchido(sb, "Logradouro", b.getLogradouro());
-    appendLinhaSePreenchido(sb, "Numero", b.getNumero());
-    appendLinhaSePreenchido(sb, "Complemento", b.getComplemento());
-    appendLinhaSePreenchido(sb, "Bairro", b.getBairro());
-    appendLinhaSePreenchido(sb, "Ponto de referencia", b.getPontoReferencia());
-    appendLinhaSePreenchido(sb, "Municipio", b.getMunicipio());
-    appendLinhaSePreenchido(sb, "UF", b.getUf());
-    appendLinhaSePreenchido(sb, "Zona", b.getZona());
-    appendLinhaSePreenchido(sb, "Subzona", b.getSubzona());
-    appendLinhaSePreenchido(sb, "Latitude", b.getLatitude());
-    appendLinhaSePreenchido(sb, "Longitude", b.getLongitude());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<section class=\"cards cards--two\">");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--pessoais\"><p class=\"card__title\">Dados pessoais</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Codigo", b.getCodigo());
+    appendCampo(sb, "Nome completo", b.getNomeCompleto());
+    appendCampo(sb, "Nome social", b.getNomeSocial());
+    appendCampo(sb, "Apelido", b.getApelido());
+    appendCampo(sb, "Data de nascimento", formatarData(b.getDataNascimento()));
+    appendCampo(sb, "Sexo biologico", b.getSexoBiologico());
+    appendCampo(sb, "Identidade de genero", b.getIdentidadeGenero());
+    appendCampo(sb, "Cor raca", b.getCorRaca());
+    appendCampo(sb, "Estado civil", b.getEstadoCivil());
+    appendCampo(sb, "Nacionalidade", b.getNacionalidade());
+    appendCampo(sb, "Naturalidade", juntar(b.getNaturalidadeCidade(), b.getNaturalidadeUf()));
+    appendCampo(sb, "Nome da mae", b.getNomeMae());
+    appendCampo(sb, "Nome do pai", b.getNomePai());
+    appendCampo(sb, "Status", b.getStatus());
+    appendCampo(sb, "Opta receber cesta basica", formatarBoolean(b.getOptaReceberCestaBasica()));
+    appendCampo(sb, "Apto receber cesta basica", formatarBoolean(b.getAptoReceberCestaBasica()));
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Contatos</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "Telefone principal", b.getTelefonePrincipal());
-    appendLinhaSePreenchido(
-        sb,
-        "Telefone principal whatsapp",
-        formatarBoolean(b.getTelefonePrincipalWhatsapp()));
-    appendLinhaSePreenchido(sb, "Telefone secundario", b.getTelefoneSecundario());
-    appendLinhaSePreenchido(sb, "Telefone recado nome", b.getTelefoneRecadoNome());
-    appendLinhaSePreenchido(sb, "Telefone recado numero", b.getTelefoneRecadoNumero());
-    appendLinhaSePreenchido(sb, "Email", b.getEmail());
-    appendLinhaSePreenchido(
-        sb, "Permite contato telefone", formatarBoolean(b.getPermiteContatoTel()));
-    appendLinhaSePreenchido(
-        sb, "Permite contato whatsapp", formatarBoolean(b.getPermiteContatoWhatsapp()));
-    appendLinhaSePreenchido(
-        sb, "Permite contato sms", formatarBoolean(b.getPermiteContatoSms()));
-    appendLinhaSePreenchido(
-        sb, "Permite contato email", formatarBoolean(b.getPermiteContatoEmail()));
-    appendLinhaSePreenchido(sb, "Horario preferencial", b.getHorarioPreferencialContato());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--endereco\"><p class=\"card__title\">Endereco</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "CEP", b.getCep());
+    appendCampo(sb, "Logradouro", b.getLogradouro());
+    appendCampo(sb, "Numero", b.getNumero());
+    appendCampo(sb, "Complemento", b.getComplemento());
+    appendCampo(sb, "Bairro", b.getBairro());
+    appendCampo(sb, "Ponto de referencia", b.getPontoReferencia());
+    appendCampo(sb, "Municipio", b.getMunicipio());
+    appendCampo(sb, "UF", b.getUf());
+    appendCampo(sb, "Zona", b.getZona());
+    appendCampo(sb, "Subzona", b.getSubzona());
+    appendCampo(sb, "Latitude", b.getLatitude());
+    appendCampo(sb, "Longitude", b.getLongitude());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Documentos</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "CPF", b.getCpf());
-    appendLinhaSePreenchido(sb, "RG numero", b.getRgNumero());
-    appendLinhaSePreenchido(sb, "RG orgao emissor", b.getRgOrgaoEmissor());
-    appendLinhaSePreenchido(sb, "RG UF", b.getRgUf());
-    appendLinhaSePreenchido(sb, "RG data emissao", formatarData(b.getRgDataEmissao()));
-    appendLinhaSePreenchido(sb, "NIS", b.getNis());
-    appendLinhaSePreenchido(sb, "Certidao tipo", b.getCertidaoTipo());
-    appendLinhaSePreenchido(sb, "Certidao livro", b.getCertidaoLivro());
-    appendLinhaSePreenchido(sb, "Certidao folha", b.getCertidaoFolha());
-    appendLinhaSePreenchido(sb, "Certidao termo", b.getCertidaoTermo());
-    appendLinhaSePreenchido(sb, "Certidao cartorio", b.getCertidaoCartorio());
-    appendLinhaSePreenchido(sb, "Certidao municipio", b.getCertidaoMunicipio());
-    appendLinhaSePreenchido(sb, "Certidao UF", b.getCertidaoUf());
-    appendLinhaSePreenchido(sb, "Titulo de eleitor", b.getTituloEleitor());
-    appendLinhaSePreenchido(sb, "CNH", b.getCnh());
-    appendLinhaSePreenchido(sb, "Cartao SUS", b.getCartaoSus());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--contatos\"><p class=\"card__title\">Contatos</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Telefone principal", b.getTelefonePrincipal());
+    appendCampo(sb, "Telefone principal whatsapp", formatarBoolean(b.getTelefonePrincipalWhatsapp()));
+    appendCampo(sb, "Telefone secundario", b.getTelefoneSecundario());
+    appendCampo(sb, "Telefone recado nome", b.getTelefoneRecadoNome());
+    appendCampo(sb, "Telefone recado numero", b.getTelefoneRecadoNumero());
+    appendCampo(sb, "Email", b.getEmail());
+    appendCampo(sb, "Permite contato telefone", formatarBoolean(b.getPermiteContatoTel()));
+    appendCampo(sb, "Permite contato whatsapp", formatarBoolean(b.getPermiteContatoWhatsapp()));
+    appendCampo(sb, "Permite contato sms", formatarBoolean(b.getPermiteContatoSms()));
+    appendCampo(sb, "Permite contato email", formatarBoolean(b.getPermiteContatoEmail()));
+    appendCampo(sb, "Horario preferencial", b.getHorarioPreferencialContato());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Situacao familiar e social</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "Mora com familia", formatarBoolean(b.getMoraComFamilia()));
-    appendLinhaSePreenchido(
-        sb, "Responsavel legal", formatarBoolean(b.getResponsavelLegal()));
-    appendLinhaSePreenchido(sb, "Vinculo familiar", b.getVinculoFamiliar());
-    appendLinhaSePreenchido(
-        sb, "Situacao de vulnerabilidade", b.getSituacaoVulnerabilidade());
-    appendLinhaSePreenchido(sb, "Composicao familiar", b.getComposicaoFamiliar());
-    appendLinhaSePreenchido(
-        sb, "Criancas e adolescentes", formatarNumero(b.getCriancasAdolescentes()));
-    appendLinhaSePreenchido(sb, "Idosos", formatarNumero(b.getIdosos()));
-    appendLinhaSePreenchido(
-        sb, "Acompanhamento CRAS", formatarBoolean(b.getAcompanhamentoCras()));
-    appendLinhaSePreenchido(
-        sb, "Acompanhamento saude", formatarBoolean(b.getAcompanhamentoSaude()));
-    appendLinhaSePreenchido(sb, "Participa comunidade", b.getParticipaComunidade());
-    appendLinhaSePreenchido(sb, "Rede de apoio", b.getRedeApoio());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--documentos\"><p class=\"card__title\">Documentos</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "CPF", b.getCpf());
+    appendCampo(sb, "RG numero", b.getRgNumero());
+    appendCampo(sb, "RG orgao emissor", b.getRgOrgaoEmissor());
+    appendCampo(sb, "RG UF", b.getRgUf());
+    appendCampo(sb, "RG data emissao", formatarData(b.getRgDataEmissao()));
+    appendCampo(sb, "NIS", b.getNis());
+    appendCampo(sb, "Certidao tipo", b.getCertidaoTipo());
+    appendCampo(sb, "Certidao livro", b.getCertidaoLivro());
+    appendCampo(sb, "Certidao folha", b.getCertidaoFolha());
+    appendCampo(sb, "Certidao termo", b.getCertidaoTermo());
+    appendCampo(sb, "Certidao cartorio", b.getCertidaoCartorio());
+    appendCampo(sb, "Certidao municipio", b.getCertidaoMunicipio());
+    appendCampo(sb, "Certidao UF", b.getCertidaoUf());
+    appendCampo(sb, "Titulo de eleitor", b.getTituloEleitor());
+    appendCampo(sb, "CNH", b.getCnh());
+    appendCampo(sb, "Cartao SUS", b.getCartaoSus());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Educacao e trabalho</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(
-        sb, "Sabe ler e escrever", formatarBoolean(b.getSabeLerEscrever()));
-    appendLinhaSePreenchido(sb, "Nivel escolaridade", b.getNivelEscolaridade());
-    appendLinhaSePreenchido(
-        sb, "Estuda atualmente", formatarBoolean(b.getEstudaAtualmente()));
-    appendLinhaSePreenchido(sb, "Ocupacao", b.getOcupacao());
-    appendLinhaSePreenchido(sb, "Situacao trabalho", b.getSituacaoTrabalho());
-    appendLinhaSePreenchido(sb, "Local trabalho", b.getLocalTrabalho());
-    appendLinhaSePreenchido(sb, "Renda mensal", b.getRendaMensal());
-    appendLinhaSePreenchido(sb, "Fonte renda", b.getFonteRenda());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--familia\"><p class=\"card__title\">Situacao familiar e social</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Mora com familia", formatarBoolean(b.getMoraComFamilia()));
+    appendCampo(sb, "Responsavel legal", formatarBoolean(b.getResponsavelLegal()));
+    appendCampo(sb, "Vinculo familiar", b.getVinculoFamiliar());
+    appendCampo(sb, "Situacao de vulnerabilidade", b.getSituacaoVulnerabilidade());
+    appendCampo(sb, "Composicao familiar", b.getComposicaoFamiliar());
+    appendCampo(sb, "Criancas e adolescentes", formatarNumero(b.getCriancasAdolescentes()));
+    appendCampo(sb, "Idosos", formatarNumero(b.getIdosos()));
+    appendCampo(sb, "Acompanhamento CRAS", formatarBoolean(b.getAcompanhamentoCras()));
+    appendCampo(sb, "Acompanhamento saude", formatarBoolean(b.getAcompanhamentoSaude()));
+    appendCampo(sb, "Participa comunidade", b.getParticipaComunidade());
+    appendCampo(sb, "Rede de apoio", b.getRedeApoio());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Saude</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(
-        sb, "Possui deficiencia", formatarBoolean(b.getPossuiDeficiencia()));
-    appendLinhaSePreenchido(sb, "Tipo deficiencia", b.getTipoDeficiencia());
-    appendLinhaSePreenchido(sb, "CID principal", b.getCidPrincipal());
-    appendLinhaSePreenchido(
-        sb, "Usa medicacao continua", formatarBoolean(b.getUsaMedicacaoContinua()));
-    appendLinhaSePreenchido(sb, "Descricao medicacao", b.getDescricaoMedicacao());
-    appendLinhaSePreenchido(sb, "Servico saude referencia", b.getServicoSaudeReferencia());
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--educacao\"><p class=\"card__title\">Educacao e trabalho</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Sabe ler e escrever", formatarBoolean(b.getSabeLerEscrever()));
+    appendCampo(sb, "Nivel escolaridade", b.getNivelEscolaridade());
+    appendCampo(sb, "Estuda atualmente", formatarBoolean(b.getEstudaAtualmente()));
+    appendCampo(sb, "Ocupacao", b.getOcupacao());
+    appendCampo(sb, "Situacao trabalho", b.getSituacaoTrabalho());
+    appendCampo(sb, "Local trabalho", b.getLocalTrabalho());
+    appendCampo(sb, "Renda mensal", b.getRendaMensal());
+    appendCampo(sb, "Fonte renda", b.getFonteRenda());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Beneficios</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(
-        sb, "Recebe beneficio", formatarBoolean(b.getRecebeBeneficio()));
-    appendLinhaSePreenchido(sb, "Descricao beneficios", b.getBeneficiosDescricao());
-    appendLinhaSePreenchido(sb, "Valor total beneficios", b.getValorTotalBeneficios());
-    appendLinhaSePreenchido(
-        sb, "Beneficios recebidos", formatarLista(b.getBeneficiosRecebidos()));
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--saude\"><p class=\"card__title\">Saude</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Possui deficiencia", formatarBoolean(b.getPossuiDeficiencia()));
+    appendCampo(sb, "Tipo deficiencia", b.getTipoDeficiencia());
+    appendCampo(sb, "CID principal", b.getCidPrincipal());
+    appendCampo(sb, "Usa medicacao continua", formatarBoolean(b.getUsaMedicacaoContinua()));
+    appendCampo(sb, "Descricao medicacao", b.getDescricaoMedicacao());
+    appendCampo(sb, "Servico saude referencia", b.getServicoSaudeReferencia());
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>LGPD</h3>");
-    sb.append("<table class=\"print-table\">");
-    appendLinhaSePreenchido(sb, "Aceite LGPD", formatarBoolean(b.getAceiteLgpd()));
-    appendLinhaSePreenchido(sb, "Data aceite LGPD", formatarData(b.getDataAceiteLgpd()));
-    sb.append("</table>");
-    sb.append("</section>");
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--beneficios\"><p class=\"card__title\">Beneficios</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Recebe beneficio", formatarBoolean(b.getRecebeBeneficio()));
+    appendCampo(sb, "Descricao beneficios", b.getBeneficiosDescricao());
+    appendCampo(sb, "Valor total beneficios", b.getValorTotalBeneficios());
+    appendCampo(sb, "Beneficios recebidos", formatarLista(b.getBeneficiosRecebidos()));
+    sb.append("</div></div></div>");
 
-    sb.append("<section>");
-    sb.append("<h3>Observacoes</h3>");
-    appendObservacoes(sb, b.getObservacoes());
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--lgpd\"><p class=\"card__title\">LGPD</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
+    appendCampo(sb, "Aceite LGPD", formatarBoolean(b.getAceiteLgpd()));
+    appendCampo(sb, "Data aceite LGPD", formatarData(b.getDataAceiteLgpd()));
+    sb.append("</div></div></div>");
+
+    sb.append("<div class=\"card\">");
+    sb.append("<div class=\"card__header card__header--observacoes\"><p class=\"card__title\">Observacoes</p></div>");
+    sb.append("<div class=\"card__body\"><div class=\"card__note\">")
+        .append(escape(valorOuNaoInformado(b.getObservacoes())))
+        .append("</div></div>");
+    sb.append("</div>");
     sb.append("</section>");
 
     sb.append("<section class=\"signature\">");
@@ -227,6 +222,44 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
     sb.append("</section>");
 
     return sb.toString();
+  }
+
+  private void appendCampo(StringBuilder sb, String rotulo, String valor) {
+    sb.append("<div class=\"card__field\">")
+        .append("<p class=\"card__label\">")
+        .append(escape(rotulo))
+        .append("</p>")
+        .append("<p class=\"card__value\">")
+        .append(escape(valorOuNaoInformado(valor)))
+        .append("</p>")
+        .append("</div>");
+  }
+
+  private void appendResumo(StringBuilder sb, String rotulo, String valor) {
+    sb.append("<p class=\"hero__meta\"><strong>")
+        .append(escape(rotulo))
+        .append(":</strong> ")
+        .append(escape(valorOuNaoInformado(valor)))
+        .append("</p>");
+  }
+
+  private String statusClasse(String status) {
+    if (status == null) {
+      return "status-badge--analise";
+    }
+    switch (status.trim().toUpperCase()) {
+      case "ATIVO":
+        return "status-badge--ativo";
+      case "DESATUALIZADO":
+        return "status-badge--desatualizado";
+      case "INCOMPLETO":
+        return "status-badge--incompleto";
+      case "BLOQUEADO":
+        return "status-badge--bloqueado";
+      case "EM_ANALISE":
+      default:
+        return "status-badge--analise";
+    }
   }
 
   private void appendLinha(StringBuilder sb, String rotulo, String valor) {
@@ -318,5 +351,12 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
       return "";
     }
     return valor.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+  }
+
+  private String textoSeguro(String valor) {
+    if (valor == null || valor.trim().isEmpty()) {
+      return "Sistema";
+    }
+    return valor.trim();
   }
 }

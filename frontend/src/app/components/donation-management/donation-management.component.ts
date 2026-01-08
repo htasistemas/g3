@@ -66,6 +66,16 @@ interface StockItem {
 }
 
 interface DonationItem {
+  itemId?: number;
+  stockCode: string;
+  description: string;
+  unit: string;
+  quantity: number;
+  notes?: string;
+}
+
+interface DonationItemEdicao {
+  itemId: number;
   stockCode: string;
   description: string;
   unit: string;
@@ -171,13 +181,14 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   hasPreviousTab = computed(() => this.activeTabIndex() > 0);
   nextTabLabel = computed(() => this.tabs[this.activeTabIndex() + 1]?.label ?? '');
   stockModalOpen = signal(false);
-  stockModalContext = signal<'deliver' | 'plan'>('deliver');
+  stockModalContext = signal<'deliver' | 'plan' | 'edit'>('deliver');
   stockSearch = signal('');
   stockCategory = signal('todos');
   stockStatus = signal<'todos' | StockItem['status']>('todos');
   itemError = signal<string | null>(null);
   plannedError = signal<string | null>(null);
   historicoErro = signal<string | null>(null);
+  editError = signal<string | null>(null);
   popupErros: string[] = [];
 
   beneficiaries = signal<Beneficiary[]>([]);
@@ -209,6 +220,20 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     notes: ['']
   });
 
+  editForm: FormGroup = this.fb.group({
+    dataDoacao: ['', Validators.required],
+    tipoDoacao: ['', Validators.required],
+    situacao: ['', Validators.required],
+    responsavel: ['', Validators.required],
+    observacoes: ['']
+  });
+
+  editItemForm: FormGroup = this.fb.group({
+    itemCode: ['', Validators.required],
+    quantity: [1, [Validators.required, Validators.min(1)]],
+    notes: ['']
+  });
+
   historyFilters: FormGroup = this.fb.group({
     startDate: [''],
     endDate: [''],
@@ -216,6 +241,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   });
 
   deliveredItems = signal<DonationItem[]>([]);
+  editItems = signal<DonationItemEdicao[]>([]);
   selectedBeneficiary = signal<Beneficiary | null>(null);
   beneficiarySearch = signal('');
   beneficiarySearchError = signal<string | null>(null);
@@ -226,6 +252,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   cancelDialogOpen = signal(false);
   cancelReason = signal('');
   planToCancel = signal<PlannedDonation | null>(null);
+  editModalOpen = signal(false);
+  editandoDoacaoId: string | null = null;
+  editBeneficiarioId: number | null = null;
+  editFamiliaId: number | null = null;
 
   filteredBeneficiaries = computed(() => {
     const term = this.beneficiarySearch().toLowerCase();
@@ -323,6 +353,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     return this.findStockItem(this.plannedForm.value['itemCode']);
   }
 
+  get selectedEditItemDescription(): string {
+    return this.findStockItem(this.editItemForm.value['itemCode'])?.description ?? '';
+  }
+
   changeTab(id: string): void {
     const found = this.tabs.find((tab) => tab.id === id);
     if (found) {
@@ -366,7 +400,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.identificationForm.patchValue({ beneficiaryName: beneficiary.name });
     this.loadDoacoesRealizadas();
     this.handleBlockedBeneficiary(beneficiary);
-    this.carregarMotivoCestaBasica(beneficiary.name);
+    this.carregarInformacoesCestaBasica(beneficiary.name);
   }
 
   async onBeneficiaryInput(value: string): Promise<void> {
@@ -473,7 +507,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     }
   }
 
-  openStockModal(context: 'deliver' | 'plan'): void {
+  openStockModal(context: 'deliver' | 'plan' | 'edit'): void {
     this.stockModalContext.set(context);
     this.stockModalOpen.set(true);
     this.stockSearch.set('');
@@ -488,9 +522,11 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   selectStockItem(item: StockItem): void {
     if (this.stockModalContext() === 'deliver') {
       this.deliveredItemForm.patchValue({ itemCode: item.code });
-    } else {
+    } else if (this.stockModalContext() === 'plan') {
       this.plannedForm.patchValue({ itemCode: item.code });
       this.atualizarDataPrevistaPorUltimaRetirada(item.code);
+    } else {
+      this.editItemForm.patchValue({ itemCode: item.code });
     }
     this.closeStockModal();
   }
@@ -851,6 +887,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       responsible: record.responsavel || 'Nao informado',
       notes: record.observacoes,
       items: (record.itens || []).map((item) => ({
+        itemId: item.itemId ?? undefined,
         stockCode: item.codigoItem || '',
         description: item.descricaoItem || 'Item',
         unit: item.unidadeItem || '-',
@@ -1015,9 +1052,177 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     return part3 ? `(${part1}) ${part2}-${part3}` : part2 ? `(${part1}) ${part2}` : `(${part1}`;
   }
 
+  podeEditarDoacao(record: DonationRecord): boolean {
+    const dias = this.diasDesdeDoacao(record);
+    return dias !== null && dias <= 10;
+  }
+
+  abrirEdicaoDoacao(record: DonationRecord): void {
+    if (!this.podeEditarDoacao(record)) {
+      this.historicoErro.set('Esta doacao nao pode mais ser alterada. Prazo maximo: 10 dias.');
+      return;
+    }
+    this.historicoErro.set(null);
+    this.editError.set(null);
+    this.editandoDoacaoId = record.id;
+    this.editBeneficiarioId = record.beneficiaryType === 'beneficiario' ? Number(record.beneficiaryId) : null;
+    this.editFamiliaId = record.beneficiaryType === 'familia' ? Number(record.beneficiaryId) : null;
+    this.editForm.patchValue({
+      dataDoacao: record.deliveryDate,
+      tipoDoacao: record.donationType,
+      situacao: record.status,
+      responsavel: record.responsible,
+      observacoes: record.notes ?? ''
+    });
+    this.editItems.set(
+      record.items.map((item) => ({
+        itemId: item.itemId ?? this.findStockItem(item.stockCode)?.id ?? 0,
+        stockCode: item.stockCode,
+        description: item.description,
+        unit: item.unit,
+        quantity: item.quantity,
+        notes: item.notes
+      }))
+    );
+    this.editItemForm.reset({ itemCode: '', quantity: 1, notes: '' });
+    this.editModalOpen.set(true);
+  }
+
+  fecharEdicaoDoacao(): void {
+    this.editModalOpen.set(false);
+    this.editandoDoacaoId = null;
+    this.editBeneficiarioId = null;
+    this.editFamiliaId = null;
+    this.editItems.set([]);
+    this.editError.set(null);
+  }
+
+  addEditItem(): void {
+    this.editError.set(null);
+    if (this.editItemForm.invalid) {
+      this.editItemForm.markAllAsTouched();
+      return;
+    }
+    const item = this.findStockItem(this.editItemForm.value['itemCode']);
+    if (!item) {
+      this.editError.set('Selecione um item valido do almoxarifado.');
+      return;
+    }
+    const jaExiste = this.editItems().some((current) => current.itemId === item.id);
+    if (jaExiste) {
+      this.editError.set('Item ja adicionado na edicao.');
+      return;
+    }
+    this.editItems.update((current) => [
+      ...current,
+      {
+        itemId: item.id,
+        stockCode: item.code,
+        description: item.description,
+        unit: item.unit,
+        quantity: this.editItemForm.value['quantity'],
+        notes: this.editItemForm.value['notes']
+      }
+    ]);
+    this.editItemForm.reset({ itemCode: '', quantity: 1, notes: '' });
+  }
+
+  removerEditItem(index: number): void {
+    this.editItems.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  atualizarQuantidadeEditItem(index: number, valor: number): void {
+    this.editItems.update((items) =>
+      items.map((current, idx) =>
+        idx === index ? { ...current, quantity: Number(valor) } : current
+      )
+    );
+  }
+
+  atualizarObservacoesEditItem(index: number, valor: string): void {
+    this.editItems.update((items) =>
+      items.map((current, idx) => (idx === index ? { ...current, notes: valor } : current))
+    );
+  }
+
+  salvarEdicaoDoacao(): void {
+    this.editError.set(null);
+    if (!this.editandoDoacaoId) {
+      this.editError.set('Selecione uma doacao para editar.');
+      return;
+    }
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    if (!this.editItems().length) {
+      this.editError.set('Informe ao menos um item para a doacao.');
+      return;
+    }
+    if (this.editItems().some((item) => item.quantity <= 0)) {
+      this.editError.set('Quantidade dos itens deve ser maior que zero.');
+      return;
+    }
+    const itens = this.editItems().map((item) => ({
+      itemId: item.itemId,
+      quantidade: item.quantity,
+      observacoes: item.notes
+    }));
+    if (itens.some((item) => item.itemId === 0)) {
+      this.editError.set('Informe itens validos do almoxarifado.');
+      return;
+    }
+    const payload = {
+      beneficiarioId: this.editBeneficiarioId ?? undefined,
+      vinculoFamiliarId: this.editFamiliaId ?? undefined,
+      tipoDoacao: this.editForm.value['tipoDoacao'],
+      situacao: this.editForm.value['situacao'],
+      responsavel: this.editForm.value['responsavel'],
+      observacoes: this.editForm.value['observacoes'],
+      dataDoacao: this.editForm.value['dataDoacao'],
+      itens
+    };
+    this.doacaoRealizadaService.atualizar(Number(this.editandoDoacaoId), payload).subscribe({
+      next: (response) => {
+        const atualizado = this.mapDoacao(response);
+        this.donationHistory.update((history) =>
+          history.map((item) => (item.id === String(atualizado.id) ? atualizado : item))
+        );
+        this.fecharEdicaoDoacao();
+      },
+      error: () => {
+        this.editError.set('Nao foi possivel atualizar a doacao agora.');
+      }
+    });
+  }
+
+  private diasDesdeDoacao(record: DonationRecord): number | null {
+    const data = record.deliveryDate || record.date;
+    if (!data) {
+      return null;
+    }
+    const dataBase = data.split('T')[0];
+    const partes = dataBase.split('-').map((valor) => Number(valor));
+    if (partes.length < 3 || partes.some((valor) => Number.isNaN(valor))) {
+      return null;
+    }
+    const [ano, mes, dia] = partes;
+    const base = new Date(ano, mes - 1, dia);
+    if (Number.isNaN(base.getTime())) {
+      return null;
+    }
+    const hoje = new Date();
+    const hojeBase = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    const diff = hojeBase.getTime() - base.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
   formatarAptidaoDoacao(beneficiary: Beneficiary): string {
     if (beneficiary.optaReceberCestaBasica === false) {
       return 'Nao opta por cesta basica';
+    }
+    if (beneficiary.optaReceberCestaBasica === true && beneficiary.aptoReceberCestaBasica == null) {
+      return 'Opta por cesta basica';
     }
     if (beneficiary.aptoReceberCestaBasica === true) {
       return 'Apto para Receber Doações';
@@ -1032,7 +1237,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.mostrarMotivoCestaBasica.set(!this.mostrarMotivoCestaBasica());
   }
 
-  private carregarMotivoCestaBasica(nomeBeneficiario: string): void {
+  private carregarInformacoesCestaBasica(nomeBeneficiario: string): void {
     const termo = this.normalizarTexto(nomeBeneficiario);
     if (!termo) {
       this.motivoCestaBasica.set(null);
@@ -1041,10 +1246,24 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
     this.visitaService.list().subscribe({
       next: (visitas: VisitaDomiciliar[]) => {
-        const encontrada = visitas.find(
-          (visita) => this.normalizarTexto(visita.beneficiario) === termo
-        );
-        const motivo = encontrada?.registro?.motivoNaoReceberCestaBasica;
+        const encontrada = visitas
+          .filter((visita) => this.normalizarTexto(visita.beneficiario) === termo)
+          .sort((a, b) => (b.dataVisita || '').localeCompare(a.dataVisita || ''))[0];
+        const registro = encontrada?.registro;
+        const opta = registro?.optaReceberCestaBasica;
+        const apto = registro?.aptoReceberCestaBasica;
+        if (opta != null || apto != null) {
+          this.selectedBeneficiary.update((current) =>
+            current
+              ? {
+                  ...current,
+                  optaReceberCestaBasica: opta ?? current.optaReceberCestaBasica,
+                  aptoReceberCestaBasica: apto ?? current.aptoReceberCestaBasica
+                }
+              : current
+          );
+        }
+        const motivo = registro?.motivoNaoReceberCestaBasica;
         this.motivoCestaBasica.set(
           motivo && motivo.trim().length ? motivo : null
         );

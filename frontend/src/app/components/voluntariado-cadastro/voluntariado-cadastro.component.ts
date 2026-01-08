@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
@@ -57,10 +57,10 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
   tabs: StepTab[] = [
     { id: 'dados', label: 'Dados Pessoais' },
     { id: 'contato', label: 'Contato e Competencias' },
-    { id: 'endereço', label: 'Endereço' },
+    { id: 'endereço', label: 'EndereÃ§o' },
     { id: 'disponibilidade', label: 'Disponibilidade' },
     { id: 'termos', label: 'Termos e Documentos' },
-    { id: 'lista', label: 'Listagem de voluntários' }
+    { id: 'lista', label: 'Listagem de voluntarios' }
   ];
 
   volunteers: VolunteerRecord[] = [];
@@ -294,11 +294,11 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.setFeedback('Cadastro de voluntário atualizado com sucesso.');
+            this.setFeedback('Cadastro de voluntario atualizado com sucesso.');
             this.finalizarSubmit();
           },
           error: () => {
-            this.setFeedback('Não foi possível atualizar o voluntário.');
+            this.setFeedback('NÃ£o foi possÃ­vel atualizar o voluntario.');
             this.saving = false;
           }
         });
@@ -310,11 +310,11 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.setFeedback('Cadastro de voluntário salvo com sucesso.');
+          this.setFeedback('Cadastro de voluntario salvo com sucesso.');
           this.finalizarSubmit();
         },
         error: () => {
-          this.setFeedback('Não foi possível salvar o voluntário.');
+          this.setFeedback('NÃ£o foi possÃ­vel salvar o voluntario.');
           this.saving = false;
         }
       });
@@ -356,7 +356,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           this.startNewVolunteer();
         },
         error: () => {
-          this.setFeedback('Não foi possível remover o voluntário.');
+          this.setFeedback('NÃ£o foi possÃ­vel remover o voluntario.');
         }
       });
   }
@@ -442,7 +442,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           }
         },
         error: () => {
-          this.setFeedback('Não foi possível remover o voluntário.');
+          this.setFeedback('NÃ£o foi possÃ­vel remover o voluntario.');
         }
       });
   }
@@ -467,7 +467,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       )
       .join('');
 
-    printWindow.document.write(`\n      <html>\n        <head>\n          <title>Relacao de voluntários</title>\n          <style>\n            ${this.abntStyles()}\n            table { width: 100%; border-collapse: collapse; margin-top: 16px; }\n            th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }\n            th { background: #f1f5f9; font-weight: 700; }\n          </style>\n        </head>\n        <body>\n          <header class="abnt-header">\n            <div>\n              <p class="abnt-organization">${this.unidadePrincipal?.razaoSocial || 'ADRA'}</p>\n              <p class="abnt-organization">CNPJ ${this.unidadePrincipal?.cnpj || '---'}</p>\n              <h1>RELA??O DE VOLUNT?RIOS</h1>\n            </div>\n            <p class="abnt-subtitle">Lista de voluntários cadastrados para impressão.</p>\n          </header>\n          <table>\n            <thead>\n              <tr>\n                <th>#</th>\n                <th>Nome</th>\n                <th>?rea</th>\n                <th>Disponibilidade</th>\n                <th>Contato</th>\n              </tr>\n            </thead>\n            <tbody>${rows}</tbody>\n          </table>\n        </body>\n      </html>\n    `);
+    printWindow.document.write(`\n      <html>\n        <head>\n          <title>Relacao de voluntarios</title>\n          <style>\n            ${this.abntStyles()}\n            table { width: 100%; border-collapse: collapse; margin-top: 16px; }\n            th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }\n            th { background: #f1f5f9; font-weight: 700; }\n          </style>\n        </head>\n        <body>\n          <header class="abnt-header">\n            <div>\n              <p class="abnt-organization">${this.unidadePrincipal?.razaoSocial || 'ADRA'}</p>\n              <p class="abnt-organization">CNPJ ${this.unidadePrincipal?.cnpj || '---'}</p>\n              <h1>RELAÇÃO DE VOLUNTÁRIOS</h1>\n            </div>\n            <p class="abnt-subtitle">Lista de voluntarios cadastrados para impressÃ£o.</p>\n          </header>\n          <table>\n            <thead>\n              <tr>\n                <th>#</th>\n                <th>Nome</th>\n                <th>Área</th>\n                <th>Disponibilidade</th>\n                <th>Contato</th>\n              </tr>\n            </thead>\n            <tbody>${rows}</tbody>\n          </table>\n        </body>\n      </html>\n    `);
 
     printWindow.document.close();
     printWindow.focus();
@@ -485,9 +485,10 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       '.abnt-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 12px; }',
       '.abnt-organization { margin: 0; text-transform: uppercase; font-size: 10pt; letter-spacing: 0.04em; }',
       '.abnt-subtitle { margin: 0; font-size: 10pt; color: #475569; text-align: right; }',
+      '.abnt-subtitle--center { text-align: center; width: 100%; }',
       '.abnt-section { margin-top: 8px; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 8px; }',
       '.signature { margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; display: grid; gap: 10px; }',
-      '.abnt-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #475569; font-size: 10pt; }'
+      '.abnt-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #cbd5e1; color: #475569; font-size: 10pt; text-align: center; }'
     ].join('\n');
   }
 
@@ -538,7 +539,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
   }
 
   private formatArray(values?: string[]): string {
-    return values?.length ? values.join(', ') : 'Não informado';
+    return values?.length ? values.join(', ') : 'NÃ£o informado';
   }
 
   private lookupAddressByCep(cep: string): void {
@@ -549,7 +550,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       .subscribe({
         next: (response) => {
           if (!response || response.erro) {
-            this.cepLookupError = 'CEP n?o encontrado.';
+            this.cepLookupError = 'CEP não encontrado.';
             return;
           }
 
@@ -565,7 +566,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'NÃ£o foi possÃ­vel consultar o CEP.';
         }
       });
   }
@@ -612,9 +613,11 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
     const disponibilidadePeriodos = (value.disponibilidade?.periodos ?? []).join(', ') || '_____________________';
     const aceiteLgpd = value.termos?.aceiteVoluntariado ? 'X' : ' ';
     const aceiteImagem = value.termos?.aceiteImagem ? 'X' : ' ';
-    const razaoSocial = unidade?.razaoSocial || 'Agência Adventista de Desenvolvimento e Recursos Assistenciais';
+    const razaoSocial = unidade?.razaoSocial || 'AgÃªncia Adventista de Desenvolvimento e Recursos Assistenciais';
     const cnpj = unidade?.cnpj || '_____________________';
-    const logomarca = unidade?.logomarcaRelatorio || unidade?.logomarca || '';
+    const logomarca = this.normalizarLogomarca(
+      unidade?.logomarcaRelatorio || unidade?.logomarca || ''
+    );
     const endereço = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
       .filter((item) => (item ?? '').toString().trim().length > 0)
       .join(', ');
@@ -651,7 +654,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
             <div class="termo-header__center">
               <p class="abnt-organization">${razaoSocial}</p>
               <p class="abnt-organization">CNPJ ${cnpj}</p>
-              <p class="abnt-subtitle">Documento para assinatura do voluntário.</p>
+              <p class="abnt-subtitle abnt-subtitle--center">Documento para assinatura do voluntário.</p>
             </div>
             <div></div>
           </header>
@@ -662,31 +665,31 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           <section class="abnt-section">
             <p class="section-title">1. Identificacao do(a) Voluntario(a)</p>
             <p><strong>Nome completo:</strong> ${nome}</p>
-            <p><strong>CPF:</strong> ${cpf} | <strong>RG:</strong> ${rg} | <strong>Data de nascimento:</strong> ${dataNascimento}</p>
+            <p><strong>CPF:</strong> ${cpf} | <strong>Data de nascimento:</strong> ${dataNascimento}</p>
             <p><strong>Contato:</strong> ${email} | ${telefone}</p>
             <p><strong>Cidade/UF:</strong> ${cidade} / ${estado}</p>
-            <p><strong>?rea de interesse:</strong> ${areaInteresse}</p>
+            <p><strong>Área de interesse:</strong> ${areaInteresse}</p>
             <p><strong>Disponibilidade:</strong> ${disponibilidadeDias} | ${disponibilidadePeriodos}</p>
-            <p><strong>In?cio previsto:</strong> ${inicioPrevisto}</p>
+            <p><strong>Início previsto:</strong> ${inicioPrevisto}</p>
           </section>
 
           <section class="abnt-section">
             <p class="section-title">2. Condicoes gerais</p>
             <ol>
-              <li>O trabalho voluntário a ser desempenhado junto a ADRA (${razaoSocial}), de acordo com a Lei 9.608 de 18/02/1998, ? atividade n?o remunerada, e n?o gera v?nculo empregat?cio nem funcional, ou quaisquer obriga??es trabalhistas, previdenci?rias ou afins.</li>
-              <li>O Voluntario se compromete a agir de acordo com os Princ?pios Humanit?rios de Humanidade, Imparcialidade, Neutralidade e Independ?ncia, bem como de acordo com o Código de Conduta e Pol?tica de Prote??o da ADRA enquanto estiver a servi?o dela.</li>
-              <li>Compete ao Voluntario participar das atividades e cumprir com empenho e interesse a fun??o estabelecida.</li>
+              <li>O trabalho voluntario a ser desempenhado junto a ADRA (${razaoSocial}), de acordo com a Lei 9.608 de 18/02/1998, é atividade não remunerada, e não gera vínculo empregatício nem funcional, ou quaisquer obrigações trabalhistas, previdenciárias ou afins.</li>
+              <li>O Voluntario se compromete a agir de acordo com os Princípios Humanitários de Humanidade, Imparcialidade, Neutralidade e Independência, bem como de acordo com o CÃ³digo de Conduta e Política de Proteção da ADRA enquanto estiver a serviço dela.</li>
+              <li>Compete ao Voluntario participar das atividades e cumprir com empenho e interesse a função estabelecida.</li>
               <li>O Voluntario isenta a ADRA de qualquer responsabilidade referente a acidentes pessoais ou materiais, que porventura, venham a ocorrer no desempenho de suas atividades.</li>
               <li>O desligamento do Voluntario das atividades da ADRA podera ocorrer a qualquer momento, bastando apenas o desejo expresso de uma das partes, sendo necessaria a assinatura do Termo de Desligamento.</li>
-              <li>Eventuais despesas decorrentes da atividade volunt?ria podem ser ressarcidas, desde que combinadas e autorizadas antecipadamente pela ADRA.</li>
+              <li>Eventuais despesas decorrentes da atividade voluntária podem ser ressarcidas, desde que combinadas e autorizadas antecipadamente pela ADRA.</li>
               <li>O presente Termo de Adesao estara em vigor e validade para o ano referido na assinatura. Para um novo ano, devera ser renovado, caso seja de interesse de ambas as partes.</li>
             </ol>
-            <p>De minha livre e espont?nea vontade, movido(a) pela vontade de ser ?til ? comunidade, especialmente no atendimento assistencial a pessoas em vulnerabilidade social, nos termos da Lei n.o 9.608 de 18/02/1998, assino o presente TERMO DE VOLUNTARIADO declarando que dedicarei parte do meu tempo dispon?vel, conforme indicado, aos servicos voluntários coordenados pela ADRA, como minha colabora??o espont?nea, sem qualquer interesse remunerat?rio.</p>
-            <p>Declaro estar ciente da legisla??o espec?fica, regimento interno e descritivo da fun??o, e que aceito atuar como Voluntario, n?o havendo entre mim e a ADRA, v?nculo de emprego, direito e/ou obriga??o de natureza trabalhista, previdenci?ria e/ou outras afins, raz?o por que firmo, em testemunho da verdade, do que dou f?.</p>
+            <p>De minha livre e espontânea vontade, movido(a) pela vontade de ser útil à comunidade, especialmente no atendimento assistencial a pessoas em vulnerabilidade social, nos termos da Lei n.o 9.608 de 18/02/1998, assino o presente TERMO DE VOLUNTARIADO declarando que dedicarei parte do meu tempo disponível, conforme indicado, aos servicos voluntarios coordenados pela ADRA, como minha colaboração espontânea, sem qualquer interesse remuneratório.</p>
+            <p>Declaro estar ciente da legislação específica, regimento interno e descritivo da função, e que aceito atuar como Voluntario, não havendo entre mim e a ADRA, vínculo de emprego, direito e/ou obrigação de natureza trabalhista, previdenciária e/ou outras afins, razão por que firmo, em testemunho da verdade, do que dou fé.</p>
           </section>
 
           <section class="abnt-section">
-            <p><strong>Local e data:</strong> ________________________________, ${dataAtual}</p>
+            <p><strong>Local e data:</strong> ____________________________________________, ${dataAtual}</p>
             <div class="signature-grid">
               <div class="signature-line">Assinatura do(a) Voluntario(a) ou Responsavel Legal</div>
               <div class="signature-line">Assinatura da instituicao</div>
@@ -696,14 +699,14 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           <div class="page-break"></div>
 
           <section class="abnt-section">
-            <p class="section-title">Declaração - LGPD (Lei Geral de Proteção de Dados)</p>
+            <p class="section-title">DeclaraÃ§Ã£o - LGPD (Lei Geral de ProteÃ§Ã£o de Dados)</p>
             <p>Sobre os dados pessoais fornecidos a ADRA, declaramos nosso compromisso etico no que se refere a esse documento, quanto ao cuidado com os dados pessoais de nossos Voluntarios.</p>
             <p>Esta excluida do conceito de privacidade a informacao: a) publica por determinacao legal; b) publica para o tratamento e uso compartilhado de dados de execucao de politicas publicas; c) necessaria a protecao da vida ou seguranca fisica de pessoas; d) necessaria a tutela da saude.</p>
             <p>Diante do exposto, consinto com o tratamento dos meus dados pessoais pela ADRA, manifestando meu consentimento com o aceite neste formulario.</p>
             <p><strong>Nome do(a) Voluntario(a):</strong> ${nome}</p>
             <div class="checkbox-line"><span class="checkbox-box">${aceiteLgpd}</span> Aceito</div>
-            <div class="checkbox-line"><span class="checkbox-box">${aceiteLgpd === 'X' ? ' ' : 'X'}</span> Não aceito</div>
-            <p><strong>Local e data:</strong> ________________________________, ${dataAtual}</p>
+            <div class="checkbox-line"><span class="checkbox-box">${aceiteLgpd === 'X' ? ' ' : 'X'}</span> NÃ£o aceito</div>
+            <p><strong>Local e data:</strong> ____________________________________________, ${dataAtual}</p>
             <div class="signature-grid">
               <div class="signature-line">Assinatura do(a) Voluntario(a) ou Responsavel Legal</div>
               <div class="signature-line">Assinatura da instituicao</div>
@@ -713,12 +716,12 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           <div class="page-break"></div>
 
           <section class="abnt-section">
-            <p class="section-title">Declaração - Termo de Cessão de Imagem</p>
-            <p>O voluntário expressamente autoriza (ou n?o) a utiliza??o de sua voz e imagem para fins exclusivos de divulga??o das atividades deste projeto ou da Institui??o em m?dia interna ou externa, na Internet, em Jornais, Revistas, folders e demais meios de comunica??o, livre de qualquer ?nus para com a ADRA.</p>
+            <p class="section-title">DeclaraÃ§Ã£o - Termo de CessÃ£o de Imagem</p>
+            <p>O voluntario expressamente autoriza (ou não) a utilização de sua voz e imagem para fins exclusivos de divulgação das atividades deste projeto ou da Instituição em mídia interna ou externa, na Internet, em Jornais, Revistas, folders e demais meios de comunica??o, livre de qualquer ônus para com a ADRA.</p>
             <p><strong>Nome do(a) Voluntario(a):</strong> ${nome}</p>
             <div class="checkbox-line"><span class="checkbox-box">${aceiteImagem}</span> Autorizo o uso de imagem</div>
-            <div class="checkbox-line"><span class="checkbox-box">${aceiteImagem === 'X' ? ' ' : 'X'}</span> Não autorizo o uso de imagem</div>
-            <p><strong>Local e data:</strong> ________________________________, ${dataAtual}</p>
+            <div class="checkbox-line"><span class="checkbox-box">${aceiteImagem === 'X' ? ' ' : 'X'}</span> NÃ£o autorizo o uso de imagem</div>
+            <p><strong>Local e data:</strong> ____________________________________________, ${dataAtual}</p>
             <div class="signature-grid">
               <div class="signature-line">Assinatura do(a) Voluntario(a) ou Responsavel Legal</div>
               <div class="signature-line">Assinatura da instituicao</div>
@@ -727,7 +730,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
           <footer class="abnt-footer">
             <p><strong>${razaoSocial}</strong> - CNPJ ${cnpj}</p>
-            <p>${endereço || 'Endereço n?o informado'}</p>
+            <p>${endereço || 'EndereÃ§o não informado'}</p>
             <p>Contato: ${unidade?.telefone || '---'} - ${unidade?.email || '---'}</p>
           </footer>
           <p class="footnote">Termo de Voluntariado | ADRA Brasil | ${unidade?.estado || 'MG'}</p>
@@ -737,7 +740,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
   }
 
   private buildVolunteerPrintHtml(volunteer: VolunteerRecord): string {
-    return `\n      <html>\n        <head>\n          <title>Ficha do voluntário ${volunteer.nome}</title>\n          <style>${this.abntStyles()}</style>\n        </head>\n        <body>\n          <header class="abnt-header">\n            <div>\n              <p class="abnt-organization">${this.unidadePrincipal?.razaoSocial || 'ADRA'}</p>\n              <p class="abnt-organization">CNPJ ${this.unidadePrincipal?.cnpj || '---'}</p>\n              <h1>FICHA DE VOLUNT?RIO</h1>\n            </div>\n            <p class="abnt-subtitle">Registro completo do voluntário para controle interno.</p>\n          </header>\n          <section class="abnt-section">\n            <h2>1. IDENTIFICA??O</h2>\n            <p><strong>Nome:</strong> ${volunteer.nome}</p>\n            <p><strong>CPF:</strong> ${volunteer.cpf}</p>\n            <p><strong>E-mail:</strong> ${volunteer.email}</p>\n            <p><strong>Telefone:</strong> ${volunteer.telefone || 'Não informado'}</p>\n            <p><strong>Cidade/UF:</strong> ${volunteer.cidade || '---'} / ${volunteer.estado || '--'}</p>\n          </section>\n          <section class="abnt-section">\n            <h2>2. COMPET?NCIAS E INTERESSES</h2>\n            <p><strong>?rea de interesse:</strong> ${volunteer.areaInteresse || 'Não informado'}</p>\n            <p><strong>Habilidades:</strong> ${volunteer.habilidades || 'Não informado'}</p>\n            <p><strong>Idiomas:</strong> ${volunteer.idiomas || 'Não informado'}</p>\n            <p><strong>Motiva??o:</strong> ${volunteer.motivacao || 'Não informado'}</p>\n          </section>\n          <section class="abnt-section">\n            <h2>3. DISPONIBILIDADE</h2>\n            <p><strong>Dias:</strong> ${this.formatArray(volunteer.disponibilidadeDias)}</p>\n            <p><strong>Per?odos:</strong> ${this.formatArray(volunteer.disponibilidadePeriodos)}</p>\n            <p><strong>Carga hor?ria:</strong> ${volunteer.cargaHoraria || 'Não informado'}</p>\n            <p><strong>Formato:</strong> ${(volunteer.presencial ? 'Presencial ' : '') + (volunteer.remoto ? 'Remoto' : '') || 'Não informado'}</p>\n            <p><strong>In?cio previsto:</strong> ${volunteer.inicioPrevisto || 'Não informado'}</p>\n            <p><strong>Observações:</strong> ${volunteer.observacoes || '---'}</p>\n          </section>\n        </body>\n      </html>\n    `;
+    return `\n      <html>\n        <head>\n          <title>Ficha do voluntario ${volunteer.nome}</title>\n          <style>${this.abntStyles()}</style>\n        </head>\n        <body>\n          <header class="abnt-header">\n            <div>\n              <p class="abnt-organization">${this.unidadePrincipal?.razaoSocial || 'ADRA'}</p>\n              <p class="abnt-organization">CNPJ ${this.unidadePrincipal?.cnpj || '---'}</p>\n              <h1>FICHA DE VOLUNTÁRIO</h1>\n            </div>\n            <p class="abnt-subtitle">Registro completo do voluntario para controle interno.</p>\n          </header>\n          <section class="abnt-section">\n            <h2>1. IDENTIFICAÇÃO</h2>\n            <p><strong>Nome:</strong> ${volunteer.nome}</p>\n            <p><strong>CPF:</strong> ${volunteer.cpf}</p>\n            <p><strong>E-mail:</strong> ${volunteer.email}</p>\n            <p><strong>Telefone:</strong> ${volunteer.telefone || 'NÃ£o informado'}</p>\n            <p><strong>Cidade/UF:</strong> ${volunteer.cidade || '---'} / ${volunteer.estado || '--'}</p>\n          </section>\n          <section class="abnt-section">\n            <h2>2. COMPETÊNCIAS E INTERESSES</h2>\n            <p><strong>Área de interesse:</strong> ${volunteer.areaInteresse || 'NÃ£o informado'}</p>\n            <p><strong>Habilidades:</strong> ${volunteer.habilidades || 'NÃ£o informado'}</p>\n            <p><strong>Idiomas:</strong> ${volunteer.idiomas || 'NÃ£o informado'}</p>\n            <p><strong>Motivação:</strong> ${volunteer.motivacao || 'NÃ£o informado'}</p>\n          </section>\n          <section class="abnt-section">\n            <h2>3. DISPONIBILIDADE</h2>\n            <p><strong>Dias:</strong> ${this.formatArray(volunteer.disponibilidadeDias)}</p>\n            <p><strong>Períodos:</strong> ${this.formatArray(volunteer.disponibilidadePeriodos)}</p>\n            <p><strong>Carga horária:</strong> ${volunteer.cargaHoraria || 'NÃ£o informado'}</p>\n            <p><strong>Formato:</strong> ${(volunteer.presencial ? 'Presencial ' : '') + (volunteer.remoto ? 'Remoto' : '') || 'NÃ£o informado'}</p>\n            <p><strong>Início previsto:</strong> ${volunteer.inicioPrevisto || 'NÃ£o informado'}</p>\n            <p><strong>ObservaÃ§Ãµes:</strong> ${volunteer.observacoes || '---'}</p>\n          </section>\n        </body>\n      </html>\n    `;
   }
 
   private loadVolunteers(): void {
@@ -761,7 +764,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
           this.applyListFilters();
         },
         error: () => {
-          this.setFeedback('Não foi possível carregar voluntários.');
+          this.setFeedback('NÃ£o foi possÃ­vel carregar voluntarios.');
         }
       });
   }
@@ -1048,7 +1051,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
   async startCamera(): Promise<void> {
     this.captureError = null;
     if (!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-      this.captureError = 'Seu navegador não permite capturar a camera.';
+      this.captureError = 'Seu navegador nÃ£o permite capturar a camera.';
       return;
     }
 
@@ -1065,7 +1068,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       }
     } catch (error) {
       console.error('Erro ao iniciar camera', error);
-      this.captureError = 'Não foi possível acessar a camera.';
+      this.captureError = 'NÃ£o foi possÃ­vel acessar a camera.';
       this.cameraActive = false;
 
       if (this.videoStream) {
@@ -1154,12 +1157,12 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
     this.applyListFilters();
   }
 
-  selecionarVoluntarioNaLista(voluntário: VolunteerRecord): void {
-    this.voluntarioSelecionado = voluntário;
+  selecionarVoluntarioNaLista(voluntario: VolunteerRecord): void {
+    this.voluntarioSelecionado = voluntario;
   }
 
-  editarVoluntarioNaLista(voluntário: VolunteerRecord): void {
-    this.editVolunteer(voluntário);
+  editarVoluntarioNaLista(voluntario: VolunteerRecord): void {
+    this.editVolunteer(voluntario);
     this.changeTab('dados');
   }
 
@@ -1273,6 +1276,14 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
     const ano = agora.getFullYear();
     return `${dia}/${mes}/${ano}`;
   }
+
+  private normalizarLogomarca(valor: string): string {
+    const texto = (valor ?? '').toString().trim();
+    if (!texto) return '';
+    if (texto.startsWith('data:')) return texto;
+    if (texto.startsWith('http://') || texto.startsWith('https://')) return texto;
+    return `data:image/png;base64,${texto}`;
+  }
 }
 
 interface ViaCepResponse {
@@ -1281,7 +1292,7 @@ interface ViaCepResponse {
   complemento?: string;
   bairro?: string;
   localidade?: string;
-  uf?: string;
+  uf: string;
   erro?: boolean;
 }
 

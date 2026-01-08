@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -29,6 +30,13 @@ public class DoacaoRealizadaController {
   @ResponseStatus(HttpStatus.CREATED)
   public DoacaoRealizadaConsultaResponse criar(@Valid @RequestBody DoacaoRealizadaRequest request) {
     DoacaoRealizadaResponse response = service.criar(request);
+    return new DoacaoRealizadaConsultaResponse(response);
+  }
+
+  @PutMapping("/{id}")
+  public DoacaoRealizadaConsultaResponse atualizar(
+      @PathVariable("id") Long id, @Valid @RequestBody DoacaoRealizadaRequest request) {
+    DoacaoRealizadaResponse response = service.atualizar(id, request);
     return new DoacaoRealizadaConsultaResponse(response);
   }
 

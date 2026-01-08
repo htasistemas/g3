@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ConfigService, HistoricoVersaoResponse } from '../../services/config.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-system-version',
@@ -13,11 +14,17 @@ import { Subject, filter, takeUntil } from 'rxjs';
 })
 export class SystemVersionComponent implements OnInit, OnDestroy {
   currentVersion = '';
+  versaoDisponivel = environment.version || '';
   historicoVersoes: HistoricoVersaoResponse[] = [];
   carregandoVersao = false;
   carregandoHistorico = false;
   erroVersao: string | null = null;
   erroHistorico: string | null = null;
+  atualizandoVersao = false;
+  feedbackAtualizacao: string | null = null;
+  private readonly versaoAlvo = '1.00.9';
+  private readonly resumoAtualizacao =
+    'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.';
 
   private readonly destroy$ = new Subject<void>();
 
@@ -27,6 +34,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.versaoDisponivel = this.versaoAlvo;
     this.recarregarDados();
     this.router.events
       .pipe(
@@ -56,9 +64,10 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
     this.configService.getVersaoSistema().subscribe({
       next: (response) => {
         this.currentVersion = response.versao || '';
+        this.atualizarVersaoSistemaSeNecessario();
       },
       error: () => {
-        this.erroVersao = 'Nao foi possivel carregar a versao do sistema.';
+        this.erroVersao = 'Nao foi possivel carregar a versao do sistema.';     
       },
       complete: () => {
         this.carregandoVersao = false;
@@ -95,5 +104,39 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
       minute: '2-digit',
       second: '2-digit'
     });
+  }
+
+  private atualizarVersaoSistemaSeNecessario(): void {
+    if (!this.versaoAlvo) return;
+    if (this.atualizandoVersao) return;
+    if (this.currentVersion === this.versaoAlvo) return;
+
+    this.atualizandoVersao = true;
+    this.feedbackAtualizacao = null;
+    this.configService
+      .atualizarVersaoSistema({
+        versao: this.versaoAlvo,
+        descricao: this.resumoAtualizacao
+      })
+      .subscribe({
+        next: (response) => {
+          this.currentVersion = response.versao || this.versaoAlvo;
+          this.feedbackAtualizacao = 'Versao atualizada com sucesso.';
+          this.loadHistorico();
+        },
+        error: () => {
+          this.feedbackAtualizacao = 'Nao foi possivel atualizar a versao.';
+        },
+        complete: () => {
+          this.atualizandoVersao = false;
+        }
+      });
+  }
+
+  atualizarSistema(): void {
+    if (!this.versaoDisponivel || this.versaoDisponivel === this.currentVersion) {
+      return;
+    }
+    this.feedbackAtualizacao = 'Live update pendente de implementacao.';
   }
 }

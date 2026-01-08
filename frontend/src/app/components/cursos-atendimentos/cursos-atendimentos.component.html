@@ -1,4 +1,13 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="estadoAcoesToolbar"
+  (buscar)="onBuscar()"
+  (novo)="startNew()"
+  (salvar)="submit()"
+  (cancelar)="onCancelar()"
+  (excluir)="onExcluir()"
+  (imprimir)="onImprimir()"
+>
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
     <p class="page-title__label">Cursos e Atendimentos</p>
@@ -452,6 +461,17 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
+
+  <app-dialog
+    [aberto]="printDialogOpen"
+    titulo="Imprimir relatorios"
+    mensagem="Selecione qual relatorio deseja gerar."
+    confirmarLabel="Relacao"
+    cancelarLabel="Ficha do curso selecionado"
+    [cancelarAoClicarOverlay]="false"
+    (confirmar)="imprimirRelacao()"
+    (cancelar)="imprimirFichaSelecionada()"
+  ></app-dialog>
 
   <div class="list-card">
     <div class="list-card__header">

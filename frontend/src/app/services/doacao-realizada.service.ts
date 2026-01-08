@@ -59,4 +59,13 @@ export class DoacaoRealizadaService {
       .post<{ doacao: DoacaoRealizadaResponse }>(this.baseUrl, payload)
       .pipe(map((response) => response.doacao));
   }
+
+  atualizar(
+    id: number,
+    payload: DoacaoRealizadaRequest
+  ): Observable<DoacaoRealizadaResponse> {
+    return this.http
+      .put<{ doacao: DoacaoRealizadaResponse }>(`${this.baseUrl}/${id}`, payload)
+      .pipe(map((response) => response.doacao));
+  }
 }

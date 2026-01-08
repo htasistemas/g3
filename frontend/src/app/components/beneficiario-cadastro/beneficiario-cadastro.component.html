@@ -2,12 +2,12 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
-  (buscar)="searchBeneficiaries()"
+  (buscar)="buscarBeneficiariosNaListagem()"
   (salvar)="onSave()"
   (excluir)="handleDeleteSelected()"
   (novo)="startNewBeneficiario()"
   (cancelar)="startNewBeneficiario()"
-  (imprimir)="printIndividualRecord()"
+  (imprimir)="onPrint()"
   (fechar)="closeForm()"
 >
 <header class="page-title" slot="titulo">
@@ -27,7 +27,7 @@
         </div>
         <div class="list-panel__actions">
           <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
-          <button type="button" class="primary" (click)="searchBeneficiaries()">Buscar</button>
+          <button type="button" class="primary" (click)="buscarBeneficiariosNaListagem()">Buscar</button>
         </div>
       </div>
 
@@ -1005,6 +1005,72 @@
     </div>
   </div>
 
+  <div class="modal" *ngIf="printMenuOpen">
+    <div class="modal__backdrop" (click)="closePrintMenu()"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Relatorios</p>
+          <h3>Opcoes de impressao</h3>
+        </div>
+        <button type="button" class="ghost" (click)="closePrintMenu()" aria-label="Fechar">&times;</button>
+      </div>
+      <p class="muted">Selecione o relatorio que deseja gerar.</p>
+      <div class="modal__actions">
+        <button type="button" class="primary" (click)="handlePrintSelection('individual')">
+          Ficha do beneficiario atual
+        </button>
+        <button type="button" class="ghost" (click)="openPrintByName()">
+          Ficha por nome
+        </button>
+        <button type="button" class="ghost" (click)="handlePrintSelection('list')">
+          Listagem de beneficiarios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" *ngIf="printByNameOpen">
+    <div class="modal__backdrop" (click)="closePrintByName()"></div>
+    <div class="modal__content modal__content--wide">
+      <div class="modal__header">
+        <div>
+          <p class="modal__eyebrow">Relatorios</p>
+          <h3>Ficha por nome</h3>
+        </div>
+        <button type="button" class="ghost" (click)="closePrintByName()" aria-label="Fechar">&times;</button>
+      </div>
+      <label class="field full">
+        <span>Nome do beneficiario</span>
+        <input
+          type="text"
+          [(ngModel)]="printByNameQuery"
+          placeholder="Digite o nome para filtrar"
+        />
+      </label>
+      <div class="unit-list" *ngIf="printByNameResults.length; else emptyPrintByName">
+        <div class="unit-list__item" *ngFor="let beneficiario of printByNameResults">
+          <div class="unit-list__info">
+            <span class="unit-list__code">Codigo: {{ beneficiario.codigo || '---' }}</span>
+            <p class="unit-list__name-text">
+              {{ beneficiario.nome_completo || beneficiario.nome_social || 'beneficiario sem nome' }}
+            </p>
+            <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF nao informado' }}</span>
+          </div>
+          <button type="button" class="btn-outline btn-small" (click)="imprimirFichaPorNome(beneficiario)">
+            Imprimir ficha
+          </button>
+        </div>
+      </div>
+      <ng-template #emptyPrintByName>
+        <p class="muted">Nenhum beneficiario encontrado com o filtro informado.</p>
+      </ng-template>
+      <div class="modal__actions">
+        <button type="button" class="ghost" (click)="closePrintByName()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" *ngIf="pdfErrorDialogOpen">
     <div class="modal__backdrop" (click)="closePdfErrorDialog()"></div>
     <div class="modal__content">
@@ -1047,6 +1113,14 @@
     </div>
   </div>
 </section>
+<app-dialog
+  [aberto]="dialogConfirmacaoAberta"
+  [titulo]="dialogTitulo"
+  [mensagem]="dialogMensagem"
+  [confirmarLabel]="dialogConfirmarLabel"
+  (confirmar)="confirmarDialogo()"
+  (cancelar)="cancelarDialogo()"
+></app-dialog>
 </app-tela-padrao>
 
 

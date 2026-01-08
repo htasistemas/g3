@@ -29,6 +29,23 @@ export interface BeneficiaryReportFilters {
   codigo?: string;
   status?: string;
   dataNascimento?: string;
+  ordenarPor?: string;
+  ordem?: string;
+  usuarioEmissor?: string;
+}
+
+export interface CursosAtendimentosRelacaoFilters {
+  nome?: string;
+  tipo?: string;
+  status?: string;
+  profissional?: string;
+  salaId?: string;
+  usuarioEmissor?: string;
+}
+
+export interface SolicitacaoComprasPayload {
+  solicitacaoId: string;
+  usuarioEmissor?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,11 +65,32 @@ export class ReportService {
     return this.http.post(`${this.baseUrl}/beneficiarios/relacao`, filters, { responseType: 'blob' });
   }
 
-  generateBeneficiaryProfile(beneficiarioId: string): Observable<Blob> {
+  generateBeneficiaryProfile(payload: { beneficiarioId: string; usuarioEmissor?: string }): Observable<Blob> {
     return this.http.post(
       `${this.baseUrl}/beneficiarios/ficha`,
-      { beneficiarioId },
+      payload,
       { responseType: 'blob' }
     );
+  }
+
+  generateCursosAtendimentosList(filters: CursosAtendimentosRelacaoFilters): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/cursos-atendimentos/relacao`, filters, {
+      responseType: 'blob'
+    });
+  }
+
+  generateCursoAtendimentoFicha(payload: {
+    cursoId: string;
+    usuarioEmissor?: string;
+  }): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/cursos-atendimentos/ficha`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateSolicitacaoCompras(payload: SolicitacaoComprasPayload): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/autorizacao-compras/solicitacao`, payload, {
+      responseType: 'blob'
+    });
   }
 }

@@ -75,6 +75,10 @@
   cursor: pointer;
 }
 
+.motivo-toggle--inline {
+  margin-left: 0.5rem;
+}
+
 .motivo-texto {
   margin: 0;
   max-width: 520px;
@@ -216,6 +220,13 @@
 .primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 32px rgba(16, 185, 129, 0.45);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .tab-shell {
@@ -632,6 +643,13 @@ td {
   padding: 0.7rem;
   border-bottom: 1px solid #e5e7eb;
   color: #0f172a;
+}
+
+td input {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.35rem 0.5rem;
 }
 
 .text-right {

@@ -7,10 +7,14 @@ import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficia
 import { SalaRecord, SalasService } from '../../services/salas.service';
 import { AssistanceUnitService } from '../../services/assistance-unit.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
-import { catchError, debounceTime, distinctUntilChanged, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, firstValueFrom, of, Subscription, switchMap, tap } from 'rxjs';
 import { titleCaseWords } from '../../utils/capitalization.util';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { ReportService } from '../../services/report.service';
+import { AuthService } from '../../services/auth.service';
 const generateId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -67,11 +71,11 @@ interface WidgetState {
 @Component({
   selector: 'app-cursos-atendimentos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, DialogComponent],
   templateUrl: './cursos-atendimentos.component.html',
   styleUrl: './cursos-atendimentos.component.scss'
 })
-export class CursosAtendimentosComponent implements OnInit, OnDestroy {
+export class CursosAtendimentosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs: StepTab[] = [
     { id: 'dados', label: 'Dados do Curso/Atendimento/Oficinas' },
     { id: 'catalogo', label: 'Catálogo e Vagas' },
@@ -91,6 +95,7 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
   activeTab: StepTab['id'] = 'dados';
   feedback: string | null = null;
+  printDialogOpen = false;
   saving = false;
   editingId: string | null = null;
   private readonly capitalizationSubs: Subscription[] = [];
@@ -166,14 +171,26 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
   ];
   private readonly widgetPrefsKey = 'g3.cursos.dashboard.widgets';
 
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    buscar: true,
+    novo: true,
+    salvar: true,
+    cancelar: true,
+    excluir: true,
+    imprimir: true
+  });
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: CursosAtendimentosService,
     private readonly beneficiaryService: BeneficiaryService,
     private readonly salasService: SalasService,
     private readonly professionalService: ProfessionalService,
-    private readonly unitService: AssistanceUnitService
+    private readonly unitService: AssistanceUnitService,
+    private readonly reportService: ReportService,
+    private readonly authService: AuthService
   ) {
+    super();
     this.courseForm = this.fb.group({
       tipo: ['Curso', Validators.required],
       nome: ['', Validators.required],
@@ -438,6 +455,97 @@ export class CursosAtendimentosComponent implements OnInit, OnDestroy {
 
   dismissFeedback(): void {
     this.feedback = null;
+  }
+
+  get estadoAcoesToolbar(): EstadoAcoesCrud {
+    return {
+      excluir: !this.editingId,
+      imprimir: true
+    };
+  }
+
+  onBuscar(): void {
+    this.changeTab('catalogo');
+  }
+
+  onCancelar(): void {
+    this.startNew();
+  }
+
+  onExcluir(): void {
+    if (!this.currentCourse) return;
+    this.deleteCourse(this.currentCourse);
+  }
+
+  onImprimir(): void {
+    this.printDialogOpen = true;
+  }
+
+  closePrintDialog(): void {
+    this.printDialogOpen = false;
+  }
+
+  async imprimirRelacao(): Promise<void> {
+    this.printDialogOpen = false;
+    try {
+      const blob = await firstValueFrom(
+        this.reportService.generateCursosAtendimentosList({
+          usuarioEmissor: this.usuarioEmissor()
+        })
+      );
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar relacao de cursos e atendimentos', error);
+      this.feedback = 'Falha ao gerar a relacao de cursos e atendimentos.';
+    }
+  }
+
+  async imprimirFichaSelecionada(): Promise<void> {
+    const cursoId = this.currentCourse?.id;
+    if (!cursoId) {
+      this.feedback = 'Selecione um curso/atendimento antes de gerar a ficha.';
+      this.printDialogOpen = false;
+      return;
+    }
+    this.printDialogOpen = false;
+    try {
+      const blob = await firstValueFrom(
+        this.reportService.generateCursoAtendimentoFicha({
+          cursoId: String(cursoId),
+          usuarioEmissor: this.usuarioEmissor()
+        })
+      );
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar ficha do curso/atendimento', error);
+      this.feedback = 'Falha ao gerar a ficha do curso/atendimento.';
+    }
+  }
+
+  private usuarioEmissor(): string {
+    return (
+      this.authService.user()?.nome ||
+      this.authService.user()?.nomeUsuario ||
+      'Sistema'
+    );
+  }
+
+  private openPdfInNewWindow(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
+    if (!documentWindow) {
+      this.feedback = 'Permita a abertura de pop-ups para visualizar o relatorio.';
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    const triggerPrint = () => {
+      documentWindow.focus();
+      documentWindow.print();
+    };
+
+    documentWindow.addEventListener('load', triggerPrint, { once: true });
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   loadCourse(courseId: string): void {

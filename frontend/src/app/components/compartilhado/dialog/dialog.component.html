@@ -1,5 +1,8 @@
 <div class="dialog" *ngIf="aberto">
-  <div class="dialog__overlay" (click)="cancelar.emit()"></div>
+  <div
+    class="dialog__overlay"
+    (click)="cancelarAoClicarOverlay ? cancelar.emit() : null"
+  ></div>
   <div class="dialog__content">
     <h3>{{ titulo }}</h3>
     <p>{{ mensagem }}</p>

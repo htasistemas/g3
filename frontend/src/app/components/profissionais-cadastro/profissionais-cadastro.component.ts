@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
@@ -17,6 +17,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { VoluntariadoTermoPrintService } from '../../shared/print/voluntariado-termo-print.service';
+import { AuthService } from '../../services/auth.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
 interface StepTab {
   id: string;
@@ -65,7 +66,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
 
   tabs: StepTab[] = [
     { id: 'dados', label: 'Dados pessoais' },
-    { id: 'endereço', label: 'Endereço' },
+    { id: 'endereço', label: 'EndereÃ§o' },
     { id: 'perfil', label: 'Perfil profissional' },
     { id: 'agenda', label: 'Agenda e canais' },
     { id: 'resumo', label: 'Resumo e observacoes' },
@@ -89,7 +90,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     { value: 'CLT', label: 'CLT' },
     { value: 'PJ', label: 'PJ' }
   ];
-  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Famílias', 'Juventude', 'Visitas', 'Oficinas'];
+  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'FamÃ­lias', 'Juventude', 'Visitas', 'Oficinas'];
   readonly brazilianStates = [
     'AC',
     'AL',
@@ -177,6 +178,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     private readonly professionalService: ProfessionalService,
     private readonly assistanceUnitService: AssistanceUnitService,
     private readonly termoPrintService: VoluntariadoTermoPrintService,
+    private readonly authService: AuthService,
     private readonly http: HttpClient,
     private readonly salasService: SalasService
   ) {
@@ -445,7 +447,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         { path: 'categoria', label: 'Categoria' },
         { path: 'email', label: 'E-mail' },
         { path: 'status', label: 'Status' },
-        { path: 'vinculo', label: 'Vínculo' }
+        { path: 'vinculo', label: 'VÃ­nculo' }
       ];
 
       requiredFields.forEach(({ path, label }) => {
@@ -481,7 +483,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         this.applyListFilters();
       },
       error: () => {
-        this.setFeedback('Não foi possível salvar o profissional. Tente novamente.');
+        this.setFeedback('NÃ£o foi possÃ­vel salvar o profissional. Tente novamente.');
         this.saving = false;
       }
     });
@@ -590,7 +592,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.applyListFilters();
         },
         error: () => {
-          this.setFeedback('Não foi possível remover o profissional. Tente novamente.');
+          this.setFeedback('NÃ£o foi possÃ­vel remover o profissional. Tente novamente.');
         }
       });
   }
@@ -698,8 +700,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     const record = this.editingId ? this.professionals.find((item) => item.id === this.editingId) : null;
     const data = record ?? (this.buildPayload() as ProfessionalPayload);
 
-    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'Não informado';
-    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'Não informado';
+    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'NÃ£o informado';
+    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'NÃ£o informado';
     const tags = (data.tags ?? []).join(', ') || 'Sem tags definidas';
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -725,21 +727,21 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           <p class="pill">${data.status || 'Sem status'}</p>
           <dl>
             <dt>Nome completo</dt>
-            <dd>${data.nomeCompleto || 'Não informado'}</dd>
+            <dd>${data.nomeCompleto || 'NÃ£o informado'}</dd>
             <dt>Categoria</dt>
-            <dd>${data.categoria || 'Não informado'}</dd>
+            <dd>${data.categoria || 'NÃ£o informado'}</dd>
             <dt>Especialidade</dt>
-            <dd>${data.especialidade || 'Não informado'}</dd>
+            <dd>${data.especialidade || 'NÃ£o informado'}</dd>
             <dt>Registro em conselho</dt>
-            <dd>${data.registroConselho || 'Não informado'}</dd>
+            <dd>${data.registroConselho || 'NÃ£o informado'}</dd>
             <dt>E-mail</dt>
-            <dd>${data.email || 'Não informado'}</dd>
+            <dd>${data.email || 'NÃ£o informado'}</dd>
             <dt>Telefone/WhatsApp</dt>
-            <dd>${data.telefone || 'Não informado'}</dd>
+            <dd>${data.telefone || 'NÃ£o informado'}</dd>
             <dt>Unidade de atendimento</dt>
-            <dd>${data.unidade || 'Não informado'}</dd>
+            <dd>${data.unidade || 'NÃ£o informado'}</dd>
             <dt>Carga horaria</dt>
-            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Não informado'}</dd>
+            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'NÃ£o informado'}</dd>
             <dt>Disponibilidade</dt>
             <dd>${disponibilidade}</dd>
             <dt>Canais de atendimento</dt>
@@ -748,7 +750,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
             <dd>${tags}</dd>
             <dt>Resumo breve</dt>
             <dd>${data.resumo || 'Sem resumo'}</dd>
-            <dt>Observações internas</dt>
+            <dt>ObservaÃ§Ãµes internas</dt>
             <dd>${data.observacoes || 'Sem observacoes'}</dd>
           </dl>
         </body>
@@ -780,7 +782,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.startNew();
         },
         error: () => {
-          this.setFeedback('Não foi possível remover o profissional. Tente novamente.');
+          this.setFeedback('NÃ£o foi possÃ­vel remover o profissional. Tente novamente.');
         }
       });
   }
@@ -810,11 +812,24 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       ? this.professionals.find((item) => item.id === this.editingId)
       : this.buildPayload();
     if (!profissionalAtual) {
-      this.setFeedback('Não foi possível obter os dados do profissional para imprimir.');
+      this.setFeedback('NÃ£o foi possÃ­vel obter os dados do profissional para imprimir.');
       return;
     }
 
-    this.termoPrintService.printTermoVoluntariado(this.mapUnidadeParaTermo(this.unidadeAtual), this.mapProfissionalParaTermo(profissionalAtual));
+    const usuarioEmissor =
+      this.authService.user()?.nome || this.authService.user()?.nomeUsuario || 'Sistema';
+    const vinculoTipo =
+      (profissionalAtual as ProfessionalRecord)?.vinculo ||
+      (profissionalAtual as ProfessionalPayload)?.vinculo ||
+      this.form.get('vinculo')?.value ||
+      'VOLUNTARIO';
+
+    this.termoPrintService.printTermoVoluntariado(
+      this.mapUnidadeParaTermo(this.unidadeAtual),
+      this.mapProfissionalParaTermo(profissionalAtual),
+      usuarioEmissor,
+      vinculoTipo
+    );
   }
 
   onClose(): void {
@@ -826,14 +841,16 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       nomeFantasia: unidade?.nomeFantasia,
       razaoSocial: unidade?.razaoSocial,
       cnpj: unidade?.cnpj,
-      endereço: unidade?.endereco,
+      endereco: unidade?.endereco,
       numeroEndereco: unidade?.numeroEndereco,
       complemento: unidade?.complemento,
       bairro: unidade?.bairro,
       cidade: unidade?.cidade,
       estado: unidade?.estado,
       inscricaoMunicipal: (unidade as any)?.inscricaoMunicipal,
-      coordenadorNome: (unidade as any)?.coordenadorNome
+      coordenadorNome: (unidade as any)?.coordenadorNome,
+      logomarca: unidade?.logomarca,
+      logomarcaRelatorio: unidade?.logomarcaRelatorio
     };
   }
 
@@ -860,7 +877,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.applyListFilters();
         },
         error: () => {
-          this.setFeedback('Não foi possível carregar os profissionais.');
+          this.setFeedback('NÃ£o foi possÃ­vel carregar os profissionais.');
         }
       });
   }
@@ -1032,7 +1049,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       }
     } catch (error) {
       console.error('Erro ao iniciar camera', error);
-      this.captureError = 'Não foi possível acessar a camera.';
+      this.captureError = 'NÃ£o foi possÃ­vel acessar a camera.';
       this.cameraActive = false;
       if (this.videoStream) {
         this.videoStream.getTracks().forEach((track) => track.stop());
@@ -1127,7 +1144,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'NÃ£o foi possÃ­vel consultar o CEP.';
         }
       });
   }

@@ -122,6 +122,60 @@
   gap: 0.5rem;
 }
 
+.version-update {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.version-update__label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.version-update__value {
+  margin: 0.2rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.version-update__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.version-update__button {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.2);
+}
+
+.version-update__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.version-update__feedback {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 .release-list__header,
 .release-row {
   display: grid;

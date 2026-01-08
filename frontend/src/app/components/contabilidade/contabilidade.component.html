@@ -727,14 +727,19 @@
       </header>
       <div class="flow-chart" *ngIf="cashFlow.length; else emptyFlow">
         <div class="flow-chart__bars" *ngFor="let item of cashFlow">
-          <div class="flow-chart__label">{{ item.period }}</div>
-          <div class="flow-chart__bar bar-positive" [style.width.%]="item.receivable / 6.5">
-            <span>A receber</span>
-            <strong>{{ item.receivable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+          <div class="flow-chart__label">
+            <p class="strong">{{ item.period }}</p>
+            <p class="muted">Projecao semanal</p>
           </div>
-          <div class="flow-chart__bar bar-negative" [style.width.%]="item.payable / 6.5">
-            <span>A pagar</span>
-            <strong>{{ item.payable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+          <div class="flow-chart__bars-stack flow-chart__bars-stack--row">
+            <div class="flow-chart__bar bar-positive" [style.width.%]="calcularPercentual(item.receivable, cashFlowMax)">
+              <span>A receber</span>
+              <strong>{{ item.receivable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+            </div>
+            <div class="flow-chart__bar bar-negative" [style.width.%]="calcularPercentual(item.payable, cashFlowMax)">
+              <span>A pagar</span>
+              <strong>{{ item.payable | currency:'BRL':'symbol':'1.0-0' }}</strong>
+            </div>
           </div>
           <div class="flow-chart__projection">
             <fa-icon [icon]="faFileInvoice"></fa-icon>

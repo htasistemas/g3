@@ -115,6 +115,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.dashboardService.data()?.financeiro ?? null;
   }
 
+  get totalFinanceiro(): number {
+    if (!this.financeiro) {
+      return 0;
+    }
+    return (
+      this.financeiro.valoresAReceber +
+      this.financeiro.valoresEmCaixa +
+      this.financeiro.valoresEmBanco
+    );
+  }
+
+  get percentualAReceber(): number {
+    return this.calcularPercentual(this.financeiro?.valoresAReceber ?? 0, this.totalFinanceiro);
+  }
+
+  get totalCadastros(): number {
+    if (!this.cadastros) {
+      return 0;
+    }
+    return (
+      this.cadastros.beneficiarios +
+      this.cadastros.profissionais +
+      this.cadastros.voluntarios +
+      this.cadastros.familias
+    );
+  }
+
+  get percentualBeneficiarios(): number {
+    return this.calcularPercentual(this.cadastros?.beneficiarios ?? 0, this.totalCadastros);
+  }
+
+  get percentualVoluntarios(): number {
+    return this.calcularPercentual(this.cadastros?.voluntarios ?? 0, this.totalCadastros);
+  }
+
+  calcularPercentual(valor: number, maximo: number): number {
+    if (!maximo) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, (valor / maximo) * 100));
+  }
+
+
   refresh() {
     this.dashboardService.fetch();
     this.carregarMetricasExtras();
@@ -157,4 +200,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
       })
     );
   }
+
 }

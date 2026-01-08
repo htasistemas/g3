@@ -14,6 +14,9 @@ import br.com.g3.doacaorealizada.repository.DoacaoRealizadaRepository;
 import br.com.g3.doacaorealizada.service.DoacaoRealizadaService;
 import br.com.g3.vinculofamiliar.domain.VinculoFamiliar;
 import br.com.g3.vinculofamiliar.repository.VinculoFamiliarRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +47,24 @@ public class DoacaoRealizadaServiceImpl implements DoacaoRealizadaService {
     validarReferencias(request);
     validarItens(request);
     DoacaoRealizada doacao = DoacaoRealizadaMapper.toDomain(request);
+    aplicarBeneficiario(doacao, request.getBeneficiarioId());
+    aplicarFamilia(doacao, request.getVinculoFamiliarId());
+    aplicarItens(doacao, request.getItens());
+    return DoacaoRealizadaMapper.toResponse(repository.salvar(doacao));
+  }
+
+  @Override
+  @Transactional
+  public DoacaoRealizadaResponse atualizar(Long id, DoacaoRealizadaRequest request) {
+    validarReferencias(request);
+    validarItens(request);
+    DoacaoRealizada doacao =
+        repository
+            .buscarPorId(id)
+            .orElseThrow(() -> new IllegalArgumentException("Doacao realizada nao encontrada."));
+    validarPrazoEdicao(doacao);
+    restaurarEstoqueItens(doacao);
+    DoacaoRealizadaMapper.aplicarDados(doacao, request);
     aplicarBeneficiario(doacao, request.getBeneficiarioId());
     aplicarFamilia(doacao, request.getVinculoFamiliarId());
     aplicarItens(doacao, request.getItens());
@@ -109,11 +130,38 @@ public class DoacaoRealizadaServiceImpl implements DoacaoRealizadaService {
         throw new IllegalArgumentException("Estoque insuficiente para o item " + item.getDescricao() + ".");
       }
       item.setEstoqueAtual(estoqueAtual - quantidade);
-      item.setAtualizadoEm(java.time.LocalDateTime.now());
+      item.setAtualizadoEm(LocalDateTime.now());
       almoxarifadoRepository.salvarItem(item);
       novosItens.add(DoacaoRealizadaMapper.toItemDomain(itemRequest, doacao, item));
     }
     doacao.setItens(novosItens);
+  }
+
+  private void restaurarEstoqueItens(DoacaoRealizada doacao) {
+    for (DoacaoRealizadaItem itemDoacao : doacao.getItens()) {
+      AlmoxarifadoItem item = itemDoacao.getItem();
+      if (item == null || itemDoacao.getQuantidade() == null) {
+        continue;
+      }
+      Integer estoqueAtual = item.getEstoqueAtual();
+      if (estoqueAtual == null) {
+        continue;
+      }
+      item.setEstoqueAtual(estoqueAtual + itemDoacao.getQuantidade());
+      item.setAtualizadoEm(LocalDateTime.now());
+      almoxarifadoRepository.salvarItem(item);
+    }
+  }
+
+  private void validarPrazoEdicao(DoacaoRealizada doacao) {
+    LocalDate dataDoacao = doacao.getDataDoacao();
+    if (dataDoacao == null) {
+      return;
+    }
+    long dias = ChronoUnit.DAYS.between(dataDoacao, LocalDate.now());
+    if (dias > 10) {
+      throw new IllegalArgumentException("Doacao realizada ha mais de 10 dias nao pode ser alterada.");
+    }
   }
 
   private void validarReferencias(DoacaoRealizadaRequest request) {

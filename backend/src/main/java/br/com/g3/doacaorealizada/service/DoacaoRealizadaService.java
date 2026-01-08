@@ -7,6 +7,8 @@ import java.util.List;
 public interface DoacaoRealizadaService {
   DoacaoRealizadaResponse criar(DoacaoRealizadaRequest request);
 
+  DoacaoRealizadaResponse atualizar(Long id, DoacaoRealizadaRequest request);
+
   DoacaoRealizadaResponse buscarPorId(Long id);
 
   List<DoacaoRealizadaResponse> listar();

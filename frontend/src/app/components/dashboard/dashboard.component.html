@@ -75,6 +75,49 @@
         </div>
       </div>
     </div>
+
+    <div class="chart-grid" *ngIf="financeiro || cadastros">
+      <div class="chart-card chart-card--single" *ngIf="financeiro">
+        <div class="chart-card__header">
+          <p class="chart-card__title">Valores a receber</p>
+          <span class="chart-card__hint">Financeiro</span>
+        </div>
+        <div class="chart-donut chart-donut--emerald" [style.--percent.%]="percentualAReceber">
+          <div class="chart-donut__center">
+            <span class="chart-donut__value">{{ percentualAReceber | number: '1.0-0' }}%</span>
+            <span class="chart-donut__label">A receber</span>
+          </div>
+        </div>
+        <p class="chart-highlight">{{ financeiro.valoresAReceber | currency: 'BRL' }}</p>
+        <p class="chart-card__subhint">Proporcao sobre o total financeiro.</p>
+      </div>
+
+      <div class="chart-card chart-card--single" *ngIf="cadastros">
+        <div class="chart-card__header">
+          <p class="chart-card__title">Beneficiarios cadastrados</p>
+          <span class="chart-card__hint">Cadastros</span>
+        </div>
+        <div class="chart-spark">
+          <div class="chart-spark__line"></div>
+          <span class="chart-spark__marker" [style.left.%]="percentualBeneficiarios"></span>
+          <span class="chart-spark__value">{{ percentualBeneficiarios | number: '1.0-0' }}%</span>
+        </div>
+        <p class="chart-highlight">{{ cadastros.beneficiarios }}</p>
+        <p class="chart-card__subhint">Proporcao sobre cadastros totais.</p>
+      </div>
+
+      <div class="chart-card chart-card--single" *ngIf="cadastros">
+        <div class="chart-card__header">
+          <p class="chart-card__title">Voluntarios cadastrados</p>
+          <span class="chart-card__hint">Cadastros</span>
+        </div>
+        <div class="chart-pie chart-pie--amber" [style.--percent.%]="percentualVoluntarios">
+          <span class="chart-pie__value">{{ percentualVoluntarios | number: '1.0-0' }}%</span>
+        </div>
+        <p class="chart-highlight">{{ cadastros.voluntarios }}</p>
+        <p class="chart-card__subhint">Proporcao sobre cadastros totais.</p>
+      </div>
+    </div>
   </ng-container>
 
   <ng-template #loadingState>

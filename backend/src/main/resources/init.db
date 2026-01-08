@@ -188,11 +188,11 @@ SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.00.8',
-    descricao = 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.',
+SET versao = '1.00.9',
+    descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.00.8';
+  AND versao <> '1.00.9';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -200,12 +200,12 @@ WHERE id = 1
   AND versao = '1.0.0';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.8', 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.', NOW()
+SELECT '1.00.9', 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.00.8'
-    AND descricao = 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.'
+  WHERE versao = '1.00.9'
+    AND descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.'
 );
 
 UPDATE historico_versao_sistema

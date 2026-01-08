@@ -20,7 +20,7 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
-import { forkJoin, of } from 'rxjs';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
 import {
   AutorizacaoCompraCotacaoResponse,
   AutorizacaoCompraRequest,
@@ -31,6 +31,8 @@ import { ProfessionalRecord, ProfessionalService } from '../../services/professi
 import { ContaBancariaResponse, ContabilidadeService } from '../../services/contabilidade.service';
 import { AlmoxarifadoService, StockItemPayload } from '../../services/almoxarifado.service';
 import { PatrimonioPayload, PatrimonioService } from '../../services/patrimonio.service';
+import { ReportService } from '../../services/report.service';
+import { AuthService } from '../../services/auth.service';
 
 type PurchaseType = 'produto' | 'bem' | 'servico' | 'contrato';
 type StepId = 'solicitacao' | 'autorizacao' | 'cotacoes' | 'reserva' | 'conclusao';
@@ -192,7 +194,9 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     private readonly professionalService: ProfessionalService,
     private readonly contabilidadeService: ContabilidadeService,
     private readonly almoxarifadoService: AlmoxarifadoService,
-    private readonly patrimonioService: PatrimonioService
+    private readonly patrimonioService: PatrimonioService,
+    private readonly reportService: ReportService,
+    private readonly authService: AuthService
   ) {
     super();
   }
@@ -943,7 +947,53 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   }
 
   printSection(): void {
-    window.print();
+    if (!this.selectedRequest) {
+      this.setFeedback('Selecione uma solicitacao antes de imprimir.');
+      return;
+    }
+
+    this.gerarRelatorioSolicitacao(this.selectedRequest);
+  }
+
+  private async gerarRelatorioSolicitacao(request: PurchaseRequest): Promise<void> {
+    try {
+      const blob = await firstValueFrom(
+        this.reportService.generateSolicitacaoCompras({
+          solicitacaoId: String(request.id),
+          usuarioEmissor: this.usuarioEmissor()
+        })
+      );
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar solicitacao de compras', error);
+      this.setFeedback('Nao foi possivel gerar a solicitacao de compras.');
+    }
+  }
+
+  private usuarioEmissor(): string {
+    return (
+      this.authService.user()?.nome ||
+      this.authService.user()?.nomeUsuario ||
+      'Sistema'
+    );
+  }
+
+  private openPdfInNewWindow(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
+    if (!documentWindow) {
+      this.setFeedback('Permita a abertura de pop-ups para visualizar o relatorio.');
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    const triggerPrint = () => {
+      documentWindow.focus();
+      documentWindow.print();
+    };
+
+    documentWindow.addEventListener('load', triggerPrint, { once: true });
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 
   private criarItemAlmoxarifado(request: PurchaseRequest) {

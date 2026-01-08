@@ -6,13 +6,15 @@ type UnidadeTermo = {
   razaoSocial?: string;
   cnpj?: string;
   inscricaoMunicipal?: string;
-  endereço?: string;
+  endereco?: string;
   numeroEndereco?: string;
   complemento?: string;
   bairro?: string;
   cidade?: string;
   estado?: string;
   coordenadorNome?: string;
+  logomarca?: string;
+  logomarcaRelatorio?: string;
 };
 
 type ProfissionalTermo = {
@@ -24,7 +26,7 @@ type ProfissionalTermo = {
   email?: string;
   telefoneCelular?: string;
   telefoneResidencial?: string;
-  endereço?: {
+  endereco?: {
     logradouro?: string;
     numero?: string;
     complemento?: string;
@@ -33,8 +35,8 @@ type ProfissionalTermo = {
     cidade?: string;
     uf?: string;
   };
-  voluntárioOutraInstituicao?: boolean;
-  voluntárioOutraDescricao?: string;
+  voluntarioOutraInstituicao?: boolean;
+  voluntarioOutraDescricao?: string;
   voluntariadoLocalAtividade?: string;
   voluntariadoPeriodo?: string;
   voluntariadoDisponibilidade?: {
@@ -54,8 +56,18 @@ type ProfissionalTermo = {
 
 @Injectable({ providedIn: 'root' })
 export class VoluntariadoTermoPrintService {
-  printTermoVoluntariado(unidade: UnidadeTermo, voluntário: ProfissionalTermo): void {
-    const html = buildTermoVoluntariadoHTML(unidade, voluntário);
+  printTermoVoluntariado(
+    unidade: UnidadeTermo,
+    voluntario: ProfissionalTermo,
+    usuarioEmissor?: string,
+    vinculoTipo: 'VOLUNTARIO' | 'CLT' | 'PJ' = 'VOLUNTARIO'
+  ): void {
+    const html = buildTermoVoluntariadoHTML(
+      unidade,
+      voluntario,
+      usuarioEmissor,
+      vinculoTipo
+    );
     const janela = window.open('', '_blank', 'width=900,height=1200');
     if (!janela) return;
 

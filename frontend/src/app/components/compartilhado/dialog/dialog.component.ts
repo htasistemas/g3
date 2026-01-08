@@ -14,6 +14,7 @@ export class DialogComponent {
   @Input() mensagem = 'Deseja continuar?';
   @Input() confirmarLabel = 'Confirmar';
   @Input() cancelarLabel = 'Cancelar';
+  @Input() cancelarAoClicarOverlay = true;
 
   @Output() confirmar = new EventEmitter<void>();
   @Output() cancelar = new EventEmitter<void>();

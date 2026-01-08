@@ -119,6 +119,20 @@
   font-weight: 600;
 }
 
+.theme-toggle-button {
+  @apply inline-flex items-center justify-center rounded-md border border-white/30 text-xs font-semibold;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  width: 2rem;
+  height: 2rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
 .logout-button {
   @apply inline-flex items-center gap-2 rounded-md border border-white/30 text-xs font-semibold;
   background: rgba(255, 255, 255, 0.06);
