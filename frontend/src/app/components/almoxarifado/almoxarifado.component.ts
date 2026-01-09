@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
@@ -25,6 +26,8 @@ import {
 import {
   AdjustmentDirection,
   AlmoxarifadoService,
+  KitComposicaoItem,
+  KitVinculoMovimentacao,
   MovementType,
   StockItem,
   StockItemPayload,
@@ -33,8 +36,9 @@ import {
 } from '../../services/almoxarifado.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { SalasService } from '../../services/salas.service';
 
-type AlmoxTabId = 'cadastro' | 'itens' | 'movimentações' | 'dashboards';
+type AlmoxTabId = 'cadastro' | 'kit' | 'itens' | 'movimentacoes' | 'dashboards';
 
 interface ItemFilters {
   term: string;
@@ -62,6 +66,7 @@ interface ItemFormState {
   currentStock: number;
   minStock: number;
   unitValue: number;
+  isKit: boolean;
   status: StockItemStatus;
   validity?: string;
   ignoreValidity: boolean;
@@ -83,7 +88,14 @@ interface MovementFormState {
 @Component({
   selector: 'app-almoxarifado',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    AutocompleteComponent
+  ],
   templateUrl: './almoxarifado.component.html',
   styleUrl: './almoxarifado.component.scss'
 })
@@ -105,22 +117,57 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   readonly faUser = faUser;
 
   unidadeAtual: AssistanceUnitPayload | null = null;
+  categoriaTermo = '';
+  unidadeMedidaTermo = '';
+  localizacaoTermo = '';
+  localizacaoInternaTermo = '';
+  categoriasOpcoes: AutocompleteOpcao[] = [];
+  unidadesMedidaOpcoes: AutocompleteOpcao[] = [];
+  localizacoesOpcoes: AutocompleteOpcao[] = [];
+  localizacoesInternasOpcoes: AutocompleteOpcao[] = [];
+  private categoriasOpcoesBase: AutocompleteOpcao[] = [];
+  private unidadesMedidaOpcoesBase: AutocompleteOpcao[] = [];
+  private localizacoesOpcoesBase: AutocompleteOpcao[] = [];
+  private localizacoesInternasOpcoesBase: AutocompleteOpcao[] = [];
+  kitComposicao: KitComposicaoItem[] = [];
+  kitComposicaoNovo: { termo: string; produtoId: string; quantidade: number } = {
+    termo: '',
+    produtoId: '',
+    quantidade: 1
+  };
+  kitComposicaoErro: string | null = null;
+  kitComposicaoCarregando = false;
+  kitComposicaoSalvando = false;
+  kitComposicaoItemId: string | null = null;
+
+  movimentacaoKitComposicao: KitComposicaoItem[] = [];
+  movimentacaoKitErro: string | null = null;
+  movimentacaoKitCarregando = false;
+  gerarItensKitEntrada = false;
+
+  kitVinculos: KitVinculoMovimentacao[] = [];
+  kitVinculosCarregando = false;
+  kitVinculosErro: string | null = null;
+  showKitVinculosModal = false;
+  kitVinculosMovimentacaoSelecionada: StockMovement | null = null;
 
   constructor(
     private readonly almoxarifadoService: AlmoxarifadoService,
-    private readonly assistanceUnitService: AssistanceUnitService
+    private readonly assistanceUnitService: AssistanceUnitService,
+    private readonly salasService: SalasService
   ) {
     super();
   }
 
   readonly tabs: { id: AlmoxTabId; label: string; description: string }[] = [
-    { id: 'cadastro', label: 'Cadastros de itens', description: 'Estruture o item com campos obrigatórios e validações.' },
-    { id: 'itens', label: 'Itens do almoxarifado', description: 'Consulte rapidamente os itens ativos e críticos.' },
-    { id: 'movimentações', label: 'Movimentações', description: 'Registre e acompanhe entradas, saídas e ajustes.' },
-    { id: 'dashboards', label: 'Dashboards', description: 'Indicadores operacionais e visão consolidada do estoque.' }
+    { id: 'dashboards', label: 'Dashboards', description: 'Indicadores operacionais e visao consolidada do estoque.' },
+    { id: 'cadastro', label: 'Cadastros de itens', description: 'Estruture o item com campos obrigatorios e validacoes.' },
+    { id: 'kit', label: 'Composicao do kit', description: 'Defina os itens e quantidades de produtos compostos.' },
+    { id: 'itens', label: 'Itens do almoxarifado', description: 'Consulte rapidamente os itens ativos e criticos.' },
+    { id: 'movimentacoes', label: 'Movimentacoes', description: 'Registre e acompanhe entradas, saidas e ajustes.' }
   ];
 
-  activeTab: AlmoxTabId = 'cadastro';
+  activeTab: AlmoxTabId = 'dashboards';
 
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
@@ -190,7 +237,10 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   private loadItems(): void {
     this.formError = null;
     this.almoxarifadoService.listItems().subscribe({
-      next: (items) => this.items.set(items),
+      next: (items) => {
+        this.items.set(items);
+        this.atualizarOpcoesCadastro(items);
+      },
       error: () => {
         this.formError = 'Não foi possível carregar os itens do almoxarifado.';
         this.popupErros = [this.formError];
@@ -224,13 +274,16 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     this.almoxarifadoService.listMovements().subscribe({
       next: (movements) => this.movements.set(movements),
       error: () => {
-        this.movementError = 'Não foi possível carregar as movimentações do almoxarifado.';
+        this.movementError = 'Nao foi possivel carregar as movimentacoes do almoxarifado.';
       }
     });
   }
 
   changeTab(tabId: AlmoxTabId): void {
     this.activeTab = tabId;
+    if (tabId === 'kit') {
+      this.garantirComposicaoCarregada();
+    }
   }
 
   goToNextTab(): void {
@@ -322,7 +375,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   }
 
   onFecharToolbar(): void {
-    this.popupErros = [];
+    window.history.back();
   }
 
   private buildRelatorioEstoqueHtml(itens: StockItem[], unidade: AssistanceUnitPayload | null): string {
@@ -577,9 +630,11 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     this.assistanceUnitService.get().subscribe({
       next: ({ unidade }) => {
         this.unidadeAtual = unidade ?? null;
+        this.carregarSalas(unidade?.id);
       },
       error: () => {
         this.unidadeAtual = null;
+        this.carregarSalas(undefined);
       }
     });
   }
@@ -654,17 +709,36 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       currentStock: item.currentStock,
       minStock: item.minStock,
       unitValue: item.unitValue,
+      isKit: item.isKit ?? false,
       status: item.status,
       validity: item.validity ?? '',
       ignoreValidity: item.ignoreValidity ?? false,
       notes: item.notes ?? ''
     };
+    this.categoriaTermo = this.itemForm.category ?? '';
+    this.unidadeMedidaTermo = this.itemForm.unit ?? '';
+    this.localizacaoTermo = this.itemForm.location ?? '';
+    this.localizacaoInternaTermo = this.itemForm.locationDetail ?? '';
+    this.categoriasOpcoes = this.filtrarOpcoes(this.categoriasOpcoesBase, this.categoriaTermo);
+    this.unidadesMedidaOpcoes = this.filtrarOpcoes(
+      this.unidadesMedidaOpcoesBase,
+      this.unidadeMedidaTermo
+    );
+    this.localizacoesOpcoes = this.filtrarOpcoes(this.localizacoesOpcoesBase, this.localizacaoTermo);
+    this.localizacoesInternasOpcoes = this.filtrarOpcoes(
+      this.localizacoesInternasOpcoesBase,
+      this.localizacaoInternaTermo
+    );
     this.editingItemId = item.id;
     this.editingItemCode = item.code;
     this.formError = null;
     this.successMessage = null;
     this.activeTab = 'cadastro';
     this.valorUnitarioMascara = this.formatarValorMonetario(item.unitValue);
+    this.resetarKitComposicaoSeNecessario();
+    if (this.itemForm.isKit) {
+      this.carregarComposicaoKit(item.id);
+    }
   }
 
   resetItemForm(): void {
@@ -675,6 +749,18 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     this.successMessage = null;
     this.popupErros = [];
     this.valorUnitarioMascara = this.formatarValorMonetario(this.itemForm.unitValue);
+    this.categoriaTermo = '';
+    this.unidadeMedidaTermo = '';
+    this.localizacaoTermo = '';
+    this.localizacaoInternaTermo = '';
+    this.categoriasOpcoes = [...this.categoriasOpcoesBase];
+    this.unidadesMedidaOpcoes = [...this.unidadesMedidaOpcoesBase];
+    this.localizacoesOpcoes = [...this.localizacoesOpcoesBase];
+    this.localizacoesInternasOpcoes = [...this.localizacoesInternasOpcoesBase];
+    this.kitComposicao = [];
+    this.kitComposicaoNovo = { termo: '', produtoId: '', quantidade: 1 };
+    this.kitComposicaoErro = null;
+    this.kitComposicaoItemId = null;
     this.loadNextItemCode();
   }
 
@@ -708,6 +794,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       currentStock: Number(this.itemForm.currentStock) || 0,
       minStock: Number(this.itemForm.minStock),
       unitValue: Number(this.itemForm.unitValue) || 0,
+      isKit: this.itemForm.isKit,
       status: this.itemForm.status,
       validity: this.itemForm.validity || undefined,
       ignoreValidity: this.itemForm.ignoreValidity,
@@ -725,11 +812,36 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
           : [item, ...this.items()];
 
         this.items.set(updatedItems);
+        this.atualizarOpcoesCadastro(updatedItems);
         this.successMessage = this.editingItemId
-          ? 'Item atualizado com sucesso e pronto para novas movimentações.'
+          ? 'Item atualizado com sucesso e pronto para novas movimentacoes.'
           : 'Item cadastrado com sucesso no almoxarifado.';
         this.saving = false;
-        this.resetItemForm();
+        if (this.itemForm.isKit) {
+          this.editingItemId = item.id;
+          this.editingItemCode = item.code;
+          this.itemForm = {
+            code: item.code,
+            barcode: item.barcode ?? '',
+            description: item.description,
+            category: item.category ?? '',
+            unit: item.unit ?? '',
+            location: item.location ?? '',
+            locationDetail: item.locationDetail ?? '',
+            currentStock: item.currentStock,
+            minStock: item.minStock,
+            unitValue: item.unitValue,
+            isKit: item.isKit ?? true,
+            status: item.status,
+            validity: item.validity ?? '',
+            ignoreValidity: item.ignoreValidity ?? false,
+            notes: item.notes ?? ''
+          };
+          this.activeTab = 'kit';
+          this.carregarComposicaoKit(item.id);
+        } else {
+          this.resetItemForm();
+        }
       },
       error: (error) => {
         this.formError = error?.error?.message || 'N?o foi poss?vel salvar o item de estoque.';
@@ -752,6 +864,13 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       notes: '',
       adjustmentDirection: 'increase'
     };
+    this.gerarItensKitEntrada = false;
+    this.movimentacaoKitComposicao = [];
+    this.movimentacaoKitErro = null;
+    this.movimentacaoKitCarregando = false;
+    if (item?.code) {
+      this.atualizarKitMovimentacaoPorItem(item.code);
+    }
     this.showMovementModal = true;
   }
 
@@ -782,14 +901,66 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     );
     if (itemEncontrado) {
       this.movementForm = { ...this.movementForm, itemCode: itemEncontrado.code };
+      this.atualizarKitMovimentacaoPorItem(itemEncontrado.code);
     }
   }
 
   onValorUnitarioInput(valor: string): void {
     const apenasNumeros = (valor ?? '').replace(/\D/g, '');
-    const numero = Number(apenasNumeros || 0);
+    const numero = Number(apenasNumeros || 0) / 100;
     this.itemForm = { ...this.itemForm, unitValue: numero };
     this.valorUnitarioMascara = this.formatarValorMonetario(numero);
+  }
+
+  abrirEntradaProdutos(): void {
+    this.openMovementModal();
+  }
+
+  atualizarTermoCategoria(termo: string): void {
+    this.categoriaTermo = termo;
+    this.itemForm = { ...this.itemForm, category: termo };
+    this.categoriasOpcoes = this.filtrarOpcoes(this.categoriasOpcoesBase, termo);
+  }
+
+  selecionarCategoria(opcao: AutocompleteOpcao): void {
+    this.categoriaTermo = opcao.label;
+    this.itemForm = { ...this.itemForm, category: opcao.label };
+  }
+
+  atualizarTermoUnidadeMedida(termo: string): void {
+    this.unidadeMedidaTermo = termo;
+    this.itemForm = { ...this.itemForm, unit: termo };
+    this.unidadesMedidaOpcoes = this.filtrarOpcoes(this.unidadesMedidaOpcoesBase, termo);
+  }
+
+  selecionarUnidadeMedida(opcao: AutocompleteOpcao): void {
+    this.unidadeMedidaTermo = opcao.label;
+    this.itemForm = { ...this.itemForm, unit: opcao.label };
+  }
+
+  atualizarTermoLocalizacao(termo: string): void {
+    this.localizacaoTermo = termo;
+    this.itemForm = { ...this.itemForm, location: termo };
+    this.localizacoesOpcoes = this.filtrarOpcoes(this.localizacoesOpcoesBase, termo);
+  }
+
+  selecionarLocalizacao(opcao: AutocompleteOpcao): void {
+    this.localizacaoTermo = opcao.label;
+    this.itemForm = { ...this.itemForm, location: opcao.label };
+  }
+
+  atualizarTermoLocalizacaoInterna(termo: string): void {
+    this.localizacaoInternaTermo = termo;
+    this.itemForm = { ...this.itemForm, locationDetail: termo };
+    this.localizacoesInternasOpcoes = this.filtrarOpcoes(
+      this.localizacoesInternasOpcoesBase,
+      termo
+    );
+  }
+
+  selecionarLocalizacaoInterna(opcao: AutocompleteOpcao): void {
+    this.localizacaoInternaTermo = opcao.label;
+    this.itemForm = { ...this.itemForm, locationDetail: opcao.label };
   }
 
   onIgnorarValidadeChange(valor: boolean): void {
@@ -803,6 +974,78 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   private formatarValorMonetario(valor: number): string {
     const numero = Number.isFinite(valor) ? valor : 0;
     return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private carregarSalas(unidadeId?: number): void {
+    if (!unidadeId) {
+      this.localizacoesOpcoesBase = [];
+      this.localizacoesOpcoes = [];
+      return;
+    }
+    this.salasService.list(unidadeId).subscribe({
+      next: (salas) => {
+        this.localizacoesOpcoesBase = salas.map((sala) => ({ id: sala.id, label: sala.nome }));
+        this.localizacoesOpcoes = this.filtrarOpcoes(this.localizacoesOpcoesBase, this.localizacaoTermo);
+      },
+      error: () => {
+        this.localizacoesOpcoesBase = [];
+        this.localizacoesOpcoes = [];
+      }
+    });
+  }
+
+  private atualizarOpcoesCadastro(itens: StockItem[]): void {
+    const categorias = new Set<string>();
+    const unidades = new Set<string>();
+    const locaisInternos = new Set<string>();
+    itens.forEach((item) => {
+      if (item.category) {
+        categorias.add(item.category);
+      }
+      if (item.unit) {
+        unidades.add(item.unit);
+      }
+      if (item.locationDetail) {
+        locaisInternos.add(item.locationDetail);
+      }
+    });
+    this.categoriasOpcoesBase = Array.from(categorias)
+      .sort((a, b) => a.localeCompare(b))
+      .map((item) => ({ id: item, label: item }));
+    this.unidadesMedidaOpcoesBase = Array.from(unidades)
+      .sort((a, b) => a.localeCompare(b))
+      .map((item) => ({ id: item, label: item }));
+    this.localizacoesInternasOpcoesBase = Array.from(locaisInternos)
+      .sort((a, b) => a.localeCompare(b))
+      .map((item) => ({ id: item, label: item }));
+
+    this.categoriasOpcoes = this.filtrarOpcoes(this.categoriasOpcoesBase, this.categoriaTermo);
+    this.unidadesMedidaOpcoes = this.filtrarOpcoes(
+      this.unidadesMedidaOpcoesBase,
+      this.unidadeMedidaTermo
+    );
+    this.localizacoesInternasOpcoes = this.filtrarOpcoes(
+      this.localizacoesInternasOpcoesBase,
+      this.localizacaoInternaTermo
+    );
+  }
+
+  private filtrarOpcoes(opcoes: AutocompleteOpcao[], termo: string): AutocompleteOpcao[] {
+    const filtrado = this.normalizarTermoFiltro(termo);
+    if (!filtrado) {
+      return opcoes;
+    }
+    return opcoes.filter((opcao) =>
+      this.normalizarTermoFiltro(opcao.label).includes(filtrado)
+    );
+  }
+
+  private normalizarTermoFiltro(valor: string): string {
+    return (valor || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 
   openHistoryModal(item: StockItem): void {
@@ -854,7 +1097,8 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
         reference,
         responsible,
         notes: notes || undefined,
-        adjustmentDirection
+        adjustmentDirection,
+        gerarItensKit: type === 'Entrada' && this.movimentacaoSelecionadaEhKit ? this.gerarItensKitEntrada : undefined
       })
       .subscribe({
         next: ({ movement, item }) => {
@@ -863,7 +1107,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
           this.showMovementModal = false;
         },
         error: (error) => {
-          this.movementError = error?.error?.message || 'N?o foi poss?vel registrar a movimentacao.';
+          this.movementError = error?.error?.message || 'Nao foi possivel registrar a movimentacao.';
         }
       });
   }
@@ -882,7 +1126,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       const value = this.itemForm[field];
       const isEmpty = value === '' || value === null || value === undefined;
       if (isEmpty || (typeof value === 'string' && !value.trim())) {
-        errors.push('Campo obrigat?rio n?o preenchido: ' + this.translateFieldLabel(field));
+        errors.push('Campo obrigatorio nao preenchido: ' + this.translateFieldLabel(field));
       }
     });
 
@@ -891,7 +1135,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     }
 
     if (this.itemForm.currentStock < 0) {
-      errors.push('O estoque atual n?o pode ser negativo.');
+      errors.push('O estoque atual nao pode ser negativo.');
     }
 
     return errors;
@@ -942,6 +1186,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       currentStock: 'Estoque atual',
       minStock: 'Estoque minimo',
       unitValue: 'Valor unitario',
+      isKit: 'Produto composto',
       status: 'Situacao',
       validity: 'Validade',
       ignoreValidity: 'Ignorar validade',
@@ -963,11 +1208,216 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
       currentStock: 0,
       minStock: 0,
       unitValue: 0,
+      isKit: false,
       status: 'Ativo',
       validity: '',
       ignoreValidity: false,
       notes: ''
     };
+  }
+
+  onIsKitChange(valor: boolean): void {
+    this.itemForm = { ...this.itemForm, isKit: valor };
+    if (!valor) {
+      this.resetarKitComposicaoSeNecessario();
+      return;
+    }
+    if (this.editingItemId) {
+      this.carregarComposicaoKit(this.editingItemId);
+    }
+  }
+
+  private resetarKitComposicaoSeNecessario(): void {
+    this.kitComposicao = [];
+    this.kitComposicaoNovo = { termo: '', produtoId: '', quantidade: 1 };
+    this.kitComposicaoErro = null;
+    this.kitComposicaoItemId = null;
+  }
+
+  get opcoesProdutosKit(): AutocompleteOpcao[] {
+    return this.items()
+      .filter((item) => item.id !== this.editingItemId)
+      .map((item) => ({
+        id: item.id,
+        label: `${item.code} - ${item.description}`,
+        sublabel: item.unit || ''
+      }));
+  }
+
+  onKitTermoChange(termo: string): void {
+    this.kitComposicaoNovo = { ...this.kitComposicaoNovo, termo };
+    if (!termo) {
+      this.kitComposicaoNovo = { ...this.kitComposicaoNovo, produtoId: '' };
+    }
+  }
+
+  onKitSelecionado(opcao: AutocompleteOpcao): void {
+    this.kitComposicaoNovo = {
+      ...this.kitComposicaoNovo,
+      termo: opcao.label,
+      produtoId: String(opcao.id)
+    };
+  }
+
+  adicionarItemComposicao(): void {
+    this.kitComposicaoErro = null;
+    if (!this.editingItemId) {
+      this.kitComposicaoErro = 'Salve o produto antes de definir a composicao do kit.';
+      return;
+    }
+    if (!this.kitComposicaoNovo.produtoId) {
+      this.kitComposicaoErro = 'Selecione o item da composicao.';
+      return;
+    }
+    if (!this.kitComposicaoNovo.quantidade || this.kitComposicaoNovo.quantidade <= 0) {
+      this.kitComposicaoErro = 'Informe uma quantidade maior que zero.';
+      return;
+    }
+    if (this.kitComposicao.some((item) => item.produtoItemId === this.kitComposicaoNovo.produtoId)) {
+      this.kitComposicaoErro = 'Item ja adicionado na composicao.';
+      return;
+    }
+    if (this.kitComposicaoNovo.produtoId === this.editingItemId) {
+      this.kitComposicaoErro = 'Nao e permitido adicionar o proprio kit na composicao.';
+      return;
+    }
+    const itemSelecionado = this.items().find((item) => item.id === this.kitComposicaoNovo.produtoId);
+    this.kitComposicao = [
+      ...this.kitComposicao,
+      {
+        produtoItemId: this.kitComposicaoNovo.produtoId,
+        produtoItemCodigo: itemSelecionado?.code,
+        produtoItemDescricao: itemSelecionado?.description,
+        quantidadeItem: this.kitComposicaoNovo.quantidade
+      }
+    ];
+    this.kitComposicaoNovo = { termo: '', produtoId: '', quantidade: 1 };
+  }
+
+  removerItemComposicao(item: KitComposicaoItem): void {
+    this.kitComposicao = this.kitComposicao.filter((registro) => registro !== item);
+  }
+
+  salvarComposicaoKit(): void {
+    this.kitComposicaoErro = null;
+    if (!this.editingItemId) {
+      this.kitComposicaoErro = 'Salve o produto antes de definir a composicao do kit.';
+      return;
+    }
+    if (!this.itemForm.isKit) {
+      this.kitComposicaoErro = 'Marque o produto como kit para salvar a composicao.';
+      return;
+    }
+    if (!this.kitComposicao.length) {
+      this.kitComposicaoErro = 'Informe ao menos um item na composicao do kit.';
+      return;
+    }
+    this.kitComposicaoSalvando = true;
+    this.almoxarifadoService.salvarKitComposicao(this.editingItemId, this.kitComposicao).subscribe({
+      next: (itens) => {
+        this.kitComposicao = itens;
+        this.kitComposicaoSalvando = false;
+        this.kitComposicaoErro = null;
+      },
+      error: (error) => {
+        this.kitComposicaoErro = error?.error?.message || 'Nao foi possivel salvar a composicao do kit.';
+        this.kitComposicaoSalvando = false;
+      }
+    });
+  }
+
+  private garantirComposicaoCarregada(): void {
+    if (!this.itemForm.isKit || !this.editingItemId) {
+      return;
+    }
+    if (this.kitComposicaoItemId === this.editingItemId) {
+      return;
+    }
+    this.carregarComposicaoKit(this.editingItemId);
+  }
+
+  private carregarComposicaoKit(itemId: string): void {
+    this.kitComposicaoCarregando = true;
+    this.kitComposicaoErro = null;
+    this.almoxarifadoService.getKitComposicao(itemId).subscribe({
+      next: (itens) => {
+        this.kitComposicao = itens;
+        this.kitComposicaoCarregando = false;
+        this.kitComposicaoItemId = itemId;
+      },
+      error: (error) => {
+        this.kitComposicaoErro = error?.error?.message || 'Nao foi possivel carregar a composicao do kit.';
+        this.kitComposicaoCarregando = false;
+      }
+    });
+  }
+
+  onMovimentacaoItemChange(codigo: string): void {
+    this.movementForm = { ...this.movementForm, itemCode: codigo };
+    this.atualizarKitMovimentacaoPorItem(codigo);
+  }
+
+  private atualizarKitMovimentacaoPorItem(codigo: string): void {
+    const itemSelecionado = this.items().find((item) => item.code === codigo);
+    if (!itemSelecionado || !itemSelecionado.isKit) {
+      this.movimentacaoKitComposicao = [];
+      this.movimentacaoKitErro = null;
+      this.movimentacaoKitCarregando = false;
+      return;
+    }
+    this.movimentacaoKitCarregando = true;
+    this.movimentacaoKitErro = null;
+    this.almoxarifadoService.getKitComposicao(itemSelecionado.id).subscribe({
+      next: (itens) => {
+        this.movimentacaoKitComposicao = itens;
+        this.movimentacaoKitCarregando = false;
+      },
+      error: (error) => {
+        this.movimentacaoKitErro = error?.error?.message || 'Nao foi possivel carregar a composicao do kit.';
+        this.movimentacaoKitCarregando = false;
+      }
+    });
+  }
+
+  get movimentacaoSelecionadaEhKit(): boolean {
+    const itemSelecionado = this.items().find((item) => item.code === this.movementForm.itemCode);
+    return !!itemSelecionado?.isKit;
+  }
+
+  calcularQuantidadeKit(quantidadeItem: number): number {
+    return (Number(quantidadeItem) || 0) * (Number(this.movementForm.quantity) || 0);
+  }
+
+  abrirVinculosKit(movement: StockMovement): void {
+    this.kitVinculosMovimentacaoSelecionada = movement;
+    this.kitVinculos = [];
+    this.kitVinculosErro = null;
+    this.showKitVinculosModal = true;
+    this.kitVinculosCarregando = true;
+    this.almoxarifadoService.listarMovimentacaoKitVinculos(movement.id).subscribe({
+      next: (itens) => {
+        this.kitVinculos = itens;
+        this.kitVinculosCarregando = false;
+      },
+      error: (error) => {
+        this.kitVinculosErro = error?.error?.message || 'Nao foi possivel carregar os itens do kit.';
+        this.kitVinculosCarregando = false;
+      }
+    });
+  }
+
+  fecharVinculosKit(): void {
+    this.showKitVinculosModal = false;
+    this.kitVinculosMovimentacaoSelecionada = null;
+  }
+
+  get movimentosComKit(): Record<string, boolean> {
+    const mapa: Record<string, boolean> = {};
+    this.movements().forEach((movement) => {
+      const item = this.items().find((registro) => registro.code === movement.itemCode);
+      mapa[movement.id] = !!item?.isKit;
+    });
+    return mapa;
   }
 }
 

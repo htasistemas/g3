@@ -65,7 +65,7 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     String instituicaoCnpj = unidade != null ? textoSeguro(unidade.getCnpj()) : "Nao informado";
 
     StringBuilder sb = new StringBuilder();
-    sb.append("<h3>MODELO DE TERMO DE CONSENTIMENTO PARA USO DE DADOS PESSOAIS E IMAGEM (ASSISTENCIA SOCIAL)</h3>");
+    sb.append("<h3 class=\"title-centered\">MODELO DE TERMO DE CONSENTIMENTO PARA USO DE DADOS PESSOAIS E IMAGEM</h3>");
     sb.append("<p>Pelo presente instrumento, eu, <strong>")
         .append(escapeHtml(beneficiario))
         .append("</strong>, portador(a) do documento de identidade RG n&#186; ")

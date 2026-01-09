@@ -1,6 +1,12 @@
 package br.com.g3.shared;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Locale;
+import org.springframework.core.io.ByteArrayResource;
 import javax.sql.DataSource;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -18,8 +24,82 @@ public class InitDbConfig {
         return;
       }
       try (Connection connection = dataSource.getConnection()) {
+        if (ehPostgreSql(connection)) {
+          garantirTiposChamado(connection);
+          String conteudoScript =
+              new String(script.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+          String scriptSemTipos = removerDeclaracoesTiposChamado(conteudoScript);
+          ScriptUtils.executeSqlScript(connection, new ByteArrayResource(scriptSemTipos.getBytes(StandardCharsets.UTF_8)));
+          return;
+        }
         ScriptUtils.executeSqlScript(connection, script);
       }
     };
+  }
+
+  private boolean ehPostgreSql(Connection connection) throws SQLException {
+    String nomeBanco = connection.getMetaData().getDatabaseProductName();
+    return nomeBanco != null && nomeBanco.toLowerCase(Locale.ROOT).contains("postgresql");
+  }
+
+  private void garantirTiposChamado(Connection connection) throws SQLException {
+    criarTipoSeNecessario(connection, "chamado_tipo", "('ERRO', 'MELHORIA')");
+    criarTipoSeNecessario(
+        connection,
+        "chamado_status",
+        "('ABERTO', 'EM_ANALISE', 'EM_DESENVOLVIMENTO', 'EM_TESTE', 'AGUARDANDO_CLIENTE', 'RESOLVIDO', 'CANCELADO')");
+    criarTipoSeNecessario(connection, "chamado_prioridade", "('BAIXA', 'MEDIA', 'ALTA', 'CRITICA')");
+    criarTipoSeNecessario(connection, "chamado_impacto", "('BAIXO', 'MEDIO', 'ALTO')");
+    criarTipoSeNecessario(
+        connection,
+        "chamado_acao_tipo",
+        "('CRIACAO', 'COMENTARIO', 'MUDANCA_STATUS', 'ATRIBUICAO', 'ANEXO', 'EDICAO', 'VINCULO', 'REGISTRO_ATIVIDADE')");
+  }
+
+  private void criarTipoSeNecessario(Connection connection, String nomeTipo, String valoresEnum)
+      throws SQLException {
+    if (tipoExiste(connection, nomeTipo)) {
+      return;
+    }
+    String comando = String.format("CREATE TYPE %s AS ENUM %s", nomeTipo, valoresEnum);
+    try (PreparedStatement statement = connection.prepareStatement(comando)) {
+      statement.execute();
+    }
+  }
+
+  private boolean tipoExiste(Connection connection, String nomeTipo) throws SQLException {
+    String consulta =
+        "SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE t.typname = ?";
+    try (PreparedStatement statement = connection.prepareStatement(consulta)) {
+      statement.setString(1, nomeTipo);
+      try (ResultSet resultado = statement.executeQuery()) {
+        return resultado.next();
+      }
+    }
+  }
+
+  private String removerDeclaracoesTiposChamado(String script) {
+    String resultado = script;
+    resultado =
+        resultado.replaceAll(
+            "(?is)CREATE\\s+TYPE\\s+IF\\s+NOT\\s+EXISTS\\s+chamado_tipo\\s+AS\\s+ENUM\\s*\\(.*?\\);",
+            "");
+    resultado =
+        resultado.replaceAll(
+            "(?is)CREATE\\s+TYPE\\s+IF\\s+NOT\\s+EXISTS\\s+chamado_status\\s+AS\\s+ENUM\\s*\\(.*?\\);",
+            "");
+    resultado =
+        resultado.replaceAll(
+            "(?is)CREATE\\s+TYPE\\s+IF\\s+NOT\\s+EXISTS\\s+chamado_prioridade\\s+AS\\s+ENUM\\s*\\(.*?\\);",
+            "");
+    resultado =
+        resultado.replaceAll(
+            "(?is)CREATE\\s+TYPE\\s+IF\\s+NOT\\s+EXISTS\\s+chamado_impacto\\s+AS\\s+ENUM\\s*\\(.*?\\);",
+            "");
+    resultado =
+        resultado.replaceAll(
+            "(?is)CREATE\\s+TYPE\\s+IF\\s+NOT\\s+EXISTS\\s+chamado_acao_tipo\\s+AS\\s+ENUM\\s*\\(.*?\\);",
+            "");
+    return resultado;
   }
 }

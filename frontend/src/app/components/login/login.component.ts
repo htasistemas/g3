@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { EMPTY } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent {
   loading = false;
   error: string | null = null;
   success: string | null = null;
+  versaoSistema = '';
 
   criarContaAberto = false;
   recuperarSenhaAberto = false;
@@ -47,9 +49,23 @@ export class LoginComponent {
 
   constructor(
     private readonly auth: AuthService,
+    private readonly configService: ConfigService,
     private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.carregarVersaoSistema();
+  }
+
+  private carregarVersaoSistema(): void {
+    this.configService.getVersaoSistema().subscribe({
+      next: (response) => {
+        this.versaoSistema = response.versao || '';
+      },
+      error: () => {
+        this.versaoSistema = '';
+      }
+    });
+  }
 
   submit(): void {
     this.error = null;

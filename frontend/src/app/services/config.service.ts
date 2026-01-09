@@ -27,6 +27,10 @@ export interface HistoricoVersaoResponse {
   criadoEm: string;
 }
 
+export interface DestinoChamadoResponse {
+  destino: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
   private readonly baseUrl = `${environment.apiUrl}/api/config`;
@@ -51,5 +55,9 @@ export class ConfigService {
 
   listarHistoricoVersoes(): Observable<HistoricoVersaoResponse[]> {
     return this.http.get<HistoricoVersaoResponse[]>(`${this.baseUrl}/versao/historico`);
+  }
+
+  getDestinoChamados(): Observable<DestinoChamadoResponse> {
+    return this.http.get<DestinoChamadoResponse>(`${this.baseUrl}/chamados/destino`);
   }
 }

@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.math.RoundingMode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class RelatorioSolicitacaoComprasServiceImpl implements RelatorioSolicitacaoComprasService {
   private static final DateTimeFormatter DATA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final NumberFormat MOEDA_FORMATTER =
-      NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+      NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"));
 
   private final AutorizacaoComprasRepository autorizacaoRepository;
   private final UnidadeAssistencialService unidadeService;
@@ -139,7 +140,9 @@ public class RelatorioSolicitacaoComprasServiceImpl implements RelatorioSolicita
     int quantidade = solicitacao.getQuantidadeItens() == null ? 0 : solicitacao.getQuantidadeItens();
     BigDecimal valorTotal = solicitacao.getValor() == null ? BigDecimal.ZERO : solicitacao.getValor();
     BigDecimal valorUnitario =
-        quantidade > 0 ? valorTotal.divide(BigDecimal.valueOf(quantidade), 2, BigDecimal.ROUND_HALF_UP) : valorTotal;
+        quantidade > 0
+            ? valorTotal.divide(BigDecimal.valueOf(quantidade), 2, RoundingMode.HALF_UP)
+            : valorTotal;
 
     return "<tr>"
         + "<td>" + indice + "</td>"

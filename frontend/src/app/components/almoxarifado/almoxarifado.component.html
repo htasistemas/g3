@@ -38,7 +38,6 @@
             <span class="step-tabs__index">{{ idx + 1 }}</span>
             <span class="step-tabs__label">{{ tab.label }}</span>
           </button>
-          <p class="step-tabs__description">{{ tab.description }}</p>
         </li>
       </ol>
     </div>
@@ -57,6 +56,10 @@
           <p class="muted">Indicadores consolidados para acompanhar estoque, valores e alertas.</p>
         </div>
         <div class="tab-card__actions">
+          <button class="ghost" type="button" (click)="abrirEntradaProdutos()">
+            <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+            Entrada de produtos
+          </button>
           <button class="ghost" type="button" (click)="resetItemForm()">
             <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
             Limpar formulario
@@ -165,30 +168,43 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Categoria *</label>
-            <input
-              class="input"
-              type="text"
-              [(ngModel)]="itemForm.category"
-              placeholder="Ex: EPI, Higiene, Escritorio"
-              required
-            />
+            <app-autocomplete
+              [termo]="categoriaTermo"
+              [opcoes]="categoriasOpcoes"
+              placeholder="Selecione a categoria"
+              (termoChange)="atualizarTermoCategoria($event)"
+              (selecionar)="selecionarCategoria($event)"
+            ></app-autocomplete>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Unidade de medida *</label>
-            <input class="input" type="text" [(ngModel)]="itemForm.unit" placeholder="Ex: Caixa, Unidade" />
+            <app-autocomplete
+              [termo]="unidadeMedidaTermo"
+              [opcoes]="unidadesMedidaOpcoes"
+              placeholder="Selecione a unidade de medida"
+              (termoChange)="atualizarTermoUnidadeMedida($event)"
+              (selecionar)="selecionarUnidadeMedida($event)"
+            ></app-autocomplete>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Localizacao</label>
-            <input class="input" type="text" [(ngModel)]="itemForm.location" placeholder="Setor / Sala" />
+            <app-autocomplete
+              [termo]="localizacaoTermo"
+              [opcoes]="localizacoesOpcoes"
+              placeholder="Selecione a sala"
+              (termoChange)="atualizarTermoLocalizacao($event)"
+              (selecionar)="selecionarLocalizacao($event)"
+            ></app-autocomplete>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Localizacao interna</label>
-            <input
-              class="input"
-              type="text"
-              [(ngModel)]="itemForm.locationDetail"
-              placeholder="Prateleira / Corredor"
-            />
+            <app-autocomplete
+              [termo]="localizacaoInternaTermo"
+              [opcoes]="localizacoesInternasOpcoes"
+              placeholder="Selecione a localizacao interna"
+              (termoChange)="atualizarTermoLocalizacaoInterna($event)"
+              (selecionar)="selecionarLocalizacaoInterna($event)"
+            ></app-autocomplete>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Estoque atual</label>
@@ -210,8 +226,16 @@
               placeholder="0,00"
             />
           </div>
+          <div class="flex items-center gap-2 mt-6">
+            <input
+              type="checkbox"
+              [checked]="itemForm.isKit"
+              (change)="onIsKitChange($event.target.checked)"
+            />
+            <label class="text-sm text-slate-800">Este produto e um kit/composto</label>
+          </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-slate-800">Validade</label>
+            <label class="text-sm font-medium text-slate-800">Validade</label>  
             <input
               class="input"
               type="date"
@@ -297,6 +321,96 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>      
+    </div>
+
+    <div class="tab-card" *ngIf="activeTab === 'kit'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Defina a composicao dos itens para produtos compostos.</p>
+        </div>
+        <div class="tab-card__actions">
+          <button class="ghost" type="button" (click)="changeTab('cadastro')">
+            Voltar ao cadastro
+          </button>
+          <button class="primary" type="button" (click)="salvarComposicaoKit()" [disabled]="kitComposicaoSalvando || !itemForm.isKit">
+            {{ kitComposicaoSalvando ? 'Salvando...' : 'Salvar composicao' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card border border-emerald-200 rounded-2xl p-4 space-y-4">
+        <ng-container *ngIf="itemForm.isKit; else kitDesativado">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="text-sm text-slate-500">Kit selecionado</p>
+              <p class="text-lg font-semibold text-slate-900">
+                {{ editingItemCode || itemForm.code || 'Novo kit' }} - {{ itemForm.description || 'Informe a descricao no cadastro' }}
+              </p>
+            </div>
+            <div class="text-xs text-slate-500">
+              {{ kitComposicaoCarregando ? 'Carregando composicao...' : (kitComposicao.length + ' item(ns) na composicao') }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="flex flex-col gap-1 md:col-span-2">
+              <label class="text-sm font-medium text-slate-800">Item da composicao *</label>
+              <app-autocomplete
+                [placeholder]="'Buscar item do almoxarifado'"
+                [termo]="kitComposicaoNovo.termo"
+                [opcoes]="opcoesProdutosKit"
+                (termoChange)="onKitTermoChange($event)"
+                (selecionar)="onKitSelecionado($event)"
+              ></app-autocomplete>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-medium text-slate-800">Quantidade *</label>
+              <input class="input" type="number" min="0" step="0.01" [(ngModel)]="kitComposicaoNovo.quantidade" />
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-slate-600">
+              Adicione os itens que compoem o kit. Nao e permitido repetir itens.
+            </p>
+            <button class="btn-primary" type="button" (click)="adicionarItemComposicao()">Adicionar item</button>
+          </div>
+
+          <div class="table-wrapper" *ngIf="kitComposicao.length">
+            <table class="min-w-full text-sm border border-emerald-200 rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-emerald-50 text-left text-slate-800">
+                  <th class="px-4 py-3 border-b border-emerald-200">Codigo</th>
+                  <th class="px-4 py-3 border-b border-emerald-200">Descricao</th>
+                  <th class="px-4 py-3 border-b border-emerald-200">Quantidade</th>
+                  <th class="px-4 py-3 border-b border-emerald-200">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of kitComposicao" class="border-b border-emerald-200">
+                  <td class="px-4 py-3 align-top">{{ item.produtoItemCodigo || '---' }}</td>
+                  <td class="px-4 py-3 align-top">{{ item.produtoItemDescricao || '---' }}</td>
+                  <td class="px-4 py-3 align-top">{{ item.quantidadeItem }}</td>
+                  <td class="px-4 py-3 align-top">
+                    <button class="btn-outline" type="button" (click)="removerItemComposicao(item)">Remover</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="text-sm text-slate-500" *ngIf="!kitComposicao.length">Nenhum item adicionado na composicao.</p>
+          <p class="text-sm text-red-600" *ngIf="kitComposicaoErro">{{ kitComposicaoErro }}</p>
+        </ng-container>
+        <ng-template #kitDesativado>
+          <div class="text-sm text-slate-600">
+            Marque este produto como kit no cadastro para liberar a composicao.
+          </div>
+        </ng-template>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -414,7 +528,7 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'movimentações'">
+    <div class="tab-card" *ngIf="activeTab === 'movimentacoes'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
@@ -467,6 +581,7 @@
               <th class="px-4 py-3 border-b border-emerald-200">Saldo apos movimentacao</th>
               <th class="px-4 py-3 border-b border-emerald-200">Documento / Referencia</th>
               <th class="px-4 py-3 border-b border-emerald-200">Responsavel</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Itens do kit</th>
               <th class="px-4 py-3 border-b border-emerald-200">Observações</th>
             </tr>
           </thead>
@@ -489,10 +604,21 @@
               <td class="px-4 py-3 align-top">{{ movement.balanceAfter }}</td>
               <td class="px-4 py-3 align-top">{{ movement.reference || 'Não informado' }}</td>
               <td class="px-4 py-3 align-top">{{ movement.responsible || 'Não informado' }}</td>
+              <td class="px-4 py-3 align-top">
+                <button
+                  class="btn-outline"
+                  type="button"
+                  *ngIf="movimentosComKit[movement.id]"
+                  (click)="abrirVinculosKit(movement)"
+                >
+                  Ver itens
+                </button>
+                <span class="text-xs text-slate-500" *ngIf="!movimentosComKit[movement.id]">-</span>
+              </td>
               <td class="px-4 py-3 align-top">{{ movement.notes || 'Não informado' }}</td>
             </tr>
             <tr *ngIf="filteredMovements.length === 0">
-              <td colspan="8" class="text-center py-6 text-slate-500">Nenhuma movimentacao encontrada para os filtros.</td>
+              <td colspan="9" class="text-center py-6 text-slate-500">Nenhuma movimentacao encontrada para os filtros.</td>
             </tr>
           </tbody>
         </table>
@@ -539,7 +665,7 @@
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium text-slate-800">Selecao do item *</label>
-          <select class="input" [(ngModel)]="movementForm.itemCode">
+          <select class="input" [(ngModel)]="movementForm.itemCode" (ngModelChange)="onMovimentacaoItemChange($event)">
             <option value="">Selecione o item</option>
             <option *ngFor="let item of items()" [value]="item.code">{{ item.code }} - {{ item.description }}</option>
           </select>
@@ -547,6 +673,31 @@
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium text-slate-800">Quantidade movimentada *</label>
           <input class="input" type="number" min="1" [(ngModel)]="movementForm.quantity" />
+        </div>
+        <div class="md:col-span-2" *ngIf="movimentacaoSelecionadaEhKit">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-800">Composicao do kit</p>
+                <p class="text-xs text-slate-600">Quantidade calculada por item conforme a quantidade informada.</p>
+              </div>
+              <span class="text-xs text-slate-500" *ngIf="movimentacaoKitCarregando">Carregando...</span>
+            </div>
+            <div class="text-sm text-red-600" *ngIf="movimentacaoKitErro">{{ movimentacaoKitErro }}</div>
+            <div class="grid gap-2" *ngIf="!movimentacaoKitCarregando && movimentacaoKitComposicao.length">
+              <div class="flex items-center justify-between text-sm" *ngFor="let item of movimentacaoKitComposicao">
+                <span>{{ item.produtoItemDescricao || item.produtoItemCodigo }}</span>
+                <span class="font-semibold">{{ calcularQuantidadeKit(item.quantidadeItem) }}</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500" *ngIf="!movimentacaoKitCarregando && !movimentacaoKitComposicao.length">
+              Nenhum item configurado na composicao.
+            </p>
+            <label class="flex items-center gap-2 text-sm text-slate-800" *ngIf="movementForm.type === 'Entrada'">
+              <input type="checkbox" [(ngModel)]="gerarItensKitEntrada" />
+              <span>Ao dar entrada deste kit, lancar entrada nos itens da composicao</span>
+            </label>
+          </div>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium text-slate-800">Documento / Referencia</label>
@@ -623,9 +774,66 @@
               <td class="px-4 py-3 align-top">{{ movement.balanceAfter }}</td>
               <td class="px-4 py-3 align-top">{{ movement.reference || 'Não informado' }}</td>
               <td class="px-4 py-3 align-top">{{ movement.responsible || 'Não informado' }}</td>
+              <td class="px-4 py-3 align-top">
+                <button
+                  class="btn-outline"
+                  type="button"
+                  *ngIf="movimentosComKit[movement.id]"
+                  (click)="abrirVinculosKit(movement)"
+                >
+                  Ver itens
+                </button>
+                <span class="text-xs text-slate-500" *ngIf="!movimentosComKit[movement.id]">-</span>
+              </td>
             </tr>
             <tr *ngIf="historicoMovimentacoes.length === 0">
               <td colspan="6" class="text-center py-6 text-slate-500">Nenhuma movimentacao para este item.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="fixed inset-0 bg-emerald-900/25 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    *ngIf="showKitVinculosModal"
+  >
+    <div class="bg-white rounded-2xl border border-emerald-200 max-w-5xl w-full shadow-2xl space-y-4 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Itens do kit</p>
+          <h3 class="text-lg font-semibold text-slate-900">
+            Movimentacao {{ kitVinculosMovimentacaoSelecionada?.itemCode }} - {{ kitVinculosMovimentacaoSelecionada?.itemDescription }}
+          </h3>
+        </div>
+        <button class="btn-outline" type="button" (click)="fecharVinculosKit()">Fechar</button>
+      </div>
+
+      <div class="text-sm text-red-600" *ngIf="kitVinculosErro">{{ kitVinculosErro }}</div>
+      <div class="text-sm text-slate-500" *ngIf="kitVinculosCarregando">Carregando itens do kit...</div>
+
+      <div class="table-wrapper" *ngIf="!kitVinculosCarregando">
+        <table class="min-w-full text-sm border border-emerald-200 rounded-xl overflow-hidden">
+          <thead>
+            <tr class="bg-emerald-50 text-left text-slate-800">
+              <th class="px-4 py-3 border-b border-emerald-200">Data</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Tipo</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Item</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Quantidade</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Saldo apos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of kitVinculos" class="border-b border-emerald-200">
+              <td class="px-4 py-3 align-top">{{ item.dataMovimentacao | date:'dd/MM/yyyy' }}</td>
+              <td class="px-4 py-3 align-top">{{ item.tipo }}</td>
+              <td class="px-4 py-3 align-top">{{ item.itemCodigo }} - {{ item.itemDescricao }}</td>
+              <td class="px-4 py-3 align-top">{{ item.quantidade }}</td>
+              <td class="px-4 py-3 align-top">{{ item.saldoApos }}</td>
+            </tr>
+            <tr *ngIf="!kitVinculos.length">
+              <td colspan="5" class="text-center py-6 text-slate-500">Nenhum item vinculado para esta movimentacao.</td>
             </tr>
           </tbody>
         </table>

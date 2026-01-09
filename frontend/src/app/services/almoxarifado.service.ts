@@ -19,6 +19,7 @@ export interface StockItem {
   currentStock: number;
   minStock: number;
   unitValue: number;
+  isKit?: boolean;
   status: StockItemStatus;
   validity?: string;
   ignoreValidity?: boolean;
@@ -36,6 +37,7 @@ export interface StockItemPayload {
   currentStock?: number;
   minStock: number;
   unitValue?: number;
+  isKit?: boolean;
   status: StockItemStatus;
   validity?: string;
   ignoreValidity?: boolean;
@@ -53,6 +55,24 @@ export interface StockMovement {
   reference?: string;
   responsible?: string;
   notes?: string;
+}
+
+export interface KitComposicaoItem {
+  id?: number | string;
+  produtoItemId: string;
+  produtoItemCodigo?: string;
+  produtoItemDescricao?: string;
+  quantidadeItem: number;
+}
+
+export interface KitVinculoMovimentacao {
+  movimentacaoId: string;
+  dataMovimentacao: string;
+  tipo: string;
+  itemCodigo: string;
+  itemDescricao: string;
+  quantidade: number;
+  saldoApos: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -100,6 +120,7 @@ export class AlmoxarifadoService {
     responsible?: string;
     notes?: string;
     adjustmentDirection?: AdjustmentDirection;
+    gerarItensKit?: boolean;
   }): Observable<{ movement: StockMovement; item: StockItem }> {
     return this.http
       .post<{ movimentacao: AlmoxarifadoMovimentacaoApi; item: AlmoxarifadoItemApi }>(
@@ -114,6 +135,30 @@ export class AlmoxarifadoService {
       );
   }
 
+  getKitComposicao(itemId: string): Observable<KitComposicaoItem[]> {
+    return this.http
+      .get<ProdutoKitComposicaoApi[]>(`${this.baseUrl}/produtos/${itemId}/kit-composicao`)
+      .pipe(map((response) => response.map((item) => this.mapApiToKitItem(item))));
+  }
+
+  salvarKitComposicao(itemId: string, itens: KitComposicaoItem[]): Observable<KitComposicaoItem[]> {
+    return this.http
+      .put<ProdutoKitComposicaoApi[]>(
+        `${this.baseUrl}/produtos/${itemId}/kit-composicao`,
+        itens.map((item) => ({
+          produto_item_id: Number(item.produtoItemId),
+          quantidade_item: item.quantidadeItem
+        }))
+      )
+      .pipe(map((response) => response.map((item) => this.mapApiToKitItem(item))));
+  }
+
+  listarMovimentacaoKitVinculos(movimentacaoId: string): Observable<KitVinculoMovimentacao[]> {
+    return this.http
+      .get<MovimentacaoKitVinculoApi[]>(`${this.baseUrl}/movements/${movimentacaoId}/kit-vinculos`)
+      .pipe(map((response) => response.map((item) => this.mapApiToVinculo(item))));
+  }
+
   private mapPayloadToApi(payload: StockItemPayload): AlmoxarifadoItemApiRequest {
     return {
       codigo: payload.code,
@@ -126,6 +171,7 @@ export class AlmoxarifadoService {
       estoque_atual: payload.currentStock ?? 0,
       estoque_minimo: payload.minStock,
       valor_unitario: payload.unitValue ?? 0,
+      is_kit: payload.isKit ?? false,
       situacao: payload.status,
       validade: payload.validity ?? null,
       ignorar_validade: payload.ignoreValidity ?? false,
@@ -142,6 +188,7 @@ export class AlmoxarifadoService {
     responsible?: string;
     notes?: string;
     adjustmentDirection?: AdjustmentDirection;
+    gerarItensKit?: boolean;
   }): AlmoxarifadoMovimentacaoApiRequest {
     return {
       data_movimentacao: payload.date,
@@ -151,7 +198,8 @@ export class AlmoxarifadoService {
       referencia: payload.reference ?? null,
       responsavel: payload.responsible ?? null,
       observacoes: payload.notes ?? null,
-      direcao_ajuste: payload.adjustmentDirection ?? null
+      direcao_ajuste: payload.adjustmentDirection ?? null,
+      gerar_itens_kit: payload.gerarItensKit ?? null
     };
   }
 
@@ -168,6 +216,7 @@ export class AlmoxarifadoService {
       currentStock: item.estoque_atual ?? 0,
       minStock: item.estoque_minimo ?? 0,
       unitValue: item.valor_unitario ?? 0,
+      isKit: item.is_kit ?? false,
       status: (item.situacao as StockItemStatus) ?? 'Ativo',
       validity: item.validade ?? undefined,
       ignoreValidity: item.ignorar_validade ?? false,
@@ -189,6 +238,28 @@ export class AlmoxarifadoService {
       notes: item.observacoes ?? ''
     };
   }
+
+  private mapApiToKitItem(item: ProdutoKitComposicaoApi): KitComposicaoItem {
+    return {
+      id: item.id,
+      produtoItemId: String(item.produto_item_id),
+      produtoItemCodigo: item.produto_item_codigo ?? undefined,
+      produtoItemDescricao: item.produto_item_descricao ?? undefined,
+      quantidadeItem: item.quantidade_item ?? 0
+    };
+  }
+
+  private mapApiToVinculo(item: MovimentacaoKitVinculoApi): KitVinculoMovimentacao {
+    return {
+      movimentacaoId: String(item.movimentacao_id),
+      dataMovimentacao: item.data_movimentacao,
+      tipo: item.tipo,
+      itemCodigo: item.item_codigo,
+      itemDescricao: item.item_descricao,
+      quantidade: item.quantidade,
+      saldoApos: item.saldo_apos
+    };
+  }
 }
 
 type AlmoxarifadoItemApiRequest = {
@@ -202,6 +273,7 @@ type AlmoxarifadoItemApiRequest = {
   estoque_atual: number;
   estoque_minimo: number;
   valor_unitario: number;
+  is_kit?: boolean;
   situacao: string;
   validade?: string | null;
   ignorar_validade?: boolean;
@@ -221,6 +293,7 @@ type AlmoxarifadoMovimentacaoApiRequest = {
   responsavel?: string | null;
   observacoes?: string | null;
   direcao_ajuste?: string | null;
+  gerar_itens_kit?: boolean | null;
 };
 
 type AlmoxarifadoMovimentacaoApi = {
@@ -234,4 +307,22 @@ type AlmoxarifadoMovimentacaoApi = {
   referencia?: string | null;
   responsavel?: string | null;
   observacoes?: string | null;
+};
+
+type ProdutoKitComposicaoApi = {
+  id?: number;
+  produto_item_id: number;
+  produto_item_codigo?: string;
+  produto_item_descricao?: string;
+  quantidade_item: number;
+};
+
+type MovimentacaoKitVinculoApi = {
+  movimentacao_id: number;
+  data_movimentacao: string;
+  tipo: string;
+  item_codigo: string;
+  item_descricao: string;
+  quantidade: number;
+  saldo_apos: number;
 };

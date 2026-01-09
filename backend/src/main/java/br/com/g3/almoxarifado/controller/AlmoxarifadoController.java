@@ -8,6 +8,9 @@ import br.com.g3.almoxarifado.dto.AlmoxarifadoMovimentacaoListaResponse;
 import br.com.g3.almoxarifado.dto.AlmoxarifadoMovimentacaoRequest;
 import br.com.g3.almoxarifado.dto.AlmoxarifadoMovimentacaoResponse;
 import br.com.g3.almoxarifado.dto.AlmoxarifadoProximoCodigoResponse;
+import br.com.g3.almoxarifado.dto.MovimentacaoKitVinculoResponse;
+import br.com.g3.almoxarifado.dto.ProdutoKitComposicaoRequest;
+import br.com.g3.almoxarifado.dto.ProdutoKitComposicaoResponse;
 import br.com.g3.almoxarifado.service.AlmoxarifadoService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -60,5 +63,22 @@ public class AlmoxarifadoController {
   public AlmoxarifadoMovimentacaoCadastroResponse registrarMovimentacao(
       @Valid @RequestBody AlmoxarifadoMovimentacaoRequest request) {
     return service.registrarMovimentacao(request);
+  }
+
+  @GetMapping("/produtos/{id}/kit-composicao")
+  public List<ProdutoKitComposicaoResponse> listarComposicaoKit(@PathVariable("id") Long id) {
+    return service.listarComposicaoKit(id);
+  }
+
+  @PutMapping("/produtos/{id}/kit-composicao")
+  public List<ProdutoKitComposicaoResponse> atualizarComposicaoKit(
+      @PathVariable("id") Long id,
+      @Valid @RequestBody List<ProdutoKitComposicaoRequest> itens) {
+    return service.atualizarComposicaoKit(id, itens);
+  }
+
+  @GetMapping("/movements/{id}/kit-vinculos")
+  public List<MovimentacaoKitVinculoResponse> listarVinculosKit(@PathVariable("id") Long id) {
+    return service.listarVinculosKit(id);
   }
 }

@@ -1,0 +1,61 @@
+<app-tela-padrao [acoes]="acoesToolbar" (buscar)="onBuscar()" (novo)="onNovo()">
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">Configuracoes gerais</p>
+      <p class="page-title__label">Chamado tecnico</p>
+      <p class="page-title__note">Kanban de acompanhamento dos chamados.</p>
+    </div>
+    <p class="page-title__note page-title__note--right">Visualizacao rapida do fluxo de trabalho.</p>
+  </header>
+
+  <section class="cadastro">
+    <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
+
+    <div class="tab-shell">
+      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <ol class="step-tabs" role="tablist">
+        <li class="step-tabs__item active">
+          <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
+            <span class="step-tabs__index">1</span>
+            <span class="step-tabs__label">Kanban</span>
+          </button>
+        </li>
+      </ol>
+    </div>
+
+    <section class="list-panel">
+      <div class="list-panel__header">
+        <div>
+          <p class="list-panel__eyebrow">Fluxo</p>
+          <h2>Organize os chamados por status</h2>
+          <p>Arraste os cards para atualizar a etapa e registre o historico automaticamente.</p>
+        </div>
+        <div class="list-panel__actions">
+          <button type="button" class="ghost" (click)="onBuscar()">Atualizar</button>
+          <button type="button" class="primary" (click)="onNovo()">Novo chamado</button>
+        </div>
+      </div>
+
+      <div class="kanban">
+        <div class="kanban__column" *ngFor="let status of (colunas | keyvalue)">
+          <div class="kanban__header">
+            <h3>{{ labelStatus(status.key) }}</h3>
+            <span>{{ status.value.length }}</span>
+          </div>
+          <div
+            cdkDropList
+            [cdkDropListData]="status.value"
+            class="kanban__list"
+            (cdkDropListDropped)="drop($event, status.key)"
+          >
+            <div class="kanban__card" *ngFor="let chamado of status.value" cdkDrag>
+              <p class="kanban__code">{{ chamado.codigo }}</p>
+              <p class="kanban__title">{{ chamado.titulo }}</p>
+              <p class="kanban__meta">{{ chamado.modulo }} | {{ chamado.cliente }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+</app-tela-padrao>

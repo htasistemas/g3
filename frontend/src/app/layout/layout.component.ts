@@ -3,44 +3,20 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faChevronDown,
   faChevronUp,
-  faClipboardList,
-  faGauge,
-  faHandshakeAngle,
-  faHouseChimneyUser,
-  faMapLocationDot,
   faPalette,
   faRightFromBracket,
-  faScaleBalanced,
   faSun,
   faMoon,
-  faUserCircle,
-  faUserDoctor,
-  faUserPlus,
-  faUsers,
-  faWallet,
-  faWrench,
-  faDatabase
+  faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { menuSections, MenuChild, MenuItem } from './menu-config';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-
-interface MenuChild {
-  label: string;
-  icon: IconDefinition;
-  route?: string;
-}
-
-interface MenuItem {
-  label: string;
-  icon: IconDefinition;
-  children?: MenuChild[];
-}
 
 @Component({
   selector: 'app-layout',
@@ -68,83 +44,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   openSection: string | null = null;
 
-  menuSections: MenuItem[] = [
-    {
-      label: 'Dashboard',
-      icon: faGauge,
-      children: [
-        { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
-        { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
-        { label: 'BI Gerencial', icon: faGauge, route: '/dashboard/gerencial' }
-      ]
-    },
-    {
-      label: 'Cadastros',
-      icon: faUsers,
-      children: [
-        { label: 'Unidade Assistencial', icon: faHouseChimneyUser, route: '/unidades/cadastro' },
-        { label: 'Beneficiarios', icon: faUserPlus, route: '/cadastros/beneficiarios' },
-        { label: 'Vinculo Familiar', icon: faUserPlus, route: '/cadastros/vinculo-familiar' },
-        { label: 'Profissionais', icon: faUserDoctor, route: '/cadastros/profissionais' },
-        { label: 'Voluntariados', icon: faClipboardList, route: '/cadastros/voluntariados' }
-      ]
-    },
-    {
-      label: 'Atendimentos',
-      icon: faHandshakeAngle,
-      children: [
-        { label: 'Doacao Realizada', icon: faClipboardList, route: '/atendimentos/doacoes' },
-        { label: 'Recebimento de doacao', icon: faClipboardList, route: '/atendimentos/recebimento-doacao' },
-        { label: 'Prontuario', icon: faClipboardList, route: '/atendimentos/prontuario' },
-        { label: 'Visita domiciliar', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
-        { label: 'Matriculas', icon: faClipboardList, route: '/atendimentos/cursos' },
-        { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' }
-      ]
-    },
-    {
-      label: 'Administrativo',
-      icon: faClipboardList,
-      children: [
-        { label: 'Oficios', icon: faClipboardList, route: '/administrativo/oficios' },
-        { label: 'Documentos da Instituicao', icon: faClipboardList, route: '/administrativo/documentos' },
-        { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
-        { label: 'Patrimonio', icon: faClipboardList, route: '/administrativo/patrimonio' },
-        { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' },
-        { label: 'Fotos e Eventos', icon: faClipboardList, route: '/administrativo/fotos-eventos' }
-      ]
-    },
-    {
-      label: 'Financeiro',
-      icon: faWallet,
-      children: [
-        { label: 'Prestacao de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
-        { label: 'Contabilidade', icon: faWallet, route: '/financeiro/contabilidade' },
-        { label: 'Autorizacao de Compras', icon: faClipboardList, route: '/financeiro/autorizacao-compras' }
-      ]
-    },
-    {
-      label: 'Juridico',
-      icon: faScaleBalanced,
-      children: [
-        { label: 'Termo de Fomento', icon: faScaleBalanced, route: '/juridico/termos-fomento' },
-        { label: 'Plano de Trabalho', icon: faClipboardList, route: '/juridico/planos-trabalho' }
-      ]
-    },
-    {
-      label: 'Georeferenciamento',
-      icon: faMapLocationDot,
-      children: [{ label: 'Localizacao', icon: faMapLocationDot, route: '/georeferenciamento/localizacao' }]
-    },
-    {
-      label: 'Configuracoes Gerais',
-      icon: faWrench,
-      children: [
-        { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
-        { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
-        { label: 'Gerenciamento de Dados', icon: faDatabase, route: '/configuracoes/gerenciamento-dados' }
-      ]
-    }
-  ];
+  menuSections: MenuItem[] = [];
 
   constructor(
     private readonly auth: AuthService,
@@ -155,6 +55,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.menuSections = this.filtrarMenuPorPermissoes(menuSections);
     const initialRoute = this.findDeepestChild(this.activatedRoute);
     this.pageTitle = initialRoute.snapshot.data['title'] || 'Visao geral';
 
@@ -211,6 +112,20 @@ export class LayoutComponent implements OnInit, OnDestroy {
     }
 
     return child;
+  }
+
+  private filtrarMenuPorPermissoes(sections: MenuItem[]): MenuItem[] {
+    const permissoes = this.auth.user()?.permissoes ?? [];
+    return sections
+      .map((section) => {
+        const children =
+          section.children?.filter((child) => {
+            if (!child.permissao) return true;
+            return permissoes.includes(child.permissao);
+          }) ?? [];
+        return { ...section, children };
+      })
+      .filter((section) => (section.children ?? []).length > 0);
   }
 
   @HostListener('document:click', ['$event'])

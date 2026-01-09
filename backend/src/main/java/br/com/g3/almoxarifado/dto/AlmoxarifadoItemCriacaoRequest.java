@@ -53,6 +53,9 @@ public class AlmoxarifadoItemCriacaoRequest {
   @JsonProperty("valor_unitario")
   private BigDecimal valorUnitario;
 
+  @JsonProperty("is_kit")
+  private Boolean isKit;
+
   @NotBlank
   @Size(max = 20)
   @JsonProperty("situacao")
@@ -146,6 +149,14 @@ public class AlmoxarifadoItemCriacaoRequest {
 
   public void setValorUnitario(BigDecimal valorUnitario) {
     this.valorUnitario = valorUnitario;
+  }
+
+  public Boolean getIsKit() {
+    return isKit;
+  }
+
+  public void setIsKit(Boolean isKit) {
+    this.isKit = isKit;
   }
 
   public String getSituacao() {

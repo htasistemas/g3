@@ -32,6 +32,9 @@ import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-
 import { DataManagementComponent } from './components/data-management/data-management.component';
 import { AutorizacaoComprasComponent } from './components/autorizacao-compras/autorizacao-compras.component';
 import { FotosEventosComponent } from './components/fotos-eventos/fotos-eventos.component';
+import { ChamadosTecnicosComponent } from './components/chamados-tecnicos/chamados-tecnicos.component';
+import { ChamadoTecnicoDetalheComponent } from './components/chamado-tecnico-detalhe/chamado-tecnico-detalhe.component';
+import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -136,6 +139,41 @@ export const routes: Routes = [
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
         data: { title: 'Versao do sistema' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos',
+        component: ChamadoTecnicoKanbanComponent,
+        data: { title: 'Chamado tecnico', perfil: 'usuario' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos/lista',
+        component: ChamadosTecnicosComponent,
+        data: { title: 'Chamados tecnicos', perfil: 'usuario' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos/novo',
+        component: ChamadoTecnicoDetalheComponent,
+        data: { title: 'Novo chamado tecnico', perfil: 'usuario' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos/:id',
+        component: ChamadoTecnicoDetalheComponent,
+        data: { title: 'Chamado tecnico', perfil: 'usuario' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos-dev',
+        component: ChamadoTecnicoKanbanComponent,
+        data: { title: 'Chamado tecnico (desenvolvedor)', perfil: 'desenvolvedor' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos-dev/lista',
+        component: ChamadosTecnicosComponent,
+        data: { title: 'Chamados tecnicos (desenvolvedor)', perfil: 'desenvolvedor' }
+      },
+      {
+        path: 'configuracoes/chamados-tecnicos-dev/:id',
+        component: ChamadoTecnicoDetalheComponent,
+        data: { title: 'Chamado tecnico (desenvolvedor)', perfil: 'desenvolvedor' }
       },
       {
         path: 'configuracoes/parametros',

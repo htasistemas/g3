@@ -101,14 +101,14 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
 
     String countSql = "SELECT COUNT(*) FROM (" + sql + ") AS total_registros";
     long total =
-        jdbcTemplate.queryForObject(countSql, params.toArray(), (rs, rowNum) -> rs.getLong(1));
+        jdbcTemplate.queryForObject(countSql, (rs, rowNum) -> rs.getLong(1), params.toArray());
 
     sql.append(" ORDER BY data_registro DESC LIMIT ? OFFSET ?");
     params.add(tamanhoPagina);
     params.add(pagina * tamanhoPagina);
 
     List<ProntuarioRegistroResponse> registros =
-        jdbcTemplate.query(sql.toString(), params.toArray(), new ProntuarioRegistroRowMapper(objectMapper));
+        jdbcTemplate.query(sql.toString(), new ProntuarioRegistroRowMapper(objectMapper), params.toArray());
 
     return new ProntuarioRegistroConsultaResultado(registros, total);
   }
@@ -129,7 +129,7 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
   public long contarPendencias(Long beneficiarioId) {
     String sql =
         "SELECT COUNT(*) FROM prontuario_registros WHERE beneficiario_id = ? AND status = 'aberto'";
-    return jdbcTemplate.queryForObject(sql, new Object[] {beneficiarioId}, Long.class);
+    return jdbcTemplate.queryForObject(sql, Long.class, beneficiarioId);
   }
 
   @Override
@@ -142,12 +142,12 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
             + "FROM prontuario_registros WHERE beneficiario_id = ?";
     return jdbcTemplate.queryForObject(
         sql,
-        new Object[] {beneficiarioId},
         (rs, rowNum) ->
             new ProntuarioEncaminhamentoIndicadores(
                 rs.getLong("total"),
                 rs.getLong("concluidos"),
-                (Double) rs.getObject("media_dias")));
+                (Double) rs.getObject("media_dias")),
+        beneficiarioId);
   }
 
   @Override
@@ -157,7 +157,7 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
             + "WHERE beneficiario_id = ? AND tipo = 'atendimento' "
             + "ORDER BY data_registro DESC LIMIT 1";
     List<String> resultado =
-        jdbcTemplate.query(sql, new Object[] {beneficiarioId}, (rs, rowNum) -> rs.getString(1));
+        jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString(1), beneficiarioId);
     return resultado.isEmpty() ? null : resultado.get(0);
   }
 
@@ -165,10 +165,13 @@ public class ProntuarioRegistroRepositoryImpl implements ProntuarioRegistroRepos
   public LocalDateTime buscarUltimaAtualizacao(Long beneficiarioId) {
     String sql =
         "SELECT MAX(atualizado_em) FROM prontuario_registros WHERE beneficiario_id = ?";
-    return jdbcTemplate.queryForObject(sql, new Object[] {beneficiarioId}, (rs, rowNum) -> {
-      Timestamp timestamp = rs.getTimestamp(1);
-      return timestamp != null ? timestamp.toLocalDateTime() : null;
-    });
+    return jdbcTemplate.queryForObject(
+        sql,
+        (rs, rowNum) -> {
+          Timestamp timestamp = rs.getTimestamp(1);
+          return timestamp != null ? timestamp.toLocalDateTime() : null;
+        },
+        beneficiarioId);
   }
 
   private static class ProntuarioRegistroRowMapper implements RowMapper<ProntuarioRegistroResponse> {

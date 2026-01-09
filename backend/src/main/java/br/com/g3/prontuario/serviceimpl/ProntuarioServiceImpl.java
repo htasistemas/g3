@@ -256,7 +256,7 @@ public class ProntuarioServiceImpl implements ProntuarioService {
       return Collections.emptyMap();
     }
     try {
-      return objectMapper.readValue(extra, Map.class);
+      return objectMapper.readValue(extra, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
     } catch (Exception ex) {
       return Collections.emptyMap();
     }
@@ -322,7 +322,7 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     String sql =
         "SELECT nome_familia FROM vinculo_familiar WHERE id_referencia_familiar = ? LIMIT 1";
     List<String> familias =
-        jdbcTemplate.query(sql, new Object[] {beneficiarioId}, (rs, rowNum) -> rs.getString(1));
+        jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString(1), beneficiarioId);
     return familias.isEmpty() ? null : familias.get(0);
   }
 }

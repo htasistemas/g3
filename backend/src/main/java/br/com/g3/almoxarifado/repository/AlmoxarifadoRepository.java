@@ -2,6 +2,8 @@ package br.com.g3.almoxarifado.repository;
 
 import br.com.g3.almoxarifado.domain.AlmoxarifadoItem;
 import br.com.g3.almoxarifado.domain.AlmoxarifadoMovimentacao;
+import br.com.g3.almoxarifado.domain.MovimentacaoVinculoKit;
+import br.com.g3.almoxarifado.domain.ProdutoKitComposicao;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,5 +29,15 @@ public interface AlmoxarifadoRepository {
 
   AlmoxarifadoMovimentacao salvarMovimentacao(AlmoxarifadoMovimentacao movimentacao);
 
+  Optional<AlmoxarifadoMovimentacao> buscarMovimentacaoPorId(Long id);
+
   int obterProximoCodigo();
+
+  List<ProdutoKitComposicao> listarComposicaoKit(Long produtoKitId);
+
+  void substituirComposicaoKit(Long produtoKitId, List<ProdutoKitComposicao> itens);
+
+  MovimentacaoVinculoKit salvarVinculoKit(MovimentacaoVinculoKit vinculo);
+
+  List<MovimentacaoVinculoKit> listarVinculosKit(Long movimentacaoPrincipalId);
 }

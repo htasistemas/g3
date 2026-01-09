@@ -3,6 +3,7 @@ package br.com.g3.configuracoes.serviceimpl;
 import br.com.g3.configuracoes.domain.HistoricoVersaoSistema;
 import br.com.g3.configuracoes.domain.VersaoSistema;
 import br.com.g3.configuracoes.dto.AtualizarVersaoRequest;
+import br.com.g3.configuracoes.dto.DestinoChamadoResponse;
 import br.com.g3.configuracoes.dto.HistoricoVersaoResponse;
 import br.com.g3.configuracoes.dto.VersaoSistemaResponse;
 import br.com.g3.configuracoes.repository.HistoricoVersaoSistemaRepository;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,12 +22,15 @@ import org.springframework.web.server.ResponseStatusException;
 public class ConfiguracaoSistemaServiceImpl implements ConfiguracaoSistemaService {
   private final VersaoSistemaRepository versaoRepository;
   private final HistoricoVersaoSistemaRepository historicoRepository;
+  private final String destinoChamado;
 
   public ConfiguracaoSistemaServiceImpl(
       VersaoSistemaRepository versaoRepository,
-      HistoricoVersaoSistemaRepository historicoRepository) {
+      HistoricoVersaoSistemaRepository historicoRepository,
+      @Value("${app.email.chamados-destino:htasistemas@gmail.com}") String destinoChamado) {
     this.versaoRepository = versaoRepository;
     this.historicoRepository = historicoRepository;
+    this.destinoChamado = destinoChamado;
   }
 
   @Override
@@ -67,6 +72,11 @@ public class ConfiguracaoSistemaServiceImpl implements ConfiguracaoSistemaServic
                 new HistoricoVersaoResponse(
                     item.getId(), item.getVersao(), item.getDescricao(), item.getCriadoEm()))
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public DestinoChamadoResponse obterDestinoChamados() {
+    return new DestinoChamadoResponse(destinoChamado);
   }
 
   private boolean isBlank(String value) {

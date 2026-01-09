@@ -34,7 +34,7 @@ public class AutenticacaoServiceImpl implements AutenticacaoService {
   private final EmailService emailService;
   private final SecureRandom secureRandom = new SecureRandom();
   private static final DateTimeFormatter DATA_HORA_FORMATO =
-      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", new Locale("pt", "BR"));
+      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"));
 
   public AutenticacaoServiceImpl(
       UsuarioRepository repository,

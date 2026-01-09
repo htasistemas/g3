@@ -188,11 +188,11 @@ SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.00.8',
-    descricao = 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.',
+SET versao = '1.00.9',
+    descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.00.8';
+  AND versao <> '1.00.9';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -200,12 +200,12 @@ WHERE id = 1
   AND versao = '1.0.0';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.8', 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.', NOW()
+SELECT '1.00.9', 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.00.8'
-    AND descricao = 'Persistencia de oficios (tabelas, backend e API) e ajustes na tela de oficios com abas e botoes padrao G3.'
+  WHERE versao = '1.00.9'
+    AND descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.'
 );
 
 UPDATE historico_versao_sistema
@@ -265,8 +265,9 @@ CREATE TABLE IF NOT EXISTS almoxarifado_item (
   localizacao_interna VARCHAR(120),
   estoque_atual INTEGER NOT NULL DEFAULT 0,
   estoque_minimo INTEGER NOT NULL DEFAULT 0,
-  valor_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0,
-  situacao VARCHAR(20) NOT NULL,
+    valor_unitario NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    is_kit BOOLEAN NOT NULL DEFAULT FALSE,
+    situacao VARCHAR(20) NOT NULL,
   validade DATE,
   ignorar_validade BOOLEAN NOT NULL DEFAULT FALSE,
   observacoes TEXT,
@@ -274,19 +275,44 @@ CREATE TABLE IF NOT EXISTS almoxarifado_item (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS almoxarifado_movimentacao (
-  id BIGSERIAL PRIMARY KEY,
-  item_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE CASCADE,
-  data_movimentacao DATE NOT NULL,
-  tipo VARCHAR(20) NOT NULL,
-  quantidade INTEGER NOT NULL,
-  saldo_apos INTEGER NOT NULL,
-  referencia VARCHAR(150),
-  responsavel VARCHAR(150),
-  observacoes TEXT,
-  direcao_ajuste VARCHAR(20),
-  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
-);
+  CREATE TABLE IF NOT EXISTS almoxarifado_movimentacao (
+    id BIGSERIAL PRIMARY KEY,
+    item_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE CASCADE,
+    data_movimentacao DATE NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    quantidade INTEGER NOT NULL,
+    saldo_apos INTEGER NOT NULL,
+    referencia VARCHAR(150),
+    responsavel VARCHAR(150),
+    observacoes TEXT,
+    direcao_ajuste VARCHAR(20),
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
+  CREATE TABLE IF NOT EXISTS produtos_kit_composicao (
+    id BIGSERIAL PRIMARY KEY,
+    produto_kit_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE CASCADE,
+    produto_item_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE CASCADE,
+    quantidade_item NUMERIC(12, 4) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+    atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (produto_kit_id, produto_item_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS produtos_kit_composicao_kit_idx
+    ON produtos_kit_composicao (produto_kit_id);
+
+  CREATE TABLE IF NOT EXISTS movimentacao_vinculo_kit (
+    id BIGSERIAL PRIMARY KEY,
+    movimentacao_principal_id BIGINT NOT NULL REFERENCES almoxarifado_movimentacao(id) ON DELETE CASCADE,
+    movimentacao_gerada_id BIGINT NOT NULL REFERENCES almoxarifado_movimentacao(id) ON DELETE CASCADE,
+    criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (movimentacao_principal_id, movimentacao_gerada_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS movimentacao_vinculo_kit_principal_idx
+    ON movimentacao_vinculo_kit (movimentacao_principal_id);
 
 CREATE TABLE IF NOT EXISTS imagens_unidade (
   id BIGSERIAL PRIMARY KEY,
@@ -611,8 +637,11 @@ ALTER TABLE almoxarifado_item
 ALTER TABLE almoxarifado_item
   ADD COLUMN IF NOT EXISTS estoque_minimo INTEGER;
 
-ALTER TABLE almoxarifado_item
-  ADD COLUMN IF NOT EXISTS valor_unitario NUMERIC(12, 2);
+  ALTER TABLE almoxarifado_item
+    ADD COLUMN IF NOT EXISTS valor_unitario NUMERIC(12, 2);
+
+  ALTER TABLE almoxarifado_item
+    ADD COLUMN IF NOT EXISTS is_kit BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE almoxarifado_item
   ADD COLUMN IF NOT EXISTS situacao VARCHAR(20);
@@ -1198,6 +1227,143 @@ CREATE TABLE IF NOT EXISTS prontuario_registros (
 
 CREATE INDEX IF NOT EXISTS prontuario_registros_beneficiario_data_idx
   ON prontuario_registros (beneficiario_id, data_registro DESC);
+
+-- Chamados tecnicos
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TYPE IF NOT EXISTS chamado_tipo AS ENUM ('ERRO', 'MELHORIA');
+CREATE TYPE IF NOT EXISTS chamado_status AS ENUM (
+  'ABERTO',
+  'EM_ANALISE',
+  'EM_DESENVOLVIMENTO',
+  'EM_TESTE',
+  'AGUARDANDO_CLIENTE',
+  'RESOLVIDO',
+  'CANCELADO'
+);
+CREATE TYPE IF NOT EXISTS chamado_prioridade AS ENUM ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA');
+CREATE TYPE IF NOT EXISTS chamado_impacto AS ENUM ('BAIXO', 'MEDIO', 'ALTO');
+CREATE TYPE IF NOT EXISTS chamado_acao_tipo AS ENUM (
+  'CRIACAO',
+  'COMENTARIO',
+  'MUDANCA_STATUS',
+  'ATRIBUICAO',
+  'ANEXO',
+  'EDICAO',
+  'VINCULO',
+  'REGISTRO_ATIVIDADE'
+);
+
+CREATE SEQUENCE IF NOT EXISTS chamado_tecnico_codigo_seq START WITH 1;
+
+CREATE TABLE IF NOT EXISTS chamado_tecnico (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  codigo VARCHAR(20) NOT NULL,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT NOT NULL,
+  tipo chamado_tipo NOT NULL,
+  status chamado_status NOT NULL,
+  prioridade chamado_prioridade NOT NULL,
+  impacto chamado_impacto NOT NULL,
+  modulo VARCHAR(120) NOT NULL,
+  menu VARCHAR(160) NOT NULL,
+  cliente VARCHAR(160) NOT NULL,
+  ambiente VARCHAR(40) NOT NULL DEFAULT 'PRODUCAO',
+  versao_sistema VARCHAR(40),
+  passos_reproducao TEXT,
+  resultado_atual TEXT,
+  resultado_esperado TEXT,
+  usuarios_teste TEXT,
+    prazo_sla_em_horas INTEGER,
+    data_limite_sla TIMESTAMP,
+    resposta_desenvolvedor TEXT,
+    respondido_em TIMESTAMP,
+    respondido_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+    responsavel_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  tags TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS chamado_tecnico_codigo_unique ON chamado_tecnico (codigo);
+CREATE INDEX IF NOT EXISTS chamado_tecnico_status_idx ON chamado_tecnico (status);
+CREATE INDEX IF NOT EXISTS chamado_tecnico_prioridade_idx ON chamado_tecnico (prioridade);
+CREATE INDEX IF NOT EXISTS chamado_tecnico_modulo_idx ON chamado_tecnico (modulo);
+CREATE INDEX IF NOT EXISTS chamado_tecnico_criado_em_idx ON chamado_tecnico (criado_em);
+
+  ALTER TABLE chamado_tecnico
+    ADD COLUMN IF NOT EXISTS resposta_desenvolvedor TEXT;
+
+  ALTER TABLE chamado_tecnico
+    ADD COLUMN IF NOT EXISTS respondido_em TIMESTAMP;
+
+  ALTER TABLE chamado_tecnico
+    ADD COLUMN IF NOT EXISTS respondido_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL;
+
+  CREATE TABLE IF NOT EXISTS chamado_tecnico_acao (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chamado_id UUID NOT NULL REFERENCES chamado_tecnico(id) ON DELETE CASCADE,
+  tipo chamado_acao_tipo NOT NULL,
+  descricao TEXT NOT NULL,
+  de_status chamado_status,
+  para_status chamado_status,
+  de_responsavel_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  para_responsavel_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS chamado_tecnico_acao_chamado_idx ON chamado_tecnico_acao (chamado_id);
+
+CREATE TABLE IF NOT EXISTS chamado_tecnico_comentario (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chamado_id UUID NOT NULL REFERENCES chamado_tecnico(id) ON DELETE CASCADE,
+  comentario TEXT NOT NULL,
+  criado_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS chamado_tecnico_comentario_chamado_idx ON chamado_tecnico_comentario (chamado_id);
+
+CREATE TABLE IF NOT EXISTS chamado_tecnico_anexo (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chamado_id UUID NOT NULL REFERENCES chamado_tecnico(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(255),
+  mime_type VARCHAR(120),
+  tamanho_bytes BIGINT,
+  storage_path VARCHAR(600),
+  hash_sha256 VARCHAR(120),
+  criado_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS chamado_tecnico_anexo_chamado_idx ON chamado_tecnico_anexo (chamado_id);
+
+CREATE TABLE IF NOT EXISTS auditoria_evento (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  acao VARCHAR(120) NOT NULL,
+  entidade VARCHAR(120) NOT NULL,
+  entidade_id VARCHAR(120),
+  dados_json JSONB,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS auditoria_evento_usuario_idx ON auditoria_evento (usuario_id);
+CREATE INDEX IF NOT EXISTS auditoria_evento_entidade_idx ON auditoria_evento (entidade);
+CREATE INDEX IF NOT EXISTS auditoria_evento_criado_em_idx ON auditoria_evento (criado_em);
+
+CREATE TABLE IF NOT EXISTS chamado_tecnico_auditoria_vinculo (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  chamado_id UUID NOT NULL REFERENCES chamado_tecnico(id) ON DELETE CASCADE,
+  auditoria_evento_id UUID NOT NULL REFERENCES auditoria_evento(id) ON DELETE CASCADE,
+  criado_por_usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS chamado_tecnico_auditoria_vinculo_chamado_idx
+  ON chamado_tecnico_auditoria_vinculo (chamado_id);
 CREATE INDEX IF NOT EXISTS prontuario_registros_tipo_idx
   ON prontuario_registros (tipo);
 CREATE INDEX IF NOT EXISTS prontuario_registros_profissional_idx

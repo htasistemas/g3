@@ -39,6 +39,9 @@ public class AlmoxarifadoItemResponse {
   @JsonProperty("valor_unitario")
   private final BigDecimal valorUnitario;
 
+  @JsonProperty("is_kit")
+  private final Boolean isKit;
+
   @JsonProperty("situacao")
   private final String situacao;
 
@@ -64,6 +67,7 @@ public class AlmoxarifadoItemResponse {
       Integer estoqueAtual,
       Integer estoqueMinimo,
       BigDecimal valorUnitario,
+      Boolean isKit,
       String situacao,
       LocalDate validade,
       Boolean ignorarValidade,
@@ -79,6 +83,7 @@ public class AlmoxarifadoItemResponse {
     this.estoqueAtual = estoqueAtual;
     this.estoqueMinimo = estoqueMinimo;
     this.valorUnitario = valorUnitario;
+    this.isKit = isKit;
     this.situacao = situacao;
     this.validade = validade;
     this.ignorarValidade = ignorarValidade;
@@ -127,6 +132,10 @@ public class AlmoxarifadoItemResponse {
 
   public BigDecimal getValorUnitario() {
     return valorUnitario;
+  }
+
+  public Boolean getIsKit() {
+    return isKit;
   }
 
   public String getSituacao() {

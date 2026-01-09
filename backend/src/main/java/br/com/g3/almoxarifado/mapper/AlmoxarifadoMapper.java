@@ -31,6 +31,7 @@ public class AlmoxarifadoMapper {
     item.setEstoqueAtual(request.getEstoqueAtual());
     item.setEstoqueMinimo(request.getEstoqueMinimo());
     item.setValorUnitario(request.getValorUnitario());
+    item.setIsKit(Boolean.TRUE.equals(request.getIsKit()));
     item.setSituacao(limparTexto(request.getSituacao()));
     item.setValidade(request.getValidade());
     item.setIgnorarValidade(Boolean.TRUE.equals(request.getIgnorarValidade()));
@@ -51,6 +52,7 @@ public class AlmoxarifadoMapper {
         item.getEstoqueAtual(),
         item.getEstoqueMinimo(),
         item.getValorUnitario(),
+        item.getIsKit(),
         item.getSituacao(),
         item.getValidade(),
         item.getIgnorarValidade(),

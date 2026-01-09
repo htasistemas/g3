@@ -44,8 +44,11 @@ public class AlmoxarifadoItem {
   @Column(name = "estoque_minimo", nullable = false)
   private Integer estoqueMinimo;
 
-  @Column(name = "valor_unitario", nullable = false, precision = 12, scale = 2)
+  @Column(name = "valor_unitario", nullable = false, precision = 12, scale = 2) 
   private BigDecimal valorUnitario;
+
+  @Column(name = "is_kit", nullable = false)
+  private Boolean isKit;
 
   @Column(name = "situacao", length = 20, nullable = false)
   private String situacao;
@@ -151,6 +154,14 @@ public class AlmoxarifadoItem {
 
   public void setValorUnitario(BigDecimal valorUnitario) {
     this.valorUnitario = valorUnitario;
+  }
+
+  public Boolean getIsKit() {
+    return isKit;
+  }
+
+  public void setIsKit(Boolean isKit) {
+    this.isKit = isKit;
   }
 
   public String getSituacao() {

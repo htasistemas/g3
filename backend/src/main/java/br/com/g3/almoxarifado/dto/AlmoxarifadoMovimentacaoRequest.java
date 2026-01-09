@@ -38,6 +38,9 @@ public class AlmoxarifadoMovimentacaoRequest {
   @JsonProperty("observacoes")
   private String observacoes;
 
+  @JsonProperty("gerar_itens_kit")
+  private Boolean gerarItensKit;
+
   @Size(max = 20)
   @JsonProperty("direcao_ajuste")
   private String direcaoAjuste;
@@ -96,6 +99,14 @@ public class AlmoxarifadoMovimentacaoRequest {
 
   public void setObservacoes(String observacoes) {
     this.observacoes = observacoes;
+  }
+
+  public Boolean getGerarItensKit() {
+    return gerarItensKit;
+  }
+
+  public void setGerarItensKit(Boolean gerarItensKit) {
+    this.gerarItensKit = gerarItensKit;
   }
 
   public String getDirecaoAjuste() {

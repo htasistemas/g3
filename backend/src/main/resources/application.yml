@@ -50,3 +50,4 @@ app:
     habilitado: ${APP_EMAIL_HABILITADO:true}
     remetente: ${APP_EMAIL_REMETENTE:}
     nome-remetente: ${APP_EMAIL_NOME:HTA Sistemas}
+    chamados-destino: ${APP_EMAIL_DESTINO_CHAMADOS:htasistemas@gmail.com}

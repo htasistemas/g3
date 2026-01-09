@@ -1,6 +1,7 @@
 package br.com.g3.configuracoes.controller;
 
 import br.com.g3.configuracoes.dto.AtualizarVersaoRequest;
+import br.com.g3.configuracoes.dto.DestinoChamadoResponse;
 import br.com.g3.configuracoes.dto.HistoricoVersaoResponse;
 import br.com.g3.configuracoes.dto.VersaoSistemaResponse;
 import br.com.g3.configuracoes.service.ConfiguracaoSistemaService;
@@ -33,5 +34,10 @@ public class ConfiguracaoSistemaController {
   @GetMapping("/versao/historico")
   public List<HistoricoVersaoResponse> listarHistorico() {
     return service.listarHistorico();
+  }
+
+  @GetMapping("/chamados/destino")
+  public DestinoChamadoResponse obterDestinoChamados() {
+    return service.obterDestinoChamados();
   }
 }

@@ -7,8 +7,20 @@ import { Router } from '@angular/router';
 
 interface LoginResponse {
   token: string;
-  usuario?: { id: string; nomeUsuario: string; nome?: string; email?: string };
-  user?: { id: string; nomeUsuario: string; nome?: string; email?: string };
+  usuario?: {
+    id: string;
+    nomeUsuario: string;
+    nome?: string;
+    email?: string;
+    permissoes?: string[];
+  };
+  user?: {
+    id: string;
+    nomeUsuario: string;
+    nome?: string;
+    email?: string;
+    permissoes?: string[];
+  };
 }
 
 interface CadastroContaRequest {
@@ -31,9 +43,13 @@ interface RedefinirSenhaRequest {
 export class AuthService {
   private readonly storageKey = 'g3_session';
   private readonly requestTimeoutMs = 10000;
-  readonly user = signal<{ id: string; nomeUsuario: string; nome?: string; email?: string } | null>(
-    this.loadUser()
-  );
+  readonly user = signal<{
+    id: string;
+    nomeUsuario: string;
+    nome?: string;
+    email?: string;
+    permissoes?: string[];
+  } | null>(this.loadUser());
 
   constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
@@ -93,7 +109,13 @@ export class AuthService {
     return raw ? (JSON.parse(raw) as LoginResponse) : null;
   }
 
-  private loadUser(): { id: string; nomeUsuario: string; nome?: string; email?: string } | null {
+  private loadUser(): {
+    id: string;
+    nomeUsuario: string;
+    nome?: string;
+    email?: string;
+    permissoes?: string[];
+  } | null {
     return this.loadSession()?.user ?? null;
   }
 

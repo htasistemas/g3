@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  NgZone,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
@@ -2046,6 +2054,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   closePrintMenu(): void {
     this.printMenuOpen = false;
   }
+  @HostListener('document:keydown', ['$event'])
+  handleGlobalKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape') return;
+    if (this.printMenuOpen) this.closePrintMenu();
+    if (this.printByNameOpen) this.closePrintByName();
+    if (this.quickSearchModalOpen) this.closeQuickSearch();
+    if (this.mapaModalOpen) this.fecharMapaEndereco();
+    if (this.blockReasonModalOpen) this.cancelBlockReason();
+    if (this.missingFieldsModalOpen) this.closeMissingFieldsModal();
+    if (this.pdfErrorDialogOpen) this.closePdfErrorDialog();
+  }
   openPrintByName(): void {
     this.printByNameQuery = '';
     this.printByNameOpen = true;
@@ -2079,13 +2098,23 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         this.printIndividualRecord();
         break;
       case 'authorization':
-        this.printConsentDocument();
+        this.reimprimirTermoConsentimento();
         break;
     }
     this.closePrintMenu();
   }
   onPrint(): void {
+    const opcoes = this.getPrintOptions();
+    if (opcoes.length <= 1) {
+      if (opcoes[0]) {
+        this.handlePrintSelection(opcoes[0]);
+      }
+      return;
+    }
     this.togglePrintMenu();
+  }
+  private getPrintOptions(): Array<'list' | 'individual' | 'authorization'> {
+    return ['individual', 'authorization', 'list'];
   }
   onSave(): void {
     if (this.statusDirty && this.beneficiarioId && this.form.invalid) {
@@ -2233,11 +2262,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   private handleBeneficiaryResponse(beneficiarios: BeneficiarioApiPayload[]): void {
     const vistos = new Set<string>();
     const unicos = (beneficiarios ?? []).filter((beneficiario) => {
-      const chave =
-        beneficiario.id_beneficiario ||
-        beneficiario.cpf ||
-        beneficiario.codigo ||
-        (beneficiario.nome_completo || beneficiario.nome_social || '').toString().trim();
+      const chave = this.getBeneficiarioChaveUnica(beneficiario);
       if (!chave) {
         return true;
       }
@@ -2255,6 +2280,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.selectedBeneficiary = null;
     this.applyListFilters();
     this.updateSequentialCode();
+  }
+  private getBeneficiarioChaveUnica(beneficiario: BeneficiarioApiPayload): string {
+    const codigo = this.normalizeDigits(beneficiario.codigo);
+    if (codigo) return `codigo:${codigo}`;
+    const cpf = this.normalizeDigits(beneficiario.cpf);
+    if (cpf) return `cpf:${cpf}`;
+    if (beneficiario.id_beneficiario) return `id:${beneficiario.id_beneficiario}`;
+    const nome = this.normalizeSearchTerm(
+      (beneficiario.nome_completo || beneficiario.nome_social || '').toString().trim(),
+    );
+    return nome ? `nome:${nome}` : '';
   }
   private mapBeneficiaryPayload(beneficiary: BeneficiaryPayload): BeneficiarioApiPayload {
     return {

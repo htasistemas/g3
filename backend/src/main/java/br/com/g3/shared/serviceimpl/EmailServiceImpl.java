@@ -163,6 +163,91 @@ public class EmailServiceImpl implements EmailService {
     }
   }
 
+  @Override
+  public void enviarChamadoTecnico(
+      String destinatario, br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse chamado) {
+    if (destinatario == null || destinatario.trim().isEmpty()) {
+      LOGGER.warn("Envio de email de chamado ignorado: destinatario vazio.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email do destinatario nao informado.");
+    }
+    if (!habilitado) {
+      LOGGER.warn("Envio de email de chamado desabilitado. Verifique APP_EMAIL_HABILITADO e MAIL_HOST.");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Envio de email desabilitado.");
+    }
+    String remetenteFinal = resolveRemetente();
+    if (remetenteFinal == null || remetenteFinal.trim().isEmpty()) {
+      LOGGER.warn("Envio de email de chamado ignorado: remetente nao configurado.");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Remetente nao configurado.");
+    }
+
+    try {
+      JavaMailSenderImpl sender = buildMailSender();
+      MimeMessageHelper helper = new MimeMessageHelper(sender.createMimeMessage(), true);
+      helper.setFrom(remetenteFinal, nomeRemetente);
+      helper.setTo(destinatario);
+      helper.setSubject("Novo chamado tecnico - " + chamado.getCodigo());
+      helper.setText(montarCorpoChamado(chamado));
+      sender.send(helper.getMimeMessage());
+    } catch (Exception ex) {
+      LOGGER.warn("Falha ao enviar email de chamado tecnico.", ex);
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Falha ao enviar email do chamado.");
+    }
+  }
+
+  private String montarCorpoChamado(br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse chamado) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Novo chamado tecnico registrado no G3.\n\n");
+    sb.append("Codigo: ").append(chamado.getCodigo()).append("\n");
+    sb.append("Titulo: ").append(chamado.getTitulo()).append("\n");
+    sb.append("Tipo: ").append(chamado.getTipo()).append("\n");
+    sb.append("Status: ").append(chamado.getStatus()).append("\n");
+    sb.append("Prioridade: ").append(chamado.getPrioridade()).append("\n");
+    sb.append("Impacto: ").append(chamado.getImpacto()).append("\n");
+    sb.append("Modulo: ").append(chamado.getModulo()).append("\n");
+    sb.append("Menu: ").append(chamado.getMenu()).append("\n");
+    sb.append("Cliente: ").append(chamado.getCliente()).append("\n\n");
+    sb.append("Descricao:\n").append(chamado.getDescricao()).append("\n\n");
+    if (chamado.getPassosReproducao() != null && !chamado.getPassosReproducao().trim().isEmpty()) {
+      sb.append("Passos de reproducao:\n").append(chamado.getPassosReproducao()).append("\n\n");
+    }
+    if (chamado.getResultadoAtual() != null && !chamado.getResultadoAtual().trim().isEmpty()) {
+      sb.append("Resultado atual:\n").append(chamado.getResultadoAtual()).append("\n\n");
+    }
+    if (chamado.getResultadoEsperado() != null && !chamado.getResultadoEsperado().trim().isEmpty()) {
+      sb.append("Resultado esperado:\n").append(chamado.getResultadoEsperado()).append("\n\n");
+    }
+    if (chamado.getUsuariosTeste() != null && !chamado.getUsuariosTeste().trim().isEmpty()) {
+      sb.append("Usuarios de teste:\n").append(chamado.getUsuariosTeste()).append("\n\n");
+    }
+    if (chamado.getPrazoSlaEmHoras() != null) {
+      sb.append("SLA (horas): ").append(chamado.getPrazoSlaEmHoras()).append("\n");
+      if (chamado.getDataLimiteSla() != null) {
+        sb.append("Data limite SLA: ").append(chamado.getDataLimiteSla()).append("\n");
+      }
+    }
+    return sb.toString();
+  }
+
+  private String resolveRemetente() {
+    String from = remetente == null || remetente.trim().isEmpty() ? usuarioMail : remetente;
+    if ((from == null || from.trim().isEmpty()) && mailSender instanceof JavaMailSenderImpl) {
+      String username = ((JavaMailSenderImpl) mailSender).getUsername();
+      from = username == null || username.trim().isEmpty() ? from : username;
+    }
+    return from;
+  }
+
+  private JavaMailSenderImpl buildMailSender() {
+    configurarMailSeNecessario();
+    if (mailSender instanceof JavaMailSenderImpl) {
+      return (JavaMailSenderImpl) mailSender;
+    }
+    JavaMailSenderImpl sender = new JavaMailSenderImpl();
+    sender.setHost(hostMail);
+    sender.setUsername(usuarioMail);
+    return sender;
+  }
+
   private Map<String, String> lerConfiguracaoEmail() {
     Map<String, String> valores = new HashMap<>();
     for (Path caminho : new Path[] {
