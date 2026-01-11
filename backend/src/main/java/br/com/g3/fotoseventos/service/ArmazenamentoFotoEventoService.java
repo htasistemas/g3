@@ -1,8 +1,12 @@
 package br.com.g3.fotoseventos.service;
 
 import br.com.g3.fotoseventos.dto.FotoEventoUploadRequest;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +14,10 @@ import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,7 +25,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ArmazenamentoFotoEventoService {
-  private static final int LIMITE_BYTES = 10 * 1024 * 1024;
+  private static final int MAX_LADO_IMAGEM = 1920;
+  private static final float QUALIDADE_JPEG = 0.85f;
   private final Path baseDir;
 
   public ArmazenamentoFotoEventoService(
@@ -34,28 +42,25 @@ public class ArmazenamentoFotoEventoService {
     validarTipoArquivo(request.getContentType(), request.getNomeArquivo());
 
     byte[] bytes = decodificarBase64(request.getConteudo());
-    validarTamanho(bytes);
+    BufferedImage imagemOriginal = lerImagem(bytes);
+    boolean imagemValida = imagemOriginal != null;
+    byte[] bytesOtimizados = imagemValida ? otimizarImagem(imagemOriginal) : bytes;
 
-    String extensao = obterExtensao(request.getNomeArquivo(), request.getContentType());
+    String extensao = imagemValida ? ".jpg" : obterExtensao(request.getNomeArquivo(), request.getContentType());
     String nomeArquivo = UUID.randomUUID() + extensao;
     Path destino = baseDir.resolve(String.valueOf(eventoId)).resolve(nomeArquivo);
 
     try {
       Files.createDirectories(destino.getParent());
-      Files.write(destino, bytes);
+      Files.write(destino, bytesOtimizados);
       Integer largura = null;
       Integer altura = null;
-      try (ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
-        BufferedImage imagem = ImageIO.read(input);
-        if (imagem != null) {
-          largura = imagem.getWidth();
-          altura = imagem.getHeight();
-        }
-      } catch (IOException ex) {
-        largura = null;
-        altura = null;
+      if (imagemValida) {
+        largura = imagemOriginal.getWidth();
+        altura = imagemOriginal.getHeight();
       }
-      return new FotoEventoArquivoInfo(destino.toString(), (long) bytes.length, largura, altura);
+      return new FotoEventoArquivoInfo(
+          destino.toString(), (long) bytesOtimizados.length, largura, altura);
     } catch (IOException ex) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao salvar imagem.");
     }
@@ -92,12 +97,6 @@ public class ArmazenamentoFotoEventoService {
     }
   }
 
-  private void validarTamanho(byte[] bytes) {
-    if (bytes != null && bytes.length > LIMITE_BYTES) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Imagem excede o tamanho maximo permitido.");
-    }
-  }
-
   private byte[] decodificarBase64(String conteudo) {
     String base64 = conteudo;
     int indice = conteudo.indexOf("base64,");
@@ -105,6 +104,66 @@ public class ArmazenamentoFotoEventoService {
       base64 = conteudo.substring(indice + 7);
     }
     return Base64.getDecoder().decode(base64);
+  }
+
+  private BufferedImage lerImagem(byte[] bytes) {
+    try (ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
+      return ImageIO.read(input);
+    } catch (IOException ex) {
+      return null;
+    }
+  }
+
+  private byte[] otimizarImagem(BufferedImage original) {
+    BufferedImage ajustada = redimensionarImagem(original);
+    try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+      ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+      ImageWriteParam params = writer.getDefaultWriteParam();
+      params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+      params.setCompressionQuality(QUALIDADE_JPEG);
+      writer.setOutput(ImageIO.createImageOutputStream(output));
+      writer.write(null, new IIOImage(ajustada, null, null), params);
+      writer.dispose();
+      return output.toByteArray();
+    } catch (IOException ex) {
+      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao otimizar imagem.");
+    }
+  }
+
+  private BufferedImage redimensionarImagem(BufferedImage original) {
+    int largura = original.getWidth();
+    int altura = original.getHeight();
+    int maiorLado = Math.max(largura, altura);
+    if (maiorLado <= MAX_LADO_IMAGEM) {
+      return converterParaRgb(original);
+    }
+    double escala = (double) MAX_LADO_IMAGEM / maiorLado;
+    int novaLargura = Math.max(1, (int) Math.round(largura * escala));
+    int novaAltura = Math.max(1, (int) Math.round(altura * escala));
+    BufferedImage redimensionada = new BufferedImage(novaLargura, novaAltura, BufferedImage.TYPE_INT_RGB);
+    Graphics2D graphics = redimensionada.createGraphics();
+    graphics.setColor(Color.WHITE);
+    graphics.fillRect(0, 0, novaLargura, novaAltura);
+    graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+    graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    graphics.drawImage(original, 0, 0, novaLargura, novaAltura, null);
+    graphics.dispose();
+    return redimensionada;
+  }
+
+  private BufferedImage converterParaRgb(BufferedImage original) {
+    if (original.getType() == BufferedImage.TYPE_INT_RGB) {
+      return original;
+    }
+    BufferedImage ajustada =
+        new BufferedImage(original.getWidth(), original.getHeight(), BufferedImage.TYPE_INT_RGB);
+    Graphics2D graphics = ajustada.createGraphics();
+    graphics.setColor(Color.WHITE);
+    graphics.fillRect(0, 0, ajustada.getWidth(), ajustada.getHeight());
+    graphics.drawImage(original, 0, 0, null);
+    graphics.dispose();
+    return ajustada;
   }
 
   public static class FotoEventoArquivoInfo {

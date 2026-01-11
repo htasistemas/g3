@@ -111,6 +111,8 @@ Excecoes devem ser justificadas, documentadas e aprovadas previamente.
 ### Titulos
 - `page-title__eyebrow`: 0.95rem.
 - `page-title__label`: 1.5rem, peso 800.
+- Todos os titulos e subtitulos de telas novas ou existentes devem seguir exatamente o mesmo padrao do cadastro de beneficiario (espacamento, tamanho, peso e formato).
+- Sempre que criar uma tela nova ou alterar uma tela existente, aplicar obrigatoriamente o padrao de titulo/subtitulo do cadastro de beneficiario.
 
 ### Listagens
 - Usar como modelo a listagem de beneficiarios (filtros, cards, lista e paginacao).
@@ -139,6 +141,7 @@ Excecoes devem ser justificadas, documentadas e aprovadas previamente.
   - Globais: `ErrorService` + `ToastComponent`.
   - Feedback local: temporario (10s) com botao "X".
 - Confirmacoes: usar sempre `app-dialog`.
+- Envio de email: sempre usar as configuracoes do servidor de email ja configurado no sistema (mesma configuracao usada no link "clique aqui para recuperar" da tela de login).
 
 ## 11. Relatorios - padrao oficial G3
 - Formato A4, margens 20mm, fonte Arial.

@@ -1,0 +1,70 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarToolbar]="false"
+  [mostrarFechar]="true"
+  (salvar)="salvar()"
+  (cancelar)="cancelar()"
+  (novo)="novo()"
+  (fechar)="fechar()"
+>
+  <header class="page-title" slot="titulo">
+    <p class="page-title__eyebrow">Configuracoes gerais</p>
+    <p class="page-title__label">Alertas do sistema</p>
+    <p class="page-title__note">Selecione alertas e frequencia para disparo automatico.</p>
+  </header>
+
+  <section class="cadastro">
+    <app-popup-messages
+      [mensagens]="popupErros"
+      (fechar)="fecharPopup()"
+    ></app-popup-messages>
+
+    <section class="alertas-card">
+      <div class="alertas-card__header">
+        <div>
+          <p class="alertas-card__eyebrow">Preferencias</p>
+          <h2>Gestao de alertas</h2>
+          <p>Os alertas selecionados serao enviados para o email da instituicao.</p>
+        </div>
+        <div class="alertas-card__badge">Email principal da unidade</div>
+      </div>
+
+      <form [formGroup]="formulario" class="alertas-card__form">
+        <label class="field full">
+          Alertas desejados *
+          <div class="checkbox-grid" formArrayName="alertas">
+            <label
+              class="alerta-tile"
+              *ngFor="let alerta of alertasDisponiveis; let i = index"
+            >
+              <input type="checkbox" [formControlName]="i" />
+              <span class="alerta-tile__label">{{ alerta.label }}</span>
+            </label>
+          </div>
+        </label>
+
+        <label class="field">
+          Frequencia de envio *
+          <select formControlName="frequenciaEnvio">
+            <option *ngFor="let frequencia of frequenciasEnvio" [value]="frequencia.id">
+              {{ frequencia.label }}
+            </option>
+          </select>
+        </label>
+      </form>
+
+      <div *ngIf="feedback" class="feedback">
+        <span>{{ feedback }}</span>
+        <button
+          type="button"
+          class="feedback__close"
+          aria-label="Fechar aviso"
+          (click)="feedback = null"
+        >
+          &times;
+        </button>
+      </div>
+    </section>
+  </section>
+</app-tela-padrao>

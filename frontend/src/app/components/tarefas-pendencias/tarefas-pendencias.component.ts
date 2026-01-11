@@ -12,7 +12,7 @@ import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../comparti
 import { titleCaseWords } from '../../utils/capitalization.util';
 
 interface StepTab {
-  id: 'cadastro' | 'lista' | 'dashboard';
+  id: 'cadastro' | 'acompanhamento' | 'listagem' | 'dashboard';
   label: string;
 }
 
@@ -38,7 +38,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
   activeTab: StepTab['id'] = 'cadastro';
   tabs: StepTab[] = [
     { id: 'cadastro', label: 'Cadastro e controle' },
-    { id: 'lista', label: 'Listagem e acompanhamento' },
+    { id: 'acompanhamento', label: 'Acompanhamento das tarefas' },
+    { id: 'listagem', label: 'Listagem das tarefas' },
     { id: 'dashboard', label: 'Dashboard e alertas' }
   ];
   imprimindoRelatorio = false;
@@ -167,7 +168,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
   }
 
   onBuscar(): void {
-    this.changeTab('lista');
+    this.changeTab('listagem');
   }
 
   goToNextTab(): void {
@@ -270,7 +271,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
           }
           this.selectedTask = record;
           this.resetForm();
-          this.changeTab('lista');
+          this.changeTab('listagem');
         },
         error: () => {
           this.setFeedback('Não foi possível salvar a pendência. Tente novamente.');

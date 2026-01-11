@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import br.com.g3.shared.service.EmailService;
@@ -194,6 +195,91 @@ public class EmailServiceImpl implements EmailService {
     }
   }
 
+  @Override
+  public void enviarCadastroBeneficiario(String destinatario, String nome, String codigo) {
+    enviarEmailBeneficiario(
+        destinatario,
+        nome,
+        codigo,
+        "Bem-vindo ao G3",
+        "Cadastro realizado");
+  }
+
+  @Override
+  public void enviarAtualizacaoBeneficiario(String destinatario, String nome, String codigo) {
+    enviarEmailBeneficiario(
+        destinatario,
+        nome,
+        codigo,
+        "Atualizacao cadastral - G3",
+        "Atualizacao realizada");
+  }
+
+  @Override
+  public void enviarAlertasSistema(
+      String destinatario, List<String> alertas, String frequenciaEnvio) {
+    configurarMailSeNecessario();
+    if (destinatario == null || destinatario.trim().isEmpty()) {
+      LOGGER.warn("Envio de alertas ignorado: destinatario vazio.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Email do destinatario nao informado.");
+    }
+
+    boolean envioHabilitado = habilitado;
+    String hostConfigurado = hostMail;
+    if ((hostConfigurado == null || hostConfigurado.trim().isEmpty())
+        && mailSender instanceof JavaMailSenderImpl) {
+      hostConfigurado = ((JavaMailSenderImpl) mailSender).getHost();
+    }
+    if (!envioHabilitado && hostConfigurado != null && !hostConfigurado.trim().isEmpty()) {
+      envioHabilitado = true;
+    }
+    if (!envioHabilitado) {
+      LOGGER.warn("Envio de alertas desabilitado. Verifique APP_EMAIL_HABILITADO e MAIL_HOST.");
+      throw new ResponseStatusException(
+          HttpStatus.SERVICE_UNAVAILABLE, "Envio de email desabilitado.");
+    }
+
+    String from = resolveRemetente();
+    if (from == null || from.trim().isEmpty()) {
+      LOGGER.warn("Envio de alertas ignorado: remetente nao configurado.");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Remetente nao configurado.");
+    }
+
+    String destinatarioSeguro = destinatario.trim().toLowerCase();
+    String frequencia = frequenciaEnvio == null || frequenciaEnvio.trim().isEmpty()
+        ? "imediato"
+        : frequenciaEnvio.trim();
+    StringBuilder corpo = new StringBuilder();
+    corpo.append("Alertas do sistema configurados no G3.\n\n");
+    corpo.append("Frequencia: ").append(frequencia).append("\n\n");
+    corpo.append("Alertas selecionados:\n");
+    if (alertas == null || alertas.isEmpty()) {
+      corpo.append("- Nenhum alerta selecionado.\n");
+    } else {
+      for (String alerta : alertas) {
+        if (alerta != null && !alerta.trim().isEmpty()) {
+          corpo.append("- ").append(alerta.trim()).append("\n");
+        }
+      }
+    }
+    corpo.append("\nAtenciosamente,\nEquipe G3");
+
+    try {
+      MimeMessageHelper helper =
+          new MimeMessageHelper(mailSender.createMimeMessage(), "UTF-8");
+      helper.setTo(destinatarioSeguro);
+      helper.setFrom(from, nomeRemetente);
+      helper.setSubject("Alertas do sistema - G3");
+      helper.setText(corpo.toString(), false);
+      mailSender.send(helper.getMimeMessage());
+    } catch (Exception ex) {
+      LOGGER.warn("Falha ao enviar email de alertas do sistema.", ex);
+      throw new ResponseStatusException(
+          HttpStatus.SERVICE_UNAVAILABLE, "Falha ao enviar email de alertas.");
+    }
+  }
+
   private String montarCorpoChamado(br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse chamado) {
     StringBuilder sb = new StringBuilder();
     sb.append("Novo chamado tecnico registrado no G3.\n\n");
@@ -292,5 +378,65 @@ public class EmailServiceImpl implements EmailService {
       return valor == null || valor.trim().isEmpty() ? null : valor.trim();
     }
     return null;
+  }
+
+  private void enviarEmailBeneficiario(
+      String destinatario, String nome, String codigo, String assunto, String acao) {
+    configurarMailSeNecessario();
+    if (destinatario == null || destinatario.trim().isEmpty()) {
+      LOGGER.warn("Envio de email de beneficiario ignorado: destinatario vazio.");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Email do destinatario nao informado.");
+    }
+
+    boolean envioHabilitado = habilitado;
+    String hostConfigurado = hostMail;
+    if ((hostConfigurado == null || hostConfigurado.trim().isEmpty()) && mailSender instanceof JavaMailSenderImpl) {
+      hostConfigurado = ((JavaMailSenderImpl) mailSender).getHost();
+    }
+    if (!envioHabilitado && hostConfigurado != null && !hostConfigurado.trim().isEmpty()) {
+      envioHabilitado = true;
+    }
+    if (!envioHabilitado) {
+      LOGGER.warn("Envio de email de beneficiario desabilitado. Verifique APP_EMAIL_HABILITADO e MAIL_HOST.");
+      throw new ResponseStatusException(
+          HttpStatus.SERVICE_UNAVAILABLE, "Envio de email desabilitado.");
+    }
+
+    String from = resolveRemetente();
+    if (from == null || from.trim().isEmpty()) {
+      LOGGER.warn("Envio de email de beneficiario ignorado: remetente nao configurado.");
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Remetente nao configurado.");
+    }
+
+    String destinatarioSeguro = destinatario.trim().toLowerCase();
+    String nomeSeguro = nome == null || nome.trim().isEmpty() ? "beneficiario" : nome.trim();
+    String codigoSeguro = codigo == null || codigo.trim().isEmpty() ? "nao informado" : codigo.trim();
+
+    String corpo =
+        "Ola "
+            + nomeSeguro
+            + ",\n\n"
+            + acao
+            + " no cadastro do beneficiario no G3.\n"
+            + "Codigo: "
+            + codigoSeguro
+            + "\n\n"
+            + "Atenciosamente,\n"
+            + "Equipe G3";
+
+    try {
+      MimeMessageHelper helper =
+          new MimeMessageHelper(mailSender.createMimeMessage(), "UTF-8");
+      helper.setTo(destinatarioSeguro);
+      helper.setFrom(from, nomeRemetente);
+      helper.setSubject(assunto);
+      helper.setText(corpo, false);
+      mailSender.send(helper.getMimeMessage());
+    } catch (Exception ex) {
+      LOGGER.warn("Falha ao enviar email de beneficiario.", ex);
+      throw new ResponseStatusException(
+          HttpStatus.SERVICE_UNAVAILABLE, "Falha ao enviar email do beneficiario.");
+    }
   }
 }

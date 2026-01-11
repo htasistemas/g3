@@ -77,10 +77,11 @@ interface WidgetState {
 })
 export class CursosAtendimentosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs: StepTab[] = [
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'dados', label: 'Dados do Curso/Atendimento/Oficinas' },
     { id: 'catalogo', label: 'Catálogo e Vagas' },
     { id: 'inscricoes', label: 'Inscrições e Lista de Espera' },
-    { id: 'dashboard', label: 'Dashboard' }
+    { id: 'listagem', label: 'Listagem de cursos/atendimentos/oficinas' }
   ];
 
   readonly diasSemana = [
@@ -93,7 +94,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     'Sábado'
   ];
 
-  activeTab: StepTab['id'] = 'dados';
+  activeTab: StepTab['id'] = 'dashboard';
   feedback: string | null = null;
   printDialogOpen = false;
   saving = false;

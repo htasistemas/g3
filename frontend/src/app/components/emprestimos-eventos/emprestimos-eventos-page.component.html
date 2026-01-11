@@ -1,0 +1,172 @@
+<app-tela-padrao
+  [acoes]="acoesBarra"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (buscar)="onBuscar()"
+  (novo)="onNovo()"
+  (salvar)="onSalvar()"
+  (cancelar)="onCancelar()"
+  (excluir)="onExcluir()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
+>
+  <header class="page-title page-title--row" slot="titulo">
+    <div class="page-title__main">
+      <p class="page-title__eyebrow">Administrativo<br />Patrimonio</p>
+      <p class="page-title__label">Emprestimo para eventos</p>
+      <p class="page-title__note">Controle de emprestimos e bloqueios por periodo.</p>
+    </div>
+    <p class="page-title__note page-title__note--right"></p>
+  </header>
+
+  <app-popup-messages [mensagens]="mensagensErro" (fechar)="mensagensErro = []"></app-popup-messages>
+
+  <section class="tab-shell">
+    <p class="tab-shell__title">Area principal</p>
+    <ul class="step-abas">
+      <li
+        class="step-abas__item"
+        *ngFor="let tab of abas; let i = index"
+        [class.active]="abaAtiva === tab.id"
+      >
+        <button type="button" class="step-abas__button" (click)="alterarAba(tab.id)">
+          <span class="step-abas__index">{{ i + 1 }}</span>
+          <span class="step-abas__label">{{ tab.label }}</span>
+        </button>
+      </li>
+    </ul>
+  </section>
+
+  <p class="local-feedback" *ngIf="feedbackLocal">
+    {{ feedbackLocal }}
+    <button type="button" (click)="feedbackLocal = null">X</button>
+  </p>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'agenda'">
+    <app-emprestimos-eventos-agenda
+      [mesReferencia]="mesAgenda"
+      [dias]="diasAgenda"
+      (mudarMes)="mudarMes($event)"
+      (selecionarDia)="abrirDiaAgenda($event)"
+    ></app-emprestimos-eventos-agenda>
+  </section>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'lista'">
+    <app-emprestimos-eventos-lista
+      [emprestimos]="emprestimos"
+      (selecionar)="selecionarEmprestimo($event)"
+      (confirmarRetirada)="confirmarRetirada($event)"
+      (confirmarDevolucao)="confirmarDevolucao($event)"
+      (cancelar)="onExcluir($event)"
+    ></app-emprestimos-eventos-lista>
+  </section>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'cadastro'">
+    <app-emprestimos-eventos-form
+      [form]="formEmprestimo"
+      [eventos]="eventosOpcoes"
+      [responsaveis]="responsaveisOpcoes"
+      [eventoTermo]="eventoTermo"
+      [responsavelTermo]="responsavelTermo"
+      (eventoTermoChange)="eventoTermo = $event"
+      (eventoSelecionado)="formEmprestimo.patchValue({ eventoId: $event.id }); eventoTermo = $event.label"
+      (criarEvento)="abrirFormularioEvento()"
+      (responsavelTermoChange)="responsavelTermo = $event"
+      (responsavelSelecionado)="formEmprestimo.patchValue({ responsavelId: $event.id }); responsavelTermo = $event.label"
+    ></app-emprestimos-eventos-form>
+
+  </section>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'itens'">
+    <app-emprestimos-eventos-itens
+      [form]="formularioItem"
+      [itens]="itensEmprestimo"
+      [patrimonios]="patrimonios"
+      [almoxarifadoItens]="almoxarifadoItens"
+      (adicionar)="adicionarItem()"
+      (remover)="removerItem($event)"
+    ></app-emprestimos-eventos-itens>
+  </section>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'disponibilidade'">
+    <app-emprestimos-eventos-disponibilidade
+      [form]="formularioDisponibilidade"
+      [patrimonios]="patrimonios"
+      [almoxarifadoItens]="almoxarifadoItens"
+      [resultado]="resultadoDisponibilidade"
+      (consultar)="consultarDisponibilidade()"
+    ></app-emprestimos-eventos-disponibilidade>
+  </section>
+
+  <section class="tab-card" *ngIf="abaAtiva === 'historico'">
+    <app-emprestimos-eventos-historico [movimentacoes]="movimentacoesEmprestimo"></app-emprestimos-eventos-historico>
+  </section>
+
+  <app-agenda-dia-modal
+    [aberto]="modalAgendaAberto"
+    [data]="modalAgendaData"
+    [detalhes]="modalAgendaDetalhes"
+    (fechar)="fecharModalAgenda()"
+    (abrirEmprestimo)="abrirEmprestimoDoModal($event)"
+  ></app-agenda-dia-modal>
+
+  <div class="evento-modal-overlay" *ngIf="formularioEventoAberto">
+    <div class="evento-modal">
+      <div class="evento-modal__header">
+        <div>
+          <p class="muted">Emprestimo para eventos</p>
+          <h3>Dados do evento *</h3>
+        </div>
+        <button type="button" class="evento-modal__close" (click)="cancelarFormularioEvento()">X</button>
+      </div>
+
+      <div class="form-card" [formGroup]="formularioEvento">
+        <div class="form-row">
+          <label class="field">Titulo *
+            <input type="text" formControlName="titulo" placeholder="Titulo do evento" />
+          </label>
+          <label class="field">Local
+            <input type="text" formControlName="local" placeholder="Local do evento" />
+          </label>
+        </div>
+        <label class="field">Descricao
+          <textarea rows="3" formControlName="descricao" placeholder="Descricao do evento"></textarea>
+        </label>
+        <div class="form-row">
+          <button type="button" class="nav-button" (click)="salvarEvento()">Salvar evento</button>
+          <button type="button" class="nav-button" (click)="iniciarNovoEvento()">Novo evento</button>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h4>Eventos cadastrados</h4>
+        <div class="evento-lista" *ngIf="eventos.length; else nenhumEvento">
+          <div class="evento-lista__item" *ngFor="let evento of eventos">
+            <div>
+              <strong>{{ evento.titulo }}</strong>
+              <p class="muted">Periodo: {{ evento.dataInicio | date: 'dd/MM/yyyy HH:mm' }} ate {{ evento.dataFim | date: 'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <div class="evento-lista__acoes">
+              <button type="button" class="ghost" (click)="editarEvento(evento)">Editar</button>
+              <button type="button" class="nav-button nav-button--danger" (click)="abrirDialogoExcluirEvento(evento)">Excluir</button>
+            </div>
+          </div>
+        </div>
+        <ng-template #nenhumEvento>
+          <p class="muted">Nenhum evento cadastrado ate o momento.</p>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <app-dialog
+    [aberto]="dialogExcluirEventoAberto"
+    titulo="Excluir evento"
+    [mensagem]="'Deseja excluir o evento ' + (eventoParaExcluir?.titulo || '') + '?'"
+    confirmarLabel="Excluir"
+    (confirmar)="confirmarExcluirEvento()"
+    (cancelar)="cancelarExcluirEvento()"
+  ></app-dialog>
+</app-tela-padrao>
+
+

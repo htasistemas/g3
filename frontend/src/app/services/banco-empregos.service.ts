@@ -14,6 +14,19 @@ export interface JobEncaminhamento {
   observacoes?: string;
 }
 
+export interface JobCandidato {
+  id: string;
+  empregoId: string;
+  beneficiarioId?: string | null;
+  beneficiarioNome: string;
+  necessidadesProfissionais?: string | null;
+  status?: string | null;
+  curriculoNome?: string | null;
+  curriculoTipo?: string | null;
+  curriculoConteudo?: string | null;
+  criadoEm?: string;
+}
+
 export interface JobPayload {
   dadosVaga: {
     titulo: string;
@@ -81,5 +94,17 @@ export class BancoEmpregosService {
 
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  listarCandidatos(empregoId: string): Observable<JobCandidato[]> {
+    return this.http.get<JobCandidato[]>(`${this.baseUrl}/${empregoId}/candidatos`);
+  }
+
+  criarCandidato(empregoId: string, payload: Omit<JobCandidato, 'id' | 'criadoEm' | 'empregoId'>): Observable<JobCandidato> {
+    return this.http.post<JobCandidato>(`${this.baseUrl}/${empregoId}/candidatos`, payload);
+  }
+
+  removerCandidato(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/candidatos/${id}`);
   }
 }

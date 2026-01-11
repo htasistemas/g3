@@ -48,6 +48,11 @@ export interface SolicitacaoComprasPayload {
   usuarioEmissor?: string;
 }
 
+export interface EmprestimoEventoRelatorioPayload {
+  emprestimoId: string;
+  usuarioEmissor?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly baseUrl = `${environment.apiUrl}/api/reports`;
@@ -90,6 +95,14 @@ export class ReportService {
 
   generateSolicitacaoCompras(payload: SolicitacaoComprasPayload): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/autorizacao-compras/solicitacao`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateEmprestimoEventoRelatorio(
+    dados: EmprestimoEventoRelatorioPayload
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/emprestimos-eventos/relatorio`, dados, {
       responseType: 'blob'
     });
   }

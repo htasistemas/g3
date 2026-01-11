@@ -247,13 +247,13 @@
 
 
 
-    <div class="tab-card" *ngIf="activeTab === 'lista'">
+    <div class="tab-card" *ngIf="activeTab === 'acompanhamento'">
 
       <div class="tab-card__header">
 
         <div>
 
-          <p class="panel__title">Tarefas registradas</p>
+          <p class="panel__title">Acompanhamento das tarefas</p>
 
           <p class="muted">Controle e acompanhamento por etapas.</p>
 
@@ -301,6 +301,59 @@
           <p class="kanban-empty" *ngIf="!getTasksByStage(stage.status).length">Nenhuma tarefa nesta etapa.</p>
         </div>
       </div>
+      <div class="tab-actions">
+
+        <button
+          type="button"
+          class="ghost"
+          (click)="imprimirRelatorio()"
+          [disabled]="imprimindoRelatorio"
+        >
+
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
+
+        </button>
+
+        <button type="button" class="ghost" (click)="goToPreviousTab()" [disabled]="!hasPreviousTab">
+
+          Voltar
+
+        </button>
+
+        <button type="button" class="primary" (click)="goToNextTab()" [disabled]="!hasNextTab">
+
+          Próxima: {{ nextTabLabel }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="tab-card" *ngIf="activeTab === 'listagem'">
+
+      <div class="tab-card__header">
+
+        <div>
+
+          <p class="panel__title">Listagem das tarefas</p>
+
+          <p class="muted">Resumo completo com ações rápidas.</p>
+
+        </div>
+
+        <div class="list-card__actions">
+
+          <button type="button" class="ghost" (click)="startNewTask()">Nova pendência</button>
+
+          <button type="button" class="ghost" (click)="goToPreviousTab()">Voltar ao acompanhamento</button>
+
+        </div>
+
+      </div>
+
       <div class="list-card">
 
         <div class="list-panel__loading" *ngIf="listLoading">Carregando pendências...</div>
@@ -392,8 +445,6 @@
         </table>
 
       </div>
-
-
 
       <div class="tab-actions">
 

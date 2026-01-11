@@ -113,27 +113,27 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     { value: 'bairro', label: 'Bairro' },
   ];
   genderIdentityOptions = [
-    'Mulher cisg??nero',
-    'Homem cisg??nero',
-    'Mulher transg??nero',
-    'Homem transg??nero',
-    'Pessoa n??o bin??ria',
+    'Mulher cisgenero',
+    'Homem cisgenero',
+    'Mulher transgenero',
+    'Homem transgenero',
+    'Pessoa nao binaria',
     'Travesti',
-    'G??nero fluido',
+    'Genero fluido',
     'Outro',
-    'Prefiro n??o informar',
+    'Prefiro nao informar',
   ];
   maritalStatusOptions = [
     'Solteiro(a)',
     'Casado(a)',
-    'Uni??o est??vel',
+    'Uniao estavel',
     'Separado(a)',
     'Divorciado(a)',
-    'Vi??vo(a)',
+    'Viuvo(a)',
   ];
   nationalityOptions = [
-    'Afeg??(o)',
-    'Alem??(o)',
+    'Afega(o)',
+    'Alema(o)',
     'Angolana(o)',
     'Argentina(o)',
     'Australiana(o)',
@@ -149,7 +149,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Costa-riquenha(o)',
     'Cubana(o)',
     'Dinamarquesa(o)',
-    'Eg??pcia(o)',
+    'Egipcia(o)',
     'Espanhola(o)',
     'Estadunidense',
     'Filipina(o)',
@@ -168,7 +168,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Japonesa(e)',
     'Marroquina(o)',
     'Mexicana(o)',
-    'Mo??ambicana(o)',
+    'Mocambicana(o)',
     'Norueguesa(o)',
     'Paraguaia(o)',
     'Peruana(o)',
@@ -178,7 +178,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Senegalesa(o)',
     'Sul-africana(o)',
     'Sueca(o)',
-    'Su????a(o)',
+    'Suica(o)',
     'Turca(o)',
     'Uruguaia(o)',
     'Venezuelana(o)',
@@ -215,11 +215,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   listLoading = false;
   listError: string | null = null;
   preferredContactOptions = [
-    { value: 'MANHA', label: 'Manh??' },
+    { value: 'MANHA', label: 'Manha' },
     { value: 'TARDE', label: 'Tarde' },
     { value: 'NOITE', label: 'Noite' },
-    { value: 'COMERCIAL', label: 'Hor??rio comercial' },
-    { value: 'QUALQUER', label: 'Qualquer hor??rio' },
+    { value: 'COMERCIAL', label: 'Horario comercial' },
+    { value: 'QUALQUER', label: 'Qualquer horario' },
   ];
   statusOptions: BeneficiarioApiPayload['status'][] = [
     'ATIVO',
@@ -243,14 +243,14 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   mapaModalOpen = false;
   mapaEnderecoUrl: SafeResourceUrl | null = null;
   mapaEnderecoLink = '';
-  situacaoImovelOptions = ['Pr??prio', 'Alugado', 'Cedido', 'Financiado', 'Ocupa????o', 'Outro'];
+  situacaoImovelOptions = ['Proprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupacao', 'Outro'];
   tipoMoradiaOptions = [
     'Casa',
     'Apartamento',
-    'C??modo',
+    'Comodo',
     'Barraco',
     'Casa de madeira',
-    'S??tio/Ch??cara',
+    'Sitio/Chacara',
     'Outro',
   ];
   private isUpdatingNationality = false;
@@ -262,7 +262,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   uploadProgress: Record<number, number> = {};
   uploadingDocuments = false;
   documentoTipoSelecionado = '';
-  tiposDocumento = ['CPF', 'RG', 'Certidao', 'T??tulo', 'CNH', 'Cart??o SUS', 'Outros'];
+  tiposDocumento = ['CPF', 'RG', 'Certidao', 'Titulo', 'CNH', 'Cartao SUS', 'Outros'];
   filtroTipoDocumento = '';
   ordenarDocumentosAsc = true;
   private readonly documentosOrdenacaoKey = 'g3.documentos.ordenacao';
@@ -320,22 +320,22 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Sem escolaridade formal',
     'Ensino fundamental incompleto',
     'Ensino fundamental completo',
-    'Ensino m??dio incompleto',
-    'Ensino m??dio completo',
-    'Ensino t??cnico',
+    'Ensino medio incompleto',
+    'Ensino medio completo',
+    'Ensino tecnico',
     'Ensino superior incompleto',
     'Ensino superior completo',
-    'P??s-gradua????o',
+    'Pos-graduacao',
     'Mestrado',
     'Doutorado',
   ];
   availableBenefits: string[] = [
-    'Bolsa Fam??lia / PTR',
+    'Bolsa Familia / PTR',
     'BPC - Idoso',
-    'BPC - Pessoa com defici??ncia',
-    'Benef??cio eventual',
+    'BPC - Pessoa com deficiencia',
+    'Beneficio eventual',
     'Programa de moradia',
-    'Aux??lio-doen??a',
+    'Auxilio-doenca',
     'Seguro-desemprego',
     'Outros',
   ];

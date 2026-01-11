@@ -26,6 +26,7 @@ public class PatrimonioServiceImpl implements PatrimonioService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<PatrimonioResponse> listar() {
     return repository.listar().stream()
         .map(PatrimonioMapper::toResponse)

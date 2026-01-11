@@ -16,6 +16,8 @@ import br.com.g3.unidadeassistencial.service.GeocodificacaoService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,20 +25,25 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioService {
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CadastroBeneficiarioServiceImpl.class);
   private final CadastroBeneficiarioRepository repository;
   private final ArmazenamentoDocumentoService armazenamentoDocumentoService;
   private final DocumentoBeneficiarioJpaRepository documentoRepository;
   private final GeocodificacaoService geocodificacaoService;
+  private final br.com.g3.shared.service.EmailService emailService;
 
   public CadastroBeneficiarioServiceImpl(
       CadastroBeneficiarioRepository repository,
       ArmazenamentoDocumentoService armazenamentoDocumentoService,
       DocumentoBeneficiarioJpaRepository documentoRepository,
-      GeocodificacaoService geocodificacaoService) {
+      GeocodificacaoService geocodificacaoService,
+      br.com.g3.shared.service.EmailService emailService) {
     this.repository = repository;
     this.armazenamentoDocumentoService = armazenamentoDocumentoService;
     this.documentoRepository = documentoRepository;
     this.geocodificacaoService = geocodificacaoService;
+    this.emailService = emailService;
   }
 
   @Override
@@ -50,7 +57,9 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     adicionarDocumentosUpload(salvo, request);
     CadastroBeneficiario atualizado = repository.salvar(salvo);
     CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
-    return CadastroBeneficiarioMapper.toResponse(geocodificado);
+    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(geocodificado);
+    enviarEmailCadastro(response);
+    return response;
   }
 
   @Override
@@ -63,7 +72,9 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     adicionarDocumentosUpload(salvo, request);
     CadastroBeneficiario atualizado = repository.salvar(salvo);
     CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
-    return CadastroBeneficiarioMapper.toResponse(geocodificado);
+    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(geocodificado);
+    enviarEmailAtualizacao(response);
+    return response;
   }
 
   @Override
@@ -201,5 +212,38 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
               return repository.salvar(cadastro);
             })
         .orElse(cadastro);
+  }
+
+  private void enviarEmailCadastro(CadastroBeneficiarioResponse beneficiario) {
+    if (!podeEnviarEmail(beneficiario)) return;
+    try {
+      emailService.enviarCadastroBeneficiario(
+          beneficiario.getEmail(),
+          beneficiario.getNomeCompleto(),
+          beneficiario.getCodigo());
+    } catch (Exception ex) {
+      LOGGER.warn("Envio de email de cadastro de beneficiario ignorado.", ex);
+    }
+  }
+
+  private void enviarEmailAtualizacao(CadastroBeneficiarioResponse beneficiario) {
+    if (!podeEnviarEmail(beneficiario)) return;
+    try {
+      emailService.enviarAtualizacaoBeneficiario(
+          beneficiario.getEmail(),
+          beneficiario.getNomeCompleto(),
+          beneficiario.getCodigo());
+    } catch (Exception ex) {
+      LOGGER.warn("Envio de email de atualizacao de beneficiario ignorado.", ex);
+    }
+  }
+
+  private boolean podeEnviarEmail(CadastroBeneficiarioResponse beneficiario) {
+    if (beneficiario == null) return false;
+    if (beneficiario.getPermiteContatoEmail() == null || !beneficiario.getPermiteContatoEmail()) {
+      return false;
+    }
+    String email = beneficiario.getEmail();
+    return email != null && !email.trim().isEmpty();
   }
 }

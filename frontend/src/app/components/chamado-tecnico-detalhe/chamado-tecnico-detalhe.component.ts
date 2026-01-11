@@ -27,6 +27,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { menuSections } from '../../layout/menu-config';
 
 type AbaChamadoTecnico =
+  | 'listagem'
   | 'resumo'
   | 'historico'
   | 'comentarios'
@@ -87,6 +88,9 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   anexos: ChamadoTecnicoAnexo[] = [];
   auditorias: ChamadoTecnicoAuditoriaVinculo[] = [];
   auditoriaDisponivel: AuditoriaEvento[] = [];
+  chamadosAbertos: ChamadoTecnicoPayload[] = [];
+  carregandoAbertos = false;
+  carregouAbertos = false;
 
   comentarioTexto = '';
   auditoriaFiltro!: FormGroup;
@@ -324,6 +328,9 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   changeTab(tab: AbaChamadoTecnico): void {
     this.activeTab = tab;
+    if (tab === 'listagem') {
+      this.carregarChamadosAbertos();
+    }
   }
 
   formatStatus(status?: string): string {
@@ -401,6 +408,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   private configurarTabs(): void {
     const baseTabs: { id: AbaChamadoTecnico; label: string }[] = [
+      { id: 'listagem', label: 'Listagem de chamados' },
       { id: 'resumo', label: 'Resumo' },
       { id: 'historico', label: 'Historico' },
       { id: 'comentarios', label: 'Comentarios' },
@@ -541,5 +549,22 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
         this.destinoChamado = response?.destino || this.destinoChamado;
       },
     });
+  }
+
+  private carregarChamadosAbertos(): void {
+    if (this.carregouAbertos || this.carregandoAbertos) return;
+    this.carregandoAbertos = true;
+    this.service
+      .listar({ status: 'ABERTO', tamanho_pagina: 50 })
+      .pipe(finalize(() => (this.carregandoAbertos = false)))
+      .subscribe({
+        next: (response) => {
+          this.chamadosAbertos = response?.chamados ?? [];
+          this.carregouAbertos = true;
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel carregar os chamados abertos.';
+        },
+      });
   }
 }

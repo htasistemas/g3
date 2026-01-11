@@ -93,6 +93,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   private readonly destroy$ = new Subject<void>();
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   private detalheId: number | null = null;
+  private readonly tiposImagemPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
 
   readonly statusOpcoes = [
     { valor: 'PLANEJADO', label: 'Planejado' },
@@ -558,6 +559,12 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    const erro = this.validarArquivoImagem(file);
+    if (erro) {
+      this.popupErros = new PopupErrorBuilder().adicionar(erro).build();
+      input.value = '';
+      return;
+    }
     this.converterArquivo(file).then((upload) => {
       this.eventoForm.get('fotoPrincipalUpload')?.setValue(upload);
       this.uploadPrincipalPreview = upload.conteudo;
@@ -570,6 +577,11 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     const files = Array.from(input.files ?? []);
     if (!files.length) return;
     files.forEach(async (file, index) => {
+      const erro = this.validarArquivoImagem(file);
+      if (erro) {
+        this.popupErros = new PopupErrorBuilder().adicionar(erro).build();
+        return;
+      }
       const upload = await this.converterArquivo(file);
       this.fotosUpload.push({
         arquivo: file,
@@ -767,5 +779,20 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .trim();
+  }
+
+  private validarArquivoImagem(file: File): string | null {
+    const tipo = file.type.toLowerCase();
+    const nome = file.name.toLowerCase();
+    const tipoPermitido = this.tiposImagemPermitidos.includes(tipo);
+    const extensaoPermitida =
+      nome.endsWith('.jpg') ||
+      nome.endsWith('.jpeg') ||
+      nome.endsWith('.png') ||
+      nome.endsWith('.webp');
+    if (!tipoPermitido && !extensaoPermitida) {
+      return 'Envie apenas imagens JPG, PNG ou WEBP.';
+    }
+    return null;
   }
 }

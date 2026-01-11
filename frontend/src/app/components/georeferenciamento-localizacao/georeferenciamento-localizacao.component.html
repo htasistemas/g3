@@ -6,28 +6,6 @@
   </header>
 
   <section class="cadastro georef-page">
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
-      <ol class="step-tabs" role="tablist">
-        <li
-          *ngFor="let tab of tabs; index as idx"
-          class="step-tabs__item"
-          [class.active]="activeTab === tab.id"
-        >
-          <button
-            type="button"
-            class="step-tabs__button"
-            role="tab"
-            [attr.aria-selected]="activeTab === tab.id"
-            (click)="changeTab(tab.id)"
-          >
-            <span class="step-tabs__index">{{ idx + 1 }}</span>
-            <span class="step-tabs__label">{{ tab.label }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
-
     <div class="form-shell">
       <div class="tab-card" *ngIf="activeTab === 'beneficiarios'">
         <div class="tab-card__header">
@@ -41,41 +19,78 @@
           <div *ngIf="erroTabs.beneficiarios" class="error">{{ erroTabs.beneficiarios }}</div>
           <div *ngIf="avisoTabs.beneficiarios" class="warning">{{ avisoTabs.beneficiarios }}</div>
           <div *ngIf="carregandoTabs.beneficiarios" class="loading">Carregando beneficiarios...</div>
-          <div [id]="mapId('beneficiarios')" class="map"></div>
-        </div>
-      </div>
-
-      <div class="tab-card" *ngIf="activeTab === 'profissionais'">
-        <div class="tab-card__header">
-          <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Localizacao de Profissionais</p>
-            <p class="muted">Localizacao dos profissionais cadastrados no sistema.</p>
+          <div class="field-grid cols-2">
+            <label class="field">
+              Beneficiario
+              <select
+                [(ngModel)]="beneficiarioSelecionadoId"
+                (ngModelChange)="onBeneficiarioSelecionado()"
+              >
+                <option [value]="''">Selecione</option>
+                <option [value]="'TODOS'">Todos os beneficiarios</option>
+                <option *ngFor="let beneficiario of beneficiarios" [value]="beneficiario.id_beneficiario">
+                  {{ beneficiario.nome_completo || beneficiario.nome_social || 'Beneficiario' }}
+                </option>
+              </select>
+            </label>
           </div>
-        </div>
-        <div class="card__content">
-          <div *ngIf="erroTabs.profissionais" class="error">{{ erroTabs.profissionais }}</div>
-          <div *ngIf="avisoTabs.profissionais" class="warning">{{ avisoTabs.profissionais }}</div>
-          <div *ngIf="carregandoTabs.profissionais" class="loading">Carregando profissionais...</div>
-          <div [id]="mapId('profissionais')" class="map"></div>
-        </div>
-      </div>
-
-      <div class="tab-card" *ngIf="activeTab === 'doadores'">
-        <div class="tab-card__header">
-          <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Localizacao de Doadores</p>
-            <p class="muted">Localizacao dos doadores cadastrados no sistema.</p>
-          </div>
-        </div>
-        <div class="card__content">
-          <div *ngIf="erroTabs.doadores" class="error">{{ erroTabs.doadores }}</div>
-          <div *ngIf="avisoTabs.doadores" class="warning">{{ avisoTabs.doadores }}</div>
-          <div *ngIf="carregandoTabs.doadores" class="loading">Carregando doadores...</div>
-          <div [id]="mapId('doadores')" class="map"></div>
         </div>
       </div>
     </div>
   </section>
 </app-tela-padrao>
+
+<div class="modal" *ngIf="mapaModalOpen">
+  <div class="modal__backdrop" (click)="fecharMapaEndereco()"></div>
+  <div class="modal__content modal__content--wide">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Endereco</p>
+        <h3>Localizacao no Google Maps</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharMapaEndereco()" aria-label="Fechar">&times;</button>
+    </div>
+    <iframe
+      *ngIf="mapaEnderecoUrl"
+      [src]="mapaEnderecoUrl"
+      width="100%"
+      height="520"
+      style="border:0;"
+      allowfullscreen=""
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+    <div class="modal__actions">
+      <a
+        class="btn-outline"
+        [href]="mapaEnderecoLink"
+        target="_blank"
+        rel="noopener"
+        *ngIf="mapaEnderecoLink"
+      >
+        Abrir no Google Maps
+      </a>
+      <button
+        type="button"
+        class="ghost"
+        *ngIf="beneficiarioSelecionadoId === 'TODOS' && totalLotes > 1"
+        [disabled]="loteAtual === 0"
+        (click)="abrirLoteAnterior()"
+      >
+        Parte anterior
+      </button>
+      <button
+        type="button"
+        class="ghost"
+        *ngIf="beneficiarioSelecionadoId === 'TODOS' && totalLotes > 1"
+        [disabled]="loteAtual >= totalLotes - 1"
+        (click)="abrirProximoLote()"
+      >
+        Proxima parte
+      </button>
+      <button type="button" class="primary" (click)="fecharMapaEndereco()">Fechar</button>
+    </div>
+  </div>
+</div>
 
 

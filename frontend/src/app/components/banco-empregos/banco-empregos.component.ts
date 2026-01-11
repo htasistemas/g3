@@ -12,6 +12,7 @@ import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   BancoEmpregosService,
+  JobCandidato,
   JobEncaminhamento,
   JobPayload,
   JobRecord,
@@ -39,7 +40,9 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
     { id: 'dadosVaga', label: 'Dados da Vaga' },
     { id: 'empresaLocal', label: 'Empresa e Local' },
     { id: 'requisitos', label: 'Requisitos e Descricao' },
-    { id: 'encaminhamentos', label: 'Encaminhamentos' }
+    { id: 'encaminhamentos', label: 'Encaminhamentos' },
+    { id: 'candidatos', label: 'Candidatos a vaga' },
+    { id: 'listagemVagas', label: 'Listagem de vagas' }
   ] as const;
 
   activeTab: (typeof this.tabs)[number]['id'] = 'dadosVaga';
@@ -57,13 +60,27 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
   deletingId: string | null = null;
   form: FormGroup;
   encaminhamentoForm: FormGroup;
+  formularioCandidato: FormGroup;
   encaminhamentos: JobEncaminhamento[] = [];
+  candidatos: JobCandidato[] = [];
+  candidatosFiltrados: JobCandidato[] = [];
   records: JobRecord[] = [];
   filteredRecords: JobRecord[] = [];
   selectedJobId: string | null = null;
   beneficiarios: BeneficiarioApiPayload[] = [];
   beneficiarioPesquisa = new FormControl('');
   beneficiarioSelecionado: BeneficiarioApiPayload | null = null;
+  pesquisaCandidato = new FormControl('');
+  candidatoSelecionado: BeneficiarioApiPayload | null = null;
+  resultadosCandidatos: BeneficiarioApiPayload[] = [];
+  buscandoCandidatos = false;
+  candidatoErro: string | null = null;
+  filtroCandidatoNome = new FormControl('');
+  filtroCandidatoStatus = new FormControl<'todos' | string>('todos');
+  filtroCandidatoData = new FormControl('');
+  curriculoNome: string | null = null;
+  curriculoTipo: string | null = null;
+  curriculoConteudo: string | null = null;
   buscandoBeneficiarios = false;
   beneficiarioErro: string | null = null;
   cnpjErro: string | null = null;
@@ -110,12 +127,24 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       status: ['Aguardando contato', Validators.required],
       observacoes: ['']
     });
+
+    this.formularioCandidato = this.fb.group({
+      beneficiarioId: ['', Validators.required],
+      beneficiarioNome: ['', Validators.required],
+      necessidadesProfissionais: ['', Validators.required],
+      status: ['EM_ANALISE', Validators.required],
+      curriculoNome: [''],
+      curriculoTipo: [''],
+      curriculoConteudo: ['']
+    });
   }
 
   ngOnInit(): void {
     this.loadRecords();
     this.setupBeneficiaryLookup();
+    this.configurarBuscaCandidato();
     this.setupFilters();
+    this.configurarFiltrosCandidatos();
   }
 
   ngOnDestroy(): void {
@@ -153,6 +182,8 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
     this.activeTab = 'dadosVaga';
     this.selectedJobId = null;
     this.encaminhamentos = [];
+    this.candidatos = [];
+    this.candidatosFiltrados = [];
     this.encaminhamentoForm.reset({
       beneficiarioId: '',
       beneficiarioNome: '',
@@ -160,6 +191,7 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       status: 'Aguardando contato',
       observacoes: ''
     });
+    this.resetarFormularioCandidato();
   }
 
   save(): void {
@@ -194,6 +226,7 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
         next: (record: JobRecord) => {
           this.selectedJobId = record.id;
           this.mostrarPopup('Sucesso', ['Dados da vaga salvos com sucesso.']);
+          this.carregarCandidatos(record.id);
           this.applyFilters();
         },
         error: () => {
@@ -267,9 +300,17 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
     this.encaminhamentoForm.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }
 
+  selecionarCandidato(beneficiario: BeneficiarioApiPayload): void {
+    const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃ¡rio sem nome';
+    this.candidatoSelecionado = beneficiario;
+    this.formularioCandidato.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
+  }
+
   editRecord(record: JobRecord): void {
     this.populateForm(record);
     this.activeTab = 'dadosVaga';
+    this.carregarCandidatos(record.id);
   }
 
   deleteRecord(record: JobRecord): void {
@@ -348,6 +389,12 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       .subscribe((value) => this.buscarBeneficiarios(value ?? ''));
   }
 
+  private configurarBuscaCandidato(): void {
+    this.pesquisaCandidato.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((value) => this.buscarCandidatos(value ?? ''));
+  }
+
   private buscarBeneficiarios(term: string): void {
     const query = term.trim();
     this.beneficiarioErro = null;
@@ -374,12 +421,213 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
       });
   }
 
+  private buscarCandidatos(term: string): void {
+    const query = term.trim();
+    this.candidatoErro = null;
+
+    if (!query) {
+      this.resultadosCandidatos = [];
+      this.candidatoSelecionado = null;
+      return;
+    }
+
+    this.buscandoCandidatos = true;
+    this.beneficiarioService
+      .list({ nome: query })
+      .pipe(
+        catchError(() => {
+          this.candidatoErro = 'Nao foi possivel buscar beneficiarios no momento.';
+          return of({ beneficiarios: [] });
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((response: { beneficiarios?: BeneficiarioApiPayload[] }) => {
+        this.resultadosCandidatos = response.beneficiarios ?? [];
+        this.buscandoCandidatos = false;
+      });
+  }
+
   private generateId(): string {
     if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
       return crypto.randomUUID();
     }
 
     return `enc-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  }
+
+  adicionarCandidato(): void {
+    if (!this.selectedJobId) {
+      this.popupTitulo = 'Campos obrigatorios';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Salve a vaga antes de cadastrar candidatos.')
+        .build();
+      this.abrirPopupTemporario();
+      return;
+    }
+    if (this.formularioCandidato.invalid) {
+      this.formularioCandidato.markAllAsTouched();
+      this.popupTitulo = 'Campos obrigatorios';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Preencha os campos obrigatorios do candidato.')
+        .build();
+      this.abrirPopupTemporario();
+      return;
+    }
+
+    if (!this.curriculoConteudo) {
+      this.popupTitulo = 'Campos obrigatorios';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Anexe o curriculo do candidato antes de salvar.')
+        .build();
+      this.abrirPopupTemporario();
+      return;
+    }
+
+    const payload = this.formularioCandidato.getRawValue();
+    this.saving = true;
+    this.service
+      .criarCandidato(this.selectedJobId, {
+        beneficiarioId: payload.beneficiarioId,
+        beneficiarioNome: payload.beneficiarioNome,
+        necessidadesProfissionais: payload.necessidadesProfissionais,
+        status: payload.status,
+        curriculoNome: this.curriculoNome,
+        curriculoTipo: this.curriculoTipo,
+        curriculoConteudo: this.curriculoConteudo
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (candidato) => {
+          this.candidatos = [candidato, ...this.candidatos];
+          this.aplicarFiltrosCandidatos();
+          this.resetarFormularioCandidato();
+        },
+        error: () => {
+          this.popupTitulo = 'Erro';
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Nao foi possivel cadastrar o candidato.')
+            .build();
+          this.abrirPopupTemporario();
+        }
+      })
+      .add(() => (this.saving = false));
+  }
+
+  removerCandidato(id: string): void {
+    this.service
+      .removerCandidato(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.candidatos = this.candidatos.filter((item) => item.id !== id);
+          this.aplicarFiltrosCandidatos();
+        },
+        error: () => {
+          this.popupTitulo = 'Erro';
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Nao foi possivel remover o candidato.')
+            .build();
+          this.abrirPopupTemporario();
+        }
+      });
+  }
+
+  onCurriculoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0];
+    if (!arquivo) {
+      this.curriculoNome = null;
+      this.curriculoTipo = null;
+      this.curriculoConteudo = null;
+      return;
+    }
+    this.curriculoNome = arquivo.name;
+    this.curriculoTipo = arquivo.type || 'application/octet-stream';
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const resultado = leitor.result?.toString() ?? '';
+      const base64 = resultado.includes(',') ? resultado.split(',')[1] : resultado;
+      this.curriculoConteudo = base64;
+      this.formularioCandidato.patchValue({
+        curriculoNome: this.curriculoNome,
+        curriculoTipo: this.curriculoTipo,
+        curriculoConteudo: this.curriculoConteudo
+      });
+    };
+    leitor.readAsDataURL(arquivo);
+  }
+
+  private carregarCandidatos(empregoId: string): void {
+    this.service
+      .listarCandidatos(empregoId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (candidatos) => {
+          this.candidatos = candidatos ?? [];
+          this.aplicarFiltrosCandidatos();
+        },
+        error: () => {
+          this.candidatos = [];
+          this.candidatosFiltrados = [];
+        }
+      });
+  }
+
+  private resetarFormularioCandidato(): void {
+    this.formularioCandidato.reset({
+      beneficiarioId: '',
+      beneficiarioNome: '',
+      necessidadesProfissionais: '',
+      status: 'EM_ANALISE',
+      curriculoNome: '',
+      curriculoTipo: '',
+      curriculoConteudo: ''
+    });
+    this.pesquisaCandidato.setValue('', { emitEvent: false });
+    this.resultadosCandidatos = [];
+    this.candidatoSelecionado = null;
+    this.curriculoNome = null;
+    this.curriculoTipo = null;
+    this.curriculoConteudo = null;
+  }
+
+  baixarCurriculo(candidato: JobCandidato): void {
+    if (!candidato.curriculoConteudo) {
+      return;
+    }
+    const tipo = candidato.curriculoTipo || 'application/octet-stream';
+    const nome = candidato.curriculoNome || 'curriculo';
+    const link = document.createElement('a');
+    link.href = `data:${tipo};base64,${candidato.curriculoConteudo}`;
+    link.download = nome;
+    link.click();
+  }
+
+  private configurarFiltrosCandidatos(): void {
+    this.filtroCandidatoNome.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.aplicarFiltrosCandidatos());
+    this.filtroCandidatoStatus.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.aplicarFiltrosCandidatos());
+    this.filtroCandidatoData.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.aplicarFiltrosCandidatos());
+  }
+
+  private aplicarFiltrosCandidatos(): void {
+    const nome = (this.filtroCandidatoNome.value ?? '').toString().toLowerCase().trim();
+    const status = this.filtroCandidatoStatus.value ?? 'todos';
+    const data = (this.filtroCandidatoData.value ?? '').toString();
+    this.candidatosFiltrados = this.candidatos.filter((candidato) => {
+      const nomeMatch = nome
+        ? candidato.beneficiarioNome?.toLowerCase().includes(nome)
+        : true;
+      const statusMatch = status === 'todos' ? true : candidato.status === status;
+      const dataCandidato = (candidato.criadoEm ?? '').toString().slice(0, 10);
+      const dataMatch = data ? dataCandidato === data : true;
+      return nomeMatch && statusMatch && dataMatch;
+    });
   }
 
   onSalvar(): void {

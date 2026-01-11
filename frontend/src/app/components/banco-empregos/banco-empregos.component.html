@@ -12,7 +12,8 @@
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Banco de Empregos</p>
+    <p class="page-title__label">Banco de Empregos</p>
+
     <p class="page-title__note">Cadastro e acompanhamento de vagas e encaminhamentos.</p>
   </header>
 
@@ -213,7 +214,130 @@
     </section>
   </form>
 
-  <section class="listing-card">
+  <section class="tab-card" *ngIf="activeTab === 'candidatos'">
+    <div class="tab-card__header">
+      <div class="tab-card__title-stack">
+        <p class="tab-card__highlight">{{ tabs[4].label }}</p>
+        <p class="muted">Cadastre beneficiarios interessados em vagas.</p>
+      </div>
+    </div>
+
+    <div class="encaminhamento-shell">
+      <form [formGroup]="formularioCandidato" class="encaminhamento-form" (ngSubmit)="adicionarCandidato()">
+        <div class="field-grid cols-2 narrow">
+          <label class="field full">Buscar beneficiario *
+            <input type="text" [formControl]="pesquisaCandidato" placeholder="Digite para buscar" />
+          </label>
+          <label class="field full">Beneficiario selecionado *
+            <input type="text" formControlName="beneficiarioNome" placeholder="Escolha na busca" readonly />
+          </label>
+          <label class="field full">Necessidades profissionais *
+            <textarea formControlName="necessidadesProfissionais" rows="3" placeholder="Informe os interesses e necessidades"></textarea>
+          </label>
+          <label class="field">Status *
+            <select formControlName="status">
+              <option value="EM_ANALISE">Em analise</option>
+              <option value="EM_ANDAMENTO">Em andamento</option>
+              <option value="ENCAMINHADO">Encaminhado</option>
+              <option value="CONTRATADO">Contratado</option>
+              <option value="NAO_APROVADO">Nao aprovado</option>
+            </select>
+          </label>
+          <label class="field full">Curriculo (PDF ou DOC) *
+            <input type="file" (change)="onCurriculoSelecionado($event)" />
+            <span class="muted" *ngIf="curriculoNome">Arquivo: {{ curriculoNome }}</span>
+          </label>
+        </div>
+        <div class="encaminhamento-actions">
+          <div class="beneficiario-results" *ngIf="resultadosCandidatos.length || candidatoErro">
+            <p class="muted">Resultados:</p>
+            <div class="result-list">
+              <button
+                type="button"
+                class="result-item"
+                *ngFor="let beneficiario of resultadosCandidatos"
+                (click)="selecionarCandidato(beneficiario)"
+              >
+                <span class="result-item__name">{{ beneficiario.nome_completo }}</span>
+                <span class="result-item__doc" *ngIf="beneficiario.cpf">CPF: {{ beneficiario.cpf }}</span>
+              </button>
+            </div>
+            <p class="text-error" *ngIf="candidatoErro">{{ candidatoErro }}</p>
+          </div>
+          <button class="nav-button" type="submit">Adicionar candidato</button>
+        </div>
+      </form>
+
+      <div class="table-card">
+        <div class="table-card__header">
+          <p>Candidatos da vaga</p>
+          <span class="muted">Total: {{ candidatos.length }}</span>
+        </div>
+        <div class="listing-filters">
+          <label class="field">
+            <span class="muted">Pesquisar</span>
+            <input type="text" [formControl]="filtroCandidatoNome" placeholder="Nome do beneficiario" />
+          </label>
+          <label class="field">
+            <span class="muted">Status</span>
+            <select [formControl]="filtroCandidatoStatus">
+              <option value="todos">Todos</option>
+              <option value="EM_ANALISE">Em analise</option>
+              <option value="EM_ANDAMENTO">Em andamento</option>
+              <option value="ENCAMINHADO">Encaminhado</option>
+              <option value="CONTRATADO">Contratado</option>
+              <option value="NAO_APROVADO">Nao aprovado</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="muted">Data</span>
+            <input type="date" [formControl]="filtroCandidatoData" />
+          </label>
+        </div>
+        <div class="table-card__table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Beneficiario</th>
+                <th>Necessidades</th>
+                <th>Curriculo</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!candidatosFiltrados.length">
+                <td colspan="6" class="muted">Nenhum candidato cadastrado.</td>
+              </tr>
+              <tr *ngFor="let item of candidatosFiltrados">
+                <td>{{ item.beneficiarioNome }}</td>
+                <td>{{ item.necessidadesProfissionais || '---' }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="nav-button"
+                    (click)="baixarCurriculo(item)"
+                    [disabled]="!item.curriculoConteudo"
+                  >
+                    {{ item.curriculoNome || 'Sem arquivo' }}
+                  </button>
+                </td>
+                <td>{{ item.status || '---' }}</td>
+                <td>{{ item.criadoEm || '---' }}</td>
+                <td>
+                  <button type="button" class="nav-button nav-button--danger" (click)="removerCandidato(item.id)">Remover</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-card" *ngIf="activeTab === 'listagemVagas'">
+    <div class="listing-card">
     <div class="listing-card__header">
       <div>
         <p class="tab-card__highlight">Listagem de vagas</p>
@@ -274,6 +398,7 @@
     <ng-template #loadingList>
       <p class="muted">Carregando vagas...</p>
     </ng-template>
+    </div>
   </section>
 </section>
 

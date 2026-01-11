@@ -7,11 +7,8 @@
 >
   <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Administrativo</p>
-    <p class="page-title__label">Fotos e Eventos</p>
-    <p class="page-title__note">Gestao de eventos e galeria de fotos.</p>
-    <p class="page-title__description">
-      Registre eventos da instituicao, organize a galeria e mantenha os registros sempre acessiveis.
-    </p>
+    <p class="page-title__label">Cadastro de fotos e eventos</p>
+    <p class="page-title__note">Cadastro e acompanhamento de fotos e eventos.</p>
   </header>
 
   <div class="page-actions-extra" slot="acoes">
@@ -38,6 +35,7 @@
           <div class="card__actions">
             <button type="button" class="btn-outline" (click)="limparFiltros()">Limpar filtros</button>
             <button type="button" class="btn-primary" (click)="aplicarFiltros()">Aplicar filtros</button>
+            <button type="button" class="btn-primary" (click)="aplicarFiltros()">Buscar</button>
           </div>
         </div>
 
@@ -55,13 +53,6 @@
             <input type="date" formControlName="dataFim" title="Filtre ate esta data" />
           </label>
           <label class="field">
-            Status
-            <select formControlName="status" title="Filtre por status do evento">
-              <option value="">Todos</option>
-              <option *ngFor="let status of statusOpcoes" [value]="status.valor">{{ status.label }}</option>
-            </select>
-          </label>
-          <label class="field">
             Tags
             <input type="text" formControlName="tags" placeholder="Ex.: Capacitacao, Campanha" title="Separe as tags por virgula" />
           </label>
@@ -71,9 +62,6 @@
               <option *ngFor="let item of ordenacaoOpcoes" [value]="item.valor">{{ item.label }}</option>
             </select>
           </label>
-          <div class="field full">
-            <button type="submit" class="btn-primary">Buscar</button>
-          </div>
         </form>
       </div>
 

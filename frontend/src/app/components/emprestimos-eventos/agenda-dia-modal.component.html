@@ -1,0 +1,56 @@
+<div class="modal-overlay" *ngIf="aberto">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <p class="muted">Agenda do dia</p>
+        <h3>{{ rotuloData }}</h3>
+      </div>
+      <button type="button" class="modal-close" (click)="fechar.emit()">X</button>
+    </div>
+
+    <div *ngIf="detalhes.length; else vazio">
+      <div class="modal-card" *ngFor="let item of detalhes">
+        <div class="modal-card__header">
+          <strong>{{ item.evento.titulo || 'Evento' }}</strong>
+          <span class="status-tag">{{ item.status }}</span>
+        </div>
+        <p>Local: {{ item.evento.local || 'Nao informado' }}</p>
+        <p>Responsavel: {{ item.responsavel?.nome || 'Nao informado' }}</p>
+        <p>
+          Periodo: {{ item.periodo.retiradaPrevista | date: 'dd/MM/yyyy HH:mm' }}
+          ate {{ item.periodo.devolucaoPrevista | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+
+        <table *ngIf="item.itens.length">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Patrimonio</th>
+              <th>Qtd</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of item.itens">
+              <td>{{ it.nomeItem || it.itemId }}</td>
+              <td>{{ it.numeroPatrimonio || '--' }}</td>
+              <td>{{ it.quantidade }}</td>
+              <td>{{ it.statusItem }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="modal-actions">
+          <button type="button" class="primary" (click)="abrirEmprestimo.emit(item.emprestimoId)">Abrir emprestimo</button>
+          <button type="button" class="ghost" (click)="fechar.emit()">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #vazio>
+      <p class="muted">Nenhum emprestimo para este dia.</p>
+      <button type="button" class="ghost" (click)="fechar.emit()">Fechar</button>
+    </ng-template>
+  </div>
+</div>
+

@@ -10,7 +10,7 @@
 >
 <header class="page-title" slot="titulo">
     <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Cursos e Atendimentos</p>
+    <p class="page-title__label">Cursos/Atendimentos/Oficinas</p>
     <p class="page-title__note">Registro de cursos e atendimentos da instituicao.</p>
   </header>
 
@@ -381,6 +381,58 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
+    <div class="tab-card" *ngIf="activeTab === 'listagem'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Registros completos de cursos, atendimentos e oficinas.</p>
+        </div>
+        <span class="pill">Registros</span>
+      </div>
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Registros</p>
+            <p class="page-title__label">Cursos/Atendimentos/Oficinas cadastrados</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Nome</th>
+                <th>Vagas</th>
+                <th>Profissional</th>
+                <th>Sala</th>
+                <th>Início</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let course of records">
+                <td>{{ course.tipo }}</td>
+                <td>{{ course.nome }}</td>
+                <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
+                <td>{{ course.profissional }}</td>
+                <td>{{ getRoomName(course) }}</td>
+                <td>{{ course.horarioInicial }}</td>
+                <td class="table-actions">
+                  <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
+                  <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscrições</button>
+                  <button class="danger" type="button" (click)="deleteCourse(course)">Excluir</button>
+                </td>
+              </tr>
+              <tr *ngIf="!records.length">
+                <td colspan="6" class="muted">Nenhum curso ou atendimento cadastrado.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
     <div class="tab-card" *ngIf="activeTab === 'dashboard'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
@@ -390,6 +442,26 @@
         <span class="pill">Resumo</span>
       </div>
 
+      <div class="widget-grid">
+        <article
+          class="widget-card"
+          *ngFor="let widget of visibleWidgets; trackBy: trackWidget"
+          [attr.data-gradient]="widget.gradient"
+        >
+          <div class="widget-card__header">
+            <p class="widget-card__title">{{ widget.title }}</p>
+            <span class="widget-card__pill">Dinâmico</span>
+          </div>
+          <p class="widget-card__value">{{ widget.getValue(dashboardSnapshot) }}</p>
+          <p class="widget-card__helper">{{ widget.getHelper(dashboardSnapshot) }}</p>
+          <div class="widget-card__progress" *ngIf="widget.getProgress">
+            <div
+              class="widget-card__progress-bar"
+              [style.width]="widget.getProgress!(dashboardSnapshot) + '%'"
+            ></div>
+          </div>
+        </article>
+      </div>
       <div class="dashboard-controls">
         <div class="control-card">
           <div class="control-card__header">
@@ -437,27 +509,6 @@
           </div>
         </div>
       </div>
-
-      <div class="widget-grid">
-        <article
-          class="widget-card"
-          *ngFor="let widget of visibleWidgets; trackBy: trackWidget"
-          [attr.data-gradient]="widget.gradient"
-        >
-          <div class="widget-card__header">
-            <p class="widget-card__title">{{ widget.title }}</p>
-            <span class="widget-card__pill">Dinâmico</span>
-          </div>
-          <p class="widget-card__value">{{ widget.getValue(dashboardSnapshot) }}</p>
-          <p class="widget-card__helper">{{ widget.getHelper(dashboardSnapshot) }}</p>
-          <div class="widget-card__progress" *ngIf="widget.getProgress">
-            <div
-              class="widget-card__progress-bar"
-              [style.width]="widget.getProgress!(dashboardSnapshot) + '%'"
-            ></div>
-          </div>
-        </article>
-      </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
@@ -473,47 +524,6 @@
     (cancelar)="imprimirFichaSelecionada()"
   ></app-dialog>
 
-  <div class="list-card">
-    <div class="list-card__header">
-      <div>
-        <p class="page-title__eyebrow">Registros</p>
-        <p class="page-title__label">Cursos e Atendimentos cadastrados</p>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Tipo</th>
-            <th>Nome</th>
-            <th>Vagas</th>
-            <th>Profissional</th>
-            <th>Sala</th>
-            <th>Início</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let course of records">
-            <td>{{ course.tipo }}</td>
-            <td>{{ course.nome }}</td>
-            <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
-            <td>{{ course.profissional }}</td>
-            <td>{{ getRoomName(course) }}</td>
-            <td>{{ course.horarioInicial }}</td>
-            <td class="table-actions">
-              <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
-              <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscrições</button>
-              <button class="danger" type="button" (click)="deleteCourse(course)">Excluir</button>
-            </td>
-          </tr>
-          <tr *ngIf="!records.length">
-            <td colspan="6" class="muted">Nenhum curso ou atendimento cadastrado.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 </section>
 </app-tela-padrao>
 

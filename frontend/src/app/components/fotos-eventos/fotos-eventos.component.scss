@@ -9,6 +9,30 @@
   gap: 12px;
 }
 
+.page-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #1f2937;
+}
+
+.page-title__eyebrow {
+  font-size: 0.95rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.page-title__label {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0;
+  color: #0f172a;
+}
+
 .page-title__description {
   margin-top: 6px;
   color: #475569;
@@ -55,10 +79,36 @@
   flex-wrap: wrap;
 }
 
+.filtro-card {
+  padding: 10px 12px;
+}
+
+.filtro-card .card__header {
+  margin-bottom: 6px;
+}
+
+.filtro-card .card__title {
+  font-size: 1rem;
+}
+
+.filtro-card .card__subtitle {
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.filtro-card .card__actions {
+  gap: 8px;
+}
+
+.filtro-card .filtro-grid {
+  gap: 8px;
+}
+
 .filtro-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr 0.9fr;
+  gap: 8px;
+  align-items: end;
 }
 
 .field {

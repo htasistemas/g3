@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.hibernate.Hibernate;
 
 public final class CursosAtendimentosMapper {
   private static final String DIAS_SEMANA_DELIMITADOR = ";";
@@ -100,7 +101,10 @@ public final class CursosAtendimentosMapper {
 
   private static SalaUnidadeResponse toSalaResponse(SalaUnidade sala) {
     if (sala == null) return null;
-    Long unidadeId = sala.getUnidadeAssistencial() == null ? null : sala.getUnidadeAssistencial().getId();
+    Long unidadeId = null;
+    if (Hibernate.isInitialized(sala.getUnidadeAssistencial()) && sala.getUnidadeAssistencial() != null) {
+      unidadeId = sala.getUnidadeAssistencial().getId();
+    }
     return new SalaUnidadeResponse(sala.getId(), unidadeId, sala.getNome());
   }
 

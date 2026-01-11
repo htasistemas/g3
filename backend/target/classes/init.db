@@ -1,6 +1,6 @@
 -- Arquivo SQL idempotente executado no startup
 CREATE EXTENSION IF NOT EXISTS unaccent;
-CREATE TABLE IF NOT EXISTS unidade_assistencial (
+CREATE TABLE IF NOT EXISTS unidade_assistencial (  
   id BIGSERIAL PRIMARY KEY,
   nome_fantasia VARCHAR(200) NOT NULL,
   razao_social VARCHAR(200),
@@ -188,11 +188,11 @@ SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.00.9',
-    descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.',
+SET versao = '1.01.0',
+    descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.00.9';
+  AND versao <> '1.01.0';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -200,12 +200,12 @@ WHERE id = 1
   AND versao = '1.0.0';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.9', 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.', NOW()
+SELECT '1.01.0', 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.00.9'
-    AND descricao = 'Correcoes na listagem de beneficiarios, ajustes na impressao da ficha do beneficiario, melhorias no termo de voluntariado (layout, logomarca e textos), botao de atualizacao na versao do sistema e impressao de termos por vinculo (voluntario, CLT e PJ) com LGPD e cessao de imagem.'
+  WHERE versao = '1.01.0'
+    AND descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.'
 );
 
 UPDATE historico_versao_sistema
@@ -1046,6 +1046,15 @@ CREATE TABLE IF NOT EXISTS doador (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS alertas_sistema (
+  id BIGSERIAL PRIMARY KEY,
+  tipo_alerta VARCHAR(80) NOT NULL,
+  frequencia_envio VARCHAR(30) NOT NULL,
+  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 ALTER TABLE doador
   ADD COLUMN IF NOT EXISTS responsavel_empresa VARCHAR(200);
 ALTER TABLE doador
@@ -1628,13 +1637,30 @@ ALTER TABLE banco_empregos
 
 CREATE TABLE IF NOT EXISTS banco_empregos_encaminhamentos (
   id BIGSERIAL PRIMARY KEY,
-  emprego_id BIGINT NOT NULL REFERENCES banco_empregos(id) ON DELETE CASCADE,
+  emprego_id BIGINT NOT NULL REFERENCES banco_empregos(id) ON DELETE CASCADE,   
   beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
   beneficiario_nome VARCHAR(200),
   data_encaminhamento DATE NOT NULL,
   status VARCHAR(40) NOT NULL,
   observacoes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS banco_empregos_candidatos (
+  id BIGSERIAL PRIMARY KEY,
+  emprego_id BIGINT NOT NULL REFERENCES banco_empregos(id) ON DELETE CASCADE,
+  beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
+  beneficiario_nome VARCHAR(200) NOT NULL,
+  necessidades_profissionais TEXT,
+  status VARCHAR(40) NOT NULL DEFAULT 'EM_ANALISE',
+  curriculo_nome VARCHAR(255),
+  curriculo_tipo VARCHAR(120),
+  curriculo_conteudo TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE banco_empregos_candidatos
+  ADD COLUMN IF NOT EXISTS status VARCHAR(40) NOT NULL DEFAULT 'EM_ANALISE';
 
 CREATE INDEX IF NOT EXISTS banco_empregos_status_idx
   ON banco_empregos (status);
@@ -1917,3 +1943,72 @@ CREATE INDEX IF NOT EXISTS transparencia_timelines_idx
   ON transparencia_timelines (transparencia_id);
 CREATE INDEX IF NOT EXISTS transparencia_checklist_idx
   ON transparencia_checklist (transparencia_id);
+
+CREATE TABLE IF NOT EXISTS eventos (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  local VARCHAR(200),
+  data_inicio TIMESTAMP NOT NULL,
+  data_fim TIMESTAMP NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PLANEJADO',
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS eventos_emprestimos (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  local VARCHAR(200),
+  data_inicio TIMESTAMP NOT NULL,
+  data_fim TIMESTAMP NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PLANEJADO',
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS emprestimos_eventos (      
+  id BIGSERIAL PRIMARY KEY,
+  evento_id BIGINT NOT NULL REFERENCES eventos_emprestimos(id) ON DELETE RESTRICT,
+  unidade_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  responsavel_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  data_retirada_prevista TIMESTAMP NOT NULL,
+  data_devolucao_prevista TIMESTAMP NOT NULL,
+  data_retirada_real TIMESTAMP,
+  data_devolucao_real TIMESTAMP,
+  status VARCHAR(20) NOT NULL DEFAULT 'RASCUNHO',
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS emprestimos_eventos_itens (
+  id BIGSERIAL PRIMARY KEY,
+  emprestimo_id BIGINT NOT NULL REFERENCES emprestimos_eventos(id) ON DELETE CASCADE,
+  item_id BIGINT NOT NULL,
+  tipo_item VARCHAR(20) NOT NULL,
+  quantidade INTEGER NOT NULL,
+  status_item VARCHAR(20) NOT NULL DEFAULT 'RESERVADO',
+  observacao_item TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS emprestimos_eventos_movimentacoes (
+  id BIGSERIAL PRIMARY KEY,
+  emprestimo_id BIGINT NOT NULL REFERENCES emprestimos_eventos(id) ON DELETE CASCADE,
+  acao VARCHAR(120) NOT NULL,
+  descricao TEXT,
+  usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS emprestimos_eventos_periodo_idx
+  ON emprestimos_eventos (data_retirada_prevista, data_devolucao_prevista);
+
+CREATE INDEX IF NOT EXISTS emprestimos_eventos_status_idx
+  ON emprestimos_eventos (status);
+
+CREATE INDEX IF NOT EXISTS emprestimos_eventos_itens_item_idx
+  ON emprestimos_eventos_itens (item_id, tipo_item);

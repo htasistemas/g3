@@ -138,6 +138,45 @@
     </form>
     </section>
 
+    <section class="tab-card" *ngIf="activeTab === 'listagem'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">Listagem de chamados abertos</p>
+          <p class="muted">Visao rapida dos chamados em aberto.</p>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-panel__loading" *ngIf="carregandoAbertos">Carregando chamados...</div>
+        <table *ngIf="!carregandoAbertos">
+          <thead>
+            <tr>
+              <th>Codigo</th>
+              <th>Titulo</th>
+              <th>Cliente</th>
+              <th>Prioridade</th>
+              <th>Impacto</th>
+              <th>Status</th>
+              <th>Aberto em</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let chamado of chamadosAbertos">
+              <td>{{ chamado.codigo || '---' }}</td>
+              <td>{{ chamado.titulo }}</td>
+              <td>{{ chamado.cliente }}</td>
+              <td>{{ chamado.prioridade }}</td>
+              <td>{{ chamado.impacto }}</td>
+              <td>{{ formatStatus(chamado.status) }}</td>
+              <td>{{ chamado.criado_em | date: 'dd/MM/yyyy' }}</td>
+            </tr>
+            <tr *ngIf="!chamadosAbertos.length">
+              <td colspan="7" class="muted">Nenhum chamado aberto encontrado.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="tab-card" *ngIf="activeTab === 'historico'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">

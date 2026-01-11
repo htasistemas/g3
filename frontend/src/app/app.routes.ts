@@ -35,6 +35,7 @@ import { FotosEventosComponent } from './components/fotos-eventos/fotos-eventos.
 import { ChamadosTecnicosComponent } from './components/chamados-tecnicos/chamados-tecnicos.component';
 import { ChamadoTecnicoDetalheComponent } from './components/chamado-tecnico-detalhe/chamado-tecnico-detalhe.component';
 import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanban/chamado-tecnico-kanban.component';
+import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-sistema.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -106,6 +107,14 @@ export const routes: Routes = [
         data: { title: 'Controle patrimonial' }
       },
       {
+        path: 'administrativo/patrimonio/emprestimos-eventos',
+        loadChildren: () =>
+          import('./components/emprestimos-eventos/emprestimos-eventos.module').then(
+            (m) => m.EmprestimosEventosModule
+          ),
+        data: { title: 'Emprestimo para eventos' }
+      },
+      {
         path: 'administrativo/oficios',
         component: OficiosGestaoComponent,
         data: { title: 'Gestao de oficios' }
@@ -163,22 +172,27 @@ export const routes: Routes = [
       {
         path: 'configuracoes/chamados-tecnicos-dev',
         component: ChamadoTecnicoKanbanComponent,
-        data: { title: 'Chamado tecnico (desenvolvedor)', perfil: 'desenvolvedor' }
+        data: { title: 'Chamado tecnico', perfil: 'desenvolvedor' }
       },
       {
         path: 'configuracoes/chamados-tecnicos-dev/lista',
         component: ChamadosTecnicosComponent,
-        data: { title: 'Chamados tecnicos (desenvolvedor)', perfil: 'desenvolvedor' }
+        data: { title: 'Chamados tecnicos', perfil: 'desenvolvedor' }
       },
       {
         path: 'configuracoes/chamados-tecnicos-dev/:id',
         component: ChamadoTecnicoDetalheComponent,
-        data: { title: 'Chamado tecnico (desenvolvedor)', perfil: 'desenvolvedor' }
+        data: { title: 'Chamado tecnico', perfil: 'desenvolvedor' }
       },
       {
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
         data: { title: 'Parametros do sistema' }
+      },
+      {
+        path: 'configuracoes/alertas-sistema',
+        component: AlertasSistemaComponent,
+        data: { title: 'Alertas do sistema' }
       },
       { path: 'configuracoes/sistema', redirectTo: 'configuracoes/parametros', pathMatch: 'full' },
       {
