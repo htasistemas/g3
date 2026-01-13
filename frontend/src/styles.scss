@@ -136,6 +136,13 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
   font-weight: 600;
 }
 
+.step-tabs__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .page-title__note {
     position: static;

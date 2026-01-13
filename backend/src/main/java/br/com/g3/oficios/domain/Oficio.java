@@ -34,6 +34,7 @@ public class Oficio {
   @Column(name = "destinatario", nullable = false, length = 200)
   private String destinatario;
 
+
   @Column(name = "meio_envio", nullable = false, length = 120)
   private String meioEnvio;
 
@@ -46,7 +47,7 @@ public class Oficio {
   @Column(name = "razao_social", nullable = false, length = 200)
   private String razaoSocial;
 
-  @Column(name = "logo_url", length = 500)
+  @Column(name = "logo_url", columnDefinition = "TEXT")
   private String logoUrl;
 
   @Column(name = "titulo", length = 200)
@@ -54,6 +55,12 @@ public class Oficio {
 
   @Column(name = "saudacao", length = 200)
   private String saudacao;
+
+  @Column(name = "para", length = 200)
+  private String para;
+
+  @Column(name = "cargo_para", length = 200)
+  private String cargoPara;
 
   @Column(name = "assunto", nullable = false, length = 300)
   private String assunto;
@@ -72,6 +79,15 @@ public class Oficio {
 
   @Column(name = "rodape", columnDefinition = "TEXT")
   private String rodape;
+
+  @Column(name = "pdf_assinado_nome", length = 255)
+  private String pdfAssinadoNome;
+
+  @Column(name = "pdf_assinado_tipo", length = 100)
+  private String pdfAssinadoTipo;
+
+  @Column(name = "pdf_assinado_conteudo", columnDefinition = "TEXT")
+  private String pdfAssinadoConteudo;
 
   @Column(name = "status", nullable = false, length = 30)
   private String status;
@@ -162,6 +178,7 @@ public class Oficio {
     this.destinatario = destinatario;
   }
 
+
   public String getMeioEnvio() {
     return meioEnvio;
   }
@@ -218,6 +235,22 @@ public class Oficio {
     this.saudacao = saudacao;
   }
 
+  public String getPara() {
+    return para;
+  }
+
+  public void setPara(String para) {
+    this.para = para;
+  }
+
+  public String getCargoPara() {
+    return cargoPara;
+  }
+
+  public void setCargoPara(String cargoPara) {
+    this.cargoPara = cargoPara;
+  }
+
   public String getAssunto() {
     return assunto;
   }
@@ -264,6 +297,30 @@ public class Oficio {
 
   public void setRodape(String rodape) {
     this.rodape = rodape;
+  }
+
+  public String getPdfAssinadoNome() {
+    return pdfAssinadoNome;
+  }
+
+  public void setPdfAssinadoNome(String pdfAssinadoNome) {
+    this.pdfAssinadoNome = pdfAssinadoNome;
+  }
+
+  public String getPdfAssinadoTipo() {
+    return pdfAssinadoTipo;
+  }
+
+  public void setPdfAssinadoTipo(String pdfAssinadoTipo) {
+    this.pdfAssinadoTipo = pdfAssinadoTipo;
+  }
+
+  public String getPdfAssinadoConteudo() {
+    return pdfAssinadoConteudo;
+  }
+
+  public void setPdfAssinadoConteudo(String pdfAssinadoConteudo) {
+    this.pdfAssinadoConteudo = pdfAssinadoConteudo;
   }
 
   public String getStatus() {

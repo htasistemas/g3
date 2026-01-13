@@ -107,6 +107,7 @@
 }
 
 .step-tabs__index {
+  text-align: center;
   width: 26px;
   height: 26px;
   display: inline-flex;
@@ -121,6 +122,7 @@
 }
 
 .step-tabs__item.active .step-tabs__index {
+  text-align: center;
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.35);
   color: #fff;
@@ -191,13 +193,15 @@
 .nav-buttons {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 0.4rem;
 }
 
 .nav-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 0.35rem;
   padding: 0.5rem 0.75rem;
   border-radius: 10px;
@@ -216,7 +220,7 @@
   height: 24px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   color: #0f7a43;
 }
 
@@ -369,6 +373,10 @@
   margin-top: 1.25rem;
 }
 
+.tab-actions .primary {
+  margin-left: auto;
+}
+
 .tab-actions .ghost {
   min-width: 140px;
   border-radius: 12px;
@@ -409,7 +417,7 @@
 
 .actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 
@@ -452,7 +460,7 @@
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .list-card table {
@@ -522,18 +530,164 @@
   margin-bottom: 0.25rem;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard-card {
+  position: relative;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.05rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 26px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -40% 40%;
+  height: 120px;
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.dashboard-card__label {
+  margin: 0;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.dashboard-card__value {
+  margin: 0.35rem 0 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-card__hint {
+  margin: 0.45rem 0 0;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 18px 32px rgba(15, 23, 42, 0.12);
+  border-color: #cbd5f5;
+}
+
+.dashboard-card--primary {
+  background: linear-gradient(135deg, #e0f2fe, #f8fafc);
+  border-color: #bae6fd;
+}
+
+.dashboard-card--success {
+  background: linear-gradient(135deg, #dcfce7, #f8fafc);
+  border-color: #bbf7d0;
+}
+
+.dashboard-card--info {
+  background: linear-gradient(135deg, #e0e7ff, #f8fafc);
+  border-color: #c7d2fe;
+}
+
+.dashboard-card--warning {
+  background: linear-gradient(135deg, #fef9c3, #f8fafc);
+  border-color: #fde047;
+}
+
+.dashboard-card--neutral {
+  background: linear-gradient(135deg, #f1f5f9, #ffffff);
+  border-color: #e2e8f0;
+}
+
+.dashboard-card--accent {
+  background: linear-gradient(135deg, #ffe4e6, #f8fafc);
+  border-color: #fecdd3;
+}
+
+.dashboard-card--soft {
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border-color: #e2e8f0;
+}
+
+.dashboard-card--archived {
+  background: linear-gradient(135deg, #e2e8f0, #f8fafc);
+  border-color: #cbd5f5;
+}
+
 .table-actions {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 190px;
+}
+
+.table-actions__row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 0.35rem;
 }
 
 .table-actions .primary,
 .table-actions .ghost,
 .table-actions .danger {
-  padding: 0.45rem 0.85rem;
-  border-radius: 10px;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+
+.table-actions__row > * {
+  flex: 1 1 0;
+}
+
+.table-actions .anexo-botao {
+  height: 26px;
+}
+
+.anexo-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.anexo-icone {
+  width: 22px;
+  height: 22px;
+}
+
+.anexo-sem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.col-anexo {
+  width: 70px;
+  max-width: 70px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.col-anexo > * {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .divider {
@@ -541,6 +695,57 @@
   width: 100%;
   background: #e2e8f0;
   margin: 1rem 0;
+}
+
+.imagem-anexo-bloco {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.imagem-anexo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.imagem-anexo-botao {
+  position: relative;
+  overflow: hidden;
+}
+
+.imagem-anexo-botao input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.imagem-anexo-lista {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.imagem-anexo-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.imagem-anexo-item img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.imagem-anexo-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .summary-card {
@@ -572,13 +777,53 @@
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.75rem;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.4rem;
   background: #ecfdf3;
   color: #166534;
   border-radius: 999px;
   font-weight: 700;
   border: 1px solid #bbf7d0;
+  text-align: center;
+  min-width: 72px;
+  font-size: 0.68rem;
+}
+
+.status-pill--enviado {
+  background: #ecfdf3;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.status-pill--preparacao {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde047;
+}
+
+.status-pill--analise {
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
+.status-pill--recebido {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.status-pill--arquivado {
+  background: #e2e8f0;
+  color: #334155;
+  border-color: #cbd5f5;
+}
+
+.status-pill--rascunho {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
 }
 
 .timeline {
@@ -644,7 +889,7 @@
   }
 
   .actions {
-    justify-content: stretch;
+    justify-content: space-between;
   }
 
   .actions .primary {
@@ -663,3 +908,114 @@
     text-align: center;
   }
 }
+
+.field.small {
+  max-width: 180px;
+}
+
+
+.tab-actions + .tab-actions {
+  justify-content: flex-end;
+}
+
+
+
+.field-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+.field-row.full {
+  grid-template-columns: 1fr auto;
+  align-items: end;
+}
+
+.field-row.full.field-row--filtro {
+  grid-template-columns: 1fr 3fr !important;
+  margin-bottom: 0.75rem;
+}
+
+.field--buscar {
+  max-width: none;
+}
+
+.field--valor {
+  min-width: 0;
+}
+
+.field-row .field {
+  max-width: none;
+}
+
+
+.file-actions {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.file-label {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.file-label input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.print-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.print-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.print-dialog__card {
+  position: relative;
+  width: min(520px, 92vw);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.25);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.print-dialog__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.print-dialog__subtitle {
+  margin: 0.35rem 0 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.print-dialog__actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+

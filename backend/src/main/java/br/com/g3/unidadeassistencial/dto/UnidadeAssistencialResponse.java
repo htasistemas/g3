@@ -8,6 +8,7 @@ public class UnidadeAssistencialResponse {
   private final String razaoSocial;
   private final String cnpj;
   private final String email;
+  private final String site;
   private final String telefone;
   private final String horarioFuncionamento;
   private final String observacoes;
@@ -35,6 +36,7 @@ public class UnidadeAssistencialResponse {
       String razaoSocial,
       String cnpj,
       String email,
+      String site,
       String telefone,
       String horarioFuncionamento,
       String observacoes,
@@ -60,6 +62,7 @@ public class UnidadeAssistencialResponse {
     this.razaoSocial = razaoSocial;
     this.cnpj = cnpj;
     this.email = email;
+    this.site = site;
     this.telefone = telefone;
     this.horarioFuncionamento = horarioFuncionamento;
     this.observacoes = observacoes;
@@ -100,6 +103,10 @@ public class UnidadeAssistencialResponse {
 
   public String getEmail() {
     return email;
+  }
+
+  public String getSite() {
+    return site;
   }
 
   public String getTelefone() {

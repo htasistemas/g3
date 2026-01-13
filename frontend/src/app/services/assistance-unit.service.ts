@@ -11,6 +11,7 @@ export interface AssistanceUnitPayload {
   cnpj?: string;
   telefone?: string;
   email?: string;
+  site?: string;
   cep?: string;
   endereco?: string;
   numeroEndereco?: string;
@@ -67,12 +68,13 @@ export class AssistanceUnitService {
     return this.http.get<AssistanceUnitPayload[]>(this.baseUrl);
   }
 
-  save(payload: AssistanceUnitPayload): Observable<AssistanceUnitPayload> {
+  save(payload: AssistanceUnitPayload): Observable<AssistanceUnitPayload> {     
     if (payload.id) {
-      return this.http.put<AssistanceUnitPayload>(`${this.baseUrl}/${payload.id}`, payload);
+      const { id, ...dados } = payload;
+      return this.http.put<AssistanceUnitPayload>(`${this.baseUrl}/${id}`, dados);
     }
 
-    return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);
+    return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);        
   }
 
   remove(id: number): Observable<void> {

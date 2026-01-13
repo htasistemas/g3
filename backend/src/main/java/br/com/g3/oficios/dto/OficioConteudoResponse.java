@@ -5,6 +5,8 @@ public class OficioConteudoResponse {
   private String logoUrl;
   private String titulo;
   private String saudacao;
+  private String para;
+  private String cargoPara;
   private String assunto;
   private String corpo;
   private String finalizacao;
@@ -17,6 +19,8 @@ public class OficioConteudoResponse {
       String logoUrl,
       String titulo,
       String saudacao,
+      String para,
+      String cargoPara,
       String assunto,
       String corpo,
       String finalizacao,
@@ -27,6 +31,8 @@ public class OficioConteudoResponse {
     this.logoUrl = logoUrl;
     this.titulo = titulo;
     this.saudacao = saudacao;
+    this.para = para;
+    this.cargoPara = cargoPara;
     this.assunto = assunto;
     this.corpo = corpo;
     this.finalizacao = finalizacao;
@@ -49,6 +55,14 @@ public class OficioConteudoResponse {
 
   public String getSaudacao() {
     return saudacao;
+  }
+
+  public String getPara() {
+    return para;
+  }
+
+  public String getCargoPara() {
+    return cargoPara;
   }
 
   public String getAssunto() {

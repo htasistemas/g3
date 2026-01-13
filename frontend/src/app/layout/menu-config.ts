@@ -88,7 +88,8 @@ export const menuSections: MenuItem[] = [
     label: 'Administrativo',
     icon: faClipboardList,
     children: [
-      { label: 'Oficios', icon: faClipboardList, route: '/administrativo/oficios' },
+      { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
+      { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
       {
         label: 'Documentos da Instituicao',
         icon: faClipboardList,

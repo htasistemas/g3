@@ -55,6 +55,15 @@ O agente NAO DEVE:
 - Todas as telas novas ou ja criadas precisam gerar popup de error message.
 - Todo campo obrigatorio deve exibir (*) ao lado do titulo do campo e, ao clicar em "salvar" sem preenchimento, deve apresentar mensagem de erro clara ao usuario.
 
+### Carregamento automatico de dados nas telas
+- Todas as telas do sistema G3 DEVEM carregar e exibir os dados automaticamente ao serem abertas.
+- E PROIBIDO depender de qualquer interacao do usuario (clique, foco, hover, troca de aba ou qualquer acao manual) para que os dados sejam populados na tela.
+- O carregamento inicial deve ocorrer no lifecycle adequado do Angular (ex.: ngOnInit ou ngAfterViewInit quando tecnicamente necessario).
+- Telas que utilizam ChangeDetectionStrategy.OnPush devem garantir atualizacao correta do estado (imutabilidade, async pipe ou markForCheck).
+- Nao sao permitidas gambiarras como setTimeout, cliques forcados ou eventos artificiais para "atualizar" a UI.
+- Toda nova tela criada deve seguir obrigatoriamente essa regra.
+- Telas existentes que nao respeitem esse comportamento devem ser consideradas fora do padrao e elegiveis para correcao.
+
 ## 6. Regra geral - criacao de novas telas (obrigatoria)
 AO CRIAR QUALQUER NOVA TELA NO SISTEMA G3, o agente DEVE:
 - USAR COMO REFERENCIA O CADASTRO DE BENEFICIARIO DO G3.
@@ -201,6 +210,7 @@ Excecoes devem ser justificadas, documentadas e aprovadas previamente.
 - Formato obrigatorio: `1.00.0`.
 - Incrementar apenas o ultimo grupo.
 - Historico deve ser objetivo e sequencial.
+- E proibido repetir numero de versao. Toda nova versao deve ser unica e estritamente sequencial.
 
 ## 18. Postura esperada do agente
 - Ser direto e objetivo.

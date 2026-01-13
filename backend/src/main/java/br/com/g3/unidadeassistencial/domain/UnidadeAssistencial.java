@@ -34,6 +34,9 @@ public class UnidadeAssistencial {
   @Column(name = "email", length = 150)
   private String email;
 
+  @Column(name = "site", length = 200)
+  private String site;
+
   @Column(name = "telefone", length = 30)
   private String telefone;
 
@@ -100,6 +103,14 @@ public class UnidadeAssistencial {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public String getSite() {
+    return site;
+  }
+
+  public void setSite(String site) {
+    this.site = site;
   }
 
   public String getTelefone() {

@@ -124,6 +124,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       cnpj: ['', this.cnpjValidator()],
       telefone: [''],
       email: ['', Validators.email],
+      site: [''],
       cep: [''],
       endereco: [''],
       numeroEndereco: [''],
@@ -232,8 +233,9 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       return;
     }
 
+    const { mandatoInicio, mandatoFim, ...dadosFormulario } = this.form.value;
     const payload: AssistanceUnitPayload = {
-      ...this.form.value,
+      ...dadosFormulario,
       id: this.unidade?.id,
       diretoria
     };

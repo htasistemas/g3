@@ -11,9 +11,10 @@ import {
   DashboardTop12
 } from '../../services/dashboard-assistencia.service';
 import { DoacaoRealizadaService } from '../../services/doacao-realizada.service';
-import { AlmoxarifadoService } from '../../services/almoxarifado.service';
+import { AlmoxarifadoService } from '../../services/almoxarifado.service';      
 import { CursosAtendimentosService } from '../../services/cursos-atendimentos.service';
-import { BancoEmpregosService } from '../../services/banco-empregos.service';
+import { BancoEmpregosService } from '../../services/banco-empregos.service';   
+import { TarefasPendenciasService } from '../../services/tarefas-pendencias.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   empregosAbertos = 0;
   cursosComVagas = 0;
   itensAlmoxarifado = 0;
+  pendenciasAbertas = 0;
 
   constructor(
     public readonly dashboardService: DashboardAssistenciaService,
@@ -37,6 +39,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private readonly almoxarifadoService: AlmoxarifadoService,
     private readonly cursosService: CursosAtendimentosService,
     private readonly empregosService: BancoEmpregosService,
+    private readonly tarefasService: TarefasPendenciasService,
     private readonly router: Router
   ) {}
 
@@ -197,6 +200,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.empregosService.list().subscribe((records) => {
         this.empregosAbertos = records.filter((item) => item.dadosVaga.status === 'Aberta').length;
+      })
+    );
+
+    this.subscriptions.add(
+      this.tarefasService.list().subscribe((tarefas) => {
+        this.pendenciasAbertas = tarefas.filter((item) => item.status !== 'Concluída').length;
       })
     );
   }

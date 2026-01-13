@@ -19,6 +19,9 @@ public class UnidadeAssistencialCriacaoRequest {
   @Size(max = 150)
   private String email;
 
+  @Size(max = 200)
+  private String site;
+
   @Size(max = 20)
   private String cep;
 
@@ -96,6 +99,14 @@ public class UnidadeAssistencialCriacaoRequest {
 
   public void setEmail(String email) {
     this.email = email;
+  }
+
+  public String getSite() {
+    return site;
+  }
+
+  public void setSite(String site) {
+    this.site = site;
   }
 
   public String getCep() {

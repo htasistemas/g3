@@ -65,6 +65,7 @@ public class OficioIdentificacaoResponse {
     return destinatario;
   }
 
+
   public String getMeioEnvio() {
     return meioEnvio;
   }

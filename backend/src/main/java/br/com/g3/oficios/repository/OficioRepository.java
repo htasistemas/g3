@@ -11,5 +11,7 @@ public interface OficioRepository {
 
   List<Oficio> listar();
 
+  String buscarUltimoNumeroPorAno(int ano);
+
   void remover(Oficio oficio);
 }

@@ -27,7 +27,12 @@ public class OficioRepositoryImpl implements OficioRepository {
 
   @Override
   public List<Oficio> listar() {
-    return jpaRepository.findAll(Sort.by(Sort.Direction.DESC, "data", "id"));
+    return jpaRepository.findAll(Sort.by(Sort.Direction.DESC, "data", "id"));   
+  }
+
+  @Override
+  public String buscarUltimoNumeroPorAno(int ano) {
+    return jpaRepository.buscarUltimoNumeroPorAno(String.valueOf(ano));
   }
 
   @Override

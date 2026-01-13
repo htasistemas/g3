@@ -18,6 +18,7 @@ import { ContabilidadeComponent } from './components/contabilidade/contabilidade
 import { PrestacaoContasComponent } from './components/prestacao-contas/prestacao-contas.component';
 import { OficiosGestaoComponent } from './components/oficios-gestao/oficios-gestao.component';
 import { DocumentosInstitucionaisComponent } from './components/documentos-institucionais/documentos-institucionais.component';
+import { FeriadosGestaoComponent } from './components/feriados-gestao/feriados-gestao.component';
 import { CursosAtendimentosComponent } from './components/cursos-atendimentos/cursos-atendimentos.component';
 import { ProfissionaisCadastroComponent } from './components/profissionais-cadastro/profissionais-cadastro.component';
 import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao/plano-trabalho-gestao.component';
@@ -118,6 +119,11 @@ export const routes: Routes = [
         path: 'administrativo/oficios',
         component: OficiosGestaoComponent,
         data: { title: 'Gestao de oficios' }
+      },
+      {
+        path: 'administrativo/feriados',
+        component: FeriadosGestaoComponent,
+        data: { title: 'Cadastro de feriados' }
       },
       {
         path: 'administrativo/documentos',

@@ -22,6 +22,7 @@ public class UnidadeAssistencialMapper {
     unidade.setRazaoSocial(request.getRazaoSocial());
     unidade.setCnpj(request.getCnpj());
     unidade.setEmail(request.getEmail());
+    unidade.setSite(request.getSite());
     unidade.setTelefone(request.getTelefone());
     unidade.setHorarioFuncionamento(request.getHorarioFuncionamento());
     unidade.setObservacoes(request.getObservacoes());
@@ -40,6 +41,7 @@ public class UnidadeAssistencialMapper {
     unidade.setRazaoSocial(request.getRazaoSocial());
     unidade.setCnpj(request.getCnpj());
     unidade.setEmail(request.getEmail());
+    unidade.setSite(request.getSite());
     unidade.setTelefone(request.getTelefone());
     unidade.setHorarioFuncionamento(request.getHorarioFuncionamento());
     unidade.setObservacoes(request.getObservacoes());
@@ -60,6 +62,7 @@ public class UnidadeAssistencialMapper {
         unidade.getRazaoSocial(),
         unidade.getCnpj(),
         unidade.getEmail(),
+        unidade.getSite(),
         unidade.getTelefone(),
         unidade.getHorarioFuncionamento(),
         unidade.getObservacoes(),

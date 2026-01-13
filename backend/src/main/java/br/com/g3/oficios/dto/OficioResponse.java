@@ -8,18 +8,24 @@ public class OficioResponse {
   private OficioConteudoResponse conteudo;
   private OficioProtocoloResponse protocolo;
   private List<OficioTramiteResponse> tramites;
+  private String pdfAssinadoNome;
+  private String pdfAssinadoUrl;
 
   public OficioResponse(
       Long id,
       OficioIdentificacaoResponse identificacao,
       OficioConteudoResponse conteudo,
       OficioProtocoloResponse protocolo,
-      List<OficioTramiteResponse> tramites) {
+      List<OficioTramiteResponse> tramites,
+      String pdfAssinadoNome,
+      String pdfAssinadoUrl) {
     this.id = id;
     this.identificacao = identificacao;
     this.conteudo = conteudo;
     this.protocolo = protocolo;
     this.tramites = tramites;
+    this.pdfAssinadoNome = pdfAssinadoNome;
+    this.pdfAssinadoUrl = pdfAssinadoUrl;
   }
 
   public Long getId() {
@@ -40,5 +46,13 @@ public class OficioResponse {
 
   public List<OficioTramiteResponse> getTramites() {
     return tramites;
+  }
+
+  public String getPdfAssinadoNome() {
+    return pdfAssinadoNome;
+  }
+
+  public String getPdfAssinadoUrl() {
+    return pdfAssinadoUrl;
   }
 }

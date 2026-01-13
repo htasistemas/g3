@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS unidade_assistencial (
   razao_social VARCHAR(200),
   cnpj VARCHAR(20),
   email VARCHAR(150),
+  site VARCHAR(200),
   telefone VARCHAR(30),
   horario_funcionamento VARCHAR(120),
   observacoes TEXT,
@@ -184,7 +185,7 @@ CREATE TABLE IF NOT EXISTS historico_versao_sistema (
 );
 
 INSERT INTO versao_sistema (id, versao, descricao, atualizado_em)
-SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
+SELECT 1, '1.0.0', 'VersÃƒÂ£o inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
@@ -193,6 +194,13 @@ SET versao = '1.01.0',
     atualizado_em = NOW()
 WHERE id = 1
   AND versao <> '1.01.0';
+
+UPDATE versao_sistema
+SET versao = '1.01.4',
+    descricao = 'Gestao de oficios e documentos com anexos de imagens, dashboard de acompanhamento, cadastro de feriados para calculo de prazos em dias uteis e ajustes no rodape/assinaturas e anexos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.01.4';
 
 UPDATE versao_sistema
 SET versao = '1.00.0'
@@ -206,6 +214,33 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.01.0'
     AND descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.2', 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.2'
+    AND descricao = 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.3', 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.3'
+    AND descricao = 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.4', 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.4'
+    AND descricao = 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.'
 );
 
 UPDATE historico_versao_sistema
@@ -421,6 +456,9 @@ ALTER TABLE unidade_assistencial
 
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS observacoes TEXT;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS site VARCHAR(200);
 
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS unidade_principal BOOLEAN NOT NULL DEFAULT FALSE;
@@ -1819,15 +1857,19 @@ CREATE TABLE IF NOT EXISTS oficios (
   numero VARCHAR(120) NOT NULL,
   data DATE NOT NULL,
   setor_origem VARCHAR(200) NOT NULL,
-  responsavel VARCHAR(200) NOT NULL,
+  responsavel VARCHAR(200) NOT NULL, 
   destinatario VARCHAR(200) NOT NULL,
-  meio_envio VARCHAR(120) NOT NULL,
+  destinatario_responsavel VARCHAR(200) NOT NULL,
+  destinatario_cargo VARCHAR(200) NOT NULL,
+  meio_envio VARCHAR(120) NOT NULL,  
   prazo_resposta VARCHAR(120),
   classificacao VARCHAR(120),
   razao_social VARCHAR(200) NOT NULL,
-  logo_url VARCHAR(500),
+  logo_url TEXT,
   titulo VARCHAR(200),
   saudacao VARCHAR(200),
+  para VARCHAR(200),
+  cargo_para VARCHAR(200),
   assunto VARCHAR(300) NOT NULL,
   corpo TEXT NOT NULL,
   finalizacao TEXT,
@@ -1860,6 +1902,17 @@ CREATE TABLE IF NOT EXISTS oficios_tramites (
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS oficios_imagens (
+  id BIGSERIAL PRIMARY KEY,
+  oficio_id BIGINT NOT NULL REFERENCES oficios(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(200) NOT NULL,
+  tipo_mime VARCHAR(60) NOT NULL,
+  conteudo_base64 TEXT NOT NULL,
+  ordem INT NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS oficios_numero_idx
   ON oficios (numero);
 CREATE INDEX IF NOT EXISTS oficios_status_idx
@@ -1868,6 +1921,19 @@ CREATE INDEX IF NOT EXISTS oficios_data_idx
   ON oficios (data DESC);
 CREATE INDEX IF NOT EXISTS oficios_tramites_oficio_idx
   ON oficios_tramites (oficio_id);
+CREATE INDEX IF NOT EXISTS oficios_imagens_oficio_idx
+  ON oficios_imagens (oficio_id);
+
+CREATE TABLE IF NOT EXISTS feriados (
+  id BIGSERIAL PRIMARY KEY,
+  data DATE NOT NULL,
+  descricao VARCHAR(200) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS feriados_data_idx
+  ON feriados (data);
 
 CREATE TABLE IF NOT EXISTS transparencia (
   id BIGSERIAL PRIMARY KEY,
@@ -2012,3 +2078,5 @@ CREATE INDEX IF NOT EXISTS emprestimos_eventos_status_idx
 
 CREATE INDEX IF NOT EXISTS emprestimos_eventos_itens_item_idx
   ON emprestimos_eventos_itens (item_id, tipo_item);
+
+

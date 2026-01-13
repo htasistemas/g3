@@ -1,29 +1,23 @@
 package br.com.g3.oficios.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OficioIdentificacaoRequest {
-  @NotBlank
   private String tipo;
 
-  @NotBlank
   private String numero;
 
-  @NotNull
   private LocalDate data;
 
-  @NotBlank
   private String setorOrigem;
 
-  @NotBlank
   private String responsavel;
 
-  @NotBlank
   private String destinatario;
 
-  @NotBlank
+
   private String meioEnvio;
 
   private String prazoResposta;
@@ -76,6 +70,7 @@ public class OficioIdentificacaoRequest {
   public void setDestinatario(String destinatario) {
     this.destinatario = destinatario;
   }
+
 
   public String getMeioEnvio() {
     return meioEnvio;

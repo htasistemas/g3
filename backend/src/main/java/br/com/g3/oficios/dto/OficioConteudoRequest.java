@@ -1,19 +1,17 @@
 package br.com.g3.oficios.dto;
 
-import jakarta.validation.constraints.NotBlank;
 
 public class OficioConteudoRequest {
-  @NotBlank
   private String razaoSocial;
 
   private String logoUrl;
   private String titulo;
   private String saudacao;
+  private String para;
+  private String cargoPara;
 
-  @NotBlank
   private String assunto;
 
-  @NotBlank
   private String corpo;
 
   private String finalizacao;
@@ -51,6 +49,22 @@ public class OficioConteudoRequest {
 
   public void setSaudacao(String saudacao) {
     this.saudacao = saudacao;
+  }
+
+  public String getPara() {
+    return para;
+  }
+
+  public void setPara(String para) {
+    this.para = para;
+  }
+
+  public String getCargoPara() {
+    return cargoPara;
+  }
+
+  public void setCargoPara(String cargoPara) {
+    this.cargoPara = cargoPara;
   }
 
   public String getAssunto() {
