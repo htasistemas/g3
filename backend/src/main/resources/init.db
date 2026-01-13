@@ -1924,6 +1924,75 @@ CREATE INDEX IF NOT EXISTS oficios_tramites_oficio_idx
 CREATE INDEX IF NOT EXISTS oficios_imagens_oficio_idx
   ON oficios_imagens (oficio_id);
 
+CREATE TABLE IF NOT EXISTS ocorrencia_crianca (
+  id BIGSERIAL PRIMARY KEY,
+  data_preenchimento DATE NOT NULL,
+  local_violencia VARCHAR(60),
+  local_violencia_outro VARCHAR(200),
+  violencia_motivada_por JSONB,
+  violencia_motivada_outro VARCHAR(200),
+  violencia_praticada_por JSONB,
+  violencia_praticada_outro VARCHAR(200),
+  outras_violacoes JSONB,
+  vitima_nome VARCHAR(200) NOT NULL,
+  vitima_idade INTEGER NOT NULL,
+  vitima_raca_cor VARCHAR(40),
+  vitima_identidade_genero VARCHAR(60),
+  vitima_orientacao_sexual VARCHAR(40),
+  vitima_orientacao_outro VARCHAR(120),
+  vitima_escolaridade VARCHAR(40),
+  vitima_responsavel_tipo VARCHAR(20),
+  vitima_responsavel_nome VARCHAR(200),
+  vitima_telefone_responsavel VARCHAR(40),
+  vitima_endereco_logradouro VARCHAR(200),
+  vitima_endereco_complemento VARCHAR(200),
+  vitima_endereco_bairro VARCHAR(120),
+  vitima_endereco_municipio VARCHAR(120),
+  autor_nome VARCHAR(200),
+  autor_idade INTEGER,
+  autor_nao_consta BOOLEAN,
+  autor_parentesco VARCHAR(20),
+  autor_parentesco_grau VARCHAR(200),
+  autor_responsavel_tipo VARCHAR(20),
+  autor_responsavel_nome VARCHAR(200),
+  autor_responsavel_telefone VARCHAR(40),
+  autor_responsavel_nao_consta BOOLEAN,
+  autor_endereco_logradouro VARCHAR(200),
+  autor_endereco_complemento VARCHAR(200),
+  autor_endereco_bairro VARCHAR(120),
+  autor_endereco_municipio VARCHAR(120),
+  autor_endereco_nao_consta BOOLEAN,
+  tipificacao_violencia JSONB,
+  tipificacao_psicologica JSONB,
+  tipificacao_sexual JSONB,
+  violencia_autoprovocada JSONB,
+  outro_tipo_violencia TEXT,
+  resumo_violencia TEXT NOT NULL,
+  encaminhar_conselho BOOLEAN,
+  encaminhar_motivo TEXT,
+  data_envio_conselho DATE,
+  denuncia_origem JSONB,
+  denuncia_origem_outro VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS ocorrencia_crianca_anexo (
+  id BIGSERIAL PRIMARY KEY,
+  ocorrencia_id BIGINT NOT NULL REFERENCES ocorrencia_crianca(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(200) NOT NULL,
+  tipo_mime VARCHAR(120) NOT NULL,
+  conteudo_base64 TEXT NOT NULL,
+  ordem INTEGER NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS ocorrencia_crianca_data_idx
+  ON ocorrencia_crianca (data_preenchimento DESC);
+CREATE INDEX IF NOT EXISTS ocorrencia_crianca_anexo_ocorrencia_idx
+  ON ocorrencia_crianca_anexo (ocorrencia_id);
+
 CREATE TABLE IF NOT EXISTS feriados (
   id BIGSERIAL PRIMARY KEY,
   data DATE NOT NULL,

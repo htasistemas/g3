@@ -196,6 +196,13 @@ WHERE id = 1
   AND versao <> '1.01.0';
 
 UPDATE versao_sistema
+SET versao = '1.01.4',
+    descricao = 'Gestao de oficios e documentos com anexos de imagens, dashboard de acompanhamento, cadastro de feriados para calculo de prazos em dias uteis e ajustes no rodape/assinaturas e anexos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.01.4';
+
+UPDATE versao_sistema
 SET versao = '1.00.0'
 WHERE id = 1
   AND versao = '1.0.0';
@@ -207,6 +214,33 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.01.0'
     AND descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.2', 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.2'
+    AND descricao = 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.3', 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.3'
+    AND descricao = 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.01.4', 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.01.4'
+    AND descricao = 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.'
 );
 
 UPDATE historico_versao_sistema
@@ -1889,6 +1923,17 @@ CREATE INDEX IF NOT EXISTS oficios_tramites_oficio_idx
   ON oficios_tramites (oficio_id);
 CREATE INDEX IF NOT EXISTS oficios_imagens_oficio_idx
   ON oficios_imagens (oficio_id);
+
+CREATE TABLE IF NOT EXISTS feriados (
+  id BIGSERIAL PRIMARY KEY,
+  data DATE NOT NULL,
+  descricao VARCHAR(200) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS feriados_data_idx
+  ON feriados (data);
 
 CREATE TABLE IF NOT EXISTS transparencia (
   id BIGSERIAL PRIMARY KEY,

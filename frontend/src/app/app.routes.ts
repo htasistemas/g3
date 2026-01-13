@@ -26,7 +26,6 @@ import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
 import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
-import { DashboardBiComponent } from './components/dashboard-bi/dashboard-bi.component';
 import { ProntuarioPageComponent } from './components/prontuario-page/prontuario-page.component';
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
@@ -37,6 +36,7 @@ import { ChamadosTecnicosComponent } from './components/chamados-tecnicos/chamad
 import { ChamadoTecnicoDetalheComponent } from './components/chamado-tecnico-detalhe/chamado-tecnico-detalhe.component';
 import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-sistema.component';
+import { OcorrenciasCriancaComponent } from './components/ocorrencias-crianca/ocorrencias-crianca.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -48,7 +48,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard/visao-geral', pathMatch: 'full' },
       { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visao geral' } },
       { path: 'dashboard/indicadores', component: DashboardIndicatorsComponent, data: { title: 'Indicadores' } },
-      { path: 'dashboard/gerencial', component: DashboardBiComponent, data: { title: 'Dashboard gerencial' } },
       { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiarios' } },
       { path: 'beneficiarios/:id/prontuario', redirectTo: 'atendimentos/prontuario/:id', pathMatch: 'full' },
       { path: 'atendimentos/prontuario', component: ProntuarioPageComponent, data: { title: 'Prontuario' } },
@@ -101,6 +100,11 @@ export const routes: Routes = [
         path: 'atendimentos/banco-empregos',
         component: BancoEmpregosComponent,
         data: { title: 'Banco de Empregos' }
+      },
+      {
+        path: 'atendimentos/ocorrencias-crianca',
+        component: OcorrenciasCriancaComponent,
+        data: { title: 'Registro de violencia contra crianca e adolescente' }
       },
       {
         path: 'administrativo/patrimonio',

@@ -1,0 +1,619 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (buscar)="abrirBusca()"
+  (salvar)="onSalvar()"
+  (excluir)="onExcluir()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (fechar)="closeForm()"
+>
+  <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
+
+  <header class="page-title" slot="titulo">
+    <div class="page-title__content">
+      <p class="page-title__eyebrow">Atendimentos</p>
+      <p class="page-title__label">Registro de violencia contra crianca e adolescente</p>
+      <p class="page-title__note">Formulario oficial para registro de ocorrencias e encaminhamentos.</p>
+    </div>
+    <div class="page-title__comment">Formulario oficial para registro de ocorrencias e encaminhamentos.</div>
+  </header>
+
+  <section class="cadastro">
+    <div class="tab-card tab-card--tabs">
+      <div class="tab-shell">
+        <p class="tab-shell__title">Navegue pelas etapas do formulario</p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+          >
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <form [formGroup]="form" class="form-shell">
+      <ng-template #navigationControls>
+        <div class="tab-actions">
+          <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+          <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
+            Proximo: {{ nextTabLabel }}
+          </button>
+          <button type="button" class="primary" [disabled]="saving" *ngIf="!hasNextTab" (click)="onSalvar()">
+            {{ saving ? 'Salvando...' : 'Salvar ocorrencia' }}
+          </button>
+        </div>
+      </ng-template>
+
+      <div class="tab-card" *ngIf="activeTab === 'ocorrencia'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+            <p class="muted">Marque as opcoes conforme a ficha oficial.</p>
+          </div>
+        </div>
+
+        <div class="field-grid cols-2">
+          <label class="field" [class.invalid]="form.get('dataPreenchimento')?.invalid && form.get('dataPreenchimento')?.touched">Data de preenchimento*
+            <input type="date" formControlName="dataPreenchimento" />
+            <span class="field-error" *ngIf="form.get('dataPreenchimento')?.invalid && form.get('dataPreenchimento')?.touched">
+              Informe a data de preenchimento.
+            </span>
+          </label>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">1) Violencia praticada contra crianca/adolescente (LOCAL)</p>
+          <div class="options-grid options-grid--tight">
+            <label class="radio-field">
+              <input type="radio" formControlName="localViolencia" value="Na escola" />
+              <span>Na escola</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="localViolencia" value="No ambito familiar" />
+              <span>No ambito familiar</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="localViolencia" value="Outros espacos" />
+              <span>Outros espacos</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="form.get('localViolencia')?.value === 'Outros espacos'"
+              [class.invalid]="form.get('localViolenciaOutro')?.invalid && form.get('localViolenciaOutro')?.touched"
+            >
+              <span>Outros: *</span>
+              <input formControlName="localViolenciaOutro" placeholder="Informe o local" />
+              <span class="field-error" *ngIf="form.get('localViolenciaOutro')?.invalid && form.get('localViolenciaOutro')?.touched">
+                Informe o local.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">7) Violencia motivada por</p>
+          <div class="options-grid options-grid--tight">
+            <label class="checkbox-field" *ngFor="let opcao of violenciaMotivadaOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('violenciaMotivadaPor', opcao)" (change)="alternarSelecao('violenciaMotivadaPor', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="possuiSelecao('violenciaMotivadaPor', 'Outros')"
+              [class.invalid]="form.get('violenciaMotivadaOutro')?.invalid && form.get('violenciaMotivadaOutro')?.touched"
+            >
+              <span>Outros: *</span>
+              <input formControlName="violenciaMotivadaOutro" placeholder="Informe a motivacao" />
+              <span class="field-error" *ngIf="form.get('violenciaMotivadaOutro')?.invalid && form.get('violenciaMotivadaOutro')?.touched">
+                Informe a motivacao.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">8) Violencia praticada por</p>
+          <div class="options-grid options-grid--tight">
+            <label class="checkbox-field" *ngFor="let opcao of violenciaPraticadaOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('violenciaPraticadaPor', opcao)" (change)="alternarSelecao('violenciaPraticadaPor', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="possuiSelecao('violenciaPraticadaPor', 'outro')"
+              [class.invalid]="form.get('violenciaPraticadaOutro')?.invalid && form.get('violenciaPraticadaOutro')?.touched"
+            >
+              <span>Outro: *</span>
+              <input formControlName="violenciaPraticadaOutro" placeholder="Informe quem praticou" />
+              <span class="field-error" *ngIf="form.get('violenciaPraticadaOutro')?.invalid && form.get('violenciaPraticadaOutro')?.touched">
+                Informe quem praticou.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">10) Outras violacoes de direitos</p>
+          <div class="options-grid options-grid--tight">
+            <label class="checkbox-field" *ngFor="let opcao of outrasViolacoesOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('outrasViolacoes', opcao)" (change)="alternarSelecao('outrasViolacoes', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'vitima'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+            <p class="muted">Identificacao completa da vitima.</p>
+          </div>
+        </div>
+
+        <div class="field-grid cols-2">
+          <label class="field" [class.invalid]="form.get('vitimaNome')?.invalid && form.get('vitimaNome')?.touched">2.1 Nome*
+            <input formControlName="vitimaNome" placeholder="Informe o nome da vitima" />
+            <span class="field-error" *ngIf="form.get('vitimaNome')?.invalid && form.get('vitimaNome')?.touched">
+              Informe o nome da vitima.
+            </span>
+          </label>
+          <label class="field" [class.invalid]="form.get('vitimaIdade')?.invalid && form.get('vitimaIdade')?.touched">Idade*
+            <input type="number" formControlName="vitimaIdade" min="0" />
+            <span class="field-error" *ngIf="form.get('vitimaIdade')?.invalid && form.get('vitimaIdade')?.touched">
+              Informe a idade da vitima.
+            </span>
+          </label>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.2 Raca/cor</p>
+          <div class="options-grid options-grid--tight">
+            <label class="radio-field" *ngFor="let opcao of racaCorOpcoes">
+              <input type="radio" formControlName="vitimaRacaCor" [value]="opcao" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.3 Identidade de genero</p>
+          <div class="options-grid options-grid--tight">
+            <label class="radio-field" *ngFor="let opcao of identidadeGeneroOpcoes">
+              <input type="radio" formControlName="vitimaIdentidadeGenero" [value]="opcao" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.4 Orientacao sexual</p>
+          <div class="options-grid options-grid--tight">
+            <label class="radio-field" *ngFor="let opcao of orientacaoSexualOpcoes">
+              <input type="radio" formControlName="vitimaOrientacaoSexual" [value]="opcao" />
+              <span>{{ opcao }}</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="form.get('vitimaOrientacaoSexual')?.value === 'Outro'"
+              [class.invalid]="form.get('vitimaOrientacaoOutro')?.invalid && form.get('vitimaOrientacaoOutro')?.touched"
+            >
+              <span>Outro: *</span>
+              <input formControlName="vitimaOrientacaoOutro" />
+              <span class="field-error" *ngIf="form.get('vitimaOrientacaoOutro')?.invalid && form.get('vitimaOrientacaoOutro')?.touched">
+                Informe a orientacao sexual.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.5 Escolaridade</p>
+          <div class="options-grid options-grid--columns">
+            <label class="radio-field" *ngFor="let opcao of escolaridadeOpcoes">
+              <input type="radio" formControlName="vitimaEscolaridade" [value]="opcao" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.6 Responsavel</p>
+          <div class="field-grid cols-3">
+            <label class="radio-field">
+              <input type="radio" formControlName="vitimaResponsavelTipo" value="Mae" />
+              <span>Mae</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="vitimaResponsavelTipo" value="Pai" />
+              <span>Pai</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="vitimaResponsavelTipo" value="Outro" />
+              <span>Outro</span>
+            </label>
+            <label class="field full">
+              <span>Nome do responsavel</span>
+              <input formControlName="vitimaResponsavelNome" />
+            </label>
+            <label class="field full">
+              <span>Telefone do responsavel</span>
+              <input formControlName="vitimaTelefoneResponsavel" />
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">2.8 Endereco da vitima</p>
+          <div class="field-grid cols-2">
+            <label class="field">Logradouro
+              <input formControlName="vitimaEnderecoLogradouro" />
+            </label>
+            <label class="field">Complemento
+              <input formControlName="vitimaEnderecoComplemento" />
+            </label>
+            <label class="field">Bairro
+              <input formControlName="vitimaEnderecoBairro" />
+            </label>
+            <label class="field">Municipio
+              <input formControlName="vitimaEnderecoMunicipio" />
+            </label>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'autor'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+            <p class="muted">Informacoes do possivel autor.</p>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">3.1 Identificacao</p>
+          <div class="field-grid cols-3">
+            <label class="field">Nome
+              <input formControlName="autorNome" />
+            </label>
+            <label class="field">Idade
+              <input type="number" formControlName="autorIdade" min="0" />
+            </label>
+            <label class="checkbox-field checkbox-field--inline">
+              <input type="checkbox" formControlName="autorNaoConsta" />
+              <span>Nao consta</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">3.2 Possui vinculo de parentesco?</p>
+          <div class="options-grid">
+            <label class="radio-field">
+              <input type="radio" formControlName="autorParentesco" value="Sim" />
+              <span>Sim</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="autorParentesco" value="Nao" />
+              <span>Nao</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="autorParentesco" value="Nao consta" />
+              <span>Nao consta</span>
+            </label>
+            <label class="field full" [class.invalid]="form.get('autorParentescoGrau')?.invalid && form.get('autorParentescoGrau')?.touched">
+              <span>Grau de parentesco*</span>
+              <input formControlName="autorParentescoGrau" />
+              <span class="field-error" *ngIf="form.get('autorParentescoGrau')?.invalid && form.get('autorParentescoGrau')?.touched">
+                Informe o grau de parentesco.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">3.3 Nome do responsavel (quando crianca/adolescente)</p>
+          <div class="field-grid cols-3">
+            <label class="radio-field">
+              <input type="radio" formControlName="autorResponsavelTipo" value="Mae" />
+              <span>Mae</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" formControlName="autorResponsavelTipo" value="Outro" />
+              <span>Outro</span>
+            </label>
+            <label class="checkbox-field checkbox-field--inline">
+              <input type="checkbox" formControlName="autorResponsavelNaoConsta" />
+              <span>Nao consta</span>
+            </label>
+            <label class="field full">
+              <span>Nome do responsavel</span>
+              <input formControlName="autorResponsavelNome" />
+            </label>
+            <label class="field full">
+              <span>Telefone do responsavel</span>
+              <input formControlName="autorResponsavelTelefone" />
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">3.4 Endereco do possivel autor</p>
+          <div class="field-grid cols-2">
+            <label class="field">Logradouro
+              <input formControlName="autorEnderecoLogradouro" />
+            </label>
+            <label class="field">Complemento
+              <input formControlName="autorEnderecoComplemento" />
+            </label>
+            <label class="field">Bairro
+              <input formControlName="autorEnderecoBairro" />
+            </label>
+            <label class="field">Municipio
+              <input formControlName="autorEnderecoMunicipio" />
+            </label>
+            <label class="checkbox-field checkbox-field--inline full">
+              <input type="checkbox" formControlName="autorEnderecoNaoConsta" />
+              <span>Nao consta</span>
+            </label>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'classificacao'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+            <p class="muted">Classifique o tipo de violencia informada.</p>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">4) Tipificacao da violencia</p>
+          <div class="options-grid options-grid--columns">
+            <label class="checkbox-field" *ngFor="let opcao of tipificacaoViolenciaOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('tipificacaoViolencia', opcao)" (change)="alternarSelecao('tipificacaoViolencia', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+
+          <div class="sub-options">
+            <p class="form-block__subtitle">Violencia psicologica</p>
+            <div class="options-grid options-grid--columns">
+              <label class="checkbox-field" *ngFor="let opcao of tipificacaoPsicologicaOpcoes">
+                <input type="checkbox" [checked]="possuiSelecao('tipificacaoPsicologica', opcao)" (change)="alternarSelecao('tipificacaoPsicologica', opcao)" />
+                <span>{{ opcao }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sub-options">
+            <p class="form-block__subtitle">Violencia sexual</p>
+            <div class="options-grid options-grid--columns">
+              <label class="checkbox-field" *ngFor="let opcao of tipificacaoSexualOpcoes">
+                <input type="checkbox" [checked]="possuiSelecao('tipificacaoSexual', opcao)" (change)="alternarSelecao('tipificacaoSexual', opcao)" />
+                <span>{{ opcao }}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">5) Violencia autoprovocada</p>
+          <div class="options-grid options-grid--columns">
+            <label class="checkbox-field" *ngFor="let opcao of violenciaAutoprovocadaOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('violenciaAutoprovocada', opcao)" (change)="alternarSelecao('violenciaAutoprovocada', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">6) Outro tipo de violencia (descreva)</p>
+          <label class="field full">
+            <textarea rows="3" formControlName="outroTipoViolenciaDescricao"></textarea>
+          </label>
+        </div>
+
+        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      </div>
+
+      <div class="tab-card" *ngIf="activeTab === 'relato'">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+            <p class="muted">Resumo e encaminhamento da ocorrencia.</p>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">9) Resumo da violencia (ou suspeita)*</p>
+          <label class="field full" [class.invalid]="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
+            <textarea rows="6" formControlName="resumoViolencia"></textarea>
+            <span class="field-error" *ngIf="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
+              Informe o resumo da violencia.
+            </span>
+          </label>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">11) Encaminhamento ao Conselho Tutelar</p>
+          <div class="options-grid">
+            <label class="radio-field">
+              <input type="radio" name="encaminharConselho" [checked]="form.get('encaminharConselho')?.value === true" (change)="setEncaminharConselho(true)" />
+              <span>SIM</span>
+            </label>
+            <label class="radio-field">
+              <input type="radio" name="encaminharConselho" [checked]="form.get('encaminharConselho')?.value === false" (change)="setEncaminharConselho(false)" />
+              <span>NAO</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="form.get('encaminharConselho')?.value === false"
+              [class.invalid]="form.get('encaminharMotivo')?.invalid && form.get('encaminharMotivo')?.touched"
+            >
+              <span>Motivo*</span>
+              <input formControlName="encaminharMotivo" />
+              <span class="field-error" *ngIf="form.get('encaminharMotivo')?.invalid && form.get('encaminharMotivo')?.touched">
+                Informe o motivo.
+              </span>
+            </label>
+            <button
+              type="button"
+              class="primary"
+              *ngIf="form.get('encaminharConselho')?.value === true"
+              (click)="imprimirConselhoTutelarDireto()"
+            >
+              Gerar/Imprimir ficha de notificacao ao CT
+            </button>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">12) Como a denuncia chegou a ADRA</p>
+          <div class="options-grid options-grid--columns">
+            <label class="checkbox-field" *ngFor="let opcao of denunciaOrigemOpcoes">
+              <input type="checkbox" [checked]="possuiSelecao('denunciaOrigem', opcao)" (change)="alternarSelecao('denunciaOrigem', opcao)" />
+              <span>{{ opcao }}</span>
+            </label>
+            <label
+              class="field full"
+              *ngIf="possuiSelecao('denunciaOrigem', 'Outro')"
+              [class.invalid]="form.get('denunciaOrigemOutro')?.invalid && form.get('denunciaOrigemOutro')?.touched"
+            >
+              <span>Outro: *</span>
+              <input formControlName="denunciaOrigemOutro" />
+              <span class="field-error" *ngIf="form.get('denunciaOrigemOutro')?.invalid && form.get('denunciaOrigemOutro')?.touched">
+                Informe a origem da denuncia.
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">13) Data de envio da ficha ao Conselho Tutelar</p>
+          <label
+            class="field"
+            *ngIf="form.get('encaminharConselho')?.value === true"
+            [class.invalid]="form.get('dataEnvioConselho')?.invalid && form.get('dataEnvioConselho')?.touched"
+          >
+            <input type="date" formControlName="dataEnvioConselho" />
+            <span class="field-error" *ngIf="form.get('dataEnvioConselho')?.invalid && form.get('dataEnvioConselho')?.touched">
+              Informe a data de envio.
+            </span>
+          </label>
+          <p class="muted" *ngIf="form.get('encaminharConselho')?.value !== true">Informe o encaminhamento para registrar a data.</p>
+        </div>
+
+        <div class="form-block">
+          <p class="form-block__title">Anexos</p>
+          <div class="anexo-actions">
+            <label class="nav-button file-label">
+              Adicionar anexos
+              <input type="file" multiple accept="application/pdf,image/jpeg,image/png" (change)="onAnexosSelecionados($event)" />
+            </label>
+            <p class="muted">Ate 10 anexos (PDF/JPG/PNG) de ate 10MB cada.</p>
+          </div>
+          <div class="anexo-lista" *ngIf="anexos.length; else semAnexos">
+            <div class="anexo-item" *ngFor="let anexo of anexos">
+              <div>
+                <p class="anexo-item__nome">{{ anexo.nomeArquivo }}</p>
+                <p class="muted">{{ anexo.tipoMime }}</p>
+              </div>
+              <div class="anexo-item__acoes">
+                <button type="button" class="ghost" (click)="abrirAnexo(anexo)">Abrir</button>
+                <button type="button" class="ghost" (click)="removerAnexo(anexo)">Remover</button>
+              </div>
+            </div>
+          </div>
+          <ng-template #semAnexos>
+            <p class="muted">Nenhum anexo adicionado.</p>
+          </ng-template>
+        </div>
+
+        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+      </div>
+    </form>
+
+    <div class="modal" *ngIf="buscarModalOpen">
+      <div class="modal__backdrop" (click)="fecharBusca()"></div>
+      <div class="modal__content modal__content--wide">
+        <div class="modal__header">
+          <div>
+            <p class="modal__eyebrow">Ocorrencias registradas</p>
+            <h3>Buscar ocorrencia</h3>
+          </div>
+          <button type="button" class="ghost" (click)="fecharBusca()" aria-label="Fechar">&times;</button>
+        </div>
+        <label class="field full">
+          <span>Buscar por nome da vitima ou data</span>
+          <input [(ngModel)]="termoBusca" [ngModelOptions]="{ standalone: true }" placeholder="Ex.: Maria ou 2026-01-12" />
+        </label>
+        <div class="list-card">
+          <div class="list-card__header">
+            <div>
+              <p class="list-card__eyebrow">Registros</p>
+              <p class="list-card__title">Ocorrencias cadastradas</p>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Vitima</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ocorrencia of ocorrenciasFiltradas" (click)="selecionarOcorrencia(ocorrencia)">
+                <td>{{ ocorrencia.dataPreenchimento }}</td>
+                <td>{{ ocorrencia.vitimaNome }}</td>
+              </tr>
+              <tr *ngIf="!ocorrenciasFiltradas.length">
+                <td colspan="2" class="empty">Nenhuma ocorrencia encontrada.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="print-dialog" *ngIf="printMenuOpen">
+      <div class="print-dialog__backdrop" (click)="fecharMenuImpressao()"></div>
+      <div class="print-dialog__card" role="dialog" aria-modal="true" aria-label="Opcoes de impressao">
+        <div class="print-dialog__header">
+          <div>
+            <p class="print-dialog__title">Opcoes de impressao</p>
+            <p class="print-dialog__subtitle">Selecione o documento desejado.</p>
+          </div>
+          <button type="button" class="print-dialog__close" (click)="fecharMenuImpressao()" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="print-dialog__actions">
+          <button type="button" class="btn-primary" (click)="imprimirDenuncia()">Ficha completa da denuncia</button>
+          <button type="button" class="btn-outline" (click)="imprimirConselhoTutelar()">Ficha de notificacao ao Conselho Tutelar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</app-tela-padrao>

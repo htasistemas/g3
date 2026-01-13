@@ -34,7 +34,6 @@ export const menuSections: MenuItem[] = [
     children: [
       { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
       { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
-      { label: 'BI Gerencial', icon: faGauge, route: '/dashboard/gerencial' },
     ],
   },
   {
@@ -82,6 +81,7 @@ export const menuSections: MenuItem[] = [
       { label: 'Registro de visitas', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
       { label: 'Matriculas', icon: faClipboardList, route: '/atendimentos/cursos' },
       { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' },
+      { label: 'Registro de violencia contra crianca e adolescente', icon: faClipboardList, route: '/atendimentos/ocorrencias-crianca' },
     ],
   },
   {
