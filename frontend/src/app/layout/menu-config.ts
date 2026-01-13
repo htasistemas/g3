@@ -81,7 +81,7 @@ export const menuSections: MenuItem[] = [
       { label: 'Registro de visitas', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
       { label: 'Matriculas', icon: faClipboardList, route: '/atendimentos/cursos' },
       { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' },
-      { label: 'Registro de violencia contra crianca e adolescente', icon: faClipboardList, route: '/atendimentos/ocorrencias-crianca' },
+      { label: 'Ocorrencias', icon: faClipboardList, route: '/atendimentos/ocorrencias-crianca' },
     ],
   },
   {

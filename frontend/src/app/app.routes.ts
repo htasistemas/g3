@@ -104,7 +104,7 @@ export const routes: Routes = [
       {
         path: 'atendimentos/ocorrencias-crianca',
         component: OcorrenciasCriancaComponent,
-        data: { title: 'Registro de violencia contra crianca e adolescente' }
+        data: { title: 'Ocorrencias' }
       },
       {
         path: 'administrativo/patrimonio',
