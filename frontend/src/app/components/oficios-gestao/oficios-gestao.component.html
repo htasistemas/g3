@@ -229,8 +229,8 @@
       </div>
 
       <div formGroupName="conteudo" class="field-grid cols-2">
-        <div class="field-row full" *ngIf="!editingId">
-          <label class="field">Buscar oficio
+        <div class="field-row full field-row--buscar-oficio" *ngIf="!editingId">
+          <label class="field field--buscar-oficio">Buscar oficio
             <input
               [(ngModel)]="termoBuscarOficio"
               [ngModelOptions]="{ standalone: true }"

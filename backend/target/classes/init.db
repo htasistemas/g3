@@ -189,67 +189,83 @@ SELECT 1, '1.0.0', 'VersÃƒÂ£o inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 UPDATE versao_sistema
-SET versao = '1.01.0',
+SET versao = '1.1.0',
     descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.01.0';
+  AND versao <> '1.1.0';
 
 UPDATE versao_sistema
-SET versao = '1.01.4',
+SET versao = '1.1.4',
     descricao = 'Gestao de oficios e documentos com anexos de imagens, dashboard de acompanhamento, cadastro de feriados para calculo de prazos em dias uteis e ajustes no rodape/assinaturas e anexos.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.01.4';
+  AND versao <> '1.1.4';
 
 UPDATE versao_sistema
-SET versao = '1.00.0'
+SET versao = '1.0.0'
 WHERE id = 1
-  AND versao = '1.0.0';
+  AND versao = '1.00.0';
+
+UPDATE versao_sistema
+SET versao = regexp_replace(versao, '^1\.00\.(\d+)$', '1.0.\1')
+WHERE versao ~ '^1\.00\.\d+$';
+
+UPDATE versao_sistema
+SET versao = regexp_replace(versao, '^1\.01\.(\d+)$', '1.1.\1')
+WHERE versao ~ '^1\.01\.\d+$';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.01.0', 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.', NOW()
+SELECT '1.1.0', 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.01.0'
+  WHERE versao = '1.1.0'
     AND descricao = 'Ajustes no chamado tecnico (destino de envio, detalhes no historico e filtros por status), melhorias no controle de estoque (mascara do valor unitario, entrada de produtos, opcoes de categoria/unidade/localizacao e dashboard como primeira aba) e correcao do botao Fechar.'
 );
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.01.2', 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).', NOW()
+SELECT '1.1.2', 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.01.2'
+  WHERE versao = '1.1.2'
     AND descricao = 'Melhorias na tela de oficios e documentos (fluxo de cadastro, impressao padrao do oficio, anexos de PDF assinado, ajustes de layout e validacoes).'
 );
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.01.3', 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.', NOW()
+SELECT '1.1.3', 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.01.3'
+  WHERE versao = '1.1.3'
     AND descricao = 'Correcao de registros duplicados de versao e ajustes no fluxo de impressao/rodape do oficio.'
 );
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.01.4', 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.', NOW()
+SELECT '1.1.4', 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
   FROM historico_versao_sistema
-  WHERE versao = '1.01.4'
+  WHERE versao = '1.1.4'
     AND descricao = 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.'
 );
 
 UPDATE historico_versao_sistema
-SET versao = '1.00.0'
-WHERE versao = '1.0.0';
+SET versao = '1.0.0'
+WHERE versao = '1.00.0';
 
 UPDATE historico_versao_sistema
-SET versao = '1.00.5'
-WHERE versao = '1.0.5';
+SET versao = '1.0.5'
+WHERE versao = '1.00.5';
+
+UPDATE historico_versao_sistema
+SET versao = regexp_replace(versao, '^1\.00\.(\d+)$', '1.0.\1')
+WHERE versao ~ '^1\.00\.\d+$';
+
+UPDATE historico_versao_sistema
+SET versao = regexp_replace(versao, '^1\.01\.(\d+)$', '1.1.\1')
+WHERE versao ~ '^1\.01\.\d+$';
 
 
 CREATE TABLE IF NOT EXISTS cadastro_voluntario (
@@ -1584,6 +1600,9 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos (
   horario_inicial TIME,
   duracao_horas INTEGER NOT NULL DEFAULT 0,
   dias_semana TEXT,
+  faixa_etaria TEXT,
+  vaga_preferencial_idosos BOOLEAN NOT NULL DEFAULT FALSE,
+  sexo_permitido VARCHAR(20),
   restricoes TEXT,
   profissional VARCHAR(150),
   sala_id BIGINT REFERENCES salas_unidade(id) ON DELETE SET NULL,
@@ -1599,6 +1618,15 @@ CREATE INDEX IF NOT EXISTS cursos_atendimentos_status_idx
   ON cursos_atendimentos (status);
 CREATE INDEX IF NOT EXISTS cursos_atendimentos_sala_idx
   ON cursos_atendimentos (sala_id);
+
+ALTER TABLE cursos_atendimentos
+  ADD COLUMN IF NOT EXISTS faixa_etaria TEXT;
+
+ALTER TABLE cursos_atendimentos
+  ADD COLUMN IF NOT EXISTS vaga_preferencial_idosos BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE cursos_atendimentos
+  ADD COLUMN IF NOT EXISTS sexo_permitido VARCHAR(20);
 
 CREATE TABLE IF NOT EXISTS cursos_atendimentos_matriculas (
   id BIGSERIAL PRIMARY KEY,
@@ -1923,6 +1951,75 @@ CREATE INDEX IF NOT EXISTS oficios_tramites_oficio_idx
   ON oficios_tramites (oficio_id);
 CREATE INDEX IF NOT EXISTS oficios_imagens_oficio_idx
   ON oficios_imagens (oficio_id);
+
+CREATE TABLE IF NOT EXISTS ocorrencia_crianca (
+  id BIGSERIAL PRIMARY KEY,
+  data_preenchimento DATE NOT NULL,
+  local_violencia VARCHAR(60),
+  local_violencia_outro VARCHAR(200),
+  violencia_motivada_por JSONB,
+  violencia_motivada_outro VARCHAR(200),
+  violencia_praticada_por JSONB,
+  violencia_praticada_outro VARCHAR(200),
+  outras_violacoes JSONB,
+  vitima_nome VARCHAR(200) NOT NULL,
+  vitima_idade INTEGER NOT NULL,
+  vitima_raca_cor VARCHAR(40),
+  vitima_identidade_genero VARCHAR(60),
+  vitima_orientacao_sexual VARCHAR(40),
+  vitima_orientacao_outro VARCHAR(120),
+  vitima_escolaridade VARCHAR(40),
+  vitima_responsavel_tipo VARCHAR(20),
+  vitima_responsavel_nome VARCHAR(200),
+  vitima_telefone_responsavel VARCHAR(40),
+  vitima_endereco_logradouro VARCHAR(200),
+  vitima_endereco_complemento VARCHAR(200),
+  vitima_endereco_bairro VARCHAR(120),
+  vitima_endereco_municipio VARCHAR(120),
+  autor_nome VARCHAR(200),
+  autor_idade INTEGER,
+  autor_nao_consta BOOLEAN,
+  autor_parentesco VARCHAR(20),
+  autor_parentesco_grau VARCHAR(200),
+  autor_responsavel_tipo VARCHAR(20),
+  autor_responsavel_nome VARCHAR(200),
+  autor_responsavel_telefone VARCHAR(40),
+  autor_responsavel_nao_consta BOOLEAN,
+  autor_endereco_logradouro VARCHAR(200),
+  autor_endereco_complemento VARCHAR(200),
+  autor_endereco_bairro VARCHAR(120),
+  autor_endereco_municipio VARCHAR(120),
+  autor_endereco_nao_consta BOOLEAN,
+  tipificacao_violencia JSONB,
+  tipificacao_psicologica JSONB,
+  tipificacao_sexual JSONB,
+  violencia_autoprovocada JSONB,
+  outro_tipo_violencia TEXT,
+  resumo_violencia TEXT NOT NULL,
+  encaminhar_conselho BOOLEAN,
+  encaminhar_motivo TEXT,
+  data_envio_conselho DATE,
+  denuncia_origem JSONB,
+  denuncia_origem_outro VARCHAR(200),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS ocorrencia_crianca_anexo (
+  id BIGSERIAL PRIMARY KEY,
+  ocorrencia_id BIGINT NOT NULL REFERENCES ocorrencia_crianca(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(200) NOT NULL,
+  tipo_mime VARCHAR(120) NOT NULL,
+  conteudo_base64 TEXT NOT NULL,
+  ordem INTEGER NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS ocorrencia_crianca_data_idx
+  ON ocorrencia_crianca (data_preenchimento DESC);
+CREATE INDEX IF NOT EXISTS ocorrencia_crianca_anexo_ocorrencia_idx
+  ON ocorrencia_crianca_anexo (ocorrencia_id);
 
 CREATE TABLE IF NOT EXISTS feriados (
   id BIGSERIAL PRIMARY KEY,

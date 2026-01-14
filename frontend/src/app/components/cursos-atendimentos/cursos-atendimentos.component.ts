@@ -94,6 +94,15 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     'Sábado'
   ];
 
+  readonly faixasEtarias = [
+    '0 a 5 anos',
+    '6 a 11 anos',
+    '12 a 17 anos',
+    '18 a 29 anos',
+    '30 a 59 anos',
+    '60 anos ou mais'
+  ];
+
   activeTab: StepTab['id'] = 'dashboard';
   feedback: string | null = null;
   printDialogOpen = false;
@@ -202,6 +211,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       horarioInicial: ['', Validators.required],
       duracaoHoras: [1, [Validators.required, Validators.min(1)]],
       diasSemana: this.fb.control<string[]>([], Validators.required),
+      faixasEtarias: this.fb.control<string[]>([]),
+      vagaPreferencialIdosos: [false],
+      sexoPermitido: ['Todos'],
       restricoes: [''],
       profissional: ['', Validators.required],
       salaId: [null, Validators.required]
@@ -251,44 +263,18 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       }
     });
   }
-
-  addRoom(): void {
-    if (!this.unidadeAtualId) {
-      this.feedback = 'Selecione uma unidade ativa para cadastrar salas.';
-      return;
-    }
-    const nome = window.prompt('Nome da sala');
-    if (!nome || !nome.trim()) return;
-
-    this.roomsLoading = true;
-    this.salasService.create({ nome: nome.trim(), unidadeId: this.unidadeAtualId }).subscribe({
-      next: (room) => {
-        this.rooms = [...this.rooms, room].sort((a, b) => a.nome.localeCompare(b.nome));
-        this.courseForm.patchValue({ salaId: room.id });
-        this.roomsLoading = false;
-      },
-      error: (error) => {
-        this.roomsLoading = false;
-        const message = error?.error?.message || 'Nao foi possível salvar a sala.';
-        this.feedback = message;
-      }
-    });
-  }
-
-  fetchRecords(): void {
-    this.service.list().subscribe({
-      next: (records) => {
-        this.records = records.map((record) => this.normalizeRecord(record));
-        this.refreshDashboardSnapshot();
-      },
-      error: () => {
-        this.feedback = 'Nao foi possível carregar os registros. Tente novamente.';
-      }
-    });
+  get estadoAcoesToolbar(): EstadoAcoesCrud {
+    return {
+      excluir: !this.editingId,
+      imprimir: true
+    };
   }
 
   get activeTabIndex(): number {
-    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+    return Math.max(
+      0,
+      this.tabs.findIndex((tab) => tab.id === this.activeTab)
+    );
   }
 
   get hasPreviousTab(): boolean {
@@ -300,169 +286,165 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   }
 
   get nextTabLabel(): string {
-    return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
+    if (!this.hasNextTab) return '';
+    return this.tabs[this.activeTabIndex + 1].label;
   }
 
-  get currentCourse(): CourseRecord | undefined {
-    return this.records.find((course) => course.id === this.editingId);
-  }
-
-  changeTab(tab: StepTab['id']): void {
-    this.activeTab = tab;
+  get currentCourse(): CourseRecord | null {
+    const courseId = this.editingId ?? this.enrollmentForm.value.courseId;
+    if (!courseId) return null;
+    return this.records.find((record) => record.id === courseId) ?? null;
   }
 
   get visibleWidgets(): DashboardWidget[] {
-    const map = new Map(this.dashboardWidgets.map((widget) => [widget.id, widget] as const));
-    const hidden = new Set(this.widgetState.hidden);
-
-    return this.normalizeWidgetState()
-      .map((id) => map.get(id))
-      .filter((widget): widget is DashboardWidget => !!widget && !hidden.has(widget.id));
-  }
-
-  isWidgetEnabled(widgetId: string): boolean {
-    return !this.widgetState.hidden.includes(widgetId);
-  }
-
-  toggleWidget(widgetId: string): void {
-    const hidden = new Set(this.widgetState.hidden);
-    hidden.has(widgetId) ? hidden.delete(widgetId) : hidden.add(widgetId);
-    this.widgetState.hidden = Array.from(hidden);
-    this.persistWidgetPreferences();
-  }
-
-  moveWidget(widgetId: string, direction: 'up' | 'down'): void {
     const order = this.normalizeWidgetState();
-    const currentIndex = order.indexOf(widgetId);
-    if (currentIndex < 0) return;
-
-    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (targetIndex < 0 || targetIndex >= order.length) return;
-
-    [order[currentIndex], order[targetIndex]] = [order[targetIndex], order[currentIndex]];
-    this.widgetState.order = order;
-    this.persistWidgetPreferences();
+    return order
+      .map((id) => this.dashboardWidgets.find((widget) => widget.id === id))
+      .filter((widget): widget is DashboardWidget => Boolean(widget))
+      .filter((widget) => !this.widgetState.hidden.includes(widget.id));
   }
 
-  trackWidget(_index: number, widget: DashboardWidget): string {
+  trackWidget(_: number, widget: DashboardWidget): string {
     return widget.id;
   }
 
-  goToNextTab(): void {
-    if (this.hasNextTab) this.changeTab(this.tabs[this.activeTabIndex + 1].id);
+  isWidgetEnabled(id: string): boolean {
+    return !this.widgetState.hidden.includes(id);
+  }
+
+  toggleWidget(id: string): void {
+    const hidden = new Set(this.widgetState.hidden);
+    if (hidden.has(id)) {
+      hidden.delete(id);
+    } else {
+      hidden.add(id);
+    }
+    this.widgetState = { ...this.widgetState, hidden: Array.from(hidden) };
+    this.persistWidgetPreferences();
+  }
+
+  moveWidget(id: string, direction: 'up' | 'down'): void {
+    const order = [...this.normalizeWidgetState()];
+    const index = order.indexOf(id);
+    if (index < 0) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= order.length) return;
+
+    const [removed] = order.splice(index, 1);
+    order.splice(targetIndex, 0, removed);
+    this.widgetState = { ...this.widgetState, order };
+    this.persistWidgetPreferences();
+  }
+
+  changeTab(tabId: StepTab['id']): void {
+    if (this.activeTab === tabId) return;
+    this.activeTab = tabId;
   }
 
   goToPreviousTab(): void {
-    if (this.hasPreviousTab) this.changeTab(this.tabs[this.activeTabIndex - 1].id);
+    if (!this.hasPreviousTab) return;
+    this.changeTab(this.tabs[this.activeTabIndex - 1].id);
   }
 
-  toggleSelection(path: (string | number)[], option: string): void {
-    const control = this.courseForm.get(path);
-    const current = new Set(control?.value ?? []);
-    current.has(option) ? current.delete(option) : current.add(option);
-    control?.setValue(Array.from(current));
-  }
-
-  selectionChecked(path: (string | number)[], option: string): boolean {
-    const control = this.courseForm.get(path);
-    return (control?.value as string[] | undefined)?.includes(option) ?? false;
-  }
-
-  getRoomName(course: CourseRecord): string {
-    return course.sala?.nome ?? this.rooms.find((room) => room.id === course.salaId)?.nome ?? 'Sem sala';
-  }
-
-  private hasRoomConflict(
-    payload: Pick<CourseRecord, 'salaId' | 'horarioInicial' | 'duracaoHoras' | 'diasSemana'>,
-    excludeId?: string | null
-  ): boolean {
-    if (!payload.salaId) return false;
-    const [candidateHour, candidateMinute] = (payload.horarioInicial || '00:00').split(':').map(Number);
-    const candidateStart = candidateHour * 60 + (candidateMinute || 0);
-    const candidateEnd = candidateStart + Number(payload.duracaoHoras ?? 0) * 60;
-    const candidateDays = new Set(payload.diasSemana || []);
-
-    return this.records.some((record) => {
-      if (record.id === excludeId) return false;
-      if (!record.salaId || record.salaId !== payload.salaId) return false;
-      const sharesDay = record.diasSemana.some((dia) => candidateDays.has(dia));
-      if (!sharesDay) return false;
-      const [hour, minute] = record.horarioInicial.split(':').map(Number);
-      const start = hour * 60 + (minute || 0);
-      const end = start + record.duracaoHoras * 60;
-      return candidateStart < end && start < candidateEnd;
-    });
-  }
-
-  submit(): void {
-    this.feedback = null;
-    if (this.courseForm.invalid) {
-      this.courseForm.markAllAsTouched();
-      this.feedback = 'Preencha os campos obrigatórios antes de salvar.';
-      return;
-    }
-
-    if (this.hasRoomConflict(this.courseForm.value, this.editingId)) {
-      this.feedback = 'ja existe um curso/atendimento na mesma sala e horário.';
-      return;
-    }
-
-    const payload = this.courseForm.value;
-    this.saving = true;
-
-    if (this.editingId) {
-      this.service
-        .update(this.editingId, {
-          ...payload,
-          diasSemana: payload.diasSemana ?? [],
-          enrollments: this.currentCourse?.enrollments ?? [],
-          waitlist: this.currentCourse?.waitlist ?? []
-        })
-        .subscribe({
-          next: (updated) => {
-            this.replaceRecord(updated);
-            this.feedback = 'Cadastro salvo com sucesso!';
-            this.saving = false;
-          },
-          error: () => {
-            this.feedback = 'Nao foi possível salvar o cadastro. Tente novamente.';
-            this.saving = false;
-          }
-        });
-    } else {
-      this.service
-        .create({
-          ...payload,
-          diasSemana: payload.diasSemana ?? [],
-          enrollments: [],
-          waitlist: []
-        })
-        .subscribe({
-          next: (created) => {
-            this.records = [this.normalizeRecord(created), ...this.records];
-            this.editingId = created.id;
-            this.enrollmentForm.patchValue({ courseId: created.id });
-            this.feedback = 'Cadastro salvo com sucesso!';
-            this.saving = false;
-            this.refreshDashboardSnapshot();
-          },
-          error: () => {
-            this.feedback = 'Nao foi possível salvar o cadastro. Tente novamente.';
-            this.saving = false;
-          }
-        });
-    }
+  goToNextTab(): void {
+    if (!this.hasNextTab) return;
+    this.changeTab(this.tabs[this.activeTabIndex + 1].id);
   }
 
   dismissFeedback(): void {
     this.feedback = null;
   }
 
-  get estadoAcoesToolbar(): EstadoAcoesCrud {
-    return {
-      excluir: !this.editingId,
-      imprimir: true
+  selectionChecked(path: string[], value: string): boolean {
+    const control = this.courseForm.get(path);
+    const current = control?.value as string[] | null;
+    return Array.isArray(current) && current.includes(value);
+  }
+
+  toggleSelection(path: string[], value: string): void {
+    const control = this.courseForm.get(path);
+    if (!control) return;
+    const current = (control.value as string[] | null) ?? [];
+    const updated = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value];
+    control.setValue(updated);
+    control.markAsDirty();
+  }
+
+  getRoomName(course: CourseRecord): string {
+    const roomId = course.salaId ?? course.sala?.id;
+    if (roomId) {
+      const room = this.rooms.find((item) => item.id === roomId);
+      if (room) return room.nome;
+    }
+    return course.sala?.nome ?? 'Nao informado';
+  }
+
+  submit(): void {
+    this.feedback = null;
+    if (this.courseForm.invalid) {
+      this.courseForm.markAllAsTouched();
+      this.feedback = 'Preencha os campos obrigatorios antes de salvar.';
+      this.changeTab('dados');
+      return;
+    }
+
+    const formValue = this.courseForm.getRawValue();
+    const basePayload = {
+      ...formValue,
+      diasSemana: formValue.diasSemana ?? [],
+      imagem: formValue.imagem || null,
+      restricoes: formValue.restricoes || null,
+      salaId: formValue.salaId || null
     };
+    const existing = this.currentCourse;
+    const payload = {
+      ...basePayload,
+      enrollments: existing?.enrollments ?? [],
+      waitlist: existing?.waitlist ?? [],
+      vagasDisponiveis: existing?.vagasDisponiveis ?? basePayload.vagasTotais
+    };
+
+    this.saving = true;
+    const request$ = this.editingId
+      ? this.service.update(this.editingId, payload)
+      : this.service.create(payload);
+
+    request$.subscribe({
+      next: (record) => {
+        const normalized = this.normalizeRecord(record);
+        if (this.editingId) {
+          this.replaceRecord(normalized);
+        } else {
+          this.records = [normalized, ...this.records];
+          this.refreshDashboardSnapshot();
+          this.loadCourse(normalized.id);
+        }
+        this.saving = false;
+      },
+      error: () => {
+        this.feedback = 'Nao foi possivel salvar o cadastro. Tente novamente.';
+        this.saving = false;
+      }
+    });
+  }
+
+  fetchRecords(): void {
+    this.feedback = null;
+    this.service.list().subscribe({
+      next: (records) => {
+        this.records = records.map((record) => this.normalizeRecord(record));
+        this.refreshDashboardSnapshot();
+        if (this.editingId) {
+          this.loadCourse(this.editingId);
+        }
+      },
+      error: () => {
+        this.feedback = 'Nao foi possivel carregar os registros. Tente novamente.';
+      }
+    });
   }
 
   onBuscar(): void {
@@ -564,6 +546,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       horarioInicial: course.horarioInicial,
       duracaoHoras: course.duracaoHoras,
       diasSemana: course.diasSemana,
+      faixasEtarias: course.faixasEtarias ?? [],
+      vagaPreferencialIdosos: course.vagaPreferencialIdosos ?? false,
+      sexoPermitido: course.sexoPermitido ?? 'Todos',
       restricoes: course.restricoes ?? '',
       profissional: course.profissional,
       salaId: course.salaId ?? course.sala?.id ?? null
@@ -583,6 +568,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       horarioInicial: '',
       duracaoHoras: 1,
       diasSemana: [],
+      faixasEtarias: [],
+      vagaPreferencialIdosos: false,
+      sexoPermitido: 'Todos',
       restricoes: '',
       profissional: '',
       salaId: null
@@ -903,11 +891,14 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           } else {
             this.professionalSearchLoading = true;
           }
+        }),
+        switchMap((term) => {
+          if (!term) return of([]);
+          return this.professionalService.list(term).pipe(catchError(() => of([])));
         })
       )
-      .subscribe((term) => {
-        if (!term) return;
-        this.professionalResults = this.professionalService.search(term);
+      .subscribe((records) => {
+        this.professionalResults = (records ?? []).slice(0, 8);
         this.professionalSearchLoading = false;
       });
   }
@@ -1018,6 +1009,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       imagem: record.imagem ?? null,
       restricoes: record.restricoes ?? null,
       diasSemana: record.diasSemana ?? [],
+      faixasEtarias: record.faixasEtarias ?? [],
+      vagaPreferencialIdosos: record.vagaPreferencialIdosos ?? false,
+      sexoPermitido: record.sexoPermitido ?? 'Todos',
       salaId: record.salaId ?? record.sala?.id ?? null,
       enrollments: (record.enrollments ?? []).map((enrollment) => ({
         ...enrollment,
@@ -1054,4 +1048,6 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.persistCourse(this.currentCourse);
   }
 }
+
+
 

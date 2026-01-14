@@ -19,6 +19,9 @@ public class CursoAtendimentoResponse {
   private String horarioInicial;
   private Integer duracaoHoras;
   private List<String> diasSemana = new ArrayList<>();
+  private List<String> faixasEtarias = new ArrayList<>();
+  private Boolean vagaPreferencialIdosos;
+  private String sexoPermitido;
   private String restricoes;
   private String profissional;
   private String salaId;
@@ -131,6 +134,30 @@ public class CursoAtendimentoResponse {
 
   public void setDiasSemana(List<String> diasSemana) {
     this.diasSemana = diasSemana;
+  }
+
+  public List<String> getFaixasEtarias() {
+    return faixasEtarias;
+  }
+
+  public void setFaixasEtarias(List<String> faixasEtarias) {
+    this.faixasEtarias = faixasEtarias;
+  }
+
+  public Boolean getVagaPreferencialIdosos() {
+    return vagaPreferencialIdosos;
+  }
+
+  public void setVagaPreferencialIdosos(Boolean vagaPreferencialIdosos) {
+    this.vagaPreferencialIdosos = vagaPreferencialIdosos;
+  }
+
+  public String getSexoPermitido() {
+    return sexoPermitido;
+  }
+
+  public void setSexoPermitido(String sexoPermitido) {
+    this.sexoPermitido = sexoPermitido;
   }
 
   public String getRestricoes() {

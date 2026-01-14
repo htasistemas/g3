@@ -8,6 +8,7 @@ import {
 } from '../../services/ocorrencia-crianca.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { BarraAcoesCrudComponent } from '../compartilhado/barra-acoes-crud/barra-acoes-crud.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 
@@ -19,7 +20,14 @@ interface StepTab {
 @Component({
   selector: 'app-ocorrencias-crianca',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TelaPadraoComponent,
+    BarraAcoesCrudComponent,
+    PopupMessagesComponent
+  ],
   templateUrl: './ocorrencias-crianca.component.html',
   styleUrl: './ocorrencias-crianca.component.scss'
 })

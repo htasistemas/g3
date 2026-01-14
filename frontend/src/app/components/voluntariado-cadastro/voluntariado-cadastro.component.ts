@@ -28,7 +28,7 @@ type VolunteerRecord = VolunteerPayload & { id: string };
 })
 export class VoluntariadoCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
-  activeTab = 'dados';
+  activeTab = 'lista';
   saving = false;
   feedback: string | null = null;
   popupErros: string[] = [];
@@ -55,12 +55,12 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
 
   tabs: StepTab[] = [
+    { id: 'lista', label: 'Listagem de voluntarios' },
     { id: 'dados', label: 'Dados Pessoais' },
     { id: 'contato', label: 'Contato e Competencias' },
-    { id: 'endereço', label: 'EndereÃ§o' },
+    { id: 'endereço', label: 'Endereco' },
     { id: 'disponibilidade', label: 'Disponibilidade' },
-    { id: 'termos', label: 'Termos e Documentos' },
-    { id: 'lista', label: 'Listagem de voluntarios' }
+    { id: 'termos', label: 'Termos e Documentos' }
   ];
 
   volunteers: VolunteerRecord[] = [];
@@ -207,6 +207,9 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
   changeTab(tab: string): void {
     this.activeTab = tab;
+    if (tab === 'lista') {
+      this.loadVolunteers();
+    }
   }
 
   goToNextTab(): void {
@@ -822,7 +825,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       }
     });
 
-    this.activeTab = 'dados';
+    this.activeTab = 'lista';
     this.profissionalResultados = [];
     this.profissionalBusca = '';
     this.voluntarioSelecionado = null;

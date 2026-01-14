@@ -124,6 +124,38 @@
         </div>
       </div>
 
+      <div class="field day-selector horizontal full">
+        <p class="field-title">Faixa etaria</p>
+        <div class="chips">
+          <label *ngFor="let faixa of faixasEtarias" class="chip">
+            <input
+              type="checkbox"
+              [checked]="selectionChecked(['faixasEtarias'], faixa)"
+              (change)="toggleSelection(['faixasEtarias'], faixa)"
+            />
+            <span>{{ faixa }}</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field-grid cols-3 dados-grid full">
+        <label class="field">
+          Vaga preferencial para idosos
+          <label class="inline-check">
+            <input type="checkbox" formControlName="vagaPreferencialIdosos" />
+            <span>Sim</span>
+          </label>
+        </label>
+        <label class="field">
+          Sexo permitido
+          <select formControlName="sexoPermitido">
+            <option value="Todos">Todos</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Masculino">Masculino</option>
+          </select>
+        </label>
+      </div>
+
       <div class="field-grid cols-4 dados-grid load-room-grid">
         <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
         <label class="field">
@@ -141,7 +173,6 @@
               <option value="" disabled [selected]="!courseForm.value.salaId">Selecione a sala</option>
               <option *ngFor="let room of rooms" [value]="room.id">{{ room.nome }}</option>
             </select>
-            <button type="button" class="ghost" (click)="addRoom()">Cadastrar sala</button>
           </div>
           <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
         </div>

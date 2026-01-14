@@ -52,8 +52,61 @@ O agente NAO DEVE:
   - `type="button"` por padrao.
   - `type="submit"` apenas quando estritamente necessario.
 - Evitar overlays capturando clique quando inativos (ajustar `pointer-events` e `z-index`).
-- Todas as telas novas ou ja criadas precisam gerar popup de error message.
+- Todas as telas novas ou ja criadas precisam gerar popup de error message.     
 - Todo campo obrigatorio deve exibir (*) ao lado do titulo do campo e, ao clicar em "salvar" sem preenchimento, deve apresentar mensagem de erro clara ao usuario.
+
+### UI/UX / Layout / Padroes de Tela
+- E PROIBIDO renderizar titulos/headers/subtitulos duplicados na mesma area visual.
+- Antes de finalizar qualquer tela, validar que existe apenas 1 titulo principal (ex.: h1 / mat-card-title / page-title / header-component).
+- Se houver componentes globais de header (ex.: PageHeader), a tela NAO pode criar outro titulo redundante.
+- Evitar CSS que cause sobreposicao (position:absolute indevido, margin-top negativo, z-index conflitando).
+- Toda tela deve ser verificada visualmente para garantir: "Nenhum texto sobreposto" (titulos, comentarios, breadcrumbs, subtitulos).
+
+## Padrao oficial de layout de telas - Sistema G3
+
+1. Estrutura do topo da tela
+- Toda tela deve conter apenas UM titulo principal.
+- A hierarquia obrigatoria e:
+  a) Header global do sistema (faixa verde superior, sem titulo da tela).
+  b) Identificacao do modulo em texto pequeno e cinza (ex.: UNIDADE ASSISTENCIAL).
+  c) Titulo principal da tela em destaque (ex.: Cadastro de unidades).
+  d) Subtitulo explicativo opcional alinhado a direita.
+- E proibido renderizar titulos duplicados ou sobrepostos.
+
+2. Barra de acoes (obrigatoria)
+- Deve ficar logo abaixo do titulo.
+- Deve ser horizontal, com botoes contendo icone + texto.
+- Ordem fixa e obrigatoria dos botoes:
+  Buscar -> Novo -> Salvar -> Cancelar -> Excluir -> Imprimir -> Fechar
+- A ordem NAO pode ser alterada.
+- O botao Excluir deve ter destaque visual de alerta.
+
+3. Navegacao por etapas (quando aplicavel)
+- Telas com multiplas secoes devem usar navegacao por etapas numeradas.
+- Cada etapa deve possuir numero e rotulo textual.
+- A etapa ativa deve ter destaque visual em verde.
+- As etapas devem estar agrupadas em um card horizontal abaixo da barra de acoes.
+- Evitar multiplas abas soltas; priorizar fluxo guiado.
+
+4. Conteudo das etapas
+- Cada etapa deve abrir em um card principal.
+- O card deve conter:
+  - Titulo interno destacado (badge ou label verde).
+  - Texto explicativo auxiliar.
+- Campos devem ser bem espacos, alinhados e legiveis.
+
+5. Regras visuais obrigatorias
+- E PROIBIDO texto sobreposto.
+- E PROIBIDO duplicar titulo (header + tela).
+- Evitar uso de position:absolute sem justificativa.
+- Evitar margin negativa para ajuste visual.
+- Evitar conflitos de z-index.
+- O layout deve ser limpo, consistente e padronizado.
+
+6. Aplicacao da regra
+- Toda nova tela criada deve seguir este padrao.
+- Telas fora do padrao devem ser ajustadas progressivamente.
+- A tela Ocorrencias deve seguir exatamente este modelo.
 
 ### Carregamento automatico de dados nas telas
 - Todas as telas do sistema G3 DEVEM carregar e exibir os dados automaticamente ao serem abertas.

@@ -1,6 +1,7 @@
 <app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
+  [mostrarToolbar]="false"
   [mostrarFechar]="true"
   (buscar)="abrirBusca()"
   (salvar)="onSalvar()"
@@ -14,14 +15,30 @@
 
   <header class="page-title" slot="titulo">
     <div class="page-title__content">
-      <p class="page-title__eyebrow">Atendimentos</p>
+      <div class="page-title__row">
+        <p class="page-title__eyebrow">Atendimentos</p>
+        <div class="page-title__comment">registro de ocorrencias</div>
+      </div>
       <p class="page-title__label">Ocorrencias</p>
-      <p class="page-title__note">Formulario oficial para registro de ocorrencias e encaminhamentos.</p>
     </div>
-    <div class="page-title__comment">Formulario oficial para registro de ocorrencias e encaminhamentos.</div>
   </header>
 
   <section class="cadastro">
+    <div class="page-actions-inline">
+      <app-barra-acoes-crud
+        [acoes]="acoesToolbar"
+        [desabilitado]="acoesDesabilitadas"
+        [mostrarFechar]="true"
+        (imprimir)="onImprimir()"
+        (buscar)="abrirBusca()"
+        (salvar)="onSalvar()"
+        (cancelar)="onCancelar()"
+        (excluir)="onExcluir()"
+        (novo)="onNovo()"
+        (fechar)="closeForm()"
+      ></app-barra-acoes-crud>
+    </div>
+
     <div class="tab-card tab-card--tabs">
       <div class="tab-shell">
         <p class="tab-shell__title">Navegue pelas etapas do formulario</p>
@@ -64,7 +81,7 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Marque as opcoes conforme a ficha oficial.</p>
+            <p class="muted">Violencia contra a crianca e o adolescente</p>
           </div>
         </div>
 
@@ -107,7 +124,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">7) Violencia motivada por</p>
+          <p class="form-block__title">2) Violencia motivada por</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of violenciaMotivadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaMotivadaPor', opcao)" (change)="alternarSelecao('violenciaMotivadaPor', opcao)" />
@@ -128,7 +145,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">8) Violencia praticada por</p>
+          <p class="form-block__title">3) Violencia praticada por</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of violenciaPraticadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaPraticadaPor', opcao)" (change)="alternarSelecao('violenciaPraticadaPor', opcao)" />
@@ -149,7 +166,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">10) Outras violacoes de direitos</p>
+          <p class="form-block__title">4) Outras violacoes de direitos</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of outrasViolacoesOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('outrasViolacoes', opcao)" (change)="alternarSelecao('outrasViolacoes', opcao)" />
@@ -185,7 +202,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.2 Raca/cor</p>
+          <p class="form-block__title">5) Raca/cor</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of racaCorOpcoes">
               <input type="radio" formControlName="vitimaRacaCor" [value]="opcao" />
@@ -195,7 +212,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.3 Identidade de genero</p>
+          <p class="form-block__title">6) Identidade de genero</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of identidadeGeneroOpcoes">
               <input type="radio" formControlName="vitimaIdentidadeGenero" [value]="opcao" />
@@ -205,7 +222,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.4 Orientacao sexual</p>
+          <p class="form-block__title">7) Orientacao sexual</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of orientacaoSexualOpcoes">
               <input type="radio" formControlName="vitimaOrientacaoSexual" [value]="opcao" />
@@ -226,7 +243,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.5 Escolaridade</p>
+          <p class="form-block__title">8) Escolaridade</p>
           <div class="options-grid options-grid--columns">
             <label class="radio-field" *ngFor="let opcao of escolaridadeOpcoes">
               <input type="radio" formControlName="vitimaEscolaridade" [value]="opcao" />
@@ -236,7 +253,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.6 Responsavel</p>
+          <p class="form-block__title">9) Responsavel</p>
           <div class="field-grid cols-3">
             <label class="radio-field">
               <input type="radio" formControlName="vitimaResponsavelTipo" value="Mae" />
@@ -262,7 +279,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2.8 Endereco da vitima</p>
+          <p class="form-block__title">10) Endereco da vitima</p>
           <div class="field-grid cols-2">
             <label class="field">Logradouro
               <input formControlName="vitimaEnderecoLogradouro" />
@@ -291,7 +308,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">3.1 Identificacao</p>
+          <p class="form-block__title">11) Identificacao</p>
           <div class="field-grid cols-3">
             <label class="field">Nome
               <input formControlName="autorNome" />
@@ -307,7 +324,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">3.2 Possui vinculo de parentesco?</p>
+          <p class="form-block__title">12) Possui vinculo de parentesco?</p>
           <div class="options-grid">
             <label class="radio-field">
               <input type="radio" formControlName="autorParentesco" value="Sim" />
@@ -332,7 +349,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">3.3 Nome do responsavel (quando crianca/adolescente)</p>
+          <p class="form-block__title">13) Nome do responsavel (quando crianca/adolescente)</p>
           <div class="field-grid cols-3">
             <label class="radio-field">
               <input type="radio" formControlName="autorResponsavelTipo" value="Mae" />
@@ -358,7 +375,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">3.4 Endereco do possivel autor</p>
+          <p class="form-block__title">14) Endereco do possivel autor</p>
           <div class="field-grid cols-2">
             <label class="field">Logradouro
               <input formControlName="autorEnderecoLogradouro" />
@@ -391,7 +408,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">4) Tipificacao da violencia</p>
+          <p class="form-block__title">15) Tipificacao da violencia</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of tipificacaoViolenciaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('tipificacaoViolencia', opcao)" (change)="alternarSelecao('tipificacaoViolencia', opcao)" />
@@ -421,7 +438,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">5) Violencia autoprovocada</p>
+          <p class="form-block__title">16) Violencia autoprovocada</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of violenciaAutoprovocadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaAutoprovocada', opcao)" (change)="alternarSelecao('violenciaAutoprovocada', opcao)" />
@@ -431,7 +448,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">6) Outro tipo de violencia (descreva)</p>
+          <p class="form-block__title">17) Outro tipo de violencia (descreva)</p>
           <label class="field full">
             <textarea rows="3" formControlName="outroTipoViolenciaDescricao"></textarea>
           </label>
@@ -449,7 +466,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">9) Resumo da violencia (ou suspeita)*</p>
+          <p class="form-block__title">18) Resumo da violencia (ou suspeita)*</p>
           <label class="field full" [class.invalid]="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
             <textarea rows="6" formControlName="resumoViolencia"></textarea>
             <span class="field-error" *ngIf="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
@@ -459,7 +476,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">11) Encaminhamento ao Conselho Tutelar</p>
+          <p class="form-block__title">19) Encaminhamento ao Conselho Tutelar</p>
           <div class="options-grid">
             <label class="radio-field">
               <input type="radio" name="encaminharConselho" [checked]="form.get('encaminharConselho')?.value === true" (change)="setEncaminharConselho(true)" />
@@ -492,7 +509,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">12) Como a denuncia chegou a ADRA</p>
+          <p class="form-block__title">20) Como a denuncia chegou a ADRA</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of denunciaOrigemOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('denunciaOrigem', opcao)" (change)="alternarSelecao('denunciaOrigem', opcao)" />
@@ -513,7 +530,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">13) Data de envio da ficha ao Conselho Tutelar</p>
+          <p class="form-block__title">21) Data de envio da ficha ao Conselho Tutelar</p>
           <label
             class="field"
             *ngIf="form.get('encaminharConselho')?.value === true"
@@ -528,7 +545,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">Anexos</p>
+          <p class="form-block__title">22) Anexos</p>
           <div class="anexo-actions">
             <label class="nav-button file-label">
               Adicionar anexos

@@ -928,10 +928,18 @@
   margin-top: 1rem;
 }
 
-.field-row.full {
-  grid-template-columns: 1fr auto;
-  align-items: end;
-}
+  .field-row.full {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .field-row.full.field-row--buscar-oficio {
+    grid-template-columns: 180px auto;
+  }
+
+  .field--buscar-oficio {
+    max-width: 180px;
+  }
 
 .field-row.full.field-row--filtro {
   grid-template-columns: 1fr 3fr !important;

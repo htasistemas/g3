@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CursoAtendimentoServiceImpl implements CursoAtendimentoService {
@@ -32,6 +33,7 @@ public class CursoAtendimentoServiceImpl implements CursoAtendimentoService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<CursoAtendimentoResponse> listar() {
     return repository.listar().stream()
         .sorted(Comparator.comparing(CursoAtendimento::getCriadoEm).reversed())

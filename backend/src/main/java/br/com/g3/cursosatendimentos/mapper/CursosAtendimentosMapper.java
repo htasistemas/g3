@@ -26,6 +26,7 @@ import org.hibernate.Hibernate;
 
 public final class CursosAtendimentosMapper {
   private static final String DIAS_SEMANA_DELIMITADOR = ";";
+  private static final String FAIXA_ETARIA_DELIMITADOR = ";";
   private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("HH:mm");
 
   private CursosAtendimentosMapper() {}
@@ -46,6 +47,10 @@ public final class CursosAtendimentosMapper {
     curso.setHorarioInicial(parseHorario(request.getHorarioInicial()));
     curso.setDuracaoHoras(request.getDuracaoHoras());
     curso.setDiasSemana(joinDiasSemana(request.getDiasSemana()));
+    curso.setFaixaEtaria(joinFaixasEtarias(request.getFaixasEtarias()));
+    curso.setVagaPreferencialIdosos(
+        request.getVagaPreferencialIdosos() != null ? request.getVagaPreferencialIdosos() : false);
+    curso.setSexoPermitido(request.getSexoPermitido());
     curso.setRestricoes(request.getRestricoes());
     curso.setProfissional(request.getProfissional());
     curso.setSala(sala);
@@ -83,6 +88,9 @@ public final class CursosAtendimentosMapper {
     response.setHorarioInicial(formatHorario(curso.getHorarioInicial()));
     response.setDuracaoHoras(curso.getDuracaoHoras());
     response.setDiasSemana(splitDiasSemana(curso.getDiasSemana()));
+    response.setFaixasEtarias(splitFaixasEtarias(curso.getFaixaEtaria()));
+    response.setVagaPreferencialIdosos(curso.getVagaPreferencialIdosos());
+    response.setSexoPermitido(curso.getSexoPermitido());
     response.setRestricoes(curso.getRestricoes());
     response.setProfissional(curso.getProfissional());
     response.setSalaId(curso.getSala() == null ? null : curso.getSala().getId().toString());
@@ -217,6 +225,23 @@ public final class CursosAtendimentosMapper {
   private static List<String> splitDiasSemana(String diasSemana) {
     if (diasSemana == null || diasSemana.trim().isEmpty()) return Collections.emptyList();
     return Arrays.stream(diasSemana.split(DIAS_SEMANA_DELIMITADOR))
+        .map(String::trim)
+        .filter((item) -> !item.trim().isEmpty())
+        .collect(Collectors.toList());
+  }
+
+  private static String joinFaixasEtarias(List<String> faixasEtarias) {
+    if (faixasEtarias == null || faixasEtarias.isEmpty()) return null;
+    return faixasEtarias.stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .filter((item) -> !item.trim().isEmpty())
+        .collect(Collectors.joining(FAIXA_ETARIA_DELIMITADOR));
+  }
+
+  private static List<String> splitFaixasEtarias(String faixasEtarias) {
+    if (faixasEtarias == null || faixasEtarias.trim().isEmpty()) return Collections.emptyList();
+    return Arrays.stream(faixasEtarias.split(FAIXA_ETARIA_DELIMITADOR))
         .map(String::trim)
         .filter((item) -> !item.trim().isEmpty())
         .collect(Collectors.toList());

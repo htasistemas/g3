@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "ocorrencia_crianca")
@@ -25,18 +27,21 @@ public class OcorrenciaCrianca {
   @Column(name = "local_violencia_outro", length = 200)
   private String localViolenciaOutro;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "violencia_motivada_por", columnDefinition = "jsonb")
   private String violenciaMotivadaPorJson;
 
   @Column(name = "violencia_motivada_outro", length = 200)
   private String violenciaMotivadaOutro;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "violencia_praticada_por", columnDefinition = "jsonb")
   private String violenciaPraticadaPorJson;
 
   @Column(name = "violencia_praticada_outro", length = 200)
   private String violenciaPraticadaOutro;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "outras_violacoes", columnDefinition = "jsonb")
   private String outrasViolacoesJson;
 
@@ -124,15 +129,19 @@ public class OcorrenciaCrianca {
   @Column(name = "autor_endereco_nao_consta")
   private Boolean autorEnderecoNaoConsta;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "tipificacao_violencia", columnDefinition = "jsonb")
   private String tipificacaoViolenciaJson;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "tipificacao_psicologica", columnDefinition = "jsonb")
   private String tipificacaoPsicologicaJson;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "tipificacao_sexual", columnDefinition = "jsonb")
   private String tipificacaoSexualJson;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "violencia_autoprovocada", columnDefinition = "jsonb")
   private String violenciaAutoprovocadaJson;
 
@@ -151,6 +160,7 @@ public class OcorrenciaCrianca {
   @Column(name = "data_envio_conselho")
   private LocalDate dataEnvioConselho;
 
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "denuncia_origem", columnDefinition = "jsonb")
   private String denunciaOrigemJson;
 

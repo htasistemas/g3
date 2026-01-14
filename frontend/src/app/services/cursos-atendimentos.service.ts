@@ -34,7 +34,10 @@ export interface CourseRecord {
   horarioInicial: string;
   duracaoHoras: number;
   diasSemana: string[];
+  faixasEtarias?: string[];
   restricoes?: string | null;
+  vagaPreferencialIdosos?: boolean;
+  sexoPermitido?: string;
   profissional: string;
   salaId?: string | null;
   sala?: SalaRecord | null;

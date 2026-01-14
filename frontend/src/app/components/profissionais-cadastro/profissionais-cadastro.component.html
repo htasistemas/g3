@@ -18,7 +18,7 @@
 
   <section class="cadastro">
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
+    <p class="tab-shell__title">Navegue pelas informacoes</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -42,7 +42,7 @@
 
   <div class="metrics-grid">
     <div class="metric">
-      <p class="metric__label">Profissionais disponíveis</p>
+      <p class="metric__label">Profissionais disponAveis</p>
       <p class="metric__value">{{ totalDisponiveis }}</p>
       <p class="metric__hint">Prontos para novos atendimentos</p>
     </div>
@@ -54,7 +54,7 @@
     <div class="metric">
       <p class="metric__label">Atendimento online</p>
       <p class="metric__value">{{ totalOnline }}</p>
-      <p class="metric__hint">Teleatendimento e orientações</p>
+      <p class="metric__hint">Teleatendimento e orientaAAes</p>
     </div>
   </div>
 
@@ -69,10 +69,10 @@
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="ghost" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Próximo: {{ nextTabLabel }}
+          PrAximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
-          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alteraAAes' : 'Cadastrar profissional' }}
         </button>
       </div>
     </ng-template>
@@ -145,27 +145,27 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'endereço'" formGroupName="endereço">
+    <div class="tab-card" *ngIf="activeTab === 'endereco'" formGroupName="endereco">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Endereço completo do profissional.</p>
+          <p class="muted">Endereco completo do profissional.</p>
         </div>
       </div>
 
       <div class="field-grid cols-3">
         <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
-          <p class="field-error" *ngIf="form.get(['endereço', 'cep'])?.invalid && form.get(['endereço', 'cep'])?.touched">
+          <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
             Informe um CEP valido com 8 digitos.
           </p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
-        <label class="field">Endereço<input formControlName="logradouro" (input)="applyCapitalization('endereço.logradouro', $any($event.target).value)" /></label>
-        <label class="field">Número<input formControlName="numero" /></label>
-        <label class="field">Complemento<input formControlName="complemento" (input)="applyCapitalization('endereço.complemento', $any($event.target).value)" /></label>
-        <label class="field">Bairro<input formControlName="bairro" (input)="applyCapitalization('endereço.bairro', $any($event.target).value)" /></label>
-        <label class="field">Ponto de referencia<input formControlName="ponto_referencia" (input)="applyCapitalization('endereço.ponto_referencia', $any($event.target).value)" /></label>
-        <label class="field">Município<input formControlName="municipio" (input)="applyCapitalization('endereço.municipio', $any($event.target).value)" /></label>
+        <label class="field">Endereco<input formControlName="logradouro" (input)="applyCapitalization('endereco.logradouro', $any($event.target).value)" /></label>
+        <label class="field">NAmero<input formControlName="numero" /></label>
+        <label class="field">Complemento<input formControlName="complemento" (input)="applyCapitalization('endereco.complemento', $any($event.target).value)" /></label>
+        <label class="field">Bairro<input formControlName="bairro" (input)="applyCapitalization('endereco.bairro', $any($event.target).value)" /></label>
+        <label class="field">Ponto de referencia<input formControlName="ponto_referencia" (input)="applyCapitalization('endereco.ponto_referencia', $any($event.target).value)" /></label>
+        <label class="field">MunicApio<input formControlName="municipio" (input)="applyCapitalization('endereco.municipio', $any($event.target).value)" /></label>
         <label class="field">Zona<input formControlName="zona" /></label>
         <label class="field">Subzona<input formControlName="subzona" /></label>
         <label class="field">UF<select formControlName="uf">
@@ -223,7 +223,7 @@
             Informe um CPF valido.
           </p>
         </label>
-        <label class="field">Vínculo
+        <label class="field">VAnculo
           <select formControlName="vinculo">
             <option *ngFor="let vinculo of vinculos" [value]="vinculo.value">{{ vinculo.label }}</option>
           </select>
@@ -232,7 +232,7 @@
           >Especialidade<input
             type="text"
             formControlName="especialidade"
-            placeholder="Área principal de atuação"
+            placeholder="Area principal de atuaAAo"
             (input)="applyCapitalization('especialidade', $any($event.target).value)"
             (blur)="applyCapitalization('especialidade', $any($event.target).value)"
         /></label>
@@ -281,7 +281,7 @@
           </select>
           <div class="search-hint" *ngIf="salasLoading">Carregando salas...</div>
         </label>
-        <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
+        <label class="field">Carga horAria semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponAveis" /></label>
         <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
           </select></label>
@@ -313,9 +313,9 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Resumo, observações e palavras-chave para encontrar rápido.</p>
+          <p class="muted">Resumo, observaAAes e palavras-chave para encontrar rApido.</p>
         </div>
-        <span class="pill">Finalização</span>
+        <span class="pill">FinalizaAAo</span>
       </div>
 
       <div class="field-grid cols-2">
@@ -335,20 +335,20 @@
           <div class="tag-list" *ngIf="form.value.tags?.length">
             <span class="tag" *ngFor="let tag of form.value.tags">
               {{ tag }}
-              <button type="button" (click)="removeTag(tag)">×</button>
+              <button type="button" (click)="removeTag(tag)">A</button>
             </span>
           </div>
         </div>
 
         <label class="field">Resumo breve<textarea formControlName="resumo" rows="3" placeholder="Como este profissional contribui?"></textarea></label>
-        <label class="field">Observações internas<textarea formControlName="observacoes" rows="3" placeholder="Notas de equipe e agenda"></textarea></label>
+        <label class="field">ObservaAAes internas<textarea formControlName="observacoes" rows="3" placeholder="Notas de equipe e agenda"></textarea></label>
       </div>
 
       <div class="actions">
         <button type="button" class="ghost" (click)="resetForm()">Limpar</button>
-        <button type="button" class="secondary" (click)="startNew()">Cancelar edição</button>
+        <button type="button" class="secondary" (click)="startNew()">Cancelar ediAAo</button>
         <button type="submit" class="primary" [disabled]="saving">
-          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alteraAAes' : 'Cadastrar profissional' }}
         </button>
       </div>
     </div>
@@ -399,14 +399,14 @@
                 </div>
                 <div class="unit-list__info-row">
                   <span class="unit-list__meta-text">Categoria: {{ professional.categoria }}</span>
-                  <span class="unit-list__separator">&bull;</span>
-                  <span class="unit-list__meta-text">E-mail: {{ professional.email || 'Não informado' }}</span>
-                  <span class="unit-list__separator">&bull;</span>
-                  <span class="unit-list__meta-text">Telefone: {{ professional.telefone || 'Não informado' }}</span>
-                  <span class="unit-list__separator">&bull;</span>
-                  <span class="unit-list__meta-text">Unidade: {{ professional.unidade || 'Não informada' }}</span>
-                  <span class="unit-list__separator">&bull;</span>
-                  <span class="unit-list__meta-text">Sala: {{ professional.salaAtendimento || 'Não informada' }}</span>
+                  <span class="unit-list__separator">-</span>
+                  <span class="unit-list__meta-text">E-mail: {{ professional.email || 'NAo informado' }}</span>
+                  <span class="unit-list__separator">-</span>
+                  <span class="unit-list__meta-text">Telefone: {{ professional.telefone || 'NAo informado' }}</span>
+                  <span class="unit-list__separator">-</span>
+                  <span class="unit-list__meta-text">Unidade: {{ professional.unidade || 'NAo informada' }}</span>
+                  <span class="unit-list__separator">-</span>
+                  <span class="unit-list__meta-text">Sala: {{ professional.salaAtendimento || 'NAo informada' }}</span>
                 </div>
               </div>
             </div>
@@ -426,10 +426,10 @@
           Anterior
         </button>
         <span class="unit-list__page">
-          Página {{ paginaAtual }} de {{ totalPaginas }}
+          PAgina {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          Próximo
+          PrAximo
         </button>
       </div>
 

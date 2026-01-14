@@ -683,18 +683,31 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       .join('');
     const unidadeRodape =
       unidadeCabecalho ?? this.unidadeAtual ?? this.unidades.find((item) => item.unidadePrincipal) ?? null;
+    const rodapeUnidade = unidadeRodape ? this.montarRodapeUnidade(unidadeRodape) : '';
     const rodapeBase =
-      conteudo.rodape && conteudo.rodape.trim().length > 0
-        ? conteudo.rodape
-        : unidadeRodape
-          ? this.montarRodapeUnidade(unidadeRodape)
-          : '';
-    let rodapeFormatado = this.formatarRodapeImpressao(rodapeBase, razaoSocialUnidade);
-    if (!rodapeFormatado && unidadeRodape) {
-      rodapeFormatado = this.formatarRodapeImpressao(
-        this.montarRodapeUnidade(unidadeRodape),
-        razaoSocialUnidade
-      );
+      conteudo.rodape && conteudo.rodape.trim().length > 0 ? conteudo.rodape : rodapeUnidade;
+    const normalizarRodape = (texto: string) =>
+      (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const razaoNormalizada = normalizarRodape(razaoSocialUnidade);
+    let rodapeComUnidade =
+      rodapeUnidade && (!rodapeBase || !rodapeBase.includes('CNPJ'))
+        ? [rodapeBase, rodapeUnidade].filter((item) => item && item.trim().length > 0).join('\n')
+        : rodapeBase;
+    if (razaoSocialUnidade && !normalizarRodape(rodapeComUnidade || '').includes(razaoNormalizada)) {
+      const linhasRodape = (rodapeComUnidade || '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .map((linha) => linha.trim())
+        .filter((linha) => linha.length > 0);
+      if (linhasRodape.length > 0) {
+        linhasRodape[0] = `${razaoSocialUnidade} - ${linhasRodape[0]}`;
+        rodapeComUnidade = linhasRodape.join('\n');
+      }
+    }
+    let rodapeFormatado = this.formatarRodapeImpressao(rodapeComUnidade, razaoSocialUnidade);
+    if (!rodapeFormatado && rodapeUnidade) {
+      rodapeFormatado = this.formatarRodapeImpressao(rodapeUnidade, razaoSocialUnidade);
     }
     const imagensOrdenadas = [...(imagens ?? [])]
       .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
@@ -711,25 +724,25 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         <head>
           <title>${conteudo.titulo || 'Oficio'}</title>
           <style>
-            @page { size: A4; margin: 3cm 2cm 3cm 3cm; }
-            body { font-family: Arial, sans-serif; margin: 0; color: #000; height: 100vh; --rodape-altura: 110px; }
-            .oficio { padding: 0 0 calc(var(--rodape-altura) + 18pt); min-height: 100vh; display: flex; flex-direction: column; }
+            @page { size: A4; margin: 3cm 2cm 2cm 3cm; }
+            body { font-family: Arial, sans-serif; margin: 0; color: #000; height: 100vh; --rodape-altura: 72px; }
+            .oficio { padding: 0 0 calc(var(--rodape-altura) + 12pt); min-height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
             .header { display: flex; align-items: center; gap: 16px; }
             .header-logo { height: 90px; }
             .header-titulo { text-align: center; width: 100%; font-size: 11pt; font-weight: 600; text-transform: uppercase; }
             .linha-divisoria { border-top: 1px solid #000; margin: 8px 0 12px; }
             .meta-direita { text-align: right; font-size: 12pt; margin: 0 0 12px; }
-            .numero-oficio { font-weight: 600; font-size: 12pt; margin: 6px 0 12px; }
+            .numero-oficio { font-weight: 600; font-size: 12pt; margin: 6px 0 18pt; }
+            .meta-tight { margin-bottom: 18pt; }
             .meta-tight p { margin: 0; }
-            .assunto { font-weight: 600; margin: 12px 0; }
+            .assunto { font-weight: 600; margin: 0 0 18pt; }
             .corpo { text-align: justify; font-size: 12pt; line-height: 1.5; }
             .corpo p { margin: 0 0 18pt; text-indent: 1.25cm; }
             .imagens-anexo { margin-top: 12px; display: grid; gap: 12px; }
             .imagem-anexo img { max-width: 100%; height: auto; display: block; }
             .finalizacao { text-align: justify; font-size: 12pt; line-height: 1.5; margin-top: 12px; text-indent: 1.25cm; }
-            .assinatura { margin-top: 64px; }
-            .rodape { position: fixed; bottom: 0; left: 0; right: 0; font-size: 8.5pt; text-align: center; border-top: 1px solid #000; padding: 6px 2cm 8px 3cm; line-height: 1.2; background: #fff; height: var(--rodape-altura); box-sizing: border-box; }
-            .rodape-razao { font-weight: 700; font-size: 9pt; margin: 0 0 2px; }
+            .assinatura { margin-top: 96px; }
+            .rodape { position: fixed; bottom: 0; left: 0; right: 0; font-size: 8.5pt; text-align: center; border-top: 1px solid #000; padding: 6px 0 8px; line-height: 1.2; background: #fff; height: var(--rodape-altura); box-sizing: border-box; }
             .rodape-linha { margin: 0; }
           </style>
         </head>
@@ -756,7 +769,6 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
               <div>${conteudo.assinaturaCargo || ''}</div>
             </div>
             <div class="rodape">
-              <div class="rodape-razao">${razaoSocialUnidade}</div>
               ${rodapeFormatado}
             </div>
           </div>
@@ -995,13 +1007,15 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         if (!razaoNormalizada) return linha;
         if (normalizada === razaoNormalizada) return '';
         if (normalizada.startsWith(razaoNormalizada)) {
+          const contemCnpj = /\bcnpj\b/i.test(linha);
+          if (contemCnpj) return linha;
           const semRazao = linha.slice(razaoSocial.length).replace(/^\s*[-–—]\s*/, '');
           return semRazao.trim();
         }
         return linha;
       })
       .filter((linha) => linha.length > 0);
-    const linhasRodape = this.reagruparRodapeEmDuasLinhas(filtradas);
+    const linhasRodape = filtradas.slice(0, 3);
     return linhasRodape
       .map((linha) => `<div class="rodape-linha">${linha}</div>`)
       .join('');
@@ -1010,17 +1024,17 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
   private reagruparRodapeEmDuasLinhas(linhas: string[]): string[] {
     const primeira = linhas[0] || '';
     const conteudo = linhas.length > 1 ? linhas.slice(1).join(' - ') : '';
-    if (!conteudo) return [];
+    if (!conteudo) return primeira ? [primeira] : [];
 
     const matchCep = conteudo.match(/\bCEP\b\s*[:\-]?\s*\d{5}-?\d{3}/i);
     if (!matchCep || matchCep.index === undefined) {
-      return [conteudo];
+      return [primeira, conteudo].filter((linha) => linha && linha.length > 0);
     }
 
     const indiceCep = matchCep.index;
     const antesCep = conteudo.slice(0, indiceCep).trim();
     const aPartirCep = conteudo.slice(indiceCep).trim();
-    return [antesCep, aPartirCep];
+    return [primeira, antesCep, aPartirCep].filter((linha) => linha && linha.length > 0);
   }
 
   formatarLocalData(dataExtenso: string): string {
@@ -1130,29 +1144,33 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
   }
 
   private montarRodapeUnidade(unidade: AssistanceUnitPayload): string {
+    const linhaCnpj = [
+      unidade.razaoSocial || unidade.nomeFantasia || '',
+      unidade.cnpj ? `CNPJ: ${unidade.cnpj}` : ''
+    ]
+      .filter((item) => item && String(item).trim().length > 0)
+      .join(' - ');
+
     const linhaEndereco = [
-      unidade.cnpj ? `CNPJ: ${unidade.cnpj}` : '',
       unidade.endereco,
-      unidade.numeroEndereco ? `nº ${unidade.numeroEndereco}` : '',
+      unidade.numeroEndereco ? `no ${unidade.numeroEndereco}` : '',
       unidade.bairro ? `Bairro ${unidade.bairro}` : '',
-      unidade.cep ? `CEP: ${unidade.cep}` : ''
+      unidade.cep ? `CEP: ${unidade.cep}` : '',
+      unidade.cidade,
+      unidade.estado
     ]
       .filter((item) => item && String(item).trim().length > 0)
       .join(' - ');
 
-    const cidadeEstado = [unidade.cidade, unidade.estado]
-      .filter((item) => item && String(item).trim().length > 0)
-      .join(' - ');
     const linhaContato = [
-      cidadeEstado,
-      unidade.telefone ? `Telefone: ${unidade.telefone}` : '',
-      unidade.email ? `E-mail: ${unidade.email}` : '',
-      unidade.site ? `Site: ${unidade.site}` : ''
+      unidade.telefone ? `Fone: ${unidade.telefone}` : '',
+      unidade.email ? `Email: ${unidade.email}` : '',
+      unidade.site ? `site: ${unidade.site}` : ''
     ]
       .filter((item) => item && String(item).trim().length > 0)
       .join(' - ');
 
-    return [linhaEndereco, linhaContato]
+    return [linhaCnpj, linhaEndereco, linhaContato]
       .filter((item) => item && String(item).trim().length > 0)
       .join('\n');
   }

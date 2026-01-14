@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SalaUnidadeServiceImpl implements SalaUnidadeService {
@@ -24,6 +25,7 @@ public class SalaUnidadeServiceImpl implements SalaUnidadeService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<SalaUnidadeResponse> listar(Long unidadeId) {
     List<SalaUnidade> salas =
         unidadeId == null ? salaRepository.listar() : salaRepository.listarPorUnidade(unidadeId);

@@ -83,7 +83,7 @@ type PrintListOrder = 'alphabetical' | 'code';
 export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
   searchForm: FormGroup;
-  activeTab = 'dados';
+  activeTab = 'lista';
   saving = false;
   feedback: string | null = null;
   popupErros: string[] = [];
@@ -340,6 +340,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Outros',
   ];
   tabs = [
+    { id: 'lista', label: 'Listagem de beneficiarios' },
     { id: 'dados', label: 'Dados Pessoais' },
     { id: 'endereco', label: 'Endereco' },
     { id: 'contato', label: 'Contato' },
@@ -349,7 +350,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     { id: 'saude', label: 'Saude' },
     { id: 'beneficios', label: 'Beneficios' },
     { id: 'observacoes', label: 'Observacoes e aceite' },
-    { id: 'lista', label: 'Listagem de beneficiarios' },
   ];
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     buscar: true,
@@ -1701,6 +1701,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         const value = String(control?.value ?? '').trim();
         if (!value) {
           builder.adicionar(`${label} e obrigatorio.`);
+        } else {
+          this.changeTab('lista');
         }
       });
       const mensagens = builder.build();
@@ -2729,3 +2731,5 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
 }
+
+

@@ -33,11 +33,11 @@ interface ViaCepResponse {
 })
 export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs = [
+    { id: 'lista', label: 'Unidades cadastradas' },
     { id: 'dados', label: 'Dados da Unidade' },
     { id: 'endereço', label: 'Endereço da Unidade' },
     { id: 'imagens', label: 'Imagens da Unidade' },
-    { id: 'diretoria', label: 'Diretoria da Unidade' },
-    { id: 'lista', label: 'Unidades cadastradas' }
+    { id: 'diretoria', label: 'Diretoria da Unidade' }
   ] as const;
 
   unidade: AssistanceUnitPayload | null = null;
@@ -52,7 +52,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
   reportLogoPreview: string | null = null;
   feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
   deleteConfirmation = false;
-  activeTab: (typeof this.tabs)[number]['id'] = 'dados';
+  activeTab: (typeof this.tabs)[number]['id'] = 'lista';
   private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
@@ -1573,4 +1573,5 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       .trim();
   }
 }
+
 

@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
@@ -63,16 +63,15 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   readonly tamanhoPagina = 10;
   private readonly capitalizationSubs: Array<() => void> = [];
   private readonly destroy$ = new Subject<void>();
-
   tabs: StepTab[] = [
+    { id: 'lista', label: 'Listagem de profissionais' },
     { id: 'dados', label: 'Dados pessoais' },
-    { id: 'endereço', label: 'EndereÃ§o' },
+    { id: 'endereco', label: 'Endereco' },
     { id: 'perfil', label: 'Perfil profissional' },
     { id: 'agenda', label: 'Agenda e canais' },
-    { id: 'resumo', label: 'Resumo e observacoes' },
-    { id: 'lista', label: 'Listagem de profissionais' }
+    { id: 'resumo', label: 'Resumo e observacoes' }
   ];
-  activeTab: StepTab['id'] = 'dados';
+  activeTab: StepTab['id'] = 'lista';
 
   categorias = ['Assistente social', 'Psicologo(a)', 'Pedagogo(a)', 'Medico(a)', 'Nutricionista'];
   readonly disponibilidades = ['Manha', 'Tarde', 'Noite'];
@@ -90,7 +89,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     { value: 'CLT', label: 'CLT' },
     { value: 'PJ', label: 'PJ' }
   ];
-  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'FamÃ­lias', 'Juventude', 'Visitas', 'Oficinas'];
+  readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'FamAAlias', 'Juventude', 'Visitas', 'Oficinas'];
   readonly brazilianStates = [
     'AC',
     'AL',
@@ -195,7 +194,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         naturalidade_uf: [''],
         nome_mae: ['', Validators.required],
       }),
-      endereço: this.fb.group({
+      endereco: this.fb.group({
         cep: ['', [Validators.required, this.cepValidator]],
         logradouro: [''],
         numero: [''],
@@ -447,7 +446,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         { path: 'categoria', label: 'Categoria' },
         { path: 'email', label: 'E-mail' },
         { path: 'status', label: 'Status' },
-        { path: 'vinculo', label: 'VÃ­nculo' }
+        { path: 'vinculo', label: 'VAAnculo' }
       ];
 
       requiredFields.forEach(({ path, label }) => {
@@ -483,7 +482,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         this.applyListFilters();
       },
       error: () => {
-        this.setFeedback('NÃ£o foi possÃ­vel salvar o profissional. Tente novamente.');
+        this.setFeedback('Nao foi possAAvel salvar o profissional. Tente novamente.');
         this.saving = false;
       }
     });
@@ -546,7 +545,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         naturalidade_uf: record.naturalidadeUf ?? '',
         nome_mae: record.nomeMae ?? ''
       },
-      endereço: {
+      endereco: {
         cep: record.cep ? this.formatCep(record.cep) : '',
         logradouro: record.logradouro ?? '',
         numero: record.numero ?? '',
@@ -592,7 +591,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.applyListFilters();
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel remover o profissional. Tente novamente.');
+          this.setFeedback('Nao foi possAAvel remover o profissional. Tente novamente.');
         }
       });
   }
@@ -639,7 +638,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         naturalidade_uf: '',
         nome_mae: ''
       },
-      endereço: {
+      endereco: {
         cep: '',
         logradouro: '',
         numero: '',
@@ -700,8 +699,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     const record = this.editingId ? this.professionals.find((item) => item.id === this.editingId) : null;
     const data = record ?? (this.buildPayload() as ProfessionalPayload);
 
-    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'NÃ£o informado';
-    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'NÃ£o informado';
+    const disponibilidade = (data.disponibilidade ?? []).join(' | ') || 'Nao informado';
+    const canais = (data.canaisAtendimento ?? []).join(' | ') || 'Nao informado';
     const tags = (data.tags ?? []).join(', ') || 'Sem tags definidas';
 
     const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -727,21 +726,21 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           <p class="pill">${data.status || 'Sem status'}</p>
           <dl>
             <dt>Nome completo</dt>
-            <dd>${data.nomeCompleto || 'NÃ£o informado'}</dd>
+            <dd>${data.nomeCompleto || 'Nao informado'}</dd>
             <dt>Categoria</dt>
-            <dd>${data.categoria || 'NÃ£o informado'}</dd>
+            <dd>${data.categoria || 'Nao informado'}</dd>
             <dt>Especialidade</dt>
-            <dd>${data.especialidade || 'NÃ£o informado'}</dd>
+            <dd>${data.especialidade || 'Nao informado'}</dd>
             <dt>Registro em conselho</dt>
-            <dd>${data.registroConselho || 'NÃ£o informado'}</dd>
+            <dd>${data.registroConselho || 'Nao informado'}</dd>
             <dt>E-mail</dt>
-            <dd>${data.email || 'NÃ£o informado'}</dd>
+            <dd>${data.email || 'Nao informado'}</dd>
             <dt>Telefone/WhatsApp</dt>
-            <dd>${data.telefone || 'NÃ£o informado'}</dd>
+            <dd>${data.telefone || 'Nao informado'}</dd>
             <dt>Unidade de atendimento</dt>
-            <dd>${data.unidade || 'NÃ£o informado'}</dd>
+            <dd>${data.unidade || 'Nao informado'}</dd>
             <dt>Carga horaria</dt>
-            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'NÃ£o informado'}</dd>
+            <dd>${data.cargaHoraria ? data.cargaHoraria + 'h semanais' : 'Nao informado'}</dd>
             <dt>Disponibilidade</dt>
             <dd>${disponibilidade}</dd>
             <dt>Canais de atendimento</dt>
@@ -750,7 +749,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
             <dd>${tags}</dd>
             <dt>Resumo breve</dt>
             <dd>${data.resumo || 'Sem resumo'}</dd>
-            <dt>ObservaÃ§Ãµes internas</dt>
+            <dt>ObservaAAAAes internas</dt>
             <dd>${data.observacoes || 'Sem observacoes'}</dd>
           </dl>
         </body>
@@ -782,7 +781,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.startNew();
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel remover o profissional. Tente novamente.');
+          this.setFeedback('Nao foi possAAvel remover o profissional. Tente novamente.');
         }
       });
   }
@@ -812,7 +811,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       ? this.professionals.find((item) => item.id === this.editingId)
       : this.buildPayload();
     if (!profissionalAtual) {
-      this.setFeedback('NÃ£o foi possÃ­vel obter os dados do profissional para imprimir.');
+      this.setFeedback('Nao foi possAAvel obter os dados do profissional para imprimir.');
       return;
     }
 
@@ -877,7 +876,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           this.applyListFilters();
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel carregar os profissionais.');
+          this.setFeedback('Nao foi possAAvel carregar os profissionais.');
         }
       });
   }
@@ -961,7 +960,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   private buildPayload(): ProfessionalPayload {
     const value = this.form.value as any;
     const dados = value.dadosPessoais ?? {};
-    const endereço = value.endereço ?? {};
+    const endereco = value.endereco ?? {};
     return {
       nomeCompleto: dados.nome_completo,
       cpf: this.normalizeCpf(value.cpf),
@@ -973,16 +972,16 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       naturalidadeCidade: dados.naturalidade_cidade,
       naturalidadeUf: dados.naturalidade_uf,
       nomeMae: dados.nome_mae,
-      cep: this.normalizeCep(endereço.cep),
-      logradouro: endereço.logradouro,
-      numero: endereço.numero,
-      complemento: endereço.complemento,
-      bairro: endereço.bairro,
-      pontoReferencia: endereço.ponto_referencia,
-      municipio: endereço.municipio,
-      zona: endereço.zona,
-      subzona: endereço.subzona,
-      uf: endereço.uf,
+      cep: this.normalizeCep(endereco.cep),
+      logradouro: endereco.logradouro,
+      numero: endereco.numero,
+      complemento: endereco.complemento,
+      bairro: endereco.bairro,
+      pontoReferencia: endereco.ponto_referencia,
+      municipio: endereco.municipio,
+      zona: endereco.zona,
+      subzona: endereco.subzona,
+      uf: endereco.uf,
       categoria: value.categoria,
       vinculo: value.vinculo,
       registroConselho: value.registroConselho,
@@ -1049,7 +1048,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       }
     } catch (error) {
       console.error('Erro ao iniciar camera', error);
-      this.captureError = 'NÃ£o foi possÃ­vel acessar a camera.';
+      this.captureError = 'Nao foi possAAvel acessar a camera.';
       this.cameraActive = false;
       if (this.videoStream) {
         this.videoStream.getTracks().forEach((track) => track.stop());
@@ -1101,7 +1100,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
     }
 
-    this.form.get(['endereço', 'cep'])?.setValue(formatted, { emitEvent: false });
+    this.form.get(['endereco', 'cep'])?.setValue(formatted, { emitEvent: false });
     this.cepLookupError = null;
 
     if (digits.length === 8) {
@@ -1110,11 +1109,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   }
 
   onCepBlur(): void {
-    const cepControl = this.form.get(['endereço', 'cep']);
+    const cepControl = this.form.get(['endereco', 'cep']);
     if (!cepControl) return;
 
     if (cepControl.invalid) {
-      this.cepLookupError = cepControl.value ? 'Informe um CEP valido para consultar o endereço.' : null;
+      this.cepLookupError = cepControl.value ? 'Informe um CEP valido para consultar o endereco.' : null;
       return;
     }
 
@@ -1136,7 +1135,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
             return;
           }
 
-          this.form.get('endereço')?.patchValue({
+          this.form.get('endereco')?.patchValue({
             logradouro: response.logradouro ?? '',
             bairro: response.bairro ?? '',
             municipio: response.localidade ?? '',
@@ -1144,7 +1143,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           });
         },
         error: () => {
-          this.cepLookupError = 'NÃ£o foi possÃ­vel consultar o CEP.';
+          this.cepLookupError = 'Nao foi possAAvel consultar o CEP.';
         }
       });
   }
@@ -1179,11 +1178,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       'dadosPessoais.nome_completo',
       'dadosPessoais.naturalidade_cidade',
       'dadosPessoais.nome_mae',
-      'endereço.logradouro',
-      'endereço.complemento',
-      'endereço.bairro',
-      'endereço.ponto_referencia',
-      'endereço.municipio',
+      'endereco.logradouro',
+      'endereco.complemento',
+      'endereco.bairro',
+      'endereco.ponto_referencia',
+      'endereco.municipio',
       'categoria',
       'registroConselho',
       'especialidade',

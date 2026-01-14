@@ -40,13 +40,13 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   principal: BeneficiarioApiPayload | null = null;
   selectedFamilyId: string | null = null;
   applyAddressToMembers = true;
-  activeTab = 'cadastro';
+  activeTab = 'lista';
   readonly tabs = [
+    { id: 'lista', label: 'Listagem de familias' },
     { id: 'cadastro', label: 'Cadastro da familia' },
     { id: 'endereço', label: 'Endereço da familia' },
     { id: 'membros', label: 'Membros vinculados' },
-    { id: 'indicadores', label: 'Indicadores sociais' },
-    { id: 'lista', label: 'Listagem de familias' }
+    { id: 'indicadores', label: 'Indicadores sociais' }
   ];
   readonly statusOptions = ['ATIVO', 'INATIVO', 'BLOQUEADO'];
   readonly relationshipOptions = [
@@ -510,7 +510,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
       observacoes: '',
       membros: []
     });
-    this.activeTab = 'cadastro';
+    this.activeTab = 'lista';
     this.clearFeedback();
     this.popupErros = [];
   }

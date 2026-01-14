@@ -55,6 +55,15 @@ public class CursoAtendimento {
   @Column(name = "dias_semana")
   private String diasSemana;
 
+  @Column(name = "faixa_etaria")
+  private String faixaEtaria;
+
+  @Column(name = "vaga_preferencial_idosos", nullable = false)
+  private Boolean vagaPreferencialIdosos = false;
+
+  @Column(name = "sexo_permitido", length = 20)
+  private String sexoPermitido;
+
   @Column(name = "restricoes", columnDefinition = "TEXT")
   private String restricoes;
 
@@ -190,6 +199,30 @@ public class CursoAtendimento {
 
   public void setDiasSemana(String diasSemana) {
     this.diasSemana = diasSemana;
+  }
+
+  public String getFaixaEtaria() {
+    return faixaEtaria;
+  }
+
+  public void setFaixaEtaria(String faixaEtaria) {
+    this.faixaEtaria = faixaEtaria;
+  }
+
+  public Boolean getVagaPreferencialIdosos() {
+    return vagaPreferencialIdosos;
+  }
+
+  public void setVagaPreferencialIdosos(Boolean vagaPreferencialIdosos) {
+    this.vagaPreferencialIdosos = vagaPreferencialIdosos;
+  }
+
+  public String getSexoPermitido() {
+    return sexoPermitido;
+  }
+
+  public void setSexoPermitido(String sexoPermitido) {
+    this.sexoPermitido = sexoPermitido;
   }
 
   public String getRestricoes() {

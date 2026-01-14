@@ -85,7 +85,7 @@ export const menuSections: MenuItem[] = [
     ],
   },
   {
-    label: 'Administrativo',
+    label: 'Setor Administrativo',
     icon: faClipboardList,
     children: [
       { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
@@ -107,7 +107,7 @@ export const menuSections: MenuItem[] = [
     ],
   },
   {
-    label: 'Financeiro',
+    label: 'Setor Financeiro',
     icon: faWallet,
     children: [
       { label: 'Prestacao de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
@@ -120,18 +120,11 @@ export const menuSections: MenuItem[] = [
     ],
   },
   {
-    label: 'Juridico',
+    label: 'Setor Juridico',
     icon: faScaleBalanced,
     children: [
       { label: 'Termo de Fomento', icon: faScaleBalanced, route: '/juridico/termos-fomento' },
       { label: 'Plano de Trabalho', icon: faClipboardList, route: '/juridico/planos-trabalho' },
-    ],
-  },
-  {
-    label: 'Georeferenciamento',
-    icon: faMapLocationDot,
-    children: [
-      { label: 'Localizacao', icon: faMapLocationDot, route: '/georeferenciamento/localizacao' },
     ],
   },
   {

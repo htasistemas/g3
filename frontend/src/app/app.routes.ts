@@ -25,7 +25,6 @@ import { PlanoTrabalhoGestaoComponent } from './components/plano-trabalho-gestao
 import { TermosFomentoGestaoComponent } from './components/termos-fomento-gestao/termos-fomento-gestao.component';
 import { VisitaDomiciliarGestaoComponent } from './components/visita-domiciliar-gestao/visita-domiciliar-gestao.component';
 import { TarefasPendenciasComponent } from './components/tarefas-pendencias/tarefas-pendencias.component';
-import { GeoreferenciamentoLocalizacaoComponent } from './components/georeferenciamento-localizacao/georeferenciamento-localizacao.component';
 import { ProntuarioPageComponent } from './components/prontuario-page/prontuario-page.component';
 import { BancoEmpregosComponent } from './components/banco-empregos/banco-empregos.component';
 import { VinculoFamiliarComponent } from './components/vinculo-familiar/vinculo-familiar.component';
@@ -247,11 +246,6 @@ export const routes: Routes = [
         component: TermosFomentoGestaoComponent,
         data: { title: 'Termos de Fomento' }
       },
-      {
-        path: 'georeferenciamento/localizacao',
-        component: GeoreferenciamentoLocalizacaoComponent,
-        data: { title: 'Georeferenciamento' }
-      }
     ]
   },
   { path: '**', redirectTo: '' }
