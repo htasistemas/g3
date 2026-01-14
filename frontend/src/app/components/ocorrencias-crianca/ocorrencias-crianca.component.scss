@@ -1,4 +1,4 @@
-.page-title {
+﻿.page-title {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
@@ -6,51 +6,6 @@
   margin-top: 0;
 }
 
-.page-title__content {
-  display: grid;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.page-title__eyebrow {
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  font-weight: 800;
-}
-
-.page-title__label {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  color: #0f172a;
-}
-
-.page-title__note {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.page-title__comment {
-  font-size: 0.85rem;
-  color: #64748b;
-  text-align: right;
-  max-width: 260px;
-  margin-left: auto;
-  min-width: 0;
-}
-
-.page-title__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
 
 .page-actions-inline {
   display: flex;
@@ -412,3 +367,4 @@ tbody tr:hover {
   background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 40%, #f7fafc 100%);
   padding: clamp(1rem, 2vw, 2rem);
 }
+

@@ -10,11 +10,13 @@
   (buscar)="onBuscar()"
   (fechar)="fechar()"
 >
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Jurídico</p>
-    <p class="page-title__label">Gestão de Plano de Trabalho</p>
-    <p class="page-title__note">Gestao de planos de trabalho vinculados a termos.</p>
-  </header>
+<header class="page-title page-title--row" slot="titulo">
+  <div>
+    <p class="page-title__eyebrow">SETOR JURIDICO</p>
+    <p class="page-title__label">Plano de Trabalho</p>
+  </div>
+  <p class="page-title__note">Gestao de planos de trabalho vinculados a termos.</p>
+</header>
 
   <section class="cadastro">
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>

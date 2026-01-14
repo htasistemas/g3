@@ -1,244 +1,110 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import {
-  faBell,
-  faCircleNotch,
-  faCloudArrowUp,
-  faDatabase,
-  faDownload,
-  faFileArrowDown,
-  faGaugeHigh,
-  faLock,
-  faRecycle,
-  faRotateLeft,
-  faShieldHalved,
-  faStopwatch,
-  faTableList
-} from '@fortawesome/free-solid-svg-icons';
+  GerenciamentoDadosBackupResponse,
+  GerenciamentoDadosConfiguracaoResponse,
+  GerenciamentoDadosService,
+  GerenciamentoDadosRestauracaoResponse,
+} from '../../services/gerenciamento-dados.service';
 
 type BackupStatus = 'executando' | 'sucesso' | 'falha';
 
 interface BackupRecord {
-  id: string;
-  label: string;
-  type: 'Completo' | 'Incremental';
+  id: number;
+  codigo: string;
+  rotulo: string;
+  tipo: 'Completo' | 'Incremental';
   status: BackupStatus;
-  startedAt: string;
-  storedIn: string;
-  size: string;
-  encrypted: boolean;
-  retention: string;
+  iniciadoEm: string;
+  armazenadoEm?: string;
+  tamanho?: string;
+  criptografado: boolean;
+  retencaoDias: number;
 }
 
 @Component({
   selector: 'app-data-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent],
+  imports: [CommonModule, TelaPadraoComponent, DialogComponent],
   templateUrl: './data-management.component.html',
   styleUrl: './data-management.component.scss'
 })
 export class DataManagementComponent implements OnInit {
-  readonly faDatabase = faDatabase;
-  readonly faCloudArrowUp = faCloudArrowUp;
-  readonly faRotateLeft = faRotateLeft;
-  readonly faShieldHalved = faShieldHalved;
-  readonly faDownload = faDownload;
-  readonly faTableList = faTableList;
-  readonly faGaugeHigh = faGaugeHigh;
-  readonly faCircleNotch = faCircleNotch;
-  readonly faBell = faBell;
-  readonly faLock = faLock;
-  readonly faStopwatch = faStopwatch;
-  readonly faRecycle = faRecycle;
-  readonly faFileArrowDown = faFileArrowDown;
+  configuracao: GerenciamentoDadosConfiguracaoResponse | null = null;
+  runningBackupId: number | null = null;
+  recentBackups: BackupRecord[] = [];
+  restauracaoFeedback: { tipo: 'success' | 'error' | 'info'; mensagem: string } | null = null;
+  dialogoRestaurarAberto = false;
+  backupSelecionado: BackupRecord | null = null;
 
-  runningBackupId: string | null = null;
-  automationFeedback: string | null = null;
-  storageFeedback: string | null = null;
-  restoreFeedback: { type: 'success' | 'error' | 'info'; message: string } | null = null;
-
-  scheduleForm: FormGroup;
-  backupSettingsForm: FormGroup;
-  restoreForm: FormGroup;
-  monitoringForm: FormGroup;
-
-  recentBackups: BackupRecord[] = [
-    {
-      id: 'BK-240302-001',
-      label: 'Backup completo semanal',
-      type: 'Completo',
-      status: 'sucesso',
-      startedAt: '03/02/2024 02:00',
-      storedIn: 'Local + Nuvem (S3)',
-      size: '12.4 GB',
-      encrypted: true,
-      retention: '30 dias'
-    },
-    {
-      id: 'BK-240301-002',
-      label: 'Incremental diário',
-      type: 'Incremental',
-      status: 'sucesso',
-      startedAt: '03/01/2024 13:00',
-      storedIn: 'Nuvem (S3)',
-      size: '2.1 GB',
-      encrypted: true,
-      retention: '15 dias'
-    },
-    {
-      id: 'BK-240229-003',
-      label: 'Backup completo',
-      type: 'Completo',
-      status: 'falha',
-      startedAt: '02/29/2024 02:00',
-      storedIn: 'Local',
-      size: '10.9 GB',
-      encrypted: true,
-      retention: '30 dias'
-    }
-  ];
-
-  constructor(private readonly fb: FormBuilder) {
-    this.scheduleForm = this.fb.group({
-      frequency: ['diario', Validators.required],
-      executionTime: ['02:00', Validators.required],
-      incrementalTime: ['13:00', Validators.required],
-      retentionDays: [15, [Validators.required, Validators.min(1)]],
-      enableAutomation: [true],
-      throttle: [65, [Validators.required, Validators.min(10), Validators.max(100)]],
-      pauseDuringBusiness: [true]
-    });
-
-    this.backupSettingsForm = this.fb.group({
-      provider: ['hibrido', Validators.required],
-      destinationPath: ['/var/backups', Validators.required],
-      bucketName: ['g3-operacional', Validators.required],
-      encryption: [true],
-      compression: ['balanceada', Validators.required],
-      verifyIntegrity: [true],
-      notifyEmail: ['operacoes@sistema.local', [Validators.email]],
-      offsiteCopy: [true]
-    });
-
-    this.restoreForm = this.fb.group({
-      backupId: ['', Validators.required],
-      target: ['produção', Validators.required],
-      dryRun: [true],
-      preserveNewerData: [true],
-      notifyTeam: [true],
-      pointInTime: ['']
-    });
-
-    this.monitoringForm = this.fb.group({
-      alerts: [true],
-      anomalyDetection: [true],
-      autoVerification: [true],
-      integrations: ['Email'],
-      retentionDrill: [true]
-    });
-  }
+  constructor(
+    private readonly gerenciamentoDadosService: GerenciamentoDadosService
+  ) {}
 
   ngOnInit(): void {
-    const firstBackup = this.recentBackups[0];
-    if (firstBackup) {
-      this.restoreForm.get('backupId')?.setValue(firstBackup.id);
-    }
+    this.carregarConfiguracao();
+    this.carregarBackups();
   }
 
-  startBackup(type: 'Completo' | 'Incremental'): void {
-    if (this.backupSettingsForm.invalid || this.runningBackupId) {
-      this.backupSettingsForm.markAllAsTouched();
+  startBackup(): void {
+    if (this.runningBackupId) {
       return;
     }
 
-    const now = new Date();
-    const id = `BK-${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now
-      .getDate()
-      .toString()
-      .padStart(2, '0')}-${Math.floor(Math.random() * 900 + 100)}`;
+    const retencaoDias = this.configuracao?.retencaoDias ?? 15;
+    const armazenadoEm = this.configuracao?.caminhoDestino ?? 'C:\\Backup G3';
+    const criptografado = !!this.configuracao?.criptografia;
 
-    const newRecord: BackupRecord = {
-      id,
-      label: `${type} acionado manualmente`,
-      type,
-      status: 'executando',
-      startedAt: now.toLocaleString(),
-      storedIn: this.backupSettingsForm.value.provider === 'hibrido' ? 'Local + Nuvem' : this.backupSettingsForm.value.provider,
-      size: type === 'Completo' ? '12.8 GB' : '2.3 GB',
-      encrypted: this.backupSettingsForm.value.encryption,
-      retention: `${this.scheduleForm.value.retentionDays} dias`
+    this.gerenciamentoDadosService
+      .criarBackup({
+        rotulo: 'Backup completo manual',
+        tipo: 'Completo',
+        status: 'executando',
+        armazenadoEm,
+        criptografado,
+        retencaoDias,
+      })
+      .subscribe((backup) => {
+        const item = this.mapearBackupResposta(backup);
+        this.recentBackups = [item, ...this.recentBackups].slice(0, 6);
+        this.runningBackupId = item.status === 'executando' ? item.id : null;
+      });
+  }
+
+  abrirDialogoRestaurar(backup: BackupRecord): void {
+    this.backupSelecionado = backup;
+    this.dialogoRestaurarAberto = true;
+  }
+
+  cancelarDialogoRestaurar(): void {
+    this.dialogoRestaurarAberto = false;
+    this.backupSelecionado = null;
+  }
+
+  confirmarDialogoRestaurar(): void {
+    if (!this.backupSelecionado) {
+      this.cancelarDialogoRestaurar();
+      return;
+    }
+
+    const backupId = this.backupSelecionado.id;
+    this.dialogoRestaurarAberto = false;
+    this.restauracaoFeedback = {
+      tipo: 'info',
+      mensagem: 'Restauracao iniciada. Aguarde a conclusao.',
     };
 
-    this.runningBackupId = id;
-    this.recentBackups = [newRecord, ...this.recentBackups].slice(0, 6);
-
-    setTimeout(() => this.finishBackup(id, 'sucesso'), 1400);
-  }
-
-  finishBackup(id: string, status: BackupStatus): void {
-    this.recentBackups = this.recentBackups.map((backup) =>
-      backup.id === id ? { ...backup, status } : backup
-    );
-    this.runningBackupId = null;
-  }
-
-  saveSchedule(): void {
-    this.automationFeedback = null;
-
-    if (this.scheduleForm.invalid) {
-      this.scheduleForm.markAllAsTouched();
-      return;
-    }
-
-    const { frequency, executionTime, retentionDays } = this.scheduleForm.value;
-    const frequencyLabel = frequency === 'semanal' ? 'semanal' : 'diária';
-    this.automationFeedback = `Rotina ${frequencyLabel} salva para ${executionTime} com retenção de ${retentionDays} dias.`;
-  }
-
-  saveStorageSettings(): void {
-    this.storageFeedback = null;
-
-    if (this.backupSettingsForm.invalid) {
-      this.backupSettingsForm.markAllAsTouched();
-      return;
-    }
-
-    const provider = this.backupSettingsForm.value.provider;
-    const encryption = this.backupSettingsForm.value.encryption ? 'com criptografia' : 'sem criptografia';
-    this.storageFeedback = `Destino ${provider} configurado ${encryption} e verificação de integridade ${
-      this.backupSettingsForm.value.verifyIntegrity ? 'habilitada' : 'desabilitada'
-    }.`;
-  }
-
-  simulateRestore(): void {
-    this.restoreFeedback = null;
-
-    if (this.restoreForm.invalid) {
-      this.restoreForm.markAllAsTouched();
-      return;
-    }
-
-    const selectedBackup = this.recentBackups.find((backup) => backup.id === this.restoreForm.value.backupId);
-
-    if (!selectedBackup) {
-      this.restoreFeedback = { type: 'error', message: 'Selecione um backup válido antes de restaurar.' };
-      return;
-    }
-
-    this.restoreFeedback = {
-      type: 'info',
-      message: `Validação de restauração iniciada para ${selectedBackup.label} em ambiente ${this.restoreForm.value.target}.`
-    };
-
-    setTimeout(() => {
-      this.restoreFeedback = {
-        type: 'success',
-        message: `Restauração preparada com sucesso. Você pode prosseguir aplicando em ${this.restoreForm.value.target}.`
-      };
-    }, 1200);
+    this.gerenciamentoDadosService.restaurarBackup(backupId).subscribe({
+      next: (response) => this.aplicarFeedbackRestauracao(response),
+      error: () => {
+        this.restauracaoFeedback = {
+          tipo: 'error',
+          mensagem: 'Falha ao solicitar a restauracao do backup.',
+        };
+      },
+    });
   }
 
   lastSuccessfulBackup(): BackupRecord | undefined {
@@ -246,6 +112,44 @@ export class DataManagementComponent implements OnInit {
   }
 
   runningBackup(): BackupRecord | undefined {
-    return this.recentBackups.find((backup) => backup.id === this.runningBackupId);
+    return this.recentBackups.find((backup) => backup.status === 'executando');
+  }
+
+  private carregarConfiguracao(): void {
+    this.gerenciamentoDadosService
+      .obterConfiguracao()
+      .subscribe((configuracao) => {
+        this.configuracao = configuracao;
+      });
+  }
+
+  private carregarBackups(): void {
+    this.gerenciamentoDadosService.listarBackups().subscribe((backups) => {
+      this.recentBackups = backups.map((backup) => this.mapearBackupResposta(backup));
+      this.runningBackupId = this.runningBackup()?.id ?? null;
+    });
+  }
+
+  private aplicarFeedbackRestauracao(response: GerenciamentoDadosRestauracaoResponse): void {
+    this.restauracaoFeedback = {
+      tipo: response.status === 'sucesso' ? 'success' : 'error',
+      mensagem: response.mensagem,
+    };
+    this.carregarBackups();
+  }
+
+  private mapearBackupResposta(backup: GerenciamentoDadosBackupResponse): BackupRecord {
+    return {
+      id: backup.id,
+      codigo: backup.codigo,
+      rotulo: backup.rotulo,
+      tipo: backup.tipo as BackupRecord['tipo'],
+      status: backup.status as BackupStatus,
+      iniciadoEm: backup.iniciadoEm,
+      armazenadoEm: backup.armazenadoEm,
+      tamanho: backup.tamanho,
+      criptografado: backup.criptografado,
+      retencaoDias: backup.retencaoDias,
+    };
   }
 }

@@ -11,11 +11,12 @@
   (fechar)="fechar()"
 >
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
-  <header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Financeiro · Prestacao de contas</p>
-    <p class="page-title__label">Transparencia de recursos e destino das doacoes</p>
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
+      <p class="page-title__label">Prestacao de Contas</p>
+    </div>
     <p class="page-title__note">Transparencia de recursos e destino das doacoes.</p>
-    <p class="muted">Demonstracao pensada para organizacoes do terceiro setor e comunicacao direta com doadores.</p>
   </header>
 
   <section class="cadastro">

@@ -1,9 +1,13 @@
 <div class="version-page">
-  <header class="version-header">
-    <div class="page-title">
-      <p class="page-title__eyebrow">Configurações gerais</p>
-      <p class="page-title__label">Versão do sistema</p>
-      <p class="page-title__note">Consulta e atualizacao da versao do sistema.</p>
+  <header class="page-title page-title--row">
+    <div>
+      <p class="page-title__eyebrow">CONFIGURACOES GERAIS</p>
+      <p class="page-title__label">Versao do Sistema</p>
+    </div>
+    <p class="page-title__note">Consulta e atualizacao da versao do sistema.</p>
+  </header>
+  <div class="version-header">
+    <div class="version-header__info">
       <p class="subtitle">Acompanhe a versão atual e o histórico das últimas entregas.</p>
     </div>
     <div class="version-chip">
@@ -12,7 +16,7 @@
       <strong *ngIf="carregandoVersao">Carregando...</strong>
       <strong *ngIf="!carregandoVersao && !currentVersion">--</strong>
     </div>
-  </header>
+  </div>
 
   <section class="version-card">
     <div class="card__header">

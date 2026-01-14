@@ -121,19 +121,39 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
 }
 
 .page-title {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #0f172a;
+}
+
+.page-title--row {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title__eyebrow {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.page-title__label {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: none;
+  color: #0f172a;
 }
 
 .page-title__note {
-  position: absolute;
-  top: 0;
-  right: 0;
   margin: 0;
-  max-width: 45%;
-  text-align: right;
   font-size: 0.85rem;
   color: #475569;
   font-weight: 600;
+  align-self: flex-start;
 }
 
 .step-tabs__index {
@@ -144,8 +164,12 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
 }
 
 @media (max-width: 768px) {
+  .page-title--row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .page-title__note {
-    position: static;
     max-width: 100%;
     text-align: left;
     margin-top: 0.35rem;

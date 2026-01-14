@@ -3,7 +3,6 @@
     <div>
       <p class="page-title__eyebrow">Configuracoes gerais</p>
       <p class="page-title__label">Chamado tecnico</p>
-      <p class="page-title__note">Kanban de acompanhamento dos chamados.</p>
     </div>
     <p class="page-title__note page-title__note--right">Visualizacao rapida do fluxo de trabalho.</p>
   </header>
@@ -36,19 +35,21 @@
         </div>
       </div>
 
-      <div class="kanban">
-        <div class="kanban__column" *ngFor="let status of (colunas | keyvalue)">
+      <div class="kanban" cdkDropListGroup>
+        <div class="kanban__column" *ngFor="let status of statusOrdem">
           <div class="kanban__header">
-            <h3>{{ labelStatus(status.key) }}</h3>
-            <span>{{ status.value.length }}</span>
+            <h3>{{ labelStatus(status) }}</h3>
+            <span>{{ colunas[status].length }}</span>
           </div>
           <div
             cdkDropList
-            [cdkDropListData]="status.value"
+            [cdkDropListData]="colunas[status]"
+            [cdkDropListConnectedTo]="listaStatusIds"
+            [id]="'status-' + status"
             class="kanban__list"
-            (cdkDropListDropped)="drop($event, status.key)"
+            (cdkDropListDropped)="drop($event, status)"
           >
-            <div class="kanban__card" *ngFor="let chamado of status.value" cdkDrag>
+            <div class="kanban__card" *ngFor="let chamado of colunas[status]" cdkDrag>
               <p class="kanban__code">{{ chamado.codigo }}</p>
               <p class="kanban__title">{{ chamado.titulo }}</p>
               <p class="kanban__meta">{{ chamado.modulo }} | {{ chamado.cliente }}</p>

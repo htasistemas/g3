@@ -1,4 +1,10 @@
-.version-page {
+:host {
+  display: block;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 45%, #f8fafc 100%);
+  padding: clamp(1rem, 2vw, 2rem);
+}
+
+﻿.version-page {
   padding: 1.5rem;
   max-width: 1080px;
   margin: 0 auto;
@@ -21,23 +27,6 @@
 
 .version-header h1 {
   margin: 0.15rem 0;
-  color: #0f172a;
-}
-
-.page-title__eyebrow {
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  font-weight: 800;
-}
-
-.page-title__label {
-  margin: 0.15rem 0 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
   color: #0f172a;
 }
 
@@ -244,3 +233,4 @@
     padding-left: 1.1rem;
   }
 }
+

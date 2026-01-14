@@ -184,9 +184,107 @@ CREATE TABLE IF NOT EXISTS historico_versao_sistema (
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS gerenciamento_dados (
+  id BIGSERIAL PRIMARY KEY,
+  frequencia VARCHAR(20) NOT NULL,
+  horario_execucao VARCHAR(8) NOT NULL,
+  horario_incremental VARCHAR(8) NOT NULL,
+  retencao_dias INTEGER NOT NULL,
+  automacao_ativa BOOLEAN NOT NULL DEFAULT TRUE,
+  limite_banda INTEGER NOT NULL DEFAULT 65,
+  pausar_horario_comercial BOOLEAN NOT NULL DEFAULT TRUE,
+  provedor VARCHAR(20) NOT NULL,
+  caminho_destino VARCHAR(200),
+  bucket_nome VARCHAR(120),
+  criptografia BOOLEAN NOT NULL DEFAULT TRUE,
+  compressao VARCHAR(20) NOT NULL,
+  verificar_integridade BOOLEAN NOT NULL DEFAULT TRUE,
+  email_notificacao VARCHAR(160),
+  copia_externa BOOLEAN NOT NULL DEFAULT TRUE,
+  alertas BOOLEAN NOT NULL DEFAULT TRUE,
+  deteccao_anomalia BOOLEAN NOT NULL DEFAULT TRUE,
+  auto_verificacao BOOLEAN NOT NULL DEFAULT TRUE,
+  integracoes VARCHAR(40),
+  simulacao_retencao BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS gerenciamento_dados_backup (
+  id BIGSERIAL PRIMARY KEY,
+  codigo VARCHAR(30) NOT NULL,
+  rotulo VARCHAR(200) NOT NULL,
+  tipo VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  iniciado_em TIMESTAMP NOT NULL,
+  armazenado_em VARCHAR(60),
+  tamanho VARCHAR(40),
+  criptografado BOOLEAN NOT NULL DEFAULT FALSE,
+  retencao_dias INTEGER NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 INSERT INTO versao_sistema (id, versao, descricao, atualizado_em)
 SELECT 1, '1.0.0', 'VersÃƒÂ£o inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
+
+INSERT INTO gerenciamento_dados (
+  id,
+  frequencia,
+  horario_execucao,
+  horario_incremental,
+  retencao_dias,
+  automacao_ativa,
+  limite_banda,
+  pausar_horario_comercial,
+  provedor,
+  caminho_destino,
+  bucket_nome,
+  criptografia,
+  compressao,
+  verificar_integridade,
+  email_notificacao,
+  copia_externa,
+  alertas,
+  deteccao_anomalia,
+  auto_verificacao,
+  integracoes,
+  simulacao_retencao,
+  criado_em,
+  atualizado_em
+)
+SELECT
+  1,
+  'diario',
+  '02:00',
+  '13:00',
+  15,
+  TRUE,
+  65,
+  TRUE,
+  'hibrido',
+  'C:\\Backup G3',
+  'g3-operacional',
+  TRUE,
+  'balanceada',
+  TRUE,
+  'operacoes@sistema.local',
+  TRUE,
+  TRUE,
+  TRUE,
+  TRUE,
+  'Email',
+  TRUE,
+  NOW(),
+  NOW()
+WHERE NOT EXISTS (SELECT 1 FROM gerenciamento_dados);
+
+UPDATE gerenciamento_dados
+SET caminho_destino = 'C:\\Backup G3',
+    atualizado_em = NOW()
+WHERE caminho_destino IS NULL
+   OR caminho_destino = '/var/backups';
 
 UPDATE versao_sistema
 SET versao = '1.1.0',
@@ -196,11 +294,11 @@ WHERE id = 1
   AND versao <> '1.1.0';
 
 UPDATE versao_sistema
-SET versao = '1.1.4',
+SET versao = '1.1.5',
     descricao = 'Gestao de oficios e documentos com anexos de imagens, dashboard de acompanhamento, cadastro de feriados para calculo de prazos em dias uteis e ajustes no rodape/assinaturas e anexos.',
     atualizado_em = NOW()
 WHERE id = 1
-  AND versao <> '1.1.4';
+  AND versao <> '1.1.5';
 
 UPDATE versao_sistema
 SET versao = '1.0.0'
@@ -249,6 +347,15 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.1.4'
     AND descricao = 'Inclusao de anexos de imagens em oficios, dashboard de acompanhamento, cadastro de feriados e calculo de prazos em dias uteis.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.5', 'Ajustes no emprestimo para eventos: popup para criacao/edicao/exclusao de eventos, validacoes detalhadas do cadastro, melhorias de disponibilidade e avisos reposicionados na tela.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.5'
+    AND descricao = 'Ajustes no emprestimo para eventos: popup para criacao/edicao/exclusao de eventos, validacoes detalhadas do cadastro, melhorias de disponibilidade e avisos reposicionados na tela.'
 );
 
 UPDATE historico_versao_sistema

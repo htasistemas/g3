@@ -1,5 +1,17 @@
 :host {
   display: block;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 45%, #f8fafc 100%);
+  min-height: 100vh;
+  padding: clamp(1rem, 2vw, 2rem);
+}
+
+:host ::ng-deep app-tela-padrao {
+  display: block;
+  background: transparent;
+}
+
+:host ::ng-deep app-tela-padrao .cadastro {
+  background: transparent;
 }
 
 .tab-shell {
@@ -100,23 +112,6 @@
   flex-direction: column;
   gap: 0.1rem;
   color: #1f2937;
-}
-
-.page-title__eyebrow {
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  font-weight: 800;
-}
-
-.page-title__label {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  color: #0f172a;
 }
 
 .page-title__note {
@@ -295,3 +290,5 @@
   color: #64748b;
   font-size: 0.85rem;
 }
+
+

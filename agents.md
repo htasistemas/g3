@@ -108,6 +108,50 @@ O agente NAO DEVE:
 - Telas fora do padrao devem ser ajustadas progressivamente.
 - A tela Ocorrencias deve seguir exatamente este modelo.
 
+## Padrao obrigatorio de cabecalho e abas (UI G3)
+
+Esta diretriz e obrigatoria para TODAS as telas do sistema G3, sem excecao.
+
+1. Cabecalho da pagina (topo das telas)
+- Sempre que uma tela do sistema for aberta, DEVE existir no topo da pagina um cabecalho seguindo este padrao fixo:
+  - Linha 1 – Nome do Menu (menu pai):
+    - Texto em LETRAS MAIUSCULAS
+    - Cor cinza
+    - Representa o contexto principal do sistema
+  - Linha 2 – Nome do Submenu (tela atual):
+    - Primeira letra em maiuscula e o restante em minusculas
+    - Cor preta
+    - Representa a funcionalidade atual da tela
+- Exemplo obrigatorio:
+  - SETOR ADMINISTRATIVO
+  - Gestao de Documentos
+- Nenhuma tela pode omitir esse cabecalho ou criar variacoes visuais.
+
+2. Padrao visual e comportamental das abas (tabs)
+- Sempre que a tela possuir abas, elas DEVEM obedecer ao padrao visual oficial do sistema G3:
+  - Texto da aba centralizado (horizontal e verticalmente)
+  - Estilo visual consistente em todas as telas
+- Estados das abas:
+  - Aba selecionada (ativa):
+    - Fundo verde escuro
+    - Texto branco
+  - Abas anteriores (ja percorridas):
+    - Fundo verde claro
+    - Texto verde escuro
+  - Abas nao selecionadas (futuras):
+    - Estilo neutro, sem destaque em verde
+- Comportamento obrigatorio:
+  - Apenas uma aba ativa por vez
+  - Ao selecionar uma nova aba:
+    - A aba atual passa para verde escuro
+    - As abas anteriores permanecem verde claro
+  - O comportamento deve ser identico ao das telas de navegacao por etapas do sistema G3 (ex.: cadastro de unidades, beneficiarios, prontuario)
+
+3. Regra de consistencia geral
+- Todas as telas novas ou alteradas DEVEM seguir este padrao
+- E proibido criar estilos personalizados por tela
+- O padrao de cabecalho e abas define a identidade visual oficial do sistema G3
+
 ### Carregamento automatico de dados nas telas
 - Todas as telas do sistema G3 DEVEM carregar e exibir os dados automaticamente ao serem abertas.
 - E PROIBIDO depender de qualquer interacao do usuario (clique, foco, hover, troca de aba ou qualquer acao manual) para que os dados sejam populados na tela.

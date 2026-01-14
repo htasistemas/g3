@@ -1,20 +1,7 @@
-.page-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-}
-
-.page-title__content {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.page-title__comment {
-  font-size: 0.85rem;
-  color: #64748b;
-  text-align: right;
-  max-width: 240px;
+:host {
+  display: block;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 45%, #f8fafc 100%);
+  padding: clamp(1rem, 2vw, 2rem);
 }
 
 .tab-shell {
@@ -28,46 +15,85 @@
 }
 
 .step-tabs {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.35rem;
+  padding: 0.15rem 0.05rem;
+}
+
+.step-tabs__item {
+  position: relative;
+  list-style: none;
+}
+
+.step-tabs__item::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 -0.25rem 0;
+  height: 2px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  transition: background 0.2s ease;
+}
+
+.step-tabs__item.completed::after,
+.step-tabs__item.active::after {
+  background: linear-gradient(135deg, #0f7a43, #16a34a);
 }
 
 .step-tabs__button {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.6rem 0.8rem;
+  gap: 0.55rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 9px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #1f2937;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  min-height: 52px;
 }
 
-.step-tabs__index {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #0f172a;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.step-tabs__button:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
 }
 
 .step-tabs__item.active .step-tabs__button {
-  border-color: #94a3b8;
-  background: #f8fafc;
+  background: linear-gradient(135deg, #0f7a43, #16a34a);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 10px 20px rgba(15, 122, 67, 0.18);
 }
 
-.step-tabs__item.completed .step-tabs__index {
-  background: #dcfce7;
-  color: #166534;
+.step-tabs__index {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(15, 122, 67, 0.08);
+  color: #0f7a43;
+  font-weight: 800;
+  border: 1px solid rgba(15, 122, 67, 0.25);
+  font-size: 0.75rem;
+}
+
+.step-tabs__item.active .step-tabs__index {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+
+.step-tabs__label {
+  font-weight: 700;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.3;
 }
 
 .tab-card {
@@ -201,4 +227,7 @@ tbody tr:hover {
 
 .muted {
   color: #64748b;
+}
+.page-title {
+  padding-top: 0.5rem;
 }

@@ -10,11 +10,13 @@
   (buscar)="onBuscar()"
   (fechar)="onFechar()"
 >
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Financeiro - Contabilidade</p>
-    <p class="page-title__label">Gestao de contas a pagar e a receber</p>
-    <p class="page-title__note">Gestao de contas a pagar, receber e movimentacoes.</p>
-  </header>
+<header class="page-title page-title--row" slot="titulo">
+  <div>
+    <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
+    <p class="page-title__label">Contabilidade</p>
+  </div>
+  <p class="page-title__note">Gestao de contas a pagar, receber e movimentacoes.</p>
+</header>
 
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 

@@ -10,12 +10,13 @@
   (buscar)="onBuscar()"
   (fechar)="onFechar()"
 >
-<header class="page-title" slot="titulo">
+<header class="page-title page-title--row" slot="titulo">
+  <div>
     <p class="page-title__eyebrow">Atendimentos</p>
     <p class="page-title__label">Banco de Empregos</p>
-
+  </div>
     <p class="page-title__note">Cadastro e acompanhamento de vagas e encaminhamentos.</p>
-  </header>
+</header>
 
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 

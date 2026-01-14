@@ -91,7 +91,7 @@ export const menuSections: MenuItem[] = [
       { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
       { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
       {
-        label: 'Documentos da Instituicao',
+        label: 'Gestao de Documentos',
         icon: faClipboardList,
         route: '/administrativo/documentos',
       },

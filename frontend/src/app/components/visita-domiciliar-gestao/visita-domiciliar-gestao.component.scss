@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 40%, #f7fafc 100%);
   padding: clamp(1rem, 2vw, 2rem);
@@ -18,23 +18,6 @@
   flex-direction: column;
   gap: 0.1rem;
   color: #1f2937;
-}
-
-.page-title__eyebrow {
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  font-weight: 800;
-}
-
-.page-title__label {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: #0f172a;
 }
 
 .tab-shell {
@@ -606,3 +589,4 @@
   padding: 0.3rem 0.6rem;
   font-size: 0.8rem;
 }
+

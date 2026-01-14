@@ -12,13 +12,12 @@
 >
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 
-  <header class="page-title" slot="titulo">
-    <div class="page-title__content">
-      <p class="page-title__eyebrow">Administrativo</p>
-      <p class="page-title__label">Feriados</p>
-      <p class="page-title__note">Cadastro e controle de feriados para o calculo de prazos.</p>
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+    <p class="page-title__eyebrow">SETOR ADMINISTRATIVO</p>
+    <p class="page-title__label">Feriados</p>
     </div>
-    <div class="page-title__comment">Comentario didatico: Gerencie feriados oficiais e locais.</div>
+    <p class="page-title__note">Cadastro e controle de feriados.</p>
   </header>
 
   <section class="cadastro">

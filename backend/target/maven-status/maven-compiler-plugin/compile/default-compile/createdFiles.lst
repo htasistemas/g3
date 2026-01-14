@@ -36,6 +36,7 @@ br\com\g3\cadastrobeneficiario\dto\CadastroBeneficiarioCriacaoRequest.class
 br\com\g3\contabilidade\dto\ReciboPagamentoResponse.class
 br\com\g3\autorizacaocompras\cotacoes\repositoryimpl\AutorizacaoCompraCotacaoRepositoryImpl.class
 br\com\g3\patrimonio\mapper\PatrimonioMapper.class
+br\com\g3\gerenciamentodados\dto\GerenciamentoDadosRestauracaoResponse.class
 br\com\g3\autorizacaocompras\dto\AutorizacaoCompraReservaBancariaRequest.class
 br\com\g3\contabilidade\dto\ReciboPagamentoContaResponse.class
 br\com\g3\prontuario\dto\ProntuarioRegistroResponse.class
@@ -97,6 +98,7 @@ br\com\g3\patrimonio\repositoryimpl\PatrimonioMovimentacaoJpaRepository.class
 br\com\g3\cadastrobeneficiario\repositoryimpl\CadastroBeneficiarioRepositoryImpl.class
 br\com\g3\prontuario\dto\ProntuarioResumoResponse.class
 br\com\g3\cadastroprofissionais\dto\CadastroProfissionalListaResponse.class
+br\com\g3\gerenciamentodados\repositoryimpl\GerenciamentoDadosBackupRepositoryImpl.class
 br\com\g3\prontuario\repositoryimpl\ProntuarioRegistroJpaRepository.class
 br\com\g3\fotoseventos\dto\FotoEventoDetalheResponse.class
 br\com\g3\tarefaspendencias\dto\TarefaPendenciaRequest.class
@@ -121,6 +123,7 @@ br\com\g3\cadastrovoluntario\dto\CadastroVoluntarioListaResponse.class
 br\com\g3\almoxarifado\dto\AlmoxarifadoProximoCodigoResponse.class
 br\com\g3\patrimonio\repository\PatrimonioMovimentacaoRepository.class
 br\com\g3\cadastroprofissionais\dto\CadastroProfissionalConsultaResponse.class
+br\com\g3\gerenciamentodados\repository\GerenciamentoDadosBackupRepository.class
 br\com\g3\vinculofamiliar\repositoryimpl\VinculoFamiliarMembroRepositoryImpl.class
 br\com\g3\dashboardassistencia\dto\DashboardCadastrosResponse.class
 br\com\g3\unidadeassistencial\repositoryimpl\UnidadeAssistencialJpaRepository.class
@@ -138,6 +141,7 @@ br\com\g3\patrimonio\repositoryimpl\PatrimonioJpaRepository.class
 br\com\g3\vinculofamiliar\dto\VinculoFamiliarConsultaResponse.class
 br\com\g3\config\SegurancaConfig.class
 br\com\g3\almoxarifado\repositoryimpl\ProdutoKitComposicaoJpaRepository.class
+br\com\g3\gerenciamentodados\controller\GerenciamentoDadosController.class
 br\com\g3\almoxarifado\mapper\AlmoxarifadoMapper.class
 br\com\g3\prontuario\repositoryimpl\ProntuarioRegistroRepositoryImpl$ProntuarioRegistroRowMapper$1.class
 br\com\g3\recebimentodoacao\dto\DoadorRequest.class
@@ -207,6 +211,7 @@ br\com\g3\unidadeassistencial\dto\DiretoriaUnidadeRequest.class
 br\com\g3\doacaorealizada\dto\DoacaoRealizadaListaResponse.class
 br\com\g3\cadastrobeneficiario\serviceimpl\CadastroBeneficiarioServiceImpl.class
 br\com\g3\cadastrobeneficiario\repositoryimpl\CadastroBeneficiarioJpaRepository.class
+br\com\g3\gerenciamentodados\serviceimpl\GerenciamentoDadosServiceImpl.class
 br\com\g3\autorizacaocompras\dto\AutorizacaoCompraResponse.class
 br\com\g3\vinculofamiliar\dto\VinculoFamiliarListaResponse.class
 br\com\g3\prontuario\dto\ProntuarioRegistroRequest.class
@@ -244,6 +249,7 @@ br\com\g3\relatorios\serviceimpl\TermoAutorizacaoServiceImpl.class
 br\com\g3\cadastroprofissionais\serviceimpl\CadastroProfissionalServiceImpl.class
 br\com\g3\cadastroprofissionais\repository\CadastroProfissionalRepository.class
 br\com\g3\autenticacao\dto\CadastroContaRequest.class
+br\com\g3\gerenciamentodados\service\GerenciamentoDadosService.class
 br\com\g3\usuario\dto\UsuarioAtualizacaoRequest.class
 br\com\g3\contabilidade\domain\LancamentoFinanceiro.class
 br\com\g3\contabilidade\domain\MovimentacaoFinanceira.class

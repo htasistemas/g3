@@ -109,6 +109,9 @@ public final class CursosAtendimentosMapper {
 
   private static SalaUnidadeResponse toSalaResponse(SalaUnidade sala) {
     if (sala == null) return null;
+    if (!Hibernate.isInitialized(sala)) {
+      return new SalaUnidadeResponse(null, null, null);
+    }
     Long unidadeId = null;
     if (Hibernate.isInitialized(sala.getUnidadeAssistencial()) && sala.getUnidadeAssistencial() != null) {
       unidadeId = sala.getUnidadeAssistencial().getId();

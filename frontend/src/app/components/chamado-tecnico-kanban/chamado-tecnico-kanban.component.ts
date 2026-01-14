@@ -37,6 +37,19 @@ export class ChamadoTecnicoKanbanComponent extends TelaBaseComponent implements 
     RESOLVIDO: [],
     CANCELADO: [],
   };
+  readonly statusOrdem: ChamadoStatus[] = [
+    'ABERTO',
+    'EM_ANALISE',
+    'EM_DESENVOLVIMENTO',
+    'EM_TESTE',
+    'AGUARDANDO_CLIENTE',
+    'RESOLVIDO',
+    'CANCELADO',
+  ];
+
+  get listaStatusIds(): string[] {
+    return this.statusOrdem.map((status) => `status-${status}`);
+  }
 
   private readonly destroy$ = new Subject<void>();
 

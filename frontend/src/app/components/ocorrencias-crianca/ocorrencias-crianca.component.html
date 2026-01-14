@@ -13,13 +13,10 @@
 >
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 
-  <header class="page-title" slot="titulo">
-    <div class="page-title__content">
-      <div class="page-title__row">
-        <p class="page-title__eyebrow">Atendimentos</p>
-        <div class="page-title__comment">registro de ocorrencias</div>
-      </div>
-      <p class="page-title__label">Ocorrencias</p>
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+    <p class="page-title__eyebrow">Atendimentos</p>
+    <p class="page-title__label">Ocorrencias</p>
     </div>
   </header>
 

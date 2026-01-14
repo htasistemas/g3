@@ -42,6 +42,7 @@ public class CursoAtendimentoServiceImpl implements CursoAtendimentoService {
   }
 
   @Override
+  @Transactional
   public CursoAtendimentoResponse criar(CursoAtendimentoRequest request) {
     SalaUnidade sala = buscarSala(request.getSalaId());
     CursoAtendimento curso = CursosAtendimentosMapper.toDomain(request, sala);
@@ -60,6 +61,7 @@ public class CursoAtendimentoServiceImpl implements CursoAtendimentoService {
   }
 
   @Override
+  @Transactional
   public CursoAtendimentoResponse atualizar(Long id, CursoAtendimentoRequest request) {
     CursoAtendimento curso =
         repository.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException("Curso nao encontrado."));
@@ -72,6 +74,7 @@ public class CursoAtendimentoServiceImpl implements CursoAtendimentoService {
   }
 
   @Override
+  @Transactional
   public CursoAtendimentoResponse atualizarStatus(Long id, CursoAtendimentoStatusRequest request) {
     CursoAtendimento curso =
         repository.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException("Curso nao encontrado."));

@@ -11,11 +11,13 @@
   (fechar)="fechar()"
 >
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
-<header class="page-title" slot="titulo">
-    <p class="page-title__eyebrow">Convênios e Fomentos</p>
-    <p class="page-title__label">Gestão de Termos de Fomento</p>
-    <p class="page-title__note">Cadastro e acompanhamento de termos de fomento.</p>
-  </header>
+<header class="page-title page-title--row" slot="titulo">
+  <div>
+    <p class="page-title__eyebrow">SETOR JURIDICO</p>
+    <p class="page-title__label">Termo de Fomento</p>
+  </div>
+  <p class="page-title__note">Cadastro e acompanhamento de termos de fomento.</p>
+</header>
 
   <section class="gestao-termos">
   <div class="toolbar">
