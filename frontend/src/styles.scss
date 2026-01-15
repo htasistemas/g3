@@ -127,7 +127,7 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
   color: #0f172a;
 }
 
-.page-title--row {
+.page-title.page-title--row {
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
@@ -154,6 +154,7 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
   color: #475569;
   font-weight: 600;
   align-self: flex-start;
+  text-align: right;
 }
 
 .step-tabs__index {
@@ -164,7 +165,7 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
 }
 
 @media (max-width: 768px) {
-  .page-title--row {
+  .page-title.page-title--row {
     flex-direction: column;
     align-items: flex-start;
   }

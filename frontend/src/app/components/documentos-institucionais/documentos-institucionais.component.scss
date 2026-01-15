@@ -519,3 +519,15 @@ button.text-button:hover { transform: none; text-decoration: underline; }
 .muted { color: #6b7280; margin: 0; }
 .strong { font-weight: 700; }
 
+
+.page-title--row {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title__note {
+  align-self: flex-start;
+  text-align: right;
+}

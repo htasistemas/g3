@@ -23,18 +23,20 @@ public class BancoEmpregoCandidatoController {
   }
 
   @GetMapping("/{empregoId}/candidatos")
-  public ResponseEntity<List<BancoEmpregoCandidatoResponse>> listar(@PathVariable Long empregoId) {
+  public ResponseEntity<List<BancoEmpregoCandidatoResponse>> listar(
+      @PathVariable("empregoId") Long empregoId) {
     return ResponseEntity.ok(service.listar(empregoId));
   }
 
   @PostMapping("/{empregoId}/candidatos")
   public ResponseEntity<BancoEmpregoCandidatoResponse> criar(
-      @PathVariable Long empregoId, @RequestBody BancoEmpregoCandidatoRequest request) {
+      @PathVariable("empregoId") Long empregoId,
+      @RequestBody BancoEmpregoCandidatoRequest request) {
     return ResponseEntity.ok(service.criar(empregoId, request));
   }
 
   @DeleteMapping("/candidatos/{id}")
-  public ResponseEntity<Void> remover(@PathVariable Long id) {
+  public ResponseEntity<Void> remover(@PathVariable("id") Long id) {
     service.remover(id);
     return ResponseEntity.noContent().build();
   }

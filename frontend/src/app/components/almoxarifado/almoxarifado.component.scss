@@ -277,3 +277,15 @@
   background: rgba(254, 215, 170, 0.7);
 }
 
+
+.page-title--row {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title__note {
+  align-self: flex-start;
+  text-align: right;
+}

@@ -510,3 +510,15 @@
   @apply bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 mb-4;
 }
 
+
+.page-title--row {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title__note {
+  align-self: flex-start;
+  text-align: right;
+}
