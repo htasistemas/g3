@@ -2,11 +2,14 @@ package br.com.g3.cursosatendimentos.controller;
 
 import br.com.g3.cursosatendimentos.dto.CursoAtendimentoConsultaResponse;
 import br.com.g3.cursosatendimentos.dto.CursoAtendimentoListaResponse;
+import br.com.g3.cursosatendimentos.dto.CursoAtendimentoPresencaRequest;
+import br.com.g3.cursosatendimentos.dto.CursoAtendimentoPresencaResponse;
 import br.com.g3.cursosatendimentos.dto.CursoAtendimentoRequest;
 import br.com.g3.cursosatendimentos.dto.CursoAtendimentoResponse;
 import br.com.g3.cursosatendimentos.dto.CursoAtendimentoStatusRequest;
 import br.com.g3.cursosatendimentos.service.CursoAtendimentoService;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,6 +55,18 @@ public class CursoAtendimentoController {
   public CursoAtendimentoConsultaResponse atualizarStatus(
       @PathVariable("id") Long id, @RequestBody CursoAtendimentoStatusRequest request) {
     return new CursoAtendimentoConsultaResponse(service.atualizarStatus(id, request));
+  }
+
+  @GetMapping("/{id}/presencas")
+  public CursoAtendimentoPresencaResponse listarPresencas(
+      @PathVariable("id") Long id, @RequestParam("data") LocalDate dataAula) {
+    return service.listarPresencas(id, dataAula);
+  }
+
+  @PostMapping("/{id}/presencas")
+  public CursoAtendimentoPresencaResponse salvarPresencas(
+      @PathVariable("id") Long id, @RequestBody CursoAtendimentoPresencaRequest request) {
+    return service.salvarPresencas(id, request);
   }
 
   @DeleteMapping("/{id}")

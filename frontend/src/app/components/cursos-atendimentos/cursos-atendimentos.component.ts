@@ -2,12 +2,24 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { CourseRecord, CursosAtendimentosService, Enrollment, EnrollmentStatus, WaitlistEntry } from '../../services/cursos-atendimentos.service';
-import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import {
+  CourseRecord,
+  CursosAtendimentosService,
+  Enrollment,
+  EnrollmentStatus,
+  PresencaResponse,
+  PresencaStatus,
+  WaitlistEntry,
+} from '../../services/cursos-atendimentos.service';
+import { BeneficiaryPayload } from '../../services/beneficiary.service';
+import {
+  BeneficiarioApiPayload,
+  BeneficiarioApiService,
+} from '../../services/beneficiario-api.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
 import { AssistanceUnitService } from '../../services/assistance-unit.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
-import { catchError, debounceTime, distinctUntilChanged, firstValueFrom, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, of, Subscription, switchMap, tap } from 'rxjs';
 import { titleCaseWords } from '../../utils/capitalization.util';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -79,8 +91,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   readonly tabs: StepTab[] = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'dados', label: 'Dados de Matriculas' },
-    { id: 'catalogo', label: 'Catálogo e Vagas' },
-    { id: 'inscricoes', label: 'Inscrições e Lista de Espera' },
+    { id: 'catalogo', label: 'Catalogo e Vagas' },
+    { id: 'inscricoes', label: 'Inscricoes e Lista de Espera' },
+    { id: 'presenca', label: 'Presenca' },
     { id: 'listagem', label: 'Listagem de matriculas' }
   ];
 
@@ -121,6 +134,10 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   rooms: SalaRecord[] = [];
   roomsLoading = false;
   unidadeAtualId: number | null = null;
+  dataPresencaSelecionada = '';
+  presencaCarregando = false;
+  presencaSalvando = false;
+  private presencasPorMatricula: Record<string, PresencaStatus> = {};
 
   records: CourseRecord[] = [];
   dashboardSnapshot: DashboardSnapshot = this.buildDashboardSnapshot();
@@ -193,7 +210,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: CursosAtendimentosService,
-    private readonly beneficiaryService: BeneficiaryService,
+    private readonly beneficiarioApiService: BeneficiarioApiService,
     private readonly salasService: SalasService,
     private readonly professionalService: ProfessionalService,
     private readonly unitService: AssistanceUnitService,
@@ -294,6 +311,10 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const courseId = this.editingId ?? this.enrollmentForm.value.courseId;
     if (!courseId) return null;
     return this.records.find((record) => record.id === courseId) ?? null;
+  }
+
+  get matriculasAtivas(): Enrollment[] {
+    return (this.currentCourse?.enrollments ?? []).filter((matricula) => matricula.status === 'Ativo');
   }
 
   get visibleWidgets(): DashboardWidget[] {
@@ -554,6 +575,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       salaId: course.salaId ?? course.sala?.id ?? null
     });
     this.enrollmentForm.patchValue({ courseId: course.id });
+    this.carregarPresencas();
   }
 
   startNew(): void {
@@ -826,6 +848,125 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.changeTab('inscricoes');
   }
 
+  atualizarDataPresenca(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.dataPresencaSelecionada = input.value;
+    this.carregarPresencas();
+  }
+
+  atualizarPresenca(matricula: Enrollment, status: PresencaStatus): void {
+    const curso = this.currentCourse;
+    if (!curso || !this.dataPresencaSelecionada) return;
+    const atual = this.presencasPorMatricula[matricula.id];
+    this.presencasPorMatricula[matricula.id] = atual === status ? 'AUSENTE' : status;
+    this.salvarPresencas();
+  }
+
+  obterPresenca(matricula: Enrollment): PresencaStatus {
+    return this.presencasPorMatricula[matricula.id] ?? 'AUSENTE';
+  }
+
+  imprimirListaPresenca(): void {
+    this.feedback = null;
+    const curso = this.currentCourse;
+    if (!curso) {
+      this.feedback = 'Selecione um curso/atendimento para gerar a lista de presenca.';
+      return;
+    }
+    if (!this.dataPresencaSelecionada) {
+      this.feedback = 'Informe a data da aula para imprimir a lista de presenca.';
+      return;
+    }
+    const linhas = this.matriculasAtivas
+      .map((matricula, index) => {
+        const status = this.obterPresenca(matricula);
+        const presente = status === 'PRESENTE' ? 'Presente' : 'Ausente';
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${matricula.beneficiaryName}</td>
+            <td>${matricula.cpf || ''}</td>
+            <td>${presente}</td>
+            <td></td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    const janela = window.open('', '_blank', 'width=900,height=1100');
+    if (!janela) {
+      this.feedback = 'Permita a abertura de pop-ups para visualizar a impressao.';
+      return;
+    }
+
+    janela.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>Lista de presenca</title>
+          <style>
+            @page { size: A4; margin: 20mm; }
+            body { font-family: Arial, sans-serif; color: #111827; }
+            header { margin-bottom: 12px; }
+            h1 { font-size: 18px; margin: 0 0 4px; }
+            .subtitulo { font-size: 12px; margin: 0 0 6px; }
+            .linha-info { font-size: 12px; margin: 0; color: #374151; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #d1d5db; padding: 6px 8px; font-size: 12px; }
+            th { background: #f3f4f6; text-align: left; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            footer {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              font-size: 11px;
+              color: #6b7280;
+              display: flex;
+              justify-content: space-between;
+            }
+            footer .pagina:after {
+              content: counter(page) " de " counter(pages);
+            }
+          </style>
+        </head>
+        <body>
+          <header>
+            <div class="linha-info">G3 Assistencial</div>
+            <h1>Lista de presenca</h1>
+            <p class="subtitulo">Curso/Atendimento: ${curso.nome}</p>
+            <p class="linha-info">Data da aula: ${this.dataPresencaSelecionada}</p>
+          </header>
+          <main>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Beneficiario</th>
+                  <th>CPF</th>
+                  <th>Status</th>
+                  <th>Assinatura</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${linhas || '<tr><td colspan="5">Nenhuma matricula ativa.</td></tr>'}
+              </tbody>
+            </table>
+          </main>
+          <footer>
+            <span>G3 Assistencial</span>
+            <span>Pagina <span class="pagina"></span></span>
+          </footer>
+        </body>
+      </html>
+    `);
+    janela.document.close();
+    janela.focus();
+    janela.print();
+  }
+
   selectBeneficiary(beneficiary: BeneficiaryPayload): void {
     this.enrollmentForm.patchValue({
       beneficiaryName: beneficiary.nomeCompleto || beneficiary.nomeSocial || '',
@@ -847,6 +988,63 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     return { label: 'Abertas', tone: 'green' };
   }
 
+  private carregarPresencas(): void {
+    const curso = this.currentCourse;
+    if (!curso || !this.dataPresencaSelecionada) return;
+    this.presencaCarregando = true;
+    this.service
+      .listarPresencas(curso.id, this.dataPresencaSelecionada)
+      .pipe(finalize(() => (this.presencaCarregando = false)))
+      .subscribe({
+        next: (response) => {
+          this.presencasPorMatricula = {};
+          response.presencas.forEach((presenca) => {
+            this.presencasPorMatricula[presenca.matriculaId] = presenca.status;
+          });
+          this.matriculasAtivas.forEach((matricula) => {
+            if (!this.presencasPorMatricula[matricula.id]) {
+              this.presencasPorMatricula[matricula.id] = 'AUSENTE';
+            }
+          });
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel carregar a presenca desta data.';
+        },
+      });
+  }
+
+  salvarPresencas(): void {
+    const curso = this.currentCourse;
+    if (!curso || !this.dataPresencaSelecionada) return;
+    const payload = this.montarPayloadPresenca();
+    this.presencaSalvando = true;
+    this.service
+      .salvarPresencas(curso.id, payload)
+      .pipe(finalize(() => (this.presencaSalvando = false)))
+      .subscribe({
+        next: (response) => {
+          this.presencasPorMatricula = {};
+          response.presencas.forEach((presenca) => {
+            this.presencasPorMatricula[presenca.matriculaId] = presenca.status;
+          });
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel salvar a presenca.';
+        },
+      });
+  }
+
+  private montarPayloadPresenca(): PresencaResponse {
+    const presencas = this.matriculasAtivas.map((matricula) => ({
+      matriculaId: matricula.id,
+      status: this.obterPresenca(matricula),
+    }));
+    return {
+      dataAula: this.dataPresencaSelecionada,
+      presencas,
+    };
+  }
+
   private setupBeneficiarySearch(): void {
     const beneficiaryControl = this.enrollmentForm.get('beneficiaryName');
     if (!beneficiaryControl) return;
@@ -865,15 +1063,31 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         }),
         switchMap((term) => {
           if (!term) return of({ beneficiarios: [] });
-          return this.beneficiaryService
+          return this.beneficiarioApiService
             .list({ nome: term })
             .pipe(catchError(() => of({ beneficiarios: [] })));
         })
       )
       .subscribe(({ beneficiarios }) => {
-        this.beneficiaryResults = beneficiarios.slice(0, 5);
+        this.beneficiaryResults = beneficiarios
+          .map((beneficiario) => this.mapearBeneficiarioParaBusca(beneficiario))
+          .slice(0, 5);
         this.beneficiarySearchLoading = false;
       });
+  }
+
+  private mapearBeneficiarioParaBusca(beneficiario: BeneficiarioApiPayload): BeneficiaryPayload {
+    return {
+      id: beneficiario.id_beneficiario ? Number(beneficiario.id_beneficiario) : undefined,
+      nomeCompleto: beneficiario.nome_completo || '',
+      nomeSocial: beneficiario.nome_social,
+      cpf: beneficiario.cpf || undefined,
+      cep: beneficiario.cep || '',
+      documentos: '',
+      dataNascimento: beneficiario.data_nascimento || '',
+      email: '',
+      documentosAnexos: []
+    };
   }
 
   private setupProfessionalSearch(): void {
@@ -1048,6 +1262,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.persistCourse(this.currentCourse);
   }
 }
+
 
 
 

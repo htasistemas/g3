@@ -301,6 +301,13 @@ WHERE id = 1
   AND versao <> '1.1.5';
 
 UPDATE versao_sistema
+SET versao = '1.1.6',
+    descricao = 'Registro de presenca em cursos e atendimentos com persistencia no banco e lista de presenca para impressao.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.6';
+
+UPDATE versao_sistema
 SET versao = '1.0.0'
 WHERE id = 1
   AND versao = '1.00.0';
@@ -356,6 +363,15 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.1.5'
     AND descricao = 'Ajustes no emprestimo para eventos: popup para criacao/edicao/exclusao de eventos, validacoes detalhadas do cadastro, melhorias de disponibilidade e avisos reposicionados na tela.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.6', 'Registro de presenca em cursos e atendimentos com persistencia no banco e lista de presenca para impressao.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.6'
+    AND descricao = 'Registro de presenca em cursos e atendimentos com persistencia no banco e lista de presenca para impressao.'
 );
 
 UPDATE historico_versao_sistema
@@ -1751,6 +1767,20 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos_fila_espera (
   cpf VARCHAR(20),
   data_entrada TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_presencas (
+  id BIGSERIAL PRIMARY KEY,
+  curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,
+  matricula_id BIGINT NOT NULL REFERENCES cursos_atendimentos_matriculas(id) ON DELETE CASCADE,
+  data_aula DATE NOT NULL,
+  status VARCHAR(10) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (curso_id, matricula_id, data_aula)
+);
+
+CREATE INDEX IF NOT EXISTS cursos_atendimentos_presencas_curso_data_idx
+  ON cursos_atendimentos_presencas (curso_id, data_aula);
 
 CREATE TABLE IF NOT EXISTS cursos_atendimentos_status (
   id BIGSERIAL PRIMARY KEY,

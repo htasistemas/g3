@@ -15,6 +15,18 @@ export interface Enrollment {
   enrolledAt: string;
 }
 
+export type PresencaStatus = 'PRESENTE' | 'AUSENTE';
+
+export interface PresencaItem {
+  matriculaId: string;
+  status: PresencaStatus;
+}
+
+export interface PresencaResponse {
+  dataAula: string;
+  presencas: PresencaItem[];
+}
+
 export interface WaitlistEntry {
   id: string;
   beneficiaryName: string;
@@ -88,6 +100,16 @@ export class CursosAtendimentosService {
     return this.http
       .patch<{ record: CourseRecord }>(`${this.baseUrl}/${id}/status`, payload)
       .pipe(map((response) => response.record));
+  }
+
+  listarPresencas(cursoId: string, dataAula: string): Observable<PresencaResponse> {
+    return this.http.get<PresencaResponse>(`${this.baseUrl}/${cursoId}/presencas`, {
+      params: { data: dataAula },
+    });
+  }
+
+  salvarPresencas(cursoId: string, payload: PresencaResponse): Observable<PresencaResponse> {
+    return this.http.post<PresencaResponse>(`${this.baseUrl}/${cursoId}/presencas`, payload);
   }
 
   delete(id: string): Observable<void> {

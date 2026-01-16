@@ -135,6 +135,12 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
   public CadastroBeneficiarioResponse geocodificarEndereco(Long id, boolean forcar) {
     CadastroBeneficiario cadastro =
         repository.buscarPorId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    List<String> camposFaltantes = obterCamposEnderecoFaltantes(cadastro.getEndereco());
+    if (!camposFaltantes.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Endereco incompleto: " + String.join(", ", camposFaltantes) + ".");
+    }
     CadastroBeneficiario atualizado = tentarGeocodificarEndereco(cadastro, forcar);
     if (atualizado == cadastro) {
       throw new ResponseStatusException(
@@ -198,6 +204,9 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     if (endereco == null) {
       return cadastro;
     }
+    if (!obterCamposEnderecoFaltantes(endereco).isEmpty()) {
+      return cadastro;
+    }
     if (!forcar && endereco.getLatitude() != null && endereco.getLongitude() != null) {
       return cadastro;
     }
@@ -212,6 +221,26 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
               return repository.salvar(cadastro);
             })
         .orElse(cadastro);
+  }
+
+  private List<String> obterCamposEnderecoFaltantes(Endereco endereco) {
+    if (endereco == null) {
+      return List.of("endereco");
+    }
+    List<String> faltantes = new java.util.ArrayList<>();
+    if (endereco.getLogradouro() == null || endereco.getLogradouro().trim().isEmpty()) {
+      faltantes.add("logradouro");
+    }
+    if (endereco.getNumero() == null || endereco.getNumero().trim().isEmpty()) {
+      faltantes.add("numero");
+    }
+    if (endereco.getCidade() == null || endereco.getCidade().trim().isEmpty()) {
+      faltantes.add("cidade");
+    }
+    if (endereco.getEstado() == null || endereco.getEstado().trim().isEmpty()) {
+      faltantes.add("estado");
+    }
+    return faltantes;
   }
 
   private void enviarEmailCadastro(CadastroBeneficiarioResponse beneficiario) {

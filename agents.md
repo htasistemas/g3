@@ -1,317 +1,207 @@
-# AGENTS.md - Diretrizes Oficiais para Agentes e Contribuicoes (Sistema G3)
+# AGENTS.md — Sistema G3 (Padrões para Codex/Agentes)
 
-Este documento define regras obrigatorias para atuacao de agentes humanos e assistentes de IA na manutencao, evolucao e implementacao de funcionalidades do Sistema G3.
-O nao cumprimento destas diretrizes caracteriza desvio de padrao do projeto.
+> Objetivo: orientar **implementação de telas** e mudanças correlatas no G3 com padrão único, sem gambiarras e sem divergências visuais/arquiteturais.
 
-## 1. Idioma
-- Toda comunicacao deve ser feita em portugues.
-- Termos tecnicos podem permanecer em ingles quando forem padrao de mercado (ex.: DTO, Service, Repository).
-- Esta regra e obrigatoria para respostas, codigo, comentarios, commits e documentacao.
+---
 
-## 2. Padrao de nomenclatura
-- Variaveis, classes, metodos, tabelas e colunas devem estar em portugues.
-- Padrao obrigatorio: camelCase para variaveis e metodos.
-- Exemplo: `unidadeAssistencial`.
-- Nomes devem ser claros, completos e sem abreviacoes obscuras.
+## REGRAS GERAIS (OBRIGATÓRIAS)
 
-## 3. Principios fundamentais
-- Priorizar clareza, manutencao, estabilidade e seguranca.
-- Nenhuma solucao deve existir apenas para funcionar.
-- Toda alteracao deve considerar: impacto futuro, reuso, compatibilidade com producao e evolucao do sistema.
+### Idioma
+- MUST escrever comunicação, código (quando aplicável), comentários, commits e docs em **português**.
+- MAY manter termos técnicos em inglês quando padrão (ex.: DTO, Service, Repository).
 
-## 4. Escopo de atuacao do agente
-O agente DEVE:
-- Propor solucoes alinhadas ao padrao do projeto.
-- Respeitar integralmente a arquitetura existente.
-- Evitar reescritas desnecessarias.
-- Manter compatibilidade com o sistema em producao.
+### Nomenclatura
+- MUST nomear variáveis, classes, métodos, tabelas e colunas em **português**.
+- MUST usar **camelCase** para variáveis e métodos (ex.: `unidadeAssistencial`).
+- MUST evitar abreviações obscuras; nomes devem ser claros e completos.
 
-O agente NAO DEVE:
-- Criar solucoes paralelas para o mesmo problema.
-- Introduzir dependencias sem justificativa tecnica clara.
-- Alterar padroes sem alinhamento explicito com este documento.
+### Postura / Arquitetura
+- MUST respeitar a arquitetura existente.
+- MUST evitar reescritas desnecessárias.
+- MUST manter compatibilidade com produção.
+- MUST sinalizar riscos técnicos quando houver.
+- MUST ser direto e objetivo; NÃO assumir requisitos implícitos.
 
-## 5. Regras gerais de codigo
-- Codigo deve ser legivel, simples e coeso.
-- Evitar duplicacao; reutilizar servicos e utilitarios existentes.
-- Preferir composicao em vez de heranca.
-- Metodos devem ter responsabilidade unica.
-- E proibido:
-  - Logica oculta.
-  - Efeitos colaterais inesperados.
-  - Implementacoes temporarias sem registro tecnico.
+### Código
+- MUST manter código simples, legível e coeso.
+- MUST evitar duplicação; reutilizar serviços/utilitários existentes.
+- SHOULD aplicar responsabilidade única por método.
+- SHOULD preferir composição em vez de herança.
+- MUST NOT criar implementações temporárias sem registro técnico.
+- MUST NOT introduzir dependências sem justificativa técnica clara.
 
-### UX e comportamento obrigatorio
-- Nenhuma acao pode exigir duplo clique.
-- Todo botao de acao ou navegacao deve executar com 1 clique.
-- E proibido:
-  - Duplicar eventos (click + mouseup).
-  - Multiplos listeners.
-  - HostListener duplicado.
-- Botoes dentro de `form`:
-  - `type="button"` por padrao.
-  - `type="submit"` apenas quando estritamente necessario.
-- Evitar overlays capturando clique quando inativos (ajustar `pointer-events` e `z-index`).
-- Todas as telas novas ou ja criadas precisam gerar popup de error message.     
-- Todo campo obrigatorio deve exibir (*) ao lado do titulo do campo e, ao clicar em "salvar" sem preenchimento, deve apresentar mensagem de erro clara ao usuario.
+---
 
-### UI/UX / Layout / Padroes de Tela
-- E PROIBIDO renderizar titulos/headers/subtitulos duplicados na mesma area visual.
-- Antes de finalizar qualquer tela, validar que existe apenas 1 titulo principal (ex.: h1 / mat-card-title / page-title / header-component).
-- Se houver componentes globais de header (ex.: PageHeader), a tela NAO pode criar outro titulo redundante.
-- Evitar CSS que cause sobreposicao (position:absolute indevido, margin-top negativo, z-index conflitando).
-- Toda tela deve ser verificada visualmente para garantir: "Nenhum texto sobreposto" (titulos, comentarios, breadcrumbs, subtitulos).
+## PADRÃO OBRIGATÓRIO PARA TELAS (UI/UX)
 
-## Padrao oficial de layout de telas - Sistema G3
+### Referência oficial
+- MUST usar como referência **Cadastro de Beneficiário** do G3.
+- MUST replicar padrão visual/estrutural/funcional já consolidado.
 
-1. Estrutura do topo da tela
-- Toda tela deve conter apenas UM titulo principal.
-- A hierarquia obrigatoria e:
-  a) Header global do sistema (faixa verde superior, sem titulo da tela).
-  b) Identificacao do modulo em texto pequeno e cinza (ex.: UNIDADE ASSISTENCIAL).
-  c) Titulo principal da tela em destaque (ex.: Cadastro de unidades).
-  d) Subtitulo explicativo opcional alinhado a direita.
-- E proibido renderizar titulos duplicados ou sobrepostos.
+### Base da tela
+- MUST usar `app-tela-padrao` como base.
+- MUST usar cards padronizados do G3 para organizar conteúdo.
+- SHOULD usar abas/etapas quando houver separação lógica.
 
-2. Barra de acoes (obrigatoria)
-- Deve ficar logo abaixo do titulo.
-- Deve ser horizontal, com botoes contendo icone + texto.
-- Ordem fixa e obrigatoria dos botoes:
-  Buscar -> Novo -> Salvar -> Cancelar -> Excluir -> Imprimir -> Fechar
-- A ordem NAO pode ser alterada.
-- O botao Excluir deve ter destaque visual de alerta.
+### Cabeçalho da página (sempre)
+- MUST exibir no topo:
+  - Linha 1: **MENU PAI** em letras maiúsculas, cinza.
+  - Linha 2: **Tela atual** (Primeira letra maiúscula), preta.
+- MUST NOT omitir este cabeçalho.
+- MUST NOT criar variações visuais por tela.
 
-3. Navegacao por etapas (quando aplicavel)
-- Telas com multiplas secoes devem usar navegacao por etapas numeradas.
-- Cada etapa deve possuir numero e rotulo textual.
-- A etapa ativa deve ter destaque visual em verde.
-- As etapas devem estar agrupadas em um card horizontal abaixo da barra de acoes.
-- Evitar multiplas abas soltas; priorizar fluxo guiado.
+### Título e subtítulo (anti-redundância)
+- MUST existir **apenas 1 título principal** por área visual.
+- MUST validar que não há títulos/headers duplicados (header global + título local).
+- MUST NOT renderizar títulos/subtítulos sobrepostos.
 
-4. Conteudo das etapas
-- Cada etapa deve abrir em um card principal.
-- O card deve conter:
-  - Titulo interno destacado (badge ou label verde).
-  - Texto explicativo auxiliar.
-- Campos devem ser bem espacos, alinhados e legiveis.
+### Barra de ações CRUD (obrigatória)
+- MUST ficar logo abaixo do título.
+- MUST ser horizontal (ícone + texto).
+- MUST seguir esta ordem fixa:
+  - **Buscar → Novo → Salvar → Cancelar → Excluir → Imprimir → Fechar**
+- MUST NOT alterar a ordem.
+- MUST dar destaque visual de alerta ao botão **Excluir**.
+- MUST manter **Fechar** como último botão.
+- SHOULD garantir que **Excluir** não fique “colado” em **Salvar**.
 
-5. Regras visuais obrigatorias
-- E PROIBIDO texto sobreposto.
-- E PROIBIDO duplicar titulo (header + tela).
-- Evitar uso de position:absolute sem justificativa.
-- Evitar margin negativa para ajuste visual.
-- Evitar conflitos de z-index.
-- O layout deve ser limpo, consistente e padronizado.
+### Formulários e clique
+- MUST garantir que nenhuma ação exija duplo clique.
+- MUST garantir 1 clique por ação/navegação.
+- MUST NOT duplicar eventos (`click` + `mouseup`), múltiplos listeners ou HostListener duplicado.
+- Em botões dentro de `form`:
+  - MUST usar `type="button"` por padrão.
+  - MAY usar `type="submit"` apenas quando estritamente necessário.
+- MUST evitar overlays capturando clique quando inativos (`pointer-events`, `z-index`).
 
-6. Aplicacao da regra
-- Toda nova tela criada deve seguir este padrao.
-- Telas fora do padrao devem ser ajustadas progressivamente.
-- A tela Ocorrencias deve seguir exatamente este modelo.
+### Validação e mensagens
+- MUST exibir `(*)` em todo campo obrigatório.
+- Ao clicar **Salvar** com campos obrigatórios vazios:
+  - MUST mostrar mensagem clara de erro ao usuário.
+- MUST exibir popup de erro padronizado em telas novas e existentes.
 
-## Padrao obrigatorio de cabecalho e abas (UI G3)
+### Abas / Etapas (quando aplicável)
+- Telas com múltiplas seções:
+  - SHOULD usar navegação por etapas numeradas ou abas no padrão G3.
+- Se houver abas, MUST seguir padrão visual:
+  - Aba ativa: verde escuro + texto branco
+  - Abas anteriores: verde claro + texto verde escuro
+  - Abas futuras: neutras
+- MUST permitir apenas 1 aba ativa por vez.
+- MUST manter comportamento idêntico ao padrão já existente (cadastros do G3).
 
-Esta diretriz e obrigatoria para TODAS as telas do sistema G3, sem excecao.
+### Regras visuais (anti-bug)
+- MUST verificar visualmente: **nenhum texto sobreposto** (títulos, breadcrumbs, subtítulos, comentários).
+- MUST evitar CSS com sobreposição:
+  - MUST NOT usar `position:absolute` sem justificativa.
+  - MUST NOT usar margem negativa para “ajeitar layout”.
+  - MUST evitar conflitos de `z-index`.
 
-1. Cabecalho da pagina (topo das telas)
-- Sempre que uma tela do sistema for aberta, DEVE existir no topo da pagina um cabecalho seguindo este padrao fixo:
-  - Linha 1 – Nome do Menu (menu pai):
-    - Texto em LETRAS MAIUSCULAS
-    - Cor cinza
-    - Representa o contexto principal do sistema
-  - Linha 2 – Nome do Submenu (tela atual):
-    - Primeira letra em maiuscula e o restante em minusculas
-    - Cor preta
-    - Representa a funcionalidade atual da tela
-- Exemplo obrigatorio:
-  - SETOR ADMINISTRATIVO
-  - Gestao de Documentos
-- Nenhuma tela pode omitir esse cabecalho ou criar variacoes visuais.
+### Comentário didático
+- MUST incluir comentário explicativo no topo direito da área de título (conforme padrão do Beneficiário).
 
-2. Padrao visual e comportamental das abas (tabs)
-- Sempre que a tela possuir abas, elas DEVEM obedecer ao padrao visual oficial do sistema G3:
-  - Texto da aba centralizado (horizontal e verticalmente)
-  - Estilo visual consistente em todas as telas
-- Estados das abas:
-  - Aba selecionada (ativa):
-    - Fundo verde escuro
-    - Texto branco
-  - Abas anteriores (ja percorridas):
-    - Fundo verde claro
-    - Texto verde escuro
-  - Abas nao selecionadas (futuras):
-    - Estilo neutro, sem destaque em verde
-- Comportamento obrigatorio:
-  - Apenas uma aba ativa por vez
-  - Ao selecionar uma nova aba:
-    - A aba atual passa para verde escuro
-    - As abas anteriores permanecem verde claro
-  - O comportamento deve ser identico ao das telas de navegacao por etapas do sistema G3 (ex.: cadastro de unidades, beneficiarios, prontuario)
+---
 
-3. Regra de consistencia geral
-- Todas as telas novas ou alteradas DEVEM seguir este padrao
-- E proibido criar estilos personalizados por tela
-- O padrao de cabecalho e abas define a identidade visual oficial do sistema G3
+## CARREGAMENTO AUTOMÁTICO DE DADOS (OBRIGATÓRIO)
+- MUST carregar e exibir dados automaticamente ao abrir a tela.
+- MUST NOT depender de clique/foco/hover/troca de aba para popular dados.
+- MUST carregar no lifecycle adequado (ex.: `ngOnInit`, ou `ngAfterViewInit` quando necessário).
+- Se usar `ChangeDetectionStrategy.OnPush`:
+  - MUST garantir atualização correta (imutabilidade, `async pipe`, ou `markForCheck`).
+- MUST NOT usar gambiarras (`setTimeout`, cliques forçados, eventos artificiais).
 
-### Carregamento automatico de dados nas telas
-- Todas as telas do sistema G3 DEVEM carregar e exibir os dados automaticamente ao serem abertas.
-- E PROIBIDO depender de qualquer interacao do usuario (clique, foco, hover, troca de aba ou qualquer acao manual) para que os dados sejam populados na tela.
-- O carregamento inicial deve ocorrer no lifecycle adequado do Angular (ex.: ngOnInit ou ngAfterViewInit quando tecnicamente necessario).
-- Telas que utilizam ChangeDetectionStrategy.OnPush devem garantir atualizacao correta do estado (imutabilidade, async pipe ou markForCheck).
-- Nao sao permitidas gambiarras como setTimeout, cliques forcados ou eventos artificiais para "atualizar" a UI.
-- Toda nova tela criada deve seguir obrigatoriamente essa regra.
-- Telas existentes que nao respeitem esse comportamento devem ser consideradas fora do padrao e elegiveis para correcao.
+---
 
-## 6. Regra geral - criacao de novas telas (obrigatoria)
-AO CRIAR QUALQUER NOVA TELA NO SISTEMA G3, o agente DEVE:
-- USAR COMO REFERENCIA O CADASTRO DE BENEFICIARIO DO G3.
-- REPLICAR O PADRAO VISUAL, ESTRUTURAL E FUNCIONAL ja existente no sistema.
+## ANGULAR (FRONTEND)
+- MUST NOT colocar lógica pesada no template.
+- MUST colocar regras de negócio em services.
+- MUST usar tipagem estrita; evitar `any`.
+- SHOULD manter componentes pequenos e focados.
+- MAY separar smart/dumb quando aplicável.
 
-O padrao obrigatorio inclui, sem excecoes:
-- Uso de `app-tela-padrao` como base da tela.
-- Organizacao do conteudo em cards padronizados do G3.
-- Uso de abas (tabs) sempre que houver separacao logica de informacoes.
-- Aplicacao da barra de acoes CRUD padrao:
-  - Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar.
-- Uso dos componentes compartilhados oficiais.
-- Manutencao das funcionalidades padrao:
-  - Validacoes visuais e funcionais.
-  - Mensagens de erro padronizadas.
-  - Comportamento consistente de formularios e acoes.
+### Estrutura específica
+- MUST usar `app-barra-acoes-crud`:
+  - alinhada ao título; fora de cards e formulários.
+- **Cancelar**:
+  - MUST limpar todos os campos, inclusive em “novo cadastro”.
 
-E PROIBIDO:
-- Criar telas fora do padrao visual do G3.
-- Introduzir layouts alternativos ou fluxos divergentes.
-- Ignorar cards, abas ou estruturas consolidadas.
-
-Em caso de duvida, o agente DEVE copiar o padrao do cadastro de beneficiario.
-Excecoes devem ser justificadas, documentadas e aprovadas previamente.
-
-## 7. Padrao oficial de botoes de navegacao (G3)
-- Ordem obrigatoria (linha unica): Buscar, Novo, Salvar, Cancelar, Excluir, Imprimir, Fechar.
-- Regras:
-  - Layout deve seguir o Cadastro de Beneficiario.
-  - Excluir nao pode ficar colado em Salvar.
-  - Fechar deve ser sempre o ultimo botao.
-
-### Impressao
-- Botao Imprimir (topo):
-  - Se houver mais de uma opcao, abrir popup com lista.
-  - Popups de impressao devem ter botao "X" para fechar e permitir fechamento via tecla ESC.
-
-## 8. Angular - Frontend
-- Proibido logica pesada em templates.
-- Regras de negocio sempre em services.
-- Tipagem estrita obrigatoria (evitar `any`).
-- Componentes devem ser pequenos e focados.
-- Separar smart e dumb quando aplicavel.
-- Seguir os padroes visuais e estruturais definidos no README.md.
-
-### Estrutura obrigatoria
-- Todas as telas devem usar `app-tela-padrao`.
-- `app-barra-acoes-crud`:
-  - Canto superior direito.
-  - Alinhada ao titulo.
-  - Fora de cards e formularios.
-  - "cancelar" deve limpar todos os campos, inclusive em novo cadastro.
-
-### Titulos
-- `page-title__eyebrow`: 0.95rem.
-- `page-title__label`: 1.5rem, peso 800.
-- Todos os titulos e subtitulos de telas novas ou existentes devem seguir exatamente o mesmo padrao do cadastro de beneficiario (espacamento, tamanho, peso e formato).
-- Sempre que criar uma tela nova ou alterar uma tela existente, aplicar obrigatoriamente o padrao de titulo/subtitulo do cadastro de beneficiario.
+### Títulos (CSS)
+- MUST seguir padrão do Beneficiário (mesmo espaçamento/tamanho/peso):
+  - `page-title__eyebrow`: 0.95rem
+  - `page-title__label`: 1.5rem, peso 800
 
 ### Listagens
-- Usar como modelo a listagem de beneficiarios (filtros, cards, lista e paginacao).
+- SHOULD usar como modelo a listagem de beneficiários (filtros, cards, lista e paginação).
 
-### Comentario didatico
-- Toda nova tela deve conter um comentario explicativo no topo direito da area de titulo.
+---
 
-## 9. Campos padronizados
-- Capitalizacao obrigatoria (Primeira Letra Maiuscula).
+## CAMPOS PADRONIZADOS
+- MUST capitalizar labels (Primeira Letra Maiúscula).
 - CPF:
-  - Mascara `000.000.000-00`.
-  - Validacao completa.
-  - Campo invalido com borda vermelha.
+  - MUST usar máscara `000.000.000-00`
+  - MUST validar completo
+  - MUST indicar inválido com borda vermelha
 - CNPJ:
-  - Mascara `00.000.000/0000-00`.
-  - Validacao completa.
-- Endereco da unidade:
-  - `cidade` com autocomplete (MG).
-  - Preencher `estado` automaticamente.
+  - MUST usar máscara `00.000.000/0000-00`
+  - MUST validar completo
+- Endereço da unidade:
+  - `cidade` com autocomplete (MG)
+  - MUST preencher `estado` automaticamente
 
-## 10. Componentes compartilhados
-- Autocomplete: usar exclusivamente `app-autocomplete`.
-- Normalizacao de busca: sem acento e case-insensitive.
+---
+
+## COMPONENTES COMPARTILHADOS (OBRIGATÓRIO REUTILIZAR)
+- Autocomplete: MUST usar `app-autocomplete`.
+- Busca: MUST normalizar (sem acento e case-insensitive).
 - Mensagens:
-  - Formularios: `PopupErrorBuilder` + `app-popup-messages`.
-  - Globais: `ErrorService` + `ToastComponent`.
-  - Feedback local: temporario (10s) com botao "X".
-- Confirmacoes: usar sempre `app-dialog`.
-- Envio de email: sempre usar as configuracoes do servidor de email ja configurado no sistema (mesma configuracao usada no link "clique aqui para recuperar" da tela de login).
+  - Formulários: MUST usar `PopupErrorBuilder` + `app-popup-messages`
+  - Globais: MUST usar `ErrorService` + `ToastComponent`
+  - Feedback local: MAY usar temporário (10s) com botão "X"
+- Confirmações: MUST usar `app-dialog`.
+- Email: MUST usar configuração do servidor já existente (mesma do “recuperar” login).
 
-## 11. Relatorios - padrao oficial G3
-- Formato A4, margens 20mm, fonte Arial.
-- Cabecalho, corpo e rodape obrigatorios.
-- Numeracao: Pagina X de Y.
-- Dados sempre reais.
-- HTML + PDF (via HTML).
-- 1 clique apenas.
-- Template unico reutilizavel.
-- Todos os relatorios devem seguir este padrao, inclusive os existentes.
+---
 
-## 12. Backend - Java
-- Camadas obrigatorias: Controller, Service, Repository, Domain.
-- Uso obrigatorio de DTOs.
-- Nunca expor entidades.
-- Validar dados no backend.
-- Tratar erros explicitamente.
-- Priorizar imutabilidade.
+## BACKEND (SE ENVOLVER DADOS)
+### Java
+- MUST seguir camadas: Controller, Service, Repository, Domain.
+- MUST usar DTOs; MUST NOT expor entidades.
+- MUST validar dados no backend e tratar erros explicitamente.
+- SHOULD priorizar imutabilidade.
 
 ### CORS
-- Configurar corretamente para evitar 403 no preflight.
-- Dev: http://localhost:4200
-- Prod: apenas dominio oficial.
+- MUST configurar para evitar 403 preflight.
+- Dev: `http://localhost:4200`
+- Prod: apenas domínio oficial.
 
-## 13. Seguranca
-- Nunca confiar apenas no frontend.
-- Nao expor dados sensiveis em logs.
-- Aplicar principio do menor privilegio.
-- Defender contra estados invalidos e fluxos incompletos.
+### Banco de dados
+- MUST registrar alteração estrutural em `init.db`.
+- MUST criar scripts idempotentes.
+- MUST usar nomes em português; PK `id` sequencial; FKs obrigatórias.
+- Ao “colocar no banco”, MUST criar Domain, DTO, Repository, Service e Controller.
 
-## 14. Banco de dados
-- Toda alteracao estrutural deve estar em `init.db`.
-- Scripts idempotentes.
-- Evitar `DO $$`.
-- Nomes em portugues.
-- PK `id` sequencial.
-- FKs obrigatorias.
-- Ao "colocar no banco":
-  - Atualizar `init.db`.
-  - Criar Domain, DTO, Repository, Service e Controller.
+---
 
-## 15. Prontuario do beneficiario
-- Tabelas: `prontuario_registros`, `prontuario_anexos`.
-- Uso de `dados_extra` (JSONB) para campos especificos.
-- Novos eventos sempre geram novo registro.
-- Anexos vinculados por FK com ON DELETE CASCADE.
+## RELATÓRIOS (SE APLICAR)
+- MUST seguir padrão:
+  - A4, margens 20mm, fonte Arial
+  - cabeçalho/corpo/rodapé
+  - “Página X de Y”
+  - dados reais
+  - HTML + PDF (via HTML)
+  - 1 clique
+  - template único reutilizável
 
-## 16. Testes
-- Criar/atualizar testes ao alterar comportamento.
-- Priorizar fluxos criticos.
-- Testes rapidos e deterministas.
-- Codigo sem teste e excecao.
+---
 
-## 17. Versao e historico do sistema
-- Atualizar versao em Configuracoes Gerais.
-- Registrar versao, data/hora e mudancas.
-- Formato obrigatorio: `1.00.0`.
-- Incrementar apenas o ultimo grupo.
-- Historico deve ser objetivo e sequencial.
-- E proibido repetir numero de versao. Toda nova versao deve ser unica e estritamente sequencial.
+## TESTES (SE ALTERAR COMPORTAMENTO)
+- MUST criar/atualizar testes ao alterar comportamento.
+- SHOULD priorizar fluxos críticos; testes rápidos e deterministas.
 
-## 18. Postura esperada do agente
-- Ser direto e objetivo.
-- Apontar riscos tecnicos.
-- Nao assumir requisitos implicitos.
-- Nao simplificar problemas complexos sem justificativa.
-- Manter alinhamento total com a arquitetura e visao do G3.
+---
+
+## VERSÃO / HISTÓRICO
+- MUST atualizar versão em Configurações Gerais.
+- MUST registrar versão, data/hora e mudanças de forma objetiva.
+- MUST usar formato `1.00.0` e incrementar apenas o último grupo.
+- MUST NOT repetir número de versão (sequencial e único).

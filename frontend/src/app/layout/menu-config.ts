@@ -34,6 +34,7 @@ export const menuSections: MenuItem[] = [
     children: [
       { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
       { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
+      { label: 'Mapa dos Beneficiarios', icon: faMapLocationDot, route: '/dashboard/mapa-beneficiarios' },
     ],
   },
   {

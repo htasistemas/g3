@@ -414,6 +414,96 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
+    <div class="tab-card" *ngIf="activeTab === 'presenca'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+          <p class="muted">Registre presenca por dia para as matriculas ativas.</p>
+        </div>
+        <span class="pill">Presenca</span>
+      </div>
+
+      <div class="field-grid cols-3">
+        <label class="field full">
+          Selecione o curso/atendimento*
+          <select [value]="currentCourse?.id || ''" (change)="selectCourseForEnrollment($any($event.target).value)">
+            <option value="" disabled [selected]="!currentCourse">Escolha uma opcao</option>
+            <option *ngFor="let course of records" [value]="course.id">
+              {{ course.tipo }} - {{ course.nome }}
+            </option>
+          </select>
+        </label>
+        <label class="field">
+          Data da aula*
+          <input
+            type="date"
+            [value]="dataPresencaSelecionada"
+            (change)="atualizarDataPresenca($event)"
+          />
+        </label>
+        <div class="actions align-end">
+          <button type="button" class="ghost" [disabled]="presencaSalvando" (click)="salvarPresencas()">
+            Salvar presenca
+          </button>
+          <button type="button" class="primary" (click)="imprimirListaPresenca()">
+            Imprimir lista de presenca
+          </button>
+        </div>
+      </div>
+      <div class="search-hint" *ngIf="presencaCarregando">Carregando presencas...</div>
+
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__eyebrow">Presenca</p>
+            <p class="page-title__label">Lista de alunos</p>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Beneficiario</th>
+                <th>CPF</th>
+                <th>Presente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let matricula of matriculasAtivas">
+                <td>{{ matricula.beneficiaryName }}</td>
+                <td>{{ matricula.cpf }}</td>
+                <td>
+                  <div class="presence-toggle">
+                    <label class="inline-check">
+                      <input
+                        type="checkbox"
+                        [checked]="obterPresenca(matricula) === 'PRESENTE'"
+                        (change)="atualizarPresenca(matricula, 'PRESENTE')"
+                        [disabled]="!dataPresencaSelecionada || presencaSalvando"
+                      />
+                      <span>Presente</span>
+                    </label>
+                    <label class="inline-check">
+                      <input
+                        type="checkbox"
+                        [checked]="obterPresenca(matricula) === 'AUSENTE'"
+                        (change)="atualizarPresenca(matricula, 'AUSENTE')"
+                        [disabled]="!dataPresencaSelecionada || presencaSalvando"
+                      />
+                      <span>Ausente</span>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!matriculasAtivas.length">
+                <td colspan="3">Nenhuma matricula ativa encontrada.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="tab-card" *ngIf="activeTab === 'listagem'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">

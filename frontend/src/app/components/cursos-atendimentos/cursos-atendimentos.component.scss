@@ -1320,6 +1320,12 @@
   gap: 1rem;
 }
 
+.presence-toggle {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .page-title__note {
   align-self: flex-start;
   text-align: right;

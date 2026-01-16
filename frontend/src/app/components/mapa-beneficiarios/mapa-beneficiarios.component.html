@@ -1,0 +1,101 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (buscar)="carregarBeneficiarios()"
+  (imprimir)="imprimirMapa()"
+  (fechar)="fecharTela()"
+>
+  <div slot="acoes" class="mapa-beneficiarios__acoes">
+    <button
+      type="button"
+      class="nav-button"
+      [disabled]="carregando || geocodificandoAtivo"
+      (click)="forcarGeocodificacao()"
+    >
+      <span class="nav-button__icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M10 17C12.6667 14.3333 14 12 14 10C14 7.23858 12.2091 5 10 5C7.79086 5 6 7.23858 6 10C6 12 7.33333 14.3333 10 17Z"
+            stroke="currentColor"
+            stroke-width="1.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="10" cy="10" r="2" stroke="currentColor" stroke-width="1.25" />
+        </svg>
+      </span>
+      <span class="nav-button__label">Geocodificacao</span>
+    </button>
+    <span class="mapa-beneficiarios__acoes-status" *ngIf="geocodificandoAtivo">
+      Geocodificando...
+    </span>
+  </div>
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">DASHBOARD</p>
+      <p class="page-title__label">Mapa dos Beneficiarios</p>
+    </div>
+    <p class="page-title__note">Visualize os enderecos cadastrados em um unico mapa.</p>
+  </header>
+
+  <section class="cadastro">
+    <app-popup-messages
+      [mensagens]="popupErros"
+      (fechar)="fecharPopup()"
+    ></app-popup-messages>
+
+    <section class="mapa-beneficiarios">
+      <div class="mapa-beneficiarios__mapa">
+        <div class="mapa-beneficiarios__mapa-header">
+          <div>
+            <p class="mapa-beneficiarios__eyebrow">Localizacao</p>
+            <h2>Mapa dos beneficiarios</h2>
+            <p>Todos os enderecos cadastrados sao plotados automaticamente.</p>
+          </div>
+        </div>
+
+        <div class="mapa-beneficiarios__mapa-corpo">
+          <div #mapaContainer class="mapa-beneficiarios__mapa-container"></div>
+          <div class="mapa-beneficiarios__mapa-vazio" *ngIf="mapaMensagem">
+            {{ mapaMensagem }}
+          </div>
+          <div class="mapa-beneficiarios__diagnostico">
+            <div>
+              <span>Total</span>
+              <strong>{{ totalBeneficiarios }}</strong>
+            </div>
+            <div>
+              <span>Com coordenadas</span>
+              <strong>{{ totalComCoordenadas }}</strong>
+            </div>
+            <div>
+              <span>Sem coordenadas</span>
+              <strong>{{ totalSemCoordenadas }}</strong>
+            </div>
+            <div>
+              <span>Geocodificados</span>
+              <strong>{{ geocodificadosNaSessao }}</strong>
+            </div>
+            <div>
+              <span>Falhas</span>
+              <strong>{{ geocodificacaoFalhaNaSessao }}</strong>
+            </div>
+            <div>
+              <span>Sem id</span>
+              <strong>{{ beneficiariosSemId }}</strong>
+            </div>
+            <div>
+              <span>Endereco incompleto</span>
+              <strong>{{ beneficiariosEnderecoIncompleto }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="mapa-beneficiarios__attribution">
+          (c) OpenStreetMap contributors
+        </div>
+      </div>
+    </section>
+  </section>
+</app-tela-padrao>
