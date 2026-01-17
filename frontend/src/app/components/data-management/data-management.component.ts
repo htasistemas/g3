@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
@@ -18,6 +18,7 @@ interface BackupRecord {
   tipo: 'Completo' | 'Incremental';
   status: BackupStatus;
   iniciadoEm: string;
+  iniciadoEmFormatado: string;
   armazenadoEm?: string;
   tamanho?: string;
   criptografado: boolean;
@@ -139,6 +140,7 @@ export class DataManagementComponent implements OnInit {
   }
 
   private mapearBackupResposta(backup: GerenciamentoDadosBackupResponse): BackupRecord {
+    const iniciadoEmFormatado = this.formatarDataHora(backup.iniciadoEm);
     return {
       id: backup.id,
       codigo: backup.codigo,
@@ -146,10 +148,22 @@ export class DataManagementComponent implements OnInit {
       tipo: backup.tipo as BackupRecord['tipo'],
       status: backup.status as BackupStatus,
       iniciadoEm: backup.iniciadoEm,
+      iniciadoEmFormatado,
       armazenadoEm: backup.armazenadoEm,
       tamanho: backup.tamanho,
       criptografado: backup.criptografado,
       retencaoDias: backup.retencaoDias,
     };
+  }
+
+  private formatarDataHora(valor?: string): string {
+    if (!valor) {
+      return '--';
+    }
+    const data = new Date(valor);
+    if (Number.isNaN(data.getTime())) {
+      return valor;
+    }
+    return formatDate(data, 'dd/MM/yyyy HH:mm', 'pt-BR');
   }
 }

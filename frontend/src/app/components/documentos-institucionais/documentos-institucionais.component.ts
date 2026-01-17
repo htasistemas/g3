@@ -352,6 +352,15 @@ export class DocumentosInstitucionaisComponent {
     this.filterForm.reset({ situacao: '', periodoVencimento: '' });
   }
 
+  aplicarFiltros(): void {
+    this.selectedDocumentId = this.documentosFiltrados[0]?.id ?? null;
+  }
+
+  irParaNovoDocumento(): void {
+    this.prepararNovoDocumento();
+    this.changeTab('cadastro');
+  }
+
   prepararNovoDocumento(): void {
     this.editingId = null;
     this.documentoForm.reset({

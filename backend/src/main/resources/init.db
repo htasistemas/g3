@@ -308,6 +308,55 @@ WHERE id = 1
   AND versao <> '1.1.6';
 
 UPDATE versao_sistema
+SET versao = '1.1.7',
+    descricao = 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.7';
+
+UPDATE versao_sistema
+SET versao = '1.1.8',
+    descricao = 'Dashboard com indicadores visuais na tela de emprestimo para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.8';
+
+UPDATE versao_sistema
+SET versao = '1.1.9',
+    descricao = 'Ajustes visuais e de fluxo na lista de documentos institucionais.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.9';
+
+UPDATE versao_sistema
+SET versao = '1.1.10',
+    descricao = 'Aviso de agendamento na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.10';
+
+UPDATE versao_sistema
+SET versao = '1.1.11',
+    descricao = 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.11';
+
+UPDATE versao_sistema
+SET versao = '1.1.12',
+    descricao = 'Aviso de agendamento com evento na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.12';
+
+UPDATE versao_sistema
+SET versao = '1.1.13',
+    descricao = 'Popup de impressao e termo juridico no emprestimo para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.13';
+
+UPDATE versao_sistema
 SET versao = '1.0.0'
 WHERE id = 1
   AND versao = '1.00.0';
@@ -372,6 +421,69 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.1.6'
     AND descricao = 'Registro de presenca em cursos e atendimentos com persistencia no banco e lista de presenca para impressao.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.7', 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.7'
+    AND descricao = 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.8', 'Dashboard com indicadores visuais na tela de emprestimo para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.8'
+    AND descricao = 'Dashboard com indicadores visuais na tela de emprestimo para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.9', 'Ajustes visuais e de fluxo na lista de documentos institucionais.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.9'
+    AND descricao = 'Ajustes visuais e de fluxo na lista de documentos institucionais.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.10', 'Aviso de agendamento na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.10'
+    AND descricao = 'Aviso de agendamento na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.11', 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.11'
+    AND descricao = 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.12', 'Aviso de agendamento com evento na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.12'
+    AND descricao = 'Aviso de agendamento com evento na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.13', 'Popup de impressao e termo juridico no emprestimo para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.13'
+    AND descricao = 'Popup de impressao e termo juridico no emprestimo para eventos.'
 );
 
 UPDATE historico_versao_sistema

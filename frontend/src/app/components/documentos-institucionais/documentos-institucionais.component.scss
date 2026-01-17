@@ -164,6 +164,13 @@
   color: #6b7280;
 }
 
+.tab-card__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .pill {
   background: #e0f2fe;
   color: #0369a1;
@@ -181,6 +188,7 @@
 .field-grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .field-grid.cols-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .field-grid.cols-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.field-grid.cols-6 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
 .field,
 .checkbox-field {
@@ -189,6 +197,10 @@
   gap: 0.3rem;
   font-size: 0.9rem;
   color: #1f2937;
+}
+
+.field--action {
+  justify-content: flex-end;
 }
 
 .field__label {
@@ -268,6 +280,35 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
 }
 
+.metric-card {
+  text-align: center;
+}
+
+.metric-card--neutral {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.metric-card--success {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+}
+
+.metric-card--danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.metric-card--warning {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.metric-card--info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
 .metric-label {
   margin: 0;
   color: #64748b;
@@ -325,10 +366,15 @@ th { color: #6b7280; font-weight: 700; font-size: 0.85rem; }
 tr:hover { background: #f8fafc; }
 
 .table-actions {
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  justify-content: end;
   gap: 0.35rem;
-  flex-wrap: wrap;
+}
+
+.table-actions button {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
 }
 
 .button,

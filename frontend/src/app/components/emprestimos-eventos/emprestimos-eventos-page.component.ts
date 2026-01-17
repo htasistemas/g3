@@ -24,6 +24,27 @@ interface AgendaDiaView {
   qtdEmprestimos: number;
 }
 
+interface DashboardResumo {
+  totalEmprestimos: number;
+  emprestimosAtivos: number;
+  emprestimosAgendados: number;
+  emprestimosDevolvidos: number;
+  itensEmprestados: number;
+  itensAgendados: number;
+  diasComEmprestimos: number;
+}
+
+interface DashboardItemResumo {
+  nome: string;
+  quantidade: number;
+  tipo: TipoItemEmprestimo;
+}
+
+interface DashboardDiaResumo {
+  data: string;
+  quantidade: number;
+}
+
 @Component({
   standalone: false,
   selector: 'app-emprestimos-eventos-page',
@@ -32,6 +53,7 @@ interface AgendaDiaView {
 })
 export class EmprestimosEventosPageComponent implements OnInit {
   readonly abas: AbaItem[] = [
+    { id: 'dashboard', label: 'Dashboard', descricao: 'Visao geral dos emprestimos e itens.' },
     { id: 'agenda', label: 'Agenda', descricao: 'Calendario de indisponibilidade e eventos.' },
     { id: 'lista', label: 'Lista', descricao: 'Resumo dos emprestimos cadastrados.' },
     { id: 'cadastro', label: 'Cadastro', descricao: 'Dados principais do emprestimo.' },
@@ -78,6 +100,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
   modalAgendaAberto = false;
   modalAgendaData: Date | null = null;
   modalAgendaDetalhes: AgendaDiaDetalheResponse[] = [];
+  modalAgendaQtdEmprestimos = 0;
+  modalAgendaEventos: string[] = [];
 
   formEmprestimo: FormGroup;
   formularioItem: FormGroup;
@@ -97,6 +121,19 @@ export class EmprestimosEventosPageComponent implements OnInit {
   eventoParaExcluir: EventoEmprestimoResponse | null = null;
 
   movimentacoesEmprestimo: EmprestimoEventoMovimentacaoResponse[] = [];
+  dialogImpressaoAberto = false;
+
+  dashboardResumo: DashboardResumo = {
+    totalEmprestimos: 0,
+    emprestimosAtivos: 0,
+    emprestimosAgendados: 0,
+    emprestimosDevolvidos: 0,
+    itensEmprestados: 0,
+    itensAgendados: 0,
+    diasComEmprestimos: 0
+  };
+  dashboardItensEmprestados: DashboardItemResumo[] = [];
+  dashboardDiasComEmprestimos: DashboardDiaResumo[] = [];
 
   constructor(
     private readonly fb: FormBuilder,
@@ -170,10 +207,15 @@ export class EmprestimosEventosPageComponent implements OnInit {
     }
   }
 
+  navegarParaAba(tabId: string): void {
+    this.abaAtiva = tabId;
+  }
+
   carregarEmprestimos(): void {
     this.emprestimosService.listar({}).subscribe({
       next: (resposta) => {
         this.emprestimos = resposta.emprestimos ?? [];
+        this.atualizarDashboard();
       },
       error: () => {
         this.feedbackLocal = 'Nao foi possivel carregar os emprestimos.';
@@ -217,6 +259,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.patrimonioService.list().subscribe({
       next: (patrimonios) => {
         this.patrimonios = patrimonios ?? [];
+        this.atualizarDashboard();
       },
       error: () => {
         this.patrimonios = [];
@@ -228,6 +271,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.almoxarifadoService.listItems().subscribe({
       next: (itens) => {
         this.almoxarifadoItens = itens ?? [];
+        this.atualizarDashboard();
       },
       error: () => {
         this.almoxarifadoItens = [];
@@ -371,6 +415,20 @@ export class EmprestimosEventosPageComponent implements OnInit {
       return;
     }
 
+    this.dialogImpressaoAberto = true;
+  }
+
+  cancelarDialogoImpressao(): void {
+    this.dialogImpressaoAberto = false;
+  }
+
+  imprimirEmprestimosSelecionado(): void {
+    if (!this.emprestimoSelecionado) {
+      this.feedbackLocal = 'Selecione um emprestimo para imprimir.';
+      this.dialogImpressaoAberto = false;
+      return;
+    }
+    this.dialogImpressaoAberto = false;
     this.reportService
       .generateEmprestimoEventoRelatorio({
         emprestimoId: String(this.emprestimoSelecionado.id),
@@ -380,6 +438,26 @@ export class EmprestimosEventosPageComponent implements OnInit {
         next: (blob) => this.abrirPdf(blob),
         error: () => {
           this.feedbackLocal = 'Nao foi possivel gerar o relatorio.';
+        }
+      });
+  }
+
+  imprimirTermoSelecionado(): void {
+    if (!this.emprestimoSelecionado) {
+      this.feedbackLocal = 'Selecione um emprestimo para imprimir.';
+      this.dialogImpressaoAberto = false;
+      return;
+    }
+    this.dialogImpressaoAberto = false;
+    this.reportService
+      .generateEmprestimoEventoTermo({
+        emprestimoId: String(this.emprestimoSelecionado.id),
+        usuarioEmissor: this.usuarioEmissor()
+      })
+      .subscribe({
+        next: (blob) => this.abrirPdf(blob),
+        error: () => {
+          this.feedbackLocal = 'Nao foi possivel gerar o termo.';
         }
       });
   }
@@ -536,6 +614,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
   abrirDiaAgenda(dia: AgendaDiaView): void {
     this.modalAgendaAberto = true;
     this.modalAgendaData = dia.data;
+    this.modalAgendaQtdEmprestimos = dia.qtdEmprestimos ?? 0;
+    this.modalAgendaEventos = this.obterEventosDoDia(dia.data);
     const dataApi = this.formatarData(dia.data);
     this.emprestimosService.agendaDia(dataApi).subscribe({
       next: (detalhes) => {
@@ -551,6 +631,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.modalAgendaAberto = false;
     this.modalAgendaDetalhes = [];
     this.modalAgendaData = null;
+    this.modalAgendaQtdEmprestimos = 0;
+    this.modalAgendaEventos = [];
   }
 
   abrirEmprestimoDoModal(emprestimoId: number): void {
@@ -779,6 +861,154 @@ export class EmprestimosEventosPageComponent implements OnInit {
   private formatarDataHoraInput(value?: string | null): string {
     if (!value) return '';
     return value.slice(0, 16);
+  }
+
+  private atualizarDashboard(): void {
+    const emprestimosValidos = this.emprestimos.filter((emprestimo) => emprestimo.status !== 'CANCELADO');
+    const emprestimosAtivos = emprestimosValidos.filter((emprestimo) => emprestimo.status === 'RETIRADO');
+    const emprestimosAgendados = emprestimosValidos.filter((emprestimo) => emprestimo.status === 'AGENDADO');
+    const emprestimosDevolvidos = emprestimosValidos.filter((emprestimo) => emprestimo.status === 'DEVOLVIDO');
+
+    const itensEmprestados = this.calcularTotalItens(emprestimosAtivos);
+    const itensAgendados = this.calcularTotalItens(emprestimosAgendados);
+    const diasResumo = this.calcularDiasComEmprestimos(emprestimosValidos);
+    const itensResumo = this.calcularItensEmprestadosResumo(emprestimosAtivos);
+
+    this.dashboardResumo = {
+      totalEmprestimos: emprestimosValidos.length,
+      emprestimosAtivos: emprestimosAtivos.length,
+      emprestimosAgendados: emprestimosAgendados.length,
+      emprestimosDevolvidos: emprestimosDevolvidos.length,
+      itensEmprestados,
+      itensAgendados,
+      diasComEmprestimos: diasResumo.length
+    };
+    this.dashboardDiasComEmprestimos = diasResumo.slice(0, 8);
+    this.dashboardItensEmprestados = itensResumo.slice(0, 6);
+  }
+
+  private calcularTotalItens(emprestimos: EmprestimoEventoResponse[]): number {
+    return emprestimos.reduce((total, emprestimo) => {
+      const itens = emprestimo.itens ?? [];
+      return (
+        total +
+        itens.reduce((soma, item) => soma + (item.quantidade ?? 0), 0)
+      );
+    }, 0);
+  }
+
+  private calcularDiasComEmprestimos(emprestimos: EmprestimoEventoResponse[]): DashboardDiaResumo[] {
+    const mapaDias = new Map<string, Set<number>>();
+    emprestimos.forEach((emprestimo) => {
+      const inicio = this.converterParaData(emprestimo.dataRetiradaPrevista);
+      const fim = this.converterParaData(emprestimo.dataDevolucaoPrevista);
+      if (!inicio || !fim) {
+        return;
+      }
+      const dias = this.listarDiasIntervalo(inicio, fim);
+      dias.forEach((dia) => {
+        const chave = this.formatarData(dia);
+        if (!mapaDias.has(chave)) {
+          mapaDias.set(chave, new Set<number>());
+        }
+        mapaDias.get(chave)?.add(emprestimo.id);
+      });
+    });
+
+    return Array.from(mapaDias.entries())
+      .sort(([dataA], [dataB]) => dataA.localeCompare(dataB))
+      .map(([data, ids]) => ({
+        data: this.formatarDataCurta(data),
+        quantidade: ids.size
+      }));
+  }
+
+  private calcularItensEmprestadosResumo(
+    emprestimos: EmprestimoEventoResponse[]
+  ): DashboardItemResumo[] {
+    const mapaItens = new Map<string, DashboardItemResumo>();
+    emprestimos.forEach((emprestimo) => {
+      const itens = emprestimo.itens ?? [];
+      itens.forEach((item) => {
+        const nome = this.obterNomeItem(item);
+        const chave = `${item.tipoItem}-${item.itemId}-${nome}`;
+        const atual = mapaItens.get(chave) ?? {
+          nome,
+          quantidade: 0,
+          tipo: item.tipoItem
+        };
+        atual.quantidade += item.quantidade ?? 0;
+        mapaItens.set(chave, atual);
+      });
+    });
+
+    return Array.from(mapaItens.values()).sort((a, b) => b.quantidade - a.quantidade);
+  }
+
+  private obterNomeItem(item: EmprestimoEventoItemResponse): string {
+    const nomeDireto = item.nomeItem || item.numeroPatrimonio;
+    if (nomeDireto) {
+      return nomeDireto;
+    }
+    const local = this.obterResumoItemLocal(item.itemId, item.tipoItem);
+    return local.nomeItem || local.numeroPatrimonio || `Item ${item.itemId}`;
+  }
+
+  private converterParaData(valor?: string | null): Date | null {
+    if (!valor) {
+      return null;
+    }
+    const data = new Date(valor);
+    if (Number.isNaN(data.getTime())) {
+      return null;
+    }
+    data.setHours(0, 0, 0, 0);
+    return data;
+  }
+
+  private listarDiasIntervalo(inicio: Date, fim: Date): Date[] {
+    const dias: Date[] = [];
+    const limiteDias = 180;
+    const totalDias = Math.ceil((fim.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+    if (totalDias > limiteDias) {
+      dias.push(new Date(inicio));
+      dias.push(new Date(fim));
+      return dias;
+    }
+    const cursor = new Date(inicio);
+    while (cursor <= fim) {
+      dias.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return dias;
+  }
+
+  private obterEventosDoDia(data: Date): string[] {
+    const eventos = new Set<string>();
+    const alvo = new Date(data);
+    alvo.setHours(0, 0, 0, 0);
+    this.emprestimos.forEach((emprestimo) => {
+      if (emprestimo.status === 'CANCELADO') {
+        return;
+      }
+      const inicio = this.converterParaData(emprestimo.dataRetiradaPrevista);
+      const fim = this.converterParaData(emprestimo.dataDevolucaoPrevista);
+      if (!inicio || !fim) {
+        return;
+      }
+      if (alvo >= inicio && alvo <= fim) {
+        eventos.add(emprestimo.evento?.titulo || 'Evento nao informado');
+      }
+    });
+    return Array.from(eventos);
+  }
+
+  private formatarDataCurta(valor: string): string {
+    const data = new Date(valor);
+    if (Number.isNaN(data.getTime())) {
+      return valor;
+    }
+    return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   }
 
   private obterInicioMes(date: Date): string {

@@ -41,6 +41,94 @@
     <button type="button" (click)="feedbackLocal = null">X</button>
   </p>
 
+  <section class="tab-card" *ngIf="abaAtiva === 'dashboard'">
+    <div class="dashboard-header">
+      <div>
+        <p class="muted">Visao geral</p>
+        <h3>Indicadores do emprestimo</h3>
+      </div>
+      <button type="button" class="nav-button" (click)="navegarParaAba('agenda')">
+        Ver agenda
+      </button>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-card dashboard-card--accent">
+        <div>
+          <p class="dashboard-card__label">Dias com emprestimos</p>
+          <p class="dashboard-card__value">{{ dashboardResumo.diasComEmprestimos }}</p>
+          <p class="dashboard-card__hint">Dias distintos com movimentacao registrada.</p>
+        </div>
+        <div class="dashboard-tags" *ngIf="dashboardDiasComEmprestimos.length; else semDias">
+          <span class="dashboard-tag" *ngFor="let dia of dashboardDiasComEmprestimos">
+            {{ dia.data }} • {{ dia.quantidade }}
+          </span>
+        </div>
+        <ng-template #semDias>
+          <p class="muted">Nenhum dia com emprestimos ate o momento.</p>
+        </ng-template>
+      </div>
+
+      <div class="dashboard-card">
+        <div>
+          <p class="dashboard-card__label">Itens emprestados</p>
+          <p class="dashboard-card__value">{{ dashboardResumo.itensEmprestados }}</p>
+          <p class="dashboard-card__hint">Total de itens retirados.</p>
+        </div>
+        <div class="dashboard-list" *ngIf="dashboardItensEmprestados.length; else semItens">
+          <div class="dashboard-list__item" *ngFor="let item of dashboardItensEmprestados">
+            <div>
+              <p class="font-semibold text-slate-800">{{ item.nome }}</p>
+              <p class="muted">{{ item.tipo === 'PATRIMONIO' ? 'Patrimonio' : 'Almoxarifado' }}</p>
+            </div>
+            <span class="dashboard-qty">{{ item.quantidade }}</span>
+          </div>
+        </div>
+        <ng-template #semItens>
+          <p class="muted">Nenhum item emprestado no momento.</p>
+        </ng-template>
+      </div>
+
+      <div class="dashboard-card dashboard-card--highlight">
+        <div>
+          <p class="dashboard-card__label">Emprestimos em andamento</p>
+          <p class="dashboard-card__value">{{ dashboardResumo.emprestimosAtivos }}</p>
+          <p class="dashboard-card__hint">Retirados e nao devolvidos.</p>
+        </div>
+        <div class="dashboard-actions">
+          <button type="button" class="btn-outline" (click)="navegarParaAba('lista')">
+            Ver lista
+          </button>
+          <button type="button" class="btn-outline" (click)="navegarParaAba('cadastro')">
+            Novo emprestimo
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <div>
+          <p class="dashboard-card__label">Resumo geral</p>
+          <p class="dashboard-card__value">{{ dashboardResumo.totalEmprestimos }}</p>
+          <p class="dashboard-card__hint">Emprestimos cadastrados no periodo atual.</p>
+        </div>
+        <div class="dashboard-metrics">
+          <div>
+            <span class="dashboard-metrics__label">Agendados</span>
+            <span class="dashboard-metrics__value">{{ dashboardResumo.emprestimosAgendados }}</span>
+          </div>
+          <div>
+            <span class="dashboard-metrics__label">Devolvidos</span>
+            <span class="dashboard-metrics__value">{{ dashboardResumo.emprestimosDevolvidos }}</span>
+          </div>
+          <div>
+            <span class="dashboard-metrics__label">Itens agendados</span>
+            <span class="dashboard-metrics__value">{{ dashboardResumo.itensAgendados }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="tab-card" *ngIf="abaAtiva === 'agenda'">
     <app-emprestimos-eventos-agenda
       [mesReferencia]="mesAgenda"
@@ -105,6 +193,8 @@
     [aberto]="modalAgendaAberto"
     [data]="modalAgendaData"
     [detalhes]="modalAgendaDetalhes"
+    [qtdEmprestimosDia]="modalAgendaQtdEmprestimos"
+    [eventosDia]="modalAgendaEventos"
     (fechar)="fecharModalAgenda()"
     (abrirEmprestimo)="abrirEmprestimoDoModal($event)"
   ></app-agenda-dia-modal>
@@ -166,6 +256,27 @@
     (confirmar)="confirmarExcluirEvento()"
     (cancelar)="cancelarExcluirEvento()"
   ></app-dialog>
+
+  <div class="print-modal-overlay" *ngIf="dialogImpressaoAberto">
+    <div class="print-modal">
+      <div class="print-modal__header">
+        <div>
+          <p class="muted">Emprestimo para eventos</p>
+          <h3>Escolha o tipo de impressao</h3>
+        </div>
+        <button type="button" class="print-modal__close" (click)="cancelarDialogoImpressao()">X</button>
+      </div>
+      <div class="print-modal__actions">
+        <button type="button" class="nav-button" (click)="imprimirEmprestimosSelecionado()">
+          Imprimir emprestimos
+        </button>
+        <button type="button" class="nav-button" (click)="imprimirTermoSelecionado()">
+          Imprimir termo
+        </button>
+        <button type="button" class="ghost" (click)="cancelarDialogoImpressao()">Cancelar</button>
+      </div>
+    </div>
+  </div>
 </app-tela-padrao>
 
 

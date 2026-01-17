@@ -90,7 +90,6 @@ export const menuSections: MenuItem[] = [
     icon: faClipboardList,
     children: [
       { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
-      { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
       {
         label: 'Gestao de Documentos',
         icon: faClipboardList,
@@ -134,6 +133,7 @@ export const menuSections: MenuItem[] = [
     children: [
       { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
       { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
+      { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
       {
         label: 'Chamado tecnico',
         icon: faClipboardList,

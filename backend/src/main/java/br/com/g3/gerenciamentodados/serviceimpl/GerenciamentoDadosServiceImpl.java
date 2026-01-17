@@ -262,6 +262,8 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
               "5432",
               "-U",
               "postgres",
+              "--clean",
+              "--if-exists",
               "-F",
               "p",
               "-f",
@@ -295,6 +297,26 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
         return false;
       }
 
+      boolean schemaLimpo =
+          executarComandoPsql(
+              List.of(
+                  "psql",
+                  "-h",
+                  "localhost",
+                  "-p",
+                  "5432",
+                  "-U",
+                  "postgres",
+                  "-d",
+                  "g3",
+                  "-v",
+                  "ON_ERROR_STOP=1",
+                  "-c",
+                  "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"));
+      if (!schemaLimpo) {
+        return false;
+      }
+
       ProcessBuilder builder =
           new ProcessBuilder(
               "psql",
@@ -306,8 +328,24 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
               "postgres",
               "-d",
               "g3",
+              "-v",
+              "ON_ERROR_STOP=1",
               "-f",
               arquivo.toString());
+      builder.environment().put("PGPASSWORD", "admin");
+      builder.redirectErrorStream(true);
+      Process processo = builder.start();
+      int resultado = processo.waitFor();
+      return resultado == 0;
+    } catch (IOException | InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return false;
+    }
+  }
+
+  private boolean executarComandoPsql(List<String> argumentos) {
+    try {
+      ProcessBuilder builder = new ProcessBuilder(argumentos);
       builder.environment().put("PGPASSWORD", "admin");
       builder.redirectErrorStream(true);
       Process processo = builder.start();

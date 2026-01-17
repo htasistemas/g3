@@ -8,18 +8,29 @@
       <button type="button" class="modal-close" (click)="fechar.emit()">X</button>
     </div>
 
-    <div *ngIf="detalhes.length; else vazio">
+    <div *ngIf="detalhes.length; else vazio" class="modal-body">
       <div class="modal-card" *ngFor="let item of detalhes">
         <div class="modal-card__header">
           <strong>{{ item.evento.titulo || 'Evento' }}</strong>
-          <span class="status-tag">{{ item.status }}</span>
+          <span [class]="classeStatus(item.status)">{{ item.status }}</span>
         </div>
-        <p>Local: {{ item.evento.local || 'Nao informado' }}</p>
-        <p>Responsavel: {{ item.responsavel?.nome || 'Nao informado' }}</p>
-        <p>
-          Periodo: {{ item.periodo.retiradaPrevista | date: 'dd/MM/yyyy HH:mm' }}
-          ate {{ item.periodo.devolucaoPrevista | date: 'dd/MM/yyyy HH:mm' }}
-        </p>
+        <div class="modal-info-grid">
+          <div class="modal-info">
+            <span class="modal-info__label">Local</span>
+            <span class="modal-info__value">{{ item.evento.local || 'Nao informado' }}</span>
+          </div>
+          <div class="modal-info">
+            <span class="modal-info__label">Responsavel</span>
+            <span class="modal-info__value">{{ item.responsavel?.nome || 'Nao informado' }}</span>
+          </div>
+          <div class="modal-info">
+            <span class="modal-info__label">Periodo</span>
+            <span class="modal-info__value">
+              {{ item.periodo.retiradaPrevista | date: 'dd/MM/yyyy HH:mm' }}
+              ate {{ item.periodo.devolucaoPrevista | date: 'dd/MM/yyyy HH:mm' }}
+            </span>
+          </div>
+        </div>
 
         <table *ngIf="item.itens.length">
           <thead>
@@ -48,7 +59,15 @@
     </div>
 
     <ng-template #vazio>
-      <p class="muted">Nenhum emprestimo para este dia.</p>
+      <p class="muted" *ngIf="qtdEmprestimosDia > 0; else semEmprestimos">
+        Existe agendamento de emprestimo no dia.
+        <span *ngIf="eventosDia.length">
+          Evento: {{ eventosDia.join(', ') }}.
+        </span>
+      </p>
+      <ng-template #semEmprestimos>
+        <p class="muted">Nenhum emprestimo para este dia.</p>
+      </ng-template>
       <button type="button" class="ghost" (click)="fechar.emit()">Fechar</button>
     </ng-template>
   </div>

@@ -47,34 +47,37 @@
         <p class="tab-card__highlight">Lista de Documentos</p>
         <p class="muted">Pesquise, filtre e acompanhe a situação de cada documento.</p>
       </div>
-      <div class="pill">Painel geral</div>
+      <div class="tab-card__header-actions">
+        <div class="pill">Painel geral</div>
+        <button class="primary" type="button" (click)="irParaNovoDocumento()">+ Novo Documento</button>
+      </div>
     </div>
 
     <div class="metrics-grid">
-      <div class="metric-card">
+      <div class="metric-card metric-card--neutral">
         <p class="metric-label">Documentos cadastrados</p>
         <p class="metric-value">{{ contadorSituacao.total }}</p>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card--success">
         <p class="metric-label">Ativos</p>
         <p class="metric-value text-success">{{ contadorSituacao.ativos }}</p>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card--danger">
         <p class="metric-label">Vencidos</p>
         <p class="metric-value text-danger">{{ contadorSituacao.vencidos }}</p>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card--warning">
         <p class="metric-label">A vencer</p>
         <p class="metric-value text-warning">{{ contadorSituacao.aVencer }}</p>
       </div>
-      <div class="metric-card">
+      <div class="metric-card metric-card--info">
         <p class="metric-label">Em renovação</p>
         <p class="metric-value text-info">{{ contadorSituacao.inativos }}</p>
       </div>
     </div>
 
     <form [formGroup]="filterForm" class="filters">
-      <div class="field-grid cols-4">
+      <div class="field-grid cols-6">
         <label class="field">Tipo de documento
           <input formControlName="tipoDocumento" placeholder="CND Federal, Alvará..." />
         </label>
@@ -103,10 +106,9 @@
             <option value="sem_vencimento">Sem vencimento</option>
           </select>
         </label>
-      </div>
-      <div class="filters__actions">
-        <button class="ghost" type="button" (click)="limparFiltros()">Limpar filtros</button>
-        <button class="primary" type="button" (click)="prepararNovoDocumento()">+ Novo Documento</button>
+        <div class="field field--action">
+          <button class="primary" type="button" (click)="aplicarFiltros()">Buscar</button>
+        </div>
       </div>
     </form>
 
@@ -116,7 +118,6 @@
           <tr>
             <th>Tipo</th>
             <th>Órgão emissor</th>
-            <th>Número</th>
             <th>Emissão</th>
             <th>Validade</th>
             <th>Situação</th>
@@ -131,7 +132,6 @@
               <div class="muted">{{ doc.categoria }}</div>
             </td>
             <td>{{ doc.orgaoEmissor }}</td>
-            <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
             <td>{{ doc.emissao }}</td>
             <td>{{ doc.validade || 'Sem vencimento' }}</td>
             <td>
@@ -215,7 +215,6 @@
         <input formControlName="orgaoEmissor" />
       </label>
       <label class="field">Número / Código
-        <input formControlName="numeroCodigo" placeholder="Opcional" />
         <span class="muted small-text">Preencha apenas se houver código no documento.</span>
       </label>
       <label class="field">
@@ -346,7 +345,6 @@
           <tr>
             <th>Tipo</th>
             <th>Órgão emissor</th>
-            <th>Número</th>
             <th>Vencimento</th>
             <th>Situação</th>
             <th>Responsável</th>
@@ -357,7 +355,6 @@
           <tr *ngFor="let doc of documentosCriticos" [class.alert-blink]="doc.situacao === 'vencido' || doc.situacao === 'vence_em_breve'">
             <td>{{ doc.tipoDocumento }}</td>
             <td>{{ doc.orgaoEmissor }}</td>
-            <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
             <td>{{ doc.validade || 'Sem vencimento' }}</td>
             <td>
               <span
@@ -390,7 +387,6 @@
     <div class="selection-bar">
       <p>Documento selecionado:</p>
       <select [ngModel]="selectedDocumentId" (ngModelChange)="selectedDocumentId = $event">
-        <option *ngFor="let doc of documentos" [value]="doc.id">{{ doc.tipoDocumento }} — {{ doc.numeroCodigo || 'Sem código' }}</option>
       </select>
     </div>
 
@@ -539,7 +535,6 @@
           <thead>
             <tr>
               <th>Tipo</th>
-              <th>Número</th>
               <th>Categoria</th>
               <th>Vencimento</th>
               <th>Situação</th>
@@ -548,7 +543,6 @@
           <tbody>
             <tr *ngFor="let doc of documentos">
               <td>{{ doc.tipoDocumento }}</td>
-              <td>{{ doc.numeroCodigo || 'Sem código' }}</td>
               <td>{{ doc.categoria }}</td>
               <td>{{ doc.validade || 'Sem vencimento' }}</td>
               <td>
@@ -567,6 +561,10 @@
   </div>
 </section>
 </app-tela-padrao>
+
+
+
+
 
 
 
