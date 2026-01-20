@@ -308,6 +308,83 @@ WHERE id = 1
   AND versao <> '1.1.6';
 
 UPDATE versao_sistema
+SET versao = '1.1.7',
+    descricao = 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.7';
+
+UPDATE versao_sistema
+SET versao = '1.1.8',
+    descricao = 'Dashboard com indicadores visuais na tela de emprestimo para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.8';
+
+UPDATE versao_sistema
+SET versao = '1.1.9',
+    descricao = 'Ajustes visuais e de fluxo na lista de documentos institucionais.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.9';
+
+UPDATE versao_sistema
+SET versao = '1.1.10',
+    descricao = 'Aviso de agendamento na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.10';
+
+UPDATE versao_sistema
+SET versao = '1.1.11',
+    descricao = 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.11';
+
+UPDATE versao_sistema
+SET versao = '1.1.12',
+    descricao = 'Aviso de agendamento com evento na agenda de emprestimos para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.12';
+
+UPDATE versao_sistema
+SET versao = '1.1.13',
+    descricao = 'Popup de impressao e termo juridico no emprestimo para eventos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.13';
+
+UPDATE versao_sistema
+SET versao = '1.1.14',
+    descricao = 'Endpoint resumido de beneficiarios para painel de chamadas e ajuste de CORS.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.14';
+
+UPDATE versao_sistema
+SET versao = '1.1.15',
+    descricao = 'Ajuste de rota para evitar conflito no resumo de beneficiarios.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.15';
+
+UPDATE versao_sistema
+SET versao = '1.1.16',
+    descricao = 'Persistencia dos documentos institucionais e registros de anexos/historico.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.16';
+
+UPDATE versao_sistema
+SET versao = '1.1.17',
+    descricao = 'Upload e visualizacao de anexos de documentos institucionais com armazenamento local.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.17';
+
+UPDATE versao_sistema
 SET versao = '1.0.0'
 WHERE id = 1
   AND versao = '1.00.0';
@@ -357,6 +434,24 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.16', 'Persistencia dos documentos institucionais e registros de anexos/historico.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.16'
+    AND descricao = 'Persistencia dos documentos institucionais e registros de anexos/historico.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.17', 'Upload e visualizacao de anexos de documentos institucionais com armazenamento local.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.17'
+    AND descricao = 'Upload e visualizacao de anexos de documentos institucionais com armazenamento local.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
 SELECT '1.1.5', 'Ajustes no emprestimo para eventos: popup para criacao/edicao/exclusao de eventos, validacoes detalhadas do cadastro, melhorias de disponibilidade e avisos reposicionados na tela.', NOW()
 WHERE NOT EXISTS (
   SELECT 1
@@ -372,6 +467,87 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.1.6'
     AND descricao = 'Registro de presenca em cursos e atendimentos com persistencia no banco e lista de presenca para impressao.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.7', 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.7'
+    AND descricao = 'Ajustes no fluxo de restauracao de backups para garantir substituicao completa dos dados.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.8', 'Dashboard com indicadores visuais na tela de emprestimo para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.8'
+    AND descricao = 'Dashboard com indicadores visuais na tela de emprestimo para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.9', 'Ajustes visuais e de fluxo na lista de documentos institucionais.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.9'
+    AND descricao = 'Ajustes visuais e de fluxo na lista de documentos institucionais.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.10', 'Aviso de agendamento na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.10'
+    AND descricao = 'Aviso de agendamento na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.11', 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.11'
+    AND descricao = 'Aviso de agendamento com responsavel na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.12', 'Aviso de agendamento com evento na agenda de emprestimos para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.12'
+    AND descricao = 'Aviso de agendamento com evento na agenda de emprestimos para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.13', 'Popup de impressao e termo juridico no emprestimo para eventos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.13'
+    AND descricao = 'Popup de impressao e termo juridico no emprestimo para eventos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.14', 'Endpoint resumido de beneficiarios para painel de chamadas e ajuste de CORS.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.14'
+    AND descricao = 'Endpoint resumido de beneficiarios para painel de chamadas e ajuste de CORS.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.15', 'Ajuste de rota para evitar conflito no resumo de beneficiarios.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.15'
+    AND descricao = 'Ajuste de rota para evitar conflito no resumo de beneficiarios.'
 );
 
 UPDATE historico_versao_sistema
@@ -2168,6 +2344,71 @@ CREATE TABLE IF NOT EXISTS feriados (
 
 CREATE INDEX IF NOT EXISTS feriados_data_idx
   ON feriados (data);
+
+CREATE TABLE IF NOT EXISTS documentos_instituicao (
+  id BIGSERIAL PRIMARY KEY,
+  tipo_documento VARCHAR(200) NOT NULL,
+  orgao_emissor VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  categoria VARCHAR(120),
+  emissao DATE NOT NULL,
+  validade DATE,
+  responsavel_interno VARCHAR(200),
+  modo_renovacao VARCHAR(30),
+  observacao_renovacao TEXT,
+  gerar_alerta BOOLEAN NOT NULL DEFAULT TRUE,
+  dias_antecedencia JSONB,
+  forma_alerta VARCHAR(60),
+  em_renovacao BOOLEAN NOT NULL DEFAULT FALSE,
+  sem_vencimento BOOLEAN NOT NULL DEFAULT FALSE,
+  vencimento_indeterminado BOOLEAN NOT NULL DEFAULT FALSE,
+  situacao VARCHAR(30),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE IF EXISTS documentos_instituicao
+  DROP COLUMN IF EXISTS numero_codigo;
+
+CREATE TABLE IF NOT EXISTS documentos_instituicao_anexos (
+  id BIGSERIAL PRIMARY KEY,
+  documento_id BIGINT NOT NULL REFERENCES documentos_instituicao(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(200) NOT NULL,
+  tipo VARCHAR(30) NOT NULL,
+  tipo_mime VARCHAR(120),
+  tamanho VARCHAR(40),
+  caminho_arquivo TEXT,
+  data_upload DATE NOT NULL,
+  usuario VARCHAR(120) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE documentos_instituicao_anexos
+  ADD COLUMN IF NOT EXISTS tipo_mime VARCHAR(120);
+
+ALTER TABLE documentos_instituicao_anexos
+  ADD COLUMN IF NOT EXISTS caminho_arquivo TEXT;
+
+CREATE TABLE IF NOT EXISTS documentos_instituicao_historico (
+  id BIGSERIAL PRIMARY KEY,
+  documento_id BIGINT NOT NULL REFERENCES documentos_instituicao(id) ON DELETE CASCADE,
+  data_hora TIMESTAMP NOT NULL,
+  usuario VARCHAR(120) NOT NULL,
+  tipo_alteracao VARCHAR(60) NOT NULL,
+  observacao TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS documentos_instituicao_categoria_idx
+  ON documentos_instituicao (categoria);
+CREATE INDEX IF NOT EXISTS documentos_instituicao_situacao_idx
+  ON documentos_instituicao (situacao);
+CREATE INDEX IF NOT EXISTS documentos_instituicao_emissao_idx
+  ON documentos_instituicao (emissao DESC);
+CREATE INDEX IF NOT EXISTS documentos_instituicao_anexos_documento_idx
+  ON documentos_instituicao_anexos (documento_id);
+CREATE INDEX IF NOT EXISTS documentos_instituicao_historico_documento_idx
+  ON documentos_instituicao_historico (documento_id);
 
 CREATE TABLE IF NOT EXISTS transparencia (
   id BIGSERIAL PRIMARY KEY,

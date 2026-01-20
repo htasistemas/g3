@@ -196,6 +196,7 @@ br\com\g3\cadastrovoluntario\serviceimpl\CadastroVoluntarioServiceImpl.class
 br\com\g3\configuracoes\dto\VersaoSistemaResponse.class
 br\com\g3\almoxarifado\dto\AlmoxarifadoItemCriacaoRequest.class
 br\com\g3\almoxarifado\dto\AlmoxarifadoItemListaResponse.class
+br\com\g3\cadastrobeneficiario\dto\CadastroBeneficiarioResumoListaResponse.class
 br\com\g3\dashboardassistencia\repository\DashboardAssistenciaRepository.class
 br\com\g3\patrimonio\domain\PatrimonioItem.class
 br\com\g3\doacaorealizada\dto\DoacaoRealizadaConsultaResponse.class
@@ -306,6 +307,7 @@ br\com\g3\autorizacaocompras\fornecedor\serviceimpl\FornecedorConsultaServiceImp
 br\com\g3\prontuario\controller\ProntuarioController.class
 br\com\g3\dashboardassistencia\service\DashboardAssistenciaService.class
 br\com\g3\autenticacao\controller\AutenticacaoController.class
+br\com\g3\cadastrobeneficiario\dto\CadastroBeneficiarioResumoResponse.class
 br\com\g3\usuario\service\UsuarioService.class
 br\com\g3\unidadeassistencial\service\GeocodificacaoService.class
 br\com\g3\configuracoes\controller\ConfiguracaoSistemaController.class

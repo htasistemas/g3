@@ -4,6 +4,7 @@ import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
+import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResumoResponse;
 import java.util.List;
 
 public interface CadastroBeneficiarioService {
@@ -14,6 +15,8 @@ public interface CadastroBeneficiarioService {
   CadastroBeneficiarioResponse buscarPorId(Long id);
 
   List<CadastroBeneficiarioResponse> listar(String nome, String status);
+
+  List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status);
 
   void remover(Long id);
 

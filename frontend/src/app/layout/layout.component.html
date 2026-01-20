@@ -37,7 +37,7 @@
         <div *ngIf="openSection === section.label" class="menu-card__content">
           <ng-container *ngFor="let child of section.children">
             <a
-              *ngIf="child.route; else staticChild"
+              *ngIf="child.route; else semRota"
               class="menu-link"
               [routerLink]="child.route"
               routerLinkActive="menu-link--active"
@@ -46,11 +46,23 @@
               <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
               <span>{{ child.label }}</span>
             </a>
-            <ng-template #staticChild>
-              <div class="menu-link menu-link--static">
+            <ng-template #semRota>
+              <a
+                *ngIf="child.urlExterna; else staticChild"
+                class="menu-link"
+                [href]="child.urlExterna"
+                target="_blank"
+                rel="noopener"
+              >
                 <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
                 <span>{{ child.label }}</span>
-              </div>
+              </a>
+              <ng-template #staticChild>
+                <div class="menu-link menu-link--static">
+                  <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
+                  <span>{{ child.label }}</span>
+                </div>
+              </ng-template>
             </ng-template>
           </ng-container>
         </div>

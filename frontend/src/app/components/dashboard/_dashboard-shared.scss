@@ -239,9 +239,19 @@
   color: #047857;
 }
 
+.stat-card--emerald {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(236, 253, 245, 0.95));
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
 .stat-card--indigo .stat-card__icon {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(79, 70, 229, 0.32));
   color: #4338ca;
+}
+
+.stat-card--indigo {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(238, 242, 255, 0.95));
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
 .stat-card--amber .stat-card__icon {
@@ -249,14 +259,29 @@
   color: #b45309;
 }
 
+.stat-card--amber {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(255, 251, 235, 0.95));
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
 .stat-card--rose .stat-card__icon {
   background: linear-gradient(135deg, rgba(251, 113, 133, 0.18), rgba(244, 63, 94, 0.32));
   color: #be123c;
 }
 
+.stat-card--rose {
+  background: linear-gradient(135deg, rgba(251, 113, 133, 0.08), rgba(255, 241, 242, 0.95));
+  border-color: rgba(244, 63, 94, 0.22);
+}
+
 .stat-card--sky .stat-card__icon {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(14, 116, 144, 0.32));
   color: #0e7490;
+}
+
+.stat-card--sky {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(240, 249, 255, 0.95));
+  border-color: rgba(14, 116, 144, 0.22);
 }
 
 .panel-card {

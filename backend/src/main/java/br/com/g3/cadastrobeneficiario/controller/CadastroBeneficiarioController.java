@@ -6,6 +6,8 @@ import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioConsultaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioListaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
+import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResumoListaResponse;
+import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResumoResponse;
 import br.com.g3.cadastrobeneficiario.service.CadastroBeneficiarioService;
 import jakarta.validation.Valid;
 import java.nio.file.Files;
@@ -52,7 +54,7 @@ public class CadastroBeneficiarioController {
     return new CadastroBeneficiarioConsultaResponse(response);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{id:\\d+}")
   public CadastroBeneficiarioConsultaResponse buscarPorId(@PathVariable("id") Long id) {
     return new CadastroBeneficiarioConsultaResponse(service.buscarPorId(id));
   }
@@ -88,6 +90,14 @@ public class CadastroBeneficiarioController {
       @RequestParam(value = "status", required = false) String status) {
     List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome, status);
     return new CadastroBeneficiarioListaResponse(beneficiarios);
+  }
+
+  @GetMapping("/resumo")
+  public CadastroBeneficiarioResumoListaResponse listarResumo(
+      @RequestParam(value = "nome", required = false) String nome,
+      @RequestParam(value = "status", required = false) String status) {
+    List<CadastroBeneficiarioResumoResponse> beneficiarios = service.listarResumo(nome, status);
+    return new CadastroBeneficiarioResumoListaResponse(beneficiarios);
   }
 
   @DeleteMapping("/{id}")

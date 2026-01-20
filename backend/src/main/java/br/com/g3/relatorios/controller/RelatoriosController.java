@@ -14,6 +14,7 @@ import br.com.g3.relatorios.service.RelatorioCursosAtendimentosService;
 import br.com.g3.relatorios.service.RelatorioEmprestimoEventosService;
 import br.com.g3.relatorios.service.RelatorioSolicitacaoComprasService;
 import br.com.g3.relatorios.service.RelatorioTarefasPendenciasService;
+import br.com.g3.relatorios.service.TermoEmprestimoEventosService;
 import br.com.g3.relatorios.service.TermoAutorizacaoService;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ public class RelatoriosController {
   private final RelatorioCursosAtendimentosService relatorioCursosAtendimentosService;
   private final RelatorioSolicitacaoComprasService relatorioSolicitacaoComprasService;
   private final RelatorioEmprestimoEventosService relatorioEmprestimoEventosService;
+  private final TermoEmprestimoEventosService termoEmprestimoEventosService;
 
   public RelatoriosController(
       TermoAutorizacaoService termoAutorizacaoService,
@@ -46,7 +48,8 @@ public class RelatoriosController {
       CursoAtendimentoFichaService cursoAtendimentoFichaService,
       RelatorioCursosAtendimentosService relatorioCursosAtendimentosService,
       RelatorioSolicitacaoComprasService relatorioSolicitacaoComprasService,
-      RelatorioEmprestimoEventosService relatorioEmprestimoEventosService) {
+      RelatorioEmprestimoEventosService relatorioEmprestimoEventosService,
+      TermoEmprestimoEventosService termoEmprestimoEventosService) {
     this.termoAutorizacaoService = termoAutorizacaoService;
     this.relatorioTarefasPendenciasService = relatorioTarefasPendenciasService;
     this.beneficiarioFichaService = beneficiarioFichaService;
@@ -55,6 +58,7 @@ public class RelatoriosController {
     this.relatorioCursosAtendimentosService = relatorioCursosAtendimentosService;
     this.relatorioSolicitacaoComprasService = relatorioSolicitacaoComprasService;
     this.relatorioEmprestimoEventosService = relatorioEmprestimoEventosService;
+    this.termoEmprestimoEventosService = termoEmprestimoEventosService;
   }
 
   @PostMapping(value = "/authorization-term", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -135,6 +139,17 @@ public class RelatoriosController {
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDisposition(
         ContentDisposition.inline().filename("emprestimo-evento.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/emprestimos-eventos/termo", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarTermoEmprestimoEvento(
+      @RequestBody EmprestimoEventoRelatorioRequest requisicao) {
+    byte[] pdf = termoEmprestimoEventosService.gerarPdf(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(
+        ContentDisposition.inline().filename("termo-emprestimo-evento.pdf").build());
     return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
   }
 }

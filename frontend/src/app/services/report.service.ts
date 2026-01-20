@@ -106,4 +106,12 @@ export class ReportService {
       responseType: 'blob'
     });
   }
+
+  generateEmprestimoEventoTermo(
+    dados: EmprestimoEventoRelatorioPayload
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/emprestimos-eventos/termo`, dados, {
+      responseType: 'blob'
+    });
+  }
 }

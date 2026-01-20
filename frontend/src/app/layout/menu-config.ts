@@ -6,6 +6,7 @@ import {
   faHandshakeAngle,
   faHouseChimneyUser,
   faMapLocationDot,
+  faPalette,
   faScaleBalanced,
   faUserDoctor,
   faUserPlus,
@@ -18,6 +19,7 @@ export interface MenuChild {
   label: string;
   icon: IconDefinition;
   route?: string;
+  urlExterna?: string;
   permissao?: string;
 }
 
@@ -148,6 +150,16 @@ export const menuSections: MenuItem[] = [
         label: 'Gerenciamento de Dados',
         icon: faDatabase,
         route: '/configuracoes/gerenciamento-dados',
+      },
+      {
+        label: 'Painel de senha',
+        icon: faPalette,
+        urlExterna: 'http://localhost:4201/#/painel/senha',
+      },
+      {
+        label: 'Chamar senha',
+        icon: faPalette,
+        urlExterna: 'http://localhost:4201/#/operador/chamadas',
       },
     ],
   },

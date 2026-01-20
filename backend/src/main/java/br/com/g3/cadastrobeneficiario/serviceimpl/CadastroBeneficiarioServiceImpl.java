@@ -5,6 +5,7 @@ import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResponse;
+import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioResumoResponse;
 import br.com.g3.cadastrobeneficiario.dto.DocumentoUploadRequest;
 import br.com.g3.cadastrobeneficiario.mapper.CadastroBeneficiarioMapper;
 import br.com.g3.cadastrobeneficiario.repository.CadastroBeneficiarioRepository;
@@ -106,6 +107,32 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
         .values()
         .stream()
         .map(CadastroBeneficiarioMapper::toResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status) {
+    boolean temNome = nome != null && !nome.trim().isEmpty();
+    boolean temStatus = status != null && !status.trim().isEmpty();
+
+    List<CadastroBeneficiario> cadastros;
+    if (temNome && temStatus) {
+      cadastros = repository.listarPorNomeEStatus(nome, status);
+    } else if (temNome) {
+      cadastros = repository.buscarPorNome(nome);
+    } else if (temStatus) {
+      cadastros = repository.listar().stream()
+          .filter(cadastro -> status.equalsIgnoreCase(cadastro.getStatus()))
+          .collect(Collectors.toList());
+    } else {
+      cadastros = repository.listar();
+    }
+
+    return cadastros.stream()
+        .collect(Collectors.toMap(CadastroBeneficiario::getId, cadastro -> cadastro, (a, b) -> a, java.util.LinkedHashMap::new))
+        .values()
+        .stream()
+        .map(cadastro -> new CadastroBeneficiarioResumoResponse(cadastro.getId(), cadastro.getNomeCompleto()))
         .collect(Collectors.toList());
   }
 

@@ -1,51 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
-interface DocumentoInstitucional {
-  id: string;
-  tipoDocumento: string;
-  orgaoEmissor: string;
-  numeroCodigo: string;
-  descricao?: string;
-  categoria: string;
-  emissao: string;
-  validade?: string | null;
-  responsavelInterno?: string;
-  modoRenovacao: 'Manual' | 'Automática';
-  observacaoRenovacao?: string;
-  gerarAlerta?: boolean;
-  diasAntecedencia?: number[];
-  formaAlerta?: string;
-  emRenovacao?: boolean;
-  semVencimento?: boolean;
-  vencimentoIndeterminado?: boolean;
-  situacao?: DocumentoSituacao;
-}
-
-interface DocumentoAnexo {
-  id: string;
-  documentoId: string;
-  nomeArquivo: string;
-  tipo: string;
-  dataUpload: string;
-  usuario: string;
-  dataUrl?: string;
-  tamanho?: string;
-}
-
-interface DocumentoHistorico {
-  id: string;
-  documentoId: string;
-  dataHora: string;
-  usuario: string;
-  tipoAlteracao: string;
-  observacao: string;
-}
-
-type DocumentoSituacao = 'valido' | 'vence_em_breve' | 'vencido' | 'em_renovacao' | 'sem_vencimento';
-
+import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import {
+  DocumentosInstituicaoService,
+  DocumentoInstituicaoAnexoResponsePayload,
+  DocumentoInstituicaoHistoricoResponsePayload,
+  DocumentoInstituicaoRequestPayload,
+  DocumentoInstituicaoResponsePayload,
+  DocumentoSituacao
+} from '../../services/documentos-instituicao.service';
+import { AuthService } from '../../services/auth.service';
 type AlertaFiltro = 'hoje' | '7' | '30' | '60' | 'vencidos';
 
 @Component({
@@ -55,18 +23,47 @@ type AlertaFiltro = 'hoje' | '7' | '30' | '60' | 'vencidos';
   templateUrl: './documentos-institucionais.component.html',
   styleUrl: './documentos-institucionais.component.scss'
 })
-export class DocumentosInstitucionaisComponent {
+export class DocumentosInstitucionaisComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly tabs = [
     { id: 'lista', label: 'Lista de Documentos' },
     { id: 'cadastro', label: 'Cadastro / Edição' },
-    { id: 'alertas', label: 'Alertas e Vencimentos' },
     { id: 'anexos', label: 'Anexos e Histórico' },
+    { id: 'alertas', label: 'Alertas e Vencimentos' },
     { id: 'relatorios', label: 'Relatórios / Dashboard' }
   ];
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
+    buscar: true,
+    novo: true,
+    salvar: true,
+    cancelar: true,
+    excluir: true,
+    imprimir: true
+  });
+
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    const naAbaCadastro = this.activeTab === 'cadastro';
+    const naAbaLista = this.activeTab === 'lista';
+    return {
+      buscar: !naAbaLista,
+      salvar: !naAbaCadastro,
+      cancelar: !naAbaCadastro,
+      excluir: !this.documentoSelecionado,
+      imprimir: this.documentos.length === 0,
+      novo: false
+    };
+  }
 
   activeTab: string = 'lista';
   editingId: string | null = null;
   feedback: string | null = null;
+  modalNovoTipoAberto = false;
+  modalNovaCategoriaAberta = false;
+  modalEntradaErro: string | null = null;
+  novoTipoDocumento = '';
+  novaCategoria = '';
+  focoNovoTipoDocumento = false;
+  focoNovaCategoria = false;
 
   filterForm: FormGroup;
   documentoForm: FormGroup;
@@ -88,152 +85,23 @@ export class DocumentosInstitucionaisComponent {
   ];
   readonly modosRenovacao: Array<'Manual' | 'Automática'> = ['Manual', 'Automática'];
 
-  documentos: DocumentoInstitucional[] = [
-    {
-      id: '1',
-      tipoDocumento: 'Certidão Negativa de Débitos Federal',
-      orgaoEmissor: 'Receita Federal do Brasil',
-      numeroCodigo: '2026/001-RFB',
-      categoria: 'Fiscal',
-      emissao: '2025-12-15',
-      validade: '2026-12-15',
-      responsavelInterno: 'Equipe Fiscal',
-      modoRenovacao: 'Manual',
-      observacaoRenovacao: 'Renovar pelo e-CAC com certificado digital válido',
-      gerarAlerta: true,
-      diasAntecedencia: [30, 60],
-      formaAlerta: 'Sistema',
-      situacao: 'valido'
-    },
-    {
-      id: '2',
-      tipoDocumento: 'Certidão Negativa de Débitos Municipal',
-      orgaoEmissor: 'Prefeitura de São Paulo',
-      numeroCodigo: '7812/2024-SF',
-      categoria: 'Fiscal',
-      emissao: '2024-06-01',
-      validade: this.addDaysFromToday(15),
-      responsavelInterno: 'Tesouraria',
-      modoRenovacao: 'Manual',
-      gerarAlerta: true,
-      diasAntecedencia: [15, 30],
-      formaAlerta: 'Sistema',
-      situacao: 'vence_em_breve'
-    },
-    {
-      id: '3',
-      tipoDocumento: 'Certificado de Regularidade do FGTS',
-      orgaoEmissor: 'Caixa Econômica Federal',
-      numeroCodigo: 'CRF-2025-8891',
-      categoria: 'Trabalhista',
-      emissao: '2024-04-01',
-      validade: this.addDaysFromToday(-20),
-      responsavelInterno: 'Recursos Humanos',
-      modoRenovacao: 'Manual',
-      observacaoRenovacao: 'Emitir novo CRF no Conectividade Social',
-      gerarAlerta: true,
-      diasAntecedencia: [30, 60],
-      formaAlerta: 'Sistema',
-      situacao: 'vencido'
-    },
-    {
-      id: '4',
-      tipoDocumento: 'Alvará de funcionamento',
-      orgaoEmissor: 'Prefeitura do Rio de Janeiro',
-      numeroCodigo: 'ALF-2025-9988',
-      categoria: 'Licenças',
-      emissao: '2025-01-02',
-      validade: null,
-      semVencimento: true,
-      responsavelInterno: 'Administrativo',
-      modoRenovacao: 'Manual',
-      observacaoRenovacao: 'Sem vencimento definido, acompanhar legislações locais',
-      gerarAlerta: false,
-      formaAlerta: 'Sistema',
-      situacao: 'sem_vencimento'
-    }
-  ];
+  documentos: DocumentoInstituicaoResponsePayload[] = [];
 
-  anexos: DocumentoAnexo[] = [
-    {
-      id: 'a1',
-      documentoId: '1',
-      nomeArquivo: 'CND_Federal_2025.pdf',
-      tipo: 'PDF',
-      dataUpload: '2025-01-10',
-      usuario: 'Maria Lima'
-    },
-    {
-      id: 'a2',
-      documentoId: '2',
-      nomeArquivo: 'CND_Municipal_2024.pdf',
-      tipo: 'PDF',
-      dataUpload: '2024-06-02',
-      usuario: 'Equipe Fiscal'
-    },
-    {
-      id: 'a3',
-      documentoId: '3',
-      nomeArquivo: 'CRF_FGTS_2024.pdf',
-      tipo: 'PDF',
-      dataUpload: '2024-04-02',
-      usuario: 'Equipe de RH'
-    }
-  ];
+  anexos: DocumentoInstituicaoAnexoResponsePayload[] = [];
 
-  historico: DocumentoHistorico[] = [
-    {
-      id: 'h1',
-      documentoId: '1',
-      dataHora: '2025-01-12 10:30',
-      usuario: 'Equipe Fiscal',
-      tipoAlteracao: 'Inclusão',
-      observacao: 'Documento inserido com alerta de 60 dias pelo responsável fiscal.'
-    },
-    {
-      id: 'h2',
-      documentoId: '2',
-      dataHora: '2024-12-01 09:00',
-      usuario: 'Tesouraria',
-      tipoAlteracao: 'Atualização de vencimento',
-      observacao: 'Reemissão pela Secretaria da Fazenda Municipal, vencimento revisado.'
-    },
-    {
-      id: 'h3',
-      documentoId: '3',
-      dataHora: '2024-10-02 14:40',
-      usuario: 'Recursos Humanos',
-      tipoAlteracao: 'Mudança de situação',
-      observacao: 'CRF vencido, nova emissão solicitada na Caixa.'
-    }
-  ];
+  historico: DocumentoInstituicaoHistoricoResponsePayload[] = [];
 
-  enviosRecentes = [
-    {
-      destinatario: 'Receita Federal do Brasil',
-      documento: 'Certidão Negativa de Débitos Federal',
-      protocolo: 'RFB-2025-0102',
-      data: '2025-01-15'
-    },
-    {
-      destinatario: 'Prefeitura de São Paulo',
-      documento: 'Certidão Negativa de Débitos Municipal',
-      protocolo: 'SFP-2025-0089',
-      data: '2025-01-10'
-    },
-    {
-      destinatario: 'Caixa Econômica Federal',
-      documento: 'Certificado de Regularidade do FGTS',
-      protocolo: 'CAIXA-2024-0771',
-      data: '2024-10-05'
-    }
-  ];
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly fb: FormBuilder) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly documentosService: DocumentosInstituicaoService,
+    private readonly authService: AuthService
+  ) {
+    super();
     this.filterForm = this.fb.group({
       tipoDocumento: [''],
       orgaoEmissor: [''],
-      numeroDocumento: [''],
       situacao: [''],
       periodoVencimento: [''],
       orgaoFiltro: ['']
@@ -242,7 +110,6 @@ export class DocumentosInstitucionaisComponent {
     this.documentoForm = this.fb.group({
       tipoDocumento: ['', Validators.required],
       orgaoEmissor: ['', Validators.required],
-      numeroCodigo: [''],
       descricao: [''],
       categoria: ['Fiscal'],
       emissao: ['', Validators.required],
@@ -257,6 +124,7 @@ export class DocumentosInstitucionaisComponent {
       formaAlerta: ['Sistema'],
       emRenovacao: [false]
     });
+    this.documentoForm.patchValue({ responsavelInterno: this.obterUsuarioAtual() });
 
     this.anexoForm = this.fb.group({
       nomeArquivo: ['', Validators.required],
@@ -264,8 +132,15 @@ export class DocumentosInstitucionaisComponent {
       arquivo: [null as File | null, Validators.required]
     });
 
-    this.refreshSituacoes();
-    this.selectedDocumentId = this.documentos[0]?.id ?? null;
+  }
+
+  ngOnInit(): void {
+    this.carregarDocumentos();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get activeTabIndex(): number {
@@ -284,32 +159,61 @@ export class DocumentosInstitucionaisComponent {
     return this.hasNextTab ? this.tabs[this.activeTabIndex + 1].label : '';
   }
 
-  get documentosFiltrados(): DocumentoInstitucional[] {
-    const { tipoDocumento, orgaoEmissor, numeroDocumento, situacao, periodoVencimento } = this.filterForm.value;
+  onBuscarToolbar(): void {
+    this.changeTab('lista');
+    this.aplicarFiltros();
+  }
+
+  onNovoToolbar(): void {
+    this.prepararNovoDocumento();
+  }
+
+  onSalvarToolbar(): void {
+    this.salvarDocumento();
+  }
+
+  onCancelarToolbar(): void {
+    this.prepararNovoDocumento();
+  }
+
+  onExcluirToolbar(): void {
+    if (!this.documentoSelecionado) {
+      this.feedback = 'Selecione um documento para excluir.';
+      return;
+    }
+    this.excluirDocumento(this.documentoSelecionado);
+  }
+
+  onImprimirToolbar(): void {
+    this.imprimirRelatorioTexto();
+  }
+
+  onFecharToolbar(): void {
+    window.history.back();
+  }
+
+  get documentosFiltrados(): DocumentoInstituicaoResponsePayload[] {
+    const { tipoDocumento, orgaoEmissor, situacao, periodoVencimento } = this.filterForm.value;
+    const tipoNormalizado = this.normalizarTexto(tipoDocumento as string);
+    const orgaoNormalizado = this.normalizarTexto(orgaoEmissor as string);
     return this.documentos
-      .filter((doc) =>
-        !tipoDocumento || doc.tipoDocumento.toLowerCase().includes((tipoDocumento as string).toLowerCase())
-      )
-      .filter((doc) => !orgaoEmissor || doc.orgaoEmissor.toLowerCase().includes((orgaoEmissor as string).toLowerCase()))
-      .filter((doc) => {
-        const numero = (doc.numeroCodigo || '').toLowerCase();
-        return !numeroDocumento || numero.includes((numeroDocumento as string).toLowerCase());
-      })
+      .filter((doc) => !tipoNormalizado || this.normalizarTexto(doc.tipoDocumento).includes(tipoNormalizado))
+      .filter((doc) => !orgaoNormalizado || this.normalizarTexto(doc.orgaoEmissor).includes(orgaoNormalizado))
       .filter((doc) => !situacao || doc.situacao === situacao)
       .filter((doc) => this.filtrarPorPeriodo(doc, periodoVencimento as string))
       .sort((a, b) => (a.validade || '').localeCompare(b.validade || ''));
   }
 
-  get documentoSelecionado(): DocumentoInstitucional | undefined {
+  get documentoSelecionado(): DocumentoInstituicaoResponsePayload | undefined {
     return this.documentos.find((doc) => doc.id === this.selectedDocumentId);
   }
 
-  get anexosSelecionados(): DocumentoAnexo[] {
+  get anexosSelecionados(): DocumentoInstituicaoAnexoResponsePayload[] {
     if (!this.selectedDocumentId) return [];
     return this.anexos.filter((anexo) => anexo.documentoId === this.selectedDocumentId);
   }
 
-  get historicoSelecionado(): DocumentoHistorico[] {
+  get historicoSelecionado(): DocumentoInstituicaoHistoricoResponsePayload[] {
     if (!this.selectedDocumentId) return [];
     return this.historico.filter((registro) => registro.documentoId === this.selectedDocumentId);
   }
@@ -324,7 +228,7 @@ export class DocumentosInstitucionaisComponent {
     };
   }
 
-  get documentosCriticos(): DocumentoInstitucional[] {
+  get documentosCriticos(): DocumentoInstituicaoResponsePayload[] {
     const ordered = [...this.documentos].sort((a, b) => (a.validade || '').localeCompare(b.validade || ''));
     const vencidos = ordered.filter((d) => d.situacao === 'vencido');
     const próximos = ordered.filter((d) => d.situacao === 'vence_em_breve');
@@ -334,6 +238,74 @@ export class DocumentosInstitucionaisComponent {
   changeTab(tab: string): void {
     this.feedback = null;
     this.activeTab = tab;
+    if (tab === 'anexos') {
+      this.selectedDocumentId = this.documentos[this.documentos.length - 1]?.id ?? null;
+      this.carregarAnexosHistorico();
+    }
+  }
+
+  onSelecionarDocumento(documentoId: string | null): void {
+    this.selectedDocumentId = documentoId;
+    if (this.activeTab === 'anexos') {
+      this.carregarAnexosHistorico();
+    }
+  }
+
+  private carregarDocumentos(): void {
+    this.documentosService
+      .listar()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (documentos) => {
+          this.documentos = documentos;
+          this.refreshSituacoes();
+          this.selectedDocumentId = this.documentos[0]?.id ?? null;
+          if (this.activeTab === 'anexos') {
+            this.carregarAnexosHistorico();
+          }
+        },
+        error: () => {
+          this.feedback = 'Não foi possível carregar os documentos institucionais.';
+        }
+      });
+  }
+
+  private carregarAnexosHistorico(): void {
+    if (!this.selectedDocumentId) {
+      this.anexos = [];
+      this.historico = [];
+      return;
+    }
+    this.carregarAnexos(this.selectedDocumentId);
+    this.carregarHistorico(this.selectedDocumentId);
+  }
+
+  private carregarAnexos(documentoId: string): void {
+    this.documentosService
+      .listarAnexos(documentoId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (anexos) => {
+          this.anexos = anexos;
+        },
+        error: () => {
+          this.feedback = 'Não foi possível carregar os anexos.';
+        }
+      });
+  }
+
+  private carregarHistorico(documentoId: string): void {
+    this.documentosService
+      .listarHistorico(documentoId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (historico) => {
+          this.historico = historico;
+        },
+        error: () => {
+          this.feedback = 'Não foi possível carregar o histórico.';
+        }
+      });
   }
 
   goToNextTab(): void {
@@ -354,6 +326,9 @@ export class DocumentosInstitucionaisComponent {
 
   aplicarFiltros(): void {
     this.selectedDocumentId = this.documentosFiltrados[0]?.id ?? null;
+    if (this.activeTab === 'anexos') {
+      this.carregarAnexosHistorico();
+    }
   }
 
   irParaNovoDocumento(): void {
@@ -366,14 +341,13 @@ export class DocumentosInstitucionaisComponent {
     this.documentoForm.reset({
       tipoDocumento: '',
       orgaoEmissor: '',
-      numeroCodigo: '',
       descricao: '',
       categoria: 'Fiscal',
       emissao: '',
       validade: '',
       semVencimento: false,
       vencimentoIndeterminado: false,
-      responsavelInterno: '',
+      responsavelInterno: this.obterUsuarioAtual(),
       modoRenovacao: 'Manual',
       observacaoRenovacao: '',
       gerarAlerta: true,
@@ -384,7 +358,7 @@ export class DocumentosInstitucionaisComponent {
     this.activeTab = 'cadastro';
   }
 
-  editarDocumento(doc: DocumentoInstitucional): void {
+  editarDocumento(doc: DocumentoInstituicaoResponsePayload): void {
     this.editingId = doc.id;
     this.documentoForm.patchValue({
       ...doc,
@@ -394,40 +368,95 @@ export class DocumentosInstitucionaisComponent {
     this.activeTab = 'cadastro';
   }
 
-  adicionarTipoDocumento(): void {
-    this.feedback = null;
-    const novoTipo = prompt('Informe o novo tipo de documento que deseja cadastrar:')?.trim();
-    if (!novoTipo) return;
+  abrirModalNovoTipoDocumento(): void {
+    this.modalNovoTipoAberto = true;
+    this.modalEntradaErro = null;
+    this.novoTipoDocumento = '';
+    this.focoNovoTipoDocumento = true;
+    this.focoNovaCategoria = false;
+  }
 
-    const existe = this.tiposPadrao.some((tipo) => tipo.toLowerCase() === novoTipo.toLowerCase());
+  fecharModalNovoTipoDocumento(): void {
+    this.modalNovoTipoAberto = false;
+    this.modalEntradaErro = null;
+    this.novoTipoDocumento = '';
+    this.focoNovoTipoDocumento = false;
+  }
+
+  confirmarNovoTipoDocumento(): void {
+    this.feedback = null;
+    const novoTipo = this.novoTipoDocumento.trim();
+    if (!novoTipo) {
+      this.modalEntradaErro = 'Informe o nome do tipo de documento.';
+      return;
+    }
+
+    const existe = this.tiposPadrao.some(
+      (tipo) => this.normalizarTexto(tipo) === this.normalizarTexto(novoTipo)
+    );
     if (existe) {
-      this.feedback = 'Esse tipo de documento já está cadastrado na lista.';
+      this.modalEntradaErro = 'Esse tipo de documento já está cadastrado na lista.';
       return;
     }
 
     this.tiposPadrao = [...this.tiposPadrao, novoTipo];
     this.documentoForm.get('tipoDocumento')?.setValue(novoTipo);
     this.feedback = 'Novo tipo de documento incluído.';
+    this.fecharModalNovoTipoDocumento();
   }
 
-  adicionarCategoria(): void {
-    this.feedback = null;
-    const novaCategoria = prompt('Digite a nova categoria de documentos:')?.trim();
-    if (!novaCategoria) return;
+  abrirModalNovaCategoria(): void {
+    this.modalNovaCategoriaAberta = true;
+    this.modalEntradaErro = null;
+    this.novaCategoria = '';
+    this.focoNovaCategoria = true;
+    this.focoNovoTipoDocumento = false;
+  }
 
-    const existe = this.categorias.some((categoria) => categoria.toLowerCase() === novaCategoria.toLowerCase());
+  fecharModalNovaCategoria(): void {
+    this.modalNovaCategoriaAberta = false;
+    this.modalEntradaErro = null;
+    this.novaCategoria = '';
+    this.focoNovaCategoria = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  fecharModaisEntrada(): void {
+    if (this.modalNovoTipoAberto) {
+      this.fecharModalNovoTipoDocumento();
+    }
+    if (this.modalNovaCategoriaAberta) {
+      this.fecharModalNovaCategoria();
+    }
+  }
+
+  confirmarNovaCategoria(): void {
+    this.feedback = null;
+    const novaCategoria = this.novaCategoria.trim();
+    if (!novaCategoria) {
+      this.modalEntradaErro = 'Informe o nome da categoria.';
+      return;
+    }
+
+    const existe = this.categorias.some(
+      (categoria) => this.normalizarTexto(categoria) === this.normalizarTexto(novaCategoria)
+    );
     if (existe) {
-      this.feedback = 'Essa categoria já está disponível.';
+      this.modalEntradaErro = 'Essa categoria já está disponível.';
       return;
     }
 
     this.categorias = [...this.categorias, novaCategoria];
     this.documentoForm.get('categoria')?.setValue(novaCategoria);
     this.feedback = 'Categoria adicionada para uso imediato.';
+    this.fecharModalNovaCategoria();
   }
 
-  selecionarDocumento(documento: DocumentoInstitucional): void {
+  selecionarDocumento(documento: DocumentoInstituicaoResponsePayload): void {
     this.selectedDocumentId = documento.id;
+    if (this.activeTab === 'anexos') {
+      this.carregarAnexosHistorico();
+    }
   }
 
   salvarDocumento(): void {
@@ -438,41 +467,68 @@ export class DocumentosInstitucionaisComponent {
       return;
     }
 
-    const valor = this.documentoForm.value as DocumentoInstitucional;
-
+    const valor = this.documentoForm.value as DocumentoInstituicaoRequestPayload;
     if (!valor.semVencimento && valor.validade && valor.emissao && valor.validade < valor.emissao) {
       this.feedback = 'A data de vencimento não pode ser anterior à data de emissão.';
       return;
     }
 
-    const payload: DocumentoInstitucional = {
-      ...valor,
-      validade: valor.semVencimento ? null : valor.validade || null,
-      situacao: this.calcularSituacao(valor),
-      id: this.editingId ?? crypto.randomUUID()
-    };
+    const payload = this.montarPayloadDocumento(valor);
 
     if (this.editingId) {
-      this.documentos = this.documentos.map((doc) => (doc.id === this.editingId ? { ...doc, ...payload } : doc));
-      this.feedback = 'Documento atualizado com sucesso.';
-    } else {
-      this.documentos = [...this.documentos, payload];
-      this.feedback = 'Documento cadastrado com sucesso.';
+      this.documentosService
+        .atualizar(this.editingId, payload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (documento) => {
+            this.documentos = this.documentos.map((doc) => (doc.id === this.editingId ? documento : doc));
+            this.feedback = 'Documento atualizado com sucesso.';
+            this.selectedDocumentId = documento.id;
+            this.refreshSituacoes();
+            this.changeTab('anexos');
+          },
+          error: () => {
+            this.feedback = 'Não foi possível atualizar o documento.';
+          }
+        });
+      return;
     }
 
-    this.selectedDocumentId = payload.id;
-    this.refreshSituacoes();
-    this.activeTab = 'lista';
+    this.documentosService
+      .criar(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (documento) => {
+          this.documentos = [...this.documentos, documento];
+          this.feedback = 'Documento cadastrado com sucesso.';
+          this.selectedDocumentId = documento.id;
+          this.refreshSituacoes();
+          this.changeTab('anexos');
+        },
+        error: () => {
+          this.feedback = 'Não foi possível cadastrar o documento.';
+        }
+      });
   }
 
-  excluirDocumento(doc: DocumentoInstitucional): void {
-    this.documentos = this.documentos.filter((d) => d.id !== doc.id);
-    if (this.selectedDocumentId === doc.id) {
-      this.selectedDocumentId = this.documentos[0]?.id ?? null;
-    }
-    this.refreshSituacoes();
+  excluirDocumento(doc: DocumentoInstituicaoResponsePayload): void {
+    this.documentosService
+      .excluir(doc.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.documentos = this.documentos.filter((d) => d.id !== doc.id);
+          if (this.selectedDocumentId === doc.id) {
+            this.selectedDocumentId = this.documentos[0]?.id ?? null;
+            this.carregarAnexosHistorico();
+          }
+          this.refreshSituacoes();
+        },
+        error: () => {
+          this.feedback = 'Não foi possível excluir o documento.';
+        }
+      });
   }
-
   async adicionarAnexo(): Promise<void> {
     this.feedback = null;
     if (!this.selectedDocumentId) {
@@ -489,39 +545,90 @@ export class DocumentosInstitucionaisComponent {
     const arquivo = this.anexoForm.value.arquivo as File | null;
     if (!arquivo) return;
 
-    const dataUrl = await this.readFileAsDataUrl(arquivo).catch(() => null);
+    let conteudoBase64: string;
+    try {
+      conteudoBase64 = await this.lerArquivoBase64(arquivo);
+    } catch {
+      this.feedback = 'Nao foi possivel ler o arquivo selecionado.';
+      return;
+    }
 
-    const payload: DocumentoAnexo = {
-      id: crypto.randomUUID(),
-      documentoId: this.selectedDocumentId,
-      nomeArquivo: this.anexoForm.value.nomeArquivo,
-      tipo: this.anexoForm.value.tipo,
-      dataUpload: new Date().toISOString().slice(0, 10),
-      usuario: 'Usuário atual',
-      dataUrl: dataUrl ?? undefined,
-      tamanho: this.formatarTamanho(arquivo.size)
-    };
-
-    this.anexos = [payload, ...this.anexos];
-    this.anexoForm.reset({ tipo: 'PDF', arquivo: null, nomeArquivo: '' });
+    this.documentosService
+      .adicionarAnexo(this.selectedDocumentId, {
+        nomeArquivo: this.anexoForm.value.nomeArquivo,
+        tipo: this.anexoForm.value.tipo,
+        tipoMime: arquivo.type || this.obterTipoMime(arquivo.name),
+        conteudoBase64,
+        dataUpload: new Date().toISOString().slice(0, 10),
+        usuario: this.obterUsuarioAtual(),
+        tamanho: this.formatarTamanho(arquivo.size)
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (anexo) => {
+          this.anexos = [anexo, ...this.anexos];
+          this.anexoForm.reset({ tipo: 'PDF', arquivo: null, nomeArquivo: '' });
+        },
+        error: () => {
+          this.feedback = 'Nao foi possivel salvar o anexo.';
+        }
+      });
+  }
+  visualizarAnexo(anexo: DocumentoInstituicaoAnexoResponsePayload): void {
+    if (!anexo.arquivoUrl) {
+      this.feedback = 'Arquivo do anexo nao encontrado.';
+      return;
+    }
+    window.open(anexo.arquivoUrl, '_blank');
   }
 
   registrarHistorico(mensagem: string, tipoAlteracao: string): void {
     if (!this.selectedDocumentId) return;
 
-    const registro: DocumentoHistorico = {
-      id: crypto.randomUUID(),
-      documentoId: this.selectedDocumentId,
-      dataHora: new Date().toISOString().replace('T', ' ').slice(0, 16),
-      usuario: 'Usuário atual',
-      tipoAlteracao,
-      observacao: mensagem
-    };
-
-    this.historico = [registro, ...this.historico];
+    this.documentosService
+      .adicionarHistorico(this.selectedDocumentId, {
+        dataHora: new Date().toISOString(),
+        usuario: this.obterUsuarioAtual(),
+        tipoAlteracao,
+        observacao: mensagem
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (registro) => {
+          this.historico = [registro, ...this.historico];
+        },
+        error: () => {
+          this.feedback = 'Não foi possível registrar o histórico.';
+        }
+      });
   }
 
-  imprimirDocumento(doc: DocumentoInstitucional): void {
+  private montarPayloadDocumento(valor: DocumentoInstituicaoRequestPayload): DocumentoInstituicaoRequestPayload {
+    return {
+      tipoDocumento: valor.tipoDocumento,
+      orgaoEmissor: valor.orgaoEmissor,
+      descricao: valor.descricao,
+      categoria: valor.categoria,
+      emissao: valor.emissao,
+      validade: valor.semVencimento ? null : valor.validade || null,
+      responsavelInterno: valor.responsavelInterno,
+      modoRenovacao: valor.modoRenovacao,
+      observacaoRenovacao: valor.observacaoRenovacao,
+      gerarAlerta: valor.gerarAlerta,
+      diasAntecedencia: valor.diasAntecedencia,
+      formaAlerta: valor.formaAlerta,
+      emRenovacao: valor.emRenovacao,
+      semVencimento: valor.semVencimento,
+      vencimentoIndeterminado: valor.vencimentoIndeterminado
+    };
+  }
+
+  private obterUsuarioAtual(): string {
+    const usuario = this.authService.user();
+    return usuario?.nome ?? usuario?.nomeUsuario ?? 'Sistema';
+  }
+
+  imprimirDocumento(doc: DocumentoInstituicaoResponsePayload): void {
     const janela = window.open('', '_blank', 'width=900,height=1200');
     if (!janela) return;
 
@@ -546,7 +653,6 @@ export class DocumentosInstitucionaisComponent {
           <table>
             <tr><th>Tipo</th><td>${doc.tipoDocumento}</td></tr>
             <tr><th>Órgão emissor</th><td>${doc.orgaoEmissor}</td></tr>
-            <tr><th>Número</th><td>${doc.numeroCodigo || 'Sem código informado'}</td></tr>
             <tr><th>Categoria</th><td>${doc.categoria}</td></tr>
             <tr><th>Emissão</th><td>${doc.emissao}</td></tr>
             <tr><th>Validade</th><td>${doc.validade || 'Sem vencimento'}</td></tr>
@@ -620,7 +726,6 @@ export class DocumentosInstitucionaisComponent {
   exportarRelatorioExcel(): void {
     const cabecalho = [
       'Tipo de Documento',
-      'Número / Código',
       'Categoria',
       'Vencimento',
       'Situação',
@@ -630,7 +735,6 @@ export class DocumentosInstitucionaisComponent {
 
     const linhas = this.documentos.map((doc) => [
       doc.tipoDocumento,
-      doc.numeroCodigo || 'Não informado',
       doc.categoria,
       doc.validade || 'Sem vencimento',
       this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc)),
@@ -655,11 +759,10 @@ export class DocumentosInstitucionaisComponent {
     const janela = window.open('', '_blank', 'width=900,height=1200');
     if (!janela) return;
 
-    const headers = ['Tipo', 'Número/Código', 'Categoria', 'Vencimento', 'Situação'];
+    const headers = ['Tipo', 'Categoria', 'Vencimento', 'Situação'];
     const linhas = this.documentos.map((doc) => [
       doc.tipoDocumento.padEnd(36, ' '),
-      (doc.numeroCodigo || 'Sem código').padEnd(16, ' '),
-      doc.categoria.padEnd(14, ' '),
+      (doc.categoria ?? '').padEnd(14, ' '),
       (doc.validade || 'Sem vencimento').padEnd(16, ' '),
       this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc))
     ]);
@@ -705,33 +808,12 @@ export class DocumentosInstitucionaisComponent {
     });
   }
 
-  visualizarAnexo(anexo: DocumentoAnexo): void {
-    this.feedback = null;
-    if (!anexo.dataUrl) {
-      this.feedback = 'Este registro não possui arquivo digitalizado salvo.';
-      return;
-    }
-
-    const win = window.open('', '_blank', 'width=900,height=1100');
-    if (!win) return;
-
-    const isPdf = anexo.tipo.toLowerCase() === 'pdf' || anexo.nomeArquivo.toLowerCase().endsWith('.pdf');
-    if (isPdf) {
-      win.document.write(`<iframe src="${anexo.dataUrl}" style="width:100%;height:100%;" frameborder="0"></iframe>`);
-    } else {
-      win.document.write(
-        `<img src="${anexo.dataUrl}" alt="${anexo.nomeArquivo}" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`
-      );
-    }
-  }
-
   private gerarHtmlRelatorio(): string {
     const linhas = this.documentos
       .map(
         (doc) => `
         <tr>
           <td>${doc.tipoDocumento}</td>
-          <td>${doc.numeroCodigo || 'Sem código'}</td>
           <td>${doc.categoria}</td>
           <td>${doc.validade || 'Sem vencimento'}</td>
           <td>${this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc))}</td>
@@ -760,7 +842,6 @@ export class DocumentosInstitucionaisComponent {
             <thead>
               <tr>
                 <th>Tipo</th>
-                <th>Número/Código</th>
                 <th>Categoria</th>
                 <th>Vencimento</th>
                 <th>Situação</th>
@@ -793,16 +874,31 @@ export class DocumentosInstitucionaisComponent {
     return mb >= 1 ? `${mb.toFixed(2)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
   }
 
-  private readFileAsDataUrl(file: File): Promise<string> {
+  private lerArquivoBase64(arquivo: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(arquivo);
     });
   }
 
-  private filtrarPorPeriodo(doc: DocumentoInstitucional, periodo?: string): boolean {
+  private obterTipoMime(nomeArquivo: string): string {
+    const nome = (nomeArquivo || '').toLowerCase();
+    if (nome.endsWith('.pdf')) return 'application/pdf';
+    if (nome.endsWith('.png')) return 'image/png';
+    if (nome.endsWith('.jpg') || nome.endsWith('.jpeg')) return 'image/jpeg';
+    return 'application/octet-stream';
+  }
+  private normalizarTexto(valor: string): string {
+    if (!valor) return '';
+    return valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
+  private filtrarPorPeriodo(doc: DocumentoInstituicaoResponsePayload, periodo?: string): boolean {
     if (!periodo) return true;
     if (!doc.validade) return periodo === 'sem_vencimento';
 
@@ -811,7 +907,7 @@ export class DocumentosInstitucionaisComponent {
     return diff <= dias && diff >= 0;
   }
 
-  private filtrarAlertas(doc: DocumentoInstitucional): boolean {
+  private filtrarAlertas(doc: DocumentoInstituicaoResponsePayload): boolean {
     if (this.alertaFiltro === 'vencidos') return doc.situacao === 'vencido';
     if (this.alertaFiltro === 'hoje') return this.diferencaDias(doc.validade) === 0;
 
@@ -828,7 +924,7 @@ export class DocumentosInstitucionaisComponent {
     }));
   }
 
-  private calcularSituacao(doc: DocumentoInstitucional): DocumentoSituacao {
+  private calcularSituacao(doc: DocumentoInstituicaoResponsePayload): DocumentoSituacao {
     if (doc.emRenovacao) return 'em_renovacao';
     if (doc.semVencimento) return 'sem_vencimento';
     if (!doc.validade) return 'valido';
@@ -847,9 +943,4 @@ export class DocumentosInstitucionaisComponent {
     return Math.floor(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  private addDaysFromToday(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().slice(0, 10);
-  }
 }

@@ -6,7 +6,6 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faChevronDown,
   faChevronUp,
-  faPalette,
   faRightFromBracket,
   faSun,
   faMoon,
@@ -34,7 +33,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
   readonly faUserCircle = faUserCircle;
   readonly faSun = faSun;
   readonly faMoon = faMoon;
-  readonly faPalette = faPalette;
   pageTitle = 'Visao geral';
   get activeUnitLogo$() {
     return this.assistanceUnitService.currentUnitLogo$;

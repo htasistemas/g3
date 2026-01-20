@@ -1,4 +1,15 @@
-<app-tela-padrao>
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (buscar)="onBuscarToolbar()"
+  (novo)="onNovoToolbar()"
+  (salvar)="onSalvarToolbar()"
+  (cancelar)="onCancelarToolbar()"
+  (excluir)="onExcluirToolbar()"
+  (imprimir)="onImprimirToolbar()"
+  (fechar)="onFecharToolbar()"
+>
 <header class="page-title page-title--row" slot="titulo">
   <div>
     <p class="page-title__eyebrow">Setor Administrativo</p>
@@ -30,17 +41,7 @@
       </li>
     </ol>
   </div>
-
-  <ng-template #navigationControls>
-    <div class="tab-actions">
-      <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
-      <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-        Próximo: {{ nextTabLabel }}
-      </button>
-    </div>
-  </ng-template>
-
-  <!-- Lista de documentos -->
+<!-- Lista de documentos -->
   <div class="tab-card" *ngIf="activeTab === 'lista'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
@@ -83,9 +84,6 @@
         </label>
         <label class="field">Órgão emissor
           <input formControlName="orgaoEmissor" placeholder="Receita Federal, Prefeitura..." />
-        </label>
-        <label class="field">Número / Código
-          <input formControlName="numeroDocumento" placeholder="Digite o código" />
         </label>
         <label class="field">Situação
           <select formControlName="situacao">
@@ -157,35 +155,6 @@
       </table>
     </div>
 
-    <div class="list-card">
-      <div class="list-card__header">
-        <div>
-          <p class="page-title__eyebrow">Envios realizados</p>
-          <p class="page-title__label">Documentos transmitidos com protocolo</p>
-        </div>
-        <button class="ghost" type="button" (click)="changeTab('relatorios')">Ir para relatórios</button>
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Destinatário</th>
-              <th>Documento</th>
-              <th>Protocolo</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let envio of enviosRecentes">
-              <td>{{ envio.destinatario }}</td>
-              <td>{{ envio.documento }}</td>
-              <td>{{ envio.protocolo }}</td>
-              <td>{{ envio.data }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   <!-- Cadastro / Edição -->
@@ -195,7 +164,14 @@
         <p class="tab-card__highlight">Cadastro / Edição</p>
         <p class="muted">Preencha os dados gerais, prazos e alertas do documento.</p>
       </div>
-      <span class="pill">Obrigatório</span>
+      <div class="tab-card__header-actions">
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="semVencimento" /> <span>Sem vencimento</span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="vencimentoIndeterminado" /> <span>Vencimento indeterminado</span>
+        </label>
+      </div>
     </div>
 
     <div *ngIf="feedback" class="feedback">{{ feedback }}</div>
@@ -204,7 +180,7 @@
       <label class="field">
         <div class="field__label">
           <span>Tipo de documento*</span>
-          <button type="button" class="text-button" (click)="adicionarTipoDocumento()">+ Incluir tipo</button>
+          <button type="button" class="text-button" (click)="abrirModalNovoTipoDocumento()">+ Incluir tipo</button>
         </div>
         <select formControlName="tipoDocumento">
           <option value=""></option>
@@ -214,13 +190,10 @@
       <label class="field">Órgão emissor*
         <input formControlName="orgaoEmissor" />
       </label>
-      <label class="field">Número / Código
-        <span class="muted small-text">Preencha apenas se houver código no documento.</span>
-      </label>
       <label class="field">
         <div class="field__label">
           <span>Categoria</span>
-          <button type="button" class="text-button" (click)="adicionarCategoria()">+ Nova categoria</button>
+          <button type="button" class="text-button" (click)="abrirModalNovaCategoria()">+ Nova categoria</button>
         </div>
         <select formControlName="categoria">
           <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
@@ -241,34 +214,23 @@
         Data de validade / vencimento
         <input type="date" formControlName="validade" />
       </label>
-      <label class="checkbox-field">
-        <input type="checkbox" formControlName="semVencimento" /> <span>Sem vencimento</span>
-      </label>
-      <label class="checkbox-field">
-        <input type="checkbox" formControlName="vencimentoIndeterminado" /> <span>Vencimento indeterminado</span>
-      </label>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="field-grid cols-3">
       <label class="field">Responsável interno
-        <input formControlName="responsavelInterno" placeholder="Usuário ou setor" />
+        <input formControlName="responsavelInterno" placeholder="Usuário ou setor" readonly />
       </label>
       <label class="field">Modo de Renovação
         <select formControlName="modoRenovacao">
           <option *ngFor="let modo of modosRenovacao" [value]="modo">{{ modo }}</option>
         </select>
       </label>
-      <label class="field full">Observação sobre renovação
-        <textarea rows="2" formControlName="observacaoRenovacao" placeholder="Ex.: renovar no site com certificado digital"></textarea>
-      </label>
-      <label class="checkbox-field"><input type="checkbox" formControlName="emRenovacao" /> <span>Marcar como em renovação</span></label>
     </div>
 
     <div class="divider"></div>
 
     <div class="field-grid cols-3">
+      <label class="field full">Observação sobre renovação
+        <textarea rows="2" formControlName="observacaoRenovacao" placeholder="Ex.: renovar no site com certificado digital"></textarea>
+      </label>
+      <label class="checkbox-field"><input type="checkbox" formControlName="emRenovacao" /> <span>Marcar como em renovação</span></label>
       <label class="checkbox-field"><input type="checkbox" formControlName="gerarAlerta" /> <span>Gerar alerta de vencimento</span></label>
       <label class="field">Dias de antecedência
         <div class="chips">
@@ -386,7 +348,11 @@
 
     <div class="selection-bar">
       <p>Documento selecionado:</p>
-      <select [ngModel]="selectedDocumentId" (ngModelChange)="selectedDocumentId = $event">
+      <select [ngModel]="selectedDocumentId" (ngModelChange)="onSelecionarDocumento($event)">
+        <option [ngValue]="null">Selecione um documento</option>
+        <option *ngFor="let doc of documentos" [ngValue]="doc.id">
+          {{ doc.tipoDocumento }} - {{ doc.orgaoEmissor }}
+        </option>
       </select>
     </div>
 
@@ -399,7 +365,7 @@
             <p class="page-title__eyebrow">Anexos</p>
             <p class="page-title__label">Upload e organização</p>
           </div>
-          <button class="ghost" type="button" (click)="adicionarAnexo()">Salvar anexo</button>
+          <button class="ghost button-anexo-destaque" type="button" (click)="adicionarAnexo()">Salvar anexo</button>
         </div>
 
         <form [formGroup]="anexoForm" class="field-grid cols-2">
@@ -439,8 +405,13 @@
                 <td>{{ anexo.dataUpload }}</td>
                 <td>{{ anexo.usuario }}</td>
                 <td class="text-right">
-                  <button class="ghost" type="button" [disabled]="!anexo.dataUrl" (click)="visualizarAnexo(anexo)">
-                    {{ anexo.dataUrl ? 'Visualizar' : 'Sem arquivo digitalizado' }}
+                  <button
+                    class="ghost"
+                    type="button"
+                    [disabled]="!anexo.arquivoUrl"
+                    (click)="visualizarAnexo(anexo)"
+                  >
+                    Visualizar documento
                   </button>
                 </td>
               </tr>
@@ -559,8 +530,61 @@
       </div>
     </div>
   </div>
+
 </section>
 </app-tela-padrao>
+
+<div class="modal" *ngIf="modalNovoTipoAberto">
+  <div class="modal__backdrop" (click)="fecharModalNovoTipoDocumento()"></div>
+  <div class="modal__content" role="dialog" aria-modal="true">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Tipo de documento</p>
+        <h3>Novo tipo de documento</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharModalNovoTipoDocumento()" aria-label="Fechar">&times;</button>
+    </div>
+    <label class="field">Nome do tipo*
+      <input
+        [(ngModel)]="novoTipoDocumento"
+        placeholder="Ex.: Certidao Negativa Estadual"
+        [attr.autofocus]="focoNovoTipoDocumento ? true : null"
+        (keyup.enter)="confirmarNovoTipoDocumento()"
+      />
+    </label>
+    <p class="modal__error" *ngIf="modalEntradaErro">{{ modalEntradaErro }}</p>
+    <div class="modal__actions">
+      <button type="button" class="primary" (click)="confirmarNovoTipoDocumento()">Salvar</button>
+      <button type="button" class="ghost" (click)="fecharModalNovoTipoDocumento()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="modalNovaCategoriaAberta">
+  <div class="modal__backdrop" (click)="fecharModalNovaCategoria()"></div>
+  <div class="modal__content" role="dialog" aria-modal="true">
+    <div class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Categoria</p>
+        <h3>Nova categoria</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharModalNovaCategoria()" aria-label="Fechar">&times;</button>
+    </div>
+    <label class="field">Nome da categoria*
+      <input
+        [(ngModel)]="novaCategoria"
+        placeholder="Ex.: Licencas e alvaras"
+        [attr.autofocus]="focoNovaCategoria ? true : null"
+        (keyup.enter)="confirmarNovaCategoria()"
+      />
+    </label>
+    <p class="modal__error" *ngIf="modalEntradaErro">{{ modalEntradaErro }}</p>
+    <div class="modal__actions">
+      <button type="button" class="primary" (click)="confirmarNovaCategoria()">Salvar</button>
+      <button type="button" class="ghost" (click)="fecharModalNovaCategoria()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 
 
