@@ -1,14 +1,22 @@
-FROM node:20-alpine
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
-WORKDIR /usr/src/app
+WORKDIR /workspace
 
-COPY backend/package*.json ./
-RUN npm ci
+COPY backend/pom.xml backend/mvnw backend/mvnw.cmd ./
+COPY backend/.mvn ./.mvn
 
-COPY backend .
+RUN mvn -q -e -DskipTests dependency:go-offline
 
-RUN npm run build
+COPY backend/src ./src
 
-EXPOSE 3000
+RUN mvn -q -DskipTests package
 
-CMD ["npm", "run", "start"]
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+COPY --from=build /workspace/target/*.jar /app/app.jar
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "/app/app.jar"]
