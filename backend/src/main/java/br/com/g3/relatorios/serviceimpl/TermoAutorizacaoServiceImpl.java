@@ -65,7 +65,6 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     String instituicaoCnpj = unidade != null ? textoSeguro(unidade.getCnpj()) : "Nao informado";
 
     StringBuilder sb = new StringBuilder();
-    sb.append("<h3 class=\"title-centered\">MODELO DE TERMO DE CONSENTIMENTO PARA USO DE DADOS PESSOAIS E IMAGEM</h3>");
     sb.append("<p>Pelo presente instrumento, eu, <strong>")
         .append(escapeHtml(beneficiario))
         .append("</strong>, portador(a) do documento de identidade RG n&#186; ")
@@ -116,17 +115,6 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     sb.append("  <div class=\"signature__line\">Assinatura do(a) Representante da Instituicao</div>");
     sb.append("</div>");
 
-    sb.append("<table class=\"print-table\">\n<tbody>");
-    sb.append(linhaTabela("Nome completo (beneficiario)", beneficiario));
-    sb.append(linhaTabela("CPF (beneficiario)", cpf));
-    sb.append(linhaTabela("Assinatura do Responsavel Legal (se aplicavel)", ""));
-    sb.append(linhaTabela("Nome completo (responsavel)", responsavelNome));
-    sb.append(linhaTabela("CPF (responsavel)", responsavelCpf));
-    sb.append(linhaTabela("Grau de parentesco / relacao legal", responsavelRelacao));
-    sb.append(linhaTabela("Representante da instituicao - nome", representanteNome));
-    sb.append(linhaTabela("Representante da instituicao - cargo", representanteCargo));
-    sb.append("</tbody>\n</table>");
-
     return sb.toString();
   }
 
@@ -159,10 +147,6 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
   private String textoSeguroComPadrao(String valor, String padrao) {
     String limpo = textoSeguro(valor);
     return "Nao informado".equals(limpo) ? padrao : limpo;
-  }
-
-  private String linhaTabela(String titulo, String valor) {
-    return "<tr><th>" + escapeHtml(titulo) + "</th><td>" + escapeHtml(textoSeguro(valor)) + "</td></tr>";
   }
 
   private String escapeHtml(String valor) {

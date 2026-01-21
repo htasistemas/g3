@@ -29,6 +29,8 @@ public interface DashboardAssistenciaRepository {
 
   long contarFamilias();
 
+  long contarBensPatrimonio();
+
   double somarValoresAReceber();
 
   double somarValoresEmCaixa();

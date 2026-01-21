@@ -31,7 +31,7 @@ public final class RelatorioTemplatePadrao {
         safe(
             nomeInstituicaoOverride != null && !nomeInstituicaoOverride.trim().isEmpty()
                 ? nomeInstituicaoOverride
-                : unidade != null ? unidade.getNomeFantasia() : null);
+                : unidade != null ? unidade.getRazaoSocial() : null);
     String logomarcaRelatorio =
         safe(
             unidade != null && unidade.getLogomarcaRelatorio() != null
@@ -67,25 +67,19 @@ public final class RelatorioTemplatePadrao {
             + "        padding-bottom: 8px;\n"
             + "        margin-bottom: 16px;\n"
             + "      }\n"
-            + "      .header__meta {\n"
-            + "        display: flex;\n"
-            + "        justify-content: space-between;\n"
-            + "        font-size: 10px;\n"
-            + "        margin-bottom: 8px;\n"
-            + "      }\n"
-            + "      .header__brand {\n"
-            + "        display: grid;\n"
-            + "        grid-template-columns: 120px 1fr 120px;\n"
-            + "        align-items: center;\n"
-            + "        gap: 12px;\n"
-            + "        margin-bottom: 8px;\n"
-            + "      }\n"
-            + "      .header__logo { max-height: 48px; max-width: 120px; justify-self: start; display: block; margin-right: auto; }\n"
+            + "      .header__meta { width: 100%%; font-size: 10px; margin-bottom: 8px; text-align: right; }\n"
+            + "      .header__meta span { display: block; }\n"
+            + "      .header__brand { width: 100%%; margin-bottom: 8px; }\n"
+            + "      .header__brand-table { width: 100%%; border-collapse: collapse; margin-bottom: 6px; }\n"
+            + "      .header__brand-logo { width: 30%%; vertical-align: middle; text-align: left; }\n"
+            + "      .header__brand-razao { text-align: center; vertical-align: middle; padding-left: 10px; }\n"
+            + "      .header__logo { max-height: 72px; max-width: 180px; display: block; }\n"
+            + "      .header__razao { font-size: 14px; font-weight: 600; text-transform: uppercase; }\n"
             + "      .header__center { text-align: center; }\n"
-            + "      .header__spacer { width: 100%; }\n"
-            + "      .header__title { font-size: 16px; font-weight: 700; margin: 0; }\n"
-            + "      .header__subtitle { font-size: 14px; font-weight: 600; margin: 2px 0 0; }\n"
-            + "      .content { font-size: 12px; line-height: 1.5; margin-top: 10mm; }\n"
+            + "      .header__spacer { width: 100%%; }\n"
+            + "      .header__title { font-size: 26px; font-weight: 700; margin: 0; text-transform: uppercase; }\n"
+            + "      .header__subtitle { font-size: 14px; font-weight: 600; margin: 4px 0 0; text-transform: uppercase; }\n"
+            + "      .content { font-size: 12px; line-height: 1.4; margin-top: 8mm; padding: 24px; }\n"
             + "      .content h1, .content h2, .content h3 { margin: 0 0 12px; font-size: 13px; }\n"
             + "      .content .title-centered { text-align: center; }\n"
             + "      .content p { margin: 0 0 10px; }\n"
@@ -97,22 +91,30 @@ public final class RelatorioTemplatePadrao {
             + "      .section { margin-bottom: 16px; }\n"
             + "      .section-title { font-weight: 700; border-bottom: 2px solid #111827; margin: 16px 0 8px; padding-bottom: 4px; }\n"
             + "      .box-text { border: 1px solid #111827; padding: 10px; min-height: 60px; }\n"
-            + "      .cards { display: grid; gap: 12px; }\n"
-            + "      .cards--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }\n"
-            + "      .hero { display: grid; grid-template-columns: 115px 1fr; gap: 12px; margin-bottom: 12px; align-items: stretch; }\n"
-            + "      .hero__photo { border: 1px solid #111827; border-radius: 10px; width: 115px; height: 153px; display: flex; align-items: center; justify-content: center; background: #f3f4f6; overflow: hidden; }\n"
-            + "      .hero__photo img { width: 100%%; height: 100%%; object-fit: cover; }\n"
+            + "      .cards { display: block; }\n"
+            + "      .cards--two { }\n"
+            + "      .hero { margin-bottom: 12px; }\n"
+            + "      .hero__photo { border: 1px solid #111827; border-radius: 10px; width: 115px; height: 153px; background: #f3f4f6; overflow: hidden; text-align: center; }\n"
+            + "      .hero__photo img { width: 100%%; height: 100%%; }\n"
             + "      .hero__summary { border: 1px solid #111827; border-radius: 10px; padding: 10px 12px; background: #ffffff; }\n"
-            + "      .hero__name { font-size: 16px; font-weight: 700; margin: 0 0 6px; text-transform: uppercase; }\n"
+            + "      .hero__name { font-size: 16px; font-weight: 700; margin: 0; text-transform: uppercase; }\n"
             + "      .hero__meta { font-size: 11px; margin: 0 0 4px; }\n"
+            + "      .hero-table { width: 100%%; border-collapse: collapse; margin-bottom: 12px; }\n"
+            + "      .hero-table__photo { width: 120px; vertical-align: top; border: 1px solid #111827; border-radius: 12px; background: #f3f4f6; height: 153px; text-align: center; overflow: hidden; }\n"
+            + "      .hero-table__photo img { width: 100%%; height: 100%%; display: block; border-radius: 12px; }\n"
+            + "      .hero-table__info { vertical-align: top; padding-left: 12px; }\n"
+            + "      .hero-table__header { width: 100%%; border-collapse: collapse; margin-bottom: 6px; }\n"
+            + "      .hero-table__name { vertical-align: top; }\n"
+            + "      .hero-table__status { text-align: right; vertical-align: top; }\n"
+            + "      .hero__age { font-size: 14px; margin: 6px 0 0; font-weight: 700; }\n"
             + "      .status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; border: 1px solid #111827; }\n"
             + "      .status-badge--ativo { background: #dcfce7; color: #166534; border-color: #14532d; }\n"
             + "      .status-badge--desatualizado { background: #ffedd5; color: #c2410c; border-color: #9a3412; }\n"
             + "      .status-badge--incompleto { background: #fef9c3; color: #854d0e; border-color: #a16207; }\n"
             + "      .status-badge--bloqueado { background: #fecaca; color: #991b1b; border-color: #7f1d1d; }\n"
             + "      .status-badge--analise { background: #e0f2fe; color: #0ea5e9; border-color: #0369a1; }\n"
-            + "      .card { border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff; page-break-inside: avoid; }\n"
-            + "      .card__header { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }\n"
+            + "      .card { border: 1px solid #e5e7eb; border-radius: 14px; background: #ffffff; page-break-inside: avoid; }\n"
+            + "      .card__header { padding: 10px 16px; border-bottom: 1px solid #e5e7eb; background: #f3f4f6; }\n"
             + "      .card__header--pessoais { background: #eff6ff; }\n"
             + "      .card__header--endereco { background: #ecfccb; }\n"
             + "      .card__header--contatos { background: #fef3c7; }\n"
@@ -123,35 +125,35 @@ public final class RelatorioTemplatePadrao {
             + "      .card__header--beneficios { background: #fef9c3; }\n"
             + "      .card__header--lgpd { background: #e2e8f0; }\n"
             + "      .card__header--observacoes { background: #fef2f2; }\n"
-            + "      .card__title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; margin: 0; }\n"
-            + "      .card__body { padding: 10px 12px; }\n"
-            + "      .card__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }\n"
-            + "      .card__field { border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 8px; background: #f9fafb; }\n"
-            + "      .card__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2px; color: #374151; margin: 0 0 4px; }\n"
-            + "      .card__value { font-size: 12px; font-weight: 700; margin: 0; }\n"
-            + "      .card__note { border: 1px solid #fde68a; background: #fef3c7; padding: 8px; border-radius: 8px; font-size: 12px; }\n"
+            + "      .card__title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin: 0; }\n"
+            + "      .card__body { padding: 16px; }\n"
+            + "      .ficha-info { margin-bottom: 16px; }\n"
+            + "      .info-line { width: 100%%; border-collapse: collapse; }\n"
+            + "      .info-line td { font-size: 12px; padding: 4px 0; }\n"
+            + "      .info-label { font-weight: 600; }\n"
+            + "      .info-value { font-weight: 600; }\n"
+            + "      .info-value--highlight { font-size: 14px; font-weight: 700; }\n"
+            + "      .ficha-grid { width: 100%%; border-collapse: separate; border-spacing: 16px 8px; }\n"
+            + "      .ficha-campo { vertical-align: top; }\n"
+            + "      .field__line { font-size: 12px; padding: 2px 0; min-height: 18px; }\n"
+            + "      .field__line--textarea { min-height: 72px; border: 1px solid #111827; padding: 6px; }\n"
+            + "      .field__label-inline { font-size: 12px; text-transform: uppercase; letter-spacing: 0.2px; color: #374151; font-weight: 700; }\n"
+            + "      .field__value-inline { font-size: 12px; font-weight: 600; color: #111827; }\n"
+            + "      .field__value-inline--cpf { font-size: 14px; font-weight: 700; }\n"
+            + "      .subtitulo-termo { font-size: 12px; font-weight: 600; margin: 0 0 8px; }\n"
+            + "      .termo-texto { font-size: 12px; border: 1px solid #111827; padding: 10px; margin-bottom: 16px; min-height: 60px; }\n"
             + "      .footer {\n"
             + "        border-top: 1px solid #111827;\n"
             + "        margin-top: 18px;\n"
             + "        padding-top: 8px;\n"
             + "        font-size: 10px;\n"
+            + "        text-align: center;\n"
             + "      }\n"
             + "      .page-number:before {\n"
             + "        content: \"Pagina \" counter(page) \" de \" counter(pages);\n"
             + "      }\n"
-            + "      .signature {\n"
-            + "        margin-top: 28px;\n"
-            + "        display: flex;\n"
-            + "        justify-content: space-between;\n"
-            + "        gap: 24px;\n"
-            + "      }\n"
-            + "      .signature__line {\n"
-            + "        flex: 1;\n"
-            + "        border-top: 1px solid #111827;\n"
-            + "        padding-top: 4px;\n"
-            + "        text-align: center;\n"
-            + "        font-size: 11px;\n"
-            + "      }\n"
+            + "      .signature { margin-top: 28px; width: 100%%; }\n"
+            + "      .signature__line { display: inline-block; width: 49%%; border-top: 1px solid #111827; padding-top: 4px; text-align: center; font-size: 11px; vertical-align: top; }\n"
             + "    </style>\n"
             + "  </head>\n"
             + "  <body>\n"
@@ -161,7 +163,12 @@ public final class RelatorioTemplatePadrao {
             + "        <span>Emissao: %s</span>\n"
             + "      </div>\n"
             + "      <div class=\"header__brand\">\n"
-            + "        %s\n"
+            + "        <table class=\"header__brand-table\">\n"
+            + "          <tr>\n"
+            + "            <td class=\"header__brand-logo\">%s</td>\n"
+            + "            <td class=\"header__brand-razao\"><span class=\"header__razao\">%s</span></td>\n"
+            + "          </tr>\n"
+            + "        </table>\n"
             + "        <div class=\"header__center\">\n"
             + "          <p class=\"header__title\">%s</p>\n"
             + "          <p class=\"header__subtitle\">%s</p>\n"
@@ -185,18 +192,20 @@ public final class RelatorioTemplatePadrao {
 
     return String.format(
         htmlTemplate,
-        escape(titulo),
-        escape(usuario),
-        escape(emissao),
-        montarLogoHtml(logomarcaRelatorio),
-        escape(nomeInstituicao.isEmpty() ? "Instituicao nao informada" : nomeInstituicao),
-        escape(titulo),
-        corpoHtml,
-        escape(razaoSocial),
-        escape(cnpj),
-        escape(endereco),
-        escape(telefone),
-        escape(emissao));
+        prepararParaFormatacao(escape(titulo)),
+        prepararParaFormatacao(escape(usuario)),
+        prepararParaFormatacao(escape(emissao)),
+        prepararParaFormatacao(montarLogoHtml(logomarcaRelatorio)),
+        prepararParaFormatacao(
+            escape(nomeInstituicao.isEmpty() ? "Instituicao nao informada" : nomeInstituicao)),
+        prepararParaFormatacao(escape(titulo)),
+        prepararParaFormatacao(""),
+        prepararParaFormatacao(corpoHtml),
+        prepararParaFormatacao(escape(razaoSocial)),
+        prepararParaFormatacao(escape(cnpj)),
+        prepararParaFormatacao(escape(endereco)),
+        prepararParaFormatacao(escape(telefone)),
+        prepararParaFormatacao(escape(emissao)));
   }
 
   private static String montarLogoHtml(String logomarcaRelatorio) {
@@ -236,5 +245,12 @@ public final class RelatorioTemplatePadrao {
 
   private static String escape(String valor) {
     return valor == null ? "" : valor.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+  }
+
+  private static String prepararParaFormatacao(String valor) {
+    if (valor == null) {
+      return "";
+    }
+    return valor.replace("%", "%%");
   }
 }

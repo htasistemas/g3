@@ -39,12 +39,13 @@
       </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
+    <div class="grid gap-4 lg:grid-cols-5 md:grid-cols-2">
       <div class="stat-card stat-card--center" *ngFor="let card of [
           { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald', route: 'cadastros/beneficiarios' },
           { label: 'Profissionais cadastrados', value: cadastros.profissionais, icon: 'badge', hint: 'Equipe tecnica ativa no cadastro.', tone: 'stat-card--indigo', route: 'cadastros/profissionais' },
           { label: 'Voluntarios cadastrados', value: cadastros.voluntarios, icon: 'volunteer_activism', hint: 'Apoio voluntario cadastrado.', tone: 'stat-card--amber', route: 'cadastros/voluntariados' },
-          { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose', route: 'cadastros/vinculo-familiar' }
+          { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose', route: 'cadastros/vinculo-familiar' },
+          { label: 'Bens cadastrados', value: cadastros.bensPatrimonio, icon: 'inventory_2', hint: 'Itens registrados no patrimonio.', tone: 'stat-card--sky', route: 'administrativo/patrimonio' }
         ]" [ngClass]="card.tone">
         <div class="stat-card__icon">
           <button type="button" class="stat-card__icon-button" (click)="navegarPara(card.route)" [attr.aria-label]="card.label">

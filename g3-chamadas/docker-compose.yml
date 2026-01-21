@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: g3-chamadas-postgres
+    environment:
+      POSTGRES_DB: g3
+      POSTGRES_USER: g3
+      POSTGRES_PASSWORD: g3
+    ports:
+      - "5432:5432"
+    volumes:
+      - g3_chamadas_db:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: g3-chamadas-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/g3
+      SPRING_DATASOURCE_USERNAME: g3
+      SPRING_DATASOURCE_PASSWORD: g3
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:4201
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgres
+
+volumes:
+  g3_chamadas_db:

@@ -41,10 +41,10 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
         cadastroBeneficiarioService.buscarPorId(request.getBeneficiarioId());
 
     UnidadeAssistencialResponse unidade = unidadeService.obterAtual();
-    String corpoHtml = montarCorpo(beneficiario);
+    String corpoHtml = montarCorpo(beneficiario, unidade);
     String html =
         RelatorioTemplatePadrao.buildHtml(
-            "Ficha do Beneficiario",
+            "FICHA CADASTRAL DE BENEFICIARIO",
             corpoHtml,
             unidade,
             textoSeguro(request.getUsuarioEmissor()),
@@ -53,193 +53,89 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
     return HtmlPdfRenderer.render(html);
   }
 
-  private String montarCorpo(CadastroBeneficiarioResponse b) {
+  private String montarCorpo(CadastroBeneficiarioResponse b, UnidadeAssistencialResponse unidade) {
     StringBuilder sb = new StringBuilder();
+    sb.append("<section class=\"ficha-info\">");
+    sb.append("<table class=\"info-line\"><tr>");
+    sb.append("<td>")
+        .append("<span class=\"info-label\">Data do Cadastro:</span> ")
+        .append("<span class=\"info-value\">")
+        .append(escape(valorSeguro(formatarDataHoraOpcional(b.getDataCadastro()))))
+        .append("</span>")
+        .append("</td>");
+    sb.append("<td>")
+        .append("<span class=\"info-label\">Cartao Beneficio:</span> ")
+        .append("<span class=\"info-value info-value--highlight\">")
+        .append(escape(valorSeguro(b.getCodigo())))
+        .append("</span>")
+        .append("</td>");
+    sb.append("<td>")
+        .append("<span class=\"info-label\">Atualizado em:</span> ")
+        .append("<span class=\"info-value\">")
+        .append(escape(valorSeguro(formatarDataHoraOpcional(b.getDataAtualizacao()))))
+        .append("</span>")
+        .append("</td>");
+    sb.append("</tr></table>");
+    sb.append("</section>");
+
     sb.append("<section class=\"hero\">");
-    sb.append("<div class=\"hero__photo\">");
+    sb.append("<table class=\"hero-table\">");
+    sb.append("<tr>");
+    sb.append("<td class=\"hero-table__photo\">");
     if (isPreenchido(b.getFoto3x4())) {
       sb.append("<img src=\"").append(escape(b.getFoto3x4())).append("\" alt=\"Foto 3x4\" />");
-    } else {
-      sb.append("<span>Sem foto</span>");
     }
-    sb.append("</div>");
-    sb.append("<div class=\"hero__summary\">");
-    sb.append("<p class=\"hero__name\">").append(escape(valorOuNaoInformado(b.getNomeCompleto()))).append("</p>");
-    appendResumo(sb, "Codigo", b.getCodigo());
-    appendResumo(sb, "CPF", b.getCpf());
-    appendResumo(sb, "Nascimento", formatarData(b.getDataNascimento()));
-    sb.append("<span class=\"status-badge ")
-        .append(statusClasse(b.getStatus()))
-        .append("\">")
-        .append(escape(valorOuNaoInformado(b.getStatus())))
-        .append("</span>");
-    sb.append("</div>");
+    sb.append("</td>");
+    sb.append("<td class=\"hero-table__info\">");
+    sb.append("<table class=\"hero-table__header\"><tr>");
+    sb.append("<td class=\"hero-table__name\">");
+    if (isPreenchido(b.getNomeCompleto())) {
+      sb.append("<p class=\"hero__name\">").append(escape(b.getNomeCompleto())).append("</p>");
+    }
+    sb.append("</td>");
+    sb.append("<td class=\"hero-table__status\">");
+    if (isPreenchido(b.getStatus())) {
+      sb.append("<span class=\"status-badge ")
+          .append(statusClasse(b.getStatus()))
+          .append("\">")
+          .append(escape(b.getStatus()))
+          .append("</span>");
+    }
+    Integer idade = calcularIdade(b.getDataNascimento());
+    if (idade != null) {
+      sb.append("<p class=\"hero__age\">Idade: ")
+          .append(idade)
+          .append("</p>");
+    }
+    sb.append("</td>");
+    sb.append("</tr></table>");
+    appendResumoSePreenchido(sb, "CPF", b.getCpf());
+    appendResumoSePreenchido(sb, "Codigo", b.getCodigo());
+    appendResumoSePreenchido(sb, "Nascimento", formatarDataOpcional(b.getDataNascimento()));
+    sb.append("</td>");
+    sb.append("</tr>");
+    sb.append("</table>");
     sb.append("</section>");
 
-    sb.append("<section class=\"cards cards--two\">");
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--pessoais\"><p class=\"card__title\">Dados pessoais</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Codigo", b.getCodigo());
-    appendCampo(sb, "Nome completo", b.getNomeCompleto());
-    appendCampo(sb, "Nome social", b.getNomeSocial());
-    appendCampo(sb, "Apelido", b.getApelido());
-    appendCampo(sb, "Data de nascimento", formatarData(b.getDataNascimento()));
-    appendCampo(sb, "Sexo biologico", b.getSexoBiologico());
-    appendCampo(sb, "Identidade de genero", b.getIdentidadeGenero());
-    appendCampo(sb, "Cor raca", b.getCorRaca());
-    appendCampo(sb, "Estado civil", b.getEstadoCivil());
-    appendCampo(sb, "Nacionalidade", b.getNacionalidade());
-    appendCampo(sb, "Naturalidade", juntar(b.getNaturalidadeCidade(), b.getNaturalidadeUf()));
-    appendCampo(sb, "Nome da mae", b.getNomeMae());
-    appendCampo(sb, "Nome do pai", b.getNomePai());
-    appendCampo(sb, "Status", b.getStatus());
-    appendCampo(sb, "Opta receber cesta basica", formatarBoolean(b.getOptaReceberCestaBasica()));
-    appendCampo(sb, "Apto receber cesta basica", formatarBoolean(b.getAptoReceberCestaBasica()));
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--endereco\"><p class=\"card__title\">Endereco</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "CEP", b.getCep());
-    appendCampo(sb, "Logradouro", b.getLogradouro());
-    appendCampo(sb, "Numero", b.getNumero());
-    appendCampo(sb, "Complemento", b.getComplemento());
-    appendCampo(sb, "Bairro", b.getBairro());
-    appendCampo(sb, "Ponto de referencia", b.getPontoReferencia());
-    appendCampo(sb, "Municipio", b.getMunicipio());
-    appendCampo(sb, "UF", b.getUf());
-    appendCampo(sb, "Zona", b.getZona());
-    appendCampo(sb, "Subzona", b.getSubzona());
-    appendCampo(sb, "Latitude", b.getLatitude());
-    appendCampo(sb, "Longitude", b.getLongitude());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--contatos\"><p class=\"card__title\">Contatos</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Telefone principal", b.getTelefonePrincipal());
-    appendCampo(sb, "Telefone principal whatsapp", formatarBoolean(b.getTelefonePrincipalWhatsapp()));
-    appendCampo(sb, "Telefone secundario", b.getTelefoneSecundario());
-    appendCampo(sb, "Telefone recado nome", b.getTelefoneRecadoNome());
-    appendCampo(sb, "Telefone recado numero", b.getTelefoneRecadoNumero());
-    appendCampo(sb, "Email", b.getEmail());
-    appendCampo(sb, "Permite contato telefone", formatarBoolean(b.getPermiteContatoTel()));
-    appendCampo(sb, "Permite contato whatsapp", formatarBoolean(b.getPermiteContatoWhatsapp()));
-    appendCampo(sb, "Permite contato sms", formatarBoolean(b.getPermiteContatoSms()));
-    appendCampo(sb, "Permite contato email", formatarBoolean(b.getPermiteContatoEmail()));
-    appendCampo(sb, "Horario preferencial", b.getHorarioPreferencialContato());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--documentos\"><p class=\"card__title\">Documentos</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "CPF", b.getCpf());
-    appendCampo(sb, "RG numero", b.getRgNumero());
-    appendCampo(sb, "RG orgao emissor", b.getRgOrgaoEmissor());
-    appendCampo(sb, "RG UF", b.getRgUf());
-    appendCampo(sb, "RG data emissao", formatarData(b.getRgDataEmissao()));
-    appendCampo(sb, "NIS", b.getNis());
-    appendCampo(sb, "Certidao tipo", b.getCertidaoTipo());
-    appendCampo(sb, "Certidao livro", b.getCertidaoLivro());
-    appendCampo(sb, "Certidao folha", b.getCertidaoFolha());
-    appendCampo(sb, "Certidao termo", b.getCertidaoTermo());
-    appendCampo(sb, "Certidao cartorio", b.getCertidaoCartorio());
-    appendCampo(sb, "Certidao municipio", b.getCertidaoMunicipio());
-    appendCampo(sb, "Certidao UF", b.getCertidaoUf());
-    appendCampo(sb, "Titulo de eleitor", b.getTituloEleitor());
-    appendCampo(sb, "CNH", b.getCnh());
-    appendCampo(sb, "Cartao SUS", b.getCartaoSus());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--familia\"><p class=\"card__title\">Situacao familiar e social</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Mora com familia", formatarBoolean(b.getMoraComFamilia()));
-    appendCampo(sb, "Responsavel legal", formatarBoolean(b.getResponsavelLegal()));
-    appendCampo(sb, "Vinculo familiar", b.getVinculoFamiliar());
-    appendCampo(sb, "Situacao de vulnerabilidade", b.getSituacaoVulnerabilidade());
-    appendCampo(sb, "Composicao familiar", b.getComposicaoFamiliar());
-    appendCampo(sb, "Criancas e adolescentes", formatarNumero(b.getCriancasAdolescentes()));
-    appendCampo(sb, "Idosos", formatarNumero(b.getIdosos()));
-    appendCampo(sb, "Acompanhamento CRAS", formatarBoolean(b.getAcompanhamentoCras()));
-    appendCampo(sb, "Acompanhamento saude", formatarBoolean(b.getAcompanhamentoSaude()));
-    appendCampo(sb, "Participa comunidade", b.getParticipaComunidade());
-    appendCampo(sb, "Rede de apoio", b.getRedeApoio());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--educacao\"><p class=\"card__title\">Educacao e trabalho</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Sabe ler e escrever", formatarBoolean(b.getSabeLerEscrever()));
-    appendCampo(sb, "Nivel escolaridade", b.getNivelEscolaridade());
-    appendCampo(sb, "Estuda atualmente", formatarBoolean(b.getEstudaAtualmente()));
-    appendCampo(sb, "Ocupacao", b.getOcupacao());
-    appendCampo(sb, "Situacao trabalho", b.getSituacaoTrabalho());
-    appendCampo(sb, "Local trabalho", b.getLocalTrabalho());
-    appendCampo(sb, "Renda mensal", b.getRendaMensal());
-    appendCampo(sb, "Fonte renda", b.getFonteRenda());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--saude\"><p class=\"card__title\">Saude</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Possui deficiencia", formatarBoolean(b.getPossuiDeficiencia()));
-    appendCampo(sb, "Tipo deficiencia", b.getTipoDeficiencia());
-    appendCampo(sb, "CID principal", b.getCidPrincipal());
-    appendCampo(sb, "Usa medicacao continua", formatarBoolean(b.getUsaMedicacaoContinua()));
-    appendCampo(sb, "Descricao medicacao", b.getDescricaoMedicacao());
-    appendCampo(sb, "Servico saude referencia", b.getServicoSaudeReferencia());
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--beneficios\"><p class=\"card__title\">Beneficios</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Recebe beneficio", formatarBoolean(b.getRecebeBeneficio()));
-    appendCampo(sb, "Descricao beneficios", b.getBeneficiosDescricao());
-    appendCampo(sb, "Valor total beneficios", b.getValorTotalBeneficios());
-    appendCampo(sb, "Beneficios recebidos", formatarLista(b.getBeneficiosRecebidos()));
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--lgpd\"><p class=\"card__title\">LGPD</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__grid\">");
-    appendCampo(sb, "Aceite LGPD", formatarBoolean(b.getAceiteLgpd()));
-    appendCampo(sb, "Data aceite LGPD", formatarData(b.getDataAceiteLgpd()));
-    sb.append("</div></div></div>");
-
-    sb.append("<div class=\"card\">");
-    sb.append("<div class=\"card__header card__header--observacoes\"><p class=\"card__title\">Observacoes</p></div>");
-    sb.append("<div class=\"card__body\"><div class=\"card__note\">")
-        .append(escape(valorOuNaoInformado(b.getObservacoes())))
-        .append("</div></div>");
-    sb.append("</div>");
-    sb.append("</section>");
-
-    sb.append("<section class=\"signature\">");
-    sb.append("<div class=\"signature__line\">Responsavel</div>");
-    sb.append("<div class=\"signature__line\">Beneficiario</div>");
-    sb.append("</section>");
-
+    String cardIdentificacao = montarCardIdentificacao(b);
+    if (!cardIdentificacao.isEmpty()) {
+      sb.append(cardIdentificacao);
+    }
+    String cardInformacoes = montarCardInformacoesPessoais(b);
+    if (!cardInformacoes.isEmpty()) {
+      sb.append(cardInformacoes);
+    }
     return sb.toString();
   }
 
-  private void appendCampo(StringBuilder sb, String rotulo, String valor) {
-    sb.append("<div class=\"card__field\">")
-        .append("<p class=\"card__label\">")
-        .append(escape(rotulo))
-        .append("</p>")
-        .append("<p class=\"card__value\">")
-        .append(escape(valorOuNaoInformado(valor)))
-        .append("</p>")
-        .append("</div>");
-  }
-
-  private void appendResumo(StringBuilder sb, String rotulo, String valor) {
+  private void appendResumoSePreenchido(StringBuilder sb, String rotulo, String valor) {
+    if (!isPreenchido(valor)) {
+      return;
+    }
     sb.append("<p class=\"hero__meta\"><strong>")
         .append(escape(rotulo))
         .append(":</strong> ")
-        .append(escape(valorOuNaoInformado(valor)))
+        .append(escape(valor.trim()))
         .append("</p>");
   }
 
@@ -262,88 +158,64 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
     }
   }
 
-  private void appendLinha(StringBuilder sb, String rotulo, String valor) {
-    sb.append("<tr><th>")
-        .append(escape(rotulo))
-        .append("</th><td>")
-        .append(escape(valorOuNaoInformado(valor)))
-        .append("</td></tr>");
-  }
-
-  private void appendLinhaSePreenchido(StringBuilder sb, String rotulo, String valor) {
-    if (!isPreenchido(valor)) {
-      return;
-    }
-    sb.append("<tr><th>")
-        .append(escape(rotulo))
-        .append("</th><td>")
-        .append(escape(valor.trim()))
-        .append("</td></tr>");
-  }
-
-  private void appendObservacoes(StringBuilder sb, String observacoes) {
-    if (!isPreenchido(observacoes)) {
-      return;
-    }
-    sb.append("<div>").append(escape(observacoes.trim())).append("</div>");
-  }
-
   private boolean isPreenchido(String valor) {
     return valor != null && !valor.trim().isEmpty() && !"Nao informado".equals(valor);
   }
 
-  private String valorOuNaoInformado(String valor) {
-    if (valor == null || valor.trim().isEmpty()) {
-      return "Nao informado";
-    }
-    return valor.trim();
-  }
-
-  private String formatarData(LocalDate data) {
+  private String formatarDataOpcional(LocalDate data) {
     if (data == null) {
-      return "Nao informado";
+      return null;
     }
     return DATA_FORMATTER.format(data);
   }
 
-  private String formatarBoolean(Boolean valor) {
+  private String formatarBooleanOpcional(Boolean valor) {
     if (valor == null) {
-      return "Nao informado";
+      return null;
     }
     return valor ? "Sim" : "Nao";
   }
 
-  private String formatarNumero(Integer valor) {
+  private String formatarNumeroOpcional(Integer valor) {
     if (valor == null) {
-      return "Nao informado";
+      return null;
     }
     return String.valueOf(valor);
   }
 
-  private String formatarLista(List<String> valores) {
+  private String formatarListaOpcional(List<String> valores) {
     if (valores == null || valores.isEmpty()) {
-      return "Nao informado";
+      return null;
     }
-    return valores.stream()
+    String resultado =
+        valores.stream()
         .filter(Objects::nonNull)
         .map(String::trim)
         .filter((item) -> !item.isEmpty())
         .collect(Collectors.joining(", "));
+    return resultado.isEmpty() ? null : resultado;
   }
 
-  private String juntar(String valor1, String valor2) {
-    String v1 = valorOuNaoInformado(valor1);
-    String v2 = valorOuNaoInformado(valor2);
-    if ("Nao informado".equals(v1) && "Nao informado".equals(v2)) {
-      return "Nao informado";
+  private String juntarOpcional(String valor1, String valor2) {
+    String v1 = textoOpcional(valor1);
+    String v2 = textoOpcional(valor2);
+    if (v1 == null && v2 == null) {
+      return null;
     }
-    if ("Nao informado".equals(v1)) {
+    if (v1 == null) {
       return v2;
     }
-    if ("Nao informado".equals(v2)) {
+    if (v2 == null) {
       return v1;
     }
     return v1 + " - " + v2;
+  }
+
+  private String textoOpcional(String valor) {
+    if (valor == null || valor.trim().isEmpty()) {
+      return null;
+    }
+    return valor.trim();
   }
 
   private String escape(String valor) {
@@ -358,5 +230,245 @@ public class BeneficiarioFichaServiceImpl implements BeneficiarioFichaService {
       return "Sistema";
     }
     return valor.trim();
+  }
+
+  private String formatarDataHoraOpcional(LocalDateTime dataHora) {
+    if (dataHora == null) {
+      return null;
+    }
+    return DATA_FORMATTER.format(dataHora.toLocalDate());
+  }
+
+  private String formatarCpf(String cpf) {
+    if (cpf == null) {
+      return null;
+    }
+    String numeros = cpf.replaceAll("\\D", "");
+    if (numeros.length() != 11) {
+      return cpf.trim();
+    }
+    return numeros.substring(0, 3)
+        + "."
+        + numeros.substring(3, 6)
+        + "."
+        + numeros.substring(6, 9)
+        + "-"
+        + numeros.substring(9);
+  }
+
+  private Integer calcularIdade(LocalDate dataNascimento) {
+    if (dataNascimento == null) {
+      return null;
+    }
+    LocalDate hoje = LocalDate.now();
+    if (dataNascimento.isAfter(hoje)) {
+      return null;
+    }
+    int idade = hoje.getYear() - dataNascimento.getYear();
+    if (hoje.getDayOfYear() < dataNascimento.getDayOfYear()) {
+      idade -= 1;
+    }
+    return idade;
+  }
+
+  private String valorSeguro(String valor) {
+    return valor == null ? "" : valor.trim();
+  }
+
+  private String montarCardIdentificacao(CadastroBeneficiarioResponse b) {
+    StringBuilder sb = new StringBuilder();
+    StringBuilder linhas = new StringBuilder();
+    int total = 0;
+    sb.append("<section class=\"section\">")
+        .append("<div class=\"card\">")
+        .append("<div class=\"card__header\">")
+        .append("<p class=\"card__title\">DADOS DE IDENTIFICACAO</p>")
+        .append("</div>")
+        .append("<div class=\"card__body\">")
+        .append("<table class=\"ficha-grid\">");
+
+    total += appendLinhaDuplaSePreenchido(linhas, "Beneficiario", b.getNomeCompleto(), null, null, true);
+    total += appendLinhaDuplaSePreenchido(
+        linhas,
+        "Data Nascimento",
+        formatarDataOpcional(b.getDataNascimento()),
+        "Mae / Resp",
+        b.getNomeMae(),
+        false);
+    total += appendLinhaDuplaSePreenchido(linhas, "Sexo", b.getSexoBiologico(), "Endereco", b.getLogradouro(), false);
+    total += appendLinhaDuplaSePreenchido(linhas, "Numero", b.getNumero(), "Bairro", b.getBairro(), false);
+    total += appendLinhaDuplaSePreenchido(linhas, "Complemento", b.getComplemento(), null, null, true);
+    total += appendLinhaDuplaSePreenchido(linhas, "Cidade", b.getMunicipio(), "Estado", b.getUf(), false);
+    total += appendLinhaDuplaSePreenchido(
+        linhas,
+        "Natural de",
+        juntarOpcional(b.getNaturalidadeCidade(), b.getNaturalidadeUf()),
+        null,
+        null,
+        true);
+    total += appendLinhaDuplaSePreenchido(linhas, "CEP", b.getCep(), "Telefone", b.getTelefonePrincipal(), false);
+
+    if (total == 0) {
+      return "";
+    }
+    sb.append(linhas);
+
+    sb.append("</table>")
+        .append("</div>")
+        .append("</div>")
+        .append("</section>");
+    return sb.toString();
+  }
+
+  private String montarCardInformacoesPessoais(CadastroBeneficiarioResponse b) {
+    StringBuilder sb = new StringBuilder();
+    StringBuilder linhas = new StringBuilder();
+    int total = 0;
+    sb.append("<section class=\"section\">")
+        .append("<div class=\"card\">")
+        .append("<div class=\"card__header\">")
+        .append("<p class=\"card__title\">INFORMACOES PESSOAIS</p>")
+        .append("</div>")
+        .append("<div class=\"card__body\">")
+        .append("<table class=\"ficha-grid\">");
+
+    total += appendLinhaDuplaSePreenchido(
+        linhas,
+        "CPF",
+        formatarCpf(b.getCpf()),
+        "Raca/Cor",
+        b.getCorRaca(),
+        false);
+    total += appendLinhaDuplaSePreenchido(
+        linhas,
+        "Identidade",
+        b.getRgNumero(),
+        "Frequenda Escola",
+        formatarBooleanOpcional(b.getEstudaAtualmente()),
+        false);
+    total += appendLinhaDuplaSePreenchido(
+        linhas,
+        "Sit. Familiar",
+        b.getComposicaoFamiliar(),
+        "Pais de Origem",
+        b.getNacionalidade(),
+        false);
+    total += appendLinhaDuplaSePreenchido(linhas, "Profissao", b.getOcupacao(), "Escolaridade", b.getNivelEscolaridade(), false);
+    total += appendLinhaTextareaSePreenchido(linhas, "Observacao", b.getObservacoes());
+
+    if (total == 0) {
+      return "";
+    }
+    sb.append(linhas);
+
+    sb.append("</table>")
+        .append("</div>")
+        .append("</div>")
+        .append("</section>");
+    return sb.toString();
+  }
+
+  private void appendLinhaDupla(
+      StringBuilder sb,
+      String rotulo1,
+      String valor1,
+      String rotulo2,
+      String valor2,
+      boolean linhaInteira) {
+    sb.append("<tr>");
+    if (linhaInteira) {
+      sb.append("<td class=\"ficha-campo\" colspan=\"2\">")
+          .append("<div class=\"field__line\">")
+          .append("<span class=\"field__label-inline\">")
+          .append(escape(rotulo1))
+          .append(":</span> ")
+          .append("<span class=\"field__value-inline\">")
+          .append(escape(valorSeguro(valor1)))
+          .append("</span>")
+          .append("</div>")
+          .append("</td>")
+          .append("</tr>");
+      return;
+    }
+    sb.append("<td class=\"ficha-campo\">")
+        .append("<div class=\"field__line\">")
+        .append("<span class=\"field__label-inline\">")
+        .append(escape(rotulo1))
+        .append(":</span> ")
+        .append("<span class=\"field__value-inline")
+        .append("CPF".equals(rotulo1) ? " field__value-inline--cpf" : "")
+        .append("\">")
+        .append(escape(valorSeguro(valor1)))
+        .append("</span>")
+        .append("</div>")
+        .append("</td>");
+    sb.append("<td class=\"ficha-campo\">")
+        .append("<div class=\"field__line\">")
+        .append("<span class=\"field__label-inline\">")
+        .append(escape(rotulo2 == null ? "" : rotulo2))
+        .append(rotulo2 == null ? "" : ":")
+        .append("</span> ")
+        .append("<span class=\"field__value-inline")
+        .append("CPF".equals(rotulo2) ? " field__value-inline--cpf" : "")
+        .append("\">")
+        .append(escape(valorSeguro(valor2)))
+        .append("</span>")
+        .append("</div>")
+        .append("</td>");
+    sb.append("</tr>");
+  }
+
+  private void appendLinhaTextarea(StringBuilder sb, String rotulo, String valor) {
+    sb.append("<tr>");
+    sb.append("<td class=\"ficha-campo\" colspan=\"2\">")
+        .append("<div class=\"field__line field__line--textarea\">")
+        .append("<span class=\"field__label-inline\">")
+        .append(escape(rotulo))
+        .append(":</span> ")
+        .append("<span class=\"field__value-inline\">")
+        .append(escape(valorSeguro(valor)))
+        .append("</span>")
+        .append("</div>")
+        .append("</td>");
+    sb.append("</tr>");
+  }
+
+  private int appendLinhaDuplaSePreenchido(
+      StringBuilder sb,
+      String rotulo1,
+      String valor1,
+      String rotulo2,
+      String valor2,
+      boolean linhaInteira) {
+    String v1 = textoOpcional(valor1);
+    String v2 = textoOpcional(valor2);
+    if (linhaInteira) {
+      if (v1 == null) {
+        return 0;
+      }
+      appendLinhaDupla(sb, rotulo1, v1, null, null, true);
+      return 1;
+    }
+    if (v1 == null && v2 == null) {
+      return 0;
+    }
+    if (v1 == null) {
+      appendLinhaDupla(sb, rotulo2, v2, null, null, true);
+      return 1;
+    }
+    if (v2 == null) {
+      appendLinhaDupla(sb, rotulo1, v1, null, null, true);
+      return 1;
+    }
+    appendLinhaDupla(sb, rotulo1, v1, rotulo2, v2, false);
+    return 1;
+  }
+
+  private int appendLinhaTextareaSePreenchido(StringBuilder sb, String rotulo, String valor) {
+    if (!isPreenchido(valor)) {
+      return 0;
+    }
+    appendLinhaTextarea(sb, rotulo, valor);
+    return 1;
   }
 }

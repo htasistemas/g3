@@ -145,6 +145,12 @@ public class DashboardAssistenciaRepositoryImpl implements DashboardAssistenciaR
   }
 
   @Override
+  public long contarBensPatrimonio() {
+    Long total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM patrimonio_item", Long.class);
+    return total != null ? total : 0L;
+  }
+
+  @Override
   public double somarValoresAReceber() {
     String sql =
         "SELECT COALESCE(SUM(valor), 0) FROM lancamento_financeiro " +

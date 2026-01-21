@@ -30,6 +30,7 @@ export interface DashboardAtendimento {
   novosBeneficiarios: number;
   reincidentes: number;
   faixaEtaria: Record<string, number>;
+  idades: Record<string, number>;
   vulnerabilidades: Record<string, number>;
 }
 
@@ -53,6 +54,7 @@ export interface DashboardCadastros {
   profissionais: number;
   voluntarios: number;
   familias: number;
+  bensPatrimonio: number;
 }
 
 export interface DashboardAssistenciaResponse {

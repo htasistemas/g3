@@ -50,7 +50,8 @@ export interface PatrimonioPayload {
 
 @Injectable({ providedIn: 'root' })
 export class PatrimonioService {
-  private readonly baseUrl = `${environment.apiUrl}/api/patrimonios`;
+  private readonly apiBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+  private readonly baseUrl = `${this.apiBaseUrl}/api/patrimonios`;
 
   constructor(private readonly http: HttpClient) {}
 

@@ -138,6 +138,10 @@ export class BeneficiarioApiService {
       normalized[snakeKey] = value;
     });
 
+    if (!normalized.codigo && normalized.codigo_beneficiario) {
+      normalized.codigo = normalized.codigo_beneficiario;
+    }
+
     return normalized as BeneficiarioApiPayload;
   }
 

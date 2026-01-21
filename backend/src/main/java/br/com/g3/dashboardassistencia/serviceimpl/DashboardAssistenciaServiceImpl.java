@@ -35,6 +35,7 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
     long totalProfissionais = repository.contarProfissionais();
     long totalVoluntarios = repository.contarVoluntarios();
     long totalFamiliasCadastradas = repository.contarFamilias();
+    long totalBensPatrimonio = repository.contarBensPatrimonio();
     long beneficiariosPeriodo = repository.contarBeneficiariosPeriodo(inicio, fim);
     Map<String, Long> porStatus = repository.contarBeneficiariosPorStatus();
 
@@ -49,7 +50,9 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
         ? 0.0
         : ((double) completos / totalBeneficiarios) * 100.0;
 
-    Map<String, Long> faixaEtaria = calcularFaixaEtaria(repository.listarDatasNascimento());
+    List<LocalDate> datasNascimento = repository.listarDatasNascimento();
+    Map<String, Long> faixaEtaria = calcularFaixaEtaria(datasNascimento);
+    Map<String, Long> idades = calcularIdades(datasNascimento);
     Map<String, Long> vulnerabilidades = repository.contarVulnerabilidades();
 
     DashboardAtendimentoResponse atendimento =
@@ -65,6 +68,7 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
             beneficiariosPeriodo,
             0L,
             faixaEtaria,
+            idades,
             vulnerabilidades);
 
     long totalFamilias = repository.contarSituacaoSocialTotal();
@@ -118,7 +122,11 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
 
     DashboardCadastrosResponse cadastros =
         new DashboardCadastrosResponse(
-            totalBeneficiarios, totalProfissionais, totalVoluntarios, totalFamiliasCadastradas);
+            totalBeneficiarios,
+            totalProfissionais,
+            totalVoluntarios,
+            totalFamiliasCadastradas,
+            totalBensPatrimonio);
 
     return new DashboardAssistenciaResponse(filtros, cadastros, top12, atendimento, familias, termos, financeiro);
   }
@@ -148,6 +156,32 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
     }
 
     return faixas;
+  }
+
+  private Map<String, Long> calcularIdades(List<LocalDate> datasNascimento) {
+    Map<Integer, Long> idadesContador = new LinkedHashMap<>();
+    LocalDate hoje = LocalDate.now();
+
+    for (LocalDate nascimento : datasNascimento) {
+      if (nascimento == null) {
+        continue;
+      }
+      int idade = Period.between(nascimento, hoje).getYears();
+      if (idade < 0) {
+        continue;
+      }
+      idadesContador.merge(idade, 1L, Long::sum);
+    }
+
+    if (idadesContador.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, Long> idadesOrdenadas = new LinkedHashMap<>();
+    idadesContador.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(entry -> idadesOrdenadas.put(String.valueOf(entry.getKey()), entry.getValue()));
+    return idadesOrdenadas;
   }
 
   private List<BigDecimal> parseRendas(List<String> rendas) {

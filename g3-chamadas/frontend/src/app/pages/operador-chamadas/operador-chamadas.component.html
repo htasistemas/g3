@@ -1,0 +1,66 @@
+<div class="operador">
+  <header class="operador__header">
+    <div>
+      <p class="operador__eyebrow">ATENDIMENTO</p>
+      <h1>Painel do Operador</h1>
+      <p class="muted">Fila de beneficiarios aguardando chamada.</p>
+    </div>
+    <button type="button" class="btn" (click)="carregarFila()">Atualizar</button>
+  </header>
+
+  <div class="operador__acoes">
+    <label>
+      Local de atendimento
+      <input type="text" [(ngModel)]="localAtendimento" placeholder="Guiche 02" />
+    </label>
+  </div>
+
+  <div class="operador__entrada">
+    <label>
+      Beneficiario
+      <select [(ngModel)]="beneficiarioSelecionadoId" [disabled]="carregandoBeneficiarios || beneficiarios.length === 0">
+        <option [ngValue]="null">Selecione um beneficiario</option>
+        <option *ngFor="let beneficiario of beneficiarios" [ngValue]="beneficiario.idBeneficiario">
+          {{ beneficiario.nomeBeneficiario }}
+        </option>
+      </select>
+      <span class="muted small" *ngIf="!carregandoBeneficiarios && beneficiarios.length === 0">
+        Nenhum beneficiario disponivel. Cadastre beneficiarios no banco.
+      </span>
+    </label>
+    <label>
+      Prioridade
+      <input type="number" [(ngModel)]="prioridadeEntrada" min="0" />
+    </label>
+    <button type="button" class="btn btn--primary" (click)="entrarFila()">Inserir na fila</button>
+    <button type="button" class="btn" (click)="carregarBeneficiarios()">Recarregar beneficiarios</button>
+  </div>
+
+  <p class="mensagem" *ngIf="mensagem">{{ mensagem }}</p>
+
+  <div class="tabela">
+    <table>
+      <thead>
+        <tr>
+          <th>Beneficiario</th>
+          <th>Prioridade</th>
+          <th>Entrada</th>
+          <th>Acoes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of filaAguardando">
+          <td>{{ item.nomeBeneficiario }}</td>
+          <td>{{ item.prioridade }}</td>
+          <td>{{ item.dataHoraEntrada | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <button type="button" class="btn btn--primary" (click)="chamar(item)">Chamar</button>
+          </td>
+        </tr>
+        <tr *ngIf="!carregando && filaAguardando.length === 0">
+          <td colspan="4" class="vazio">Nenhum beneficiario aguardando.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

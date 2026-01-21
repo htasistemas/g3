@@ -14,6 +14,7 @@ public class DashboardAtendimentoResponse {
   private final long novosBeneficiarios;
   private final long reincidentes;
   private final Map<String, Long> faixaEtaria;
+  private final Map<String, Long> idades;
   private final Map<String, Long> vulnerabilidades;
 
   public DashboardAtendimentoResponse(
@@ -28,6 +29,7 @@ public class DashboardAtendimentoResponse {
       long novosBeneficiarios,
       long reincidentes,
       Map<String, Long> faixaEtaria,
+      Map<String, Long> idades,
       Map<String, Long> vulnerabilidades) {
     this.totalBeneficiarios = totalBeneficiarios;
     this.ativos = ativos;
@@ -40,6 +42,7 @@ public class DashboardAtendimentoResponse {
     this.novosBeneficiarios = novosBeneficiarios;
     this.reincidentes = reincidentes;
     this.faixaEtaria = faixaEtaria;
+    this.idades = idades;
     this.vulnerabilidades = vulnerabilidades;
   }
 
@@ -85,6 +88,10 @@ public class DashboardAtendimentoResponse {
 
   public Map<String, Long> getFaixaEtaria() {
     return faixaEtaria;
+  }
+
+  public Map<String, Long> getIdades() {
+    return idades;
   }
 
   public Map<String, Long> getVulnerabilidades() {

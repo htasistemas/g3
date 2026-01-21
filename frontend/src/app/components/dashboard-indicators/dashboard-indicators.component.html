@@ -77,6 +77,36 @@
       </div>
     </div>
 
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6" *ngIf="atendimento as dadosAtendimento">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-semibold text-slate-900">Faixa etaria por idade</h3>
+          <p class="text-sm text-slate-500">Distribuicao de beneficiarios por idade registrada.</p>
+        </div>
+        <div class="text-right text-sm text-slate-600">
+          <p>Total: {{ obterTotalIdades(dadosAtendimento) }}</p>
+        </div>
+      </div>
+      <ng-container *ngIf="obterIdadesOrdenadas(dadosAtendimento) as idadesLista">
+        <div class="mt-4 space-y-2" *ngIf="idadesLista.length; else semIdades">
+          <div class="flex items-center gap-3" *ngFor="let item of idadesLista">
+            <div class="w-16 text-sm font-semibold text-slate-700">{{ item.idade }} anos</div>
+            <div class="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                class="h-full rounded-full bg-emerald-500"
+                [style.width.%]="obterLarguraBarra(item.quantidade, obterMaiorQuantidade(dadosAtendimento))"
+              ></div>
+            </div>
+            <div class="w-20 text-right text-sm font-semibold text-slate-800">{{ item.quantidade }}</div>
+            <div class="w-14 text-right text-xs text-slate-500">{{ obterPercentual(item.quantidade, obterTotalIdades(dadosAtendimento)) }}%</div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #semIdades>
+        <p class="text-sm text-slate-500 mt-3">Sem dados de idade para exibir.</p>
+      </ng-template>
+    </div>
+
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6" *ngIf="familias as grupoDetalhes">
       <div class="grid gap-4 lg:grid-cols-2">
         <div>

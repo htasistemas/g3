@@ -385,6 +385,153 @@ WHERE id = 1
   AND versao <> '1.1.17';
 
 UPDATE versao_sistema
+SET versao = '1.1.18',
+    descricao = 'Importacao da lista de beneficiarios a partir do relatorio em PDF.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.18';
+
+UPDATE versao_sistema
+SET versao = '1.1.19',
+    descricao = 'Exibicao do codigo do beneficiario na listagem.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.19';
+
+UPDATE versao_sistema
+SET versao = '1.1.20',
+    descricao = 'Dashboard de assistencia com card de bens cadastrados no patrimonio.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.20';
+
+UPDATE versao_sistema
+SET versao = '1.1.21',
+    descricao = 'Correcao da listagem de bens no controle patrimonial.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.21';
+
+UPDATE versao_sistema
+SET versao = '1.1.22',
+    descricao = 'Correcao da geracao de ficha individual de beneficiario.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.22';
+
+UPDATE versao_sistema
+SET versao = '1.1.23',
+    descricao = 'Ajuste de template de relatorio para evitar erro de formatacao.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.23';
+
+UPDATE versao_sistema
+SET versao = '1.1.24',
+    descricao = 'Ajustes na ficha do beneficiario com campos preenchidos e layout paginado.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.24';
+
+UPDATE versao_sistema
+SET versao = '1.1.25',
+    descricao = 'Indicadores da assistencia exibindo contagem por idade.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.25';
+
+UPDATE versao_sistema
+SET versao = '1.1.26',
+    descricao = 'Ajustes visuais na ficha do beneficiario com cards e cabecalho.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.26';
+
+UPDATE versao_sistema
+SET versao = '1.1.27',
+    descricao = 'Indicadores com visualizacao didatica da faixa etaria por idade.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.27';
+
+UPDATE versao_sistema
+SET versao = '1.1.28',
+    descricao = 'Ficha cadastral do beneficiario ajustada para o modelo do PDF.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.28';
+
+UPDATE versao_sistema
+SET versao = '1.1.29',
+    descricao = 'Ajustes de cabecalho e layout na ficha cadastral do beneficiario.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.29';
+
+UPDATE versao_sistema
+SET versao = '1.1.30',
+    descricao = 'Ficha cadastral com campos condicionais e termo simplificado.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.30';
+
+UPDATE versao_sistema
+SET versao = '1.1.31',
+    descricao = 'Cabecalho da ficha com razao social alinhada a logomarca.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.31';
+
+UPDATE versao_sistema
+SET versao = '1.1.32',
+    descricao = 'Ficha cadastral com idade e ajustes de cabecalho.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.32';
+
+UPDATE versao_sistema
+SET versao = '1.1.33',
+    descricao = 'Ficha cadastral com ajustes no cabecalho e CPF formatado.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.33';
+
+UPDATE versao_sistema
+SET versao = '1.1.34',
+    descricao = 'Razao social centralizada no cabecalho da ficha cadastral.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.34';
+
+UPDATE versao_sistema
+SET versao = '1.1.35',
+    descricao = 'Ficha cadastral com campos em negrito e ajustes finais.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.35';
+
+UPDATE versao_sistema
+SET versao = '1.1.36',
+    descricao = 'Ficha cadastral com espacamento reduzido nos campos.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.36';
+
+UPDATE versao_sistema
+SET versao = '1.1.37',
+    descricao = 'Termo de consentimento sem tabela apos assinaturas.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.37';
+
+UPDATE versao_sistema
+SET versao = '1.1.38',
+    descricao = 'Termo de consentimento sem titulo de modelo.',
+    atualizado_em = NOW()
+WHERE id = 1
+  AND versao <> '1.1.38';
+
+UPDATE versao_sistema
 SET versao = '1.0.0'
 WHERE id = 1
   AND versao = '1.00.0';
@@ -449,6 +596,195 @@ WHERE NOT EXISTS (
   FROM historico_versao_sistema
   WHERE versao = '1.1.17'
     AND descricao = 'Upload e visualizacao de anexos de documentos institucionais com armazenamento local.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.18', 'Importacao da lista de beneficiarios a partir do relatorio em PDF.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.18'
+    AND descricao = 'Importacao da lista de beneficiarios a partir do relatorio em PDF.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.19', 'Exibicao do codigo do beneficiario na listagem.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.19'
+    AND descricao = 'Exibicao do codigo do beneficiario na listagem.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.20', 'Dashboard de assistencia com card de bens cadastrados no patrimonio.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.20'
+    AND descricao = 'Dashboard de assistencia com card de bens cadastrados no patrimonio.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.21', 'Correcao da listagem de bens no controle patrimonial.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.21'
+    AND descricao = 'Correcao da listagem de bens no controle patrimonial.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.22', 'Correcao da geracao de ficha individual de beneficiario.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.22'
+    AND descricao = 'Correcao da geracao de ficha individual de beneficiario.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.23', 'Ajuste de template de relatorio para evitar erro de formatacao.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.23'
+    AND descricao = 'Ajuste de template de relatorio para evitar erro de formatacao.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.24', 'Ajustes na ficha do beneficiario com campos preenchidos e layout paginado.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.24'
+    AND descricao = 'Ajustes na ficha do beneficiario com campos preenchidos e layout paginado.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.25', 'Indicadores da assistencia exibindo contagem por idade.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.25'
+    AND descricao = 'Indicadores da assistencia exibindo contagem por idade.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.26', 'Ajustes visuais na ficha do beneficiario com cards e cabecalho.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.26'
+    AND descricao = 'Ajustes visuais na ficha do beneficiario com cards e cabecalho.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.27', 'Indicadores com visualizacao didatica da faixa etaria por idade.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.27'
+    AND descricao = 'Indicadores com visualizacao didatica da faixa etaria por idade.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.28', 'Ficha cadastral do beneficiario ajustada para o modelo do PDF.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.28'
+    AND descricao = 'Ficha cadastral do beneficiario ajustada para o modelo do PDF.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.29', 'Ajustes de cabecalho e layout na ficha cadastral do beneficiario.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.29'
+    AND descricao = 'Ajustes de cabecalho e layout na ficha cadastral do beneficiario.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.30', 'Ficha cadastral com campos condicionais e termo simplificado.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.30'
+    AND descricao = 'Ficha cadastral com campos condicionais e termo simplificado.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.31', 'Cabecalho da ficha com razao social alinhada a logomarca.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.31'
+    AND descricao = 'Cabecalho da ficha com razao social alinhada a logomarca.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.32', 'Ficha cadastral com idade e ajustes de cabecalho.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.32'
+    AND descricao = 'Ficha cadastral com idade e ajustes de cabecalho.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.33', 'Ficha cadastral com ajustes no cabecalho e CPF formatado.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.33'
+    AND descricao = 'Ficha cadastral com ajustes no cabecalho e CPF formatado.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.34', 'Razao social centralizada no cabecalho da ficha cadastral.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.34'
+    AND descricao = 'Razao social centralizada no cabecalho da ficha cadastral.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.35', 'Ficha cadastral com campos em negrito e ajustes finais.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.35'
+    AND descricao = 'Ficha cadastral com campos em negrito e ajustes finais.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.36', 'Ficha cadastral com espacamento reduzido nos campos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.36'
+    AND descricao = 'Ficha cadastral com espacamento reduzido nos campos.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.37', 'Termo de consentimento sem tabela apos assinaturas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.37'
+    AND descricao = 'Termo de consentimento sem tabela apos assinaturas.'
+);
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.1.38', 'Termo de consentimento sem titulo de modelo.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM historico_versao_sistema
+  WHERE versao = '1.1.38'
+    AND descricao = 'Termo de consentimento sem titulo de modelo.'
 );
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)

@@ -54,4 +54,34 @@ export class DashboardIndicatorsComponent implements OnInit {
       endDate: this.filters.endDate || null
     });
   }
+
+  obterIdadesOrdenadas(atendimento: DashboardAtendimento): { idade: number; quantidade: number }[] {
+    const entradas = Object.entries(atendimento.idades || {});
+    return entradas
+      .map(([idade, quantidade]) => ({ idade: Number(idade), quantidade }))
+      .filter((item) => Number.isFinite(item.idade))
+      .sort((a, b) => a.idade - b.idade);
+  }
+
+  obterTotalIdades(atendimento: DashboardAtendimento): number {
+    return this.obterIdadesOrdenadas(atendimento).reduce((total, item) => total + item.quantidade, 0);
+  }
+
+  obterMaiorQuantidade(atendimento: DashboardAtendimento): number {
+    return this.obterIdadesOrdenadas(atendimento).reduce((maior, item) => Math.max(maior, item.quantidade), 0);
+  }
+
+  obterPercentual(quantidade: number, total: number): number {
+    if (!total) {
+      return 0;
+    }
+    return Math.round((quantidade / total) * 100);
+  }
+
+  obterLarguraBarra(quantidade: number, maximo: number): number {
+    if (!maximo) {
+      return 0;
+    }
+    return Math.max(4, Math.round((quantidade / maximo) * 100));
+  }
 }

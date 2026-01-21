@@ -2295,9 +2295,10 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return nome ? `nome:${nome}` : '';
   }
   private mapBeneficiaryPayload(beneficiary: BeneficiaryPayload): BeneficiarioApiPayload {
+    const codigoPayload = (beneficiary as any).codigo_beneficiario ?? (beneficiary as any).codigoBeneficiario ?? beneficiary.codigo;
     return {
       id_beneficiario: beneficiary.id ? String(beneficiary.id) : undefined,
-      codigo: beneficiary.codigo,
+      codigo: codigoPayload,
       nome_completo: beneficiary.nomeCompleto,
       nome_mae: beneficiary.nomeMae ?? '',
       data_nascimento: beneficiary.dataNascimento,
