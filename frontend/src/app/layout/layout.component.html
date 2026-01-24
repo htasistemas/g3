@@ -24,7 +24,7 @@
           [attr.title]="isSidebarCollapsed ? section.label : null"
         >
           <span class="flex items-center space-x-3">
-            <fa-icon [icon]="section.icon" class="text-emerald-100"></fa-icon>
+            <fa-icon [icon]="section.icon" class="menu-section__icon text-emerald-100"></fa-icon>
             <span class="menu-card__label">{{ section.label }}</span>
           </span>
           <fa-icon
@@ -43,7 +43,7 @@
               routerLinkActive="menu-link--active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
+              <fa-icon [icon]="child.icon" class="menu-link__icon mr-3 text-emerald-600"></fa-icon>
               <span>{{ child.label }}</span>
             </a>
             <ng-template #semRota>
@@ -54,12 +54,12 @@
                 target="_blank"
                 rel="noopener"
               >
-                <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
+                <fa-icon [icon]="child.icon" class="menu-link__icon mr-3 text-emerald-600"></fa-icon>
                 <span>{{ child.label }}</span>
               </a>
               <ng-template #staticChild>
                 <div class="menu-link menu-link--static">
-                  <fa-icon [icon]="child.icon" class="mr-3 text-emerald-600"></fa-icon>
+                  <fa-icon [icon]="child.icon" class="menu-link__icon mr-3 text-emerald-600"></fa-icon>
                   <span>{{ child.label }}</span>
                 </div>
               </ng-template>

@@ -38,6 +38,7 @@ import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanb
 import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-sistema.component';
 import { OcorrenciasCriancaComponent } from './components/ocorrencias-crianca/ocorrencias-crianca.component';
 import { ControleVeiculosComponent } from './components/controle-veiculos/controle-veiculos.component';
+import { BibliotecaGestaoComponent } from './components/biblioteca-gestao/biblioteca-gestao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -111,6 +112,11 @@ export const routes: Routes = [
         path: 'atendimentos/ocorrencias-crianca',
         component: OcorrenciasCriancaComponent,
         data: { title: 'Ocorrencias' }
+      },
+      {
+        path: 'atendimentos/biblioteca',
+        component: BibliotecaGestaoComponent,
+        data: { title: 'Biblioteca' }
       },
       {
         path: 'administrativo/patrimonio',

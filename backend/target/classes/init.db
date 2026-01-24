@@ -2934,3 +2934,63 @@ CREATE INDEX IF NOT EXISTS controle_veiculos_diario_data_idx
   ON controle_veiculos_diario (data DESC);
 
 
+
+CREATE TABLE IF NOT EXISTS biblioteca_livros (
+  id BIGSERIAL PRIMARY KEY,
+  codigo VARCHAR(40) NOT NULL UNIQUE,
+  titulo VARCHAR(220) NOT NULL,
+  autor VARCHAR(200) NOT NULL,
+  isbn VARCHAR(40),
+  editora VARCHAR(180),
+  ano_publicacao INTEGER,
+  categoria VARCHAR(120),
+  quantidade_total INTEGER NOT NULL,
+  quantidade_disponivel INTEGER NOT NULL,
+  localizacao VARCHAR(160),
+  status VARCHAR(20) NOT NULL DEFAULT 'ATIVO',
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS biblioteca_emprestimos (
+  id BIGSERIAL PRIMARY KEY,
+  livro_id BIGINT NOT NULL REFERENCES biblioteca_livros(id) ON DELETE RESTRICT,
+  beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
+  beneficiario_nome VARCHAR(200) NOT NULL,
+  responsavel_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  responsavel_nome VARCHAR(200),
+  data_emprestimo DATE NOT NULL,
+  data_devolucao_prevista DATE NOT NULL,
+  data_devolucao_real DATE,
+  status VARCHAR(20) NOT NULL DEFAULT 'ATIVO',
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS biblioteca_emprestimos_status_idx
+  ON biblioteca_emprestimos (status);
+
+CREATE INDEX IF NOT EXISTS biblioteca_emprestimos_devolucao_idx
+  ON biblioteca_emprestimos (data_devolucao_prevista);
+
+UPDATE versao_sistema
+SET versao = '1.00.7',
+  descricao = 'Inclusao do modulo de Biblioteca com gestao de livros, emprestimos e alertas.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.7';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.7', 'Inclusao do modulo de Biblioteca com gestao de livros, emprestimos e alertas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.7'
+);
+
+ALTER TABLE biblioteca_livros
+  ADD COLUMN IF NOT EXISTS estado_livro VARCHAR(30);
+
+UPDATE biblioteca_livros
+SET estado_livro = 'Bom'
+WHERE estado_livro IS NULL;
