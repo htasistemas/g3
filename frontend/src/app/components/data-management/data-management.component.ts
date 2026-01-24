@@ -1,7 +1,8 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
+import { Subscription, timer } from 'rxjs';
 import {
   GerenciamentoDadosBackupResponse,
   GerenciamentoDadosConfiguracaoResponse,
@@ -32,13 +33,16 @@ interface BackupRecord {
   templateUrl: './data-management.component.html',
   styleUrl: './data-management.component.scss'
 })
-export class DataManagementComponent implements OnInit {
+export class DataManagementComponent implements OnInit, OnDestroy {
   configuracao: GerenciamentoDadosConfiguracaoResponse | null = null;
   runningBackupId: number | null = null;
   recentBackups: BackupRecord[] = [];
   restauracaoFeedback: { tipo: 'success' | 'error' | 'info'; mensagem: string } | null = null;
+  restauracaoEmAndamento = false;
   dialogoRestaurarAberto = false;
   backupSelecionado: BackupRecord | null = null;
+  restauracaoInicio: Date | null = null;
+  private atualizacaoBackupsSub: Subscription | null = null;
 
   constructor(
     private readonly gerenciamentoDadosService: GerenciamentoDadosService
@@ -47,6 +51,11 @@ export class DataManagementComponent implements OnInit {
   ngOnInit(): void {
     this.carregarConfiguracao();
     this.carregarBackups();
+  }
+
+  ngOnDestroy(): void {
+    this.atualizacaoBackupsSub?.unsubscribe();
+    this.atualizacaoBackupsSub = null;
   }
 
   startBackup(): void {
@@ -71,6 +80,7 @@ export class DataManagementComponent implements OnInit {
         const item = this.mapearBackupResposta(backup);
         this.recentBackups = [item, ...this.recentBackups].slice(0, 6);
         this.runningBackupId = item.status === 'executando' ? item.id : null;
+        this.gerenciarAtualizacaoAutomatica();
       });
   }
 
@@ -96,6 +106,9 @@ export class DataManagementComponent implements OnInit {
       tipo: 'info',
       mensagem: 'Restauracao iniciada. Aguarde a conclusao.',
     };
+    this.restauracaoEmAndamento = true;
+    this.restauracaoInicio = new Date();
+    this.gerenciarAtualizacaoAutomatica();
 
     this.gerenciamentoDadosService.restaurarBackup(backupId).subscribe({
       next: (response) => this.aplicarFeedbackRestauracao(response),
@@ -104,6 +117,9 @@ export class DataManagementComponent implements OnInit {
           tipo: 'error',
           mensagem: 'Falha ao solicitar a restauracao do backup.',
         };
+        this.restauracaoEmAndamento = false;
+        this.restauracaoInicio = null;
+        this.gerenciarAtualizacaoAutomatica();
       },
     });
   }
@@ -112,8 +128,12 @@ export class DataManagementComponent implements OnInit {
     return this.recentBackups.find((backup) => backup.status === 'sucesso');
   }
 
-  runningBackup(): BackupRecord | undefined {
-    return this.recentBackups.find((backup) => backup.status === 'executando');
+  backupEmAndamento(): BackupRecord | null {
+    if (!this.runningBackupId) {
+      return null;
+    }
+    const atual = this.recentBackups.find((backup) => backup.id === this.runningBackupId);
+    return atual && atual.status === 'executando' ? atual : null;
   }
 
   private carregarConfiguracao(): void {
@@ -127,7 +147,11 @@ export class DataManagementComponent implements OnInit {
   private carregarBackups(): void {
     this.gerenciamentoDadosService.listarBackups().subscribe((backups) => {
       this.recentBackups = backups.map((backup) => this.mapearBackupResposta(backup));
-      this.runningBackupId = this.runningBackup()?.id ?? null;
+      if (this.runningBackupId) {
+        const atual = this.recentBackups.find((backup) => backup.id === this.runningBackupId);
+        this.runningBackupId = atual && atual.status === 'executando' ? atual.id : null;
+      }
+      this.gerenciarAtualizacaoAutomatica();
     });
   }
 
@@ -136,6 +160,8 @@ export class DataManagementComponent implements OnInit {
       tipo: response.status === 'sucesso' ? 'success' : 'error',
       mensagem: response.mensagem,
     };
+    this.restauracaoEmAndamento = false;
+    this.restauracaoInicio = null;
     this.carregarBackups();
   }
 
@@ -165,5 +191,39 @@ export class DataManagementComponent implements OnInit {
       return valor;
     }
     return formatDate(data, 'dd/MM/yyyy HH:mm', 'pt-BR');
+  }
+
+  obterDuracaoDesde(dataInicio?: string | Date | null): string {
+    if (!dataInicio) {
+      return '--';
+    }
+    const inicio = typeof dataInicio === 'string' ? new Date(dataInicio) : dataInicio;
+    if (Number.isNaN(inicio.getTime())) {
+      return '--';
+    }
+    const duracaoMs = Math.max(Date.now() - inicio.getTime(), 0);
+    const totalSegundos = Math.floor(duracaoMs / 1000);
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+    const valorMinutos = minutos.toString().padStart(2, '0');
+    const valorSegundos = segundos.toString().padStart(2, '0');
+    return horas > 0
+      ? `${horas}:${valorMinutos}:${valorSegundos}`
+      : `${valorMinutos}:${valorSegundos}`;
+  }
+
+  private gerenciarAtualizacaoAutomatica(): void {
+    const deveAtualizar = !!this.runningBackupId || this.restauracaoEmAndamento;
+    if (deveAtualizar && !this.atualizacaoBackupsSub) {
+      this.atualizacaoBackupsSub = timer(0, 5000).subscribe(() => {
+        this.carregarBackups();
+      });
+      return;
+    }
+    if (!deveAtualizar && this.atualizacaoBackupsSub) {
+      this.atualizacaoBackupsSub.unsubscribe();
+      this.atualizacaoBackupsSub = null;
+    }
   }
 }

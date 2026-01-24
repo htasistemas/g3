@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -486,7 +486,9 @@
           <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automaticos.</p>
         </ng-template>
       </article>
+    </div>
 
+    <div class="panel-grid three-cols">
       <article class="panel">
         <header class="panel__header">
           <div>
@@ -719,46 +721,7 @@
       <span class="pill">Planejamento continuo</span>
     </div>
 
-    <div class="panel">
-      <header class="panel__header">
-        <div>
-          <p class="panel__eyebrow">Fluxo financeiro</p>
-          <p class="panel__title">Projecao semanal de caixa</p>
-        </div>
-        <span class="pill">Relatórios e fluxos</span>
-      </header>
-      <div class="flow-chart" *ngIf="cashFlow.length; else emptyFlow">
-        <div class="flow-chart__bars" *ngFor="let item of cashFlow">
-          <div class="flow-chart__label">
-            <p class="strong">{{ item.period }}</p>
-            <p class="muted">Projecao semanal</p>
-          </div>
-          <div class="flow-chart__bars-stack flow-chart__bars-stack--row">
-            <div class="flow-chart__bar bar-positive" [style.width.%]="calcularPercentual(item.receivable, cashFlowMax)">
-              <span>A receber</span>
-              <strong>{{ item.receivable | currency:'BRL':'symbol':'1.0-0' }}</strong>
-            </div>
-            <div class="flow-chart__bar bar-negative" [style.width.%]="calcularPercentual(item.payable, cashFlowMax)">
-              <span>A pagar</span>
-              <strong>{{ item.payable | currency:'BRL':'symbol':'1.0-0' }}</strong>
-            </div>
-          </div>
-          <div class="flow-chart__projection">
-            <fa-icon [icon]="faFileInvoice"></fa-icon>
-            <div>
-              <p class="strong">Projecao</p>
-              <p class="muted">Saldo estimado de {{ item.projection | currency:'BRL':'symbol':'1.0-0' }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ng-template #emptyFlow>
-        <p class="empty-state">Cadastre lançamentos e contas para gerar projeções semanais de caixa.</p>
-      </ng-template>
-    </div>
-
-    <div class="panel-grid three-cols">
-      <article class="panel">
+    <article class="panel">
         <header class="panel__header">
           <div>
             <p class="panel__eyebrow">Movimentação real</p>
@@ -775,7 +738,7 @@
               <option value="saida">Saída</option>
             </select>
           </label>
-          <label class="form-field">
+          <label class="form-field form-field--wide">
             <span>Descricao *</span>
             <input
               type="text"
@@ -817,7 +780,7 @@
               autocomplete="organization"
             />
           </label>
-          <label class="form-field">
+          <label class="form-field form-field--wide">
             <span>Conta bancaria *</span>
             <select class="select" name="movementAccount" [(ngModel)]="newMovement.contaBancariaId" required>
               <option value="" disabled>Selecione</option>
@@ -833,24 +796,28 @@
           <label class="form-field">
             <span>Valor *</span>
             <input
-              type="number"
+              type="text"
               class="input"
               name="movementAmount"
-              [(ngModel)]="newMovement.valor"
-              step="0.01"
-              min="0"
-              placeholder="0,00"
+              [ngModel]="valorMovimentacaoMascara"
+              (ngModelChange)="onValorMovimentacaoInput($event)"
+              placeholder="R$ 0,00"
               autocomplete="transaction-amount"
               required
             />
           </label>
           <div class="form-actions">
-            <button class="primary" type="submit">Registrar movimentacao</button>
+            <button class="primary" type="submit">
+              {{ movimentacaoEmEdicaoId ? 'Atualizar movimentacao' : 'Registrar movimentacao' }}
+            </button>
+            <button class="ghost" type="button" *ngIf="movimentacaoEmEdicaoId" (click)="cancelarEdicaoMovimentacao()">
+              Cancelar
+            </button>
           </div>
         </form>
-      </article>
+    </article>
 
-      <article class="panel">
+    <article class="panel">
         <header class="panel__header">
           <div>
             <p class="panel__eyebrow">Movimentações registradas</p>
@@ -876,6 +843,15 @@
               <option value="saida">Saída</option>
             </select>
           </label>
+          <label class="form-field">
+            <span>Mes de referencia</span>
+            <input
+              type="month"
+              class="input"
+              [(ngModel)]="filtrosMovimentacoes.mesReferencia"
+              name="filtroMovMes"
+            />
+          </label>
         </div>
 
 <p class="muted list-count">Total: {{ movimentacoesFiltradas.length }} movimentacoes</p>
@@ -889,6 +865,7 @@
                 <th>Conta</th>
                 <th>Categoria</th>
                 <th>Valor</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -906,6 +883,19 @@
                     {{ movement.tipo === 'entrada' ? '+' : '-' }}
                     {{ movement.valor | currency:'BRL' }}
                   </span>
+                </td>
+                <td class="text-right actions">
+                  <button
+                    class="ghost"
+                    type="button"
+                    *ngIf="isMovimentacaoEntrada(movement)"
+                    (click)="editarMovimentacao(movement)"
+                  >
+                    Editar
+                  </button>
+                  <button class="ghost" type="button" (click)="removerMovimentacao(movement)">
+                    Excluir
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -947,8 +937,7 @@
         <ng-template #emptyPipelines>
           <p class="empty-state">Cadastre contas para acompanhar prioridades da semana.</p>
         </ng-template>
-      </article>
-    </div>
+    </article>
   </div>
   <div class="tab-card" *ngIf="activeTab === 'emendas'">
     <div class="tab-card__header">

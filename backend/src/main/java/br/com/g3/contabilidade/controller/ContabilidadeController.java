@@ -89,9 +89,21 @@ public class ContabilidadeController {
     return ResponseEntity.ok(service.criarMovimentacao(request));
   }
 
+  @PutMapping("/movimentacoes/{id}")
+  public ResponseEntity<MovimentacaoFinanceiraResponse> atualizarMovimentacao(
+      @PathVariable("id") Long id, @RequestBody MovimentacaoFinanceiraRequest request) {
+    return ResponseEntity.ok(service.atualizarMovimentacao(id, request));
+  }
+
   @GetMapping("/movimentacoes")
   public ResponseEntity<List<MovimentacaoFinanceiraResponse>> listarMovimentacoes() {
     return ResponseEntity.ok(service.listarMovimentacoes());
+  }
+
+  @DeleteMapping("/movimentacoes/{id}")
+  public ResponseEntity<Void> removerMovimentacao(@PathVariable("id") Long id) {
+    service.removerMovimentacao(id);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/emendas")

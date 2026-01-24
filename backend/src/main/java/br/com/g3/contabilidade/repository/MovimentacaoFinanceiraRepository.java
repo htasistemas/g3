@@ -10,4 +10,6 @@ public interface MovimentacaoFinanceiraRepository {
   List<MovimentacaoFinanceira> listar();
 
   Optional<MovimentacaoFinanceira> buscarPorId(Long id);
+
+  void remover(Long id);
 }

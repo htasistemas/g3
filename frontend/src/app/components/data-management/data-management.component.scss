@@ -161,11 +161,35 @@
   animation: spin 1s linear infinite;
 }
 
+.progress {
+  @apply relative h-2 rounded-full bg-slate-200 overflow-hidden mt-2;
+}
+
+.progress__bar {
+  @apply absolute inset-y-0 left-0 w-full bg-emerald-500;
+}
+
+.progress__bar--indeterminate {
+  animation: progress-indeterminate 1.6s ease-in-out infinite;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(-40%);
+  }
+  100% {
+    transform: translateX(100%);
   }
 }

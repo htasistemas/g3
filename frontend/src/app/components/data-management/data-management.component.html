@@ -16,7 +16,7 @@
         <p class="muted">Execute o backup completo e acompanhe o ultimo registro.</p>
       </div>
       <div class="flex gap-2">
-        <button type="button" class="btn-primary" (click)="startBackup()" [disabled]="runningBackup()">
+        <button type="button" class="btn-primary" (click)="startBackup()" [disabled]="backupEmAndamento()">
           Backup completo
         </button>
       </div>
@@ -42,10 +42,25 @@
       </div>
     </div>
 
-    <div class="inline-feedback" *ngIf="runningBackup()">
+    <div class="inline-feedback" *ngIf="backupEmAndamento()">
       <div>
         <p class="font-semibold text-slate-800">Backup em andamento</p>
         <p class="muted">Processando backup completo... voce sera notificado ao concluir.</p>
+        <div class="progress">
+          <div class="progress__bar progress__bar--indeterminate"></div>
+        </div>
+        <p class="muted">Tempo decorrido: {{ obterDuracaoDesde(backupEmAndamento()?.iniciadoEm) }}</p>
+      </div>
+    </div>
+
+    <div class="inline-feedback inline-feedback--info" *ngIf="restauracaoEmAndamento">
+      <div>
+        <p class="font-semibold text-slate-800">Restauracao em andamento</p>
+        <p class="muted">Aplicando dados do backup selecionado.</p>
+        <div class="progress">
+          <div class="progress__bar progress__bar--indeterminate"></div>
+        </div>
+        <p class="muted">Tempo decorrido: {{ obterDuracaoDesde(restauracaoInicio) }}</p>
       </div>
     </div>
 
@@ -113,7 +128,7 @@
             type="button"
             class="btn-outline"
             (click)="abrirDialogoRestaurar(backup)"
-            [disabled]="backup.status !== 'sucesso' || runningBackup()"
+            [disabled]="backup.status !== 'sucesso' || backupEmAndamento()"
           >
             Restaurar
           </button>

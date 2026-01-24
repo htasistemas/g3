@@ -28,4 +28,9 @@ public class MovimentacaoFinanceiraRepositoryImpl implements MovimentacaoFinance
   public Optional<MovimentacaoFinanceira> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }
+
+  @Override
+  public void remover(Long id) {
+    jpaRepository.deleteById(id);
+  }
 }

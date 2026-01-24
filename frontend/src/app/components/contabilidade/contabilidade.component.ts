@@ -109,6 +109,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       badge: ''
     },
     {
+      id: 'movimentacoes',
+      label: 'Movimentacoes',
+      badge: ''
+    },
+    {
       id: 'contas',
       label: 'Contas bancarias',
       badge: ''
@@ -116,11 +121,6 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     {
       id: 'lancamentos',
       label: 'Lancamentos',
-      badge: ''
-    },
-    {
-      id: 'movimentacoes',
-      label: 'Movimentacoes',
       badge: ''
     },
     {
@@ -215,7 +215,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   filtrosMovimentacoes = {
     descricao: '',
     categoria: '',
-    tipo: ''
+    tipo: '',
+    mesReferencia: ''
   };
 
   filtrosEmendas = {
@@ -234,6 +235,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   valorLancamentoMascara = 'R$ 0,00';
   lancamentoEmEdicaoId: number | null = null;
   salvandoLancamento = false;
+  movimentacaoEmEdicaoId: number | null = null;
+  valorMovimentacaoMascara = 'R$ 0,00';
 
   contaEmEdicaoId: number | null = null;
   saldoContaMascara = '';
@@ -406,12 +409,15 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       const descricao = this.normalizeString(item.descricao);
       const categoria = this.normalizeString(item.categoria || '');
       const tipo = this.normalizeString(item.tipo);
+      const mesReferencia = this.filtrosMovimentacoes.mesReferencia || '';
+      const mesMovimentacao = this.obterMesReferenciaMovimentacao(item.dataMovimentacao);
       return (
         (!this.filtrosMovimentacoes.descricao ||
           descricao.includes(this.normalizeString(this.filtrosMovimentacoes.descricao))) &&
         (!this.filtrosMovimentacoes.categoria ||
           categoria.includes(this.normalizeString(this.filtrosMovimentacoes.categoria))) &&
-        (!this.filtrosMovimentacoes.tipo || tipo === this.normalizeString(this.filtrosMovimentacoes.tipo))
+        (!this.filtrosMovimentacoes.tipo || tipo === this.normalizeString(this.filtrosMovimentacoes.tipo)) &&
+        (!mesReferencia || mesMovimentacao === mesReferencia)
       );
     });
   }
@@ -533,6 +539,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   erroChavePix: string | null = null;
 
   registerMovement(): void {
+    this.onValorMovimentacaoInput(this.valorMovimentacaoMascara);
     if (!this.newMovement.descricao || !this.newMovement.contaBancariaId || !this.newMovement.dataMovimentacao) {
       this.popupErros = new PopupErrorBuilder()
         .adicionar('Preencha os campos obrigatorios da movimentacao.')
@@ -540,12 +547,28 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.abrirPopupTemporario();
       return;
     }
-    this.contabilidadeService.criarMovimentacao(this.newMovement).subscribe((response) => {
-      this.financialMovements = [...this.financialMovements, response];
+    const request$ = this.movimentacaoEmEdicaoId
+      ? this.contabilidadeService.atualizarMovimentacao(this.movimentacaoEmEdicaoId, this.newMovement)
+      : this.contabilidadeService.criarMovimentacao(this.newMovement);
+    request$.subscribe((response) => {
+      if (this.movimentacaoEmEdicaoId) {
+        this.financialMovements = this.financialMovements.map((item) => (item.id === response.id ? response : item));
+      } else {
+        this.financialMovements = [...this.financialMovements, response];
+      }
       this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
         this.bankAccounts = contas ?? [];
         this.refreshPanels();
       });
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar(
+          this.movimentacaoEmEdicaoId
+            ? 'Movimentacao atualizada com sucesso.'
+            : 'Movimentacao registrada com sucesso.'
+        )
+        .build();
+      this.changeDetector.detectChanges();
+      this.abrirPopupTemporario();
       this.newMovement = {
         descricao: '',
         contraparte: '',
@@ -555,7 +578,91 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
         tipo: 'entrada',
         categoria: 'Operacional'
       };
+      this.valorMovimentacaoMascara = this.formatarValorMonetario(0);
+      this.movimentacaoEmEdicaoId = null;
     });
+  }
+
+  editarMovimentacao(movement: MovimentacaoFinanceiraResponse): void {
+    if (!this.isMovimentacaoEntrada(movement)) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Apenas receitas podem ser editadas.')
+        .build();
+      this.abrirPopupTemporario();
+      return;
+    }
+    this.movimentacaoEmEdicaoId = movement.id;
+    this.newMovement = {
+      tipo: this.normalizarTipoMovimentacao(movement.tipo),
+      descricao: movement.descricao,
+      contraparte: movement.contraparte || '',
+      categoria: movement.categoria || 'Operacional',
+      contaBancariaId: movement.contaBancariaId,
+      dataMovimentacao: movement.dataMovimentacao,
+      valor: Number(movement.valor || 0)
+    };
+    this.valorMovimentacaoMascara = this.formatarValorMonetario(Number(movement.valor || 0));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  removerMovimentacao(movement: MovimentacaoFinanceiraResponse): void {
+    this.abrirDialogoConfirmacao(
+      'Excluir movimentacao',
+      'Confirma a exclusao desta movimentacao registrada?',
+      'Excluir',
+      () => {
+        this.contabilidadeService.removerMovimentacao(movement.id).subscribe(() => {
+          this.financialMovements = this.financialMovements.filter((item) => item.id !== movement.id);
+          if (this.movimentacaoEmEdicaoId === movement.id) {
+            this.cancelarEdicaoMovimentacao();
+          }
+          this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+            this.bankAccounts = contas ?? [];
+            this.refreshPanels();
+          });
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Movimentacao excluida com sucesso.')
+            .build();
+          this.abrirPopupTemporario();
+        });
+      }
+    );
+  }
+
+  cancelarEdicaoMovimentacao(): void {
+    this.newMovement = {
+      descricao: '',
+      contraparte: '',
+      dataMovimentacao: this.todayISO(),
+      contaBancariaId: undefined,
+      valor: 0,
+      tipo: 'entrada',
+      categoria: 'Operacional'
+    };
+    this.movimentacaoEmEdicaoId = null;
+    this.valorMovimentacaoMascara = this.formatarValorMonetario(0);
+  }
+
+  onValorMovimentacaoInput(valor: string): void {
+    const apenasNumeros = (valor ?? '').replace(/\D/g, '');
+    const numero = Number(apenasNumeros || 0) / 100;
+    this.newMovement = { ...this.newMovement, valor: numero };
+    this.valorMovimentacaoMascara = this.formatarValorMonetario(numero);
+  }
+
+  isMovimentacaoEntrada(movement: MovimentacaoFinanceiraResponse): boolean {
+    return this.normalizarTipoMovimentacao(movement.tipo) === 'entrada';
+  }
+
+  private normalizarTipoMovimentacao(tipo?: string): string {
+    return (tipo ?? '').toLowerCase();
+  }
+
+  private obterMesReferenciaMovimentacao(dataMovimentacao?: string): string {
+    if (!dataMovimentacao) {
+      return '';
+    }
+    return String(dataMovimentacao).slice(0, 7);
   }
 
   addBankAccount(): void {

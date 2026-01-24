@@ -22,9 +22,9 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   erroHistorico: string | null = null;
   atualizandoVersao = false;
   feedbackAtualizacao: string | null = null;
-  private readonly versaoAlvo = '1.1.38';
+  private readonly versaoAlvo = '1.00.6';
   private readonly resumoAtualizacao =
-    'Ajustes na ficha do beneficiario com campos preenchidos e layout paginado.';
+    'Controle de veiculos com persistencia no banco e ajustes no layout da tela.';
 
   private readonly destroy$ = new Subject<void>();
 

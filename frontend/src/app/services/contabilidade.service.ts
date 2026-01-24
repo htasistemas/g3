@@ -126,11 +126,22 @@ export class ContabilidadeService {
   }
 
   listarMovimentacoes(): Observable<MovimentacaoFinanceiraResponse[]> {
-    return this.http.get<MovimentacaoFinanceiraResponse[]>(`${this.baseUrl}/movimentações`);
+    return this.http.get<MovimentacaoFinanceiraResponse[]>(`${this.baseUrl}/movimentacoes`);
   }
 
   criarMovimentacao(payload: MovimentacaoFinanceiraRequest): Observable<MovimentacaoFinanceiraResponse> {
-    return this.http.post<MovimentacaoFinanceiraResponse>(`${this.baseUrl}/movimentações`, payload);
+    return this.http.post<MovimentacaoFinanceiraResponse>(`${this.baseUrl}/movimentacoes`, payload);
+  }
+
+  atualizarMovimentacao(
+    id: number,
+    payload: MovimentacaoFinanceiraRequest
+  ): Observable<MovimentacaoFinanceiraResponse> {
+    return this.http.put<MovimentacaoFinanceiraResponse>(`${this.baseUrl}/movimentacoes/${id}`, payload);
+  }
+
+  removerMovimentacao(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/movimentacoes/${id}`);
   }
 
   listarEmendas(): Observable<EmendaImpositivaResponse[]> {

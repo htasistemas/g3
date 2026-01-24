@@ -70,6 +70,7 @@ public class AlmoxarifadoServiceImpl implements AlmoxarifadoService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<AlmoxarifadoMovimentacaoResponse> listarMovimentacoes() {
     return repository.listarMovimentacoes().stream()
         .map(AlmoxarifadoMapper::toMovimentacaoResponse)

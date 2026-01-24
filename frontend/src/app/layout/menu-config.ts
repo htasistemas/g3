@@ -34,9 +34,9 @@ export const menuSections: MenuItem[] = [
     label: 'Dashboard',
     icon: faGauge,
     children: [
-      { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
       { label: 'Indicadores', icon: faGauge, route: '/dashboard/indicadores' },
       { label: 'Mapa dos Beneficiarios', icon: faMapLocationDot, route: '/dashboard/mapa-beneficiarios' },
+      { label: 'Visao Geral', icon: faGauge, route: '/dashboard/visao-geral' },
     ],
   },
   {
@@ -44,24 +44,24 @@ export const menuSections: MenuItem[] = [
     icon: faUsers,
     children: [
       {
-        label: 'Unidade Assistencial',
-        icon: faHouseChimneyUser,
-        route: '/unidades/cadastro',
-      },
-      {
         label: 'Beneficiarios',
         icon: faUserPlus,
         route: '/cadastros/beneficiarios',
       },
       {
-        label: 'Vinculo Familiar',
-        icon: faUserPlus,
-        route: '/cadastros/vinculo-familiar',
-      },
-      {
         label: 'Profissionais',
         icon: faUserDoctor,
         route: '/cadastros/profissionais',
+      },
+      {
+        label: 'Unidade Assistencial',
+        icon: faHouseChimneyUser,
+        route: '/unidades/cadastro',
+      },
+      {
+        label: 'Vinculo Familiar',
+        icon: faUserPlus,
+        route: '/cadastros/vinculo-familiar',
       },
       {
         label: 'Voluntariados',
@@ -74,16 +74,16 @@ export const menuSections: MenuItem[] = [
     label: 'Atendimentos',
     icon: faHandshakeAngle,
     children: [
-      { label: 'Doacao Realizada', icon: faClipboardList, route: '/atendimentos/doacoes' },
+      { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' },
+      { label: 'Prontuario social', icon: faClipboardList, route: '/atendimentos/prontuario' },
       {
         label: 'Recebimento de doacao',
         icon: faClipboardList,
         route: '/atendimentos/recebimento-doacao',
       },
-      { label: 'Prontuario social', icon: faClipboardList, route: '/atendimentos/prontuario' },
       { label: 'Registro de visitas', icon: faHouseChimneyUser, route: '/atendimentos/visitas' },
+      { label: 'Doacao Realizada', icon: faClipboardList, route: '/atendimentos/doacoes' },
       { label: 'Matriculas', icon: faClipboardList, route: '/atendimentos/cursos' },
-      { label: 'Banco de Empregos', icon: faClipboardList, route: '/atendimentos/banco-empregos' },
       { label: 'Ocorrencias', icon: faClipboardList, route: '/atendimentos/ocorrencias-crianca' },
     ],
   },
@@ -91,66 +91,70 @@ export const menuSections: MenuItem[] = [
     label: 'Setor Administrativo',
     icon: faClipboardList,
     children: [
-      { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
-      {
-        label: 'Gestao de Documentos',
-        icon: faClipboardList,
-        route: '/administrativo/documentos',
-      },
       { label: 'Almoxarifado', icon: faClipboardList, route: '/administrativo/almoxarifado' },
-      { label: 'Patrimonio', icon: faClipboardList, route: '/administrativo/patrimonio' },
+      {
+        label: 'Controle de Veiculos',
+        icon: faClipboardList,
+        route: '/administrativo/controle-veiculos',
+      },
       {
         label: 'Emprestimo para Eventos',
         icon: faClipboardList,
         route: '/administrativo/patrimonio/emprestimos-eventos',
       },
-      { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' },
       { label: 'Fotos e Eventos', icon: faClipboardList, route: '/administrativo/fotos-eventos' },
+      {
+        label: 'Gestao de Documentos',
+        icon: faClipboardList,
+        route: '/administrativo/documentos',
+      },
+      { label: 'Oficios e Documentos', icon: faClipboardList, route: '/administrativo/oficios' },
+      { label: 'Patrimonio', icon: faClipboardList, route: '/administrativo/patrimonio' },
+      { label: 'Tarefas e pendencias', icon: faClipboardList, route: '/administrativo/tarefas' },
     ],
   },
   {
     label: 'Setor Financeiro',
     icon: faWallet,
     children: [
-      { label: 'Prestacao de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
-      { label: 'Contabilidade', icon: faWallet, route: '/financeiro/contabilidade' },
       {
         label: 'Autorizacao de Compras',
         icon: faClipboardList,
         route: '/financeiro/autorizacao-compras',
       },
+      { label: 'Contabilidade', icon: faWallet, route: '/financeiro/contabilidade' },
+      { label: 'Prestacao de Contas', icon: faWallet, route: '/financeiro/prestacao-contas' },
     ],
   },
   {
     label: 'Setor Juridico',
     icon: faScaleBalanced,
     children: [
-      { label: 'Termo de Fomento', icon: faScaleBalanced, route: '/juridico/termos-fomento' },
       { label: 'Plano de Trabalho', icon: faClipboardList, route: '/juridico/planos-trabalho' },
+      { label: 'Termo de Fomento', icon: faScaleBalanced, route: '/juridico/termos-fomento' },
     ],
   },
   {
     label: 'Configuracoes Gerais',
     icon: faWrench,
     children: [
-      { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
-      { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
-      { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
-      {
-        label: 'Chamado tecnico',
-        icon: faClipboardList,
-        route: '/configuracoes/chamados-tecnicos',
-      },
       {
         label: 'Alertas do sistema',
         icon: faClipboardList,
         route: '/configuracoes/alertas-sistema',
       },
       {
+        label: 'Chamado tecnico',
+        icon: faClipboardList,
+        route: '/configuracoes/chamados-tecnicos',
+      },
+      {
         label: 'Gerenciamento de Dados',
         icon: faDatabase,
         route: '/configuracoes/gerenciamento-dados',
       },
+      { label: 'Feriados', icon: faClipboardList, route: '/administrativo/feriados' },
+      { label: 'Parametros do sistema', icon: faWrench, route: '/configuracoes/parametros' },
       {
         label: 'Painel de senha',
         icon: faPalette,
@@ -161,6 +165,7 @@ export const menuSections: MenuItem[] = [
         icon: faPalette,
         urlExterna: 'http://localhost:4201/#/operador/chamadas',
       },
+      { label: 'Versao do sistema', icon: faClipboardList, route: '/configuracoes/versao' },
     ],
   },
 ];

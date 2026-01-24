@@ -37,6 +37,7 @@ import { ChamadoTecnicoDetalheComponent } from './components/chamado-tecnico-det
 import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-sistema.component';
 import { OcorrenciasCriancaComponent } from './components/ocorrencias-crianca/ocorrencias-crianca.component';
+import { ControleVeiculosComponent } from './components/controle-veiculos/controle-veiculos.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -158,6 +159,11 @@ export const routes: Routes = [
         path: 'administrativo/fotos-eventos/:id',
         component: FotosEventosComponent,
         data: { title: 'Detalhe do evento' }
+      },
+      {
+        path: 'administrativo/controle-veiculos',
+        component: ControleVeiculosComponent,
+        data: { title: 'Controle de veiculos' }
       },
       {
         path: 'configuracoes/versao',

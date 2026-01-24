@@ -1,0 +1,110 @@
+package br.com.g3.controleveiculos.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+public class DiarioBordoRequest {
+  @NotNull
+  private Long veiculoId;
+
+  @NotNull
+  private LocalDate data;
+
+  @NotBlank
+  private String condutor;
+
+  @NotNull
+  private LocalTime horarioSaida;
+
+  @NotNull
+  @PositiveOrZero
+  private BigDecimal kmInicial;
+
+  @NotNull
+  private LocalTime horarioChegada;
+
+  @NotNull
+  @PositiveOrZero
+  private BigDecimal kmFinal;
+
+  @NotBlank
+  private String destino;
+
+  private String observacoes;
+
+  public Long getVeiculoId() {
+    return veiculoId;
+  }
+
+  public void setVeiculoId(Long veiculoId) {
+    this.veiculoId = veiculoId;
+  }
+
+  public LocalDate getData() {
+    return data;
+  }
+
+  public void setData(LocalDate data) {
+    this.data = data;
+  }
+
+  public String getCondutor() {
+    return condutor;
+  }
+
+  public void setCondutor(String condutor) {
+    this.condutor = condutor;
+  }
+
+  public LocalTime getHorarioSaida() {
+    return horarioSaida;
+  }
+
+  public void setHorarioSaida(LocalTime horarioSaida) {
+    this.horarioSaida = horarioSaida;
+  }
+
+  public BigDecimal getKmInicial() {
+    return kmInicial;
+  }
+
+  public void setKmInicial(BigDecimal kmInicial) {
+    this.kmInicial = kmInicial;
+  }
+
+  public LocalTime getHorarioChegada() {
+    return horarioChegada;
+  }
+
+  public void setHorarioChegada(LocalTime horarioChegada) {
+    this.horarioChegada = horarioChegada;
+  }
+
+  public BigDecimal getKmFinal() {
+    return kmFinal;
+  }
+
+  public void setKmFinal(BigDecimal kmFinal) {
+    this.kmFinal = kmFinal;
+  }
+
+  public String getDestino() {
+    return destino;
+  }
+
+  public void setDestino(String destino) {
+    this.destino = destino;
+  }
+
+  public String getObservacoes() {
+    return observacoes;
+  }
+
+  public void setObservacoes(String observacoes) {
+    this.observacoes = observacoes;
+  }
+}

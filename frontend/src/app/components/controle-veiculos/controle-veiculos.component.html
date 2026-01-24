@@ -1,0 +1,301 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  (buscar)="buscar()"
+  (salvar)="salvar()"
+  (excluir)="excluir()"
+  (novo)="novo()"
+  (cancelar)="cancelar()"
+  (imprimir)="imprimir()"
+  (fechar)="fechar()"
+>
+  <header class="page-title page-title--row" slot="titulo">
+    <div>
+      <p class="page-title__eyebrow">SETOR ADMINISTRATIVO</p>
+      <p class="page-title__label">Controle de veiculos</p>
+    </div>
+    <p class="page-title__note page-title__note--right">
+      Diario de bordo e cadastro de veiculos.
+    </p>
+  </header>
+
+  <section class="controle-veiculos">
+    <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopup()"></app-popup-messages>
+
+    <div class="muted" *ngIf="carregando">Carregando dados do controle de veiculos...</div>
+
+    <div *ngIf="mensagemFeedback" class="feedback">
+      <span>{{ mensagemFeedback }}</span>
+      <button type="button" class="feedback__close" (click)="mensagemFeedback = null" aria-label="Fechar aviso">
+        &times;
+      </button>
+    </div>
+
+    <div class="tab-shell">
+      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <ol class="step-tabs" role="tablist">
+        <li
+        *ngFor="let tab of abas; index as idx"
+        class="step-tabs__item"
+        [class.active]="abaAtiva === tab.id"
+        [class.completed]="idx < indiceAbaAtiva"
+      >
+        <button
+          class="step-tabs__button"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="abaAtiva === tab.id"
+          (click)="mudarAba(tab.id)"
+        >
+          <span class="step-tabs__index">{{ idx + 1 }}</span>
+          <span class="step-tabs__label">{{ tab.label }}</span>
+          </button>
+        </li>
+      </ol>
+    </div>
+
+    <form *ngIf="abaAtiva === 'cadastro'" [formGroup]="formularioVeiculo" class="form-shell">
+      <section class="tab-card">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Cadastro de veiculos</p>
+            <p class="muted">Mantenha a frota organizada com dados completos.</p>
+          </div>
+        </div>
+
+        <div class="field-grid cols-3">
+          <label class="field" [class.invalid]="formularioVeiculo.get('placa')?.invalid && formularioVeiculo.get('placa')?.touched">
+            Placa (*)
+            <input type="text" formControlName="placa" placeholder="ABC-1234" />
+            <span class="field-error" *ngIf="formularioVeiculo.get('placa')?.invalid && formularioVeiculo.get('placa')?.touched">
+              Informe a placa.
+            </span>
+          </label>
+
+          <label class="field" [class.invalid]="formularioVeiculo.get('modelo')?.invalid && formularioVeiculo.get('modelo')?.touched">
+            Modelo (*)
+            <input type="text" formControlName="modelo" placeholder="Ex.: Gol" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioVeiculo.get('marca')?.invalid && formularioVeiculo.get('marca')?.touched">
+            Marca (*)
+            <input type="text" formControlName="marca" placeholder="Ex.: Volkswagen" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioVeiculo.get('ano')?.invalid && formularioVeiculo.get('ano')?.touched">
+            Ano (*)
+            <input type="number" formControlName="ano" min="1900" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioVeiculo.get('tipoCombustivel')?.invalid && formularioVeiculo.get('tipoCombustivel')?.touched">
+            Tipo de combustivel (*)
+            <select formControlName="tipoCombustivel">
+              <option value="">Selecione</option>
+              <option value="Gasolina">Gasolina</option>
+              <option value="Etanol">Etanol</option>
+              <option value="Diesel">Diesel</option>
+              <option value="Flex">Flex</option>
+              <option value="Eletrico">Eletrico</option>
+            </select>
+          </label>
+
+          <label class="field" [class.invalid]="formularioVeiculo.get('mediaConsumoPadrao')?.invalid && formularioVeiculo.get('mediaConsumoPadrao')?.touched">
+            Media de consumo (km/L) (*)
+            <input type="number" formControlName="mediaConsumoPadrao" min="0" step="0.1" />
+          </label>
+
+          <label class="field">
+            Capacidade do tanque (L)
+            <input type="number" formControlName="capacidadeTanqueLitros" min="0" step="0.1" />
+          </label>
+
+          <label class="field full">
+            Observacoes
+            <textarea formControlName="observacoes" rows="3"></textarea>
+          </label>
+
+          <label class="checkbox-field full">
+            <input type="checkbox" formControlName="ativo" />
+            <span>Veiculo ativo</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="list-card__eyebrow">Veiculos cadastrados</p>
+            <p class="list-card__title">Selecione para editar ou excluir.</p>
+          </div>
+          <div class="list-card__actions">
+            <span class="muted">Total: {{ veiculos.length }}</span>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Modelo</th>
+              <th>Marca</th>
+              <th>Ano</th>
+              <th>Status</th>
+              <th class="text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="veiculos.length; else semVeiculos">
+            <tr *ngFor="let veiculo of veiculos">
+              <td>{{ veiculo.placa }}</td>
+              <td>{{ veiculo.modelo }}</td>
+              <td>{{ veiculo.marca }}</td>
+              <td>{{ veiculo.ano }}</td>
+              <td>{{ veiculo.ativo ? 'Ativo' : 'Inativo' }}</td>
+              <td class="text-right">
+                <button type="button" class="ghost" (click)="selecionarVeiculo(veiculo)">Selecionar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #semVeiculos>
+          <p class="empty">Nenhum veiculo cadastrado ate o momento.</p>
+        </ng-template>
+      </section>
+    </form>
+
+    <form *ngIf="abaAtiva === 'diario'" [formGroup]="formularioDiario" class="form-shell">
+      <section class="tab-card">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Mapa de bordo</p>
+            <p class="muted">Registre cada viagem e acompanhe o consumo.</p>
+          </div>
+        </div>
+
+        <div class="field-grid cols-3">
+          <label class="field" [class.invalid]="formularioDiario.get('veiculoId')?.invalid && formularioDiario.get('veiculoId')?.touched">
+            Veiculo (*)
+            <select formControlName="veiculoId">
+              <option [ngValue]="null">Selecione</option>
+              <option *ngFor="let veiculo of veiculos" [ngValue]="veiculo.id">
+                {{ veiculo.placa }} - {{ veiculo.modelo }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('data')?.invalid && formularioDiario.get('data')?.touched">
+            Data (*)
+            <input type="date" formControlName="data" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('condutor')?.invalid && formularioDiario.get('condutor')?.touched">
+            Condutor (*)
+            <input type="text" formControlName="condutor" placeholder="Nome do condutor" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('horarioSaida')?.invalid && formularioDiario.get('horarioSaida')?.touched">
+            Horario de saida (*)
+            <input type="time" formControlName="horarioSaida" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('kmInicial')?.invalid && formularioDiario.get('kmInicial')?.touched">
+            Km inicial (*)
+            <input type="number" formControlName="kmInicial" min="0" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('horarioChegada')?.invalid && formularioDiario.get('horarioChegada')?.touched">
+            Horario de chegada (*)
+            <input type="time" formControlName="horarioChegada" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('kmFinal')?.invalid && formularioDiario.get('kmFinal')?.touched">
+            Km final (*)
+            <input type="number" formControlName="kmFinal" min="0" />
+          </label>
+
+          <label class="field" [class.invalid]="formularioDiario.get('destino')?.invalid && formularioDiario.get('destino')?.touched">
+            Destino (*)
+            <input type="text" formControlName="destino" placeholder="Local visitado" />
+          </label>
+
+          <label class="field full">
+            Observacoes
+            <textarea formControlName="observacoes" rows="3"></textarea>
+          </label>
+        </div>
+
+        <div class="resumo-viagem">
+          <div class="resumo-viagem__item">
+            <p class="resumo-viagem__label">Km rodados</p>
+            <p class="resumo-viagem__value">{{ formatarNumero(kmRodadosCalculado, 1) }}</p>
+          </div>
+          <div class="resumo-viagem__item">
+            <p class="resumo-viagem__label">Media de consumo (km/L)</p>
+            <p class="resumo-viagem__value">{{ formatarNumero(mediaConsumoCalculada, 2) }}</p>
+          </div>
+          <div class="resumo-viagem__item">
+            <p class="resumo-viagem__label">Combustivel consumido (L)</p>
+            <p class="resumo-viagem__value">{{ formatarNumero(combustivelConsumidoCalculado, 2) }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="list-card__eyebrow">Registros do diario</p>
+            <p class="list-card__title">Selecione um registro para editar.</p>
+          </div>
+          <div class="list-card__actions">
+            <span class="muted">Total: {{ registros.length }}</span>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Veiculo</th>
+              <th>Condutor</th>
+              <th>Km rodados</th>
+              <th>Media (km/L)</th>
+              <th>Combustivel (L)</th>
+              <th>Destino</th>
+              <th class="text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="registros.length; else semRegistros">
+            <tr *ngFor="let registro of registros">
+              <td>{{ registro.data | date : 'dd/MM/yyyy' }}</td>
+              <td>{{ obterDescricaoVeiculo(registro.veiculoId) }}</td>
+              <td>{{ registro.condutor }}</td>
+              <td>{{ formatarNumero(registro.kmRodados, 1) }}</td>
+              <td>{{ formatarNumero(registro.mediaConsumo, 2) }}</td>
+              <td>{{ formatarNumero(registro.combustivelConsumidoLitros, 2) }}</td>
+              <td>{{ registro.destino }}</td>
+              <td class="text-right">
+                <button type="button" class="ghost" (click)="selecionarRegistro(registro)">
+                  Selecionar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #semRegistros>
+          <p class="empty">Nenhum registro de bordo cadastrado ate o momento.</p>
+        </ng-template>
+      </section>
+    </form>
+  </section>
+
+  <app-dialog
+    [aberto]="dialogoExclusaoAberto"
+    [titulo]="dialogoTitulo"
+    [mensagem]="dialogoMensagem"
+    [confirmarLabel]="dialogoConfirmarLabel"
+    (confirmar)="confirmarExclusao()"
+    (cancelar)="cancelarExclusao()"
+  ></app-dialog>
+</app-tela-padrao>

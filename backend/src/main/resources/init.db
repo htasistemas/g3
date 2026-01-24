@@ -2890,4 +2890,47 @@ CREATE INDEX IF NOT EXISTS emprestimos_eventos_status_idx
 CREATE INDEX IF NOT EXISTS emprestimos_eventos_itens_item_idx
   ON emprestimos_eventos_itens (item_id, tipo_item);
 
+CREATE TABLE IF NOT EXISTS controle_veiculos (
+  id BIGSERIAL PRIMARY KEY,
+  placa VARCHAR(20) NOT NULL,
+  modelo VARCHAR(120) NOT NULL,
+  marca VARCHAR(120) NOT NULL,
+  ano INTEGER NOT NULL,
+  tipo_combustivel VARCHAR(60) NOT NULL,
+  media_consumo_padrao NUMERIC(12, 2),
+  capacidade_tanque_litros NUMERIC(10, 2),
+  observacoes TEXT,
+  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS controle_veiculos_placa_idx
+  ON controle_veiculos (placa);
+
+
+CREATE TABLE IF NOT EXISTS controle_veiculos_diario (
+  id BIGSERIAL PRIMARY KEY,
+  veiculo_id BIGINT NOT NULL REFERENCES controle_veiculos(id) ON DELETE CASCADE,
+  data DATE NOT NULL,
+  condutor VARCHAR(150) NOT NULL,
+  horario_saida TIME NOT NULL,
+  km_inicial NUMERIC(12, 2) NOT NULL,
+  horario_chegada TIME NOT NULL,
+  km_final NUMERIC(12, 2) NOT NULL,
+  destino VARCHAR(200) NOT NULL,
+  combustivel_consumido_litros NUMERIC(12, 2) NOT NULL,
+  km_rodados NUMERIC(12, 2) NOT NULL,
+  media_consumo NUMERIC(12, 2) NOT NULL,
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS controle_veiculos_diario_veiculo_idx
+  ON controle_veiculos_diario (veiculo_id);
+
+CREATE INDEX IF NOT EXISTS controle_veiculos_diario_data_idx
+  ON controle_veiculos_diario (data DESC);
+
 

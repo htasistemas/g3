@@ -33,7 +33,11 @@ public interface ContabilidadeService {
 
   MovimentacaoFinanceiraResponse criarMovimentacao(MovimentacaoFinanceiraRequest request);
 
+  MovimentacaoFinanceiraResponse atualizarMovimentacao(Long id, MovimentacaoFinanceiraRequest request);
+
   List<MovimentacaoFinanceiraResponse> listarMovimentacoes();
+
+  void removerMovimentacao(Long id);
 
   EmendaImpositivaResponse criarEmenda(EmendaImpositivaRequest request);
 

@@ -47,7 +47,8 @@ public class GerenciamentoDadosController {
   }
 
   @PostMapping("/backups/{backupId}/restaurar")
-  public GerenciamentoDadosRestauracaoResponse restaurarBackup(@PathVariable Long backupId) {
+  public GerenciamentoDadosRestauracaoResponse restaurarBackup(
+      @PathVariable("backupId") Long backupId) {
     return service.restaurarBackup(backupId);
   }
 }

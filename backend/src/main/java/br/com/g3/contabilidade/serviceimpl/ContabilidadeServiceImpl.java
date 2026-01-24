@@ -253,11 +253,61 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
   }
 
   @Override
+  @Transactional
+  public MovimentacaoFinanceiraResponse atualizarMovimentacao(Long id, MovimentacaoFinanceiraRequest request) {
+    MovimentacaoFinanceira movimentacao =
+        movimentacaoRepository
+            .buscarPorId(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    ContaBancaria contaAnterior = movimentacao.getContaBancaria();
+    if (contaAnterior != null) {
+      reverterSaldoConta(contaAnterior, movimentacao);
+    }
+
+    ContaBancaria contaNova = null;
+    if (request.getContaBancariaId() != null) {
+      contaNova =
+          contaRepository
+              .buscarPorId(request.getContaBancariaId())
+              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    movimentacao.setTipo(request.getTipo());
+    movimentacao.setDescricao(request.getDescricao());
+    movimentacao.setContraparte(request.getContraparte());
+    movimentacao.setCategoria(request.getCategoria());
+    movimentacao.setDataMovimentacao(request.getDataMovimentacao());
+    movimentacao.setValor(normalizarValor(request.getValor()));
+    movimentacao.setContaBancaria(contaNova);
+
+    if (contaNova != null) {
+      atualizarSaldoConta(contaNova, movimentacao);
+    }
+
+    MovimentacaoFinanceira salvo = movimentacaoRepository.salvar(movimentacao);
+    return mapMovimentacao(salvo, contaNova);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<MovimentacaoFinanceiraResponse> listarMovimentacoes() {
     return movimentacaoRepository.listar().stream()
         .map(this::mapMovimentacao)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional
+  public void removerMovimentacao(Long id) {
+    MovimentacaoFinanceira movimentacao =
+        movimentacaoRepository
+            .buscarPorId(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    ContaBancaria conta = movimentacao.getContaBancaria();
+    if (conta != null) {
+      reverterSaldoConta(conta, movimentacao);
+    }
+    movimentacaoRepository.remover(id);
   }
 
   @Override
@@ -366,6 +416,21 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
       novoSaldo = saldoAtual.add(valor);
     } else {
       novoSaldo = saldoAtual.subtract(valor);
+    }
+    conta.setSaldo(novoSaldo);
+    conta.setDataAtualizacao(movimentacao.getDataMovimentacao());
+    conta.setAtualizadoEm(LocalDateTime.now());
+    contaRepository.salvar(conta);
+  }
+
+  private void reverterSaldoConta(ContaBancaria conta, MovimentacaoFinanceira movimentacao) {
+    BigDecimal saldoAtual = conta.getSaldo() == null ? BigDecimal.ZERO : conta.getSaldo();
+    BigDecimal valor = movimentacao.getValor() == null ? BigDecimal.ZERO : movimentacao.getValor();
+    BigDecimal novoSaldo;
+    if ("ENTRADA".equalsIgnoreCase(movimentacao.getTipo())) {
+      novoSaldo = saldoAtual.subtract(valor);
+    } else {
+      novoSaldo = saldoAtual.add(valor);
     }
     conta.setSaldo(novoSaldo);
     conta.setDataAtualizacao(movimentacao.getDataMovimentacao());
