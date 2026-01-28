@@ -10,8 +10,6 @@ frontend/node_modules
 backend-antigo/node_modules
 backend-antigo/dist
 frontend/dist
-frontend/env-config.js
-frontend/public/env-config.js
 backend-antigo/data
 backend/*.sqlite
 .env

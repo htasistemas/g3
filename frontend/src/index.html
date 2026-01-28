@@ -18,7 +18,10 @@
   >
 </head>
 <body class="bg-slate-100">
-  <script src="env-config.js"></script>
+  <script>
+    window.__env = window.__env || {};
+    window.__env.apiUrl = '__ENV_API_URL__';
+  </script>
   <app-root></app-root>
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
