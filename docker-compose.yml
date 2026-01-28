@@ -34,6 +34,18 @@ services:
     depends_on:
       - backend
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - default
+
 volumes:
   db_data:
   backend_storage:
