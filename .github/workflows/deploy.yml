@@ -1,36 +1,59 @@
-name: Deploy
+name: Deploy Docker G3
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ "main" ]
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+
     steps:
-      - name: Checkout repository
+      - name: Checkout do codigo
         uses: actions/checkout@v4
-
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            set -e
+          fetch-depth: 0
 
-            if [ ! -d "$HOME/g3" ]; then
-              git clone ${{ github.server_url }}/${{ github.repository }} "$HOME/g3"
-            fi
+      - name: Incrementar versao e atualizar containers
+        run: |
+          set -e
 
-            cd "$HOME/g3"
-            git fetch origin ${{ github.ref_name }}
-            git checkout ${{ github.ref_name }}
-            git reset --hard origin/${{ github.ref_name }}
+          arquivoVersao="backend/src/main/resources/static/version.txt"
 
-            docker compose down --remove-orphans
-            docker compose up -d --build --remove-orphans
+          if [ ! -f "$arquivoVersao" ]; then
+            echo "Arquivo de versao nao encontrado: $arquivoVersao"
+            exit 1
+          fi
+
+          versaoAtual=$(cat "$arquivoVersao" | tr -d '[:space:]')
+          major=$(echo "$versaoAtual" | cut -d. -f1)
+          minor=$(echo "$versaoAtual" | cut -d. -f2)
+          patch=$(echo "$versaoAtual" | cut -d. -f3)
+
+          if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
+            echo "Formato de versao invalido: $versaoAtual"
+            exit 1
+          fi
+
+          patch=$((10#$patch + 1))
+          novaVersao="${major}.${minor}.${patch}"
+          echo "$novaVersao" > "$arquivoVersao"
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          git add "$arquivoVersao"
+          git commit -m "chore: atualiza versao para ${novaVersao} [skip ci]"
+          git push origin "${GITHUB_REF_NAME}"
+
+          docker compose down --remove-orphans
+          docker compose up -d --build --remove-orphans
+
+          echo "Aguardando backend subir..."
+          sleep 20
+
+          status=$(docker inspect -f '{{.State.Status}}' g3-backend)
+          if [ "$status" != "running" ]; then
+            echo "Erro: g3-backend esta com status $status"
+            exit 1
+          fi

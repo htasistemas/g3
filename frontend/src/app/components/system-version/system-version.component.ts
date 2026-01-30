@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ConfigService, HistoricoVersaoResponse } from '../../services/config.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-system-version',
@@ -14,15 +13,17 @@ import { environment } from '../../../environments/environment';
 })
 export class SystemVersionComponent implements OnInit, OnDestroy {
   currentVersion = '';
-  versaoDisponivel = environment.version || '';
+  versaoDisponivel = '';
   historicoVersoes: HistoricoVersaoResponse[] = [];
   carregandoVersao = false;
+  carregandoVersaoDisponivel = false;
   carregandoHistorico = false;
   erroVersao: string | null = null;
+  erroVersaoDisponivel: string | null = null;
   erroHistorico: string | null = null;
   atualizandoVersao = false;
   feedbackAtualizacao: string | null = null;
-  private readonly versaoAlvo = '1.00.7';
+  private versaoAlvo = '';
   private readonly resumoAtualizacao =
     'Controle de veiculos com persistencia no banco e ajustes no layout da tela.';
 
@@ -34,8 +35,8 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.versaoDisponivel = this.versaoAlvo;
     this.recarregarDados();
+    this.loadVersaoDisponivel();
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -44,6 +45,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         if (this.router.url.includes('/configuracoes/versao')) {
           this.recarregarDados();
+          this.loadVersaoDisponivel();
         }
       });
   }
@@ -87,6 +89,25 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
       },
       complete: () => {
         this.carregandoHistorico = false;
+      }
+    });
+  }
+
+  loadVersaoDisponivel(): void {
+    this.carregandoVersaoDisponivel = true;
+    this.erroVersaoDisponivel = null;
+    this.configService.getVersaoArquivo().subscribe({
+      next: (versao) => {
+        const versaoLimpa = (versao || '').trim();
+        this.versaoDisponivel = versaoLimpa;
+        this.versaoAlvo = versaoLimpa;
+        this.atualizarVersaoSistemaSeNecessario();
+      },
+      error: () => {
+        this.erroVersaoDisponivel = 'Nao foi possivel carregar a versao disponivel.';
+      },
+      complete: () => {
+        this.carregandoVersaoDisponivel = false;
       }
     });
   }
