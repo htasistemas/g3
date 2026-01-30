@@ -1,12 +1,15 @@
 import packageJson from '../../package.json';
 
-const runtimeApiUrl =
-  typeof window !== 'undefined'
-    ? ((window as any).__env?.apiUrl as string | undefined)
-    : undefined;
+const obterApiUrlRuntime = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  const apiUrl = (window as any).__env?.apiUrl as string | undefined;
+  const normalizado = (apiUrl ?? '').trim();
+  if (!normalizado || normalizado === '__ENV_API_URL__') return undefined;
+  return normalizado;
+};
 
 export const environment = {
   production: false,
-  apiUrl: runtimeApiUrl ?? 'http://localhost:8080',
+  apiUrl: obterApiUrlRuntime() ?? 'http://localhost:8080',
   version: packageJson.version
 };
