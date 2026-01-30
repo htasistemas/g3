@@ -4,9 +4,13 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: self-hosted
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
       - name: Checkout do codigo
@@ -16,7 +20,7 @@ jobs:
 
       - name: Incrementar versao e atualizar containers
         run: |
-          set -e
+          set -euo pipefail
 
           arquivoVersao="backend/src/main/resources/static/version.txt"
 
@@ -50,10 +54,20 @@ jobs:
           docker compose up -d --build --remove-orphans
 
           echo "Aguardando backend subir..."
-          sleep 20
+          for i in {1..20}; do
+            if curl -fsS http://localhost:8080/health > /dev/null; then
+              echo "Backend respondeu /health"
+              break
+            fi
+            sleep 3
+          done
 
-          status=$(docker inspect -f '{{.State.Status}}' g3-backend)
-          if [ "$status" != "running" ]; then
-            echo "Erro: g3-backend esta com status $status"
+          if ! curl -fsS http://localhost:8080/health > /dev/null; then
+            echo "Erro: backend nao respondeu /health"
+            exit 1
+          fi
+
+          if ! curl -fsS http://localhost/ > /dev/null; then
+            echo "Erro: frontend nao respondeu"
             exit 1
           fi

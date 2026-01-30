@@ -13,3 +13,4 @@ frontend/dist
 backend-antigo/data
 backend/*.sqlite
 .env
+actions-runner
