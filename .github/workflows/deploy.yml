@@ -49,6 +49,11 @@ jobs:
           git commit -m "chore: atualiza versao para ${novaVersao} [skip ci]"
           git push origin "${GITHUB_REF_NAME}"
 
+          # Garante que o compose tenha acesso ao TUNNEL_TOKEN (e demais variaveis)
+          if [ -f /home/srv/g3/.env ]; then
+            cp /home/srv/g3/.env ./.env
+          fi
+
           docker compose down --remove-orphans
           docker compose up -d --build --remove-orphans
 
