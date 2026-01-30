@@ -1,8 +1,7 @@
 name: Deploy Docker G3
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: write
