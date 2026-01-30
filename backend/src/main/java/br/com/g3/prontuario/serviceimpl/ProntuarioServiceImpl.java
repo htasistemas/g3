@@ -102,6 +102,9 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     long totalEncaminhamentos = encaminhamentos != null ? encaminhamentos.getTotal() : 0;
     long encaminhamentosConcluidos = encaminhamentos != null ? encaminhamentos.getConcluidos() : 0;
     indicadores.setTotalAtendimentos(contagens.getOrDefault("atendimento", 0L));
+    indicadores.setTotalDoacoes(contarDoacoes(beneficiarioId));
+    indicadores.setTotalCestas(contarCestas(beneficiarioId));
+    indicadores.setTotalCursos(contarCursosParticipados(resumo.getCpf(), resumo.getNomeCompleto()));
     indicadores.setTotalEncaminhamentos(totalEncaminhamentos);
     indicadores.setTaxaEncaminhamentosConcluidos(
         totalEncaminhamentos > 0
@@ -324,5 +327,36 @@ public class ProntuarioServiceImpl implements ProntuarioService {
     List<String> familias =
         jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString(1), beneficiarioId);
     return familias.isEmpty() ? null : familias.get(0);
+  }
+
+  private long contarDoacoes(Long beneficiarioId) {
+    String sql = "SELECT COUNT(*) FROM doacao_realizada WHERE beneficiario_id = ?";
+    Long total = jdbcTemplate.queryForObject(sql, Long.class, beneficiarioId);
+    return total != null ? total : 0L;
+  }
+
+  private long contarCestas(Long beneficiarioId) {
+    String sql =
+        "SELECT COUNT(*) FROM doacao_realizada WHERE beneficiario_id = ? AND LOWER(tipo_doacao) LIKE '%cesta%'";
+    Long total = jdbcTemplate.queryForObject(sql, Long.class, beneficiarioId);
+    return total != null ? total : 0L;
+  }
+
+  private long contarCursosParticipados(String cpf, String nomeCompleto) {
+    if (cpf != null && !cpf.trim().isEmpty()) {
+      String sql =
+          "SELECT COUNT(DISTINCT curso_id) FROM cursos_atendimentos_matriculas WHERE cpf = ?";
+      Long total = jdbcTemplate.queryForObject(sql, Long.class, cpf.trim());
+      return total != null ? total : 0L;
+    }
+
+    if (nomeCompleto == null || nomeCompleto.trim().isEmpty()) {
+      return 0L;
+    }
+
+    String sql =
+        "SELECT COUNT(DISTINCT curso_id) FROM cursos_atendimentos_matriculas WHERE LOWER(beneficiario_nome) = LOWER(?)";
+    Long total = jdbcTemplate.queryForObject(sql, Long.class, nomeCompleto.trim());
+    return total != null ? total : 0L;
   }
 }

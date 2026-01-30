@@ -3,8 +3,6 @@
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
   (imprimir)="imprimirCompleto()"
-  (novo)="abrirNovoRegistro()"
-  (cancelar)="cancelarSelecao()"
   (buscar)="onBuscar()"
   (fechar)="cancelarSelecao()"
 >
@@ -25,6 +23,8 @@
         [filtros]="filtros"
         [beneficiarioSelecionado]="beneficiarioSelecionado"
         [opcoesBeneficiarios]="opcoesBeneficiarios"
+        [opcoesProfissionais]="opcoesProfissionais"
+        [opcoesUnidades]="opcoesUnidades"
         [termoBusca]="termoBusca"
         [carregandoBeneficiarios]="carregandoBeneficiarios"
         [erroBeneficiarios]="erroBeneficiarios"
@@ -62,9 +62,6 @@
             </span>
           </div>
           <div class="resumo-card__actions">
-            <button class="primary" type="button" (click)="abrirNovoRegistro('atendimento')">Novo atendimento</button>
-            <button class="ghost" type="button" (click)="abrirNovoRegistro('encaminhamento')">Novo encaminhamento</button>
-            <button class="ghost" type="button" (click)="abrirNovoRegistro('evolucao')">Nova evolucao/registro</button>
             <button class="ghost" type="button" (click)="imprimirResumo()">Imprimir resumo</button>
             <button class="ghost" type="button" (click)="imprimirCompleto()">Imprimir prontuario completo</button>
           </div>
@@ -108,13 +105,16 @@
             <app-prontuario-timeline
               *ngIf="abaAtiva !== 'indicadores'"
               [registros]="registros"
+              [mapaProfissionais]="mapaProfissionais"
+              [mapaUnidades]="mapaUnidades"
               [total]="totalRegistros"
               [carregando]="carregandoRegistros"
               [pagina]="filtros.page || 0"
               [tamanhoPagina]="filtros.pageSize || 10"
-              (editar)="editarRegistro($event)"
-              (remover)="abrirDialogoExcluir($event)"
               (carregarMais)="carregarMais()"
+              (filtrarTipo)="aplicarFiltroTipo($event)"
+              (filtrarProfissional)="aplicarFiltroProfissional($event)"
+              (filtrarUnidade)="aplicarFiltroUnidade($event)"
             ></app-prontuario-timeline>
 
             <div *ngIf="abaAtiva === 'indicadores'">
@@ -133,24 +133,6 @@
       <div class="empty-state">Selecione um beneficiÃ¡rio para visualizar o prontuario.</div>
     </ng-template>
   </section>
-
-  <app-prontuario-form-modal
-    [aberto]="modalAberto"
-    [registro]="registroEmEdicao"
-    [tipoInicial]="tipoNovoRegistro"
-    (salvar)="salvarRegistro($event)"
-    (fechar)="fecharModal()"
-  ></app-prontuario-form-modal>
-
-  <app-dialog
-    [aberto]="dialogoExcluirAberto"
-    titulo="Excluir registro"
-    mensagem="Deseja excluir este registro do prontuario?"
-    confirmarLabel="Excluir"
-    cancelarLabel="Cancelar"
-    (confirmar)="removerRegistroConfirmado()"
-    (cancelar)="fecharDialogoExcluir()"
-  ></app-dialog>
 
   <div class="print-area" [class.print-area--active]="modoImpressao === 'resumo'">
     <h1>ProntuÃ¡rio - Resumo</h1>

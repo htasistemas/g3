@@ -16,6 +16,7 @@ import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { TarefasPendenciasService } from '../services/tarefas-pendencias.service';
 
 @Component({
   selector: 'app-layout',
@@ -43,13 +44,17 @@ export class LayoutComponent implements OnInit, OnDestroy {
   openSection: string | null = null;
 
   menuSections: MenuItem[] = [];
+  tarefasAbertas = 0;
+  tarefasVencidas = 0;
+  private tarefasRefreshId?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly auth: AuthService,
     private readonly assistanceUnitService: AssistanceUnitService,
     public readonly themeService: ThemeService,
     private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly tarefasService: TarefasPendenciasService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +71,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
         const deepest = this.findDeepestChild(this.activatedRoute);
         this.pageTitle = deepest.snapshot.data['title'] || 'Visao geral';
       });
+
+    this.carregarResumoTarefas();
+    this.tarefasRefreshId = setInterval(() => {
+      this.carregarResumoTarefas();
+    }, 30000);
   }
 
   get username(): string {
@@ -98,8 +108,23 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.tarefasRefreshId) {
+      clearInterval(this.tarefasRefreshId);
+    }
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  abrirTarefas(): void {
+    this.router.navigate(['administrativo/tarefas']);
+  }
+
+  abrirTarefasAbertas(): void {
+    this.router.navigate(['administrativo/tarefas'], { queryParams: { filtro: 'abertas' } });
+  }
+
+  abrirTarefasVencidas(): void {
+    this.router.navigate(['administrativo/tarefas'], { queryParams: { filtro: 'vencidas' } });
   }
 
   private findDeepestChild(route: ActivatedRoute): ActivatedRoute {
@@ -124,6 +149,24 @@ export class LayoutComponent implements OnInit, OnDestroy {
         return { ...section, children };
       })
       .filter((section) => (section.children ?? []).length > 0);
+  }
+
+  private carregarResumoTarefas(): void {
+    this.tarefasService.list().subscribe({
+      next: (tarefas) => {
+        const abertas = tarefas.filter((item) => item.status !== 'Concluída');
+        this.tarefasAbertas = abertas.length;
+        this.tarefasVencidas = abertas.filter((item) => {
+          const prazo = new Date(item.prazo ?? '');
+          if (Number.isNaN(prazo.getTime())) return false;
+          return prazo < new Date();
+        }).length;
+      },
+      error: () => {
+        this.tarefasAbertas = 0;
+        this.tarefasVencidas = 0;
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])

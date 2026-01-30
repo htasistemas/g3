@@ -74,6 +74,15 @@
     <header class="app-header">
       <div class="app-header__spacer" aria-hidden="true"></div>
       <div class="app-header__actions">
+        <div class="tarefas-chip">
+          <button type="button" class="tarefas-chip__button" (click)="abrirTarefas()">Tarefas</button>
+          <button type="button" class="tarefas-chip__item" (click)="abrirTarefasAbertas()">
+            Abertas: {{ tarefasAbertas }}
+          </button>
+          <button type="button" class="tarefas-chip__item tarefas-chip__item--alerta" (click)="abrirTarefasVencidas()">
+            Vencidas: {{ tarefasVencidas }}
+          </button>
+        </div>
         <span class="user-chip">
           <fa-icon [icon]="faUserCircle" class="text-white"></fa-icon>
           <span class="capitalize">{{ username }}</span>

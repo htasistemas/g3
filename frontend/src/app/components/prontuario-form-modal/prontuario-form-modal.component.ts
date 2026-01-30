@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { titleCaseWords } from '../../utils/capitalization.util';
+import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 import {
   ProntuarioAnexoRequest,
   ProntuarioRegistroRequest,
@@ -13,7 +14,7 @@ type TipoRegistro = ProntuarioRegistroRequest['tipo'];
 @Component({
   selector: 'app-prontuario-form-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AutocompleteComponent],
   templateUrl: './prontuario-form-modal.component.html',
   styleUrl: './prontuario-form-modal.component.scss'
 })
@@ -21,12 +22,16 @@ export class ProntuarioFormModalComponent implements OnChanges {
   @Input() aberto = false;
   @Input() registro: ProntuarioRegistroResponse | null = null;
   @Input() tipoInicial: ProntuarioRegistroRequest['tipo'] | null = null;
+  @Input() opcoesProfissionais: AutocompleteOpcao[] = [];
+  @Input() opcoesUnidades: AutocompleteOpcao[] = [];
+  @Input() unidadePrincipalId: number | null = null;
 
   @Output() salvar = new EventEmitter<{ registro: ProntuarioRegistroRequest; anexo?: ProntuarioAnexoRequest }>();
   @Output() fechar = new EventEmitter<void>();
 
   formulario: FormGroup;
   mostrarErros = false;
+  termoProfissional = '';
 
   constructor(private readonly fb: FormBuilder) {
     this.formulario = this.fb.group({
@@ -77,6 +82,34 @@ export class ProntuarioFormModalComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['registro'] || changes['tipoInicial']) {
       this.preencherFormulario();
+    }
+    if (changes['opcoesProfissionais'] && !this.registro) {
+      this.definirProfissionalPadrao();
+    }
+    if (changes['opcoesUnidades'] && !this.registro) {
+      this.definirUnidadePadrao();
+    }
+  }
+
+  get opcoesProfissionaisFiltradas(): AutocompleteOpcao[] {
+    const termo = this.termoProfissional.trim().toLowerCase();
+    if (!termo) {
+      return this.opcoesProfissionais;
+    }
+    return this.opcoesProfissionais.filter((opcao) =>
+      [opcao.label, opcao.sublabel].filter(Boolean).some((valor) => valor!.toLowerCase().includes(termo))
+    );
+  }
+
+  selecionarProfissional(opcao: AutocompleteOpcao): void {
+    this.formulario.patchValue({ profissionalId: opcao.id });
+    this.termoProfissional = opcao.label;
+  }
+
+  atualizarTermoProfissional(valor: string): void {
+    this.termoProfissional = valor;
+    if (!valor) {
+      this.formulario.patchValue({ profissionalId: '' });
     }
   }
 
@@ -240,7 +273,7 @@ export class ProntuarioFormModalComponent implements OnChanges {
         tipo: this.tipoInicial ?? 'atendimento',
         dataRegistro: '',
         profissionalId: '',
-        unidadeId: '',
+        unidadeId: this.unidadePrincipalId ?? '',
         familiaId: '',
         titulo: '',
         descricao: '',
@@ -274,6 +307,8 @@ export class ProntuarioFormModalComponent implements OnChanges {
         anexoUrl: '',
         anexoTipo: ''
       });
+      this.termoProfissional = '';
+      this.definirUnidadePadrao();
       return;
     }
 
@@ -316,7 +351,34 @@ export class ProntuarioFormModalComponent implements OnChanges {
       anexoUrl: '',
       anexoTipo: ''
     });
+    this.termoProfissional = this.obterNomeProfissional(this.registro.profissionalId ?? null);
     this.configurarValidacoes(this.registro.tipo);
+  }
+
+  private definirProfissionalPadrao(): void {
+    if (this.registro || this.formulario.get('profissionalId')?.value) {
+      return;
+    }
+    if (this.opcoesProfissionais.length === 1) {
+      const opcao = this.opcoesProfissionais[0];
+      this.formulario.patchValue({ profissionalId: opcao.id });
+      this.termoProfissional = opcao.label;
+    }
+  }
+
+  private definirUnidadePadrao(): void {
+    if (this.registro) {
+      return;
+    }
+    if (this.unidadePrincipalId) {
+      this.formulario.patchValue({ unidadeId: this.unidadePrincipalId });
+    }
+  }
+
+  private obterNomeProfissional(id: number | null): string {
+    if (!id) return '';
+    const opcao = this.opcoesProfissionais.find((item) => Number(item.id) === id);
+    return opcao?.label ?? '';
   }
 
   private configurarValidacoes(tipo: TipoRegistro): void {

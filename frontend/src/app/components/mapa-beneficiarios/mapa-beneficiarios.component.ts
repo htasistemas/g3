@@ -169,7 +169,6 @@ export class MapaBeneficiariosComponent
             (item) => !this.enderecoCompleto(item),
           ).length;
           this.atualizarMapaCompleto();
-          this.atualizarCoordenadasPendentes(true);
           this.notificarEnderecoIncompleto();
         },
         error: () => {

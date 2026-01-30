@@ -39,9 +39,12 @@ import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-si
 import { OcorrenciasCriancaComponent } from './components/ocorrencias-crianca/ocorrencias-crianca.component';
 import { ControleVeiculosComponent } from './components/controle-veiculos/controle-veiculos.component';
 import { BibliotecaGestaoComponent } from './components/biblioteca-gestao/biblioteca-gestao.component';
+import { SenhasChamarComponent } from './components/senhas-chamar/senhas-chamar.component';
+import { SenhasPainelComponent } from './components/senhas-painel/senhas-painel.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'senhas/painel', component: SenhasPainelComponent, data: { title: 'Painel de senhas' } },
   {
     path: '',
     component: LayoutComponent,
@@ -112,6 +115,11 @@ export const routes: Routes = [
         path: 'atendimentos/ocorrencias-crianca',
         component: OcorrenciasCriancaComponent,
         data: { title: 'Ocorrencias' }
+      },
+      {
+        path: 'senhas/chamar',
+        component: SenhasChamarComponent,
+        data: { title: 'Chamada de senhas' }
       },
       {
         path: 'atendimentos/biblioteca',

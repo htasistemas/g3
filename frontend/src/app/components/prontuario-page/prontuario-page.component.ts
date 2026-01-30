@@ -3,11 +3,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
+import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import {
   BeneficiarioResumo,
-  ProntuarioAnexoRequest,
   ProntuarioFiltro,
-  ProntuarioRegistroRequest,
   ProntuarioRegistroResponse,
   ProntuarioResumoResponse,
   ProntuarioService
@@ -16,10 +16,8 @@ import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.co
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { ProntuarioFiltrosComponent } from '../prontuario-filtros/prontuario-filtros.component';
 import { ProntuarioTimelineComponent } from '../prontuario-timeline/prontuario-timeline.component';
-import { ProntuarioFormModalComponent } from '../prontuario-form-modal/prontuario-form-modal.component';
 import { ProntuarioIndicadoresComponent } from '../prontuario-indicadores/prontuario-indicadores.component';
 import { AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
-import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 
 @Component({
   selector: 'app-prontuario-page',
@@ -31,9 +29,7 @@ import { DialogComponent } from '../compartilhado/dialog/dialog.component';
     PopupMessagesComponent,
     ProntuarioFiltrosComponent,
     ProntuarioTimelineComponent,
-    ProntuarioFormModalComponent,
-    ProntuarioIndicadoresComponent,
-    DialogComponent
+    ProntuarioIndicadoresComponent
   ],
   templateUrl: './prontuario-page.component.html',
   styleUrl: './prontuario-page.component.scss'
@@ -53,11 +49,14 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
   carregandoBeneficiarios = false;
   erroBeneficiarios: string | null = null;
 
-  modalAberto = false;
-  registroEmEdicao: ProntuarioRegistroResponse | null = null;
-  tipoNovoRegistro: ProntuarioRegistroRequest['tipo'] | null = null;
-  dialogoExcluirAberto = false;
-  registroParaExcluir: ProntuarioRegistroResponse | null = null;
+  profissionais: ProfessionalRecord[] = [];
+  opcoesProfissionais: AutocompleteOpcao[] = [];
+  unidadesAssistenciais: AssistanceUnitPayload[] = [];
+  opcoesUnidades: AutocompleteOpcao[] = [];
+  unidadePrincipal: AssistanceUnitPayload | null = null;
+
+  mapaProfissionais: Record<number, string> = {};
+  mapaUnidades: Record<number, string> = {};
 
   modoImpressao: 'resumo' | 'completo' | null = null;
 
@@ -80,17 +79,12 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   acoesTopo = {
-    salvar: true,
-    excluir: true,
     imprimir: true,
-    novo: true,
-    cancelar: true,
     buscar: true
   };
 
   acoesDesabilitadas = {
-    salvar: true,
-    excluir: true,
+    imprimir: false,
     buscar: false
   };
 
@@ -98,7 +92,9 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly prontuarioService: ProntuarioService,
-    private readonly beneficiarioService: BeneficiarioApiService
+    private readonly beneficiarioService: BeneficiarioApiService,
+    private readonly professionalService: ProfessionalService,
+    private readonly unidadeService: AssistanceUnitService
   ) {}
 
   ngOnInit(): void {
@@ -118,6 +114,9 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     this.buscarBeneficiario$
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((termo) => this.buscarBeneficiarios(termo));
+
+    this.carregarProfissionais();
+    this.carregarUnidadesAssistenciais();
   }
 
   ngOnDestroy(): void {
@@ -172,73 +171,6 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     this.atualizarFiltros({ ...this.filtros, tipo });
   }
 
-  abrirNovoRegistro(tipo?: ProntuarioRegistroRequest['tipo']): void {
-    this.registroEmEdicao = null;
-    this.tipoNovoRegistro = tipo ?? this.obterTipoPorAba();
-    this.modalAberto = true;
-  }
-
-  editarRegistro(registro: ProntuarioRegistroResponse): void {
-    this.registroEmEdicao = registro;
-    this.tipoNovoRegistro = null;
-    this.modalAberto = true;
-  }
-
-  abrirDialogoExcluir(registro: ProntuarioRegistroResponse): void {
-    this.registroParaExcluir = registro;
-    this.dialogoExcluirAberto = true;
-  }
-
-  fecharDialogoExcluir(): void {
-    this.dialogoExcluirAberto = false;
-    this.registroParaExcluir = null;
-  }
-
-  fecharModal(): void {
-    this.modalAberto = false;
-  }
-
-  salvarRegistro(payload: { registro: ProntuarioRegistroRequest; anexo?: ProntuarioAnexoRequest }): void {
-    if (!this.beneficiarioId) {
-      return;
-    }
-    this.popupErros = [];
-    const request$ = this.registroEmEdicao
-      ? this.prontuarioService.atualizarRegistro(this.registroEmEdicao.id, payload.registro)
-      : this.prontuarioService.criarRegistro(this.beneficiarioId, payload.registro);
-    request$.subscribe({
-      next: (registro) => {
-        if (payload.anexo) {
-          this.prontuarioService.adicionarAnexo(registro.id, payload.anexo).subscribe();
-        }
-        this.modalAberto = false;
-        this.carregarResumo();
-        this.carregarRegistros(true);
-      },
-      error: () => {
-        this.popupErros = ['Não foi possível salvar o registro do prontuário.'];
-      }
-    });
-  }
-
-  removerRegistroConfirmado(): void {
-    const registro = this.registroParaExcluir;
-    if (!registro?.id) {
-      return;
-    }
-    this.prontuarioService.removerRegistro(registro.id).subscribe({
-      next: () => {
-        this.carregarResumo();
-        this.carregarRegistros(true);
-        this.fecharDialogoExcluir();
-      },
-      error: () => {
-        this.popupErros = ['Não foi possível remover o registro do prontuário.'];
-        this.fecharDialogoExcluir();
-      }
-    });
-  }
-
   carregarMais(): void {
     if (!this.beneficiarioId) {
       return;
@@ -267,9 +199,20 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     this.router.navigate(['/atendimentos/prontuario']);
   }
 
-  private obterTipoPorAba(): ProntuarioRegistroRequest['tipo'] | null {
-    const aba = this.abas.find((item) => item.id === this.abaAtiva);
-    return (aba?.tipo as ProntuarioRegistroRequest['tipo']) || 'atendimento';
+  aplicarFiltroTipo(tipo: string): void {
+    const aba = this.abas.find((item) => item.tipo === tipo);
+    if (aba) {
+      this.abaAtiva = aba.id;
+    }
+    this.atualizarFiltros({ ...this.filtros, tipo });
+  }
+
+  aplicarFiltroProfissional(id: number): void {
+    this.atualizarFiltros({ ...this.filtros, profissionalId: id });
+  }
+
+  aplicarFiltroUnidade(id: number): void {
+    this.atualizarFiltros({ ...this.filtros, unidadeId: id });
   }
 
   private carregarResumo(): void {
@@ -311,7 +254,8 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
   private buscarBeneficiarios(termo: string): void {
     this.carregandoBeneficiarios = true;
     this.erroBeneficiarios = null;
-    this.beneficiarioService.list({ nome: termo }).subscribe({
+    const params = this.montarParametrosBuscaBeneficiario(termo);
+    this.beneficiarioService.list(params).subscribe({
       next: ({ beneficiarios }) => {
         this.opcoesBeneficiarios = (beneficiarios ?? []).map((item: BeneficiarioApiPayload) => ({
           id: item.id_beneficiario ?? '',
@@ -329,5 +273,83 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
 
   get beneficiarioSelecionado(): BeneficiarioResumo | null {
     return this.resumo?.beneficiario ?? null;
+  }
+
+  private carregarProfissionais(): void {
+    this.professionalService.list().subscribe({
+      next: (profissionais) => {
+        this.profissionais = profissionais;
+        this.opcoesProfissionais = profissionais.map((profissional) => ({
+          id: Number(profissional.id),
+          label: profissional.nomeCompleto,
+          sublabel: profissional.especialidade || profissional.categoria
+        }));
+        this.mapaProfissionais = profissionais.reduce<Record<number, string>>((acc, profissional) => {
+          const id = Number(profissional.id);
+          if (!Number.isNaN(id)) {
+            acc[id] = profissional.nomeCompleto;
+          }
+          return acc;
+        }, {});
+      },
+      error: () => {
+        this.opcoesProfissionais = [];
+        this.mapaProfissionais = {};
+      }
+    });
+  }
+
+  private carregarUnidadesAssistenciais(): void {
+    this.unidadeService.list().subscribe({
+      next: (unidades) => {
+        this.unidadesAssistenciais = unidades ?? [];
+        this.unidadePrincipal =
+          unidades.find((unidade) => unidade.unidadePrincipal) || unidades[0] || null;
+        this.opcoesUnidades = unidades.map((unidade) => ({
+          id: unidade.id ?? 0,
+          label: unidade.nomeFantasia,
+          sublabel: unidade.cidade || unidade.estado
+        }));
+        this.mapaUnidades = unidades.reduce<Record<number, string>>((acc, unidade) => {
+          const id = unidade.id ?? 0;
+          if (id) {
+            acc[id] = unidade.nomeFantasia;
+          }
+          return acc;
+        }, {});
+      },
+      error: () => {
+        this.opcoesUnidades = [];
+        this.mapaUnidades = {};
+        this.unidadePrincipal = null;
+      }
+    });
+  }
+
+  private montarParametrosBuscaBeneficiario(termo: string): {
+    nome?: string;
+    cpf?: string;
+    codigo?: string;
+  } {
+    const valor = termo.trim();
+    if (!valor) return {};
+
+    const possuiLetra = /[a-zA-Z]/.test(valor);
+    const possuiEspaco = /\s/.test(valor);
+    const apenasNumeros = valor.replace(/\D/g, '');
+
+    if (apenasNumeros.length === 11) {
+      return { cpf: apenasNumeros };
+    }
+
+    if (possuiLetra && !possuiEspaco) {
+      return { codigo: valor };
+    }
+
+    if (!possuiLetra && apenasNumeros.length > 0) {
+      return { codigo: apenasNumeros };
+    }
+
+    return { nome: valor };
   }
 }

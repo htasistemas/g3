@@ -57,8 +57,7 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     CadastroBeneficiario salvo = repository.salvar(cadastro);
     adicionarDocumentosUpload(salvo, request);
     CadastroBeneficiario atualizado = repository.salvar(salvo);
-    CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
-    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(geocodificado);
+    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(atualizado);
     enviarEmailCadastro(response);
     return response;
   }
@@ -72,8 +71,7 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
     CadastroBeneficiario salvo = repository.salvar(cadastro);
     adicionarDocumentosUpload(salvo, request);
     CadastroBeneficiario atualizado = repository.salvar(salvo);
-    CadastroBeneficiario geocodificado = tentarGeocodificarEndereco(atualizado, false);
-    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(geocodificado);
+    CadastroBeneficiarioResponse response = CadastroBeneficiarioMapper.toResponse(atualizado);
     enviarEmailAtualizacao(response);
     return response;
   }

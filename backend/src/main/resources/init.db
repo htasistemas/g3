@@ -2988,9 +2988,252 @@ WHERE NOT EXISTS (
   WHERE versao = '1.00.7'
 );
 
+UPDATE versao_sistema
+SET versao = '1.00.8',
+  descricao = 'Dashboard de assistencia com acesso rapido a tarefas e indicadores de abertas e vencidas.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.8';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.8', 'Dashboard de assistencia com acesso rapido a tarefas e indicadores de abertas e vencidas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.8'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.9',
+  descricao = 'Prontuario social com busca aprimorada, selecao de unidade e linha do tempo interativa.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.9';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.9', 'Prontuario social com busca aprimorada, selecao de unidade e linha do tempo interativa.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.9'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.10',
+  descricao = 'Prontuario social somente leitura com indicadores de atendimentos, doacoes e cursos.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.10';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.10', 'Prontuario social somente leitura com indicadores de atendimentos, doacoes e cursos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.10'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.11',
+  descricao = 'Dashboard de assistencia com atalhos de tarefas no topo da aplicacao.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.11';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.11', 'Dashboard de assistencia com atalhos de tarefas no topo da aplicacao.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.11'
+);
+
+CREATE TABLE IF NOT EXISTS senha_fila (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT NOT NULL REFERENCES cadastro_beneficiario(id) ON DELETE RESTRICT,
+  status VARCHAR(20) NOT NULL,
+  prioridade INTEGER NOT NULL DEFAULT 0,
+  data_hora_entrada TIMESTAMP NOT NULL DEFAULT NOW(),
+  data_hora_atualizacao TIMESTAMP NOT NULL DEFAULT NOW(),
+  unidade_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  sala_atendimento VARCHAR(120)
+);
+
+ALTER TABLE senha_fila
+  ADD COLUMN IF NOT EXISTS sala_atendimento VARCHAR(120);
+
+CREATE INDEX IF NOT EXISTS senha_fila_status_idx
+  ON senha_fila (status);
+
+CREATE INDEX IF NOT EXISTS senha_fila_prioridade_data_idx
+  ON senha_fila (status, prioridade DESC, data_hora_entrada ASC);
+
+CREATE INDEX IF NOT EXISTS senha_fila_unidade_idx
+  ON senha_fila (unidade_id);
+
+CREATE TABLE IF NOT EXISTS senha_chamada (
+  id UUID PRIMARY KEY,
+  fila_id BIGINT NOT NULL REFERENCES senha_fila(id) ON DELETE CASCADE,
+  nome_beneficiario VARCHAR(200) NOT NULL,
+  local_atendimento VARCHAR(120) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  data_hora_chamada TIMESTAMP NOT NULL,
+  data_hora_criacao TIMESTAMP NOT NULL,
+  chamado_por VARCHAR(120) NOT NULL,
+  unidade_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  usuario_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS senha_config (
+  id BIGINT PRIMARY KEY,
+  frase_fala VARCHAR(300) NOT NULL,
+  rss_url VARCHAR(500) NOT NULL,
+  velocidade_ticker INT NOT NULL,
+  modo_noticias VARCHAR(20),
+  noticias_manuais TEXT,
+  quantidade_ultimas_chamadas INT NOT NULL,
+  unidade_painel_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL,
+  titulo_tela VARCHAR(120),
+  descricao_tela VARCHAR(200),
+  atualizado_em TIMESTAMP NOT NULL
+);
+
+ALTER TABLE senha_config
+  ADD COLUMN IF NOT EXISTS quantidade_ultimas_chamadas INT NOT NULL DEFAULT 4;
+
+ALTER TABLE senha_config
+  ADD COLUMN IF NOT EXISTS unidade_painel_id BIGINT REFERENCES unidade_assistencial(id) ON DELETE SET NULL;
+
+ALTER TABLE senha_config
+  ADD COLUMN IF NOT EXISTS modo_noticias VARCHAR(20);
+
+ALTER TABLE senha_config
+  ADD COLUMN IF NOT EXISTS noticias_manuais TEXT;
+
+UPDATE senha_config
+SET quantidade_ultimas_chamadas = 4
+WHERE quantidade_ultimas_chamadas IS NULL;
+
+UPDATE senha_config
+SET modo_noticias = 'RSS'
+WHERE modo_noticias IS NULL;
+
+INSERT INTO senha_config (
+  id,
+  frase_fala,
+  rss_url,
+  velocidade_ticker,
+  modo_noticias,
+  noticias_manuais,
+  quantidade_ultimas_chamadas,
+  unidade_painel_id,
+  titulo_tela,
+  descricao_tela,
+  atualizado_em
+)
+SELECT 1,
+  'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.',
+  'https://www.gov.br/pt-br/noticias/assistencia-social/RSS',
+  60,
+  'RSS',
+  NULL,
+  4,
+  NULL,
+  'Chamada de senhas',
+  'Controle de fila e chamada de beneficiarios.',
+  NOW()
+WHERE NOT EXISTS (SELECT 1 FROM senha_config WHERE id = 1);
+
+CREATE INDEX IF NOT EXISTS senha_chamada_data_idx
+  ON senha_chamada (data_hora_chamada DESC);
+
+CREATE INDEX IF NOT EXISTS senha_chamada_unidade_idx
+  ON senha_chamada (unidade_id);
+
+UPDATE versao_sistema
+SET versao = '1.00.12',
+  descricao = 'Integracao do painel e chamada de senhas no modulo monolitico do G3.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.12';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.12', 'Integracao do painel e chamada de senhas no modulo monolitico do G3.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.12'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.13',
+  descricao = 'Correcao do mapeamento da configuracao de senhas para a tabela correta.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.13';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.13', 'Correcao do mapeamento da configuracao de senhas para a tabela correta.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.13'
+);
+
 ALTER TABLE biblioteca_livros
   ADD COLUMN IF NOT EXISTS estado_livro VARCHAR(30);
 
 UPDATE biblioteca_livros
 SET estado_livro = 'Bom'
 WHERE estado_livro IS NULL;
+
+UPDATE senha_config
+SET frase_fala = 'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.',
+  atualizado_em = NOW()
+WHERE frase_fala IN (
+  'Beneficiario {beneficiario} dirija-se a sala {sala} para atendimento.',
+  'Beneficiario {beneficiario} dirija-se a {sala} para atendimento.'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.15',
+  descricao = 'Configuracao da quantidade de ultimas chamadas no painel de senhas.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.15';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.15', 'Configuracao da quantidade de ultimas chamadas no painel de senhas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.15'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.14',
+  descricao = 'Atualizacao do modelo padrao de chamada de senhas e ajuste de tela.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.14';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.14', 'Atualizacao do modelo padrao de chamada de senhas e ajuste de tela.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.14'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.16',
+  descricao = 'Configuracao da unidade exibida no topo do painel de senhas.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.16';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.16', 'Configuracao da unidade exibida no topo do painel de senhas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.16'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.17',
+  descricao = 'Selecao de noticias manuais ou via RSS no painel de senhas.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.17';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.17', 'Selecao de noticias manuais ou via RSS no painel de senhas.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.17'
+);
+
+

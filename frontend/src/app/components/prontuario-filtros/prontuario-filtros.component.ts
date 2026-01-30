@@ -16,6 +16,8 @@ export class ProntuarioFiltrosComponent {
   @Input() filtros: ProntuarioFiltro = {};
   @Input() beneficiarioSelecionado: BeneficiarioResumo | null = null;
   @Input() opcoesBeneficiarios: AutocompleteOpcao[] = [];
+  @Input() opcoesProfissionais: AutocompleteOpcao[] = [];
+  @Input() opcoesUnidades: AutocompleteOpcao[] = [];
   @Input() termoBusca = '';
   @Input() carregandoBeneficiarios = false;
   @Input() erroBeneficiarios: string | null = null;

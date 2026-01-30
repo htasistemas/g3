@@ -29,6 +29,9 @@
 - SHOULD preferir composição em vez de herança.
 - MUST NOT criar implementações temporárias sem registro técnico.
 - MUST NOT introduzir dependências sem justificativa técnica clara.
+- SHOULD implementar padrão global de Design System.
+- SHOULD ter biblioteca única de formulários.
+- SHOULD implementar auditoria automática (quem alterou o quê).
 
 ---
 
@@ -205,3 +208,19 @@
 - MUST registrar versão, data/hora e mudanças de forma objetiva.
 - MUST usar formato `1.00.0` e incrementar apenas o último grupo.
 - MUST NOT repetir número de versão (sequencial e único).
+
+---
+
+## ✅ CHECKLIST FINAL (ANTES DE ENTREGAR QUALQUER TELA)
+
+Todo agente MUST confirmar:
+
+- Tela igual Beneficiário
+- CRUD correto
+- Nenhum clique duplicado
+- Dados carregam automaticamente
+- Validação completa
+- Código sem duplicação
+- Backend seguro
+- Banco atualizado via init.db
+- Layout sem sobreposição

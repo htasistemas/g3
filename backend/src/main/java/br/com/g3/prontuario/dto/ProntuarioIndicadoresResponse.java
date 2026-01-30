@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 
 public class ProntuarioIndicadoresResponse {
   private long totalAtendimentos;
+  private long totalDoacoes;
+  private long totalCestas;
+  private long totalCursos;
   private long totalEncaminhamentos;
   private Double taxaEncaminhamentosConcluidos;
   private Double tempoMedioRetornoDias;
@@ -18,6 +21,30 @@ public class ProntuarioIndicadoresResponse {
 
   public void setTotalAtendimentos(long totalAtendimentos) {
     this.totalAtendimentos = totalAtendimentos;
+  }
+
+  public long getTotalDoacoes() {
+    return totalDoacoes;
+  }
+
+  public void setTotalDoacoes(long totalDoacoes) {
+    this.totalDoacoes = totalDoacoes;
+  }
+
+  public long getTotalCestas() {
+    return totalCestas;
+  }
+
+  public void setTotalCestas(long totalCestas) {
+    this.totalCestas = totalCestas;
+  }
+
+  public long getTotalCursos() {
+    return totalCursos;
+  }
+
+  public void setTotalCursos(long totalCursos) {
+    this.totalCursos = totalCursos;
   }
 
   public long getTotalEncaminhamentos() {

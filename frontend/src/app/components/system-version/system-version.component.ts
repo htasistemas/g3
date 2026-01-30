@@ -22,9 +22,9 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   erroHistorico: string | null = null;
   atualizandoVersao = false;
   feedbackAtualizacao: string | null = null;
-  private readonly versaoAlvo = '1.00.7';
+  private readonly versaoAlvo = '1.00.12';
   private readonly resumoAtualizacao =
-    'Controle de veiculos com persistencia no banco e ajustes no layout da tela.';
+    'Painel e chamada de senhas integrados ao G3 (frontend e backend unificados).';
 
   private readonly destroy$ = new Subject<void>();
 

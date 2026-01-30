@@ -30,6 +30,9 @@ export interface BeneficiarioResumo {
 
 export interface ProntuarioIndicadoresResponse {
   totalAtendimentos: number;
+  totalDoacoes: number;
+  totalCestas: number;
+  totalCursos: number;
   totalEncaminhamentos: number;
   taxaEncaminhamentosConcluidos: number;
   tempoMedioRetornoDias?: number | null;

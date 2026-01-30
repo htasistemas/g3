@@ -15,6 +15,7 @@ export class TelaPadraoComponent {
   @Input() desabilitado: EstadoAcoesCrud = {};
   @Input() mostrarToolbar = true;
   @Input() mostrarFechar = false;
+  @Input() fullWidth = false;
 
   @Output() salvar = new EventEmitter<void>();
   @Output() excluir = new EventEmitter<void>();

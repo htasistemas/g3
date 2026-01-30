@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
 import { finalize } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { TarefasPendenciasService, ChecklistItem, TaskPayload, TaskRecord } from '../../services/tarefas-pendencias.service';
 import { ProfessionalService } from '../../services/professional.service';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -23,7 +25,7 @@ interface StepTab {
   templateUrl: './tarefas-pendencias.component.html',
   styleUrl: './tarefas-pendencias.component.scss'
 })
-export class TarefasPendenciasComponent extends TelaBaseComponent implements OnDestroy {
+export class TarefasPendenciasComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   form: FormGroup;
   checklistDraft: ChecklistItem[] = [];
   checklistEntry = '';
@@ -45,6 +47,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
   imprimindoRelatorio = false;
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   private readonly capitalizationSubs: Array<() => void> = [];
+  private readonly routeSubs = new Subscription();
+  filtroListagem: 'abertas' | 'vencidas' | null = null;
 
   readonly prioridades: TaskPayload['prioridade'][] = ['Alta', 'Média', 'Baixa'];
   readonly statusOptions: TaskPayload['status'][] = ['Aberta', 'Em andamento', 'Concluída', 'Em atraso'];
@@ -88,7 +92,8 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
   constructor(
     private readonly fb: FormBuilder,
     private readonly tarefasService: TarefasPendenciasService,
-    private readonly professionalService: ProfessionalService
+    private readonly professionalService: ProfessionalService,
+    private readonly route: ActivatedRoute
   ) {
     super();
 
@@ -106,9 +111,18 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     this.setupCapitalizationRules();
   }
 
+  ngOnInit(): void {
+    this.routeSubs.add(
+      this.route.queryParamMap.subscribe((params) => {
+        this.aplicarFiltroListagem(params.get('filtro'));
+      })
+    );
+  }
+
   ngOnDestroy(): void {
     this.capitalizationSubs.forEach((unsubscribe) => unsubscribe());
     this.clearFeedbackTimeout();
+    this.routeSubs.unsubscribe();
   }
 
   get dashboard() {
@@ -119,6 +133,14 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
     const atrasadas = this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'Concluída').length;
     const proximas = this.tasks.filter((task) => this.isDueSoon(task) && task.status !== 'Concluída').length;
     return { total, abertas, andamento, concluidas, atrasadas, proximas };
+  }
+
+  get tarefasFiltradas(): TaskRecord[] {
+    if (!this.filtroListagem) return this.tasks;
+    if (this.filtroListagem === 'abertas') {
+      return this.tasks.filter((task) => task.status !== 'Concluída');
+    }
+    return this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'Concluída');
   }
 
   get alertas() {
@@ -463,6 +485,15 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnD
       });
       this.capitalizationSubs.push(() => subscription.unsubscribe());
     });
+  }
+
+  private aplicarFiltroListagem(filtro: string | null): void {
+    if (filtro === 'abertas' || filtro === 'vencidas') {
+      this.filtroListagem = filtro;
+      this.activeTab = 'listagem';
+      return;
+    }
+    this.filtroListagem = null;
   }
 
   private isOverdue(task: TaskRecord): boolean {

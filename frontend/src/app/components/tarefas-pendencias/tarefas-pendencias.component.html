@@ -344,6 +344,10 @@
 
         <div class="list-card__actions">
 
+          <span *ngIf="filtroListagem" class="pill">
+            Filtro: {{ filtroListagem === 'abertas' ? 'Abertas' : 'Vencidas' }}
+          </span>
+
           <button type="button" class="ghost" (click)="startNewTask()">Nova pendência</button>
 
           <button type="button" class="ghost" (click)="goToPreviousTab()">Voltar ao acompanhamento</button>
@@ -378,7 +382,7 @@
 
           <tbody>
 
-            <tr *ngFor="let task of tasks">
+            <tr *ngFor="let task of tarefasFiltradas">
 
               <td>
 
@@ -432,9 +436,11 @@
 
             </tr>
 
-            <tr *ngIf="!tasks.length">
+            <tr *ngIf="!tarefasFiltradas.length">
 
-              <td colspan="5" class="muted">Nenhuma pendência registrada.</td>
+              <td colspan="5" class="muted">
+                {{ filtroListagem ? 'Nenhuma pendência encontrada para o filtro atual.' : 'Nenhuma pendência registrada.' }}
+              </td>
 
             </tr>
 

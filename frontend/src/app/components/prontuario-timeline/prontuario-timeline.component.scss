@@ -32,6 +32,12 @@
   display: grid;
   gap: 0.6rem;
   position: relative;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.timeline-card--expanded {
+  border-color: #86efac;
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.12);
 }
 
 .timeline-card::before {
@@ -75,6 +81,12 @@
   color: #475569;
 }
 
+.timeline-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .timeline-card__details {
   border-top: 1px solid #e2e8f0;
   padding-top: 0.6rem;
@@ -106,4 +118,32 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+}
+
+.badge:hover {
+  background: #bbf7d0;
+}
+
+.chip {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chip:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.chip--status {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  text-transform: capitalize;
 }

@@ -11,6 +11,8 @@ import { ProntuarioRegistroResponse } from '../../services/prontuario.service';
 })
 export class ProntuarioTimelineComponent {
   @Input() registros: ProntuarioRegistroResponse[] = [];
+  @Input() mapaProfissionais: Record<number, string> = {};
+  @Input() mapaUnidades: Record<number, string> = {};
   @Input() total = 0;
   @Input() carregando = false;
   @Input() pagina = 0;
@@ -19,6 +21,9 @@ export class ProntuarioTimelineComponent {
   @Output() editar = new EventEmitter<ProntuarioRegistroResponse>();
   @Output() remover = new EventEmitter<ProntuarioRegistroResponse>();
   @Output() carregarMais = new EventEmitter<void>();
+  @Output() filtrarTipo = new EventEmitter<string>();
+  @Output() filtrarProfissional = new EventEmitter<number>();
+  @Output() filtrarUnidade = new EventEmitter<number>();
 
   expandedId: number | null = null;
 
@@ -34,6 +39,16 @@ export class ProntuarioTimelineComponent {
 
   toggle(registro: ProntuarioRegistroResponse): void {
     this.expandedId = this.expandedId === registro.id ? null : registro.id;
+  }
+
+  nomeProfissional(id?: number | null): string {
+    if (!id) return 'Não informado';
+    return this.mapaProfissionais[id] ?? `#${id}`;
+  }
+
+  nomeUnidade(id?: number | null): string {
+    if (!id) return 'Não informado';
+    return this.mapaUnidades[id] ?? `#${id}`;
   }
 
   get hasMore(): boolean {

@@ -36,3 +36,26 @@ Esse arquivo deve ser idempotente.
 ## Endpoints iniciais
 - `POST /api/unidades-assistenciais`
 - `GET /api/unidades-assistenciais`
+
+## Painel/Chamada de Senhas (integrado)
+
+### Rotas (frontend)
+- Operador: `/senhas/chamar`
+- Painel publico: `/senhas/painel` (pode receber `?unidadeId=...`)
+
+### Endpoints (backend)
+- `POST /api/senhas/emitir`
+- `POST /api/senhas/chamar`
+- `POST /api/senhas/finalizar`
+- `GET /api/senhas/aguardando?unidadeId=...`
+- `GET /api/senhas/painel?unidadeId=...&limite=...`
+- `GET /api/senhas/historico?unidadeId=...&limite=...`
+- `GET /api/senhas/atual?unidadeId=...`
+
+### Realtime
+- WebSocket endpoint: `/ws`
+- Topico: `/topic/senhas`
+- Evento: `CHAMADA_SENHA`
+
+### Permissoes
+- Segue o mesmo controle de acesso do G3 (auth guard do frontend). O painel pode ser acessado sem login.

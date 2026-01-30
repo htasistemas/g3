@@ -47,13 +47,24 @@
 
         <label class="form-field">
           <span>Profissional responsável*</span>
-          <input type="number" class="input" formControlName="profissionalId" placeholder="ID do profissional" />
+          <app-autocomplete
+            [placeholder]="'Selecione o profissional'"
+            [termo]="termoProfissional"
+            [opcoes]="opcoesProfissionaisFiltradas"
+            (termoChange)="atualizarTermoProfissional($event)"
+            (selecionar)="selecionarProfissional($event)"
+          ></app-autocomplete>
           <p class="form-error" *ngIf="mostrarErro('profissionalId')">{{ mensagemErro('profissionalId') }}</p>
         </label>
 
         <label class="form-field">
           <span>Unidade</span>
-          <input type="number" class="input" formControlName="unidadeId" placeholder="ID da unidade" />
+          <select class="select" formControlName="unidadeId">
+            <option [ngValue]="''">Selecione</option>
+            <option *ngFor="let unidade of opcoesUnidades" [ngValue]="unidade.id">
+              {{ unidade.label }}
+            </option>
+          </select>
         </label>
 
         <label class="form-field">

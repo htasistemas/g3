@@ -3,7 +3,7 @@
     <label class="form-field">
       <span>Buscar beneficiário</span>
       <app-autocomplete
-        [placeholder]="'Nome ou CPF'"
+        [placeholder]="'Nome, CPF ou código'"
         [termo]="termoBusca"
         [opcoes]="opcoesBeneficiarios"
         [carregando]="carregandoBeneficiarios"
@@ -61,23 +61,29 @@
     </label>
     <label class="form-field">
       <span>Profissional</span>
-      <input
-        type="number"
-        class="input"
+      <select
+        class="select"
         [ngModel]="filtros.profissionalId"
         (ngModelChange)="atualizarFiltro('profissionalId', toNumber($event))"
-        placeholder="ID do profissional"
-      />
+      >
+        <option [ngValue]="undefined">Todos</option>
+        <option *ngFor="let opcao of opcoesProfissionais" [ngValue]="opcao.id">
+          {{ opcao.label }}
+        </option>
+      </select>
     </label>
     <label class="form-field">
       <span>Unidade</span>
-      <input
-        type="number"
-        class="input"
+      <select
+        class="select"
         [ngModel]="filtros.unidadeId"
         (ngModelChange)="atualizarFiltro('unidadeId', toNumber($event))"
-        placeholder="ID da unidade"
-      />
+      >
+        <option [ngValue]="undefined">Todas</option>
+        <option *ngFor="let opcao of opcoesUnidades" [ngValue]="opcao.id">
+          {{ opcao.label }}
+        </option>
+      </select>
     </label>
     <label class="form-field prontuario-filtros__texto">
       <span>Busca textual</span>

@@ -4,15 +4,15 @@
     Nenhum registro encontrado para os filtros selecionados.
   </div>
 
-  <article class="timeline-card" *ngFor="let registro of registros">
+  <article class="timeline-card" *ngFor="let registro of registros" [class.timeline-card--expanded]="expandedId === registro.id">
     <div class="timeline-card__header">
       <div>
-        <span class="badge">{{ getTipoLabel(registro.tipo) }}</span>
+        <button type="button" class="badge" (click)="filtrarTipo.emit(registro.tipo)">
+          {{ getTipoLabel(registro.tipo) }}
+        </button>
         <span class="timeline-card__date">{{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }}</span>
       </div>
       <div class="timeline-card__actions">
-        <button type="button" class="ghost" (click)="editar.emit(registro)">Editar</button>
-        <button type="button" class="ghost" (click)="remover.emit(registro)">Excluir</button>
         <button type="button" class="ghost" (click)="toggle(registro)">
           {{ expandedId === registro.id ? 'Recolher' : 'Detalhes' }}
         </button>
@@ -21,10 +21,20 @@
     <h4 class="timeline-card__title">{{ registro.titulo || 'Registro sem título' }}</h4>
     <p class="timeline-card__summary">{{ registro.descricao }}</p>
 
+    <div class="timeline-card__chips">
+      <button type="button" class="chip" (click)="filtrarProfissional.emit(registro.profissionalId || 0)" [disabled]="!registro.profissionalId">
+        {{ nomeProfissional(registro.profissionalId) }}
+      </button>
+      <button type="button" class="chip" (click)="filtrarUnidade.emit(registro.unidadeId || 0)" [disabled]="!registro.unidadeId">
+        {{ nomeUnidade(registro.unidadeId) }}
+      </button>
+      <span class="chip chip--status">{{ registro.status }}</span>
+    </div>
+
     <div class="timeline-card__details" *ngIf="expandedId === registro.id">
       <p><strong>Status:</strong> {{ registro.status }}</p>
-      <p><strong>Profissional:</strong> {{ registro.profissionalId || 'Não informado' }}</p>
-      <p><strong>Unidade:</strong> {{ registro.unidadeId || 'Não informado' }}</p>
+      <p><strong>Profissional:</strong> {{ nomeProfissional(registro.profissionalId) }}</p>
+      <p><strong>Unidade:</strong> {{ nomeUnidade(registro.unidadeId) }}</p>
       <p *ngIf="registro.nivelSigilo"><strong>Nível de sigilo:</strong> {{ registro.nivelSigilo }}</p>
       <p *ngIf="registro.referenciaOrigemTipo">
         <strong>Referência:</strong>

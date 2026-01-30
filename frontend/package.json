@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.00.7",
+  "version": "1.00.12",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -35,7 +35,9 @@
     "@fortawesome/angular-fontawesome": "^4.0.0",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
+    "@stomp/stompjs": "^7.0.1",
     "rxjs": "~7.8.0",
+    "sockjs-client": "^1.6.1",
     "tslib": "^2.3.0",
     "zone.js": "^0.15.0"
   },
@@ -43,6 +45,7 @@
     "@angular/build": "^21.0.1",
     "@angular/cli": "^21.0.1",
     "@angular/compiler-cli": "^21.0.0",
+    "@types/sockjs-client": "^1.5.4",
     "autoprefixer": "^10.4.22",
     "jsdom": "^27.1.0",
     "postcss": "^8.5.6",

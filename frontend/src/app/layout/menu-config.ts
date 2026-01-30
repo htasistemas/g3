@@ -116,6 +116,8 @@ export const menuSections: MenuItem[] = [
       { label: 'Doacao Realizada', icon: faGift, route: '/atendimentos/doacoes' },
       { label: 'Matriculas', icon: faGraduationCap, route: '/atendimentos/cursos' },
       { label: 'Ocorrencias', icon: faTriangleExclamation, route: '/atendimentos/ocorrencias-crianca' },
+      { label: 'Chamada de senhas', icon: faBullhorn, route: '/senhas/chamar' },
+      { label: 'Painel de senhas', icon: faDisplay, urlExterna: '/senhas/painel' },
     ],
   },
   {
@@ -186,16 +188,6 @@ export const menuSections: MenuItem[] = [
       },
       { label: 'Feriados', icon: faCalendarDay, route: '/administrativo/feriados' },
       { label: 'Parametros do sistema', icon: faSliders, route: '/configuracoes/parametros' },
-      {
-        label: 'Painel de senha',
-        icon: faDisplay,
-        urlExterna: 'http://localhost:4201/#/painel/senha',
-      },
-      {
-        label: 'Chamar senha',
-        icon: faBullhorn,
-        urlExterna: 'http://localhost:4201/#/operador/chamadas',
-      },
       { label: 'Versao do sistema', icon: faTags, route: '/configuracoes/versao' },
     ],
   },

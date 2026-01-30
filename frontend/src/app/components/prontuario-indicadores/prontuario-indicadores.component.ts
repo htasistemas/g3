@@ -30,6 +30,17 @@ export class ProntuarioIndicadoresComponent {
     }));
   }
 
+  get indicadoresGeral(): { label: string; value: number }[] {
+    if (!this.indicadoresResumo) {
+      return [];
+    }
+    return [
+      { label: 'Doacoes recebidas', value: this.indicadoresResumo.totalDoacoes ?? 0 },
+      { label: 'Cestas recebidas', value: this.indicadoresResumo.totalCestas ?? 0 },
+      { label: 'Cursos participados', value: this.indicadoresResumo.totalCursos ?? 0 }
+    ];
+  }
+
   get taxaEncaminhamentos(): string {
     const taxa = this.indicadoresResumo?.taxaEncaminhamentosConcluidos ?? 0;
     return `${taxa.toFixed(1)}%`;
