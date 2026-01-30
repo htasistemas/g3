@@ -12,3 +12,4 @@ backend-antigo/dist
 frontend/dist
 backend-antigo/data
 backend/*.sqlite
+.env

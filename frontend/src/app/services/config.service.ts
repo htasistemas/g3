@@ -57,6 +57,10 @@ export class ConfigService {
     return this.http.get<HistoricoVersaoResponse[]>(`${this.baseUrl}/versao/historico`);
   }
 
+  getVersaoArquivo(): Observable<string> {
+    return this.http.get(`${environment.apiUrl}/version.txt`, { responseType: 'text' });
+  }
+
   getDestinoChamados(): Observable<DestinoChamadoResponse> {
     return this.http.get<DestinoChamadoResponse>(`${this.baseUrl}/chamados/destino`);
   }

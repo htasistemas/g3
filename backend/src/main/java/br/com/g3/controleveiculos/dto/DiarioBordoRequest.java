@@ -24,6 +24,9 @@ public class DiarioBordoRequest {
   @PositiveOrZero
   private BigDecimal kmInicial;
 
+  @PositiveOrZero
+  private BigDecimal combustivelConsumidoLitros;
+
   @NotNull
   private LocalTime horarioChegada;
 
@@ -90,6 +93,14 @@ public class DiarioBordoRequest {
 
   public void setKmFinal(BigDecimal kmFinal) {
     this.kmFinal = kmFinal;
+  }
+
+  public BigDecimal getCombustivelConsumidoLitros() {
+    return combustivelConsumidoLitros;
+  }
+
+  public void setCombustivelConsumidoLitros(BigDecimal combustivelConsumidoLitros) {
+    this.combustivelConsumidoLitros = combustivelConsumidoLitros;
   }
 
   public String getDestino() {

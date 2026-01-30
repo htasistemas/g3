@@ -2,6 +2,7 @@ version: '3.9'
 services:
   db:
     image: postgres:15
+    container_name: g3-db
     environment:
       - POSTGRES_USER=${DB_USERNAME:-g3}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-admin}
@@ -10,11 +11,14 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - g3_net
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    container_name: g3-backend
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-g3}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-g3}
@@ -24,16 +28,56 @@ services:
     volumes:
       - backend_storage:/app/storage
     depends_on:
-      - db
+      db:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - g3_net
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    container_name: g3-frontend
+    environment:
+      - API_BASE_URL=${API_BASE_URL:-}
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - g3_net
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: g3-tunnel
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - g3_net
 
 volumes:
   db_data:
   backend_storage:
+
+networks:
+  g3_net:
+    driver: bridge
