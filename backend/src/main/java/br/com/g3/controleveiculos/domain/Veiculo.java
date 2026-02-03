@@ -55,6 +55,9 @@ public class Veiculo {
   @Column(name = "foto_traseira", columnDefinition = "TEXT")
   private String fotoTraseira;
 
+  @Column(name = "documento_veiculo_pdf", columnDefinition = "TEXT")
+  private String documentoVeiculoPdf;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -171,6 +174,14 @@ public class Veiculo {
 
   public void setFotoTraseira(String fotoTraseira) {
     this.fotoTraseira = fotoTraseira;
+  }
+
+  public String getDocumentoVeiculoPdf() {
+    return documentoVeiculoPdf;
+  }
+
+  public void setDocumentoVeiculoPdf(String documentoVeiculoPdf) {
+    this.documentoVeiculoPdf = documentoVeiculoPdf;
   }
 
   public LocalDateTime getCriadoEm() {

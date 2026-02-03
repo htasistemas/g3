@@ -124,6 +124,55 @@
             <textarea formControlName="observacoes" rows="3"></textarea>
           </label>
 
+          <div class="document-section full">
+            <div class="document-request">
+              <div class="document-request__header">
+                <div>
+                  <p class="document-request__title">Documento do veiculo</p>
+                  <p class="document-request__subtitle">
+                    Anexe o documento do veiculo em PDF.
+                  </p>
+                </div>
+              </div>
+              <div class="envio-fotos-container">
+                <div class="campo">
+                  <label>Arquivo (PDF)</label>
+                  <input type="file" accept="application/pdf" (change)="onDocumentoVeiculoSelecionado($event)" />
+                </div>
+
+                <div class="info">
+                  Envie o documento em formato PDF para consulta futura.
+                </div>
+              </div>
+
+              <div class="document-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Documento</th>
+                      <th class="text-right">Acoes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ documentoVeiculoPdf ? 'Documento anexado' : 'Nenhum documento anexado' }}</td>
+                      <td class="text-right actions">
+                        <button
+                          type="button"
+                          class="ghost"
+                          [disabled]="!documentoVeiculoPdf"
+                          (click)="visualizarDocumentoVeiculo()"
+                        >
+                          Visualizar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           <label class="checkbox-field full">
             <input type="checkbox" formControlName="ativo" />
             <span>Veiculo ativo</span>
@@ -432,11 +481,6 @@
             <input type="date" formControlName="vencimentoCarteira" />
           </label>
 
-          <label class="field">
-            Arquivo da carteira (PDF)
-            <input type="file" accept="application/pdf" (change)="onCarteiraSelecionada($event)" />
-          </label>
-
           <label class="field full">
             Motorista
             <app-autocomplete
@@ -448,6 +492,11 @@
               (termoChange)="atualizarTermoMotorista($event)"
               (selecionar)="selecionarMotorista($event)"
             ></app-autocomplete>
+          </label>
+
+          <label class="field">
+            Arquivo da carteira (PDF)
+            <input type="file" accept="application/pdf" (change)="onCarteiraSelecionada($event)" />
           </label>
         </div>
       </section>

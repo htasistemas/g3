@@ -58,9 +58,9 @@ services:
 
   tunnel:
     image: cloudflare/cloudflared:latest
-    command: tunnel run --token ${TUNNEL_TOKEN}
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    entrypoint: ["cloudflared", "tunnel", "--config", "/etc/cloudflared/config.yml", "run"]
+    volumes:
+      - ./docker/cloudflared:/etc/cloudflared:ro
     restart: always
     depends_on:
       backend:

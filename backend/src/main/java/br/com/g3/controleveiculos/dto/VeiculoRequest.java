@@ -32,6 +32,8 @@ public class VeiculoRequest {
 
   private String fotoTraseira;
 
+  private String documentoVeiculoPdf;
+
   public String getPlaca() {
     return placa;
   }
@@ -134,5 +136,13 @@ public class VeiculoRequest {
 
   public void setFotoTraseira(String fotoTraseira) {
     this.fotoTraseira = fotoTraseira;
+  }
+
+  public String getDocumentoVeiculoPdf() {
+    return documentoVeiculoPdf;
+  }
+
+  public void setDocumentoVeiculoPdf(String documentoVeiculoPdf) {
+    this.documentoVeiculoPdf = documentoVeiculoPdf;
   }
 }

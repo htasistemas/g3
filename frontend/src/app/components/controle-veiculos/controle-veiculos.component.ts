@@ -106,6 +106,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
   fotoLateralEsquerdaPreview: string | null = null;
   fotoLateralDireitaPreview: string | null = null;
   fotoTraseiraPreview: string | null = null;
+  documentoVeiculoPdf: string | null = null;
 
   termoMotorista = '';
   opcoesMotorista: AutocompleteOpcao[] = [];
@@ -151,7 +152,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       fotoFrente: [null],
       fotoLateralEsquerda: [null],
       fotoLateralDireita: [null],
-      fotoTraseira: [null]
+      fotoTraseira: [null],
+      documentoVeiculoPdf: [null]
     });
 
     this.formularioDiario = this.fb.group({
@@ -232,6 +234,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     this.fotoLateralEsquerdaPreview = veiculo.fotoLateralEsquerda ?? null;
     this.fotoLateralDireitaPreview = veiculo.fotoLateralDireita ?? null;
     this.fotoTraseiraPreview = veiculo.fotoTraseira ?? null;
+    this.documentoVeiculoPdf = veiculo.documentoVeiculoPdf ?? null;
     this.formularioVeiculo.reset({
       placa: veiculo.placa,
       modelo: veiculo.modelo,
@@ -245,7 +248,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       fotoFrente: veiculo.fotoFrente ?? null,
       fotoLateralEsquerda: veiculo.fotoLateralEsquerda ?? null,
       fotoLateralDireita: veiculo.fotoLateralDireita ?? null,
-      fotoTraseira: veiculo.fotoTraseira ?? null
+      fotoTraseira: veiculo.fotoTraseira ?? null,
+      documentoVeiculoPdf: veiculo.documentoVeiculoPdf ?? null
     });
     this.abaAtiva = 'cadastro';
   }
@@ -550,7 +554,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       fotoFrente: this.formularioVeiculo.get('fotoFrente')?.value ?? null,
       fotoLateralEsquerda: this.formularioVeiculo.get('fotoLateralEsquerda')?.value ?? null,
       fotoLateralDireita: this.formularioVeiculo.get('fotoLateralDireita')?.value ?? null,
-      fotoTraseira: this.formularioVeiculo.get('fotoTraseira')?.value ?? null
+      fotoTraseira: this.formularioVeiculo.get('fotoTraseira')?.value ?? null,
+      documentoVeiculoPdf: this.formularioVeiculo.get('documentoVeiculoPdf')?.value ?? null
     };
 
     this.carregando = true;
@@ -721,6 +726,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     this.fotoLateralEsquerdaPreview = null;
     this.fotoLateralDireitaPreview = null;
     this.fotoTraseiraPreview = null;
+    this.documentoVeiculoPdf = null;
     this.formularioVeiculo.reset({
       placa: '',
       modelo: '',
@@ -734,7 +740,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       fotoFrente: null,
       fotoLateralEsquerda: null,
       fotoLateralDireita: null,
-      fotoTraseira: null
+      fotoTraseira: null,
+      documentoVeiculoPdf: null
     });
   }
 
@@ -1059,6 +1066,34 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     const preview = this.obterPreviewPorTipo(tipo);
     if (!preview) return;
     window.open(preview, '_blank');
+  }
+
+  onDocumentoVeiculoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Envie o documento do veiculo em formato PDF.')
+        .build();
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.documentoVeiculoPdf = dataUrl;
+      this.formularioVeiculo.get('documentoVeiculoPdf')?.setValue(dataUrl);
+      input.value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  visualizarDocumentoVeiculo(): void {
+    if (!this.documentoVeiculoPdf) return;
+    window.open(this.documentoVeiculoPdf, '_blank');
   }
 
   visualizarCarteiraPdf(arquivo: string | null | undefined): void {

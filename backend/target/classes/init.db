@@ -2905,6 +2905,7 @@ CREATE TABLE IF NOT EXISTS controle_veiculos (
   foto_lateral_esquerda TEXT,
   foto_lateral_direita TEXT,
   foto_traseira TEXT,
+  documento_veiculo_pdf TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -2972,6 +2973,7 @@ ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_frente TEXT;
 ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_lateral_esquerda TEXT;
 ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_lateral_direita TEXT;
 ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_traseira TEXT;
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS documento_veiculo_pdf TEXT;
 
 ALTER TABLE controle_veiculos_motoristas_autorizados
   ADD COLUMN IF NOT EXISTS numero_carteira VARCHAR(40);
@@ -3369,16 +3371,16 @@ WHERE NOT EXISTS (
 );
 
 UPDATE versao_sistema
-SET versao = '1.00.26',
-  descricao = 'Mapa de bordo com condutor por motoristas autorizados e destino ampliado.',
+SET versao = '1.00.27',
+  descricao = 'Documento PDF do veiculo e ajuste do upload de carteira.',
   atualizado_em = NOW()
-WHERE versao <> '1.00.26';
+WHERE versao <> '1.00.27';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.26', 'Mapa de bordo com condutor por motoristas autorizados e destino ampliado.', NOW()
+SELECT '1.00.27', 'Documento PDF do veiculo e ajuste do upload de carteira.', NOW()
 WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
-  WHERE versao = '1.00.26'
+  WHERE versao = '1.00.27'
 );
 
 

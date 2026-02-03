@@ -438,6 +438,7 @@ public class ControleVeiculosServiceImpl implements ControleVeiculosService {
     veiculo.setFotoLateralEsquerda(requisicao.getFotoLateralEsquerda());
     veiculo.setFotoLateralDireita(requisicao.getFotoLateralDireita());
     veiculo.setFotoTraseira(requisicao.getFotoTraseira());
+    veiculo.setDocumentoVeiculoPdf(requisicao.getDocumentoVeiculoPdf());
   }
 
   private void aplicarRequisicaoDiario(DiarioBordo diario, DiarioBordoRequest requisicao) {
@@ -568,6 +569,7 @@ public class ControleVeiculosServiceImpl implements ControleVeiculosService {
     resposta.setFotoLateralEsquerda(veiculo.getFotoLateralEsquerda());
     resposta.setFotoLateralDireita(veiculo.getFotoLateralDireita());
     resposta.setFotoTraseira(veiculo.getFotoTraseira());
+    resposta.setDocumentoVeiculoPdf(veiculo.getDocumentoVeiculoPdf());
     resposta.setCriadoEm(veiculo.getCriadoEm());
     resposta.setAtualizadoEm(veiculo.getAtualizadoEm());
     return resposta;

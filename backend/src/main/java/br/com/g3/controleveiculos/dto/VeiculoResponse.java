@@ -18,6 +18,7 @@ public class VeiculoResponse {
   private String fotoLateralEsquerda;
   private String fotoLateralDireita;
   private String fotoTraseira;
+  private String documentoVeiculoPdf;
   private LocalDateTime criadoEm;
   private LocalDateTime atualizadoEm;
 
@@ -131,6 +132,14 @@ public class VeiculoResponse {
 
   public void setFotoTraseira(String fotoTraseira) {
     this.fotoTraseira = fotoTraseira;
+  }
+
+  public String getDocumentoVeiculoPdf() {
+    return documentoVeiculoPdf;
+  }
+
+  public void setDocumentoVeiculoPdf(String documentoVeiculoPdf) {
+    this.documentoVeiculoPdf = documentoVeiculoPdf;
   }
 
   public LocalDateTime getCriadoEm() {

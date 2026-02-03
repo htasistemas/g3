@@ -18,6 +18,7 @@ export interface VeiculoCadastro {
   fotoLateralEsquerda?: string | null;
   fotoLateralDireita?: string | null;
   fotoTraseira?: string | null;
+  documentoVeiculoPdf?: string | null;
 }
 
 export interface RegistroDiarioBordo {
@@ -50,6 +51,7 @@ export interface VeiculoCadastroEntrada {
   fotoLateralEsquerda?: string | null;
   fotoLateralDireita?: string | null;
   fotoTraseira?: string | null;
+  documentoVeiculoPdf?: string | null;
 }
 
 export interface RegistroDiarioBordoEntrada {
