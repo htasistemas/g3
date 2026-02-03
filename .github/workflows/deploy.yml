@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
 
-          versaoAtual=$(cat "$arquivoVersao" | tr -d '[:space:]')
+          versaoAtual=$(head -n 1 "$arquivoVersao" | tr -cd '0-9.')
           major=$(echo "$versaoAtual" | cut -d. -f1)
           minor=$(echo "$versaoAtual" | cut -d. -f2)
           patch=$(echo "$versaoAtual" | cut -d. -f3)
