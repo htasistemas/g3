@@ -54,8 +54,7 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
-          docker compose down --remove-orphans
-          docker compose up -d --build --remove-orphans
+          docker compose up -d --build --remove-orphans backend frontend
 
           echo "Aguardando backend subir..."
           for i in {1..20}; do

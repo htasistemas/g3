@@ -3371,16 +3371,16 @@ WHERE NOT EXISTS (
 );
 
 UPDATE versao_sistema
-SET versao = '1.00.27',
-  descricao = 'Documento PDF do veiculo e ajuste do upload de carteira.',
+SET versao = '1.00.28',
+  descricao = 'Mensagem de indisponibilidade e ajuste no deploy.',
   atualizado_em = NOW()
-WHERE versao <> '1.00.27';
+WHERE versao <> '1.00.28';
 
 INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
-SELECT '1.00.27', 'Documento PDF do veiculo e ajuste do upload de carteira.', NOW()
+SELECT '1.00.28', 'Mensagem de indisponibilidade e ajuste no deploy.', NOW()
 WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
-  WHERE versao = '1.00.27'
+  WHERE versao = '1.00.28'
 );
 
 
