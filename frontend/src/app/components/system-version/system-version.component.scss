@@ -219,6 +219,37 @@
   font-weight: 600;
 }
 
+.release-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.release-pagination__button {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.release-pagination__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.release-pagination__status {
+  font-weight: 700;
+  color: #334155;
+}
+
 @media (max-width: 860px) {
   .release-list__header {
     display: none;

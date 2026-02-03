@@ -66,30 +66,39 @@
 
         <div class="field-grid cols-3">
           <label class="field" [class.invalid]="formularioVeiculo.get('placa')?.invalid && formularioVeiculo.get('placa')?.touched">
-            Placa (*)
+            Placa
             <input type="text" formControlName="placa" placeholder="ABC-1234" />
-            <span class="field-error" *ngIf="formularioVeiculo.get('placa')?.invalid && formularioVeiculo.get('placa')?.touched">
-              Informe a placa.
+            <span
+              class="field-error"
+              *ngIf="
+                formularioVeiculo.get('placa')?.errors?.['placaInvalida'] &&
+                formularioVeiculo.get('placa')?.touched
+              "
+            >
+              Informe LLL-NNNN ou LLLNLNN.
             </span>
           </label>
 
           <label class="field" [class.invalid]="formularioVeiculo.get('modelo')?.invalid && formularioVeiculo.get('modelo')?.touched">
-            Modelo (*)
+            Modelo
             <input type="text" formControlName="modelo" placeholder="Ex.: Gol" />
           </label>
 
           <label class="field" [class.invalid]="formularioVeiculo.get('marca')?.invalid && formularioVeiculo.get('marca')?.touched">
-            Marca (*)
-            <input type="text" formControlName="marca" placeholder="Ex.: Volkswagen" />
+            Marca
+            <input type="text" formControlName="marca" placeholder="Ex.: Volkswagen" list="marcasPrincipais" />
+            <datalist id="marcasPrincipais">
+              <option *ngFor="let marcaItem of marcasPrincipais" [value]="marcaItem"></option>
+            </datalist>
           </label>
 
           <label class="field" [class.invalid]="formularioVeiculo.get('ano')?.invalid && formularioVeiculo.get('ano')?.touched">
-            Ano (*)
+            Ano
             <input type="number" formControlName="ano" min="1900" />
           </label>
 
           <label class="field" [class.invalid]="formularioVeiculo.get('tipoCombustivel')?.invalid && formularioVeiculo.get('tipoCombustivel')?.touched">
-            Tipo de combustivel (*)
+            Tipo de combustivel
             <select formControlName="tipoCombustivel">
               <option value="">Selecione</option>
               <option value="Gasolina">Gasolina</option>
@@ -101,7 +110,7 @@
           </label>
 
           <label class="field" [class.invalid]="formularioVeiculo.get('mediaConsumoPadrao')?.invalid && formularioVeiculo.get('mediaConsumoPadrao')?.touched">
-            Media de consumo (km/L) (*)
+            Media de consumo (km/L)
             <input type="number" formControlName="mediaConsumoPadrao" min="0" step="0.1" />
           </label>
 
@@ -119,6 +128,76 @@
             <input type="checkbox" formControlName="ativo" />
             <span>Veiculo ativo</span>
           </label>
+
+          <div class="document-section full">
+            <div class="document-request">
+              <div class="document-request__header">
+                <div>
+                  <p class="document-request__title">Envio de fotos</p>
+                  <p class="document-request__subtitle">
+                    Selecione o tipo de foto, anexe o arquivo e visualize na listagem.
+                  </p>
+                </div>
+              </div>
+              <p class="document-count document-count--top">
+                Fotos anexadas
+                <span class="document-count__badge">{{ fotosAnexadas.length }}</span>
+              </p>
+              <div class="envio-fotos-container">
+                <div class="campo">
+                  <label>Tipo de foto</label>
+                  <select [(ngModel)]="tipoFotoSelecionada" [ngModelOptions]="{ standalone: true }">
+                    <option value="">Selecione</option>
+                    <option *ngFor="let tipo of tiposFoto" [value]="tipo">{{ tipo }}</option>
+                  </select>
+                </div>
+
+                <div class="campo">
+                  <label>Arquivo</label>
+                  <input type="file" accept="image/*" (change)="onFotoTipoSelecionada($event)" />
+                </div>
+
+                <div class="info">
+                  Use fotos em boa resolucao para melhor visualizacao.
+                </div>
+              </div>
+
+              <div class="document-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>Arquivo</th>
+                      <th class="text-right">Acoes</th>
+                    </tr>
+                  </thead>
+                  <tbody *ngIf="fotosAnexadas.length; else emptyFotos">
+                    <tr *ngFor="let foto of fotosAnexadas">
+                      <td>{{ foto.tipo }}</td>
+                      <td>Arquivo anexado</td>
+                      <td class="text-right actions">
+                        <button type="button" class="ghost" (click)="visualizarFoto(foto.tipo)">
+                          Visualizar
+                        </button>
+                        <button type="button" class="ghost destructive" (click)="removerFotoPorTipo(foto.tipo)">
+                          Remover
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <ng-template #emptyFotos>
+                  <tbody>
+                    <tr>
+                      <td colspan="3" class="list-panel__empty">
+                        Nenhuma foto anexada ate o momento.
+                      </td>
+                    </tr>
+                  </tbody>
+                </ng-template>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -175,7 +254,7 @@
 
         <div class="field-grid cols-3">
           <label class="field" [class.invalid]="formularioDiario.get('veiculoId')?.invalid && formularioDiario.get('veiculoId')?.touched">
-            Veiculo (*)
+            Veiculo
             <select formControlName="veiculoId">
               <option [ngValue]="null">Selecione</option>
               <option *ngFor="let veiculo of veiculos" [ngValue]="veiculo.id">
@@ -185,37 +264,42 @@
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('data')?.invalid && formularioDiario.get('data')?.touched">
-            Data (*)
+            Data
             <input type="date" formControlName="data" />
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('condutor')?.invalid && formularioDiario.get('condutor')?.touched">
-            Condutor (*)
-            <input type="text" formControlName="condutor" placeholder="Nome do condutor" />
+            Condutor
+            <select formControlName="condutor">
+              <option value="">Selecione</option>
+              <option *ngFor="let motorista of motoristasAutorizadosPorVeiculo" [value]="motorista.nomeMotorista">
+                {{ motorista.nomeMotorista }}
+              </option>
+            </select>
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('horarioSaida')?.invalid && formularioDiario.get('horarioSaida')?.touched">
-            Horario de saida (*)
+            Horario de saida
             <input type="time" formControlName="horarioSaida" />
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('kmInicial')?.invalid && formularioDiario.get('kmInicial')?.touched">
-            Km inicial (*)
+            Km inicial
             <input type="number" formControlName="kmInicial" min="0" />
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('horarioChegada')?.invalid && formularioDiario.get('horarioChegada')?.touched">
-            Horario de chegada (*)
+            Horario de chegada
             <input type="time" formControlName="horarioChegada" />
           </label>
 
           <label class="field" [class.invalid]="formularioDiario.get('kmFinal')?.invalid && formularioDiario.get('kmFinal')?.touched">
-            Km final (*)
+            Km final
             <input type="number" formControlName="kmFinal" min="0" />
           </label>
 
-          <label class="field" [class.invalid]="formularioDiario.get('destino')?.invalid && formularioDiario.get('destino')?.touched">
-            Destino (*)
+          <label class="field full field-destino" [class.invalid]="formularioDiario.get('destino')?.invalid && formularioDiario.get('destino')?.touched">
+            Destino
             <input type="text" formControlName="destino" placeholder="Local visitado" />
           </label>
 
@@ -285,6 +369,154 @@
 
         <ng-template #semRegistros>
           <p class="empty">Nenhum registro de bordo cadastrado ate o momento.</p>
+        </ng-template>
+      </section>
+    </form>
+
+    <form *ngIf="abaAtiva === 'motoristas'" [formGroup]="formularioMotorista" class="form-shell">
+      <section class="tab-card">
+        <div class="tab-card__header">
+          <div class="tab-card__title-stack">
+            <p class="tab-card__highlight">Motoristas autorizados</p>
+            <p class="muted">Defina quem esta autorizado a conduzir veiculos da instituicao.</p>
+          </div>
+        </div>
+
+        <div class="field-grid cols-3">
+          <div class="field full">
+            Veiculos autorizados
+            <div class="motoristas-veiculos-grid">
+              <label class="motoristas-veiculos-card" *ngFor="let veiculo of veiculos">
+                <input
+                  type="checkbox"
+                  [checked]="veiculoSelecionado(veiculo.id)"
+                  (change)="alternarVeiculoSelecionado(veiculo.id)"
+                />
+                <div class="motoristas-veiculos-texto">
+                  <span class="motoristas-veiculos-placa">
+                    Placa: {{ veiculo.placa || '--' }}
+                  </span>
+                  <span class="motoristas-veiculos-detalhes">
+                    <span class="motoristas-veiculos-label">Modelo:</span>
+                    <span>{{ veiculo.modelo || '--' }}</span>
+                  </span>
+                  <span class="motoristas-veiculos-detalhes">
+                    <span class="motoristas-veiculos-label">Marca:</span>
+                    <span>{{ veiculo.marca || '--' }}</span>
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <label class="field">
+            Origem do motorista
+            <select formControlName="tipoOrigem" (change)="aoAlterarTipoOrigem()">
+              <option value="PROFISSIONAL">Profissional</option>
+              <option value="VOLUNTARIO">Voluntario</option>
+            </select>
+          </label>
+
+          <label class="field">
+            Carteira de motorista
+            <input type="text" formControlName="numeroCarteira" placeholder="Numero da CNH" />
+          </label>
+
+          <label class="field">
+            Categoria
+            <input type="text" formControlName="categoriaCarteira" placeholder="Ex.: B" />
+          </label>
+
+          <label class="field">
+            Vencimento
+            <input type="date" formControlName="vencimentoCarteira" />
+          </label>
+
+          <label class="field">
+            Arquivo da carteira (PDF)
+            <input type="file" accept="application/pdf" (change)="onCarteiraSelecionada($event)" />
+          </label>
+
+          <label class="field full">
+            Motorista
+            <app-autocomplete
+              [opcoes]="opcoesMotorista"
+              [termo]="termoMotorista"
+              [carregando]="carregandoMotoristas"
+              [erro]="erroMotoristas"
+              placeholder="Digite o nome do motorista"
+              (termoChange)="atualizarTermoMotorista($event)"
+              (selecionar)="selecionarMotorista($event)"
+            ></app-autocomplete>
+          </label>
+        </div>
+      </section>
+
+      <section class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="list-card__eyebrow">Motoristas autorizados</p>
+            <p class="list-card__title">Selecione para editar ou excluir.</p>
+          </div>
+          <div class="list-card__actions">
+            <span class="muted">Total: {{ motoristasAutorizados.length }}</span>
+          </div>
+        </div>
+
+        <div class="motoristas-resumo" *ngIf="motoristasPorVeiculo.length">
+          <p class="motoristas-resumo__titulo">Veiculos e motoristas autorizados</p>
+          <div class="motoristas-resumo__grid">
+            <div class="motoristas-resumo__card" *ngFor="let item of motoristasPorVeiculo">
+              <p class="motoristas-resumo__veiculo">{{ item.descricao }}</p>
+              <ul class="motoristas-resumo__lista">
+                <li *ngFor="let nome of item.motoristas">{{ nome }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Veiculo</th>
+              <th>Motorista</th>
+              <th>Origem</th>
+              <th>Carteira</th>
+              <th>Categoria</th>
+              <th>Vencimento</th>
+              <th>Arquivo</th>
+              <th class="text-right">Acoes</th>
+            </tr>
+          </thead>
+          <tbody *ngIf="motoristasAutorizados.length; else semMotoristas">
+            <tr *ngFor="let motorista of motoristasAutorizados">
+              <td>{{ motorista.placaVeiculo }} - {{ motorista.modeloVeiculo }}</td>
+              <td>{{ motorista.nomeMotorista }}</td>
+              <td>{{ motorista.tipoOrigem === 'PROFISSIONAL' ? 'Profissional' : 'Voluntario' }}</td>
+              <td>{{ motorista.numeroCarteira || '--' }}</td>
+              <td>{{ motorista.categoriaCarteira || '--' }}</td>
+              <td>{{ motorista.vencimentoCarteira ? (motorista.vencimentoCarteira | date : 'dd/MM/yyyy') : '--' }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="ghost"
+                  [disabled]="!motorista.arquivoCarteiraPdf"
+                  (click)="visualizarCarteiraPdf(motorista.arquivoCarteiraPdf)"
+                >
+                  Visualizar
+                </button>
+              </td>
+              <td class="text-right">
+                <button type="button" class="ghost" (click)="selecionarMotoristaAutorizado(motorista)">
+                  Selecionar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #semMotoristas>
+          <p class="empty">Nenhum motorista autorizado cadastrado ate o momento.</p>
         </ng-template>
       </section>
     </form>

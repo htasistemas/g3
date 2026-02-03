@@ -59,7 +59,7 @@
         Nenhuma atualizacao registrada.
       </p>
 
-      <article class="release-row" *ngFor="let item of historicoVersoes">
+      <article class="release-row" *ngFor="let item of historicoPaginado">
         <span class="release-row__version">{{ item.versao }}</span>
         <span class="release-row__date">{{ formatarDataHora(item.criadoEm) }}</span>
         <ul class="release-row__highlights">
@@ -67,6 +67,33 @@
           <li *ngIf="!item.descricao">Sem resumo informado.</li>
         </ul>
       </article>
+
+      <div
+        class="release-pagination"
+        *ngIf="!erroHistorico && !carregandoHistorico && historicoVersoes.length > itensPorPagina"
+      >
+        <button
+          type="button"
+          class="release-pagination__button"
+          [disabled]="paginaAtual === 1"
+          (click)="voltarPagina()"
+          aria-label="Pagina anterior"
+        >
+          ◀
+        </button>
+        <span class="release-pagination__status">
+          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+        </span>
+        <button
+          type="button"
+          class="release-pagination__button"
+          [disabled]="paginaAtual === totalPaginas"
+          (click)="avancarPagina()"
+          aria-label="Proxima pagina"
+        >
+          ▶
+        </button>
+      </div>
     </div>
   </section>
 </div>

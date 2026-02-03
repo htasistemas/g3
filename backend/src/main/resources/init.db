@@ -2892,15 +2892,19 @@ CREATE INDEX IF NOT EXISTS emprestimos_eventos_itens_item_idx
 
 CREATE TABLE IF NOT EXISTS controle_veiculos (
   id BIGSERIAL PRIMARY KEY,
-  placa VARCHAR(20) NOT NULL,
-  modelo VARCHAR(120) NOT NULL,
-  marca VARCHAR(120) NOT NULL,
-  ano INTEGER NOT NULL,
-  tipo_combustivel VARCHAR(60) NOT NULL,
+  placa VARCHAR(20),
+  modelo VARCHAR(120),
+  marca VARCHAR(120),
+  ano INTEGER,
+  tipo_combustivel VARCHAR(60),
   media_consumo_padrao NUMERIC(12, 2),
   capacidade_tanque_litros NUMERIC(10, 2),
   observacoes TEXT,
-  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  ativo BOOLEAN DEFAULT TRUE,
+  foto_frente TEXT,
+  foto_lateral_esquerda TEXT,
+  foto_lateral_direita TEXT,
+  foto_traseira TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -2911,21 +2915,84 @@ CREATE UNIQUE INDEX IF NOT EXISTS controle_veiculos_placa_idx
 
 CREATE TABLE IF NOT EXISTS controle_veiculos_diario (
   id BIGSERIAL PRIMARY KEY,
-  veiculo_id BIGINT NOT NULL REFERENCES controle_veiculos(id) ON DELETE CASCADE,
-  data DATE NOT NULL,
-  condutor VARCHAR(150) NOT NULL,
-  horario_saida TIME NOT NULL,
-  km_inicial NUMERIC(12, 2) NOT NULL,
-  horario_chegada TIME NOT NULL,
-  km_final NUMERIC(12, 2) NOT NULL,
-  destino VARCHAR(200) NOT NULL,
-  combustivel_consumido_litros NUMERIC(12, 2) NOT NULL,
-  km_rodados NUMERIC(12, 2) NOT NULL,
-  media_consumo NUMERIC(12, 2) NOT NULL,
+  veiculo_id BIGINT REFERENCES controle_veiculos(id) ON DELETE CASCADE,
+  data DATE,
+  condutor VARCHAR(150),
+  horario_saida TIME,
+  km_inicial NUMERIC(12, 2),
+  horario_chegada TIME,
+  km_final NUMERIC(12, 2),
+  destino VARCHAR(200),
+  combustivel_consumido_litros NUMERIC(12, 2),
+  km_rodados NUMERIC(12, 2),
+  media_consumo NUMERIC(12, 2),
   observacoes TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS controle_veiculos_motoristas_autorizados (
+  id BIGSERIAL PRIMARY KEY,
+  veiculo_id BIGINT NOT NULL REFERENCES controle_veiculos(id) ON DELETE CASCADE,
+  tipo_origem VARCHAR(20) NOT NULL,
+  profissional_id BIGINT,
+  voluntario_id BIGINT,
+  nome_motorista VARCHAR(200) NOT NULL,
+  numero_carteira VARCHAR(40),
+  categoria_carteira VARCHAR(10),
+  vencimento_carteira DATE,
+  arquivo_carteira_pdf TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT controle_veiculos_motoristas_autorizados_tipo_ck
+    CHECK (
+      (tipo_origem = 'PROFISSIONAL' AND profissional_id IS NOT NULL AND voluntario_id IS NULL)
+      OR
+      (tipo_origem = 'VOLUNTARIO' AND voluntario_id IS NOT NULL AND profissional_id IS NULL)
+    )
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS controle_veiculos_motoristas_autorizados_unique_idx
+  ON controle_veiculos_motoristas_autorizados (veiculo_id, tipo_origem, profissional_id, voluntario_id);
+
+CREATE INDEX IF NOT EXISTS controle_veiculos_motoristas_autorizados_veiculo_idx
+  ON controle_veiculos_motoristas_autorizados (veiculo_id);
+
+ALTER TABLE controle_veiculos ALTER COLUMN placa DROP NOT NULL;
+ALTER TABLE controle_veiculos ALTER COLUMN modelo DROP NOT NULL;
+ALTER TABLE controle_veiculos ALTER COLUMN marca DROP NOT NULL;
+ALTER TABLE controle_veiculos ALTER COLUMN ano DROP NOT NULL;
+ALTER TABLE controle_veiculos ALTER COLUMN tipo_combustivel DROP NOT NULL;
+ALTER TABLE controle_veiculos ALTER COLUMN ativo DROP NOT NULL;
+
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS media_consumo_padrao NUMERIC(12, 2);
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS capacidade_tanque_litros NUMERIC(12, 2);
+
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_frente TEXT;
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_lateral_esquerda TEXT;
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_lateral_direita TEXT;
+ALTER TABLE controle_veiculos ADD COLUMN IF NOT EXISTS foto_traseira TEXT;
+
+ALTER TABLE controle_veiculos_motoristas_autorizados
+  ADD COLUMN IF NOT EXISTS numero_carteira VARCHAR(40);
+ALTER TABLE controle_veiculos_motoristas_autorizados
+  ADD COLUMN IF NOT EXISTS categoria_carteira VARCHAR(10);
+ALTER TABLE controle_veiculos_motoristas_autorizados
+  ADD COLUMN IF NOT EXISTS vencimento_carteira DATE;
+ALTER TABLE controle_veiculos_motoristas_autorizados
+  ADD COLUMN IF NOT EXISTS arquivo_carteira_pdf TEXT;
+
+ALTER TABLE controle_veiculos_diario ALTER COLUMN veiculo_id DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN data DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN condutor DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN horario_saida DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN km_inicial DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN horario_chegada DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN km_final DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN destino DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN combustivel_consumido_litros DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN km_rodados DROP NOT NULL;
+ALTER TABLE controle_veiculos_diario ALTER COLUMN media_consumo DROP NOT NULL;
 
 CREATE INDEX IF NOT EXISTS controle_veiculos_diario_veiculo_idx
   ON controle_veiculos_diario (veiculo_id);
@@ -3234,6 +3301,84 @@ SELECT '1.00.17', 'Selecao de noticias manuais ou via RSS no painel de senhas.',
 WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
   WHERE versao = '1.00.17'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.18',
+  descricao = 'Controle de veiculos com campos nao obrigatorios e ajustes de layout.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.18';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.18', 'Controle de veiculos com campos nao obrigatorios e ajustes de layout.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.18'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.19',
+  descricao = 'Indicador de tarefas vencidas com destaque e ajuste de icone do tema escuro.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.19';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.19', 'Indicador de tarefas vencidas com destaque e ajuste de icone do tema escuro.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.19'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.20',
+  descricao = 'Paginacao do historico de versoes na tela de configuracoes.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.20';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.20', 'Paginacao do historico de versoes na tela de configuracoes.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.20'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.21',
+  descricao = 'Cadastro de veiculos com marcas sugeridas, validacao de placa e fotos do veiculo.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.21';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.21', 'Cadastro de veiculos com marcas sugeridas, validacao de placa e fotos do veiculo.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.21'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.22',
+  descricao = 'Cadastro de veiculos com foto traseira e cards alinhados.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.22';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.22', 'Cadastro de veiculos com foto traseira e cards alinhados.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.22'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.26',
+  descricao = 'Mapa de bordo com condutor por motoristas autorizados e destino ampliado.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.26';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.26', 'Mapa de bordo com condutor por motoristas autorizados e destino ampliado.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.26'
 );
 
 

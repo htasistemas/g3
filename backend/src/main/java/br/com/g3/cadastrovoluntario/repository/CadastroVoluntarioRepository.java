@@ -9,6 +9,8 @@ public interface CadastroVoluntarioRepository {
 
   List<CadastroVoluntario> listar();
 
+  List<CadastroVoluntario> buscarPorNome(String nome);
+
   Optional<CadastroVoluntario> buscarPorId(Long id);
 
   void remover(CadastroVoluntario cadastro);

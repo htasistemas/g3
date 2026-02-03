@@ -23,6 +23,8 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   erroHistorico: string | null = null;
   atualizandoVersao = false;
   feedbackAtualizacao: string | null = null;
+  paginaAtual = 1;
+  readonly itensPorPagina = 5;
   private versaoAlvo = '';
   private readonly resumoAtualizacao =
     'Controle de veiculos com persistencia no banco e ajustes no layout da tela.';
@@ -83,6 +85,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
     this.configService.listarHistoricoVersoes().subscribe({
       next: (response) => {
         this.historicoVersoes = response || [];
+        this.paginaAtual = 1;
       },
       error: () => {
         this.erroHistorico = 'Nao foi possivel carregar o historico de versoes.';
@@ -125,6 +128,27 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
       minute: '2-digit',
       second: '2-digit'
     });
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.historicoVersoes.length / this.itensPorPagina));
+  }
+
+  get historicoPaginado(): HistoricoVersaoResponse[] {
+    const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
+    return this.historicoVersoes.slice(inicio, inicio + this.itensPorPagina);
+  }
+
+  avancarPagina(): void {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual += 1;
+    }
+  }
+
+  voltarPagina(): void {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual -= 1;
+    }
   }
 
   private atualizarVersaoSistemaSeNecessario(): void {

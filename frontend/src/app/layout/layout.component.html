@@ -79,7 +79,12 @@
           <button type="button" class="tarefas-chip__item" (click)="abrirTarefasAbertas()">
             Abertas: {{ tarefasAbertas }}
           </button>
-          <button type="button" class="tarefas-chip__item tarefas-chip__item--alerta" (click)="abrirTarefasVencidas()">
+          <button
+            type="button"
+            class="tarefas-chip__item tarefas-chip__item--alerta"
+            [class.tarefas-chip__item--piscar]="tarefasVencidas > 0"
+            (click)="abrirTarefasVencidas()"
+          >
             Vencidas: {{ tarefasVencidas }}
           </button>
         </div>

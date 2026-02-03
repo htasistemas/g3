@@ -1,6 +1,7 @@
 package br.com.g3.controleveiculos.serviceimpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -9,6 +10,7 @@ import br.com.g3.controleveiculos.domain.DiarioBordo;
 import br.com.g3.controleveiculos.domain.Veiculo;
 import br.com.g3.controleveiculos.dto.DiarioBordoRequest;
 import br.com.g3.controleveiculos.dto.DiarioBordoResponse;
+import br.com.g3.controleveiculos.dto.VeiculoRequest;
 import br.com.g3.controleveiculos.repository.DiarioBordoRepository;
 import br.com.g3.controleveiculos.repository.VeiculoRepository;
 import java.math.BigDecimal;
@@ -80,5 +82,28 @@ class ControleVeiculosServiceImplTeste {
     when(veiculoRepository.buscarPorId(1L)).thenReturn(Optional.of(veiculo));
 
     assertThrows(ResponseStatusException.class, () -> servico.criarDiario(requisicao));
+  }
+
+  @Test
+  void criarDiarioDevePermitirCamposOpcionaisSemMetricas() {
+    DiarioBordoRequest requisicao = new DiarioBordoRequest();
+    requisicao.setData(LocalDate.of(2024, 10, 10));
+
+    when(diarioBordoRepository.salvar(any(DiarioBordo.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    DiarioBordoResponse resposta = servico.criarDiario(requisicao);
+
+    assertNull(resposta.getKmRodados());
+    assertNull(resposta.getMediaConsumo());
+    assertNull(resposta.getCombustivelConsumidoLitros());
+  }
+
+  @Test
+  void criarVeiculoDeveRetornarErroQuandoPlacaInvalida() {
+    VeiculoRequest requisicao = new VeiculoRequest();
+    requisicao.setPlaca("1234ABC");
+
+    assertThrows(ResponseStatusException.class, () -> servico.criarVeiculo(requisicao));
   }
 }

@@ -1,26 +1,18 @@
 package br.com.g3.controleveiculos.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public class VeiculoRequest {
-  @NotBlank
   private String placa;
 
-  @NotBlank
   private String modelo;
 
-  @NotBlank
   private String marca;
 
-  @NotNull
-  @Min(1900)
+  @PositiveOrZero
   private Integer ano;
 
-  @NotBlank
   private String tipoCombustivel;
 
   @PositiveOrZero
@@ -30,8 +22,15 @@ public class VeiculoRequest {
 
   private String observacoes;
 
-  @NotNull
   private Boolean ativo;
+
+  private String fotoFrente;
+
+  private String fotoLateralEsquerda;
+
+  private String fotoLateralDireita;
+
+  private String fotoTraseira;
 
   public String getPlaca() {
     return placa;
@@ -103,5 +102,37 @@ public class VeiculoRequest {
 
   public void setAtivo(Boolean ativo) {
     this.ativo = ativo;
+  }
+
+  public String getFotoFrente() {
+    return fotoFrente;
+  }
+
+  public void setFotoFrente(String fotoFrente) {
+    this.fotoFrente = fotoFrente;
+  }
+
+  public String getFotoLateralEsquerda() {
+    return fotoLateralEsquerda;
+  }
+
+  public void setFotoLateralEsquerda(String fotoLateralEsquerda) {
+    this.fotoLateralEsquerda = fotoLateralEsquerda;
+  }
+
+  public String getFotoLateralDireita() {
+    return fotoLateralDireita;
+  }
+
+  public void setFotoLateralDireita(String fotoLateralDireita) {
+    this.fotoLateralDireita = fotoLateralDireita;
+  }
+
+  public String getFotoTraseira() {
+    return fotoTraseira;
+  }
+
+  public void setFotoTraseira(String fotoTraseira) {
+    this.fotoTraseira = fotoTraseira;
   }
 }

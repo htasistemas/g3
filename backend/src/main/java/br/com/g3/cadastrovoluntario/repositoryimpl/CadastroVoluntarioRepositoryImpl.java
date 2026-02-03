@@ -25,6 +25,11 @@ public class CadastroVoluntarioRepositoryImpl implements CadastroVoluntarioRepos
   }
 
   @Override
+  public List<CadastroVoluntario> buscarPorNome(String nome) {
+    return jpaRepository.findByNomeCompletoContainingIgnoreCase(nome);
+  }
+
+  @Override
   public Optional<CadastroVoluntario> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }

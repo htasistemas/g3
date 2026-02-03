@@ -145,6 +145,31 @@
   color: #fecaca;
 }
 
+.tarefas-chip__item--piscar {
+  background: rgba(239, 68, 68, 0.28);
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  animation: tarefas-alerta 1s ease-in-out infinite;
+}
+
+@keyframes tarefas-alerta {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarefas-chip__item--piscar {
+    animation: none;
+  }
+}
+
 .app-header__spacer {
   flex: 1;
 }

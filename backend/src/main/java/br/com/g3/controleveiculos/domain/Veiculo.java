@@ -16,19 +16,19 @@ public class Veiculo {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "placa", length = 20, nullable = false)
+  @Column(name = "placa", length = 20)
   private String placa;
 
-  @Column(name = "modelo", length = 120, nullable = false)
+  @Column(name = "modelo", length = 120)
   private String modelo;
 
-  @Column(name = "marca", length = 120, nullable = false)
+  @Column(name = "marca", length = 120)
   private String marca;
 
-  @Column(name = "ano", nullable = false)
+  @Column(name = "ano")
   private Integer ano;
 
-  @Column(name = "tipo_combustivel", length = 60, nullable = false)
+  @Column(name = "tipo_combustivel", length = 60)
   private String tipoCombustivel;
 
   @Column(name = "media_consumo_padrao", precision = 12, scale = 2)
@@ -40,8 +40,20 @@ public class Veiculo {
   @Column(name = "observacoes", columnDefinition = "TEXT")
   private String observacoes;
 
-  @Column(name = "ativo", nullable = false)
+  @Column(name = "ativo")
   private Boolean ativo;
+
+  @Column(name = "foto_frente", columnDefinition = "TEXT")
+  private String fotoFrente;
+
+  @Column(name = "foto_lateral_esquerda", columnDefinition = "TEXT")
+  private String fotoLateralEsquerda;
+
+  @Column(name = "foto_lateral_direita", columnDefinition = "TEXT")
+  private String fotoLateralDireita;
+
+  @Column(name = "foto_traseira", columnDefinition = "TEXT")
+  private String fotoTraseira;
 
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
@@ -127,6 +139,38 @@ public class Veiculo {
 
   public void setAtivo(Boolean ativo) {
     this.ativo = ativo;
+  }
+
+  public String getFotoFrente() {
+    return fotoFrente;
+  }
+
+  public void setFotoFrente(String fotoFrente) {
+    this.fotoFrente = fotoFrente;
+  }
+
+  public String getFotoLateralEsquerda() {
+    return fotoLateralEsquerda;
+  }
+
+  public void setFotoLateralEsquerda(String fotoLateralEsquerda) {
+    this.fotoLateralEsquerda = fotoLateralEsquerda;
+  }
+
+  public String getFotoLateralDireita() {
+    return fotoLateralDireita;
+  }
+
+  public void setFotoLateralDireita(String fotoLateralDireita) {
+    this.fotoLateralDireita = fotoLateralDireita;
+  }
+
+  public String getFotoTraseira() {
+    return fotoTraseira;
+  }
+
+  public void setFotoTraseira(String fotoTraseira) {
+    this.fotoTraseira = fotoTraseira;
   }
 
   public LocalDateTime getCriadoEm() {

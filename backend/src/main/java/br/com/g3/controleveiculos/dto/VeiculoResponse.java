@@ -14,6 +14,10 @@ public class VeiculoResponse {
   private BigDecimal capacidadeTanqueLitros;
   private String observacoes;
   private Boolean ativo;
+  private String fotoFrente;
+  private String fotoLateralEsquerda;
+  private String fotoLateralDireita;
+  private String fotoTraseira;
   private LocalDateTime criadoEm;
   private LocalDateTime atualizadoEm;
 
@@ -95,6 +99,38 @@ public class VeiculoResponse {
 
   public void setAtivo(Boolean ativo) {
     this.ativo = ativo;
+  }
+
+  public String getFotoFrente() {
+    return fotoFrente;
+  }
+
+  public void setFotoFrente(String fotoFrente) {
+    this.fotoFrente = fotoFrente;
+  }
+
+  public String getFotoLateralEsquerda() {
+    return fotoLateralEsquerda;
+  }
+
+  public void setFotoLateralEsquerda(String fotoLateralEsquerda) {
+    this.fotoLateralEsquerda = fotoLateralEsquerda;
+  }
+
+  public String getFotoLateralDireita() {
+    return fotoLateralDireita;
+  }
+
+  public void setFotoLateralDireita(String fotoLateralDireita) {
+    this.fotoLateralDireita = fotoLateralDireita;
+  }
+
+  public String getFotoTraseira() {
+    return fotoTraseira;
+  }
+
+  public void setFotoTraseira(String fotoTraseira) {
+    this.fotoTraseira = fotoTraseira;
   }
 
   public LocalDateTime getCriadoEm() {

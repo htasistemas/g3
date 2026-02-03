@@ -18,37 +18,37 @@ public class DiarioBordo {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "veiculo_id", nullable = false)
+  @Column(name = "veiculo_id")
   private Long veiculoId;
 
-  @Column(name = "data", nullable = false)
+  @Column(name = "data")
   private LocalDate data;
 
-  @Column(name = "condutor", length = 150, nullable = false)
+  @Column(name = "condutor", length = 150)
   private String condutor;
 
-  @Column(name = "horario_saida", nullable = false)
+  @Column(name = "horario_saida")
   private LocalTime horarioSaida;
 
-  @Column(name = "km_inicial", precision = 12, scale = 2, nullable = false)
+  @Column(name = "km_inicial", precision = 12, scale = 2)
   private BigDecimal kmInicial;
 
-  @Column(name = "horario_chegada", nullable = false)
+  @Column(name = "horario_chegada")
   private LocalTime horarioChegada;
 
-  @Column(name = "km_final", precision = 12, scale = 2, nullable = false)
+  @Column(name = "km_final", precision = 12, scale = 2)
   private BigDecimal kmFinal;
 
-  @Column(name = "destino", length = 200, nullable = false)
+  @Column(name = "destino", length = 200)
   private String destino;
 
-  @Column(name = "combustivel_consumido_litros", precision = 12, scale = 2, nullable = false)
+  @Column(name = "combustivel_consumido_litros", precision = 12, scale = 2)
   private BigDecimal combustivelConsumidoLitros;
 
-  @Column(name = "km_rodados", precision = 12, scale = 2, nullable = false)
+  @Column(name = "km_rodados", precision = 12, scale = 2)
   private BigDecimal kmRodados;
 
-  @Column(name = "media_consumo", precision = 12, scale = 2, nullable = false)
+  @Column(name = "media_consumo", precision = 12, scale = 2)
   private BigDecimal mediaConsumo;
 
   @Column(name = "observacoes", columnDefinition = "TEXT")

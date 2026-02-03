@@ -53,8 +53,7 @@ describe('ControleVeiculosService', () => {
         kmInicial: 1000,
         horarioChegada: '10:00',
         kmFinal: 1050,
-        destino: 'Centro',
-        combustivelConsumidoLitros: 5
+        destino: 'Centro'
       })
       .subscribe((registro) => {
         expect(registro.id).toBe(10);

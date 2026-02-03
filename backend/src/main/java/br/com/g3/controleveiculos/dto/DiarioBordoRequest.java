@@ -1,40 +1,30 @@
 package br.com.g3.controleveiculos.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class DiarioBordoRequest {
-  @NotNull
   private Long veiculoId;
 
-  @NotNull
   private LocalDate data;
 
-  @NotBlank
   private String condutor;
 
-  @NotNull
   private LocalTime horarioSaida;
 
-  @NotNull
   @PositiveOrZero
   private BigDecimal kmInicial;
 
   @PositiveOrZero
   private BigDecimal combustivelConsumidoLitros;
 
-  @NotNull
   private LocalTime horarioChegada;
 
-  @NotNull
   @PositiveOrZero
   private BigDecimal kmFinal;
 
-  @NotBlank
   private String destino;
 
   private String observacoes;

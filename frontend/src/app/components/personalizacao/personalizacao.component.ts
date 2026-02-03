@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCircleHalfStroke, faPalette, faRotateLeft } from '@fortawesome/free-solid-svg-icons';
+import { faCircleHalfStroke, faRotateLeft, faSun } from '@fortawesome/free-solid-svg-icons';
 import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { ThemeService } from '../../services/theme.service';
 import { PaletteSettings, PersonalizationService } from '../../services/personalization.service';
@@ -15,9 +15,9 @@ import { PaletteSettings, PersonalizationService } from '../../services/personal
   styleUrl: './personalizacao.component.scss'
 })
 export class PersonalizacaoComponent implements OnInit, OnDestroy {
-  readonly faPalette = faPalette;
   readonly faCircleHalfStroke = faCircleHalfStroke;
   readonly faRotateLeft = faRotateLeft;
+  readonly faSun = faSun;
 
   form!: FormGroup;
 
