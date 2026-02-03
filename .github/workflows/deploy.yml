@@ -54,7 +54,7 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
-          docker compose up -d --build --remove-orphans backend frontend
+          docker compose up -d --build --no-deps backend frontend
 
           echo "Aguardando backend subir..."
           for i in {1..20}; do
@@ -69,6 +69,15 @@ jobs:
             echo "Erro: backend nao respondeu /health"
             exit 1
           fi
+
+          echo "Aguardando frontend subir..."
+          for i in {1..20}; do
+            if curl -fsS http://localhost/ > /dev/null; then
+              echo "Frontend respondeu"
+              break
+            fi
+            sleep 3
+          done
 
           if ! curl -fsS http://localhost/ > /dev/null; then
             echo "Erro: frontend nao respondeu"
