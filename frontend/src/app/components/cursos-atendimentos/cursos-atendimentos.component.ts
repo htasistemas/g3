@@ -770,7 +770,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   removeEnrollment(enrollment: Enrollment): void {
     if (!this.currentCourse) return;
-    const confirm = window.confirm(`Remover a matrícula de ${enrollment.beneficiaryName}?`);
+    const confirm = window.confirm('A exclusão é irreversível, tem certeza?');
     if (!confirm) return;
 
     const statusAnterior = enrollment.status;
@@ -1241,13 +1241,14 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   private normalizeRecord(record: CourseRecord): CourseRecord {
     return {
       ...record,
+      id: String(record.id ?? ''),
       imagem: record.imagem ?? null,
       restricoes: record.restricoes ?? null,
       diasSemana: record.diasSemana ?? [],
       faixasEtarias: record.faixasEtarias ?? [],
       vagaPreferencialIdosos: record.vagaPreferencialIdosos ?? false,
       sexoPermitido: record.sexoPermitido ?? 'Todos',
-      salaId: record.salaId ?? record.sala?.id ?? null,
+      salaId: record.salaId ? String(record.salaId) : record.sala?.id ? String(record.sala.id) : null,
       enrollments: (record.enrollments ?? []).map((enrollment) => ({
         ...enrollment,
         enrolledAt: enrollment.enrolledAt ?? new Date().toISOString()
