@@ -76,12 +76,16 @@
       <div class="app-header__actions">
         <div class="tarefas-chip">
           <button type="button" class="tarefas-chip__button" (click)="abrirTarefas()">Tarefas</button>
-          <button type="button" class="tarefas-chip__item" (click)="abrirTarefasAbertas()">
+          <button
+            type="button"
+            class="tarefas-chip__item tarefas-chip__item--abertas"
+            (click)="abrirTarefasAbertas()"
+          >
             Abertas: {{ tarefasAbertas }}
           </button>
           <button
             type="button"
-            class="tarefas-chip__item tarefas-chip__item--alerta"
+            class="tarefas-chip__item tarefas-chip__item--alerta tarefas-chip__item--vencidas"
             [class.tarefas-chip__item--piscar]="tarefasVencidas > 0"
             (click)="abrirTarefasVencidas()"
           >
