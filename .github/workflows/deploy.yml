@@ -54,7 +54,8 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
-          docker compose up -d --build --no-deps backend frontend
+          COMPOSE="docker compose -p g3 -f docker-compose.yml -f docker-compose.tunnel.yml"
+          $COMPOSE up -d --build --remove-orphans
 
           echo "Aguardando backend subir..."
           for i in {1..20}; do
