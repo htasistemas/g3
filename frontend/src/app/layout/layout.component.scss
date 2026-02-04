@@ -44,6 +44,25 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.sidebar__unit {
+  width: 100%;
+  text-align: center;
+}
+
+.sidebar__logo-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.sidebar__logo {
+  display: block;
+  margin-top: 0.75rem;
+  max-width: 200px;
+  max-height: 110px;
+  object-fit: contain;
+}
+
 .menu-card {
   background: var(--sidebar-card-bg);
   border: 1px solid var(--sidebar-border);

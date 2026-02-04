@@ -418,7 +418,7 @@
 
                 <div class="row-actions">
 
-                  <button type="button" class="ghost" (click)="selectTask(task)">Histórico</button>
+                  <button type="button" class="ghost" (click)="abrirHistorico(task)">Histórico</button>
 
                   <button type="button" class="ghost" (click)="editTask(task)">Editar</button>
 
@@ -649,6 +649,43 @@
   </form>
 
 </app-tela-padrao>
+
+<div class="modal-overlay" *ngIf="historicoAberto">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-card__header">
+      <div>
+        <p class="modal-card__eyebrow">Histórico</p>
+        <p class="modal-card__title">{{ historicoTask?.titulo }}</p>
+      </div>
+      <button type="button" class="ghost" (click)="fecharHistorico()" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-card__body">
+      <div class="field">
+        Ação realizada*
+        <textarea
+          rows="2"
+          [(ngModel)]="historicoMensagem"
+          placeholder="Descreva a ação realizada nesta pendência"
+        ></textarea>
+      </div>
+      <div class="modal-card__actions modal-card__actions--inline">
+        <button type="button" class="primary" (click)="salvarHistorico()" [disabled]="salvandoHistorico">
+          {{ salvandoHistorico ? 'Salvando...' : 'Salvar ação' }}
+        </button>
+      </div>
+      <p class="muted" *ngIf="!historicoTask?.historico?.length">Nenhum histórico registrado.</p>
+      <ul class="modal-timeline" *ngIf="historicoTask?.historico?.length">
+        <li *ngFor="let item of historicoOrdenado()">
+          <p class="strong">{{ item.mensagem }}</p>
+          <p class="muted">{{ item.data | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </li>
+      </ul>
+    </div>
+    <div class="modal-card__actions">
+      <button type="button" class="ghost" (click)="fecharHistorico()">Fechar</button>
+    </div>
+  </div>
+</div>
 
 
 

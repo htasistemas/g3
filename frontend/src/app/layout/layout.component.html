@@ -6,9 +6,16 @@
     #sidebar
   >
     <div class="sidebar__header">
-      <div>
+      <div class="sidebar__unit">
         <p class="text-xs uppercase tracking-wide text-emerald-50">Unidade ativa</p>
         <h2 class="text-xl font-semibold text-white">{{ activeUnitName$ | async }}</h2>
+        <div class="sidebar__logo-wrapper" *ngIf="activeUnitLogo$ | async as logomarcaAtiva">
+          <img
+            [src]="logomarcaAtiva"
+            alt="Logomarca da unidade"
+            class="sidebar__logo"
+          />
+        </div>
       </div>
     </div>
     <nav class="p-4 space-y-3">

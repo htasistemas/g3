@@ -200,7 +200,18 @@ public class DashboardAssistenciaServiceImpl implements DashboardAssistenciaServ
       return null;
     }
     String normalizado = valor.replace("R$", "").trim();
-    normalizado = normalizado.replace(".", "").replace(",", ".");
+    normalizado = normalizado.replaceAll("[^0-9,\\.]", "");
+
+    if (normalizado.contains(",")) {
+      normalizado = normalizado.replace(".", "").replace(",", ".");
+    } else if (normalizado.contains(".")) {
+      int ultimaPosicao = normalizado.lastIndexOf('.');
+      int casasDecimais = normalizado.length() - ultimaPosicao - 1;
+      if (normalizado.chars().filter(ch -> ch == '.').count() > 1 || casasDecimais != 2) {
+        normalizado = normalizado.replace(".", "");
+      }
+    }
+
     normalizado = normalizado.replaceAll("[^0-9.]", "");
     if (normalizado.isEmpty()) {
       return null;

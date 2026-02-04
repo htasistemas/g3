@@ -73,6 +73,20 @@ public class TarefaPendenciaServiceImpl implements TarefaPendenciaService {
 
   @Override
   @Transactional
+  public TarefaPendenciaResponse adicionarHistorico(Long id, String mensagem) {
+    if (!StringUtils.hasText(mensagem)) {
+      throw new IllegalArgumentException("Mensagem do historico nao informada.");
+    }
+    TarefaPendencia tarefa =
+        repository.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException("Tarefa nao encontrada."));
+    LocalDateTime agora = LocalDateTime.now();
+    registrarHistorico(tarefa, mensagem.trim(), agora);
+    tarefa.setAtualizadoEm(agora);
+    return TarefaPendenciaMapper.toResponse(repository.salvar(tarefa));
+  }
+
+  @Override
+  @Transactional
   public void remover(Long id) {
     TarefaPendencia tarefa =
         repository.buscarPorId(id).orElseThrow(() -> new IllegalArgumentException("Tarefa nao encontrada."));

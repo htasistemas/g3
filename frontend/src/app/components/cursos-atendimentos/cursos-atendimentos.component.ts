@@ -768,6 +768,27 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.persistCurrentCourse();
   }
 
+  removeEnrollment(enrollment: Enrollment): void {
+    if (!this.currentCourse) return;
+    const confirm = window.confirm(`Remover a matrícula de ${enrollment.beneficiaryName}?`);
+    if (!confirm) return;
+
+    const statusAnterior = enrollment.status;
+    this.currentCourse.enrollments = this.currentCourse.enrollments.filter(
+      (item) => item.id !== enrollment.id
+    );
+
+    if (statusAnterior === 'Ativo') {
+      this.currentCourse.vagasDisponiveis = Math.min(
+        this.currentCourse.vagasTotais,
+        this.currentCourse.vagasDisponiveis + 1
+      );
+      this.tryPromoteWaitlist();
+    }
+
+    this.persistCurrentCourse();
+  }
+
   removeFromWaitlist(entry: WaitlistEntry, course?: CourseRecord): void {
     const targetCourse = course ?? this.currentCourse;
     if (!targetCourse) return;

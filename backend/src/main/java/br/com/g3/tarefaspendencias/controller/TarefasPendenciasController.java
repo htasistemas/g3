@@ -2,6 +2,7 @@ package br.com.g3.tarefaspendencias.controller;
 
 import br.com.g3.tarefaspendencias.dto.TarefaPendenciaRequest;
 import br.com.g3.tarefaspendencias.dto.TarefaPendenciaResponse;
+import br.com.g3.tarefaspendencias.dto.TarefaPendenciaHistoricoRequest;
 import br.com.g3.tarefaspendencias.service.TarefaPendenciaService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -45,6 +46,12 @@ public class TarefasPendenciasController {
   public TarefaPendenciaResponse atualizar(
       @PathVariable("id") Long id, @Valid @RequestBody TarefaPendenciaRequest request) {
     return service.atualizar(id, request);
+  }
+
+  @PostMapping("/{id}/historico")
+  public TarefaPendenciaResponse adicionarHistorico(
+      @PathVariable("id") Long id, @RequestBody TarefaPendenciaHistoricoRequest request) {
+    return service.adicionarHistorico(id, request != null ? request.getMensagem() : null);
   }
 
   @DeleteMapping("/{id}")

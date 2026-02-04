@@ -33,6 +33,10 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
   feedback: string | null = null;
   tasks: TaskRecord[] = [];
   selectedTask: TaskRecord | null = null;
+  historicoTask: TaskRecord | null = null;
+  historicoAberto = false;
+  historicoMensagem = '';
+  salvandoHistorico = false;
   editingId: string | null = null;
   responsaveisSugeridos: string[] = [];
   saving = false;
@@ -61,7 +65,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
       next: 'Em atraso' as TaskRecord['status']
     },
     {
-      label: 'Em atraso',
+      label: 'Pendente',
       status: 'Em atraso' as TaskRecord['status'],
       prev: 'Em andamento' as TaskRecord['status'],
       next: 'Concluída' as TaskRecord['status']
@@ -377,6 +381,61 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
 
   selectTask(task: TaskRecord): void {
     this.selectedTask = task;
+    this.abrirHistorico(task);
+  }
+
+  abrirHistorico(task: TaskRecord): void {
+    this.historicoTask = task;
+    this.historicoAberto = true;
+    this.historicoMensagem = '';
+  }
+
+  fecharHistorico(): void {
+    this.historicoAberto = false;
+    this.historicoTask = null;
+    this.historicoMensagem = '';
+  }
+
+  salvarHistorico(): void {
+    if (!this.historicoTask) return;
+    const mensagem = this.historicoMensagem.trim();
+    if (!mensagem) {
+      this.setFeedback('Informe a ação realizada antes de salvar.');
+      return;
+    }
+    if (this.ultimaAcaoIgual(mensagem)) {
+      this.setFeedback('Esta ação já foi registrada como a última atividade.');
+      return;
+    }
+    if (this.salvandoHistorico) return;
+    this.salvandoHistorico = true;
+    this.tarefasService
+      .adicionarHistorico(this.historicoTask.id, mensagem)
+      .pipe(finalize(() => (this.salvandoHistorico = false)))
+      .subscribe({
+        next: (atualizada: TaskRecord) => {
+          this.updateTaskInList(atualizada);
+          this.historicoTask = atualizada;
+          this.historicoMensagem = '';
+          this.setFeedback('Ação registrada no histórico.');
+          this.fecharHistorico();
+        },
+        error: () => {
+          this.setFeedback('Não foi possível registrar a ação no histórico.');
+        }
+      });
+  }
+
+  historicoOrdenado(): TaskRecord['historico'] {
+    const historico = this.historicoTask?.historico ?? [];
+    return [...historico].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  }
+
+  private ultimaAcaoIgual(mensagem: string): boolean {
+    const historico = this.historicoTask?.historico ?? [];
+    if (!historico.length) return false;
+    const ultima = historico[historico.length - 1];
+    return ultima?.mensagem?.trim().toLowerCase() === mensagem.trim().toLowerCase();
   }
 
   startNewTask(): void {
@@ -550,3 +609,4 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     return 'green';
   }
 }
+

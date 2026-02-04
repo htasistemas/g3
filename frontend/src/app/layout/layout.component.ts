@@ -73,6 +73,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       });
 
     this.carregarResumoTarefas();
+    this.carregarUnidadeAtiva();
     this.tarefasRefreshId = setInterval(() => {
       this.carregarResumoTarefas();
     }, 30000);
@@ -167,6 +168,27 @@ export class LayoutComponent implements OnInit, OnDestroy {
         this.tarefasVencidas = 0;
       }
     });
+  }
+
+  private carregarUnidadeAtiva(): void {
+    this.assistanceUnitService
+      .get()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (resposta) => {
+          const unidade = resposta?.unidade;
+          if (unidade) {
+            const nome = unidade.nomeFantasia?.trim() || unidade.razaoSocial?.trim() || 'Navegação';
+            const logomarca = unidade.logomarca || null;
+            this.assistanceUnitService.setActiveUnit(nome, logomarca);
+          } else {
+            this.assistanceUnitService.setActiveUnit('Navegação', null);
+          }
+        },
+        error: () => {
+          this.assistanceUnitService.setActiveUnit('Navegação', null);
+        }
+      });
   }
 
   @HostListener('document:click', ['$event'])

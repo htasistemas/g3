@@ -339,7 +339,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.setDiretoriaForm([]);
         this.logoPreview = null;
         this.reportLogoPreview = null;
-        this.unitService.setActiveUnit('Navegacao', null);
+        this.unitService.setActiveUnit('Navegação', null);
         this.salasUnidade = [];
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
@@ -665,7 +665,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     this.reportLogoPreview = null;
     this.deleteConfirmation = false;
     this.activeTab = 'dados';
-    this.unitService.setActiveUnit('Navegacao', null);
+    this.unitService.setActiveUnit('Navegação', null);
     this.dismissFeedback();
   }
 

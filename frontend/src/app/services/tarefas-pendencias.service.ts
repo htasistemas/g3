@@ -150,6 +150,15 @@ export class TarefasPendenciasService {
       .pipe(catchError(this.logAndRethrow('ao baixar o relatório de pendências')));
   }
 
+  adicionarHistorico(id: string, mensagem: string): Observable<TaskRecord> {
+    return this.http
+      .post<TarefaPendenciaApiResponse>(`${this.baseUrl}/${id}/historico`, { mensagem })
+      .pipe(
+        map((response) => this.mapResponse(response)),
+        catchError(this.logAndRethrow('ao adicionar histórico da tarefa'))
+      );
+  }
+
   private toApiPayload(payload: TaskPayload): TarefaPendenciaApiRequest {
     const checklist = (payload.checklist ?? []).map((item, index) => ({
       id: item.id ? Number(item.id) : undefined,
@@ -214,3 +223,4 @@ export class TarefasPendenciasService {
     };
   }
 }
+

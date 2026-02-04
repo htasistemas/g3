@@ -350,6 +350,7 @@
                 <th>CPF</th>
                 <th>Situação</th>
                 <th>Data de inscrição</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -364,9 +365,14 @@
                   </select>
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
+                <td class="table-actions">
+                  <button class="danger" type="button" (click)="removeEnrollment(enrollment)">
+                    Excluir matrícula
+                  </button>
+                </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="4" class="muted">Nenhuma matrícula cadastrada.</td>
+                <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
               </tr>
             </tbody>
           </table>

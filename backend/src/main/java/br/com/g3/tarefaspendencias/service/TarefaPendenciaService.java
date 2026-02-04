@@ -13,5 +13,7 @@ public interface TarefaPendenciaService {
 
   TarefaPendenciaResponse atualizar(Long id, TarefaPendenciaRequest request);
 
+  TarefaPendenciaResponse adicionarHistorico(Long id, String mensagem);
+
   void remover(Long id);
 }
