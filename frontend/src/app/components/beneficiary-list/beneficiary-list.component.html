@@ -65,7 +65,7 @@
               </div>
             </td>
             <td class="table-cell">
-              {{ beneficiary.dataNascimento ? (beneficiary.dataNascimento | date : 'dd/MM/yyyy') : '---' }}
+              {{ formatarDataNascimento(beneficiary.dataNascimento) }}
             </td>
             <td class="table-cell">{{ beneficiary.cidade || '---' }}{{ beneficiary.uf ? '/' + beneficiary.uf : '' }}</td>
             <td class="table-cell text-right">

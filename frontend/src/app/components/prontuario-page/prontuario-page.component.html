@@ -46,7 +46,7 @@
             <h3>{{ resumo.beneficiario.nomeCompleto }}</h3>
             <p>CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃ£o informado' }}</p>
             <p>FamÃ­lia de referÃªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃ£o informada' }}</p>
-            <p>Nascimento: {{ resumo.beneficiario.dataNascimento || 'NÃ£o informado' }}</p>
+            <p>Nascimento: {{ formatarDataNascimento(resumo.beneficiario.dataNascimento) }}</p>
             <p>Nome da mae: {{ resumo.beneficiario.nomeMae || 'NÃ£o informado' }}</p>
             <p>Telefone: {{ resumo.beneficiario.telefone || 'NÃ£o informado' }}</p>
             <p>WhatsApp: {{ resumo.beneficiario.whatsapp || 'NÃ£o informado' }}</p>

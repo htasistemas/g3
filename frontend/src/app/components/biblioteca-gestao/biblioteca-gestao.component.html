@@ -271,7 +271,14 @@
         </label>
         <label class="field">
           Responsavel pela entrega
-          <input formControlName="responsavelNome" placeholder="Nome do responsavel" />
+          <app-autocomplete
+            [placeholder]="'Digite o nome do responsavel'"
+            [termo]="responsavelTermo"
+            [opcoes]="responsavelOpcoes"
+            [carregando]="carregandoResponsaveis"
+            (termoChange)="atualizarResponsavelTermo($event)"
+            (selecionar)="selecionarResponsavel($event)"
+          ></app-autocomplete>
         </label>
         <label class="field">
           Data de emprestimo (*)

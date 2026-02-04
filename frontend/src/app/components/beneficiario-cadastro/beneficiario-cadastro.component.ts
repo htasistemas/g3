@@ -54,6 +54,7 @@ import {
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { criarDataLocal, formatarDataSemFuso } from '../../utils/data-format.util';
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -652,111 +653,134 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       return this.ordenarDocumentosAsc ? comparison : -comparison;
     });
   }
-  mapToForm(beneficiario: BeneficiarioApiPayload) {
-    this.applyBeneficiaryMetadata(beneficiario);
-    this.beneficiaryCode = this.normalizeBeneficiaryCode(beneficiario.codigo);
+  private normalizarTextoNome(valor?: string | null): string {
+    if (!valor) return '';
+    return this.toSentenceCase(valor.toString());
+  }
+
+  private normalizarCamposNome(beneficiario: BeneficiarioApiPayload): BeneficiarioApiPayload {
     return {
-      status: beneficiario.status ?? 'EM_ANALISE',
-      motivo_bloqueio: beneficiario.motivo_bloqueio,
-      foto_3x4: beneficiario.foto_3x4,
+      ...beneficiario,
+      nome_completo: this.normalizarTextoNome(beneficiario.nome_completo),
+      nome_social: this.normalizarTextoNome(beneficiario.nome_social),
+      apelido: this.normalizarTextoNome(beneficiario.apelido),
+      nome_mae: this.normalizarTextoNome(beneficiario.nome_mae),
+      nome_pai: this.normalizarTextoNome(beneficiario.nome_pai),
+      naturalidade_cidade: this.normalizarTextoNome(beneficiario.naturalidade_cidade),
+    };
+  }
+
+  formatarNomeListagem(beneficiario: BeneficiarioApiPayload): string {
+    const nome = beneficiario.nome_completo || beneficiario.nome_social || '';
+    return this.normalizarTextoNome(nome) || '---';
+  }
+
+  mapToForm(beneficiario: BeneficiarioApiPayload) {
+    const beneficiarioNormalizado = this.normalizarCamposNome(beneficiario);
+    this.applyBeneficiaryMetadata(beneficiarioNormalizado);
+    this.beneficiaryCode = this.normalizeBeneficiaryCode(beneficiarioNormalizado.codigo);
+    return {
+      status: beneficiarioNormalizado.status ?? 'EM_ANALISE',
+      motivo_bloqueio: beneficiarioNormalizado.motivo_bloqueio,
+      foto_3x4: beneficiarioNormalizado.foto_3x4,
       dadosPessoais: {
-        nome_completo: beneficiario.nome_completo,
-        nome_social: beneficiario.nome_social,
-        apelido: beneficiario.apelido,
-        data_nascimento: beneficiario.data_nascimento,
-        sexo_biologico: beneficiario.sexo_biologico,
-        identidade_genero: beneficiario.identidade_genero,
-        cor_raca: beneficiario.cor_raca,
-        estado_civil: beneficiario.estado_civil,
-        nacionalidade: beneficiario.nacionalidade,
-        naturalidade_cidade: beneficiario.naturalidade_cidade,
-        naturalidade_uf: beneficiario.naturalidade_uf,
-        nome_mae: beneficiario.nome_mae,
-        nome_pai: beneficiario.nome_pai,
+        nome_completo: beneficiarioNormalizado.nome_completo,
+        nome_social: beneficiarioNormalizado.nome_social,
+        apelido: beneficiarioNormalizado.apelido,
+        data_nascimento: beneficiarioNormalizado.data_nascimento,
+        sexo_biologico: beneficiarioNormalizado.sexo_biologico,
+        identidade_genero: beneficiarioNormalizado.identidade_genero,
+        cor_raca: beneficiarioNormalizado.cor_raca,
+        estado_civil: beneficiarioNormalizado.estado_civil,
+        nacionalidade: beneficiarioNormalizado.nacionalidade,
+        naturalidade_cidade: beneficiarioNormalizado.naturalidade_cidade,
+        naturalidade_uf: beneficiarioNormalizado.naturalidade_uf,
+        nome_mae: beneficiarioNormalizado.nome_mae,
+        nome_pai: beneficiarioNormalizado.nome_pai,
       },
       endereco: {
-        usa_endereco_familia: beneficiario.usa_endereco_familia,
-        cep: this.formatCep(beneficiario.cep),
-        logradouro: beneficiario.logradouro,
-        numero: beneficiario.numero,
-        complemento: beneficiario.complemento,
-        bairro: beneficiario.bairro,
-        ponto_referencia: beneficiario.ponto_referencia,
-        municipio: beneficiario.municipio,
-        uf: beneficiario.uf,
-        latitude: beneficiario.latitude,
-        longitude: beneficiario.longitude,
-        zona: beneficiario.zona || 'URBANA',
-        subzona: beneficiario.subzona,
-        situacao_imovel: beneficiario.situacao_imovel,
-        tipo_moradia: beneficiario.tipo_moradia,
-        agua_encanada: beneficiario.agua_encanada,
-        esgoto_tipo: beneficiario.esgoto_tipo,
-        coleta_lixo: beneficiario.coleta_lixo,
-        energia_eletrica: beneficiario.energia_eletrica,
-        internet: beneficiario.internet,
+        usa_endereco_familia: beneficiarioNormalizado.usa_endereco_familia,
+        cep: this.formatCep(beneficiarioNormalizado.cep),
+        logradouro: beneficiarioNormalizado.logradouro,
+        numero: beneficiarioNormalizado.numero,
+        complemento: beneficiarioNormalizado.complemento,
+        bairro: beneficiarioNormalizado.bairro,
+        ponto_referencia: beneficiarioNormalizado.ponto_referencia,
+        municipio: beneficiarioNormalizado.municipio,
+        uf: beneficiarioNormalizado.uf,
+        latitude: beneficiarioNormalizado.latitude,
+        longitude: beneficiarioNormalizado.longitude,
+        zona: beneficiarioNormalizado.zona || 'URBANA',
+        subzona: beneficiarioNormalizado.subzona,
+        situacao_imovel: beneficiarioNormalizado.situacao_imovel,
+        tipo_moradia: beneficiarioNormalizado.tipo_moradia,
+        agua_encanada: beneficiarioNormalizado.agua_encanada,
+        esgoto_tipo: beneficiarioNormalizado.esgoto_tipo,
+        coleta_lixo: beneficiarioNormalizado.coleta_lixo,
+        energia_eletrica: beneficiarioNormalizado.energia_eletrica,
+        internet: beneficiarioNormalizado.internet,
       },
       contato: {
-        telefone_principal: this.formatPhoneValue(beneficiario.telefone_principal),
-        telefone_principal_whatsapp: beneficiario.telefone_principal_whatsapp,
-        telefone_secundario: this.formatPhoneValue(beneficiario.telefone_secundario),
-        telefone_recado_nome: beneficiario.telefone_recado_nome,
-        telefone_recado_numero: this.formatPhoneValue(beneficiario.telefone_recado_numero),
-        email: beneficiario.email,
-        permite_contato_tel: beneficiario.permite_contato_tel,
-        permite_contato_whatsapp: beneficiario.permite_contato_whatsapp,
-        permite_contato_sms: beneficiario.permite_contato_sms,
-        permite_contato_email: beneficiario.permite_contato_email,
-        horario_preferencial_contato: beneficiario.horario_preferencial_contato,
+        telefone_principal: this.formatPhoneValue(beneficiarioNormalizado.telefone_principal),
+        telefone_principal_whatsapp: beneficiarioNormalizado.telefone_principal_whatsapp,
+        telefone_secundario: this.formatPhoneValue(beneficiarioNormalizado.telefone_secundario),
+        telefone_recado_nome: beneficiarioNormalizado.telefone_recado_nome,
+        telefone_recado_numero: this.formatPhoneValue(beneficiarioNormalizado.telefone_recado_numero),
+        email: beneficiarioNormalizado.email,
+        permite_contato_tel: beneficiarioNormalizado.permite_contato_tel,
+        permite_contato_whatsapp: beneficiarioNormalizado.permite_contato_whatsapp,
+        permite_contato_sms: beneficiarioNormalizado.permite_contato_sms,
+        permite_contato_email: beneficiarioNormalizado.permite_contato_email,
+        horario_preferencial_contato: beneficiarioNormalizado.horario_preferencial_contato,
       },
       documentos: {
-        cpf: this.formatCpf(beneficiario.cpf),
-        rg_numero: beneficiario.rg_numero,
-        rg_orgao_emissor: beneficiario.rg_orgao_emissor,
-        rg_uf: beneficiario.rg_uf,
-        rg_data_emissao: beneficiario.rg_data_emissao,
-        nis: beneficiario.nis,
-        certidao_tipo: beneficiario.certidao_tipo,
-        certidao_livro: beneficiario.certidao_livro,
-        certidao_folha: beneficiario.certidao_folha,
-        certidao_termo: beneficiario.certidao_termo,
-        certidao_cartorio: beneficiario.certidao_cartorio,
-        certidao_municipio: beneficiario.certidao_municipio,
-        certidao_uf: beneficiario.certidao_uf,
-        titulo_eleitor: beneficiario.titulo_eleitor,
-        cnh: beneficiario.cnh,
-        cartao_sus: beneficiario.cartao_sus,
+        cpf: this.formatCpf(beneficiarioNormalizado.cpf),
+        rg_numero: beneficiarioNormalizado.rg_numero,
+        rg_orgao_emissor: beneficiarioNormalizado.rg_orgao_emissor,
+        rg_uf: beneficiarioNormalizado.rg_uf,
+        rg_data_emissao: beneficiarioNormalizado.rg_data_emissao,
+        nis: beneficiarioNormalizado.nis,
+        certidao_tipo: beneficiarioNormalizado.certidao_tipo,
+        certidao_livro: beneficiarioNormalizado.certidao_livro,
+        certidao_folha: beneficiarioNormalizado.certidao_folha,
+        certidao_termo: beneficiarioNormalizado.certidao_termo,
+        certidao_cartorio: beneficiarioNormalizado.certidao_cartorio,
+        certidao_municipio: beneficiarioNormalizado.certidao_municipio,
+        certidao_uf: beneficiarioNormalizado.certidao_uf,
+        titulo_eleitor: beneficiarioNormalizado.titulo_eleitor,
+        cnh: beneficiarioNormalizado.cnh,
+        cartao_sus: beneficiarioNormalizado.cartao_sus,
       },
       familiar: {
-        mora_com_familia: beneficiario.mora_com_familia,
-        responsavel_legal: beneficiario.responsavel_legal,
-        vinculo_familiar: beneficiario.vinculo_familiar,
-        situacao_vulnerabilidade: beneficiario.situacao_vulnerabilidade,
-        composicao_familiar: beneficiario.composicao_familiar,
-        criancas_adolescentes: beneficiario.criancas_adolescentes,
-        idosos: beneficiario.idosos,
-        acompanhamento_cras: beneficiario.acompanhamento_cras,
-        acompanhamento_saude: beneficiario.acompanhamento_saude,
-        participa_comunidade: beneficiario.participa_comunidade,
-        rede_apoio: beneficiario.rede_apoio,
+        mora_com_familia: beneficiarioNormalizado.mora_com_familia,
+        responsavel_legal: beneficiarioNormalizado.responsavel_legal,
+        vinculo_familiar: beneficiarioNormalizado.vinculo_familiar,
+        situacao_vulnerabilidade: beneficiarioNormalizado.situacao_vulnerabilidade,
+        composicao_familiar: beneficiarioNormalizado.composicao_familiar,
+        criancas_adolescentes: beneficiarioNormalizado.criancas_adolescentes,
+        idosos: beneficiarioNormalizado.idosos,
+        acompanhamento_cras: beneficiarioNormalizado.acompanhamento_cras,
+        acompanhamento_saude: beneficiarioNormalizado.acompanhamento_saude,
+        participa_comunidade: beneficiarioNormalizado.participa_comunidade,
+        rede_apoio: beneficiarioNormalizado.rede_apoio,
       },
       escolaridade: {
-        sabe_ler_escrever: beneficiario.sabe_ler_escrever,
-        nivel_escolaridade: beneficiario.nivel_escolaridade,
-        estuda_atualmente: beneficiario.estuda_atualmente,
-        ocupacao: beneficiario.ocupacao,
-        situacao_trabalho: beneficiario.situacao_trabalho,
-        local_trabalho: beneficiario.local_trabalho,
-        renda_mensal: beneficiario.renda_mensal,
-        fonte_renda: beneficiario.fonte_renda,
+        sabe_ler_escrever: beneficiarioNormalizado.sabe_ler_escrever,
+        nivel_escolaridade: beneficiarioNormalizado.nivel_escolaridade,
+        estuda_atualmente: beneficiarioNormalizado.estuda_atualmente,
+        ocupacao: beneficiarioNormalizado.ocupacao,
+        situacao_trabalho: beneficiarioNormalizado.situacao_trabalho,
+        local_trabalho: beneficiarioNormalizado.local_trabalho,
+        renda_mensal: beneficiarioNormalizado.renda_mensal,
+        fonte_renda: beneficiarioNormalizado.fonte_renda,
       },
       saude: {
-        possui_deficiencia: beneficiario.possui_deficiencia,
-        tipo_deficiencia: beneficiario.tipo_deficiencia,
-        cid_principal: beneficiario.cid_principal,
-        usa_medicacao_continua: beneficiario.usa_medicacao_continua,
-        descricao_medicacao: beneficiario.descricao_medicacao,
-        servico_saude_referencia: beneficiario.servico_saude_referencia,
+        possui_deficiencia: beneficiarioNormalizado.possui_deficiencia,
+        tipo_deficiencia: beneficiarioNormalizado.tipo_deficiencia,
+        cid_principal: beneficiarioNormalizado.cid_principal,
+        usa_medicacao_continua: beneficiarioNormalizado.usa_medicacao_continua,
+        descricao_medicacao: beneficiarioNormalizado.descricao_medicacao,
+        servico_saude_referencia: beneficiarioNormalizado.servico_saude_referencia,
       },
       beneficios: {
         recebe_beneficio: beneficiario.recebe_beneficio,
@@ -1556,6 +1580,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   formatListPhone(beneficiario: BeneficiarioApiPayload): string {
     return beneficiario.telefone_principal || beneficiario.telefone_secundario || '---';
   }
+
+  formatarDataNascimentoListagem(valor?: string | null): string {
+    return formatarDataSemFuso(valor);
+  }
+
   private formatarAceiteParaDateTimeLocal(valor?: string | null): string {
     if (!valor) return '';
     if (valor.includes('T')) return valor.slice(0, 16);
@@ -1601,10 +1630,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return value ? 'Sim' : 'N??o';
   }
   formatDate(value?: string | null): string {
-    if (!value) return '---';
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return '---';
-    return date.toLocaleDateString('pt-BR');
+    return formatarDataSemFuso(value);
   }
   formatAge(value?: string | null): string {
     const age = this.getAgeFromDate(value ?? null);
@@ -1613,8 +1639,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   private getAgeFromDate(dateValue: string | null): number | null {
     if (!dateValue) return null;
-    const birthDate = new Date(dateValue);
-    if (isNaN(birthDate.getTime())) return null;
+    const birthDate = criarDataLocal(dateValue);
+    if (!birthDate) return null;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -1940,8 +1966,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   private toSentenceCase(value: string): string {
     const normalized = value.toLowerCase();
     if (!normalized.trim()) return '';
-    return normalized.replace(/(^|\s)([A-Za-z??-??])/g, (match) => match.toUpperCase());
+    return normalized.replace(/(^|\s)([A-Za-zÀ-ÖØ-öø-ÿ])/g, (match) => match.toUpperCase());
   }
+
   private watchBirthDate(): void {
     const control = this.form.get(['dadosPessoais', 'data_nascimento']);
     control?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
@@ -2212,14 +2239,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     if (!beneficiario.id_beneficiario) return;
+    const beneficiarioNormalizado = this.normalizarCamposNome(beneficiario);
     this.selectedBeneficiary = {
-      ...beneficiario,
+      ...beneficiarioNormalizado,
       codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined,
     };
-    this.beneficiarioId = beneficiario.id_beneficiario;
-    this.service.getById(beneficiario.id_beneficiario).subscribe(({ beneficiario: details }) => {
+    const beneficiarioId = beneficiarioNormalizado.id_beneficiario;
+    if (!beneficiarioId) return;
+    this.beneficiarioId = beneficiarioId;
+    this.service.getById(beneficiarioId).subscribe(({ beneficiario: details }) => {
       const normalizedDetails = {
-        ...details,
+        ...this.normalizarCamposNome(details),
         codigo: this.normalizeBeneficiaryCode(details.codigo) || undefined,
       };
       this.selectedBeneficiary = normalizedDetails;
@@ -2275,7 +2305,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       return true;
     });
     this.beneficiarios = unicos.map((beneficiario) => ({
-      ...beneficiario,
+      ...this.normalizarCamposNome(beneficiario),
       codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined,
       status: (beneficiario.status as BeneficiarioApiPayload['status']) || 'EM_ANALISE',
     }));
@@ -2299,8 +2329,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return {
       id_beneficiario: beneficiary.id ? String(beneficiary.id) : undefined,
       codigo: codigoPayload,
-      nome_completo: beneficiary.nomeCompleto,
-      nome_mae: beneficiary.nomeMae ?? '',
+      nome_completo: this.normalizarTextoNome(beneficiary.nomeCompleto),
+      nome_mae: this.normalizarTextoNome(beneficiary.nomeMae ?? ''),
       data_nascimento: beneficiary.dataNascimento,
       cpf: beneficiary.cpf ?? beneficiary.documentos ?? null,
       status: (beneficiary.status as BeneficiarioApiPayload['status']) || 'EM_ANALISE',

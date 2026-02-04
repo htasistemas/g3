@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
+import { formatarDataSemFuso } from '../../utils/data-format.util';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -99,5 +100,9 @@ export class BeneficiaryListComponent implements OnInit {
       default:
         return 'bg-slate-100 text-slate-600';
     }
+  }
+
+  formatarDataNascimento(dataNascimento?: string): string {
+    return formatarDataSemFuso(dataNascimento);
   }
 }

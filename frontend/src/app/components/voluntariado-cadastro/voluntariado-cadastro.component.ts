@@ -11,6 +11,7 @@ import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../comparti
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { titleCaseWords } from '../../utils/capitalization.util';
+import { criarDataLocal, formatarDataSemFuso } from '../../utils/data-format.util';
 
 interface StepTab {
   id: string;
@@ -845,8 +846,8 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
   calcularIdade(dataNascimento?: string | null): string {
     if (!dataNascimento) return '--';
-    const data = new Date(dataNascimento);
-    if (Number.isNaN(data.getTime())) return '--';
+    const data = criarDataLocal(dataNascimento);
+    if (!data) return '--';
 
     const hoje = new Date();
     let idade = hoje.getFullYear() - data.getFullYear();
@@ -855,6 +856,10 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
       idade -= 1;
     }
     return idade >= 0 ? String(idade) : '--';
+  }
+
+  formatarDataNascimentoListagem(valor?: string | null): string {
+    return formatarDataSemFuso(valor);
   }
 
   getStatusClass(status?: string | null): string {

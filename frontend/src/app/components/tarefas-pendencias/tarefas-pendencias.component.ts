@@ -285,10 +285,10 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
       .subscribe({
         next: (record) => {
           if (this.editingId) {
-            this.tasks = this.tasks.map((task) => (task.id === record.id ? record : task));
+            this.atualizarListagemAposSalvar(record, false);
             this.setFeedback('Pendência atualizada com sucesso.');
           } else {
-            this.tasks = [record, ...this.tasks];
+            this.atualizarListagemAposSalvar(record, true);
             this.setFeedback('Pendência registrada com sucesso.');
           }
           this.selectedTask = record;
@@ -418,6 +418,25 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     if (this.selectedTask?.id === updated.id) {
       this.selectedTask = updated;
     }
+  }
+
+  private atualizarListagemAposSalvar(registro: TaskRecord, incluirNovo: boolean): void {
+    if (incluirNovo) {
+      this.tasks = [registro, ...this.tasks.filter((task) => task.id !== registro.id)];
+    } else {
+      this.tasks = this.tasks.map((task) => (task.id === registro.id ? registro : task));
+    }
+    if (this.filtroListagem && !this.registroVisivelNaListagem(registro)) {
+      this.filtroListagem = null;
+    }
+  }
+
+  private registroVisivelNaListagem(registro: TaskRecord): boolean {
+    if (!this.filtroListagem) return true;
+    if (this.filtroListagem === 'abertas') {
+      return registro.status !== 'Concluída';
+    }
+    return this.isOverdue(registro) && registro.status !== 'Concluída';
   }
 
   private buildPayload(): TaskPayload {

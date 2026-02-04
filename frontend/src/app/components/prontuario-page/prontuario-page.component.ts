@@ -18,6 +18,7 @@ import { ProntuarioFiltrosComponent } from '../prontuario-filtros/prontuario-fil
 import { ProntuarioTimelineComponent } from '../prontuario-timeline/prontuario-timeline.component';
 import { ProntuarioIndicadoresComponent } from '../prontuario-indicadores/prontuario-indicadores.component';
 import { AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
+import { formatarDataSemFuso } from '../../utils/data-format.util';
 
 @Component({
   selector: 'app-prontuario-page',
@@ -70,6 +71,10 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     { id: 'indicadores', label: 'Indicadores', tipo: '' }
   ];
   abaAtiva = 'linha';
+
+  formatarDataNascimento(valor?: string | null): string {
+    return formatarDataSemFuso(valor);
+  }
 
   get abaAtivaIndex(): number {
     return this.abas.findIndex((aba) => aba.id === this.abaAtiva);

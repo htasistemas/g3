@@ -13,6 +13,34 @@
   gap: 1rem;
 }
 
+.feedback {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #facc15;
+  background: #fef9c3;
+  color: #854d0e;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.feedback__close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.feedback__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
 .tab-shell {
   background: #fff;
   border-radius: 14px;

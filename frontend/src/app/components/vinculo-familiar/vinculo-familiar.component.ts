@@ -12,6 +12,7 @@ import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../comparti
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { titleCaseWords } from '../../utils/capitalization.util';
+import { criarDataLocal, formatarDataSemFuso } from '../../utils/data-format.util';
 @Component({
   selector: 'app-vinculo-familiar',
   standalone: true,
@@ -661,12 +662,12 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
 
   formatAge(dataNascimento?: string | null): string {
     if (!dataNascimento) return '--';
-    const birth = new Date(dataNascimento);
-    if (Number.isNaN(birth.getTime())) return '--';
+    const birth = criarDataLocal(dataNascimento);
+    if (!birth) return '--';
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (monthDiff < 0 || (monthDiff == 0 && today.getDate() < birth.getDate())) {
       age -= 1;
     }
     return age.toString();
@@ -682,13 +683,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   }
 
   formatDate(dataNascimento?: string | null): string {
-    if (!dataNascimento) return '---';
-    const date = new Date(dataNascimento);
-    if (Number.isNaN(date.getTime())) return '---';
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return formatarDataSemFuso(dataNascimento);
   }
 
   private normalizeText(value?: string | number | null): string {

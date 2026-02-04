@@ -343,7 +343,7 @@
           <div class="unit-list__info-row">
             <span class="unit-list__meta-text">Idade: {{ calcularIdade(volunteer.dataNascimento) }}</span>
             <span class="unit-list__separator">·</span>
-            <span class="unit-list__meta-text">Nascimento: {{ volunteer.dataNascimento ? (volunteer.dataNascimento | date : 'dd/MM/yyyy') : 'Não informado' }}</span>
+            <span class="unit-list__meta-text">Nascimento: {{ formatarDataNascimentoListagem(volunteer.dataNascimento) }}</span>
             <span class="unit-list__separator">·</span>
             <span class="unit-list__meta-text">CPF: {{ volunteer.cpf || 'CPF n?o informado' }}</span>
             <span class="unit-list__separator">·</span>

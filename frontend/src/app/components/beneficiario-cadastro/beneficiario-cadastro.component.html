@@ -100,10 +100,10 @@
           </thead>
           <tbody *ngIf="beneficiariosPaginados.length; else emptyList">
             <tr *ngFor="let beneficiario of beneficiariosPaginados">
-              <td>{{ beneficiario.nome_completo || beneficiario.nome_social }}</td>
+              <td>{{ formatarNomeListagem(beneficiario) }}</td>
               <td>{{ beneficiario.codigo || '---' }}</td>
               <td>{{ beneficiario.cpf || beneficiario.nis || '---' }}</td>
-              <td>{{ beneficiario.data_nascimento ? (beneficiario.data_nascimento | date : 'dd/MM/yyyy') : '---' }}</td>
+              <td>{{ formatarDataNascimentoListagem(beneficiario.data_nascimento) }}</td>
               <td><span [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span></td>
               <td class="text-right actions">
                 <button type="button" class="ghost" (click)="onBeneficiarioSelected(beneficiario)">Selecionar</button>
@@ -861,9 +861,9 @@
       <div class="unit-active" *ngIf="selectedBeneficiary">
         <div>
           <p class="unit-active__eyebrow">beneficiario ativo</p>
-          <p class="unit-active__name">{{ selectedBeneficiary.nome_completo || selectedBeneficiary.nome_social || 'beneficiario sem nome' }}</p>
+          <p class="unit-active__name">{{ selectedBeneficiary ? formatarNomeListagem(selectedBeneficiary) : 'beneficiario sem nome' }}</p>
           <p class="unit-active__meta">
-            {{ selectedBeneficiary.cpf || 'CPF n?o informado' }} - {{ selectedBeneficiary.data_nascimento || 'Data n?o informada' }}
+            {{ selectedBeneficiary.cpf || 'CPF n?o informado' }} - {{ formatDate(selectedBeneficiary.data_nascimento) }}
           </p>
         </div>
         <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(selectedBeneficiary)">
@@ -882,10 +882,10 @@
               <div class="unit-list__avatar" [class.unit-list__avatar--empty]="!beneficiario.foto_3x4">
                 <img *ngIf="beneficiario.foto_3x4" [src]="beneficiario.foto_3x4" alt="Foto do beneficiario" />
                 <span *ngIf="!beneficiario.foto_3x4" aria-hidden="true">
-                  {{ (beneficiario.nome_completo || beneficiario.nome_social || 'B')[0] }}
+                  {{ (formatarNomeListagem(beneficiario) || 'B')[0] }}
                 </span>
               </div>
-              <p class="unit-list__name-text">{{ beneficiario.nome_completo || beneficiario.nome_social || 'beneficiario sem nome' }}</p>
+              <p class="unit-list__name-text">{{ formatarNomeListagem(beneficiario) }}</p>
             </div>
             <div class="unit-list__info-row">
               <span class="unit-list__meta-text">Idade: {{ formatAge(beneficiario.data_nascimento) }}</span>
@@ -1069,7 +1069,7 @@
           <div class="unit-list__info">
             <span class="unit-list__code">Codigo: {{ beneficiario.codigo || '---' }}</span>
             <p class="unit-list__name-text">
-              {{ beneficiario.nome_completo || beneficiario.nome_social || 'beneficiario sem nome' }}
+              {{ formatarNomeListagem(beneficiario) }}
             </p>
             <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF nao informado' }}</span>
           </div>

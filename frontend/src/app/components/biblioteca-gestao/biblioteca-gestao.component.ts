@@ -15,6 +15,8 @@ import {
   BibliotecaService
 } from '../../services/biblioteca.service';
 import { BeneficiaryService, BeneficiaryPayload } from '../../services/beneficiary.service';
+import { ProfessionalService, ProfessionalRecord } from '../../services/professional.service';
+import { VolunteerService, VolunteerPayload } from '../../services/volunteer.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 
 interface BibliotecaAba {
@@ -82,11 +84,14 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   emprestimos: BibliotecaEmprestimo[] = [];
   alertas: BibliotecaAlerta[] = [];
   beneficiarios: BeneficiaryPayload[] = [];
+  profissionais: ProfessionalRecord[] = [];
+  voluntarios: VolunteerPayload[] = [];
 
   carregandoLivros = false;
   carregandoEmprestimos = false;
   carregandoAlertas = false;
   carregandoBeneficiarios = false;
+  carregandoResponsaveis = false;
 
   termoLivro = '';
   termoEmprestimo = '';
@@ -111,6 +116,8 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
 
   beneficiarioTermo = '';
   beneficiarioOpcoes: AutocompleteOpcao[] = [];
+  responsavelTermo = '';
+  responsavelOpcoes: AutocompleteOpcao[] = [];
   categoriasLivros: string[] = [
     'Administracao',
     'Autoajuda',
@@ -158,7 +165,9 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly servicoBiblioteca: BibliotecaService,
-    private readonly servicoBeneficiario: BeneficiaryService
+    private readonly servicoBeneficiario: BeneficiaryService,
+    private readonly servicoProfissional: ProfessionalService,
+    private readonly servicoVoluntario: VolunteerService
   ) {
     super();
     this.formLivro = this.criarLivroForm();
@@ -181,6 +190,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     this.carregarEmprestimos();
     this.carregarAlertas();
     this.carregarBeneficiarios();
+    this.carregarResponsaveis();
     this.carregarProximoCodigoLivro();
   }
 
@@ -208,6 +218,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     this.abaAtiva = abaId;
     if (abaId === 'devolucoes' || abaId === 'emprestimos') {
       this.carregarEmprestimos();
+      this.carregarLivros();
       return;
     }
     if (abaId === 'disponiveis') {
@@ -233,24 +244,25 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
 
   aoNovoToolbar(): void {
     this.mensagemFeedback = null;
-    if (this.abaAtiva === 'emprestimos') {
-      this.resetarEmprestimoForm();
-      return;
-    }
+    this.abaAtiva = 'livros';
     this.resetarLivroForm();
   }
 
   aoCancelarToolbar(): void {
     this.mensagemFeedback = null;
-    this.resetarLivroForm();
-    this.resetarEmprestimoForm();
+    if (this.abaAtiva === 'emprestimos') {
+      this.resetarEmprestimoForm();
+      return;
+    }
+    if (this.abaAtiva === 'livros') {
+      this.resetarLivroForm();
+    }
   }
 
   aoBuscarToolbar(): void {
     this.mensagemFeedback = null;
+    this.abaAtiva = 'livros';
     this.carregarLivros();
-    this.carregarEmprestimos();
-    this.carregarAlertas();
   }
 
   aoExcluirToolbar(): void {
@@ -343,6 +355,30 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     });
   }
 
+  private carregarResponsaveis(): void {
+    this.carregandoResponsaveis = true;
+    this.servicoProfissional.list().subscribe({
+      next: (profissionais) => {
+        this.profissionais = profissionais ?? [];
+        this.atualizarOpcoesResponsaveis();
+      },
+      error: () => {
+        this.profissionais = [];
+        this.atualizarOpcoesResponsaveis();
+      }
+    });
+    this.servicoVoluntario.list().subscribe({
+      next: (voluntarios) => {
+        this.voluntarios = voluntarios ?? [];
+        this.atualizarOpcoesResponsaveis();
+      },
+      error: () => {
+        this.voluntarios = [];
+        this.atualizarOpcoesResponsaveis();
+      }
+    });
+  }
+
   private mapearBeneficiariosParaOpcoes(beneficiarios: BeneficiaryPayload[]): AutocompleteOpcao[] {
     return beneficiarios.map((beneficiario) => ({
       id: beneficiario.id || '',
@@ -407,6 +443,23 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     });
   }
 
+  atualizarResponsavelTermo(termo: string): void {
+    this.responsavelTermo = termo;
+    this.atualizarOpcoesResponsaveis();
+    this.formEmprestimo.patchValue({
+      responsavelNome: termo,
+      responsavelId: ''
+    });
+  }
+
+  selecionarResponsavel(opcao: AutocompleteOpcao): void {
+    this.responsavelTermo = opcao.label;
+    this.formEmprestimo.patchValue({
+      responsavelId: opcao.id,
+      responsavelNome: opcao.label
+    });
+  }
+
   selecionarLivro(livro: BibliotecaLivro): void {
     this.livroSelecionado = livro;
     this.codigoLivroGerado = livro.codigo;
@@ -433,6 +486,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       livroId: emprestimo.livroId,
       beneficiarioId: emprestimo.beneficiarioId,
       beneficiarioNome: emprestimo.beneficiarioNome,
+      responsavelId: emprestimo.responsavelId || '',
       responsavelNome: emprestimo.responsavelNome,
       dataEmprestimo: emprestimo.dataEmprestimo,
       dataDevolucaoPrevista: emprestimo.dataDevolucaoPrevista,
@@ -440,6 +494,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       observacoes: emprestimo.observacoes
     });
     this.beneficiarioTermo = emprestimo.beneficiarioNome || '';
+    this.responsavelTermo = emprestimo.responsavelNome || '';
   }
 
   salvarLivro(): void {
@@ -680,6 +735,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       livroId: valores.livroId,
       beneficiarioId: valores.beneficiarioId || null,
       beneficiarioNome: valores.beneficiarioNome || null,
+      responsavelId: valores.responsavelId || null,
       responsavelNome: valores.responsavelNome || null,
       dataEmprestimo: valores.dataEmprestimo,
       dataDevolucaoPrevista: valores.dataDevolucaoPrevista,
@@ -750,6 +806,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       livroId: ['', Validators.required],
       beneficiarioId: [''],
       beneficiarioNome: ['', Validators.required],
+      responsavelId: [''],
       responsavelNome: [''],
       dataEmprestimo: [this.dataHojeIso(), Validators.required],
       dataDevolucaoPrevista: ['', Validators.required],
@@ -785,10 +842,12 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   resetarEmprestimoForm(): void {
     this.emprestimoSelecionado = null;
     this.beneficiarioTermo = '';
+    this.responsavelTermo = '';
     this.formEmprestimo.reset({
       livroId: '',
       beneficiarioId: '',
       beneficiarioNome: '',
+      responsavelId: '',
       responsavelNome: '',
       dataEmprestimo: this.dataHojeIso(),
       dataDevolucaoPrevista: '',
@@ -875,7 +934,26 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   }
 
   get livrosParaEmprestimo(): BibliotecaLivro[] {
-    return this.livros.filter((livro) => (livro.status || '').toUpperCase() === 'ATIVO');
+    return this.livros.filter((livro) => (livro.status || '').toUpperCase() === 'ATIVO' || !livro.status);
+  }
+
+  private atualizarOpcoesResponsaveis(): void {
+    const termo = this.normalizarTermo(this.responsavelTermo);
+    const profissionais = (this.profissionais ?? []).map((profissional) => ({
+      id: profissional.id,
+      label: profissional.nomeCompleto,
+      sublabel: profissional.cpf || 'Profissional'
+    }));
+    const voluntarios = (this.voluntarios ?? []).map((voluntario) => ({
+      id: voluntario.id || '',
+      label: voluntario.nome,
+      sublabel: voluntario.cpf || 'Voluntario'
+    }));
+    const opcoes = [...profissionais, ...voluntarios].filter((opcao) =>
+      termo ? this.normalizarTermo(opcao.label).includes(termo) : true
+    );
+    this.responsavelOpcoes = opcoes.slice(0, 15);
+    this.carregandoResponsaveis = false;
   }
 
   obterDisponibilidadeLivro(livro: BibliotecaLivro): number {
