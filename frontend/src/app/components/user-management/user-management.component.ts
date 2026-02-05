@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PermissionPayload, PermissionService } from '../../services/permission.service';
@@ -42,8 +42,8 @@ export class UserManagementComponent implements OnInit {
     this.userService.list().subscribe({
       next: (users) => (this.users = users),
       error: (error) => {
-        console.error('Erro ao carregar usuários', error);
-        this.feedback = { type: 'error', message: 'Não foi possível carregar os usuários.' };
+        console.error('Erro ao carregar usuÃ¡rios', error);
+        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel carregar os usuÃ¡rios.' };
       },
       complete: () => (this.loading = false)
     });
@@ -55,8 +55,8 @@ export class UserManagementComponent implements OnInit {
         this.permissoesDisponiveis = permissoes;
       },
       error: (error) => {
-        console.error('Erro ao carregar permissões', error);
-        this.feedback = { type: 'error', message: 'Não foi possível carregar as permissões.' };
+        console.error('Erro ao carregar permissÃµes', error);
+        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel carregar as permissÃµes.' };
       }
     });
   }
@@ -90,13 +90,13 @@ export class UserManagementComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.feedback = { type: 'success', message: 'Usuário salvo com sucesso.' };
+        this.feedback = { type: 'success', message: 'UsuÃ¡rio salvo com sucesso.' };
         this.resetForm();
         this.loadUsers();
       },
       error: (error) => {
-        console.error('Erro ao salvar usuário', error);
-        const message = error?.error?.message ?? 'Não foi possível salvar o usuário.';
+        console.error('Erro ao salvar usuÃ¡rio', error);
+        const message = error?.error?.message ?? 'NÃ£o foi possÃ­vel salvar o usuÃ¡rio.';
         this.feedback = { type: 'error', message };
       }
     });
@@ -113,22 +113,22 @@ export class UserManagementComponent implements OnInit {
   }
 
   delete(user: UserPayload): void {
-    const confirmDelete = confirm(`Deseja realmente remover o usuário "${user.nomeUsuario}"?`);
+    const confirmDelete = confirm(`Deseja realmente remover o usuÃ¡rio "${user.nomeUsuario}"?`);
     if (!confirmDelete) {
       return;
     }
 
     this.userService.delete(user.id).subscribe({
       next: () => {
-        this.feedback = { type: 'success', message: 'Usuário removido com sucesso.' };
+        this.feedback = { type: 'success', message: 'UsuÃ¡rio removido com sucesso.' };
         this.loadUsers();
         if (this.editingId === user.id) {
           this.resetForm();
         }
       },
       error: (error) => {
-        console.error('Erro ao remover usuário', error);
-        this.feedback = { type: 'error', message: 'Não foi possível remover o usuário.' };
+        console.error('Erro ao remover usuÃ¡rio', error);
+        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel remover o usuÃ¡rio.' };
       }
     });
   }
@@ -155,3 +155,4 @@ export class UserManagementComponent implements OnInit {
     return this.form.get('permissoes')?.value ?? [];
   }
 }
+

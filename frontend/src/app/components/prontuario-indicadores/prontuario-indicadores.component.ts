@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { ProntuarioIndicadoresResponse } from '../../services/prontuario.service';
 
@@ -18,9 +18,9 @@ export class ProntuarioIndicadoresComponent {
       { key: 'atendimento', label: 'Atendimentos' },
       { key: 'procedimento', label: 'Procedimentos' },
       { key: 'encaminhamento', label: 'Encaminhamentos' },
-      { key: 'evolucao', label: 'Evoluções' },
+      { key: 'evolucao', label: 'EvoluÃ§Ãµes' },
       { key: 'documento', label: 'Documentos/Anexos' },
-      { key: 'visita_ref', label: 'Visitas domiciliares (referência)' },
+      { key: 'visita_ref', label: 'Visitas domiciliares (referÃªncia)' },
       { key: 'outro', label: 'Outros registros' }
     ];
 
@@ -48,6 +48,7 @@ export class ProntuarioIndicadoresComponent {
 
   get tempoMedioRetorno(): string {
     const valor = this.indicadoresResumo?.tempoMedioRetornoDias;
-    return valor !== null && valor !== undefined ? `${valor.toFixed(1)} dias` : '—';
+    return valor !== null && valor !== undefined ? `${valor.toFixed(1)} dias` : 'â€”';
   }
 }
+

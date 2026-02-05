@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarToolbar]="false"
@@ -134,9 +134,9 @@
               [class.invalid]="form.get('violenciaMotivadaOutro')?.invalid && form.get('violenciaMotivadaOutro')?.touched"
             >
               <span>Outros: *</span>
-              <input formControlName="violenciaMotivadaOutro" placeholder="Informe a motivacao" />
+              <input formControlName="violenciaMotivadaOutro" placeholder="Informe a motivação" />
               <span class="field-error" *ngIf="form.get('violenciaMotivadaOutro')?.invalid && form.get('violenciaMotivadaOutro')?.touched">
-                Informe a motivacao.
+                Informe a motivação.
               </span>
             </label>
           </div>
@@ -164,7 +164,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">4) Outras violacoes de direitos</p>
+          <p class="form-block__title">4) Outras violações de direitos</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of outrasViolacoesOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('outrasViolacoes', opcao)" (change)="alternarSelecao('outrasViolacoes', opcao)" />
@@ -180,7 +180,7 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Identificacao completa da vitima.</p>
+            <p class="muted">Identificação completa da vitima.</p>
           </div>
         </div>
 
@@ -220,7 +220,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">7) Orientacao sexual</p>
+          <p class="form-block__title">7) Orientação sexual</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of orientacaoSexualOpcoes">
               <input type="radio" formControlName="vitimaOrientacaoSexual" [value]="opcao" />
@@ -234,7 +234,7 @@
               <span>Outro: *</span>
               <input formControlName="vitimaOrientacaoOutro" />
               <span class="field-error" *ngIf="form.get('vitimaOrientacaoOutro')?.invalid && form.get('vitimaOrientacaoOutro')?.touched">
-                Informe a orientacao sexual.
+                Informe a orientação sexual.
               </span>
             </label>
           </div>
@@ -277,7 +277,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">10) Endereco da vitima</p>
+          <p class="form-block__title">10) endereço da vitima</p>
           <div class="field-grid cols-2">
             <label class="field">Logradouro
               <input formControlName="vitimaEnderecoLogradouro" />
@@ -288,7 +288,7 @@
             <label class="field">Bairro
               <input formControlName="vitimaEnderecoBairro" />
             </label>
-            <label class="field">Municipio
+            <label class="field">município
               <input formControlName="vitimaEnderecoMunicipio" />
             </label>
           </div>
@@ -301,12 +301,12 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Informacoes do possivel autor.</p>
+            <p class="muted">Informações do possível autor.</p>
           </div>
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">11) Identificacao</p>
+          <p class="form-block__title">11) Identificação</p>
           <div class="field-grid cols-3">
             <label class="field">Nome
               <input formControlName="autorNome" />
@@ -316,7 +316,7 @@
             </label>
             <label class="checkbox-field checkbox-field--inline">
               <input type="checkbox" formControlName="autorNaoConsta" />
-              <span>Nao consta</span>
+              <span>Não consta</span>
             </label>
           </div>
         </div>
@@ -330,11 +330,11 @@
             </label>
             <label class="radio-field">
               <input type="radio" formControlName="autorParentesco" value="Nao" />
-              <span>Nao</span>
+              <span>Não</span>
             </label>
             <label class="radio-field">
               <input type="radio" formControlName="autorParentesco" value="Nao consta" />
-              <span>Nao consta</span>
+              <span>Não consta</span>
             </label>
             <label class="field full" [class.invalid]="form.get('autorParentescoGrau')?.invalid && form.get('autorParentescoGrau')?.touched">
               <span>Grau de parentesco*</span>
@@ -359,7 +359,7 @@
             </label>
             <label class="checkbox-field checkbox-field--inline">
               <input type="checkbox" formControlName="autorResponsavelNaoConsta" />
-              <span>Nao consta</span>
+              <span>Não consta</span>
             </label>
             <label class="field full">
               <span>Nome do responsavel</span>
@@ -373,7 +373,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">14) Endereco do possivel autor</p>
+          <p class="form-block__title">14) endereço do possível autor</p>
           <div class="field-grid cols-2">
             <label class="field">Logradouro
               <input formControlName="autorEnderecoLogradouro" />
@@ -384,12 +384,12 @@
             <label class="field">Bairro
               <input formControlName="autorEnderecoBairro" />
             </label>
-            <label class="field">Municipio
+            <label class="field">município
               <input formControlName="autorEnderecoMunicipio" />
             </label>
             <label class="checkbox-field checkbox-field--inline full">
               <input type="checkbox" formControlName="autorEnderecoNaoConsta" />
-              <span>Nao consta</span>
+              <span>Não consta</span>
             </label>
           </div>
         </div>
@@ -406,7 +406,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">15) Tipificacao da violencia</p>
+          <p class="form-block__title">15) Tipificação da violencia</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of tipificacaoViolenciaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('tipificacaoViolencia', opcao)" (change)="alternarSelecao('tipificacaoViolencia', opcao)" />
@@ -482,7 +482,7 @@
             </label>
             <label class="radio-field">
               <input type="radio" name="encaminharConselho" [checked]="form.get('encaminharConselho')?.value === false" (change)="setEncaminharConselho(false)" />
-              <span>NAO</span>
+              <span>Não</span>
             </label>
             <label
               class="field full"
@@ -501,7 +501,7 @@
               *ngIf="form.get('encaminharConselho')?.value === true"
               (click)="imprimirConselhoTutelarDireto()"
             >
-              Gerar/Imprimir ficha de notificacao ao CT
+              Gerar/Imprimir ficha de notificação ao CT
             </button>
           </div>
         </div>
@@ -616,19 +616,20 @@
 
     <div class="print-dialog" *ngIf="printMenuOpen">
       <div class="print-dialog__backdrop" (click)="fecharMenuImpressao()"></div>
-      <div class="print-dialog__card" role="dialog" aria-modal="true" aria-label="Opcoes de impressao">
+      <div class="print-dialog__card" role="dialog" aria-modal="true" aria-label="Opcoes de impressão">
         <div class="print-dialog__header">
           <div>
-            <p class="print-dialog__title">Opcoes de impressao</p>
+            <p class="print-dialog__title">Opcoes de impressão</p>
             <p class="print-dialog__subtitle">Selecione o documento desejado.</p>
           </div>
           <button type="button" class="print-dialog__close" (click)="fecharMenuImpressao()" aria-label="Fechar">&times;</button>
         </div>
         <div class="print-dialog__actions">
           <button type="button" class="btn-primary" (click)="imprimirDenuncia()">Ficha completa da denuncia</button>
-          <button type="button" class="btn-outline" (click)="imprimirConselhoTutelar()">Ficha de notificacao ao Conselho Tutelar</button>
+          <button type="button" class="btn-outline" (click)="imprimirConselhoTutelar()">Ficha de notificação ao Conselho Tutelar</button>
         </div>
       </div>
     </div>
   </section>
 </app-tela-padrao>
+

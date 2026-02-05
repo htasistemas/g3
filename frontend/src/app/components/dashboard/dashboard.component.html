@@ -1,4 +1,4 @@
-<div class="p-6 space-y-6">
+﻿<div class="p-6 space-y-6">
   <div class="bg-gradient-to-r from-g3-green-700 to-emerald-500 text-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
     <div class="flex flex-wrap items-center gap-3">
       <div class="bg-white/15 rounded-lg p-3">
@@ -17,11 +17,12 @@
   </div>
 
   <ng-container *ngIf="!loading && cadastros; else loadingState">
-    <div class="grid gap-4 lg:grid-cols-3 md:grid-cols-2 mt-4" *ngIf="financeiro">
+    <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2 mt-4" *ngIf="financeiro">
       <div class="stat-card stat-card--center" *ngFor="let card of [
           { label: 'Valores a receber', value: financeiro.valoresAReceber, icon: 'account_balance_wallet', hint: 'Titulos abertos em cobranca.', tone: 'stat-card--emerald', route: 'financeiro/contabilidade', formato: 'moeda' },
           { label: 'Valores em bancos', value: financeiro.valoresEmCaixa, icon: 'payments', hint: 'Saldo disponivel em contas correntes.', tone: 'stat-card--indigo', route: 'financeiro/contabilidade', formato: 'moeda' },
-          { label: 'Tarefas e pendencias', value: pendenciasAbertas, icon: 'assignment_late', hint: 'Pendencias abertas na gestao de tarefas.', tone: 'stat-card--sky', route: 'administrativo/tarefas', formato: 'numero' }
+          { label: 'Tarefas e pendencias', value: pendenciasAbertas, icon: 'assignment_late', hint: 'Pendencias abertas na gestao de tarefas.', tone: 'stat-card--sky', route: 'administrativo/tarefas', formato: 'numero' },
+          { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald', route: 'cadastros/beneficiarios', formato: 'numero' }
         ]" [ngClass]="card.tone">
         <div class="stat-card__icon">
           <button type="button" class="stat-card__icon-button" (click)="navegarPara(card.route)" [attr.aria-label]="card.label">
@@ -39,9 +40,8 @@
       </div>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-5 md:grid-cols-2">
+    <div class="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
       <div class="stat-card stat-card--center" *ngFor="let card of [
-          { label: 'Beneficiarios cadastrados', value: cadastros.beneficiarios, icon: 'groups', hint: 'Pessoas registradas no sistema.', tone: 'stat-card--emerald', route: 'cadastros/beneficiarios' },
           { label: 'Profissionais cadastrados', value: cadastros.profissionais, icon: 'badge', hint: 'Equipe tecnica ativa no cadastro.', tone: 'stat-card--indigo', route: 'cadastros/profissionais' },
           { label: 'Voluntarios cadastrados', value: cadastros.voluntarios, icon: 'volunteer_activism', hint: 'Apoio voluntario cadastrado.', tone: 'stat-card--amber', route: 'cadastros/voluntariados' },
           { label: 'Familias cadastradas', value: cadastros.familias, icon: 'diversity_3', hint: 'Nucleos familiares registrados.', tone: 'stat-card--rose', route: 'cadastros/vinculo-familiar' },
@@ -99,7 +99,7 @@
       <div class="chart-card chart-card--single" *ngIf="cadastros">
         <div class="chart-card__header">
           <p class="chart-card__title">Beneficiarios cadastrados</p>
-          <span class="chart-card__hint">Cadastros</span>
+          <span class="chart-card__hint">cadastros</span>
         </div>
         <div class="chart-spark">
           <div class="chart-spark__line"></div>
@@ -113,7 +113,7 @@
       <div class="chart-card chart-card--single" *ngIf="cadastros">
         <div class="chart-card__header">
           <p class="chart-card__title">Voluntarios cadastrados</p>
-          <span class="chart-card__hint">Cadastros</span>
+          <span class="chart-card__hint">cadastros</span>
         </div>
         <div class="chart-pie chart-pie--amber" [style.--percent.%]="percentualVoluntarios">
           <span class="chart-pie__value">{{ percentualVoluntarios | number: '1.0-0' }}%</span>
@@ -131,3 +131,4 @@
     </div>
   </ng-template>
 </div>
+

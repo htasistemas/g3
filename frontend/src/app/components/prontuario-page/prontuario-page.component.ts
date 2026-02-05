@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
@@ -65,7 +65,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     { id: 'linha', label: 'Linha do tempo', tipo: '' },
     { id: 'atendimentos', label: 'Atendimentos', tipo: 'atendimento' },
     { id: 'procedimentos', label: 'Procedimentos', tipo: 'procedimento' },
-    { id: 'evolucoes', label: 'Evoluções', tipo: 'evolucao' },
+    { id: 'evolucoes', label: 'EvoluÃ§Ãµes', tipo: 'evolucao' },
     { id: 'encaminhamentos', label: 'Encaminhamentos', tipo: 'encaminhamento' },
     { id: 'documentos', label: 'Documentos/Anexos', tipo: 'documento' },
     { id: 'indicadores', label: 'Indicadores', tipo: '' }
@@ -231,7 +231,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoResumo = false;
       },
       error: () => {
-        this.popupErros = ['Não foi possível carregar o resumo do prontuário.'];
+        this.popupErros = ['NÃ£o foi possÃ­vel carregar o resumo do prontuÃ¡rio.'];
         this.carregandoResumo = false;
       }
     });
@@ -250,7 +250,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoRegistros = false;
       },
       error: () => {
-        this.popupErros = ['Não foi possível carregar os registros do prontuário.'];
+        this.popupErros = ['NÃ£o foi possÃ­vel carregar os registros do prontuÃ¡rio.'];
         this.carregandoRegistros = false;
       }
     });
@@ -270,7 +270,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoBeneficiarios = false;
       },
       error: () => {
-        this.erroBeneficiarios = 'Não foi possível buscar beneficiarios.';
+        this.erroBeneficiarios = 'NÃ£o foi possÃ­vel buscar beneficiarios.';
         this.carregandoBeneficiarios = false;
       }
     });
@@ -358,3 +358,4 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     return { nome: valor };
   }
 }
+

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -85,3 +85,4 @@ export class DashboardIndicatorsComponent implements OnInit {
     return Math.max(4, Math.round((quantidade / maximo) * 100));
   }
 }
+

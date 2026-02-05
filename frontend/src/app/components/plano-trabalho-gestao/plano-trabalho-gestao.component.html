@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -21,7 +21,7 @@
   <section class="cadastro">
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>  
+    <p class="tab-shell__title">Navegue pelas informaÃ§Ãµes</p>  
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -49,7 +49,7 @@
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Próximo: {{ nextTabLabel }}
+          PrÃ³ximo: {{ nextTabLabel }}
         </button>
         <button type="button" class="primary" [disabled]="saving" *ngIf="!hasNextTab" (click)="submit()">
           {{ saving ? 'Salvando...' : 'Salvar plano' }}
@@ -61,26 +61,26 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Identifique o plano com informações gerais, status e vigência.</p>
+          <p class="muted">Identifique o plano com informaÃ§Ãµes gerais, status e vigÃªncia.</p>
         </div>
-        <span class="pill">Obrigatório</span>
+        <span class="pill">ObrigatÃ³rio</span>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">Código interno<input formControlName="codigoInterno" readonly /></label>
+        <label class="field">CÃ³digo interno<input formControlName="codigoInterno" readonly /></label>
         <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statusOptions" [value]="status.value">{{ status.label }}</option>
           </select></label>
-        <label class="field">Data de elaboração<input type="date" formControlName="dataElaboracao" /></label>
-        <label class="field">Título do plano*<input formControlName="titulo" placeholder="Ex.: Plano ADRA 2025" (blur)="capitalizarCampo(['identificacao', 'titulo'])" /></label>
-        <label class="field">Órgão concedente<select formControlName="orgaoConcedente">
+        <label class="field">Data de elaboraÃ§Ã£o<input type="date" formControlName="dataElaboracao" /></label>
+        <label class="field">TÃ­tulo do plano*<input formControlName="titulo" placeholder="Ex.: Plano ADRA 2025" (blur)="capitalizarCampo(['identificacao', 'titulo'])" /></label>
+        <label class="field">Ã“rgÃ£o concedente<select formControlName="orgaoConcedente">
             <option *ngFor="let orgao of orgaoOptions" [value]="orgao">{{ orgao }}</option>
           </select></label>
-        <label class="field">Data de aprovação<input type="date" formControlName="dataAprovacao" /></label>
-        <label class="field full">Descrição / Objetivo geral*<textarea rows="3" formControlName="descricaoGeral" placeholder="Contextualize o objetivo do plano"></textarea></label>
-        <label class="field">Área / Programa<input formControlName="areaPrograma" placeholder="Linha de atuação" (blur)="capitalizarCampo(['identificacao', 'areaPrograma'])" /></label>
-        <label class="field">Órgão concedente (outro)<input formControlName="orgaoOutroDescricao" placeholder="Descreva se selecionou 'Outro'" (blur)="capitalizarCampo(['identificacao', 'orgaoOutroDescricao'])" /></label>     
-        <label class="field">Vigência - Início<input type="date" formControlName="vigenciaInicio" /></label>
-        <label class="field">Vigência - Fim<input type="date" formControlName="vigenciaFim" /></label>
+        <label class="field">Data de aprovaÃ§Ã£o<input type="date" formControlName="dataAprovacao" /></label>
+        <label class="field full">DescriÃ§Ã£o / Objetivo geral*<textarea rows="3" formControlName="descricaoGeral" placeholder="Contextualize o objetivo do plano"></textarea></label>
+        <label class="field">Ãrea / Programa<input formControlName="areaPrograma" placeholder="Linha de atuaÃ§Ã£o" (blur)="capitalizarCampo(['identificacao', 'areaPrograma'])" /></label>
+        <label class="field">Ã“rgÃ£o concedente (outro)<input formControlName="orgaoOutroDescricao" placeholder="Descreva se selecionou 'Outro'" (blur)="capitalizarCampo(['identificacao', 'orgaoOutroDescricao'])" /></label>     
+        <label class="field">VigÃªncia - InÃ­cio<input type="date" formControlName="vigenciaInicio" /></label>
+        <label class="field">VigÃªncia - Fim<input type="date" formControlName="vigenciaFim" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -89,33 +89,33 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Vincule o plano a um Termo de Fomento existente e mantenha os metadados necessários.</p>
+          <p class="muted">Vincule o plano a um Termo de Fomento existente e mantenha os metadados necessÃ¡rios.</p>
         </div>
-        <span class="pill">Obrigatório</span>
+        <span class="pill">ObrigatÃ³rio</span>
       </div>
       <div class="field-grid cols-2">
         <label class="field">Termo de Fomento*
           <select formControlName="termoFomentoId">
             <option value=""></option>
             <option *ngFor="let termo of termos" [value]="termo.id">
-              {{ termo.numeroTermo }} - {{ termo.descricaoObjeto || 'Objeto não informado' }}
+              {{ termo.numeroTermo }} - {{ termo.descricaoObjeto || 'Objeto nÃ£o informado' }}
             </option>
           </select>
         </label>
-        <label class="field">Modalidade<input formControlName="modalidade" placeholder="Convênio, Termo de Fomento..." (blur)="capitalizarCampo(['vinculo', 'modalidade'])" /></label>
-        <label class="field">Número do processo<input formControlName="numeroProcesso" placeholder="Protocolo interno/SEI" /></label>
-        <label class="field full">Observações<textarea rows="3" formControlName="observacoesVinculacao" placeholder="Regras específicas do termo"></textarea></label>
+        <label class="field">Modalidade<input formControlName="modalidade" placeholder="ConvÃªnio, Termo de Fomento..." (blur)="capitalizarCampo(['vinculo', 'modalidade'])" /></label>
+        <label class="field">NÃºmero do processo<input formControlName="numeroProcesso" placeholder="Protocolo interno/SEI" /></label>
+        <label class="field full">ObservaÃ§Ãµes<textarea rows="3" formControlName="observacoesVinculacao" placeholder="Regras especÃ­ficas do termo"></textarea></label>
       </div>
 
       <div class="info-card" *ngIf="selectedTermo">
         <div>
           <p class="muted">Resumo do Termo selecionado</p>
           <p>
-            <strong>Vigência:</strong>
-            {{ selectedTermo.dataInicioVigencia || '-' }} até {{ selectedTermo.dataFimVigencia || '-' }}
+            <strong>VigÃªncia:</strong>
+            {{ selectedTermo.dataInicioVigencia || '-' }} atÃ© {{ selectedTermo.dataFimVigencia || '-' }}
           </p>
-          <p><strong>Órgão concedente:</strong> {{ selectedTermo.orgaoConcedente || '—' }}</p>
-          <p><strong>Valor global:</strong> {{ selectedTermo.valorGlobal || '—' }}</p>
+          <p><strong>Ã“rgÃ£o concedente:</strong> {{ selectedTermo.orgaoConcedente || 'â€”' }}</p>
+          <p><strong>Valor global:</strong> {{ selectedTermo.valorGlobal || 'â€”' }}</p>
         </div>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -140,10 +140,10 @@
             </div>
           </div>
           <div class="field-grid cols-3">
-            <label class="field">Código<input formControlName="codigo" placeholder="Código interno" /></label>
-            <label class="field">Descrição da meta*<input formControlName="descricao" placeholder="O que será entregue" (blur)="capitalizarCampo(['metas', metaIndex, 'descricao'])" /></label>
-            <label class="field">Indicador<input formControlName="indicador" placeholder="Ex.: nº de famílias atendidas" (blur)="capitalizarCampo(['metas', metaIndex, 'indicador'])" /></label>
-            <label class="field">Unidade de medida<input formControlName="unidadeMedida" placeholder="Unidade, pessoa, família" (blur)="capitalizarCampo(['metas', metaIndex, 'unidadeMedida'])" /></label>
+            <label class="field">CÃ³digo<input formControlName="codigo" placeholder="CÃ³digo interno" /></label>
+            <label class="field">DescriÃ§Ã£o da meta*<input formControlName="descricao" placeholder="O que serÃ¡ entregue" (blur)="capitalizarCampo(['metas', metaIndex, 'descricao'])" /></label>
+            <label class="field">Indicador<input formControlName="indicador" placeholder="Ex.: nÂº de famÃ­lias atendidas" (blur)="capitalizarCampo(['metas', metaIndex, 'indicador'])" /></label>
+            <label class="field">Unidade de medida<input formControlName="unidadeMedida" placeholder="Unidade, pessoa, famÃ­lia" (blur)="capitalizarCampo(['metas', metaIndex, 'unidadeMedida'])" /></label>
             <label class="field">Quantidade prevista<input type="number" formControlName="quantidadePrevista" /></label>
             <label class="field full">Resultado esperado<textarea rows="2" formControlName="resultadoEsperado"></textarea></label>
           </div>
@@ -158,11 +158,11 @@
                 </div>
               </div>
               <div class="field-grid cols-3">
-                <label class="field">Descrição*<input formControlName="descricao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'descricao'])" /></label>
-                <label class="field">Local de execução<input formControlName="localExecucao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'localExecucao'])" /></label>
+                <label class="field">DescriÃ§Ã£o*<input formControlName="descricao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'descricao'])" /></label>
+                <label class="field">Local de execuÃ§Ã£o<input formControlName="localExecucao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'localExecucao'])" /></label>
                 <label class="field">Produto esperado<input formControlName="produtoEsperado" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'produtoEsperado'])" /></label>
                 <label class="field full">Justificativa<textarea rows="2" formControlName="justificativa"></textarea></label>
-                <label class="field full">Público-alvo<textarea rows="2" formControlName="publicoAlvo"></textarea></label>
+                <label class="field full">PÃºblico-alvo<textarea rows="2" formControlName="publicoAlvo"></textarea></label>
               </div>
 
               <div class="nested" formArrayName="etapas">
@@ -172,14 +172,14 @@
                     <button type="button" class="danger" (click)="removeEtapa(metaIndex, atvIndex, etapaIndex)" [disabled]="edicaoRestrita">Excluir</button>
                   </div>
                   <div class="field-grid cols-3">
-                    <label class="field">Descrição*<input formControlName="descricao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'etapas', etapaIndex, 'descricao'])" /></label>
+                    <label class="field">DescriÃ§Ã£o*<input formControlName="descricao" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'etapas', etapaIndex, 'descricao'])" /></label>
                     <label class="field">Status<select formControlName="status">
                         <option *ngFor="let status of statusEtapas" [value]="status">{{ status }}</option>
                       </select></label>
-                    <label class="field">Responsável<input formControlName="responsavel" placeholder="Nome/cargo" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'etapas', etapaIndex, 'responsavel'])" /></label>
-                    <label class="field">Início previsto<input type="date" formControlName="dataInicioPrevista" /></label>
-                    <label class="field">Término previsto<input type="date" formControlName="dataFimPrevista" /></label>
-                    <label class="field">Conclusão<input type="date" formControlName="dataConclusao" /></label>
+                    <label class="field">ResponsÃ¡vel<input formControlName="responsavel" placeholder="Nome/cargo" (blur)="capitalizarCampo(['metas', metaIndex, 'atividades', atvIndex, 'etapas', etapaIndex, 'responsavel'])" /></label>
+                    <label class="field">InÃ­cio previsto<input type="date" formControlName="dataInicioPrevista" /></label>
+                    <label class="field">TÃ©rmino previsto<input type="date" formControlName="dataFimPrevista" /></label>
+                    <label class="field">ConclusÃ£o<input type="date" formControlName="dataConclusao" /></label>
                   </div>
                 </div>
               </div>
@@ -194,31 +194,31 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Distribua os valores previstos por competência e referência.</p>
+          <p class="muted">Distribua os valores previstos por competÃªncia e referÃªncia.</p>
         </div>
-        <button type="button" class="primary" (click)="addCronogramaItem()" [disabled]="edicaoRestrita">Adicionar período</button>
+        <button type="button" class="primary" (click)="addCronogramaItem()" [disabled]="edicaoRestrita">Adicionar perÃ­odo</button>
       </div>
 
       <div class="stack">
         <div class="sub-card compact" *ngFor="let item of cronograma.controls; let idx = index" [formGroupName]="idx">
           <div class="sub-card__header">
-            <p class="sub-card__title">Competência {{ idx + 1 }}</p>
+            <p class="sub-card__title">CompetÃªncia {{ idx + 1 }}</p>
             <button type="button" class="danger" (click)="removeCronogramaItem(idx)" [disabled]="edicaoRestrita">Excluir</button>
           </div>
           <div class="field-grid cols-3">
-            <label class="field">Referência<select formControlName="referenciaId">
+            <label class="field">ReferÃªncia<select formControlName="referenciaId">
                 <option value=""></option>
                 <option *ngFor="let ref of referenciasPlanejamento()" [value]="ref.id">{{ ref.label }}</option>
               </select></label>
-            <label class="field">Mês/Ano*<input formControlName="competencia" placeholder="MM/AAAA" /></label>
+            <label class="field">MÃªs/Ano*<input formControlName="competencia" placeholder="MM/AAAA" /></label>
             <label class="field">Fonte de recurso<select formControlName="fonteRecurso">
                 <option value=""></option>
                 <option *ngFor="let fonte of fonteRecursos" [value]="fonte">{{ fonte }}</option>
               </select></label>
-            <label class="field">Descrição<input formControlName="descricaoResumida" placeholder="Resumo da execução" (blur)="capitalizarCampo(['cronograma', idx, 'descricaoResumida'])" /></label>
+            <label class="field">DescriÃ§Ã£o<input formControlName="descricaoResumida" placeholder="Resumo da execuÃ§Ã£o" (blur)="capitalizarCampo(['cronograma', idx, 'descricaoResumida'])" /></label>
             <label class="field">Valor previsto<input type="text" formControlName="valorPrevisto" (input)="onValorPrevistoInput($event, idx)" /></label>
-            <label class="field">Natureza da despesa<input formControlName="naturezaDespesa" placeholder="Classificação" (blur)="capitalizarCampo(['cronograma', idx, 'naturezaDespesa'])" /></label>
-            <label class="field full">Observações<textarea rows="2" formControlName="observacoes"></textarea></label>
+            <label class="field">Natureza da despesa<input formControlName="naturezaDespesa" placeholder="ClassificaÃ§Ã£o" (blur)="capitalizarCampo(['cronograma', idx, 'naturezaDespesa'])" /></label>
+            <label class="field full">ObservaÃ§Ãµes<textarea rows="2" formControlName="observacoes"></textarea></label>
           </div>
         </div>
       </div>
@@ -242,21 +242,21 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Cadastre responsáveis, funções e cargas horárias previstas.</p>
+          <p class="muted">Cadastre responsÃ¡veis, funÃ§Ãµes e cargas horÃ¡rias previstas.</p>
         </div>
-        <button type="button" class="primary" (click)="addResponsavel()" [disabled]="edicaoRestrita">Adicionar responsável</button>
+        <button type="button" class="primary" (click)="addResponsavel()" [disabled]="edicaoRestrita">Adicionar responsÃ¡vel</button>
       </div>
 
       <div class="stack">
         <div class="sub-card compact" *ngFor="let membro of equipe.controls; let idx = index" [formGroupName]="idx">
           <div class="sub-card__header">
-            <p class="sub-card__title">Responsável {{ idx + 1 }}</p>
+            <p class="sub-card__title">ResponsÃ¡vel {{ idx + 1 }}</p>
             <button type="button" class="danger" (click)="removeResponsavel(idx)" [disabled]="edicaoRestrita">Remover</button>
           </div>
           <div class="field-grid cols-3">
             <label class="field">Nome*<input formControlName="nome" (blur)="capitalizarCampo(['equipe', idx, 'nome'])" /></label>  
-            <label class="field">Função/Cargo<input formControlName="funcao" (blur)="capitalizarCampo(['equipe', idx, 'funcao'])" /></label>
-            <label class="field">Tipo de vínculo<input formControlName="tipoVinculo" placeholder="Servidor, terceirizado..." (blur)="capitalizarCampo(['equipe', idx, 'tipoVinculo'])" /></label>
+            <label class="field">FunÃ§Ã£o/Cargo<input formControlName="funcao" (blur)="capitalizarCampo(['equipe', idx, 'funcao'])" /></label>
+            <label class="field">Tipo de vÃ­nculo<input formControlName="tipoVinculo" placeholder="Servidor, terceirizado..." (blur)="capitalizarCampo(['equipe', idx, 'tipoVinculo'])" /></label>
             <label class="field">CPF
               <input
                 formControlName="cpf"
@@ -265,10 +265,10 @@
                 [class.input-error]="equipe.at(idx).get('cpf')?.invalid && equipe.at(idx).get('cpf')?.touched"
               />
               <p class="field-error" *ngIf="equipe.at(idx).get('cpf')?.invalid && equipe.at(idx).get('cpf')?.touched">
-                Informe um CPF valido.
+                Informe um CPF válido.
               </p>
             </label>     
-            <label class="field">Carga horária<input formControlName="cargaHoraria" placeholder="Horas semanais/mês" /></label>
+            <label class="field">Carga horÃ¡ria<input formControlName="cargaHoraria" placeholder="Horas semanais/mÃªs" /></label>
             <label class="field">Contato<input formControlName="contato" placeholder="E-mail ou telefone" /></label>
           </div>
         </div>
@@ -280,18 +280,18 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>   
-          <p class="muted">Defina o formato e gere o arquivo para envio aos órgãos.</p>
+          <p class="muted">Defina o formato e gere o arquivo para envio aos Ã³rgÃ£os.</p>
         </div>
         <button class="primary" type="button" (click)="gerarArquivo()">Gerar arquivo</button>
       </div>
       <div class="field-grid cols-2">
-        <label class="field">Formato de saída<select formControlName="formato">
+        <label class="field">Formato de saÃ­da<select formControlName="formato">
             <option value="PDF">PDF</option>
             <option value="JSON">Arquivo estruturado</option>
           </select></label>
         <div class="info-card">
-          <p class="muted">O arquivo compilará identificação, vínculo, metas, cronograma e equipe para submissão.</p>
-          <p class="muted">Após aprovado, a edição estrutural fica limitada para preservar rastreabilidade.</p>
+          <p class="muted">O arquivo compilarÃ¡ identificaÃ§Ã£o, vÃ­nculo, metas, cronograma e equipe para submissÃ£o.</p>
+          <p class="muted">ApÃ³s aprovado, a ediÃ§Ã£o estrutural fica limitada para preservar rastreabilidade.</p>
         </div>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>      
@@ -301,7 +301,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Acompanhe os planos cadastrados e gerencie as ações principais.</p>
+          <p class="muted">Acompanhe os planos cadastrados e gerencie as aÃ§Ãµes principais.</p>
         </div>
       </div>
 
@@ -311,7 +311,7 @@
             <span>Pesquisa</span>
             <input
               type="search"
-              placeholder="Codigo, titulo ou termo"
+              placeholder="código, titulo ou termo"
               (input)="onSearchPlanoInput($event)"
             />
           </label>
@@ -325,7 +325,7 @@
             </select>
           </label>
           <label class="filter">
-            <span>Ordenacao</span>
+            <span>Ordenação</span>
             <select (change)="onOrdenacaoPlanoChange($event)">
               <option value="maisRecente">Mais recente</option>
               <option value="maisAntigo">Mais antigo</option>
@@ -343,7 +343,7 @@
         <div class="list-card__header">
           <div>
             <p class="page-title__eyebrow">Planos cadastrados</p>
-            <p class="page-title__label">Painel de gestão</p>
+            <p class="page-title__label">Painel de gestÃ£o</p>
           </div>
           <div class="list-card__actions">
             <button class="ghost" type="button" (click)="startNovo()">Novo plano</button>
@@ -363,12 +363,12 @@
           <table>
             <thead>
               <tr>
-                <th>Código</th>
-                <th>Título</th>
+                <th>CÃ³digo</th>
+                <th>TÃ­tulo</th>
                 <th>Status</th>
                 <th>Termo</th>
-                <th>Vigência</th>
-                <th>Ações</th>
+                <th>VigÃªncia</th>
+                <th>AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody>
@@ -376,8 +376,8 @@
                 <td>{{ plano.codigoInterno }}</td>
                 <td>{{ plano.titulo }}</td>
                 <td>{{ statusLabel(plano.status) }}</td>
-                <td>{{ plano.termoFomento?.numero || '—' }}</td>
-                <td>{{ plano.vigenciaInicio || '-' }} até {{ plano.vigenciaFim || '-' }}</td>
+                <td>{{ plano.termoFomento?.numero || 'â€”' }}</td>
+                <td>{{ plano.vigenciaInicio || '-' }} atÃ© {{ plano.vigenciaFim || '-' }}</td>
                 <td class="row-actions">
                   <button class="ghost" type="button" (click)="editPlano(plano)">Editar</button>
                   <button class="ghost" type="button" (click)="gerarArquivo(plano)">Exportar</button>
@@ -397,6 +397,7 @@
   </form>
 </section>
 </app-tela-padrao>
+
 
 
 

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -29,7 +29,7 @@ export class SenhasPainelComponent implements OnInit, OnDestroy {
   nomeUnidadePainel: string | null = null;
   noticiasTicker: string[] = [];
   private ultimaChamadaId: string | null = null;
-  fraseFala = 'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.';
+  fraseFala = 'BeneficiÃ¡rio {beneficiario} dirija-se a {sala} para atendimento.';
   velocidadeTicker = 60;
   modoNoticias: 'RSS' | 'MANUAL' = 'RSS';
   noticiasManuais = '';
@@ -320,3 +320,4 @@ export class SenhasPainelComponent implements OnInit, OnDestroy {
   }
 
 }
+

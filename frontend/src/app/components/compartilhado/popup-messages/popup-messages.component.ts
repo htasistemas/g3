@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
@@ -17,3 +17,4 @@ export class PopupMessagesComponent {
     return (this.mensagens ?? []).length > 0;
   }
 }
+

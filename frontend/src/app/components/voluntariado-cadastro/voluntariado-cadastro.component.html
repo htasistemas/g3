@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -12,8 +12,8 @@
 >
 <header class="page-title page-title--row" slot="titulo">
   <div>
-    <p class="page-title__eyebrow">CADASTROS</p>
-    <p class="page-title__label">Cadastro de voluntário</p>
+    <p class="page-title__eyebrow">cadastros</p>
+    <p class="page-title__label">cadastro de voluntÃ¡rio</p>
   </div>
     <p class="page-title__note">Cadastramento de voluntarios da instituicao.</p>
 </header>
@@ -21,7 +21,7 @@
   <section class="cadastro">
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
+    <p class="tab-shell__title">Navegue pelas informaÃ§Ãµes</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -58,8 +58,8 @@
       <div class="tab-card__hero" [class.tab-card__hero--camera]="cameraActive">
         <div class="photo-section">
           <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
-            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do voluntário" />
-            <span *ngIf="!photoPreview">Foto 3x4 do voluntário</span>
+            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do voluntÃ¡rio" />
+            <span *ngIf="!photoPreview">Foto 3x4 do voluntÃ¡rio</span>
           </div>
           <div class="photo-actions">
             <label class="upload-btn upload-btn--primary">
@@ -77,7 +77,7 @@
         </div>
 
         <div class="camera-panel" *ngIf="cameraActive">
-          <p class="camera-panel__title">Visualizacao da camera</p>
+          <p class="camera-panel__title">Visualização da camera</p>
           <div class="camera-panel__preview">
             <video #videoElement autoplay muted playsinline></video>
           </div>
@@ -86,7 +86,7 @@
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="field-grid cols-3">
-        <label class="field field--wide">Buscar profissional voluntário
+        <label class="field field--wide">Buscar profissional voluntÃ¡rio
           <input type="text" [value]="profissionalBusca" placeholder="Digite nome ou CPF" (input)="onBuscaProfissional($any($event.target).value)" />
           <div class="search-hint" *ngIf="carregandoProfissionais">Carregando profissionais...</div>
           <ul class="search-results" *ngIf="profissionalResultados.length">
@@ -107,7 +107,7 @@
         <label class="field full">Nome completo*<input formControlName="nomeCompleto" placeholder="Digite o nome completo" /></label>
         <label class="field">CPF*
           <input formControlName="cpf" placeholder="000.000.000-00" (input)="onCpfInput($event)" [class.input-error]="form.get(['dadosPessoais', 'cpf'])?.invalid && form.get(['dadosPessoais', 'cpf'])?.touched" />
-          <p class="field-error" *ngIf="form.get(['dadosPessoais', 'cpf'])?.invalid && form.get(['dadosPessoais', 'cpf'])?.touched">Informe um CPF valido.</p>
+          <p class="field-error" *ngIf="form.get(['dadosPessoais', 'cpf'])?.invalid && form.get(['dadosPessoais', 'cpf'])?.touched">Informe um CPF válido.</p>
         </label>
         <label class="field">Data de nascimento<input type="date" formControlName="dataNascimento" /></label>
         <label class="field">Sexo<select formControlName="genero">
@@ -116,8 +116,8 @@
             <option value="Masculino">Masculino</option>
             <option value="Outro">Outro</option>
           </select></label>
-        <label class="field">Profissão<input formControlName="profissao" placeholder="Área de atuação" /></label>
-        <label class="field full">Motivação<textarea formControlName="motivacao" placeholder="Por que deseja atuar como voluntário?" rows="3"></textarea></label>
+        <label class="field">ProfissÃ£o<input formControlName="profissao" placeholder="Ãrea de atuaÃ§Ã£o" /></label>
+        <label class="field full">MotivaÃ§Ã£o<textarea formControlName="motivacao" placeholder="Por que deseja atuar como voluntÃ¡rio?" rows="3"></textarea></label>
       </div>
     </div>
 
@@ -125,7 +125,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Formas de contato e competências relevantes para a atuação.</p>
+          <p class="muted">Formas de contato e competÃªncias relevantes para a atuaÃ§Ã£o.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
@@ -133,28 +133,28 @@
         <label class="field">E-mail*<input type="email" formControlName="email" placeholder="nome@email.com" /></label>
         <label class="field">Cidade<input formControlName="cidade" /></label>
         <label class="field">Estado<input maxlength="2" formControlName="estado" /></label>
-        <label class="field">Área de interesse<input formControlName="areaInteresse" placeholder="Ex.: Educação, Saúde" /></label>
-        <label class="field">Habilidades e experiências<textarea formControlName="habilidades" rows="3" placeholder="Atendimento, facilitação, gestão..."></textarea></label>
-        <label class="field">Idiomas<input formControlName="idiomas" placeholder="Português, Inglês..." /></label>
-        <label class="field">LinkedIn / Portfólio<input formControlName="linkedin" placeholder="Link para perfil profissional" /></label>
+        <label class="field">Ãrea de interesse<input formControlName="areaInteresse" placeholder="Ex.: EducaÃ§Ã£o, SaÃºde" /></label>
+        <label class="field">Habilidades e experiÃªncias<textarea formControlName="habilidades" rows="3" placeholder="Atendimento, facilitaÃ§Ã£o, gestÃ£o..."></textarea></label>
+        <label class="field">Idiomas<input formControlName="idiomas" placeholder="PortuguÃªs, InglÃªs..." /></label>
+        <label class="field">LinkedIn / PortfÃ³lio<input formControlName="linkedin" placeholder="Link para perfil profissional" /></label>
       </div>
     </div>
 
 
-    <div class="tab-card" *ngIf="activeTab === 'endereço'" formGroupName="endereço">
+    <div class="tab-card" *ngIf="activeTab === 'endereÃ§o'" formGroupName="endereÃ§o">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Preencha o endereço para contato e registro do voluntário.</p>
+          <p class="muted">Preencha o endereÃ§o para contato e registro do voluntÃ¡rio.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
         <label class="field">CEP<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
-          <p class="field-error" *ngIf="form.get(['endereço', 'cep'])?.invalid && form.get(['endereço', 'cep'])?.touched">Informe um CEP valido.</p>
+          <p class="field-error" *ngIf="form.get(['endereÃ§o', 'cep'])?.invalid && form.get(['endereÃ§o', 'cep'])?.touched">Informe um CEP válido.</p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
         <label class="field">Logradouro<input formControlName="logradouro" placeholder="Rua, avenida, estrada" /></label>
-        <label class="field">Número<input formControlName="numero" /></label>
+        <label class="field">NÃºmero<input formControlName="numero" /></label>
         <label class="field">Complemento<input formControlName="complemento" /></label>
         <label class="field">Bairro<input formControlName="bairro" /></label>
         <label class="field">Ponto de referencia<input formControlName="pontoReferencia" /></label>
@@ -167,7 +167,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Combine dias, períodos e formato de atuação para alocar o voluntário.</p>
+          <p class="muted">Combine dias, perÃ­odos e formato de atuaÃ§Ã£o para alocar o voluntÃ¡rio.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -181,7 +181,7 @@
           </div>
         </div>
         <div class="field full">
-          <p class="field-title">Períodos disponíveis</p>
+          <p class="field-title">PerÃ­odos disponÃ­veis</p>
           <div class="chips">
             <label *ngFor="let periodo of periodos" class="chip">
               <input type="checkbox" [checked]="selectionChecked(['disponibilidade', 'periodos'], periodo)" (change)="toggleSelection(['disponibilidade', 'periodos'], periodo)" />
@@ -189,13 +189,13 @@
             </label>
           </div>
         </div>
-        <label class="field">Carga horária semanal<input formControlName="cargaHorariaSemanal" placeholder="Ex.: 4h/semana" /></label>
-        <label class="field">Início previsto<input type="date" formControlName="inicioPrevisto" /></label>
+        <label class="field">Carga horÃ¡ria semanal<input formControlName="cargaHorariaSemanal" placeholder="Ex.: 4h/semana" /></label>
+        <label class="field">InÃ­cio previsto<input type="date" formControlName="inicioPrevisto" /></label>
         <div class="feature-grid">
-          <label class="checkbox-field"><input type="checkbox" formControlName="presencial" /> <span>Disponível para atuar presencialmente</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="presencial" /> <span>DisponÃ­vel para atuar presencialmente</span></label>
           <label class="checkbox-field"><input type="checkbox" formControlName="remoto" /> <span>Pode atuar de forma remota</span></label>
         </div>
-        <label class="field full">Observações<textarea formControlName="observacoes" rows="3" placeholder="Preferências de local, restrições e recursos necessários"></textarea></label>
+        <label class="field full">ObservaÃ§Ãµes<textarea formControlName="observacoes" rows="3" placeholder="PreferÃªncias de local, restriÃ§Ãµes e recursos necessÃ¡rios"></textarea></label>
       </div>
     </div>
 
@@ -203,13 +203,13 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Formalize o aceite do termo de voluntariado e da autorização de uso de imagem.</p>
+          <p class="muted">Formalize o aceite do termo de voluntariado e da autorizaÃ§Ã£o de uso de imagem.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
         <div class="document-upload-grid full">
           <div class="document-upload-card">
-            <p class="document-upload-card__title">Documento de identificacao</p>
+            <p class="document-upload-card__title">Documento de identificação</p>
             <p class="muted">Envie a imagem do documento (RG, CNH ou similar).</p>
             <input
               type="file"
@@ -221,7 +221,7 @@
             </p>
           </div>
           <div class="document-upload-card">
-            <p class="document-upload-card__title">Comprovante de endereço</p>
+            <p class="document-upload-card__title">Comprovante de endereÃ§o</p>
             <p class="muted">Envie a imagem do comprovante atualizado.</p>
             <input
               type="file"
@@ -237,14 +237,14 @@
           <div class="term-card__header">
             <div>
               <p class="term-card__title">Termo de voluntariado</p>
-              <p class="muted">Responsabilidades, ausência de vínculo empregatício e cuidados com segurança e confidencialidade.</p>
+              <p class="muted">Responsabilidades, ausÃªncia de vÃ­nculo empregatÃ­cio e cuidados com seguranÃ§a e confidencialidade.</p>
             </div>
           </div>
           <ul>
-            <li>Atuação espontânea e não remunerada, regida pela Lei nº 9.608/1998, sem vínculo empregatício.</li>
-            <li>Dever de confidencialidade sobre beneficiários, relatórios e informações estratégicas.</li>
-            <li>Direito a capacitação, orientações de segurança e materiais necessários para a atividade.</li>
-            <li>Responsabilidade de comunicar ausências, zelar por equipamentos e cumprir protocolos internos.</li>
+            <li>AtuaÃ§Ã£o espontÃ¢nea e nÃ£o remunerada, regida pela Lei nÂº 9.608/1998, sem vÃ­nculo empregatÃ­cio.</li>
+            <li>Dever de confidencialidade sobre beneficiÃ¡rios, relatÃ³rios e informaÃ§Ãµes estratÃ©gicas.</li>
+            <li>Direito a capacitaÃ§Ã£o, orientaÃ§Ãµes de seguranÃ§a e materiais necessÃ¡rios para a atividade.</li>
+            <li>Responsabilidade de comunicar ausÃªncias, zelar por equipamentos e cumprir protocolos internos.</li>
           </ul>
           <label class="checkbox-field">
             <input type="checkbox" formControlName="aceiteVoluntariado" />
@@ -255,14 +255,14 @@
         <div class="term-card full">
           <div class="term-card__header">
             <div>
-              <p class="term-card__title">Autorização de uso de imagem</p>
-              <p class="muted">Autorização detalhada para captação e divulgação de imagem e voz em materiais institucionais.</p>
+              <p class="term-card__title">AutorizaÃ§Ã£o de uso de imagem</p>
+              <p class="muted">AutorizaÃ§Ã£o detalhada para captaÃ§Ã£o e divulgaÃ§Ã£o de imagem e voz em materiais institucionais.</p>
             </div>
           </div>
           <ul>
-            <li>Uso gratuito da imagem e voz em mídias digitais, impressas, transmissões e relatórios.</li>
-            <li>Possibilidade de revogação futura, sem efeito retroativo sobre peças já divulgadas.</li>
-            <li>Tratamento de dados pessoais em conformidade com a LGPD e políticas internas de privacidade.</li>
+            <li>Uso gratuito da imagem e voz em mÃ­dias digitais, impressas, transmissÃµes e relatÃ³rios.</li>
+            <li>Possibilidade de revogaÃ§Ã£o futura, sem efeito retroativo sobre peÃ§as jÃ¡ divulgadas.</li>
+            <li>Tratamento de dados pessoais em conformidade com a LGPD e polÃ­ticas internas de privacidade.</li>
           </ul>
           <label class="checkbox-field">
             <input type="checkbox" formControlName="aceiteImagem" />
@@ -270,7 +270,7 @@
           </label>
         </div>
 
-        <label class="field full">Assinatura digital / observações para termo<textarea formControlName="assinaturaDigital" rows="3" placeholder="Registre informações complementares ou assinatura eletrônica"></textarea></label>
+        <label class="field full">Assinatura digital / observaÃ§Ãµes para termo<textarea formControlName="assinaturaDigital" rows="3" placeholder="Registre informaÃ§Ãµes complementares ou assinatura eletrÃ´nica"></textarea></label>
         <div class="actions">
           <button class="primary" type="button" (click)="openTermo()">Gerar termo para assinatura</button>
         </div>
@@ -281,8 +281,8 @@
   <div class="tab-card" *ngIf="activeTab === 'lista'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
-        <p class="tab-card__highlight">Listagem de voluntários</p>
-        <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+        <p class="tab-card__highlight">Listagem de voluntÃ¡rios</p>
+        <p class="muted">Localização completa para correspondencias e visitas.</p>
       </div>
       <div class="tab-card__header-actions">
         <button type="button" class="btn-outline" (click)="limparFiltrosListagem()">Limpar</button>
@@ -297,7 +297,7 @@
       <label class="field">CPF
         <input type="text" formControlName="cpf" placeholder="Somente numeros" />
       </label>
-      <label class="field">Código
+      <label class="field">CÃ³digo
         <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
       </label>
       <label class="field">Nascimento
@@ -313,8 +313,8 @@
 
     <div class="unit-active" *ngIf="voluntarioSelecionado">
       <div>
-        <p class="unit-active__eyebrow">voluntário <span class="pill">ativo</span></p>
-        <p class="unit-active__name">{{ voluntarioSelecionado.nome || 'voluntário sem nome' }}</p>
+        <p class="unit-active__eyebrow">voluntÃ¡rio <span class="pill">ativo</span></p>
+        <p class="unit-active__name">{{ voluntarioSelecionado.nome || 'voluntÃ¡rio sem nome' }}</p>
         <p class="unit-active__meta">
           {{ voluntarioSelecionado.cpf || 'CPF n?o informado' }} - {{ voluntarioSelecionado.email || 'E-mail n?o informado' }}
         </p>
@@ -328,25 +328,25 @@
       <div class="unit-list__item" *ngFor="let volunteer of voluntariosPaginados">
         <div>
           <div class="unit-list__header-row">
-            <span class="unit-list__code">Código: {{ volunteer.id || '---' }}</span>
+            <span class="unit-list__code">CÃ³digo: {{ volunteer.id || '---' }}</span>
             <span class="pill" [ngClass]="getStatusClass(volunteer.status)">{{ formatarStatusLabel(volunteer.status) }}</span>
           </div>
           <div class="unit-list__name-row">
             <div class="unit-list__avatar" [class.unit-list__avatar--empty]="!volunteer.foto_3x4">
-              <img *ngIf="volunteer.foto_3x4" [src]="volunteer.foto_3x4" alt="Foto do voluntário" />
+              <img *ngIf="volunteer.foto_3x4" [src]="volunteer.foto_3x4" alt="Foto do voluntÃ¡rio" />
               <span *ngIf="!volunteer.foto_3x4" aria-hidden="true">
                 {{ (volunteer.nome || 'V')[0] }}
               </span>
             </div>
-            <p class="unit-list__name-text">{{ volunteer.nome || 'voluntário sem nome' }}</p>
+            <p class="unit-list__name-text">{{ volunteer.nome || 'voluntÃ¡rio sem nome' }}</p>
           </div>
           <div class="unit-list__info-row">
             <span class="unit-list__meta-text">Idade: {{ calcularIdade(volunteer.dataNascimento) }}</span>
-            <span class="unit-list__separator">·</span>
+            <span class="unit-list__separator">Â·</span>
             <span class="unit-list__meta-text">Nascimento: {{ formatarDataNascimentoListagem(volunteer.dataNascimento) }}</span>
-            <span class="unit-list__separator">·</span>
+            <span class="unit-list__separator">Â·</span>
             <span class="unit-list__meta-text">CPF: {{ volunteer.cpf || 'CPF n?o informado' }}</span>
-            <span class="unit-list__separator">·</span>
+            <span class="unit-list__separator">Â·</span>
             <span class="unit-list__meta-text" [title]="volunteer.bairro || 'Bairro n?o informado'">
               <span class="unit-list__meta-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -355,9 +355,9 @@
                   />
                 </svg>
               </span>
-              Bairro: {{ volunteer.bairro || 'Não informado' }}
+              Bairro: {{ volunteer.bairro || 'NÃ£o informado' }}
             </span>
-            <span class="unit-list__separator">·</span>
+            <span class="unit-list__separator">Â·</span>
             <span class="unit-list__meta-text">
               <span class="unit-list__meta-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -366,7 +366,7 @@
                   />
                 </svg>
               </span>
-              Tel.: {{ volunteer.telefone || 'Não informado' }}
+              Tel.: {{ volunteer.telefone || 'NÃ£o informado' }}
             </span>
           </div>
         </div>
@@ -380,23 +380,24 @@
 
     <div class="unit-list__pagination" *ngIf="volunteersFiltrados.length && voluntariosPaginados.length">
       <span class="unit-list__total">
-        Total: {{ volunteersFiltrados.length }} voluntários
+        Total: {{ volunteersFiltrados.length }} voluntÃ¡rios
       </span>
       <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
         Anterior
       </button>
       <span class="unit-list__page">
-        Página {{ paginaAtual }} de {{ totalPaginas }}
+        PÃ¡gina {{ paginaAtual }} de {{ totalPaginas }}
       </span>
       <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-        Próximo
+        PrÃ³ximo
       </button>
     </div>
 
-    <p class="muted" *ngIf="!volunteersFiltrados.length">Nenhum voluntário cadastrado ate o momento.</p>
+    <p class="muted" *ngIf="!volunteersFiltrados.length">Nenhum voluntÃ¡rio cadastrado ate o momento.</p>
   </div>
 </section>
 </app-tela-padrao>
+
 
 
 

@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -15,14 +15,14 @@
     <p class="page-title__eyebrow">Atendimentos</p>
     <p class="page-title__label">Banco de Empregos</p>
   </div>
-    <p class="page-title__note">Cadastro e acompanhamento de vagas e encaminhamentos.</p>
+    <p class="page-title__note">cadastro e acompanhamento de vagas e encaminhamentos.</p>
 </header>
 
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 
   <section class="job-page">
   <section class="tab-shell">
-    <p class="tab-shell__title">Navegação por etapas</p>
+    <p class="tab-shell__title">NavegaÃ§Ã£o por etapas</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -49,7 +49,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[0].label }}</p>
-          <p class="muted">Informacoes principais da vaga.</p>
+          <p class="muted">Informações principais da vaga.</p>
         </div>
       </div>
 
@@ -101,7 +101,7 @@
         <label class="field">Cidade *
           <input type="text" formControlName="cidade" />
         </label>
-        <label class="field">Endereco
+        <label class="field">endereço
           <input type="text" formControlName="endereco" />
         </label>
         <label class="field">Bairro
@@ -114,7 +114,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[2].label }}</p>
-          <p class="muted">Requisitos, descricao e observacoes.</p>
+          <p class="muted">Requisitos, descricao e observações.</p>
         </div>
       </div>
 
@@ -125,7 +125,7 @@
       <label class="field">Descricao *
           <textarea formControlName="descricao" rows="4" placeholder="Descreva a vaga"></textarea>
         </label>
-        <label class="field">Outras observacoes
+        <label class="field">Outras observações
           <textarea formControlName="observacoes" rows="3" placeholder="Detalhes adicionais"></textarea>
         </label>
       </div>
@@ -154,7 +154,7 @@
             <label class="field">Status *
               <input type="text" formControlName="status" />
             </label>
-            <label class="field full">Observacoes
+            <label class="field full">Observações
               <textarea formControlName="observacoes" rows="2" placeholder="Notas do encaminhamento"></textarea>
             </label>
           </div>
@@ -190,7 +190,7 @@
                   <th>Beneficiario</th>
                   <th>Data</th>
                   <th>Status</th>
-                  <th>Observacoes</th>
+                  <th>Observações</th>
                   <th></th>
                 </tr>
               </thead>
@@ -202,7 +202,7 @@
                   <td>{{ item.beneficiarioNome }}</td>
                   <td>{{ item.data }}</td>
                   <td>{{ item.status }}</td>
-                  <td>{{ item.observacoes || 'â' }}</td>
+                  <td>{{ item.observacoes || 'Ã¢Â€Â”' }}</td>
                   <td>
                     <button type="button" class="nav-button nav-button--danger" (click)="removeEncaminhamento(item.id)">Remover</button>
                   </td>
@@ -241,7 +241,7 @@
               <option value="EM_ANDAMENTO">Em andamento</option>
               <option value="ENCAMINHADO">Encaminhado</option>
               <option value="CONTRATADO">Contratado</option>
-              <option value="NAO_APROVADO">Nao aprovado</option>
+              <option value="NAO_APROVADO">Não aprovado</option>
             </select>
           </label>
           <label class="field full">Curriculo (PDF ou DOC) *
@@ -287,7 +287,7 @@
               <option value="EM_ANDAMENTO">Em andamento</option>
               <option value="ENCAMINHADO">Encaminhado</option>
               <option value="CONTRATADO">Contratado</option>
-              <option value="NAO_APROVADO">Nao aprovado</option>
+              <option value="NAO_APROVADO">Não aprovado</option>
             </select>
           </label>
           <label class="field">
@@ -366,7 +366,7 @@
         <header class="vaga-card__header">
           <div>
             <p class="vaga-card__title">{{ record.dadosVaga.titulo }}</p>
-            <p class="muted">{{ record.empresaLocal?.nomeEmpresa }} â¢ {{ record.empresaLocal?.cidade }}</p>
+            <p class="muted">{{ record.empresaLocal?.nomeEmpresa }} Ã¢Â€Â¢ {{ record.empresaLocal?.cidade }}</p>
           </div>
           <span class="status-pill" [class.status-pill--open]="record.dadosVaga.status === 'Aberta'" [class.status-pill--progress]="record.dadosVaga.status === 'Pausada'" [class.status-pill--closed]="record.dadosVaga.status === 'Encerrada'">
             {{ record.dadosVaga.status }}
@@ -376,15 +376,15 @@
         <dl class="vaga-card__meta">
           <div>
             <dt>Aberta em</dt>
-            <dd>{{ record.criadoEm || 'â' }}</dd>
+            <dd>{{ record.criadoEm || 'Ã¢Â€Â”' }}</dd>
           </div>
           <div>
             <dt>Contrato</dt>
-            <dd>{{ record.dadosVaga.tipo || 'â' }}</dd>
+            <dd>{{ record.dadosVaga.tipo || 'Ã¢Â€Â”' }}</dd>
           </div>
           <div>
             <dt>Salario</dt>
-            <dd>{{ record.dadosVaga.salario || 'â' }}</dd>
+            <dd>{{ record.dadosVaga.salario || 'Ã¢Â€Â”' }}</dd>
           </div>
         </dl>
         <div class="vaga-card__actions">
@@ -413,6 +413,7 @@
   (cancelar)="cancelarDialogo()"
 ></app-dialog>
 </app-tela-padrao>
+
 
 
 

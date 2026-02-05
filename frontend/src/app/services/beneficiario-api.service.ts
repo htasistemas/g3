@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -209,3 +209,4 @@ export class BeneficiarioApiService {
     return this.http.post<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, { params });
   }
 }
+

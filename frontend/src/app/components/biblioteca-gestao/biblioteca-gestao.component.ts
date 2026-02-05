@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -1180,3 +1180,4 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     return `${this.emprestimoSelecionado.livroTitulo || 'Livro'} - ${this.emprestimoSelecionado.beneficiarioNome || ''}`;
   }
 }
+

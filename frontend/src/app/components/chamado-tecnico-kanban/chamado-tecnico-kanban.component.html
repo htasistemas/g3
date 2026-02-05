@@ -1,17 +1,17 @@
-<app-tela-padrao [acoes]="acoesToolbar" (buscar)="onBuscar()" (novo)="onNovo()">
+﻿<app-tela-padrao [acoes]="acoesToolbar" (buscar)="onBuscar()" (novo)="onNovo()">
   <header class="page-title page-title--row" slot="titulo">
     <div>
-      <p class="page-title__eyebrow">Configuracoes gerais</p>
+      <p class="page-title__eyebrow">Configurações gerais</p>
       <p class="page-title__label">Chamado tecnico</p>
     </div>
-    <p class="page-title__note page-title__note--right">Visualizacao rapida do fluxo de trabalho.</p>
+    <p class="page-title__note page-title__note--right">Visualização rapida do fluxo de trabalho.</p>
   </header>
 
   <section class="cadastro">
     <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
 
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <p class="tab-shell__title">Navegue pelas informações</p>
       <ol class="step-tabs" role="tablist">
         <li class="step-tabs__item active">
           <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
@@ -60,3 +60,4 @@
     </section>
   </section>
 </app-tela-padrao>
+

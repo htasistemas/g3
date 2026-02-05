@@ -15,7 +15,7 @@
     <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
     <p class="page-title__label">Contabilidade</p>
   </div>
-  <p class="page-title__note">Gestao de contas a pagar, receber e movimentacoes.</p>
+  <p class="page-title__note">Gestao de contas a pagar, receber e movimentações.</p>
 </header>
 
   <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
@@ -157,7 +157,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Situacao *</span>
+            <span>Situação *</span>
             <select class="select" name="status" [(ngModel)]="newEntry.situacao" required>
               <option value="aberto">Aberto</option>
               <option value="pago">Pago</option>
@@ -314,7 +314,7 @@
             <p class="strong">Saldo projetado</p>
             <p>{{ reportTotals.saldoProjetado | currency:'BRL' }}</p>
           </div>
-          <p class="muted">Use os botões de impressão ou exportacao para compartilhar o resumo.</p>
+          <p class="muted">Use os botões de impressão ou exportação para compartilhar o resumo.</p>
         </div>
       </article>
     </div>
@@ -374,7 +374,7 @@
 
         <form class="form-grid" (ngSubmit)="addAmendment()">
           <label class="form-field">
-            <span>Identificacao *</span>
+            <span>Identificação *</span>
             <input
               type="text"
               class="input"
@@ -452,7 +452,7 @@
         
         <div class="filter-bar">
           <label class="form-field">
-            <span>Identificacao</span>
+            <span>Identificação</span>
             <input type="text" class="input" [(ngModel)]="filtrosEmendas.identificacao" name="filtroEmenda" placeholder="Emenda 001/2024" />
           </label>
           <label class="form-field">
@@ -520,7 +520,7 @@
     <div class="panel">
       <header class="panel__header">
         <div>
-          <p class="panel__eyebrow">Cadastro</p>
+          <p class="panel__eyebrow">cadastro</p>
           <p class="panel__title">Nova conta bancaria</p>
         </div>
         <span class="pill">Saldo real</span>
@@ -624,7 +624,7 @@
           />
         </label>
         <label class="form-field">
-          <span>ultima atualizacao</span>
+          <span>ultima atualização</span>
           <input
             type="date"
             class="input"
@@ -854,7 +854,7 @@
           </label>
         </div>
 
-<p class="muted list-count">Total: {{ movimentacoesFiltradas.length }} movimentacoes</p>
+<p class="muted list-count">Total: {{ movimentacoesFiltradas.length }} movimentações</p>
         <div class="table-wrapper" *ngIf="movimentacoesFiltradas.length; else emptyMovements">
           <table>
             <thead>
@@ -958,7 +958,7 @@
 
       <form class="form-grid" (ngSubmit)="addAmendment()">
         <label class="form-field">
-          <span>Identificacao *</span>
+          <span>Identificação *</span>
           <input type="text" class="input" name="name" [(ngModel)]="newAmendment.identificacao" placeholder="Emenda 001/2024" required />
         </label>
         <label class="form-field">
@@ -997,7 +997,7 @@
 
     <div class="filter-bar">
       <label class="form-field">
-        <span>Identificacao</span>
+        <span>Identificação</span>
         <input type="text" class="input" [(ngModel)]="filtrosEmendas.identificacao" name="filtroEmenda" placeholder="Emenda 001/2024" />
       </label>
       <label class="form-field">
@@ -1089,7 +1089,7 @@
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Relatórios e exportações</p>
-        <p class="muted">Materiais essenciais para prestacao de contas e auditorias.</p>
+        <p class="muted">Materiais essenciais para prestação de contas e auditorias.</p>
       </div>
       <span class="pill">Documentos</span>
     </div>
@@ -1176,6 +1176,7 @@
   (cancelar)="cancelarDialogo()"
 ></app-dialog>
 </app-tela-padrao>
+
 
 
 

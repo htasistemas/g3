@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
@@ -205,9 +205,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.tarefasService.list().subscribe((tarefas) => {
-        this.pendenciasAbertas = tarefas.filter((item) => item.status !== 'Concluída').length;
+        this.pendenciasAbertas = tarefas.filter((item) => item.status !== 'ConcluÃ­da').length;
       })
     );
   }
 
 }
+

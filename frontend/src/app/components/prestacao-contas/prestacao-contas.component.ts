@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -79,16 +79,16 @@ export class PrestacaoContasComponent extends TelaBaseComponent {
     {
       id: 'resumo',
       label: 'Resumo financeiro',
-      helper: 'Visão geral dos recursos recebidos, aplicados e saldo disponível.'
+      helper: 'VisÃ£o geral dos recursos recebidos, aplicados e saldo disponÃ­vel.'
     },
     {
       id: 'fluxo',
-      label: 'Entradas e destinação',
+      label: 'Entradas e destinaÃ§Ã£o',
       helper: 'Detalhamento das fontes de recursos e o percentual aplicado em cada frente.'
     },
     {
       id: 'transparencia',
-      label: 'Transparência e evidências',
+      label: 'TransparÃªncia e evidÃªncias',
       helper: 'Linha do tempo das entregas, checklist e comprovantes anexados.' 
     },
     {
@@ -521,7 +521,8 @@ export class PrestacaoContasComponent extends TelaBaseComponent {
   }
 
   formatCurrency(value?: number | null): string {
-    if (value === null || value === undefined || Number.isNaN(value)) return '—';
+    if (value === null || value === undefined || Number.isNaN(value)) return 'â€”';
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 }
+

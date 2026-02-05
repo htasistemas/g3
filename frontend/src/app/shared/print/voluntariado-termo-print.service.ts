@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { buildTermoVoluntariadoHTML } from './templates/termo-voluntariado.template';
 
 type UnidadeTermo = {
@@ -78,3 +78,4 @@ export class VoluntariadoTermoPrintService {
     setTimeout(() => janela.close(), 500);
   }
 }
+

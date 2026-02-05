@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -14,9 +14,9 @@
   <header class="page-title page-title--row" slot="titulo">
     <div>
       <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
-      <p class="page-title__label">Prestacao de Contas</p>
+      <p class="page-title__label">Prestação de Contas</p>
     </div>
-    <p class="page-title__note">Transparencia de recursos e destino das doacoes.</p>
+    <p class="page-title__note">Transparencia de recursos e destino das doações.</p>
   </header>
 
   <section class="cadastro">
@@ -32,7 +32,7 @@
     </div>
 
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <p class="tab-shell__title">Navegue pelas informações</p>
       <ol class="step-tabs" role="tablist">
         <li
           *ngFor="let tab of tabs; index as idx"
@@ -151,14 +151,14 @@
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
             <p class="muted">{{ activeTabHelper }}</p>
           </div>
-          <span class="pill">Fontes e aplicacoes</span>
+          <span class="pill">Fontes e aplicações</span>
         </div>
 
         <div class="panel-grid">
           <article class="panel" formArrayName="recebimentos">
             <header class="panel__header">
               <div>
-                <p class="panel__eyebrow">Doacoes recebidas</p>
+                <p class="panel__eyebrow">Doações recebidas</p>
                 <p class="panel__title">Fontes e recorrencia</p>
               </div>
               <button class="ghost" type="button" (click)="addRecebimento()">
@@ -204,12 +204,12 @@
           <article class="panel" formArrayName="destinacoes">
             <header class="panel__header">
               <div>
-                <p class="panel__eyebrow">Destinacao dos recursos</p>
+                <p class="panel__eyebrow">Destinação dos recursos</p>
                 <p class="panel__title">Percentual aplicado por frente</p>
               </div>
               <button class="ghost" type="button" (click)="addDestinacao()">
                 <fa-icon [icon]="faCloudArrowUp"></fa-icon>
-                Nova destinacao
+                Nova destinação
               </button>
             </header>
             <div class="destinacoes">
@@ -223,7 +223,7 @@
                   <button class="danger" type="button" (click)="removeDestinacao(idx)">Excluir</button>
                 </div>
               </div>
-              <p class="muted" *ngIf="!destinacoes.length">Nenhuma destinacao registrada.</p>
+              <p class="muted" *ngIf="!destinacoes.length">Nenhuma destinação registrada.</p>
             </div>
           </article>
         </div>
@@ -243,7 +243,7 @@
             <header class="panel__header">
               <div>
                 <p class="panel__eyebrow">Linhas do tempo</p>
-                <p class="panel__title">Prestacao detalhada</p>
+                <p class="panel__title">Prestação detalhada</p>
               </div>
               <button class="ghost" type="button" (click)="addTimeline()">
                 <fa-icon [icon]="faCloudArrowUp"></fa-icon>
@@ -354,7 +354,7 @@
                   <th>Total aplicado</th>
                   <th>Saldo</th>
                   <th>Prestado no mes</th>
-                  <th>Acoes</th>
+                  <th>ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -381,6 +381,7 @@
     </form>
   </section>
 </app-tela-padrao>
+
 
 
 

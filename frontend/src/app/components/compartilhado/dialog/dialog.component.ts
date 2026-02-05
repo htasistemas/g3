@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
@@ -19,3 +19,4 @@ export class DialogComponent {
   @Output() confirmar = new EventEmitter<void>();
   @Output() cancelar = new EventEmitter<void>();
 }
+

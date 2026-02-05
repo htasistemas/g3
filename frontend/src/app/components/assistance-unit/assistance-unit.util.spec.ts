@@ -1,4 +1,4 @@
-import { formatTitleCase, isValidCnpj } from './assistance-unit.util';
+﻿import { formatTitleCase, isValidCnpj } from './assistance-unit.util';
 
 describe('AssistanceUnit utils', () => {
   it('capitalizes every word and hyphen segments', () => {
@@ -21,3 +21,4 @@ describe('AssistanceUnit utils', () => {
     expect(isValidCnpj('12.345.678/9012-31')).toBe(false);
   });
 });
+

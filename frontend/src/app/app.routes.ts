@@ -1,10 +1,9 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DashboardIndicatorsComponent } from './components/dashboard-indicators/dashboard-indicators.component';
-import { MapaBeneficiariosComponent } from './components/mapa-beneficiarios/mapa-beneficiarios.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
 import { AssistanceUnitComponent } from './components/assistance-unit/assistance-unit.component';
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
@@ -51,12 +50,15 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard/visao-geral', pathMatch: 'full' },
-      { path: 'dashboard/visao-geral', component: DashboardComponent, data: { title: 'Visao geral' } },
-      { path: 'dashboard/indicadores', component: DashboardIndicatorsComponent, data: { title: 'Indicadores' } },
       {
-        path: 'dashboard/mapa-beneficiarios',
-        component: MapaBeneficiariosComponent,
-        data: { title: 'Mapa dos Beneficiarios' }
+        path: 'dashboard/visao-geral',
+        component: DashboardComponent,
+        data: { title: 'Visao geral', fullWidth: true }
+      },
+      {
+        path: 'dashboard/indicadores',
+        component: DashboardIndicatorsComponent,
+        data: { title: 'Indicadores', fullWidth: true }
       },
       { path: 'beneficiarios', component: BeneficiaryListComponent, data: { title: 'Beneficiarios' } },
       { path: 'beneficiarios/:id/prontuario', redirectTo: 'atendimentos/prontuario/:id', pathMatch: 'full' },
@@ -276,3 +278,4 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '' }
 ];
+

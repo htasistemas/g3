@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfigService, HistoricoVersaoResponse } from '../../services/config.service';
 import { NavigationEnd, Router } from '@angular/router';
@@ -185,3 +185,4 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
     this.feedbackAtualizacao = 'Live update pendente de implementacao.';
   }
 }
+

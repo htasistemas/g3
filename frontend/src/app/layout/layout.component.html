@@ -1,28 +1,36 @@
-<div class="h-screen flex app-shell overflow-hidden">
+﻿<div class="h-screen flex app-shell overflow-hidden">
   <aside
     class="sidebar hidden md:flex flex-col flex-shrink-0 overflow-y-auto"
     [class.sidebar--collapsed]="isSidebarCollapsed"
-    (mouseenter)="handleSidebarEnter()"
-    #sidebar
   >
     <div class="sidebar__header">
-      <div class="sidebar__unit">
-        <p class="text-xs uppercase tracking-wide text-emerald-50">Unidade ativa</p>
-        <h2 class="text-xl font-semibold text-white">{{ activeUnitName$ | async }}</h2>
-        <div class="sidebar__logo-wrapper" *ngIf="activeUnitLogo$ | async as logomarcaAtiva">
-          <img
-            [src]="logomarcaAtiva"
-            alt="Logomarca da unidade"
-            class="sidebar__logo"
-          />
-        </div>
-      </div>
+      <a
+        class="sidebar__logo-wrapper"
+        *ngIf="activeUnitLogo$ | async as logomarcaAtiva"
+        [routerLink]="'/dashboard/visao-geral'"
+        title="Ir para a tela inicial"
+        aria-label="Ir para a tela inicial"
+      >
+        <img
+          [src]="logomarcaAtiva"
+          alt="Logomarca da unidade"
+          class="sidebar__logo"
+        />
+      </a>
+      <button
+        type="button"
+        class="sidebar-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
+        [attr.title]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
+      >
+        <fa-icon [icon]="isSidebarCollapsed ? faChevronRight : faChevronLeft"></fa-icon>
+      </button>
     </div>
     <nav class="p-4 space-y-3">
       <div
         *ngFor="let section of menuSections"
         class="menu-card"
-        (mouseenter)="openSection = section.label"
       >
         <button
           type="button"
@@ -122,9 +130,10 @@
       </div>
     </header>
     <main class="flex-1 overflow-y-auto">
-      <div class="max-w-7xl mx-auto">
+      <div class="w-full">
         <router-outlet></router-outlet>
       </div>
     </main>
   </div>
 </div>
+

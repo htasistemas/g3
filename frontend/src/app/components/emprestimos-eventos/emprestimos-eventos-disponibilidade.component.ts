@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { StockItem } from '../../services/almoxarifado.service';
 import { Patrimonio } from '../../services/patrimonio.service';
@@ -37,4 +37,5 @@ export class EmprestimosEventosDisponibilidadeComponent {
     }));
   }
 }
+
 

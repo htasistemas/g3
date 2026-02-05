@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+﻿import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark';
@@ -40,3 +40,4 @@ export class ThemeService {
     return prefersDark ? 'dark' : 'light';
   }
 }
+

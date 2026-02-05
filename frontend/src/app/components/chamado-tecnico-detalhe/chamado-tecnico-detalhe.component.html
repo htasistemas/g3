@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [mostrarFechar]="true"
   (salvar)="onSave()"
@@ -8,10 +8,10 @@
 >
   <header class="page-title page-title--row" slot="titulo">
     <div>
-      <p class="page-title__eyebrow">Configuracoes gerais</p>
+      <p class="page-title__eyebrow">Configurações gerais</p>
       <p class="page-title__label">Chamado tecnico</p>
     </div>
-    <p class="page-title__note page-title__note--right">Cadastro completo do chamado tecnico.</p>
+    <p class="page-title__note page-title__note--right">cadastro completo do chamado tecnico.</p>
   </header>
 
   <section class="cadastro">
@@ -25,7 +25,7 @@
     </div>
 
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <p class="tab-shell__title">Navegue pelas informações</p>
       <ol class="step-tabs" role="tablist">
         <li
           class="step-tabs__item"
@@ -127,7 +127,7 @@
           <label class="field full">Resultado esperado
             <textarea rows="3" formControlName="resultado_esperado"></textarea>
           </label>
-        <label class="field full">Usuarios de teste
+        <label class="field full">usuários de teste
           <textarea rows="2" formControlName="usuarios_teste"></textarea>
         </label>
       </div>
@@ -150,7 +150,7 @@
         <table *ngIf="!carregandoAbertos">
           <thead>
             <tr>
-              <th>Codigo</th>
+              <th>código</th>
               <th>Titulo</th>
               <th>Cliente</th>
               <th>Prioridade</th>
@@ -181,7 +181,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Historico</p>
-          <p class="muted">Acoes registradas no chamado.</p>
+          <p class="muted">ações registradas no chamado.</p>
         </div>
       </div>
       <div class="timeline">
@@ -192,7 +192,7 @@
           </div>
           <p class="timeline__meta">{{ acao.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
         </div>
-        <p class="muted" *ngIf="!acoes.length">Nenhuma acao registrada.</p>
+        <p class="muted" *ngIf="!acoes.length">Nenhuma ação registrada.</p>
       </div>
     </section>
 
@@ -239,7 +239,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Resposta</p>
-          <p class="muted">Registre a devolutiva do desenvolvedor para o usuario.</p>
+          <p class="muted">Registre a devolutiva do desenvolvedor para o usuário.</p>
         </div>
       </div>
       <form [formGroup]="form" class="form-shell">
@@ -266,7 +266,7 @@
           <input type="date" formControlName="data_fim" />
         </label>
         <label class="field">
-          Usuario ID
+          usuário ID
           <input type="text" formControlName="usuario_id" />
         </label>
         <label class="field">
@@ -298,3 +298,4 @@
     </section>
   </section>
 </app-tela-padrao>
+

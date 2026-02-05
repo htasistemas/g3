@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -6,12 +6,14 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faChevronDown,
   faChevronUp,
+  faChevronLeft,
+  faChevronRight,
   faRightFromBracket,
   faSun,
   faMoon,
   faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { menuSections, MenuChild, MenuItem } from './menu-config';
+import { menuSections, MenuItem } from './menu-config';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -26,10 +28,11 @@ import { TarefasPendenciasService } from '../services/tarefas-pendencias.service
   styleUrl: './layout.component.scss'
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-  @ViewChild('sidebar') sidebarRef?: ElementRef<HTMLElement>;
 
   readonly faChevronDown = faChevronDown;
   readonly faChevronUp = faChevronUp;
+  readonly faChevronLeft = faChevronLeft;
+  readonly faChevronRight = faChevronRight;
   readonly faRightFromBracket = faRightFromBracket;
   readonly faUserCircle = faUserCircle;
   readonly faSun = faSun;
@@ -73,7 +76,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
       });
 
     this.carregarResumoTarefas();
-    this.carregarUnidadeAtiva();
     this.tarefasRefreshId = setInterval(() => {
       this.carregarResumoTarefas();
     }, 30000);
@@ -84,16 +86,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
     return usuario?.nome ?? usuario?.nomeUsuario ?? 'Admin';
   }
 
-  get activeUnitName$() {
-    return this.assistanceUnitService.currentUnitName$;
-  }
-
   toggleSection(label: string): void {
     this.openSection = this.openSection === label ? null : label;
   }
 
-  handleSidebarEnter(): void {
-    this.isSidebarCollapsed = false;
+  toggleSidebar(): void {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   logout(): void {
@@ -155,7 +153,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private carregarResumoTarefas(): void {
     this.tarefasService.list().subscribe({
       next: (tarefas) => {
-        const abertas = tarefas.filter((item) => item.status !== 'Concluída');
+        const abertas = tarefas.filter((item) => item.status !== 'ConcluÃ­da');
         this.tarefasAbertas = abertas.length;
         this.tarefasVencidas = abertas.filter((item) => {
           const prazo = new Date(item.prazo ?? '');
@@ -169,39 +167,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  private carregarUnidadeAtiva(): void {
-    this.assistanceUnitService
-      .get()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (resposta) => {
-          const unidade = resposta?.unidade;
-          if (unidade) {
-            const nome = unidade.nomeFantasia?.trim() || unidade.razaoSocial?.trim() || 'Navegação';
-            const logomarca = unidade.logomarca || null;
-            this.assistanceUnitService.setActiveUnit(nome, logomarca);
-          } else {
-            this.assistanceUnitService.setActiveUnit('Navegação', null);
-          }
-        },
-        error: () => {
-          this.assistanceUnitService.setActiveUnit('Navegação', null);
-        }
-      });
-  }
-
-  @HostListener('document:click', ['$event'])
-  handleDocumentClick(event: MouseEvent): void {
-    const sidebarElement = this.sidebarRef?.nativeElement;
-
-    if (!sidebarElement) {
-      return;
-    }
-
-    if (!sidebarElement.contains(event.target as Node)) {
-      this.isSidebarCollapsed = true;
-      this.openSection = null;
-    }
-  }
 }
+
+
+

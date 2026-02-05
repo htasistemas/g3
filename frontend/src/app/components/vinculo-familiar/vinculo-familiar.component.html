@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -10,15 +10,15 @@
 >
   <header class="page-title page-title--row" slot="titulo">
     <div>
-    <p class="page-title__eyebrow">CADASTROS</p>
-    <p class="page-title__label">Vínculo familiar</p>
+    <p class="page-title__eyebrow">cadastros</p>
+    <p class="page-title__label">VÃ­nculo familiar</p>
     </div>
-    <p class="page-title__note">Cadastro e gestao de vinculos familiares.</p>
+    <p class="page-title__note">cadastro e gestao de vinculos familiares.</p>
   </header>
 
   <section class="cadastro">
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegação por etapas</p>
+      <p class="tab-shell__title">NavegaÃ§Ã£o por etapas</p>
       <ol class="step-tabs" role="tablist">
         <li
           *ngFor="let tab of tabs; index as idx"
@@ -52,7 +52,7 @@
         <div class="tab-actions">
           <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
           <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-            Próximo: {{ nextTabLabel }}
+            PrÃ³ximo: {{ nextTabLabel }}
           </button>
           <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
             {{ saving ? 'Salvando...' : 'Salvar vinculo familiar' }}
@@ -63,7 +63,7 @@
       <div class="tab-card" *ngIf="activeTab === 'cadastro'">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Cadastro da familia</p>
+            <p class="tab-card__highlight">cadastro da familia</p>
             <p class="muted">Informe o nome da familia e identifique o responsavel principal.</p>
           </div>
         </div>
@@ -98,7 +98,7 @@
               <button type="button" (click)="selectFamily(familia)">
                 <div>
                   <strong>{{ familia.nome_familia }}</strong>
-                  <small>{{ familia.municipio || 'Município n?o informado' }}</small>
+                  <small>{{ familia.municipio || 'MunicÃ­pio n?o informado' }}</small>
                 </div>
                 <span class="pill">Carregar</span>
               </button>
@@ -111,7 +111,7 @@
             <input [formControl]="principalSearch" placeholder="Digite nome ou CPF" />
           </label>
           <div class="suggestions" *ngIf="principalLoading">
-            <p class="muted">Buscando beneficiários...</p>
+            <p class="muted">Buscando beneficiÃ¡rios...</p>
           </div>
           <div class="suggestions" *ngIf="principalError">
             <p class="muted text-error">{{ principalError }}</p>
@@ -121,7 +121,7 @@
               <button type="button" (click)="selectPrincipal(beneficiary)">
                 <div>
                   <strong>{{ beneficiary.nome_completo || beneficiary.nome_social }}</strong>
-                  <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento não informado' }}</small>
+                  <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento nÃ£o informado' }}</small>
                 </div>
                 <span class="pill">Selecionar</span>
               </button>
@@ -131,15 +131,15 @@
         <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
       </div>
 
-      <div class="tab-card" *ngIf="activeTab === 'endereço'">
+      <div class="tab-card" *ngIf="activeTab === 'endereÃ§o'">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Endereço da familia</p>
-            <p class="muted">Esse endereço sera a referencia principal para todos os membros.</p>
+            <p class="tab-card__highlight">EndereÃ§o da familia</p>
+            <p class="muted">Esse endereÃ§o sera a referencia principal para todos os membros.</p>
           </div>
           <label class="checkbox-field checkbox-field--inline">
             <input type="checkbox" [checked]="applyAddressToMembers" (change)="toggleAddressForAll()" />
-            <span>Aplicar endereço da familia aos membros vinculados</span>
+            <span>Aplicar endereÃ§o da familia aos membros vinculados</span>
           </label>
         </div>
         <div class="field-grid cols-3">
@@ -147,16 +147,16 @@
             CEP
             <input formControlName="cep" placeholder="00000-000" (input)="onFamilyCepInput($event)" (blur)="onFamilyCepBlur()" />
             <p class="field-error" *ngIf="familyForm.get('cep')?.invalid && familyForm.get('cep')?.touched">
-              Informe um CEP valido.
+              Informe um CEP válido.
             </p>
             <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
           </label>
           <label class="field">Logradouro<input formControlName="logradouro" /></label>
-          <label class="field">Número<input formControlName="numero" /></label>
+          <label class="field">NÃºmero<input formControlName="numero" /></label>
           <label class="field">Complemento<input formControlName="complemento" /></label>
           <label class="field">Bairro<input formControlName="bairro" /></label>
           <label class="field">Ponto de referencia<input formControlName="ponto_referencia" /></label>
-          <label class="field">Município<input formControlName="municipio" /></label>
+          <label class="field">MunicÃ­pio<input formControlName="municipio" /></label>
           <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
           <label class="field">Zona<input formControlName="zona" placeholder="Urbana, rural..." /></label>
         </div>
@@ -167,16 +167,16 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Membros vinculados</p>
-            <p class="muted">Adicione os beneficiários que compoem o nucleo familiar.</p>
+            <p class="muted">Adicione os beneficiÃ¡rios que compoem o nucleo familiar.</p>
           </div>
         </div>
         <div class="search-block">
           <label class="field">
-            Buscar beneficiário
+            Buscar beneficiÃ¡rio
             <input [formControl]="memberSearch" placeholder="Digite nome ou CPF" />
           </label>
           <div class="suggestions" *ngIf="memberLoading">
-            <p class="muted">Buscando beneficiários...</p>
+            <p class="muted">Buscando beneficiÃ¡rios...</p>
           </div>
           <div class="suggestions" *ngIf="memberError">
             <p class="muted text-error">{{ memberError }}</p>
@@ -186,7 +186,7 @@
               <button type="button" (click)="addMember(beneficiary)">
                 <div>
                   <strong>{{ beneficiary.nome_completo || beneficiary.nome_social }}</strong>
-                  <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento não informado' }}</small>
+                  <small>{{ beneficiary.cpf || beneficiary.nis || beneficiary.codigo || 'Documento nÃ£o informado' }}</small>
                 </div>
                 <span class="pill">Adicionar</span>
               </button>
@@ -199,14 +199,14 @@
             <div class="member-card__header">
               <div>
                 <p class="member-card__name">{{ member.get('nome')?.value }}</p>
-                <p class="member-card__meta">{{ member.get('documento')?.value || 'Documento não informado' }}</p>
+                <p class="member-card__meta">{{ member.get('documento')?.value || 'Documento nÃ£o informado' }}</p>
               </div>
               <button type="button" class="ghost destructive" (click)="removeMember(i)">Remover</button>
             </div>
-            <div class="member-card__address" *ngIf="member.get('usa_endereço_familia')?.value">
-              <p class="member-card__address-label">Endereço da familia aplicado</p>
+            <div class="member-card__address" *ngIf="member.get('usa_endereÃ§o_familia')?.value">
+              <p class="member-card__address-label">EndereÃ§o da familia aplicado</p>
               <p class="member-card__address-value">
-                {{ familyAddressLabel || 'Informe o endereço da familia para preencher os membros.' }}
+                {{ familyAddressLabel || 'Informe o endereÃ§o da familia para preencher os membros.' }}
               </p>
             </div>
             <div class="field-grid cols-2 compact">
@@ -234,19 +234,19 @@
                 <span>Participa dos servicos</span>
               </label>
               <label class="checkbox-field">
-                <input type="checkbox" formControlName="usa_endereço_familia" />
-                <span>Usa o endereço da familia</span>
+                <input type="checkbox" formControlName="usa_endereÃ§o_familia" />
+                <span>Usa o endereÃ§o da familia</span>
               </label>
             </div>
             <label class="field">
-              Observações
+              ObservaÃ§Ãµes
               <textarea formControlName="observacoes" rows="2"></textarea>
             </label>
           </div>
         </div>
 
         <ng-template #emptyMembers>
-          <div class="empty-state">Nenhum beneficiário vinculado ainda.</div>
+          <div class="empty-state">Nenhum beneficiÃ¡rio vinculado ainda.</div>
         </ng-template>
         <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
       </div>
@@ -255,12 +255,12 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Indicadores sociais</p>
-            <p class="muted">Informações para analise social e planejamento de atendimentos.</p>
+            <p class="muted">InformaÃ§Ãµes para analise social e planejamento de atendimentos.</p>
           </div>
         </div>
         <div class="field-grid cols-3">
           <label class="field">Arranjo familiar<input formControlName="arranjo_familiar" /></label>
-          <label class="field">Situação do imovel<select formControlName="situacao_imovel">
+          <label class="field">SituaÃ§Ã£o do imovel<select formControlName="situacao_imovel">
               <option value="">Selecione</option>
               <option *ngFor="let option of housingOptions" [value]="option">{{ option }}</option>
             </select></label>
@@ -282,13 +282,13 @@
             <input type="checkbox" formControlName="possui_d?vidas_relevantes" />
             <span>Possui d?vidas relevantes</span>
           </label>
-          <label class="field">Descrição das d?vidas<textarea formControlName="descricao_d?vidas" rows="2"></textarea></label>
+          <label class="field">DescriÃ§Ã£o das d?vidas<textarea formControlName="descricao_d?vidas" rows="2"></textarea></label>
           <label class="field">Vulnerabilidades familiares<textarea formControlName="vulnerabilidades_familia" rows="2"></textarea></label>
           <label class="field">Servicos de acompanhamento<textarea formControlName="servicos_acompanhamento" rows="2"></textarea></label>
           <label class="field">Tecnico responsavel<input formControlName="tecnico_responsavel" /></label>
           <label class="field">Periodicidade de atendimento<input formControlName="periodicidade_atendimento" /></label>
           <label class="field">Proxima visita prevista<input type="date" formControlName="proxima_visita_prevista" /></label>
-          <label class="field">Observações<textarea formControlName="observacoes" rows="3"></textarea></label>
+          <label class="field">ObservaÃ§Ãµes<textarea formControlName="observacoes" rows="3"></textarea></label>
         </div>
         <div class="field-grid cols-3 compact">
           <label class="checkbox-field">
@@ -313,7 +313,7 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Listagem de familias</p>
-            <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+            <p class="muted">Localização completa para correspondencias e visitas.</p>
           </div>
           <div class="tab-card__header-actions">
             <button type="button" class="btn-outline" (click)="limparFiltrosListagem()">Limpar</button>
@@ -328,7 +328,7 @@
           <label class="field">CPF
             <input type="text" formControlName="cpf" placeholder="Somente numeros" />
           </label>
-          <label class="field">Código
+          <label class="field">CÃ³digo
             <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
           </label>
           <label class="field">Nascimento
@@ -346,7 +346,7 @@
           <div class="unit-list__item" *ngFor="let familia of familiasPaginadas">
             <div>
               <div class="unit-list__header-row">
-                <span class="unit-list__code">Código: {{ familia.id_familia || '---' }}</span>
+                <span class="unit-list__code">CÃ³digo: {{ familia.id_familia || '---' }}</span>
                 <span class="pill" [ngClass]="getStatusClass(familia.status)">{{ formatarStatusLabel(familia.status) }}</span>
               </div>
               <div class="unit-list__name-row">
@@ -400,10 +400,10 @@
             Anterior
           </button>
           <span class="unit-list__page">
-            Página {{ paginaAtual }} de {{ totalPaginas }}
+            PÃ¡gina {{ paginaAtual }} de {{ totalPaginas }}
           </span>
           <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-            Próximo
+            PrÃ³ximo
           </button>
         </div>
 
@@ -412,6 +412,7 @@
     </form>
   </section>
 </app-tela-padrao>
+
 
 
 

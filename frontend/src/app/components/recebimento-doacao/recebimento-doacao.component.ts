@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -235,7 +235,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         this.doadores = [];
         this.carregandoDoadores = false;
         this.doadoresCarregando = false;
-        this.doadoresErro = 'Não foi possível carregar os doadores.';
+        this.doadoresErro = 'NÃ£o foi possÃ­vel carregar os doadores.';
       }
     });
   }
@@ -715,3 +715,4 @@ export class RecebimentoDoacaoComponent implements OnInit {
     return null;
   }
 }
+

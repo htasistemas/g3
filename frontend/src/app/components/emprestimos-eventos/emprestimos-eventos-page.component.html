@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesBarra"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -57,11 +57,11 @@
         <div>
           <p class="dashboard-card__label">Dias com emprestimos</p>
           <p class="dashboard-card__value">{{ dashboardResumo.diasComEmprestimos }}</p>
-          <p class="dashboard-card__hint">Dias distintos com movimentacao registrada.</p>
+          <p class="dashboard-card__hint">Dias distintos com movimentação registrada.</p>
         </div>
         <div class="dashboard-tags" *ngIf="dashboardDiasComEmprestimos.length; else semDias">
           <span class="dashboard-tag" *ngFor="let dia of dashboardDiasComEmprestimos">
-            {{ dia.data }} • {{ dia.quantidade }}
+            {{ dia.data }} â€¢ {{ dia.quantidade }}
           </span>
         </div>
         <ng-template #semDias>
@@ -93,7 +93,7 @@
         <div>
           <p class="dashboard-card__label">Emprestimos em andamento</p>
           <p class="dashboard-card__value">{{ dashboardResumo.emprestimosAtivos }}</p>
-          <p class="dashboard-card__hint">Retirados e nao devolvidos.</p>
+          <p class="dashboard-card__hint">Retirados e Não devolvidos.</p>
         </div>
         <div class="dashboard-actions">
           <button type="button" class="btn-outline" (click)="navegarParaAba('lista')">
@@ -262,7 +262,7 @@
       <div class="print-modal__header">
         <div>
           <p class="muted">Emprestimo para eventos</p>
-          <h3>Escolha o tipo de impressao</h3>
+          <h3>Escolha o tipo de impressão</h3>
         </div>
         <button type="button" class="print-modal__close" (click)="cancelarDialogoImpressao()">X</button>
       </div>
@@ -278,5 +278,6 @@
     </div>
   </div>
 </app-tela-padrao>
+
 
 

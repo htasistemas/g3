@@ -1,7 +1,8 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (buscar)="buscarBeneficiariosNaListagem()"
   (salvar)="onSave()"
   (excluir)="handleDeleteSelected()"
@@ -12,10 +13,8 @@
 >
 <header class="page-title page-title--row" slot="titulo">
   <div>
-    <p class="page-title__eyebrow">CADASTROS</p>
-    <p class="page-title__label">Beneficiario</p>
+    <p class="page-title__label"></p>
   </div>
-    <p class="page-title__note">Cadastro e acompanhamento de beneficiarios.</p>
 </header>
 
   <section class="cadastro">
@@ -23,9 +22,9 @@
     <section class="list-panel">
       <div class="list-panel__header">
         <div>
-          <p class="list-panel__eyebrow">Gestao rapida</p>
-          <h2>Busque beneficiarios cadastrados</h2>
-          <p>Localize pelo nome, CPF, data de nascimento ou codigo e utilize os atalhos para navegar pelas acoes.</p>
+          <p class="list-panel__eyebrow">Gestão rápida</p>
+          <h2>Busque Beneficiários cadastrados</h2>
+          <p>Localize pelo nome, CPF, data de nascimento ou Código e utilize os atalhos para navegar pelas ações.</p>
         </div>
         <div class="list-panel__actions">
           <button type="button" class="ghost" (click)="clearSearchFilters()">Limpar filtros</button>
@@ -33,7 +32,7 @@
         </div>
       </div>
 
-      <div class="list-panel__navigation" aria-label="Acoes rapidas para o cadastro">
+      <div class="list-panel__navigation" aria-label="ações rápidas para o cadastro">
         <button type="button" class="primary" (click)="startNewBeneficiario()">Incluir</button>
         <button type="button" class="ghost" [disabled]="!selectedBeneficiary" (click)="handleEditSelected()">
           Editar
@@ -52,21 +51,21 @@
       </div>
 
       <form [formGroup]="searchForm" class="list-panel__filters" (ngSubmit)="searchBeneficiaries()">
+        <label class="field field-codigo">
+          Código
+          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
+        </label>
         <label class="field">
           Nome ou apelido
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
         <label class="field">
-          Codigo
-          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
+          Data de nascimento
+          <input type="date" formControlName="data_nascimento" />
         </label>
         <label class="field">
           CPF
-          <input type="text" formControlName="cpf" placeholder="Somente numeros" />
-        </label>
-        <label class="field">
-          Data de nascimento
-          <input type="date" formControlName="data_nascimento" />
+          <input type="text" formControlName="cpf" placeholder="Somente números" />
         </label>
         <label class="field">
           Status
@@ -76,7 +75,7 @@
           </select>
         </label>
         <div class="list-panel__filter-actions">
-          <button type="submit" class="primary">Aplicar filtros</button>
+          <button type="button" class="primary" (click)="triggerSearchFromUi()">Aplicar filtros</button>
         </div>
       </form>
 
@@ -84,18 +83,18 @@
         <span>{{ listError }}</span>
         <button type="button" class="feedback__close" (click)="dismissListError()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <div *ngIf="listLoading" class="list-panel__loading">Carregando beneficiarios...</div>
+      <div *ngIf="listLoading" class="list-panel__loading">Carregando Beneficiários...</div>
 
       <div class="list-panel__table" *ngIf="!listLoading">
         <table>
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Codigo</th>
+              <th>Código</th>
               <th>CPF</th>
               <th>Nascimento</th>
               <th>Status</th>
-              <th class="text-right">Acoes</th>
+              <th class="text-right">ações</th>
             </tr>
           </thead>
           <tbody *ngIf="beneficiariosPaginados.length; else emptyList">
@@ -116,52 +115,59 @@
         <ng-template #emptyList>
           <tbody>
             <tr>
-              <td colspan="6" class="list-panel__empty">Nenhum beneficiario encontrado com os filtros informados.</td>
+              <td colspan="6" class="list-panel__empty">Nenhum Beneficiário encontrado com os filtros informados.</td>
             </tr>
           </tbody>
         </ng-template>
       </div>
       <div class="unit-list__pagination" *ngIf="filteredBeneficiarios.length && beneficiariosPaginados.length">
         <span class="unit-list__total">
-          Total: {{ filteredBeneficiarios.length }} beneficiarios
+          Total: {{ filteredBeneficiarios.length }} Beneficiários
         </span>
         <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
           Anterior
         </button>
         <span class="unit-list__page">
-          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+          Página {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          Proximo
+          Próximo
         </button>
       </div>
     </section>
   </ng-template>
 
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informacoes</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-      >
-        <button
-          class="step-tabs__button"
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faUsers" class="tab-shell__icon"></fa-icon>
+          cadastros de Beneficiários
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+          >
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div class="cadastro-conteudo">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 
     <div *ngIf="feedback" class="feedback">
@@ -178,7 +184,7 @@
           (click)="abrirProntuario()"
           [disabled]="uploadingDocuments"
         >
-          Abrir prontuario
+          Abrir Prontuário
         </button>
         <button
           type="button"
@@ -196,7 +202,7 @@
           (click)="goToNextTab()"
           [disabled]="uploadingDocuments"
         >
-          Proximo: {{ nextTabLabel }}
+          Próximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving || uploadingDocuments" *ngIf="!hasNextTab">
           {{ saving ? 'Salvando...' : uploadingDocuments ? 'Aguardando envios' : 'Salvar cadastro' }}
@@ -205,7 +211,7 @@
     </ng-template>
 
     <div class="tab-card" *ngIf="activeTab === 'dados'">
-      <div class="tab-card__header">
+      <div class="tab-card__header tab-card__header--listagem">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
         </div>
@@ -214,7 +220,7 @@
         <div class="photo-section">
           <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
             <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiario" />
-            <span *ngIf="!photoPreview">Foto 3x4 do beneficiario</span>
+            <span *ngIf="!photoPreview">Foto 3x4 do Beneficiário</span>
           </div>
           <div class="photo-actions">
             <label class="upload-btn">
@@ -222,17 +228,17 @@
               <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
             </label>
             <button type="button" class="ghost" (click)="handleCameraCapture()">
-              {{ cameraActive ? 'Registrar foto' : 'Capturar pela camera' }}
+              {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
             </button>
             <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
-            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar camera</button>
+            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
             <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
             <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
           </div>
         </div>
 
         <div class="camera-panel" *ngIf="cameraActive">
-          <p class="camera-panel__title">Visualizacao da camera</p>
+          <p class="camera-panel__title">Visualização da câmera</p>
           <div class="camera-panel__preview">
             <video #videoElement autoplay muted playsinline></video>
           </div>
@@ -240,7 +246,7 @@
         </div>
 
         <div class="status-panel">
-          <p class="status-panel__title">Status do beneficiario</p>
+          <p class="status-panel__title">Status do Beneficiário</p>
           <div class="status-panel__current">
             <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
             <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
@@ -259,32 +265,32 @@
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="field-grid cols-3 dados-grid" formGroupName="dadosPessoais">
-        <label class="field field-matricula">Codigo
+        <label class="field field-matricula">Código
           <input [value]="beneficiaryCode || nextSequentialCode" readonly />
         </label>
         <label class="field field-nome-completo">Nome*<input formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
 
         <label class="field field-social">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
         <label class="field field-apelido">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
-        <label class="field field-sexo">Sexo biologico<select formControlName="sexo_biologico">
+        <label class="field field-sexo">Sexo biológico<select formControlName="sexo_biologico">
             <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
             <option value="OUTRO">Outro</option>
           </select></label>
-        <label class="field field-identidade">Identidade de genero<select formControlName="identidade_genero">
+        <label class="field field-identidade">Identidade de gênero<select formControlName="identidade_genero">
             <option value="">Selecione</option>
             <option *ngFor="let option of genderIdentityOptions" [value]="option">{{ option }}</option>
           </select></label>
 
-        <label class="field field-cor">Cor/Raca<select formControlName="cor_raca">
+        <label class="field field-cor">Cor/Raça<select formControlName="cor_raca">
             <option value=""></option>
             <option value="BRANCA">Branca</option>
             <option value="PRETA">Preta</option>
             <option value="PARDA">Parda</option>
             <option value="AMARELA">Amarela</option>
-            <option value="INDIGENA">Indigena</option>
-            <option value="NAO_INFORMADO">Nao informado</option>
+            <option value="INDIGENA">Indígena</option>
+            <option value="NAO_INFORMADO">Não informado</option>
           </select></label>
         <div class="field date-field field-nascimento">
           <label class="field">Data de nascimento*
@@ -320,7 +326,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
         <div class="tab-card__header-actions">
           <button type="button" class="btn-outline" (click)="abrirMapaEndereco()">Ver no Google Maps</button>
@@ -329,15 +335,15 @@
       <div class="field-grid cols-3 endereco-grid">
         <label class="field field-cep">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
-            Informe um CEP valido com 8 digitos.</p>
+            Informe um CEP válido com 8 dígitos.</p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
-        <label class="field field-logradouro">Endereco<input formControlName="logradouro" /></label>
-        <label class="field field-numero">Numero<input formControlName="numero" /></label>
+        <label class="field field-logradouro">Endereço<input formControlName="logradouro" /></label>
+        <label class="field field-numero">Número<input formControlName="numero" /></label>
         <label class="field field-complemento">Complemento<input formControlName="complemento" /></label>
         <label class="field field-bairro">Bairro<input formControlName="bairro" /></label>
-        <label class="field field-ponto">Ponto de referencia<input formControlName="ponto_referencia" /></label>
-        <label class="field field-municipio">Municipio<input formControlName="municipio" /></label>
+        <label class="field field-ponto">Ponto de referência<input formControlName="ponto_referencia" /></label>
+        <label class="field field-municipio">Município<input formControlName="municipio" /></label>
         <label class="field field-zona">Zona<select formControlName="zona">
             <option value="URBANA">Urbana</option>
             <option value="RURAL">Rural</option>
@@ -359,7 +365,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('contato') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
         <div class="field-grid cols-2">
@@ -575,10 +581,10 @@
               </div>
             </div>
             <p class="field-error" *ngIf="form.get(['contato', 'email'])?.invalid && form.get(['contato', 'email'])?.touched">
-              Informe um e-mail valido.
+              Informe um e-mail válido.
             </p>
           </label>
-          <label class="field">Horario preferencial<select formControlName="horario_preferencial_contato">
+          <label class="field">Horario preferêncial<select formControlName="horario_preferencial_contato">
               <option value="">Selecione um horario</option>
               <option *ngFor="let option of preferredContactOptions" [value]="option.value">{{ option.label }}</option>
             </select></label>
@@ -596,16 +602,16 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('documentos') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
         <label class="field">CPF*<input formControlName="cpf" (input)="onCpfInput($event)" />
           <p class="field-error" *ngIf="form.get(['documentos', 'cpf'])?.invalid && form.get(['documentos', 'cpf'])?.touched">
-            Informe um CPF valido.
+            Informe um CPF válido.
           </p>
         </label>
-        <label class="field">RG numero<input formControlName="rg_numero" /></label>
+        <label class="field">RG Número<input formControlName="rg_numero" /></label>
         <label class="field">Orgao emissor<input formControlName="rg_orgao_emissor" /></label>
         <label class="field">Estado<input maxlength="2" formControlName="rg_uf" /></label>
         <label class="field">Data emissao<input type="date" formControlName="rg_data_emissao" /></label>
@@ -615,7 +621,7 @@
         <label class="field">Folha<input formControlName="certidao_folha" /></label>
         <label class="field">Termo<input formControlName="certidao_termo" /></label>
         <label class="field">Cartorio<input formControlName="certidao_cartorio" /></label>
-        <label class="field">Municipio<input formControlName="certidao_municipio" /></label>
+        <label class="field">Município<input formControlName="certidao_municipio" /></label>
         <label class="field">Estado<input maxlength="2" formControlName="certidao_uf" /></label>
         <label class="field">Titulo de eleitor<input formControlName="titulo_eleitor" /></label>
         <label class="field">CNH<input formControlName="cnh" /></label>
@@ -670,7 +676,7 @@
                 <tr>
                   <th>Tipo</th>
                   <th>Arquivo</th>
-                  <th class="text-right">Acoes</th>
+                  <th class="text-right">ações</th>
                 </tr>
               </thead>
               <tbody *ngIf="documentosAnexados.length; else emptyDocs">
@@ -704,7 +710,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('familiar') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -716,9 +722,9 @@
         <label class="field">Idosos no domicilio<input type="number" formControlName="idosos" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela saude (e-SUS)</span></label>
-        <label class="field">Participacao comunitaria<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
+        <label class="field">Participação comunitaria<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
         <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Instituicoes, vizinhos, familiares"></textarea></label>
-        <label class="field full">Situacao de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+        <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -727,7 +733,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('escolaridade') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
@@ -737,13 +743,13 @@
             <option *ngFor="let option of educationLevelOptions" [value]="option">{{ option }}</option>
           </select></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
-        <label class="field">Ocupacao
+        <label class="field">Ocupação
           <input
             formControlName="ocupacao"
-            placeholder="Informe a ocupacao"
+            placeholder="Informe a ocupação"
           />
         </label>
-        <label class="field">Situacao de trabalho<input formControlName="situacao_trabalho" /></label>
+        <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
         <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
         <label class="field">Renda mensal
           <input
@@ -762,16 +768,16 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('saude') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
         <label class="checkbox-field"><input type="checkbox" formControlName="possui_deficiencia" /> <span>Possui deficiencia</span></label>
         <label class="field">Tipo de deficiencia<input formControlName="tipo_deficiencia" /></label>
         <label class="field">CID principal<input formControlName="cid_principal" /></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medicacao continua</span></label>
-        <label class="field full">Descricao da medicacao<textarea formControlName="descricao_medicacao"></textarea></label>
-        <label class="field">Servico de saude de referencia<input formControlName="servico_saude_referencia" /></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medicação continua</span></label>
+        <label class="field full">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
+        <label class="field">Servico de saude de referência<input formControlName="servico_saude_referencia" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -780,16 +786,16 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('beneficios') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe beneficio</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="recebe_beneficio" /> <span>Recebe benefício</span></label>
         <label class="field">Valor total
           <input type="text" formControlName="valor_total_beneficios" (input)="formatCurrency($event)" placeholder="R$ 0,00" />
         </label>
         <div class="field full">
-          <p class="field-title">Beneficios recebidos</p>
+          <p class="field-title">Benefícios recebidos</p>
           <div class="chips">
             <label *ngFor="let benefit of availableBenefits" class="chip">
               <input type="checkbox" [checked]="selectionChecked(benefit)" (change)="toggleBenefit(benefit)" />
@@ -797,7 +803,7 @@
             </label>
           </div>
         </div>
-        <label class="field full">Descricao dos beneficios<textarea formControlName="beneficios_descricao"></textarea></label>
+        <label class="field full">Descrição dos Benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -806,7 +812,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('observacoes') }}</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -817,7 +823,7 @@
             Reimprimir termo de consentimento
           </button>
         </div>
-        <label class="field full">Observacoes<textarea formControlName="observacoes"></textarea></label>
+        <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
         <p class="field-error full-span" *ngIf="form.get(['observacoes', 'aceite_lgpd'])?.invalid && form.get(['observacoes', 'aceite_lgpd'])?.touched">
           Confirme o aceite LGPD para continuar.
         </p>
@@ -828,27 +834,22 @@
     <div class="tab-card" *ngIf="activeTab === 'lista'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Listagem de beneficiarios</p>
-          <p class="muted">Localizacao completa para correspondencias e visitas.</p>
-        </div>
-        <div class="tab-card__header-actions">
-          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
-          <button type="button" class="btn-outline" (click)="searchBeneficiaries()">Buscar</button>
+          <p class="tab-card__highlight">Listagem de Beneficiários</p>
         </div>
       </div>
 
       <form [formGroup]="searchForm" class="list-filters" (ngSubmit)="searchBeneficiaries()">
+        <label class="field field-codigo">Código
+          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
+        </label>
         <label class="field">Nome
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
-        <label class="field">CPF
-          <input type="text" formControlName="cpf" placeholder="Somente numeros" />
-        </label>
-        <label class="field">Codigo
-          <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
-        </label>
         <label class="field">Nascimento
           <input type="date" formControlName="data_nascimento" />
+        </label>
+        <label class="field">CPF
+          <input type="text" formControlName="cpf" placeholder="Somente números" />
         </label>
         <label class="field">Status
           <select formControlName="status">
@@ -856,14 +857,18 @@
             <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
           </select>
         </label>
+        <div class="list-panel__filter-actions">
+          <button type="button" class="btn-outline" (click)="triggerSearchFromUi()">Buscar</button>
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+        </div>
       </form>
 
       <div class="unit-active" *ngIf="selectedBeneficiary">
         <div>
-          <p class="unit-active__eyebrow">beneficiario ativo</p>
-          <p class="unit-active__name">{{ selectedBeneficiary ? formatarNomeListagem(selectedBeneficiary) : 'beneficiario sem nome' }}</p>
+          <p class="unit-active__eyebrow">Beneficiário ativo</p>
+          <p class="unit-active__name">{{ selectedBeneficiary ? formatarNomeListagem(selectedBeneficiary) : 'Beneficiário sem nome' }}</p>
           <p class="unit-active__meta">
-            {{ selectedBeneficiary.cpf || 'CPF n?o informado' }} - {{ formatDate(selectedBeneficiary.data_nascimento) }}
+            {{ selectedBeneficiary.cpf || 'CPF não informado' }} - {{ formatDate(selectedBeneficiary.data_nascimento) }}
           </p>
         </div>
         <button type="button" class="btn-outline btn-small" (click)="selecionarBeneficiarioNaLista(selectedBeneficiary)">
@@ -875,7 +880,7 @@
         <div class="unit-list__item" *ngFor="let beneficiario of beneficiariosPaginados">
           <div>
             <div class="unit-list__header-row">
-              <span class="unit-list__code">Codigo: {{ beneficiario.codigo || '---' }}</span>
+              <span class="unit-list__code">Código: {{ beneficiario.codigo || '---' }}</span>
               <span class="pill--status" [ngClass]="getStatusClass(beneficiario.status)">{{ formatStatusLabel(beneficiario.status) }}</span>
             </div>
             <div class="unit-list__name-row">
@@ -892,7 +897,7 @@
               <span class="unit-list__separator">-</span>
               <span class="unit-list__meta-text">Nascimento: {{ formatDate(beneficiario.data_nascimento) }}</span>
               <span class="unit-list__separator">-</span>
-              <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF n?o informado' }}</span>
+              <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF não informado' }}</span>
               <span class="unit-list__separator">-</span>
               <span class="unit-list__meta-text" [title]="beneficiario.bairro || 'Bairro n?o informado'">
                 <span class="unit-list__meta-icon" aria-hidden="true">
@@ -902,7 +907,7 @@
                     />
                   </svg>
                 </span>
-                Bairro: {{ beneficiario.bairro || 'Bairro n?o informado' }}
+                Bairro: {{ beneficiario.bairro || 'Bairro não informado' }}
               </span>
               <span class="unit-list__separator">-</span>
               <span class="unit-list__meta-text">
@@ -927,30 +932,32 @@
 
       <div class="unit-list__pagination" *ngIf="filteredBeneficiarios.length && beneficiariosPaginados.length">
         <span class="unit-list__total">
-          Total: {{ filteredBeneficiarios.length }} beneficiarios
+          Total: {{ filteredBeneficiarios.length }} Beneficiários
         </span>
         <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
           Anterior
         </button>
         <span class="unit-list__page">
-          Pagina {{ paginaAtual }} de {{ totalPaginas }}
+          Página {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          Proximo
+          Próximo
         </button>
       </div>
 
-      <p class="muted" *ngIf="!filteredBeneficiarios.length">Nenhum beneficiario cadastrado ate o momento.</p>
+      <p class="muted" *ngIf="!filteredBeneficiarios.length">Nenhum Beneficiário cadastrado ate o momento.</p>
     </div>
-  </form>
+      </form>
+    </div>
+  </div>
 
   <div class="modal" *ngIf="mapaModalOpen">
     <div class="modal__backdrop" (click)="fecharMapaEndereco()"></div>
     <div class="modal__content modal__content--wide">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Endereco</p>
-          <h3>Localizacao no Google Maps</h3>
+          <p class="modal__eyebrow">Endereço</p>
+          <h3>Localização no Google Maps</h3>
         </div>
         <button type="button" class="ghost" (click)="fecharMapaEndereco()" aria-label="Fechar">&times;</button>
       </div>
@@ -984,8 +991,8 @@
     <div class="modal__content modal__content--wide">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Gestao rapida</p>
-          <h3>Buscar beneficiario</h3>
+          <p class="modal__eyebrow">Gestão rápida</p>
+          <h3>Buscar Beneficiário</h3>
         </div>
         <button type="button" class="ghost" (click)="closeQuickSearch()">Fechar</button>
       </div>
@@ -997,7 +1004,7 @@
     <div class="modal__backdrop"></div>
     <div class="modal__content">
       <h3>Motivo do bloqueio</h3>
-      <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+      <p class="muted">Localização completa para correspondências e visitas.</p>
         <textarea [formControl]="motivoBloqueioControl" rows="4"></textarea>
       <p *ngIf="blockReasonError" class="field-error">{{ blockReasonError }}</p>
       <div class="modal__actions">
@@ -1013,12 +1020,12 @@
       class="print-dialog__card"
       role="dialog"
       aria-modal="true"
-      aria-label="Opcoes de impressao"
+      aria-label="opções de impressão"
     >
       <div class="print-dialog__header">
         <div>
-          <p class="print-dialog__title">Opcoes de impressao</p>
-          <p class="print-dialog__subtitle">Selecione o relatorio que deseja gerar.</p>
+          <p class="print-dialog__title">opções de impressão</p>
+          <p class="print-dialog__subtitle">Selecione o relatório que deseja gerar.</p>
         </div>
         <button
           type="button"
@@ -1031,7 +1038,7 @@
       </div>
       <div class="print-dialog__actions">
         <button type="button" class="btn-primary" (click)="handlePrintSelection('individual')">
-          Ficha do beneficiario atual
+          Ficha do Beneficiário atual
         </button>
         <button type="button" class="btn-outline" (click)="openPrintByName()">
           Ficha por nome
@@ -1040,7 +1047,7 @@
           Reimprimir termo de consentimento
         </button>
         <button type="button" class="btn-outline" (click)="handlePrintSelection('list')">
-          Listagem de beneficiarios
+          Listagem de Beneficiários
         </button>
       </div>
     </div>
@@ -1051,13 +1058,13 @@
     <div class="modal__content modal__content--wide">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Relatorios</p>
+          <p class="modal__eyebrow">Relatórios</p>
           <h3>Ficha por nome</h3>
         </div>
         <button type="button" class="ghost" (click)="closePrintByName()" aria-label="Fechar">&times;</button>
       </div>
       <label class="field full">
-        <span>Nome do beneficiario</span>
+        <span>Nome do Beneficiário</span>
         <input
           type="text"
           [(ngModel)]="printByNameQuery"
@@ -1067,11 +1074,11 @@
       <div class="unit-list" *ngIf="printByNameResults.length; else emptyPrintByName">
         <div class="unit-list__item" *ngFor="let beneficiario of printByNameResults">
           <div class="unit-list__info">
-            <span class="unit-list__code">Codigo: {{ beneficiario.codigo || '---' }}</span>
+            <span class="unit-list__code">Código: {{ beneficiario.codigo || '---' }}</span>
             <p class="unit-list__name-text">
               {{ formatarNomeListagem(beneficiario) }}
             </p>
-            <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF nao informado' }}</span>
+            <span class="unit-list__meta-text">CPF: {{ beneficiario.cpf || 'CPF Não informado' }}</span>
           </div>
           <button type="button" class="btn-outline btn-small" (click)="imprimirFichaPorNome(beneficiario)">
             Imprimir ficha
@@ -1079,7 +1086,7 @@
         </div>
       </div>
       <ng-template #emptyPrintByName>
-        <p class="muted">Nenhum beneficiario encontrado com o filtro informado.</p>
+        <p class="muted">Nenhum Beneficiário encontrado com o filtro informado.</p>
       </ng-template>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="closePrintByName()">Fechar</button>
@@ -1097,7 +1104,7 @@
         </div>
         <button type="button" class="ghost" (click)="closePdfErrorDialog()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <p>{{ pdfErrorMessage || 'Nao foi possivel gerar o termo de autorizacao.' }}</p>
+      <p>{{ pdfErrorMessage || 'Não foi possivel gerar o termo de autorização.' }}</p>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="closePdfErrorDialog()">Fechar</button>
         <button type="button" class="primary" (click)="retryAuthorizationTerm()">Recarregar</button>
@@ -1115,7 +1122,7 @@
         </div>
         <button type="button" class="ghost" (click)="closeMissingFieldsModal()" aria-label="Fechar aviso">&times;</button>
       </div>
-      <p class="muted">Localizacao completa para correspondencias e visitas.</p>
+      <p class="muted">Localização completa para correspondências e visitas.</p>
       <ul class="issue-list">
         <li class="issue-list__item" *ngFor="let item of missingFieldMessages">
           <span class="issue-list__dot"></span>
@@ -1138,6 +1145,9 @@
   (cancelar)="cancelarDialogo()"
 ></app-dialog>
 </app-tela-padrao>
+
+
+
 
 
 

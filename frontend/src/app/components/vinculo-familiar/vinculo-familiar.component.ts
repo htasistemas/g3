@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+ï»¿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -45,7 +45,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   readonly tabs = [
     { id: 'lista', label: 'Listagem de familias' },
     { id: 'cadastro', label: 'Cadastro da familia' },
-    { id: 'endereço', label: 'Endereço da familia' },
+    { id: 'endereÃ§o', label: 'EndereÃ§o da familia' },
     { id: 'membros', label: 'Membros vinculados' },
     { id: 'indicadores', label: 'Indicadores sociais' }
   ];
@@ -328,7 +328,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
           }
         },
         error: () => {
-          this.familyError = 'Não foi possível carregar a familia selecionada.';
+          this.familyError = 'NÃ£o foi possÃ­vel carregar a familia selecionada.';
         }
       });
   }
@@ -360,7 +360,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   removeMember(index: number): void {
     const member = this.membros.at(index)?.value as FamiliaMembroPayload | undefined;
     if (member?.id_beneficiario && member.id_beneficiario === this.principal?.id_beneficiario) {
-      this.feedback = 'O Responsável principal não pode ser removido da familia.';
+      this.feedback = 'O ResponsÃ¡vel principal nÃ£o pode ser removido da familia.';
       return;
     }
     this.membros.removeAt(index);
@@ -395,7 +395,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
     if (!cepControl) return;
 
     if (cepControl.invalid) {
-      this.cepLookupError = cepControl.value ? 'Informe um CEP vlido para consultar o Endereço.' : null;
+      this.cepLookupError = cepControl.value ? 'Informe um CEP vlido para consultar o EndereÃ§o.' : null;
       return;
     }
 
@@ -454,7 +454,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
           this.loadFamilias();
         },
         error: () => {
-          this.setFeedback('Não foi possível salvar o vinculo familiar. Tente novamente.');
+          this.setFeedback('NÃ£o foi possÃ­vel salvar o vinculo familiar. Tente novamente.');
         }
       });
   }
@@ -616,7 +616,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
         this.applyListFilters();
       },
       error: () => {
-        this.setFeedback('Não foi possível carregar a listagem de familias.');
+        this.setFeedback('NÃ£o foi possÃ­vel carregar a listagem de familias.');
       }
     });
   }
@@ -780,7 +780,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
           return this.familyService.list({ nome_familia: query }).pipe(
             map(({ familias }) => familias ?? []),
             catchError(() => {
-              this.familyError = 'Não foi possível buscar familias agora.';
+              this.familyError = 'NÃ£o foi possÃ­vel buscar familias agora.';
               return of([] as FamiliaPayload[]);
             }),
             finalize(() => {
@@ -816,7 +816,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
     return this.beneficiaryService.list(params).pipe(
       map(({ beneficiarios }) => beneficiarios ?? []),
       catchError(() => {
-        this.setSearchState(context, false, 'Não foi possível buscar beneficiarios agora.');
+        this.setSearchState(context, false, 'NÃ£o foi possÃ­vel buscar beneficiarios agora.');
         return of([] as BeneficiarioApiPayload[]);
       }),
       finalize(() => {
@@ -918,7 +918,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
           });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'NÃ£o foi possÃ­vel consultar o CEP.';
         }
       });
   }
@@ -942,6 +942,7 @@ interface ViaCepResponse {
   uf?: string;
   erro?: boolean;
 }
+
 
 
 

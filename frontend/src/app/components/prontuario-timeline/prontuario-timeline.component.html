@@ -1,4 +1,4 @@
-<div class="timeline">
+﻿<div class="timeline">
   <div *ngIf="carregando" class="timeline__loading">Carregando registros...</div>
   <div *ngIf="!carregando && !registros.length" class="timeline__empty">
     Nenhum registro encontrado para os filtros selecionados.
@@ -18,7 +18,7 @@
         </button>
       </div>
     </div>
-    <h4 class="timeline-card__title">{{ registro.titulo || 'Registro sem título' }}</h4>
+    <h4 class="timeline-card__title">{{ registro.titulo || 'Registro sem tÃ­tulo' }}</h4>
     <p class="timeline-card__summary">{{ registro.descricao }}</p>
 
     <div class="timeline-card__chips">
@@ -35,9 +35,9 @@
       <p><strong>Status:</strong> {{ registro.status }}</p>
       <p><strong>Profissional:</strong> {{ nomeProfissional(registro.profissionalId) }}</p>
       <p><strong>Unidade:</strong> {{ nomeUnidade(registro.unidadeId) }}</p>
-      <p *ngIf="registro.nivelSigilo"><strong>Nível de sigilo:</strong> {{ registro.nivelSigilo }}</p>
+      <p *ngIf="registro.nivelSigilo"><strong>NÃ­vel de sigilo:</strong> {{ registro.nivelSigilo }}</p>
       <p *ngIf="registro.referenciaOrigemTipo">
-        <strong>Referência:</strong>
+        <strong>ReferÃªncia:</strong>
         {{ registro.referenciaOrigemTipo }}<span *ngIf="registro.referenciaOrigemId"> #{{ registro.referenciaOrigemId }}</span>
       </p>
       <div *ngIf="getExtraDetalhes(registro).length" class="timeline-card__extra">
@@ -55,3 +55,4 @@
     <button type="button" class="ghost" (click)="carregarMais.emit()">Carregar mais</button>
   </div>
 </div>
+

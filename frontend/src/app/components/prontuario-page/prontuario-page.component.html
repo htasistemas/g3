@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesTopo"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -39,18 +39,18 @@
       <aside class="prontuario-resumo">
         <div class="resumo-card" *ngIf="resumo">
           <div class="resumo-card__foto" [class.resumo-card__foto--empty]="!resumo.beneficiario.foto3x4">
-            <img *ngIf="resumo.beneficiario.foto3x4" [src]="resumo.beneficiario.foto3x4" alt="Foto do beneficiÃ¡rio" />
+            <img *ngIf="resumo.beneficiario.foto3x4" [src]="resumo.beneficiario.foto3x4" alt="Foto do beneficiÃƒÂ¡rio" />
             <span *ngIf="!resumo.beneficiario.foto3x4">Sem foto</span>
           </div>
           <div class="resumo-card__info">
             <h3>{{ resumo.beneficiario.nomeCompleto }}</h3>
-            <p>CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃ£o informado' }}</p>
-            <p>FamÃ­lia de referÃªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃ£o informada' }}</p>
+            <p>CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃƒÂ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃƒÂ£o informado' }}</p>
+            <p>FamÃƒÂ­lia de referÃƒÂªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃƒÂ£o informada' }}</p>
             <p>Nascimento: {{ formatarDataNascimento(resumo.beneficiario.dataNascimento) }}</p>
-            <p>Nome da mae: {{ resumo.beneficiario.nomeMae || 'NÃ£o informado' }}</p>
-            <p>Telefone: {{ resumo.beneficiario.telefone || 'NÃ£o informado' }}</p>
-            <p>WhatsApp: {{ resumo.beneficiario.whatsapp || 'NÃ£o informado' }}</p>
-            <p>EndereÃ§o: {{ resumo.beneficiario.endereco || 'NÃ£o informado' }}</p>
+            <p>Nome da mae: {{ resumo.beneficiario.nomeMae || 'NÃƒÂ£o informado' }}</p>
+            <p>Telefone: {{ resumo.beneficiario.telefone || 'NÃƒÂ£o informado' }}</p>
+            <p>WhatsApp: {{ resumo.beneficiario.whatsapp || 'NÃƒÂ£o informado' }}</p>
+            <p>EndereÃƒÂ§o: {{ resumo.beneficiario.endereco || 'NÃƒÂ£o informado' }}</p>
           </div>
           <div class="resumo-card__tags">
             <span class="pill">{{ resumo.beneficiario.status || 'Sem status' }}</span>
@@ -130,16 +130,16 @@
     </div>
 
     <ng-template #selecioneBeneficiario>
-      <div class="empty-state">Selecione um beneficiÃ¡rio para visualizar o prontuario.</div>
+      <div class="empty-state">Selecione um beneficiÃƒÂ¡rio para visualizar o prontuario.</div>
     </ng-template>
   </section>
 
   <div class="print-area" [class.print-area--active]="modoImpressao === 'resumo'">
-    <h1>ProntuÃ¡rio - Resumo</h1>
-    <p *ngIf="resumo">BeneficiÃ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
-    <p *ngIf="resumo">CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃ£o informado' }}</p>
-    <p *ngIf="resumo">EndereÃ§o: {{ resumo.beneficiario.endereco || 'NÃ£o informado' }}</p>
-    <p *ngIf="resumo">FamÃ­lia de referÃªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃ£o informada' }}</p>
+    <h1>ProntuÃƒÂ¡rio - Resumo</h1>
+    <p *ngIf="resumo">BeneficiÃƒÂ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
+    <p *ngIf="resumo">CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃƒÂ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃƒÂ£o informado' }}</p>
+    <p *ngIf="resumo">EndereÃƒÂ§o: {{ resumo.beneficiario.endereco || 'NÃƒÂ£o informado' }}</p>
+    <p *ngIf="resumo">FamÃƒÂ­lia de referÃƒÂªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃƒÂ£o informada' }}</p>
     <h2>ultimos registros</h2>
     <ul>
       <li *ngFor="let registro of registros | slice:0:5">
@@ -149,8 +149,8 @@
   </div>
 
   <div class="print-area" [class.print-area--active]="modoImpressao === 'completo'">
-    <h1>ProntuÃ¡rio completo</h1>
-    <p *ngIf="resumo">BeneficiÃ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
+    <h1>ProntuÃƒÂ¡rio completo</h1>
+    <p *ngIf="resumo">BeneficiÃƒÂ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
     <ul>
       <li *ngFor="let registro of registros">
         {{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }} - {{ registro.tipo }} - {{ registro.descricao }}
@@ -158,6 +158,7 @@
     </ul>
   </div>
 </app-tela-padrao>
+
 
 
 

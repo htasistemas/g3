@@ -1,4 +1,4 @@
-<div class="indicadores">
+﻿<div class="indicadores">
   <article class="indicador-card" *ngFor="let indicador of indicadoresGeral">
     <p class="indicador-card__label">{{ indicador.label }}</p>
     <p class="indicador-card__value">{{ indicador.value }}</p>
@@ -8,29 +8,30 @@
     <p class="indicador-card__value">{{ indicador.value }}</p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
-    <p class="indicador-card__label">Taxa de encaminhamentos concluÃƒÂ­dos</p>
+    <p class="indicador-card__label">Taxa de encaminhamentos concluÃƒÆ’Ã‚Â­dos</p>
     <p class="indicador-card__value">{{ taxaEncaminhamentos }}</p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
-    <p class="indicador-card__label">Tempo mÃƒÂ©dio de retorno</p>
+    <p class="indicador-card__label">Tempo mÃƒÆ’Ã‚Â©dio de retorno</p>
     <p class="indicador-card__value">{{ tempoMedioRetorno }}</p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
-    <p class="indicador-card__label">ÃƒÅ¡ltimo contato</p>
+    <p class="indicador-card__label">ÃƒÆ’Ã…Â¡ltimo contato</p>
     <p class="indicador-card__value">
-      {{ indicadoresResumo.ultimoContato ? (indicadoresResumo.ultimoContato | date: 'dd/MM/yyyy HH:mm') : 'Ã¢â‚¬â€' }}
+      {{ indicadoresResumo.ultimoContato ? (indicadoresResumo.ultimoContato | date: 'dd/MM/yyyy HH:mm') : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}
     </p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
-    <p class="indicador-card__label">PendÃƒÂªncias em aberto</p>
+    <p class="indicador-card__label">PendÃƒÆ’Ã‚Âªncias em aberto</p>
     <p class="indicador-card__value">{{ indicadoresResumo.pendenciasAbertas }}</p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
-    <p class="indicador-card__label">ClassificaÃƒÂ§ÃƒÂ£o de risco atual</p>
-    <p class="indicador-card__value">{{ indicadoresResumo.classificacaoRiscoAtual || 'Ã¢â‚¬â€' }}</p>
+    <p class="indicador-card__label">ClassificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o de risco atual</p>
+    <p class="indicador-card__value">{{ indicadoresResumo.classificacaoRiscoAtual || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</p>
   </article>
   <article class="indicador-card" *ngIf="indicadoresResumo">
     <p class="indicador-card__label">Status do acompanhamento</p>
-    <p class="indicador-card__value">{{ indicadoresResumo.statusAcompanhamento || 'Ã¢â‚¬â€' }}</p>
+    <p class="indicador-card__value">{{ indicadoresResumo.statusAcompanhamento || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' }}</p>
   </article>
 </div>
+

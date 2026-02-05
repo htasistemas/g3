@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -99,18 +99,18 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
   readonly escolaridadeOpcoes = [
     'Creche (0-3)',
     'Pre-escola (4-5)',
-    '1º EF',
-    '2º EF',
-    '3º EF',
-    '4º EF',
-    '5º EF',
-    '6º EF',
-    '7º EF',
-    '8º EF',
-    '9º EF',
-    '1º EM',
-    '2º EM',
-    '3º EM'
+    '1Âº EF',
+    '2Âº EF',
+    '3Âº EF',
+    '4Âº EF',
+    '5Âº EF',
+    '6Âº EF',
+    '7Âº EF',
+    '8Âº EF',
+    '9Âº EF',
+    '1Âº EM',
+    '2Âº EM',
+    '3Âº EM'
   ];
   readonly denunciaOrigemOpcoes = [
     'Denuncia espontanea',
@@ -820,3 +820,4 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
       .toLowerCase();
   }
 }
+

@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -12,15 +12,15 @@
 >
 <header class="page-title page-title--row" slot="titulo">
   <div>
-  <p class="page-title__eyebrow">CADASTROS</p>
+  <p class="page-title__eyebrow">cadastros</p>
   <p class="page-title__label">Profissionais</p>
   </div>
-  <p class="page-title__note">Cadastro e gestao de profissionais.</p>
+  <p class="page-title__note">cadastro e gestao de profissionais.</p>
 </header>
 
   <section class="cadastro">
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informacoes</p>
+    <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -108,7 +108,7 @@
       </div>
 
       <div class="camera-panel" *ngIf="cameraActive">
-        <p class="camera-panel__title">Visualizacao da camera</p>
+        <p class="camera-panel__title">Visualização da camera</p>
         <div class="camera-panel__preview">
           <video #videoElement autoplay muted playsinline></video>
         </div>
@@ -151,18 +151,18 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Endereco completo do profissional.</p>
+          <p class="muted">endereço completo do profissional.</p>
         </div>
       </div>
 
       <div class="field-grid cols-3">
         <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
-            Informe um CEP valido com 8 digitos.
+            Informe um CEP válido com 8 digitos.
           </p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
-        <label class="field">Endereco<input formControlName="logradouro" (input)="applyCapitalization('endereco.logradouro', $any($event.target).value)" /></label>
+        <label class="field">endereço<input formControlName="logradouro" (input)="applyCapitalization('endereco.logradouro', $any($event.target).value)" /></label>
         <label class="field">NAmero<input formControlName="numero" /></label>
         <label class="field">Complemento<input formControlName="complemento" (input)="applyCapitalization('endereco.complemento', $any($event.target).value)" /></label>
         <label class="field">Bairro<input formControlName="bairro" (input)="applyCapitalization('endereco.bairro', $any($event.target).value)" /></label>
@@ -222,7 +222,7 @@
             [class.input-error]="form.get('cpf')?.invalid && form.get('cpf')?.touched"
           />
           <p class="field-error" *ngIf="form.get('cpf')?.invalid && form.get('cpf')?.touched">
-            Informe um CPF valido.
+            Informe um CPF válido.
           </p>
         </label>
         <label class="field">VAnculo
@@ -442,5 +442,6 @@
 
 </section>
 </app-tela-padrao>
+
 
 

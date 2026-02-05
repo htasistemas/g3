@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { AgendaDiaDetalheResponse } from '../../services/emprestimos-eventos.service';
 
 @Component({
@@ -43,5 +43,6 @@ export class AgendaDiaModalComponent {
     }
   }
 }
+
 
 

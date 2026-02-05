@@ -16,7 +16,7 @@
     <p class="page-title__eyebrow">SETOR ADMINISTRATIVO</p>
     <p class="page-title__label">Oficios e documentos</p>
   </div>
-    <p class="page-title__note">Controle de criacao, envio e tramitacao de oficios.</p>
+    <p class="page-title__note">Controle de criação, envio e tramitação de oficios.</p>
 </header>
 
   <section class="cadastro">
@@ -84,10 +84,10 @@
         <div class="dashboard-card dashboard-card--warning">
           <p class="dashboard-card__label">Em analise</p>
           <p class="dashboard-card__value">{{ quantidadeOficiosEmAnalise }}</p>
-          <p class="dashboard-card__hint">Pendentes de avaliacao.</p>
+          <p class="dashboard-card__hint">Pendentes de avaliação.</p>
         </div>
         <div class="dashboard-card dashboard-card--neutral">
-          <p class="dashboard-card__label">Em preparacao</p>
+          <p class="dashboard-card__label">Em preparação</p>
           <p class="dashboard-card__value">{{ quantidadeOficiosEmPreparacao }}</p>
           <p class="dashboard-card__hint">Em montagem do conteudo.</p>
         </div>
@@ -188,7 +188,7 @@
       <div class="divider"></div>
 
       <div formGroupName="protocolo" class="field-grid cols-3">
-        <label class="field">Situacao do oficio*
+        <label class="field">Situação do oficio*
           <select formControlName="status">
             <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
           </select>
@@ -208,7 +208,7 @@
         <label class="field">Proximo destino
           <input formControlName="proximoDestino" placeholder="Quem recebera o proximo passo" />
         </label>
-        <label class="field full">Observacoes
+        <label class="field full">Observações
           <textarea rows="2" formControlName="observacoes" placeholder="Instrucoes de protocolo ou pendencias"></textarea>
         </label>
         <div class="feature-grid">
@@ -246,7 +246,7 @@
           <input formControlName="razaoSocial" placeholder="Titulo com razao social" />
         </label>
         <div class="field-row">
-        <label class="field small">Saudacao
+        <label class="field small">Saudação
           <select formControlName="saudacao">
             <option value="">Selecione</option>
             <option *ngFor="let saudacao of saudacoes" [value]="saudacao">{{ saudacao }}</option>
@@ -263,10 +263,10 @@
           <input formControlName="assunto" placeholder="Assunto em destaque" />
         </label>
         <label class="field full">Corpo do oficio*
-          <textarea rows="6" formControlName="corpo" placeholder="Texto principal escrito pelo usuario"></textarea>
+          <textarea rows="6" formControlName="corpo" placeholder="Texto principal escrito pelo usuário"></textarea>
         </label>
-        <label class="field full">Finalizacao
-          <textarea rows="2" formControlName="finalizacao" placeholder="Agradecimento e consideracoes finais"></textarea>
+        <label class="field full">Finalização
+          <textarea rows="2" formControlName="finalizacao" placeholder="Agradecimento e considerações finais"></textarea>
         </label>
         <label class="field">Assinatura - Nome
           <input formControlName="assinaturaNome" readonly />
@@ -308,7 +308,7 @@
           </ng-template>
         </div>
         <label class="field full">Rodape com dados da instituicao
-          <textarea rows="2" formControlName="rodape" placeholder="Endereco, CNPJ, contatos e site"></textarea>
+          <textarea rows="2" formControlName="rodape" placeholder="endereço, CNPJ, contatos e site"></textarea>
         </label>
       </div>
 
@@ -340,22 +340,22 @@
         <label class="field">Responsavel
           <input formControlName="responsavel" placeholder="Quem movimentou" />
         </label>
-        <label class="field full">Acao realizada*
+        <label class="field full">ação realizada*
           <input formControlName="acao" placeholder="Envio, Analise, Assinatura, Devolucao..." />
         </label>
-        <label class="field full">Observacoes
+        <label class="field full">Observações
           <textarea rows="2" formControlName="observacoes" placeholder="Pendencias, documentos anexos ou prazos"></textarea>
         </label>
       </div>
 
       <div class="actions">
-        <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitacao</button>
+        <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitação</button>
       </div>
 
       <div class="timeline" *ngIf="tramites.length > 0">
         <div class="timeline__header">
           <div>
-            <p class="page-title__eyebrow">Historico de tramitacao</p>
+            <p class="page-title__eyebrow">Historico de tramitação</p>
             <p class="page-title__label">Controle de onde parou e para onde vai</p>
           </div>
         </div>
@@ -380,7 +380,7 @@
         <div class="list-card__header">
           <div>
             <p class="page-title__eyebrow">Oficios registrados</p>
-            <p class="page-title__label">Acompanhe a situacao, destinatario e responsavel</p>
+            <p class="page-title__label">Acompanhe a situação, destinatario e responsavel</p>
           </div>
         </div>
         <div class="field-row full field-row--filtro">
@@ -407,7 +407,7 @@
                 <th>Para</th>
                 <th>Resp</th>
                 <th class="col-anexo">Anexo</th>
-                <th>Acoes</th>
+                <th>ações</th>
               </tr>
             </thead>
             <tbody>
@@ -474,7 +474,7 @@
     >
       <div class="print-dialog__header">
         <p class="print-dialog__title">Anexo do oficio</p>
-        <p class="print-dialog__subtitle">Escolha a acao desejada.</p>
+        <p class="print-dialog__subtitle">Escolha a ação desejada.</p>
       </div>
       <div class="print-dialog__actions">
         <button type="button" class="btn-primary" (click)="visualizarAnexo()">
@@ -488,6 +488,7 @@
   </div>
 </section>
 </app-tela-padrao>
+
 
 
 

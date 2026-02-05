@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+﻿import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -340,5 +340,6 @@ export class LoginComponent {
     return 'Falha ao processar a solicitacao. Tente novamente.';
   }
 }
+
 
 

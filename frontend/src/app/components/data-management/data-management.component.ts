@@ -1,4 +1,4 @@
-import { CommonModule, formatDate } from '@angular/common';
+﻿import { CommonModule, formatDate } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
@@ -227,3 +227,4 @@ export class DataManagementComponent implements OnInit, OnDestroy {
     }
   }
 }
+

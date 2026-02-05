@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+﻿import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -40,3 +40,4 @@ import { AgendaDiaModalComponent } from './agenda-dia-modal.component';
   ]
 })
 export class EmprestimosEventosModule {}
+

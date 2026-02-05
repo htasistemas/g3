@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription, debounceTime, distinctUntilChanged, Subject } from 'rxjs';
@@ -55,7 +55,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
   salaSelecionadaId: string | null = null;
   salasCarregando = false;
   unidadePainelId: number | null = null;
-  fraseFala = 'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.';
+  fraseFala = 'BeneficiÃ¡rio {beneficiario} dirija-se a {sala} para atendimento.';
   rssUrl = 'https://www.gov.br/pt-br/noticias/assistencia-social/RSS';
   velocidadeTicker: number | null = 60;
   modoNoticias: 'RSS' | 'MANUAL' = 'RSS';
@@ -565,3 +565,4 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
       .filter((linha) => linha.length > 0);
   }
 }
+

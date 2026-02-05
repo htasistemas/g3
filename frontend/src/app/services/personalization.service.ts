@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+﻿import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable, signal } from '@angular/core';
 
 export interface PaletteSettings {
@@ -61,9 +61,10 @@ export class PersonalizationService {
         const parsed = JSON.parse(stored) as PaletteSettings;
         return { ...defaultPalette, ...parsed };
       } catch (error) {
-        console.warn('Não foi possível carregar personalização salva', error);
+        console.warn('NÃ£o foi possÃ­vel carregar personalizaÃ§Ã£o salva', error);
       }
     }
     return defaultPalette;
   }
 }
+

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { ChartResponse, CursosMetricasResponse, DashboardBiService } from '../../services/dashboard-bi.service';
@@ -81,4 +81,5 @@ export class DashboardBiComponent implements OnInit {
     return chart?.values?.[index] ?? 0;
   }
 }
+
 

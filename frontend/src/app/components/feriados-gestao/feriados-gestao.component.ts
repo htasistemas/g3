@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FeriadoPayload, FeriadoService } from '../../services/feriado.service';
@@ -291,3 +291,4 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
     });
   }
 }
+

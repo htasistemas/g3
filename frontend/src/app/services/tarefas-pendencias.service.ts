@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -22,9 +22,9 @@ export interface TaskPayload {
   titulo: string;
   descricao: string;
   responsavel: string;
-  prioridade: 'Alta' | 'Média' | 'Baixa';
+  prioridade: 'Alta' | 'MÃ©dia' | 'Baixa';
   prazo?: string | null;
-  status: 'Aberta' | 'Em andamento' | 'Concluída' | 'Em atraso';
+  status: 'Aberta' | 'Em andamento' | 'ConcluÃ­da' | 'Em atraso';
   checklist?: ChecklistItem[];
 }
 
@@ -147,7 +147,7 @@ export class TarefasPendenciasService {
   imprimirPendencias(): Observable<Blob> {
     return this.http
       .get(`${environment.apiUrl}/api/reports/tarefas-pendencias`, { responseType: 'blob' })
-      .pipe(catchError(this.logAndRethrow('ao baixar o relatório de pendências')));
+      .pipe(catchError(this.logAndRethrow('ao baixar o relatÃ³rio de pendÃªncias')));
   }
 
   adicionarHistorico(id: string, mensagem: string): Observable<TaskRecord> {
@@ -155,7 +155,7 @@ export class TarefasPendenciasService {
       .post<TarefaPendenciaApiResponse>(`${this.baseUrl}/${id}/historico`, { mensagem })
       .pipe(
         map((response) => this.mapResponse(response)),
-        catchError(this.logAndRethrow('ao adicionar histórico da tarefa'))
+        catchError(this.logAndRethrow('ao adicionar histÃ³rico da tarefa'))
       );
   }
 
@@ -185,11 +185,11 @@ export class TarefasPendenciasService {
   }
 
   private mapResponse(response: TarefaPendenciaApiResponse): TaskRecord {
-    const prioridadeOptions: TaskPayload['prioridade'][] = ['Alta', 'Média', 'Baixa'];
+    const prioridadeOptions: TaskPayload['prioridade'][] = ['Alta', 'MÃ©dia', 'Baixa'];
     const prioridade =
       prioridadeOptions.includes(response.prioridade as TaskPayload['prioridade'])
         ? (response.prioridade as TaskPayload['prioridade'])
-        : 'Média';
+        : 'MÃ©dia';
 
     return {
       id: String(response.id ?? ''),
@@ -223,4 +223,5 @@ export class TarefasPendenciasService {
     };
   }
 }
+
 

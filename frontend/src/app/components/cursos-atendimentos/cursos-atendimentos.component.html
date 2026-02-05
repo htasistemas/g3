@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="estadoAcoesToolbar"
   (buscar)="onBuscar()"
@@ -18,7 +18,7 @@
 
   <section class="cadastro">
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
+    <p class="tab-shell__title">Navegue pelas informaÃ§Ãµes</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -44,7 +44,7 @@
     <div *ngIf="feedback" class="feedback" role="alert">
       <span>{{ feedback }}</span>
       <button type="button" class="feedback__close" aria-label="Fechar aviso" (click)="dismissFeedback()">
-        ×
+        Ã—
       </button>
     </div>
 
@@ -64,9 +64,9 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Cadastre ou edite cursos e atendimentos com as mesmas interações do voluntariado.</p>
+          <p class="muted">Cadastre ou edite cursos e atendimentos com as mesmas interaÃ§Ãµes do voluntariado.</p>
         </div>
-        <span class="pill">Obrigatório</span>
+        <span class="pill">ObrigatÃ³rio</span>
       </div>
       <div class="field-grid cols-4 dados-grid">
         <label class="field">
@@ -87,26 +87,26 @@
           />
         </label>
         <label class="field">
-          Horário inicial*
+          HorÃ¡rio inicial*
           <input type="time" formControlName="horarioInicial" />
         </label>
         <label class="field">
-          Duração (horas)*
+          DuraÃ§Ã£o (horas)*
           <input type="number" formControlName="duracaoHoras" min="1" />
         </label>
       </div>
 
       <div class="field-grid cols-2 description-media full">
-        <label class="field description-field">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field description-field">DescriÃ§Ã£o / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
 
         <div class="field media-card">
           <p class="field-title">Foto / Imagem ilustrativa</p>
           <input type="file" accept="image/*" (change)="handleImage($event)" />
           <div class="upload-preview" *ngIf="courseForm.value.imagem">
-            <img [src]="courseForm.value.imagem" alt="Pré-visualização" />
+            <img [src]="courseForm.value.imagem" alt="PrÃ©-visualizaÃ§Ã£o" />
             <div>
-              <p class="strong">Pré-visualização</p>
-              <p class="muted">A imagem aparece no catálogo e no dashboard.</p>
+              <p class="strong">PrÃ©-visualizaÃ§Ã£o</p>
+              <p class="muted">A imagem aparece no catÃ¡logo e no dashboard.</p>
             </div>
           </div>
         </div>
@@ -159,13 +159,13 @@
       </div>
 
       <div class="field-grid cols-4 dados-grid load-room-grid">
-        <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
+        <label class="field">Carga horÃ¡ria total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
         <label class="field">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
         </label>
         <label class="field">
-          Vagas disponíveis
+          Vagas disponÃ­veis
           <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
         </label>
         <div class="field sala-field">
@@ -181,16 +181,16 @@
       </div>
 
       <label class="field full">
-        Restrições e público indicado
+        RestriÃ§Ãµes e pÃºblico indicado
         <textarea
           rows="2"
           formControlName="restricoes"
-          placeholder="Ex.: menores de 18 anos não podem participar, vagas preferenciais para idosos, faixa etária recomendada"
+          placeholder="Ex.: menores de 18 anos nÃ£o podem participar, vagas preferenciais para idosos, faixa etÃ¡ria recomendada"
         ></textarea>
       </label>
 
       <label class="field full">
-        Profissional responsável*
+        Profissional responsÃ¡vel*
         <input
           formControlName="profissional"
           placeholder="Pesquise ou digite o nome do profissional"
@@ -212,7 +212,7 @@
         <div class="actions__stack">
           <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar e continuar' }}</button>
           <div class="actions__inline">
-            <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscrições</button>
+            <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para inscriÃ§Ãµes</button>
           </div>
         </div>
       </div>
@@ -226,7 +226,7 @@
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Visualize rapidamente o status de cada curso, atendimento ou oficina.</p>
         </div>
-        <span class="pill">Seleção</span>
+        <span class="pill">SeleÃ§Ã£o</span>
       </div>
 
       <div class="catalog-grid">
@@ -248,7 +248,7 @@
           <p class="catalog-card__description">{{ course.descricao }}</p>
           <dl class="catalog-card__details">
             <div>
-              <dt>Início</dt>
+              <dt>InÃ­cio</dt>
               <dd>{{ course.horarioInicial }}</dd>
             </div>
             <div>
@@ -277,12 +277,12 @@
                 (click)="selectFromCatalog(course.id)"
                 [disabled]="course.vagasDisponiveis === 0"
               >
-                Inscrever beneficiário
+                Inscrever beneficiÃ¡rio
               </button>
             </div>
           </div>
         </article>
-        <p class="muted" *ngIf="!records.length">Cadastre cursos ou atendimentos para exibir o catálogo.</p>
+        <p class="muted" *ngIf="!records.length">Cadastre cursos ou atendimentos para exibir o catÃ¡logo.</p>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -292,35 +292,35 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Controle de matrículas e lista de espera seguindo as regras de vagas.</p>
+          <p class="muted">Controle de matrÃ­culas e lista de espera seguindo as regras de vagas.</p>
         </div>
-        <span class="pill">Inscrições</span>
+        <span class="pill">InscriÃ§Ãµes</span>
       </div>
 
       <div class="field-grid cols-4" [formGroup]="enrollmentForm">
         <label class="field full">
           Selecione o curso/atendimento*
           <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opção</option>
+            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opÃ§Ã£o</option>
             <option *ngFor="let course of records" [value]="course.id">
-              {{ course.tipo }} • {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
+              {{ course.tipo }} â€¢ {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
             </option>
           </select>
         </label>
         <label class="field full">
-          Beneficiário (nome ou CPF)*
+          BeneficiÃ¡rio (nome ou CPF)*
           <input
             formControlName="beneficiaryName"
-            placeholder="Buscar beneficiário"
+            placeholder="Buscar beneficiÃ¡rio"
             (input)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
             (blur)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
           />
-          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando beneficiários...</div>
+          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando beneficiÃ¡rios...</div>
           <ul class="search-results" *ngIf="beneficiaryResults.length">
             <li *ngFor="let beneficiary of beneficiaryResults">
               <button type="button" (click)="selectBeneficiary(beneficiary)">
                 <span>{{ beneficiary.nomeCompleto || beneficiary.nomeSocial }}</span>
-                <small>{{ beneficiary.cpf || 'CPF não informado' }}</small>
+                <small>{{ beneficiary.cpf || 'CPF nÃ£o informado' }}</small>
               </button>
             </li>
           </ul>
@@ -328,7 +328,7 @@
         <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
         <div class="actions align-end">
             <div class="helper" *ngIf="currentCourse">
-              <p class="helper__title">Vagas disponíveis</p>
+              <p class="helper__title">Vagas disponÃ­veis</p>
               <p class="helper__value">{{ currentCourse.vagasDisponiveis }} / {{ currentCourse.vagasTotais }}</p>
             </div>
           <button class="primary" type="button" (click)="enroll()">Inscrever</button>
@@ -338,8 +338,8 @@
       <div class="list-card">
         <div class="list-card__header">
           <div>
-            <p class="page-title__eyebrow">Matrículas</p>
-            <p class="page-title__label">Beneficiários vinculados</p>
+            <p class="page-title__eyebrow">MatrÃ­culas</p>
+            <p class="page-title__label">BeneficiÃ¡rios vinculados</p>
           </div>
         </div>
         <div class="table-wrapper">
@@ -348,9 +348,9 @@
               <tr>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th>Situação</th>
-                <th>Data de inscrição</th>
-                <th>Ações</th>
+                <th>SituaÃ§Ã£o</th>
+                <th>Data de inscriÃ§Ã£o</th>
+                <th>AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody>
@@ -364,19 +364,19 @@
                     (ngModelChange)="updateEnrollmentStatus(enrollment, $event)"
                   >
                     <option value="Ativo">Ativo</option>
-                    <option value="Concluído">Concluído</option>
+                    <option value="ConcluÃ­do">ConcluÃ­do</option>
                     <option value="Cancelado">Cancelado</option>
                   </select>
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
                 <td class="table-actions">
                   <button class="danger" type="button" (click)="removeEnrollment(enrollment)">
-                    Excluir matrícula
+                    Excluir matrÃ­cula
                   </button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
+                <td colspan="5" class="muted">Nenhuma matrÃ­cula cadastrada.</td>
               </tr>
             </tbody>
           </table>
@@ -397,8 +397,8 @@
                 <th>Nome</th>
                 <th>CPF</th>
                 <th>Data de entrada</th>
-                <th>Posição</th>
-                <th>Ações</th>
+                <th>PosiÃ§Ã£o</th>
+                <th>AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody>
@@ -409,13 +409,13 @@
                 <td>{{ idx + 1 }}</td>
                 <td class="table-actions">
                   <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
-                    Converter para matrícula
+                    Converter para matrÃ­cula
                   </button>
                   <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.waitlist?.length">
-                <td colspan="4" class="muted">Nenhum beneficiário em fila.</td>
+                <td colspan="4" class="muted">Nenhum beneficiÃ¡rio em fila.</td>
               </tr>
             </tbody>
           </table>
@@ -538,8 +538,8 @@
                 <th>Vagas</th>
                 <th>Profissional</th>
                 <th>Sala</th>
-                <th>Início</th>
-                <th>Ações</th>
+                <th>InÃ­cio</th>
+                <th>AÃ§Ãµes</th>
               </tr>
             </thead>
             <tbody>
@@ -552,7 +552,7 @@
                 <td>{{ course.horarioInicial }}</td>
                 <td class="table-actions">
                   <button class="ghost" type="button" (click)="fillFromCourse(course)">Editar</button>
-                  <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscrições</button>
+                  <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar inscriÃ§Ãµes</button>
                   <button class="danger" type="button" (click)="deleteCourse(course)">Excluir</button>
                 </td>
               </tr>
@@ -583,7 +583,7 @@
         >
           <div class="widget-card__header">
             <p class="widget-card__title">{{ widget.title }}</p>
-            <span class="widget-card__pill">Dinâmico</span>
+            <span class="widget-card__pill">DinÃ¢mico</span>
           </div>
           <p class="widget-card__value">{{ widget.getValue(dashboardSnapshot) }}</p>
           <p class="widget-card__helper">{{ widget.getHelper(dashboardSnapshot) }}</p>
@@ -599,9 +599,9 @@
         <div class="control-card">
           <div class="control-card__header">
             <div>
-              <p class="control-card__eyebrow">Painéis gerenciáveis</p>
-              <p class="control-card__title">Personalize os cartões exibidos</p>
-              <p class="muted">Ative apenas os indicadores relevantes e ajuste a ordem de exibição.</p>
+              <p class="control-card__eyebrow">PainÃ©is gerenciÃ¡veis</p>
+              <p class="control-card__title">Personalize os cartÃµes exibidos</p>
+              <p class="muted">Ative apenas os indicadores relevantes e ajuste a ordem de exibiÃ§Ã£o.</p>
             </div>
             <span class="pill">{{ visibleWidgets.length }} / {{ dashboardWidgets.length }} ativos</span>
           </div>
@@ -612,8 +612,8 @@
                 <p class="control-item__desc">{{ widget.description }}</p>
               </div>
               <div class="control-actions">
-                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'up')" aria-label="Mover para cima">↑</button>
-                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'down')" aria-label="Mover para baixo">↓</button>
+                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'up')" aria-label="Mover para cima">â†‘</button>
+                <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'down')" aria-label="Mover para baixo">â†“</button>
                 <label class="switch">
                   <input type="checkbox" [checked]="isWidgetEnabled(widget.id)" (change)="toggleWidget(widget.id)" />
                   <span></span>
@@ -624,7 +624,7 @@
         </div>
 
         <div class="insights-panel">
-          <p class="insights-title">Insights rápidos</p>
+          <p class="insights-title">Insights rÃ¡pidos</p>
           <div class="insight-chips">
             <span class="insight-chip">{{ dashboardTotals().ativosCurso }} cursos</span>
             <span class="insight-chip">{{ dashboardTotals().ativosAtendimento }} atendimentos</span>
@@ -633,7 +633,7 @@
           </div>
           <div class="insight-trend">
             <div>
-              <p class="trend-label">Pressão de fila</p>
+              <p class="trend-label">PressÃ£o de fila</p>
               <p class="trend-value">{{ dashboardSnapshot.waitlistPressao }}%</p>
             </div>
             <div class="trend-meter">
@@ -659,6 +659,7 @@
 
 </section>
 </app-tela-padrao>
+
 
 
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 import { FormGroup } from '@angular/forms';
 
@@ -21,4 +21,5 @@ export class EmprestimosEventosFormComponent {
   @Output() responsavelTermoChange = new EventEmitter<string>();
   @Output() responsavelSelecionado = new EventEmitter<AutocompleteOpcao>();
 }
+
 

@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [mostrarFechar]="true"
   (buscar)="onBuscar()"
@@ -6,7 +6,7 @@
 >
   <header class="page-title page-title--row" slot="titulo">
     <div>
-      <p class="page-title__eyebrow">CONFIGURACOES GERAIS</p>
+      <p class="page-title__eyebrow">CONFIGURações GERAIS</p>
       <p class="page-title__label">Chamados tecnicos</p>
     </div>
     <p class="page-title__note">Acompanhamento de erros e melhorias.</p>
@@ -16,7 +16,7 @@
     <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
 
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <p class="tab-shell__title">Navegue pelas informações</p>
       <ol class="step-tabs" role="tablist">
         <li class="step-tabs__item active">
           <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
@@ -93,7 +93,7 @@
         </label>
         <label class="field">
           Responsavel (ID)
-          <input type="text" formControlName="responsavel" placeholder="Usuario" />
+          <input type="text" formControlName="responsavel" placeholder="usuário" />
         </label>
         <label class="field">
           Data inicio
@@ -105,7 +105,7 @@
         </label>
         <label class="field full">
           Texto
-          <input type="text" formControlName="texto" placeholder="Titulo, codigo ou descricao" />
+          <input type="text" formControlName="texto" placeholder="Titulo, código ou descricao" />
         </label>
       </form>
 
@@ -123,7 +123,7 @@
           <p class="unit-active__eyebrow">chamado ativo</p>
           <p class="unit-active__name">{{ chamadoSelecionado.titulo }}</p>
           <p class="unit-active__meta">
-            Codigo: {{ chamadoSelecionado.codigo || '---' }} - Status: {{ formatStatus(chamadoSelecionado.status) }} - Prioridade:
+            código: {{ chamadoSelecionado.codigo || '---' }} - Status: {{ formatStatus(chamadoSelecionado.status) }} - Prioridade:
             {{ formatPrioridade(chamadoSelecionado.prioridade) }}
           </p>
         </div>
@@ -186,3 +186,4 @@
     </section>
   </section>
 </app-tela-padrao>
+

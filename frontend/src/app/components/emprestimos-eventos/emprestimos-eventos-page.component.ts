@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+﻿import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { EmprestimosEventosService, EmprestimoEventoRequest, EmprestimoEventoResponse, EmprestimoEventoItemResponse, EventoEmprestimoResponse, TipoItemEmprestimo, AgendaDiaDetalheResponse, AgendaResumoDiaResponse, DisponibilidadeItemResponse, EmprestimoEventoMovimentacaoResponse } from '../../services/emprestimos-eventos.service';
@@ -1081,6 +1081,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
     return {};
   }
 }
+
 
 
 

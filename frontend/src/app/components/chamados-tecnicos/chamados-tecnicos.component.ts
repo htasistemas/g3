@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -304,3 +304,4 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
       : '/configuracoes/chamados-tecnicos';
   }
 }
+

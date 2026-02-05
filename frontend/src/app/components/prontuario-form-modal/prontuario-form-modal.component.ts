@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { titleCaseWords } from '../../utils/capitalization.util';
@@ -128,24 +128,24 @@ export class ProntuarioFormModalComponent implements OnChanges {
       return '';
     }
     if (control.errors['required']) {
-      return 'Campo obrigatório.';
+      return 'Campo obrigatÃ³rio.';
     }
     if (control.errors['minlength']) {
-      return `Informe no mínimo ${control.errors['minlength'].requiredLength} caracteres.`;
+      return `Informe no mÃ­nimo ${control.errors['minlength'].requiredLength} caracteres.`;
     }
-    return 'Campo inválido.';
+    return 'Campo invÃ¡lido.';
   }
 
   getLabelDescricao(): string {
     switch (this.tipoSelecionado) {
       case 'procedimento':
-        return 'Descrição do procedimento*';
+        return 'DescriÃ§Ã£o do procedimento*';
       case 'evolucao':
-        return 'Evolução detalhada*';
+        return 'EvoluÃ§Ã£o detalhada*';
       case 'encaminhamento':
-        return 'Descrição do encaminhamento*';
+        return 'DescriÃ§Ã£o do encaminhamento*';
       case 'documento':
-        return 'Descrição do documento*';
+        return 'DescriÃ§Ã£o do documento*';
       case 'atendimento':
       default:
         return 'Registro pormenorizado do atendimento*';
@@ -433,3 +433,4 @@ export class ProntuarioFormModalComponent implements OnChanges {
     setRequired('origemDocumento', tipo === 'documento');
   }
 }
+

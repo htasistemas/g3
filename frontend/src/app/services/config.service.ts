@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
@@ -65,3 +65,4 @@ export class ConfigService {
     return this.http.get<DestinoChamadoResponse>(`${this.baseUrl}/chamados/destino`);
   }
 }
+

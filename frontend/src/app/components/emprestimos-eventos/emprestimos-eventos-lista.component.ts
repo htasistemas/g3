@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { EmprestimoEventoResponse } from '../../services/emprestimos-eventos.service';
 
 @Component({
@@ -19,4 +19,5 @@ export class EmprestimosEventosListaComponent {
     this.selecionar.emit(emprestimo);
   }
 }
+
 

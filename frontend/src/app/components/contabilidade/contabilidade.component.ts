@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+﻿import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -1370,3 +1370,4 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     return (value || '').toString().trim().toLowerCase();
   }
 }
+

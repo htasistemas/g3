@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 interface AgendaDiaView {
   data: Date;
@@ -33,5 +33,6 @@ export class EmprestimosEventosAgendaComponent {
     this.selecionarDia.emit(dia);
   }
 }
+
 
 

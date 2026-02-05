@@ -1,4 +1,4 @@
-export function formatTitleCase(value: string): string {
+﻿export function formatTitleCase(value: string): string {
   if (!value) {
     return value;
   }
@@ -41,3 +41,4 @@ export function isValidCnpj(value: string): boolean {
     firstVerifier === Number(digits.charAt(12)) && secondVerifier === Number(digits.charAt(13))
   );
 }
+

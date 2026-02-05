@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
@@ -1183,3 +1183,4 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     return null;
   }
 }
+

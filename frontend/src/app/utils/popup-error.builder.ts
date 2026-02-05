@@ -1,4 +1,4 @@
-export class PopupErrorBuilder {
+﻿export class PopupErrorBuilder {
   private readonly mensagens: string[] = [];
 
   adicionar(mensagem: string): this {
@@ -12,3 +12,4 @@ export class PopupErrorBuilder {
     return [...this.mensagens];
   }
 }
+

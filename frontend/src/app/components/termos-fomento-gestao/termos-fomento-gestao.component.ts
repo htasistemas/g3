@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -443,12 +443,12 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   }
 
   formatCurrency(value?: number): string {
-    if (value === undefined || value === null || Number.isNaN(value)) return '—';
+    if (value === undefined || value === null || Number.isNaN(value)) return 'â€”';
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   }
 
   formatDate(value?: string): string {
-    if (!value) return '—';
+    if (!value) return 'â€”';
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
     return new Intl.DateTimeFormat('pt-BR').format(date);
@@ -523,3 +523,4 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
     return Number(digits) / 100;
   }
 }
+

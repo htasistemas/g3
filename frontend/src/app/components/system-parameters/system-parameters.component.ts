@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { PersonalizacaoComponent } from '../personalizacao/personalizacao.component';
 import { SystemSettingsComponent } from '../system-settings/system-settings.component';
@@ -32,27 +32,27 @@ export class SystemParametersComponent {
   readonly tabs: ParameterTab[] = [
     {
       id: 'documentos',
-      label: 'Documentos obrigatórios',
-      description: 'Defina quais comprovantes e documentos são exigidos para cadastro de beneficiários.',
+      label: 'Documentos obrigatÃ³rios',
+      description: 'Defina quais comprovantes e documentos sÃ£o exigidos para cadastro de beneficiÃ¡rios.',
       badge: 'Fluxo de cadastro'
     },
     {
       id: 'modelos',
       label: 'Modelos de textos',
-      description: 'Edite e restaure os modelos utilizados nos termos e comunicações oficiais.',
-      badge: 'Textos padrão'
+      description: 'Edite e restaure os modelos utilizados nos termos e comunicaÃ§Ãµes oficiais.',
+      badge: 'Textos padrÃ£o'
     },
     {
       id: 'usuarios',
-      label: 'Usuários e permissões',
-      description: 'Gerencie contas de acesso, redefina senhas e mantenha os responsáveis atualizados.',
-      badge: 'Segurança'
+      label: 'UsuÃ¡rios e permissÃµes',
+      description: 'Gerencie contas de acesso, redefina senhas e mantenha os responsÃ¡veis atualizados.',
+      badge: 'SeguranÃ§a'
     },
     {
       id: 'personalizacao',
-      label: 'Personalização',
+      label: 'PersonalizaÃ§Ã£o',
       description: 'Ajuste tema, cores e bordas para alinhar a identidade visual do sistema.',
-      badge: 'Experiência'
+      badge: 'ExperiÃªncia'
     }
   ];
 
@@ -70,3 +70,4 @@ export class SystemParametersComponent {
     this.activeTab = tabId;
   }
 }
+

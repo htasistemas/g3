@@ -1,4 +1,4 @@
-export interface PartesData {
+﻿export interface PartesData {
   dia: number;
   mes: number;
   ano: number;
@@ -38,3 +38,4 @@ function montarPartesData(ano?: string, mes?: string, dia?: string): PartesData 
 function pad(valor: number): string {
   return String(valor).padStart(2, '0');
 }
+

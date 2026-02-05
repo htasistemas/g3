@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ConfigAcoesCrud, EstadoAcoesCrud } from '../tela-base.component';
 
@@ -22,3 +22,4 @@ export class BarraAcoesCrudComponent {
   @Output() buscar = new EventEmitter<void>();
   @Output() fechar = new EventEmitter<void>();
 }
+

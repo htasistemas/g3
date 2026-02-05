@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -159,33 +159,33 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   steps: Step[] = [
     {
       id: 'solicitacao',
-      label: 'Solicitação',
+      label: 'SolicitaÃ§Ã£o',
       helper: 'Cadastro inicial, escopo e anexos',
-      documentLabel: 'Formulário de solicitação'
+      documentLabel: 'FormulÃ¡rio de solicitaÃ§Ã£o'
     },
     {
       id: 'autorizacao',
-      label: 'Autorização',
+      label: 'AutorizaÃ§Ã£o',
       helper: 'Parecer da diretoria e reservas',
-      documentLabel: 'Relatório para autorização'
+      documentLabel: 'RelatÃ³rio para autorizaÃ§Ã£o'
     },
     {
       id: 'cotacoes',
-      label: 'Cotação prévia',
-      helper: '3 cotações e definição do vencedor',
-      documentLabel: 'Mapa comparativo de preços'
+      label: 'CotaÃ§Ã£o prÃ©via',
+      helper: '3 cotaÃ§Ãµes e definiÃ§Ã£o do vencedor',
+      documentLabel: 'Mapa comparativo de preÃ§os'
     },
     {
       id: 'reserva',
-      label: 'Reserva orçamentária',
-      helper: 'Bloqueio de orçamento e lastro contábil',
-      documentLabel: 'Reserva orçamentária'
+      label: 'Reserva orÃ§amentÃ¡ria',
+      helper: 'Bloqueio de orÃ§amento e lastro contÃ¡bil',
+      documentLabel: 'Reserva orÃ§amentÃ¡ria'
     },
     {
       id: 'conclusao',
-      label: 'Conclusão da compra',
-      helper: 'Integrações com patrimônio e almoxarifado',
-      documentLabel: 'Termo de conclusão'
+      label: 'ConclusÃ£o da compra',
+      helper: 'IntegraÃ§Ãµes com patrimÃ´nio e almoxarifado',
+      documentLabel: 'Termo de conclusÃ£o'
     }
   ];
 
@@ -250,7 +250,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   budgetEnvelopes: BudgetEnvelope[] = [
     {
       center: '3.3.90.30',
-      title: 'Materiais de consumo pedagógico',
+      title: 'Materiais de consumo pedagÃ³gico',
       available: 42000,
       linkedTo: 'Contabilidade'
     },
@@ -258,11 +258,11 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       center: '4.4.90.52',
       title: 'Investimentos e bens permanentes',
       available: 75000,
-      linkedTo: 'Patrimônio'
+      linkedTo: 'PatrimÃ´nio'
     },
     {
       center: '3.3.90.39',
-      title: 'Serviços de terceiros e contratos',
+      title: 'ServiÃ§os de terceiros e contratos',
       available: 52000,
       linkedTo: 'Contratos'
     }
@@ -278,7 +278,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     title: '',
     type: 'produto' as PurchaseType,
     requester: '',
-    area: 'Operações',
+    area: 'OperaÃ§Ãµes',
     expectedDate: this.todayISO(15),
     value: 0,
     justification: '',
@@ -355,7 +355,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       title: '',
       type: 'produto',
       requester: '',
-      area: 'Operações',
+      area: 'OperaÃ§Ãµes',
       expectedDate: this.todayISO(15),
       value: 0,
       justification: '',
@@ -369,7 +369,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   private loadProfessionals(): void {
     this.professionalService.list().subscribe({
       next: (records) => (this.profissionais = records),
-      error: () => this.setFeedback('Não foi possível carregar os profissionais no momento.')
+      error: () => this.setFeedback('NÃ£o foi possÃ­vel carregar os profissionais no momento.')
     });
   }
 
@@ -382,7 +382,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.carregandoContas = false;
       },
       error: () => {
-        this.setFeedback('Não foi possível carregar as contas bancárias no momento.');
+        this.setFeedback('NÃ£o foi possÃ­vel carregar as contas bancÃ¡rias no momento.');
         this.carregandoContas = false;
       }
     });
@@ -399,7 +399,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
           this.selectedRequestId = this.requests[0]?.id ?? '';
         },
         error: () => {
-          this.setFeedback('Não foi possível carregar as solicitações no momento.');
+          this.setFeedback('NÃ£o foi possÃ­vel carregar as solicitaÃ§Ãµes no momento.');
         }
       });
   }
@@ -412,10 +412,10 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       next: () => {
         this.requests = this.requests.filter((req) => req.id !== selected.id);
         this.selectedRequestId = this.requests[0]?.id ?? '';
-        this.setFeedback('Solicitação removida.');
+        this.setFeedback('SolicitaÃ§Ã£o removida.');
       },
       error: () => {
-        this.setFeedback('Não foi possível remover a solicitação. Tente novamente.');
+        this.setFeedback('NÃ£o foi possÃ­vel remover a solicitaÃ§Ã£o. Tente novamente.');
       }
     });
   }
@@ -549,22 +549,22 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     if (!this.podeSalvarSolicitacao) {
       const builder = new PopupErrorBuilder();
       if (!this.newRequestForm.type?.trim()) {
-        builder.adicionar('Tipo é obrigatório.');
+        builder.adicionar('Tipo Ã© obrigatÃ³rio.');
       }
       if (!this.newRequestForm.title?.trim()) {
-        builder.adicionar('Título da compra é obrigatório.');
+        builder.adicionar('TÃ­tulo da compra Ã© obrigatÃ³rio.');
       }
       if (!this.newRequestForm.requester?.trim()) {
-        builder.adicionar('Responsável é obrigatório.');
+        builder.adicionar('ResponsÃ¡vel Ã© obrigatÃ³rio.');
       }
       if (!Number(this.newRequestForm.value)) {
-        builder.adicionar('Valor estimado é obrigatório.');
+        builder.adicionar('Valor estimado Ã© obrigatÃ³rio.');
       }
       if (!this.newRequestForm.justification?.trim()) {
-        builder.adicionar('Justificativa e escopo é obrigatório.');
+        builder.adicionar('Justificativa e escopo Ã© obrigatÃ³rio.');
       }
       this.popupErros = builder.build();
-      this.setFeedback('Preencha os campos obrigatórios antes de salvar a solicitação.');
+      this.setFeedback('Preencha os campos obrigatÃ³rios antes de salvar a solicitaÃ§Ã£o.');
       return;
     }
 
@@ -578,7 +578,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.resetNewRequestForm();
       },
       error: () => {
-        this.setFeedback('Não foi possível salvar a solicitação. Tente novamente.');
+        this.setFeedback('NÃ£o foi possÃ­vel salvar a solicitaÃ§Ã£o. Tente novamente.');
       }
     });
   }
@@ -619,17 +619,17 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     this.popupErrosCotacao = [];
     const builder = new PopupErrorBuilder();
     if (!this.newQuoteForm.supplier?.trim()) {
-      builder.adicionar('Fornecedor é obrigatório.');
+      builder.adicionar('Fornecedor Ã© obrigatÃ³rio.');
     }
     if (!this.newQuoteForm.cnpj?.trim()) {
-      builder.adicionar('CNPJ do fornecedor é obrigatório.');
+      builder.adicionar('CNPJ do fornecedor Ã© obrigatÃ³rio.');
     }
     if (!Number(this.newQuoteForm.value)) {
-      builder.adicionar('Valor ofertado é obrigatório.');
+      builder.adicionar('Valor ofertado Ã© obrigatÃ³rio.');
     }
     this.popupErrosCotacao = builder.build();
     if (this.popupErrosCotacao.length) {
-      this.setFeedback('Preencha os campos obrigatórios antes de adicionar a cotação.');
+      this.setFeedback('Preencha os campos obrigatÃ³rios antes de adicionar a cotaÃ§Ã£o.');
       return;
     }
     const supplierLabel = this.newQuoteForm.supplier || this.newQuoteForm.companyName || '';
@@ -673,7 +673,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.popupErrosCotacao = [];
       },
       error: () => {
-        this.setFeedback('Não foi possível salvar a cotação. Tente novamente.');
+        this.setFeedback('NÃ£o foi possÃ­vel salvar a cotaÃ§Ã£o. Tente novamente.');
       }
     });
   }
@@ -691,14 +691,14 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         };
       },
       error: () => {
-        this.setFeedback('Não foi possível remover a cotação. Tente novamente.');
+        this.setFeedback('NÃ£o foi possÃ­vel remover a cotaÃ§Ã£o. Tente novamente.');
       }
     });
   }
 
   imprimirOrcamento(quote: Quotation): void {
     if (!quote.orcamentoFisicoConteudo) {
-      this.setFeedback('Nenhum orçamento físico anexado para esta cotação.');
+      this.setFeedback('Nenhum orÃ§amento fÃ­sico anexado para esta cotaÃ§Ã£o.');
       return;
     }
     const link = document.createElement('a');
@@ -711,7 +711,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
   markWinner(quote: Quotation): void {
     if (!this.selectedRequest) return;
     if (!this.currentQuotes.length) {
-      this.setFeedback('Cadastre ao menos uma cotação antes de definir o vencedor.');
+      this.setFeedback('Cadastre ao menos uma cotaÃ§Ã£o antes de definir o vencedor.');
       return;
     }
 
@@ -742,7 +742,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       quotationDispensed: true,
       quotationExemptionReason:
         this.selectedRequest.quotationExemptionReason ??
-        `Valor estimado abaixo de R$ ${this.quotationThreshold.toFixed(2)}: dispensa de cotação liberada.`,
+        `Valor estimado abaixo de R$ ${this.quotationThreshold.toFixed(2)}: dispensa de cotaÃ§Ã£o liberada.`,
       status: 'reserva'
     };
 
@@ -808,7 +808,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     }
     const payload = {
       tipo: 'RESERVA',
-      descricao: `Reserva para autorização ${this.selectedRequest.title}`,
+      descricao: `Reserva para autorizaÃ§Ã£o ${this.selectedRequest.title}`,
       contraparte: this.selectedRequest.requester,
       contaBancariaId: conta.id,
       dataMovimentacao: this.todayISO(),
@@ -824,7 +824,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
           ...this.reservasBancarias.filter((item) => item.contaId !== conta.id)
         ];
         this.reservationForm.value = this.getTotalPlanejado();
-        this.setFeedback('Reserva bancária registrada. Selecione o centro de custo para concluir.');
+        this.setFeedback('Reserva bancÃ¡ria registrada. Selecione o centro de custo para concluir.');
         const selectedId = this.selectedRequest?.id;
         if (selectedId) {
           this.autorizacaoComprasService
@@ -836,7 +836,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.setFeedback('Não foi possível reservar o saldo bancário.');
+        this.setFeedback('NÃ£o foi possÃ­vel reservar o saldo bancÃ¡rio.');
       }
     });
   }
@@ -849,7 +849,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     if (!valorEstorno) return;
     const payload = {
       tipo: 'ENTRADA',
-      descricao: `Estorno de reserva para autorização ${this.selectedRequest.title}`,
+      descricao: `Estorno de reserva para autorizaÃ§Ã£o ${this.selectedRequest.title}`,
       contraparte: this.selectedRequest.requester,
       contaBancariaId: conta.id,
       dataMovimentacao: this.todayISO(),
@@ -869,7 +869,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.setFeedback('Não foi possível estornar a reserva bancária.');
+        this.setFeedback('NÃ£o foi possÃ­vel estornar a reserva bancÃ¡ria.');
       }
     });
   }
@@ -914,7 +914,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.updateRequest(updatedRequest);
       },
       error: () => {
-        this.setFeedback('Não foi possível registrar as integrações da compra.');
+        this.setFeedback('NÃ£o foi possÃ­vel registrar as integraÃ§Ãµes da compra.');
         this.updateRequest(updatedRequest);
       }
     });
@@ -941,7 +941,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
           };
         },
         error: () => {
-          this.setFeedback('Não foi possível gerar a autorização de pagamento.');
+          this.setFeedback('NÃ£o foi possÃ­vel gerar a autorizaÃ§Ã£o de pagamento.');
         }
       });
   }
@@ -1016,7 +1016,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         return this.almoxarifadoService.createItem(payload);
       }),
       catchError(() => {
-        this.setFeedback('Não foi possível registrar a entrada no almoxarifado.');
+        this.setFeedback('NÃ£o foi possÃ­vel registrar a entrada no almoxarifado.');
         return of(null);
       })
     );
@@ -1030,14 +1030,14 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
       status: 'Ativo',
       dataAquisicao: this.todayISO(),
       valorAquisicao: Number(request.value || 0),
-      origem: 'Autorização de compras',
+      origem: 'AutorizaÃ§Ã£o de compras',
       responsavel: request.requester,
       unidade: request.area,
       observacoes: request.justification
     };
     return this.patrimonioService.create(payload).pipe(
       catchError(() => {
-        this.setFeedback('Não foi possível registrar a entrada no patrimônio.');
+        this.setFeedback('NÃ£o foi possÃ­vel registrar a entrada no patrimÃ´nio.');
         return of(null);
       })
     );
@@ -1329,7 +1329,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.setFeedback('Não foi possível carregar as cotações no momento.');
+        this.setFeedback('NÃ£o foi possÃ­vel carregar as cotaÃ§Ãµes no momento.');
       }
     });
   }
@@ -1389,7 +1389,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         this.carregandoFornecedor = false;
       },
       error: () => {
-        this.avisoFornecedor = 'Fornecedor não encontrado, preencha manualmente.';
+        this.avisoFornecedor = 'Fornecedor nÃ£o encontrado, preencha manualmente.';
         this.cacheFornecedor = null;
         this.ultimoCnpjConsultado = cnpjLimpo;
         this.carregandoFornecedor = false;
@@ -1421,7 +1421,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         }
       }
     } catch {
-      // ignora links sem formato de URL válido
+      // ignora links sem formato de URL vÃ¡lido
     }
 
     const matchParam = decodificado.match(/(?:cnpj|documento|doc|cpfcnpj)=([^&]+)/i);
@@ -1505,7 +1505,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     if (payload.dispensarCotacao) {
       payload.motivoDispensa = `Valor estimado inferior ao limite de R$ ${this.quotationThreshold.toFixed(
         2
-      )} para cotação prévia.`;
+      )} para cotaÃ§Ã£o prÃ©via.`;
     }
     return payload;
   }
@@ -1524,7 +1524,7 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.setFeedback('Não foi possível salvar as alterações na solicitação.');
+        this.setFeedback('NÃ£o foi possÃ­vel salvar as alteraÃ§Ãµes na solicitaÃ§Ã£o.');
       }
     });
   }
@@ -1545,3 +1545,4 @@ export class AutorizacaoComprasComponent extends TelaBaseComponent implements On
     }
   }
 }
+

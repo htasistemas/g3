@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -64,3 +64,4 @@ export class PersonalizacaoComponent implements OnInit, OnDestroy {
     this.form.patchValue(this.personalization.palette(), { emitEvent: false });
   }
 }
+

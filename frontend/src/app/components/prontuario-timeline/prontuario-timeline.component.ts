@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ProntuarioRegistroResponse } from '../../services/prontuario.service';
 
@@ -30,10 +30,10 @@ export class ProntuarioTimelineComponent {
   private readonly tipoLabels: Record<string, string> = {
     atendimento: 'Atendimento',
     procedimento: 'Procedimento',
-    evolucao: 'Evolução',
+    evolucao: 'EvoluÃ§Ã£o',
     encaminhamento: 'Encaminhamento',
     documento: 'Documento/Anexo',
-    visita_ref: 'Visita domiciliar (referência)',
+    visita_ref: 'Visita domiciliar (referÃªncia)',
     outro: 'Outro'
   };
 
@@ -42,12 +42,12 @@ export class ProntuarioTimelineComponent {
   }
 
   nomeProfissional(id?: number | null): string {
-    if (!id) return 'Não informado';
+    if (!id) return 'NÃ£o informado';
     return this.mapaProfissionais[id] ?? `#${id}`;
   }
 
   nomeUnidade(id?: number | null): string {
-    if (!id) return 'Não informado';
+    if (!id) return 'NÃ£o informado';
     return this.mapaUnidades[id] ?? `#${id}`;
   }
 
@@ -62,19 +62,19 @@ export class ProntuarioTimelineComponent {
   getExtraDetalhes(registro: ProntuarioRegistroResponse): { label: string; value: string }[] {
     const extra = registro.dadosExtra ?? {};
     const mapping: Record<string, string> = {
-      dataInicio: 'Data de início',
+      dataInicio: 'Data de inÃ­cio',
       dataFim: 'Data de fim',
       tipoAtendimento: 'Tipo de atendimento',
       localAtendimento: 'Local do atendimento',
-      servicoPrograma: 'Serviço/Programa',
+      servicoPrograma: 'ServiÃ§o/Programa',
       motivoDemanda: 'Motivo/Demanda',
-      classificacaoRisco: 'Classificação de risco',
+      classificacaoRisco: 'ClassificaÃ§Ã£o de risco',
       resultadoAtendimento: 'Resultado',
-      proximosPassos: 'Próximos passos',
+      proximosPassos: 'PrÃ³ximos passos',
       tipoProcedimento: 'Tipo de procedimento',
-      vinculoRegistro: 'Vínculo com registro',
-      situacaoAtual: 'Situação atual',
-      pendencias: 'Pendências',
+      vinculoRegistro: 'VÃ­nculo com registro',
+      situacaoAtual: 'SituaÃ§Ã£o atual',
+      pendencias: 'PendÃªncias',
       destino: 'Destino',
       motivo: 'Motivo',
       prioridade: 'Prioridade',
@@ -84,7 +84,7 @@ export class ProntuarioTimelineComponent {
       tipoDocumento: 'Tipo do documento',
       dataDocumento: 'Data do documento',
       origemDocumento: 'Origem',
-      descricaoDocumento: 'Descrição do documento'
+      descricaoDocumento: 'DescriÃ§Ã£o do documento'
     };
 
     return Object.entries(extra)
@@ -92,3 +92,4 @@ export class ProntuarioTimelineComponent {
       .map(([key, value]) => ({ label: mapping[key], value: String(value) }));
   }
 }
+

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
@@ -53,27 +53,27 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
   });
 
   tabs: StepTab[] = [
-    { id: 'identificacao', label: 'Identificação' },
-    { id: 'vinculo', label: 'Vinculação ao Termo' },
+    { id: 'identificacao', label: 'IdentificaÃ§Ã£o' },
+    { id: 'vinculo', label: 'VinculaÃ§Ã£o ao Termo' },
     { id: 'metas', label: 'Metas e Atividades' },
-    { id: 'cronograma', label: 'Cronograma Físico-Financeiro' },
-    { id: 'equipe', label: 'Equipe / Responsáveis' },
-    { id: 'arquivos', label: 'Arquivos e Exportação' },
+    { id: 'cronograma', label: 'Cronograma FÃ­sico-Financeiro' },
+    { id: 'equipe', label: 'Equipe / ResponsÃ¡veis' },
+    { id: 'arquivos', label: 'Arquivos e ExportaÃ§Ã£o' },
     { id: 'listagem', label: 'Listagem de Planos' }
   ];
 
   statusOptions: { value: PlanoStatus; label: string }[] = [
-    { value: 'EM_ELABORACAO', label: 'Em elaboração' },
-    { value: 'ENVIADO_ANALISE', label: 'Enviado para análise' },
+    { value: 'EM_ELABORACAO', label: 'Em elaboraÃ§Ã£o' },
+    { value: 'ENVIADO_ANALISE', label: 'Enviado para anÃ¡lise' },
     { value: 'APROVADO', label: 'Aprovado' },
-    { value: 'EM_EXECUCAO', label: 'Em execução' },
-    { value: 'CONCLUIDO', label: 'Concluído' },
+    { value: 'EM_EXECUCAO', label: 'Em execuÃ§Ã£o' },
+    { value: 'CONCLUIDO', label: 'ConcluÃ­do' },
     { value: 'REPROVADO', label: 'Reprovado' }
   ];
 
-  orgaoOptions = ['União', 'Estado', 'Município', 'Outro'];
+  orgaoOptions = ['UniÃ£o', 'Estado', 'MunicÃ­pio', 'Outro'];
   statusEtapas = ['NAO_INICIADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'ATRASADA'];
-  fonteRecursos = ['União', 'Estado', 'Município', 'Contrapartida', 'Outros'];
+  fonteRecursos = ['UniÃ£o', 'Estado', 'MunicÃ­pio', 'Contrapartida', 'Outros'];
 
   planos: PlanoTrabalho[] = [];
   termos: TermoFomentoPayload[] = [];
@@ -166,7 +166,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
         titulo: ['', Validators.required],
         descricaoGeral: ['', Validators.required],
         status: ['EM_ELABORACAO', Validators.required],
-        orgaoConcedente: ['União'],
+        orgaoConcedente: ['UniÃ£o'],
         orgaoOutroDescricao: [''],
         areaPrograma: [''],
         dataElaboracao: [''],
@@ -489,7 +489,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
 
   totalCronogramaPorFonte(): Record<string, number> {
     return this.cronograma.value.reduce((acc: Record<string, number>, item: any) => {
-      const fonte = item.fonteRecurso || 'Não informado';
+      const fonte = item.fonteRecurso || 'NÃ£o informado';
       const valor = this.parseCurrencyValue(item.valorPrevisto) || 0;
       acc[fonte] = (acc[fonte] || 0) + valor;
       return acc;
@@ -751,3 +751,4 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
       .trim();
   }
 }
+

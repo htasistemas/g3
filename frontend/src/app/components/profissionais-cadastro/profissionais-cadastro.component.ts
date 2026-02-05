@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
@@ -231,11 +231,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       status: ['']
     });
 
-    this.loadProfessionals();
     this.setupCapitalizationRules();
   }
 
   ngOnInit(): void {
+    this.loadProfessionals();
     this.assistanceUnitService.get().pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ unidade }) => {
         this.unidadeAtual = unidade ?? null;
@@ -1205,4 +1205,5 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     }
   }
 }
+
 

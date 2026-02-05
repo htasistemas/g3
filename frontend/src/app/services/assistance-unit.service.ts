@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -48,7 +48,7 @@ export class AssistanceUnitService {
   private readonly activeUnitLogoKey = 'g3-active-assistance-logo';
 
   private readonly currentUnitNameSubject = new BehaviorSubject<string>(
-    localStorage.getItem(this.activeUnitKey) || 'Navegação'
+    localStorage.getItem(this.activeUnitKey) || 'NavegaÃ§Ã£o'
   );
 
   private readonly currentUnitLogoSubject = new BehaviorSubject<string | null>(
@@ -80,7 +80,7 @@ export class AssistanceUnitService {
   remove(id: number): Observable<void> {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)
-      .pipe(tap(() => this.setActiveUnit('Navegação', null)));
+      .pipe(tap(() => this.setActiveUnit('NavegaÃ§Ã£o', null)));
   }
 
   setActiveUnit(name: string, logo?: string | null): void {
@@ -100,3 +100,4 @@ export class AssistanceUnitService {
     localStorage.removeItem(this.activeUnitLogoKey);
   }
 }
+

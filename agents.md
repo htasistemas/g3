@@ -224,3 +224,4 @@ Todo agente MUST confirmar:
 - Backend seguro
 - Banco atualizado via init.db
 - Layout sem sobreposição
+

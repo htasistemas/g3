@@ -1,10 +1,10 @@
-<app-tela-padrao>
+﻿<app-tela-padrao>
 <header class="page-title page-title--row" slot="titulo">
   <div>
-    <p class="page-title__eyebrow">CONFIGURACOES GERAIS</p>
+    <p class="page-title__eyebrow">CONFIGURações GERAIS</p>
     <p class="page-title__label">Gerenciamento de Dados</p>
   </div>
-  <p class="page-title__note">Administracao e manutencao de dados do sistema.</p>
+  <p class="page-title__note">Administração e manutencao de dados do sistema.</p>
 </header>
 
   <section class="data-shell">
@@ -55,7 +55,7 @@
 
     <div class="inline-feedback inline-feedback--info" *ngIf="restauracaoEmAndamento">
       <div>
-        <p class="font-semibold text-slate-800">Restauracao em andamento</p>
+        <p class="font-semibold text-slate-800">Restauração em andamento</p>
         <p class="muted">Aplicando dados do backup selecionado.</p>
         <div class="progress">
           <div class="progress__bar progress__bar--indeterminate"></div>
@@ -100,7 +100,7 @@
         <div role="columnheader">Tamanho</div>
         <div role="columnheader">Retencao</div>
         <div role="columnheader">Status</div>
-        <div role="columnheader">Acoes</div>
+        <div role="columnheader">ações</div>
       </div>
       <div class="history-grid__row" *ngFor="let backup of recentBackups" role="row">
         <div role="cell">
@@ -148,3 +148,4 @@
   (cancelar)="cancelarDialogoRestaurar()"
 ></app-dialog>
 </app-tela-padrao>
+

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BarraAcoesCrudComponent } from './barra-acoes-crud.component';
 
@@ -46,3 +46,4 @@ describe('BarraAcoesCrudComponent', () => {
     expect(component.cancelar.emit).toHaveBeenCalledTimes(1);
   });
 });
+

@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -16,7 +16,7 @@
     <p class="page-title__eyebrow">SETOR JURIDICO</p>
     <p class="page-title__label">Termo de Fomento</p>
   </div>
-  <p class="page-title__note">Cadastro e acompanhamento de termos de fomento.</p>
+  <p class="page-title__note">cadastro e acompanhamento de termos de fomento.</p>
 </header>
 
   <section class="gestao-termos">
@@ -35,12 +35,12 @@
         <span>Pesquisa</span>
         <input
           type="search"
-          placeholder="Número, órgão ou responsável"
+          placeholder="NÃºmero, Ã³rgÃ£o ou responsÃ¡vel"
           (input)="onSearchInput($event)"
         />
       </label>
       <label class="filter">
-        <span>Situação</span>
+        <span>SituaÃ§Ã£o</span>
         <select (change)="onSituacaoFiltroChange($event)">
           <option value="">Todas</option>
           <option value="Ativo">Ativo</option>
@@ -86,7 +86,7 @@
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Próximo: {{ nextTabLabel }}
+          PrÃ³ximo: {{ nextTabLabel }}
         </button>
         <button type="button" class="primary" [disabled]="saving" *ngIf="!hasNextTab" (click)="submit()">
           {{ saving ? 'Salvando...' : 'Salvar termo' }}
@@ -100,22 +100,22 @@
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Cadastre os dados principais do termo de fomento.</p>
         </div>
-        <span class="pill">Obrigatório</span>
+        <span class="pill">ObrigatÃ³rio</span>
       </div>
       <div class="field-grid cols-3">
-        <label class="field">Número do termo*<input formControlName="numeroTermo" placeholder="Código interno" /></label>
+        <label class="field">NÃºmero do termo*<input formControlName="numeroTermo" placeholder="CÃ³digo interno" /></label>
         <label class="field">Tipo de termo*
           <select formControlName="tipoTermo">
-            <option value="Uniao">União</option>
+            <option value="Uniao">UniÃ£o</option>
             <option value="Estado">Estado</option>
-            <option value="Município">Município</option>
+            <option value="MunicÃ­pio">MunicÃ­pio</option>
           </select>
         </label>
-        <label class="field">Órgão concedente<input formControlName="orgaoConcedente" placeholder="Nome do órgão" (blur)="capitalizarCampo(['dadosTermo','orgaoConcedente'])" /></label>
+        <label class="field">Ã“rgÃ£o concedente<input formControlName="orgaoConcedente" placeholder="Nome do Ã³rgÃ£o" (blur)="capitalizarCampo(['dadosTermo','orgaoConcedente'])" /></label>
         <label class="field">Data de assinatura<input type="date" formControlName="dataAssinatura" /></label>
-        <label class="field">Início da vigência<input type="date" formControlName="dataInicioVigencia" /></label>
-        <label class="field">Fim da vigência<input type="date" formControlName="dataFimVigencia" /></label>
-        <label class="field">Situação do termo*
+        <label class="field">InÃ­cio da vigÃªncia<input type="date" formControlName="dataInicioVigencia" /></label>
+        <label class="field">Fim da vigÃªncia<input type="date" formControlName="dataFimVigencia" /></label>
+        <label class="field">SituaÃ§Ã£o do termo*
           <select formControlName="situacao">
             <option value="Ativo">Ativo</option>
             <option value="Aditivado">Aditivado</option>
@@ -124,8 +124,8 @@
           </select>
         </label>
         <label class="field">Valor global<input type="text" formControlName="valorGlobal" placeholder="R$ 0,00" (input)="onValorGlobalInput($event)" /></label>
-        <label class="field">Responsável interno<input formControlName="responsavelInterno" placeholder="Selecione o responsável" (blur)="capitalizarCampo(['dadosTermo','responsavelInterno'])" /></label>
-        <label class="field full">Objeto / descrição<textarea formControlName="descricaoObjeto" rows="3" placeholder="Descreva o objeto do termo"></textarea></label>
+        <label class="field">ResponsÃ¡vel interno<input formControlName="responsavelInterno" placeholder="Selecione o responsÃ¡vel" (blur)="capitalizarCampo(['dadosTermo','responsavelInterno'])" /></label>
+        <label class="field full">Objeto / descriÃ§Ã£o<textarea formControlName="descricaoObjeto" rows="3" placeholder="Descreva o objeto do termo"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -188,7 +188,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Registre prorrogações, ajustes de valor e alterações contratuais.</p>
+          <p class="muted">Registre prorrogaÃ§Ãµes, ajustes de valor e alteraÃ§Ãµes contratuais.</p>
         </div>
         <span class="pill" *ngIf="termoEmEdicao">Vinculado a {{ termoEmEdicao.numeroTermo }}</span>
       </div>
@@ -197,16 +197,16 @@
         <label class="field">Tipo de aditivo*
           <select formControlName="tipoAditivo">
             <option value="">Selecione</option>
-            <option value="Prorrogacao">Prorrogação de prazo</option>
+            <option value="Prorrogacao">ProrrogaÃ§Ã£o de prazo</option>
             <option value="Reajuste">Reajuste de valor</option>
-            <option value="Clausula">Alteração de cláusula</option>
+            <option value="Clausula">AlteraÃ§Ã£o de clÃ¡usula</option>
             <option value="Outro">Outro</option>
           </select>
         </label>
         <label class="field">Data do aditivo*<input type="date" formControlName="dataAditivo" /></label>
         <label class="field">Nova data fim<input type="date" formControlName="novaDataFim" /></label>
         <label class="field">Novo valor<input type="text" formControlName="novoValor" placeholder="R$ 0,00" (input)="onNovoValorInput($event)" /></label>
-        <label class="field full">Observações<textarea rows="2" formControlName="observacoes" placeholder="Resumo das alterações"></textarea></label>
+        <label class="field full">ObservaÃ§Ãµes<textarea rows="2" formControlName="observacoes" placeholder="Resumo das alteraÃ§Ãµes"></textarea></label>
         <div class="upload-card full">
           <div class="upload-card__header">
             <div>
@@ -236,7 +236,7 @@
       <div class="list-card aditivo-list" *ngIf="termoEmEdicao">
         <div class="list-card__header">
           <div>
-            <p class="page-title__eyebrow">Histórico</p>
+            <p class="page-title__eyebrow">HistÃ³rico</p>
             <p class="page-title__label">Aditivos registrados</p>
           </div>
         </div>
@@ -246,9 +246,9 @@
               <tr>
                 <th>Data</th>
                 <th>Tipo</th>
-                <th>Nova vigência</th>
+                <th>Nova vigÃªncia</th>
                 <th>Novo valor</th>
-                <th>Observações</th>
+                <th>ObservaÃ§Ãµes</th>
                 <th></th>
               </tr>
             </thead>
@@ -258,7 +258,7 @@
                   <td>{{ aditivo.tipoAditivo }}</td>
                   <td>{{ formatDate(aditivo.novaDataFim) }}</td>
                   <td>{{ formatCurrency(aditivo.novoValor) }}</td>
-                  <td>{{ aditivo.observacoes || '—' }}</td>
+                  <td>{{ aditivo.observacoes || 'â€”' }}</td>
                   <td class="text-right">
                     <a
                       class="primary"
@@ -291,7 +291,7 @@
       <div class="list-card__header">
         <div>
           <p class="page-title__eyebrow">Termos cadastrados</p>
-          <p class="page-title__label">Painel de gestão</p>
+          <p class="page-title__label">Painel de gestÃ£o</p>
         </div>
       </div>
       <div class="table-wrapper">
@@ -299,11 +299,11 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Número</th>
+              <th>NÃºmero</th>
               <th>Tipo</th>
-              <th>Órgão concedente</th>
-              <th>Vigência</th>
-              <th>Situação</th>
+              <th>Ã“rgÃ£o concedente</th>
+              <th>VigÃªncia</th>
+              <th>SituaÃ§Ã£o</th>
               <th>Valor</th>
               <th></th>
             </tr>
@@ -313,11 +313,11 @@
               <td>{{ i + 1 }}</td>
               <td>
                 <div class="strong">{{ termo.numeroTermo }}</div>
-                <div class="muted">{{ termo.responsavelInterno || 'Sem responsável' }}</div>
+                <div class="muted">{{ termo.responsavelInterno || 'Sem responsÃ¡vel' }}</div>
               </td>
               <td>{{ termo.tipoTermo }}</td>
-              <td>{{ termo.orgaoConcedente || '—' }}</td>
-              <td>{{ formatDate(termo.dataInicioVigencia) }} — {{ formatDate(termo.dataFimVigencia) }}</td>
+              <td>{{ termo.orgaoConcedente || 'â€”' }}</td>
+              <td>{{ formatDate(termo.dataInicioVigencia) }} â€” {{ formatDate(termo.dataFimVigencia) }}</td>
               <td>
                 <span class="badge" [ngClass]="statusBadge(termo)?.tone">{{ statusBadge(termo)?.label }}</span>
                 <div class="muted">{{ termo.situacao }}</div>
@@ -341,6 +341,7 @@
   </div>
 </section>
 </app-tela-padrao>
+
 
 
 

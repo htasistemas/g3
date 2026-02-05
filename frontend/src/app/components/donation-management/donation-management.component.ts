@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -170,8 +170,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   tabs: { id: TabId; label: string }[] = [
     { id: 'identificacao', label: 'Identificacao' },
-    { id: 'historico', label: 'Histórico de doações' },
-    { id: 'planejamento', label: 'Doações a realizar' },
+    { id: 'historico', label: 'HistÃ³rico de doaÃ§Ãµes' },
+    { id: 'planejamento', label: 'DoaÃ§Ãµes a realizar' },
     { id: 'dashboard', label: 'Dashboard' }
   ];
 
@@ -201,7 +201,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   identificationForm: FormGroup = this.fb.group({
     beneficiaryName: ['', Validators.required],
-    responsible: ['Usuário logado', Validators.required],
+    responsible: ['UsuÃ¡rio logado', Validators.required],
     notes: ['']
   });
 
@@ -451,7 +451,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     return {
       id: payload.id_familia ?? '',
       name: payload.nome_familia,
-      document: payload.municipio ? `Município: ${payload.municipio}` : 'Familia cadastrada',
+      document: payload.municipio ? `MunicÃ­pio: ${payload.municipio}` : 'Familia cadastrada',
       cpf: undefined,
       birthDate: undefined,
       age: null,
@@ -501,7 +501,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       }
     } catch (error) {
       console.error('Failed to search beneficiaries', error);
-      this.beneficiarySearchError.set('Nao foi possível buscar beneficiarios no momento.');
+      this.beneficiarySearchError.set('Nao foi possÃ­vel buscar beneficiarios no momento.');
     } finally {
       this.searchingBeneficiaries.set(false);
     }
@@ -618,7 +618,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.changeTab('historico');
       },
       error: () => {
-        this.itemError.set('Nao foi possível registrar a doacao agora.');
+        this.itemError.set('Nao foi possÃ­vel registrar a doacao agora.');
       }
     });
   }
@@ -696,7 +696,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       deliveryDate: this.todayIso,
       donationType: 'Entrega planejada',
       status: 'entregue',
-      responsible: this.identificationForm.value['responsible'] || 'Usuário logado',
+      responsible: this.identificationForm.value['responsible'] || 'UsuÃ¡rio logado',
       notes: plan.notes,
       items: [
         {
@@ -740,7 +740,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const payload = {
       beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
       vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
-      tipoDoacao: 'Doação planejada',
+      tipoDoacao: 'DoaÃ§Ã£o planejada',
       situacao: 'entregue',
       responsavel: this.identificationForm.value['responsible'],
       observacoes: plan.notes,
@@ -764,7 +764,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.changeTab('historico');
       },
       error: () => {
-        this.plannedError.set('Nao foi possível registrar a doacao planejada.');
+        this.plannedError.set('Nao foi possÃ­vel registrar a doacao planejada.');
       }
     });
   }
@@ -799,10 +799,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   formatPlanStatus(status: PlannedDonation['status']): string {
     if (status === 'cancelado') {
-      return 'Doação cancelada';
+      return 'DoaÃ§Ã£o cancelada';
     }
     if (status === 'entregue') {
-      return 'Doação entregue';
+      return 'DoaÃ§Ã£o entregue';
     }
     return status;
   }
@@ -850,7 +850,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.stockItems.set(mapped);
       },
       error: () => {
-        this.itemError.set('Nao foi possível carregar itens do almoxarifado.');
+        this.itemError.set('Nao foi possÃ­vel carregar itens do almoxarifado.');
       }
     });
   }
@@ -863,7 +863,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.donationHistory.set(mapped);
       },
       error: () => {
-        this.historicoErro.set('Nao foi possível carregar as doações realizadas.');
+        this.historicoErro.set('Nao foi possÃ­vel carregar as doaÃ§Ãµes realizadas.');
       }
     });
   }
@@ -1225,10 +1225,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       return 'Opta por cesta basica';
     }
     if (beneficiary.aptoReceberCestaBasica === true) {
-      return 'Apto para Receber Doações';
+      return 'Apto para Receber DoaÃ§Ãµes';
     }
     if (beneficiary.aptoReceberCestaBasica === false) {
-      return 'Não Apto para Receber Doações';
+      return 'NÃ£o Apto para Receber DoaÃ§Ãµes';
     }
     return 'Nao informado';
   }
@@ -1295,7 +1295,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.mostrarMotivoCestaBasica.set(false);
     this.identificationForm.reset({
       beneficiaryName: '',
-      responsible: this.identificationForm.value['responsible'] || 'UsuÃ¡rio logado',
+      responsible: this.identificationForm.value['responsible'] || 'UsuÃƒÂ¡rio logado',
       notes: ''
     });
     this.deliveredItems.set([]);
@@ -1325,6 +1325,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   }
 
 }
+
 
 
 

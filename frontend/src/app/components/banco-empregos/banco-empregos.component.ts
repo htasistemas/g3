@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -295,14 +295,14 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
 
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
-    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'Beneficiário sem nome';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃ¡rio sem nome';
     this.beneficiarioSelecionado = beneficiario;
     this.encaminhamentoForm.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }
 
   selecionarCandidato(beneficiario: BeneficiarioApiPayload): void {
     const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
-    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃ¡rio sem nome';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃƒÂ¡rio sem nome';
     this.candidatoSelecionado = beneficiario;
     this.formularioCandidato.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }
@@ -874,3 +874,4 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
   }
 
 }
+

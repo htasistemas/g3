@@ -1,4 +1,4 @@
-import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+﻿import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBell,
   faBookOpen,
@@ -65,7 +65,6 @@ export const menuSections: MenuItem[] = [
     icon: faGauge,
     children: [
       { label: 'Indicadores', icon: faChartColumn, route: '/dashboard/indicadores' },
-      { label: 'Mapa dos Beneficiarios', icon: faMapLocationDot, route: '/dashboard/mapa-beneficiarios' },
       { label: 'Visao Geral', icon: faChartPie, route: '/dashboard/visao-geral' },
     ],
   },
@@ -192,3 +191,4 @@ export const menuSections: MenuItem[] = [
     ],
   },
 ];
+

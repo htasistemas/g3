@@ -1,6 +1,6 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-g3-green-50 flex items-center justify-center px-4 py-8 lg:py-10">
+﻿<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-g3-green-50 flex items-center justify-center px-4 py-8 lg:py-10">
   <div
-    class="w-full max-w-6xl overflow-hidden rounded-3xl shadow-2xl ring-1 ring-slate-200/80 bg-white/90 backdrop-blur"
+    class="w-full overflow-hidden rounded-3xl shadow-2xl ring-1 ring-slate-200/80 bg-white/90 backdrop-blur"
   >
     <div class="grid lg:grid-cols-[1.05fr_1fr]">
       <!-- Form section -->
@@ -54,7 +54,7 @@
           </label>
 
           <label class="block space-y-2">
-            <span class="text-sm font-medium text-slate-700">Senha</span>
+            <span class="text-sm font-medium text-slate-700">senha</span>
             <div class="input-field">
               <input
                 [(ngModel)]="senha"
@@ -189,7 +189,7 @@
       </label>
 
       <label class="block space-y-2">
-        <span class="text-sm font-medium text-slate-700">Senha *</span>
+        <span class="text-sm font-medium text-slate-700">senha *</span>
         <div class="input-field">
           <input
             [(ngModel)]="cadastroSenha"
@@ -200,7 +200,7 @@
           />
         </div>
         <p *ngIf="cadastroSubmetido && !cadastroSenha" class="text-xs text-rose-600">
-          Senha &eacute; obrigat&oacute;ria.
+          senha &eacute; obrigat&oacute;ria.
         </p>
         <p *ngIf="cadastroSubmetido && cadastroSenha && cadastroSenha.length < 6" class="text-xs text-rose-600">
           A senha deve ter pelo menos 6 caracteres.
@@ -219,7 +219,7 @@
           />
         </div>
         <p *ngIf="cadastroSubmetido && !cadastroConfirmarSenha" class="text-xs text-rose-600">
-          Senha &eacute; obrigat&oacute;ria.
+          senha &eacute; obrigat&oacute;ria.
         </p>
         <p
           *ngIf="cadastroSubmetido && cadastroConfirmarSenha && cadastroSenha !== cadastroConfirmarSenha"
@@ -308,7 +308,7 @@
           />
         </div>
         <p *ngIf="redefinicaoSubmetida && !recuperacaoSenha" class="text-xs text-rose-600">
-          Senha &eacute; obrigat&oacute;ria.
+          senha &eacute; obrigat&oacute;ria.
         </p>
         <p *ngIf="redefinicaoSubmetida && recuperacaoSenha && recuperacaoSenha.length < 6" class="text-xs text-rose-600">
           A senha deve ter pelo menos 6 caracteres.
@@ -327,7 +327,7 @@
           />
         </div>
         <p *ngIf="redefinicaoSubmetida && !recuperacaoConfirmarSenha" class="text-xs text-rose-600">
-          Senha &eacute; obrigat&oacute;ria.
+          senha &eacute; obrigat&oacute;ria.
         </p>
         <p
           *ngIf="redefinicaoSubmetida && recuperacaoConfirmarSenha && recuperacaoSenha !== recuperacaoConfirmarSenha"
@@ -426,3 +426,4 @@
     </footer>
   </div>
 </div>
+

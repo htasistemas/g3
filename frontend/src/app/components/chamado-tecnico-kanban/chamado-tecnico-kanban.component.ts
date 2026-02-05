@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { Subject } from 'rxjs';
@@ -127,3 +127,4 @@ export class ChamadoTecnicoKanbanComponent extends TelaBaseComponent implements 
     return statusKey.replace(/_/g, ' ');
   }
 }
+

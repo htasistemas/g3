@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -242,7 +242,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
         this.atualizarOpcoesCadastro(items);
       },
       error: () => {
-        this.formError = 'Não foi possível carregar os itens do almoxarifado.';
+        this.formError = 'não foi possível carregar os itens do almoxarifado.';
         this.popupErros = [this.formError];
       }
     });
@@ -261,7 +261,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
         }
       },
       error: () => {
-        this.formError = this.formError || 'Não foi possível gerar o próximo codigo do item.';
+        this.formError = this.formError || 'não foi possível gerar o próximo codigo do item.';
         if (this.formError) {
           this.popupErros = [this.formError];
         }
@@ -358,14 +358,14 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   onImprimirToolbar(): void {
     const itens = this.items();
     if (!itens.length) {
-      this.popupErros = ['Não ha itens cadastrados para gerar o relatorio.'];
+      this.popupErros = ['não ha itens cadastrados para gerar o relatorio.'];
       return;
     }
 
     const html = this.buildRelatorioEstoqueHtml(itens, this.unidadeAtual);
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      this.popupErros = ['Não foi possível abrir a janela de impressão.'];
+      this.popupErros = ['não foi possível abrir a janela de impressão.'];
       return;
     }
     printWindow.document.write(html);
@@ -380,10 +380,10 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
 
   private buildRelatorioEstoqueHtml(itens: StockItem[], unidade: AssistanceUnitPayload | null): string {
     const logo = unidade?.logomarcaRelatorio || unidade?.logomarca || '';
-    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || 'Instituicao';
+    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || 'Instituição';
     const nomeRelatorio = 'Relatório de Controle de Estoque';
     const cnpj = unidade?.cnpj || '---';
-    const endereço = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
+    const endereco = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
       .filter((valor) => (valor ?? '').toString().trim().length > 0)
       .join(' - ');
     const telefone = unidade?.telefone || '---';
@@ -532,7 +532,7 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
 
             <footer class="report-footer">
               <div>${this.escapeHtml(razaoSocial)}</div>
-              <div>${this.escapeHtml(endereço)}</div>
+              <div>${this.escapeHtml(endereco)}</div>
               <div>Telefone: ${this.escapeHtml(telefone)} | Email: ${this.escapeHtml(email)}</div>
             </footer>
           </div>
@@ -1420,6 +1420,9 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     return mapa;
   }
 }
+
+
+
 
 
 

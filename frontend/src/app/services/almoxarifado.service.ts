@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -95,8 +95,8 @@ export class AlmoxarifadoService {
 
   listMovements(): Observable<StockMovement[]> {
     return this.http
-      .get<{ movimentações: AlmoxarifadoMovimentacaoApi[] }>(`${this.baseUrl}/movements`)
-      .pipe(map((response) => (response.movimentações ?? []).map((item) => this.mapApiToMovement(item))));
+      .get<{ movimentacoes: AlmoxarifadoMovimentacaoApi[] }>(`${this.baseUrl}/movements`)
+      .pipe(map((response) => (response.movimentacoes ?? []).map((item) => this.mapApiToMovement(item))));
   }
 
   createItem(payload: StockItemPayload): Observable<StockItem> {
@@ -326,3 +326,4 @@ type MovimentacaoKitVinculoApi = {
   quantidade: number;
   saldo_apos: number;
 };
+

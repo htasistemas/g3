@@ -1,17 +1,17 @@
-<div class="version-page">
+﻿<div class="version-page">
   <header class="page-title page-title--row">
     <div>
-      <p class="page-title__eyebrow">CONFIGURACOES GERAIS</p>
+      <p class="page-title__eyebrow">CONFIGURações GERAIS</p>
       <p class="page-title__label">Versao do Sistema</p>
     </div>
-    <p class="page-title__note">Consulta e atualizacao da versao do sistema.</p>
+    <p class="page-title__note">Consulta e atualização da versao do sistema.</p>
   </header>
   <div class="version-header">
     <div class="version-header__info">
       <p class="subtitle">Acompanhe a versão atual e o histórico das últimas entregas.</p>
     </div>
     <div class="version-chip">
-      <span>Versão atual</span>
+      <span>versão atual</span>
       <strong *ngIf="!carregandoVersao && currentVersion">{{ currentVersion }}</strong>
       <strong *ngIf="carregandoVersao">Carregando...</strong>
       <strong *ngIf="!carregandoVersao && !currentVersion">--</strong>
@@ -54,9 +54,9 @@
         <span>Resumo</span>
       </div>
       <p *ngIf="erroHistorico" class="release-empty">{{ erroHistorico }}</p>
-      <p *ngIf="!erroHistorico && carregandoHistorico" class="release-empty">Carregando historico...</p>
+      <p *ngIf="!erroHistorico && carregandoHistorico" class="release-empty">Carregando histórico...</p>
       <p *ngIf="!erroHistorico && !carregandoHistorico && historicoVersoes.length === 0" class="release-empty">
-        Nenhuma atualizacao registrada.
+        Nenhuma atualização registrada.
       </p>
 
       <article class="release-row" *ngFor="let item of historicoPaginado">
@@ -79,7 +79,7 @@
           (click)="voltarPagina()"
           aria-label="Pagina anterior"
         >
-          ◀
+          â—€
         </button>
         <span class="release-pagination__status">
           Pagina {{ paginaAtual }} de {{ totalPaginas }}
@@ -91,11 +91,13 @@
           (click)="avancarPagina()"
           aria-label="Proxima pagina"
         >
-          ▶
+          â–¶
         </button>
       </div>
     </div>
   </section>
 </div>
+
+
 
 

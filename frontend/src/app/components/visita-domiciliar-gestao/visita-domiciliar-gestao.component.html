@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -20,7 +20,7 @@
 
   <section class="cadastro">
   <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informacoes</p>
+    <p class="tab-shell__title">Navegue pelas informações</p>
     <ol class="step-tabs" role="tablist">
       <li
         *ngFor="let tab of tabs; index as idx"
@@ -70,7 +70,7 @@
       </div>
       <div class="tab-card__status" *ngIf="beneficiarioAptidao">
         <p class="muted">
-          <strong>Aptidao para doacoes:</strong> {{ formatarAptidaoDoacoes() }}
+          <strong>Aptidao para doações:</strong> {{ formatarAptidaoDoacoes() }}
         </p>
       </div>
       <div class="field-grid cols-3">
@@ -104,17 +104,17 @@
             <option value=""></option>
             <option *ngFor="let tipo of tiposVisita" [value]="tipo">{{ tipo }}</option>
           </select></label>
-        <label class="field">Situacao da visita*<select formControlName="situacao">
+        <label class="field">Situação da visita*<select formControlName="situacao">
             <option value=""></option>
             <option *ngFor="let situacao of situacoes" [value]="situacao">{{ situacao }}</option>
           </select></label>
-        <label class="field full">Observacoes iniciais<textarea formControlName="observacoesIniciais" rows="3" placeholder="Resumo do objetivo da visita"></textarea></label>
+        <label class="field full">Observações iniciais<textarea formControlName="observacoesIniciais" rows="3" placeholder="Resumo do objetivo da visita"></textarea></label>
         <div class="feature-grid">
           <label class="checkbox-field"><input type="checkbox" formControlName="usarEnderecoBeneficiario" (change)="onToggleEnderecoBeneficiario()" />
-            <span>Utilizar endereco do beneficiario</span></label>
+            <span>Utilizar endereço do beneficiario</span></label>
         </div>
         <div class="field full" formGroupName="endereco">
-          <p class="field-title">endereco da visita (preencha apenas se diferente do beneficiario)</p>
+          <p class="field-title">endereço da visita (preencha apenas se diferente do beneficiario)</p>
           <div class="field-grid cols-3">
             <label class="field">Logradouro<input formControlName="logradouro" /></label>
             <label class="field">Numero<input formControlName="numero" /></label>
@@ -140,7 +140,7 @@
             <option value=""></option>
             <option *ngFor="let situacao of situacaoMoradia" [value]="situacao">{{ situacao }}</option>
           </select></label>
-        <label class="field">Situacao de posse<select formControlName="situacaoPosse">
+        <label class="field">Situação de posse<select formControlName="situacaoPosse">
             <option value=""></option>
             <option *ngFor="let situacao of situacaoPosse" [value]="situacao">{{ situacao }}</option>
           </select></label>
@@ -162,7 +162,7 @@
             <option *ngFor="let option of higiene" [value]="option">{{ option }}</option>
           </select></label>
         <div class="field full">
-          <p class="field-title">Situacao de risco</p>
+          <p class="field-title">Situação de risco</p>
           <div class="chips">
             <label *ngFor="let risco of riscos" class="chip">
               <input type="checkbox" [checked]="selectionChecked(['condicoes', 'situacaoRisco'], risco)" (change)="toggleSelection(['condicoes', 'situacaoRisco'], risco)" />
@@ -170,7 +170,7 @@
             </label>
           </div>
         </div>
-        <label class="field full">Observacoes<textarea formControlName="observacoes" rows="3"></textarea></label>
+        <label class="field full">Observações<textarea formControlName="observacoes" rows="3"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -189,7 +189,7 @@
             <option *ngFor="let faixa of faixasRenda" [value]="faixa">{{ faixa }}</option>
           </select></label>
         <div class="field full">
-          <p class="field-title">Beneficios sociais</p>
+          <p class="field-title">benefícios sociais</p>
           <div class="chips">
             <label *ngFor="let beneficio of beneficiosSociais" class="chip">
               <input type="checkbox" [checked]="selectionChecked(['situacaoSocial', 'beneficios'], beneficio)" (change)="toggleSelection(['situacaoSocial', 'beneficios'], beneficio)" />
@@ -199,7 +199,7 @@
         </div>
         <label class="field">Rede de apoio<textarea rows="3" formControlName="redeApoio" placeholder="Vizinhos, parentes, igreja..."></textarea></label>
         <label class="field">Vinculos comunitarios<textarea rows="3" formControlName="vinculos" placeholder="Como participa da comunidade"></textarea></label>
-        <label class="field full">Observacoes sociais<textarea rows="3" formControlName="observacoes"></textarea></label>
+        <label class="field full">Observações sociais<textarea rows="3" formControlName="observacoes"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -216,20 +216,20 @@
         <label class="field full">Relato da visita<textarea formControlName="relato" rows="4" placeholder="Descreva como foi a visita"></textarea></label>
         <label class="field">Necessidades identificadas<textarea formControlName="necessidades" rows="3"></textarea></label>
         <label class="field">Encaminhamentos realizados<textarea formControlName="encaminhamentos" rows="3" placeholder="Servico/setor, data, responsavel"></textarea></label>
-        <label class="field">Orientacoes dadas<textarea formControlName="orientacoes" rows="3"></textarea></label>
-        <label class="field full">Plano de acompanhamento<textarea formControlName="plano" rows="3" placeholder="Acoes planejadas com prazo/responsavel"></textarea></label>
-        <label class="field">Usuario necessita de cesta basica?*
+        <label class="field">Orientações dadas<textarea formControlName="orientacoes" rows="3"></textarea></label>
+        <label class="field full">Plano de acompanhamento<textarea formControlName="plano" rows="3" placeholder="ações planejadas com prazo/responsavel"></textarea></label>
+        <label class="field">usuário necessita de cesta basica?*
           <select formControlName="optaReceberCestaBasica" (change)="onOptaCestaBasicaChange()">
             <option [ngValue]="null"></option>
             <option [ngValue]="true">Sim</option>
-            <option [ngValue]="false">Nao</option>
+            <option [ngValue]="false">Não</option>
           </select>
         </label>
         <label class="field" *ngIf="visitForm.get('registro.optaReceberCestaBasica')?.value === true">Apto a receber cesta basica?*
           <select formControlName="aptoReceberCestaBasica" (change)="onAptoCestaBasicaChange()">
             <option [ngValue]="null"></option>
             <option [ngValue]="true">Sim</option>
-            <option [ngValue]="false">Nao</option>
+            <option [ngValue]="false">Não</option>
           </select>
         </label>
         <label class="field" *ngIf="visitForm.get('registro.optaReceberCestaBasica')?.value === true && visitForm.get('registro.aptoReceberCestaBasica')?.value === false">Motivo:*
@@ -309,7 +309,7 @@
             <thead>
               <tr>
                 <th>Data</th>
-                <th>Situacao</th>
+                <th>Situação</th>
                 <th>Responsavel</th>
                 <th>Unidade</th>
                 <th>Resumo</th>
@@ -376,7 +376,7 @@
                 <option value=""></option>
                 <option *ngFor="let unidade of unidades" [value]="unidade">{{ unidade }}</option>
               </select></label>
-            <label class="field">Situacao<select formControlName="situacao">
+            <label class="field">Situação<select formControlName="situacao">
                 <option value=""></option>
                 <option *ngFor="let situacao of situacoes" [value]="situacao">{{ situacao }}</option>
               </select></label>
@@ -397,7 +397,7 @@
                 <th>Beneficiario</th>
                 <th>Responsavel</th>
                 <th>Unidade</th>
-                <th>Situacao</th>
+                <th>Situação</th>
                 <th></th>
               </tr>
             </thead>
@@ -432,6 +432,7 @@
   </form>
 </section>
 </app-tela-padrao>
+
 
 
 

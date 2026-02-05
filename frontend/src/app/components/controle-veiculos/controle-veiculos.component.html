@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -33,7 +33,7 @@
     </div>
 
     <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informacoes</p>
+      <p class="tab-shell__title">Navegue pelas informações</p>
       <ol class="step-tabs" role="tablist">
         <li
         *ngFor="let tab of abas; index as idx"
@@ -59,7 +59,7 @@
       <section class="tab-card" #cartaoMotoristas>
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">Cadastro de veiculos</p>
+            <p class="tab-card__highlight">cadastro de veiculos</p>
             <p class="muted">Mantenha a frota organizada com dados completos.</p>
           </div>
         </div>
@@ -120,7 +120,7 @@
           </label>
 
           <label class="field full">
-            Observacoes
+            Observações
             <textarea formControlName="observacoes" rows="3"></textarea>
           </label>
 
@@ -150,7 +150,7 @@
                   <thead>
                     <tr>
                       <th>Documento</th>
-                      <th class="text-right">Acoes</th>
+                      <th class="text-right">ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,7 +207,7 @@
                 </div>
 
                 <div class="info">
-                  Use fotos em boa resolucao para melhor visualizacao.
+                  Use fotos em boa resolucao para melhor visualização.
                 </div>
               </div>
 
@@ -217,7 +217,7 @@
                     <tr>
                       <th>Tipo</th>
                       <th>Arquivo</th>
-                      <th class="text-right">Acoes</th>
+                      <th class="text-right">ações</th>
                     </tr>
                   </thead>
                   <tbody *ngIf="fotosAnexadas.length; else emptyFotos">
@@ -269,7 +269,7 @@
               <th>Marca</th>
               <th>Ano</th>
               <th>Status</th>
-              <th class="text-right">Acoes</th>
+              <th class="text-right">ações</th>
             </tr>
           </thead>
           <tbody *ngIf="veiculos.length; else semVeiculos">
@@ -353,7 +353,7 @@
           </label>
 
           <label class="field full">
-            Observacoes
+            Observações
             <textarea formControlName="observacoes" rows="3"></textarea>
           </label>
         </div>
@@ -395,7 +395,7 @@
               <th>Media (km/L)</th>
               <th>Combustivel (L)</th>
               <th>Destino</th>
-              <th class="text-right">Acoes</th>
+              <th class="text-right">ações</th>
             </tr>
           </thead>
           <tbody *ngIf="registros.length; else semRegistros">
@@ -499,7 +499,7 @@
               <thead>
                 <tr>
                   <th>Arquivo da carteira (PDF)</th>
-                  <th class="text-right">Acoes</th>
+                  <th class="text-right">ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -570,7 +570,7 @@
               <th>Categoria</th>
               <th>Vencimento</th>
               <th>Arquivo</th>
-              <th class="text-right">Acoes</th>
+              <th class="text-right">ações</th>
             </tr>
           </thead>
           <tbody *ngIf="motoristasAutorizados.length; else semMotoristas">
@@ -622,7 +622,7 @@
     <div class="modal-card__header">
       <div>
         <p class="modal-card__eyebrow">Carteira de motorista</p>
-        <p class="modal-card__title">Visualizacao do PDF</p>
+        <p class="modal-card__title">Visualização do PDF</p>
       </div>
       <button type="button" class="ghost" (click)="fecharCarteiraPdf()" aria-label="Fechar">&times;</button>
     </div>
@@ -635,3 +635,4 @@
     </div>
   </div>
 </div>
+

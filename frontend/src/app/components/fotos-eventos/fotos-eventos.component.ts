@@ -796,3 +796,4 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     return null;
   }
 }
+

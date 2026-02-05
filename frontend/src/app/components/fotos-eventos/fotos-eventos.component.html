@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   (novo)="abrirFormularioNovo()"
@@ -10,7 +10,7 @@
       <p class="page-title__eyebrow">SETOR ADMINISTRATIVO</p>
       <p class="page-title__label">Fotos e Eventos</p>
     </div>
-    <p class="page-title__note">Cadastro e acompanhamento de fotos e eventos.</p>
+    <p class="page-title__note">cadastro e acompanhamento de fotos e eventos.</p>
   </header>
 
   <div class="page-actions-extra" slot="acoes">
@@ -56,10 +56,10 @@
           </label>
           <label class="field">
             Tags
-            <input type="text" formControlName="tags" placeholder="Ex.: Capacitacao, Campanha" title="Separe as tags por virgula" />
+            <input type="text" formControlName="tags" placeholder="Ex.: Capacitação, Campanha" title="Separe as tags por virgula" />
           </label>
           <label class="field">
-            Ordenacao
+            Ordenação
             <select formControlName="ordenacao" title="Ordene a listagem">
               <option *ngFor="let item of ordenacaoOpcoes" [value]="item.valor">{{ item.label }}</option>
             </select>
@@ -213,7 +213,7 @@
     <div class="modal__header">
       <div>
         <p class="modal__eyebrow">{{ eventoEmEdicaoId ? 'Editar evento' : 'Novo evento' }}</p>
-        <h3>Cadastro de evento</h3>
+        <h3>cadastro de evento</h3>
       </div>
       <button type="button" class="btn-ghost" (click)="fecharFormulario()" aria-label="Fechar">x</button>
     </div>
@@ -380,5 +380,6 @@
   (confirmar)="executarExcluir()"
   (cancelar)="cancelarExcluir()"
 ></app-dialog>
+
 
 

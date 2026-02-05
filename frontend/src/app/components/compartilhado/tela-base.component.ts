@@ -1,4 +1,4 @@
-export type AcaoCrud = 'salvar' | 'excluir' | 'novo' | 'cancelar' | 'imprimir' | 'buscar';
+﻿export type AcaoCrud = 'salvar' | 'excluir' | 'novo' | 'cancelar' | 'imprimir' | 'buscar';
 
 export type ConfigAcoesCrud = {
   salvar?: boolean;
@@ -31,3 +31,4 @@ export abstract class TelaBaseComponent {
     };
   }
 }
+
