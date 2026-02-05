@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class EmailServiceImpl implements EmailService {
   private static final String CONFIG_EMAIL_ARQUIVO = "configuracao servidor email.txt";
   private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
+  private static final String ALERTS_BLOCKED_RECIPIENT = "htasistemas@gmail.com";
 
   private final JavaMailSender mailSender;
   private final boolean habilitado;
@@ -224,6 +225,10 @@ public class EmailServiceImpl implements EmailService {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Email do destinatario nao informado.");
     }
+    if (isAlertsBlockedRecipient(destinatario)) {
+      LOGGER.info("Envio de alertas ignorado para destinatario bloqueado.");
+      return;
+    }
 
     boolean envioHabilitado = habilitado;
     String hostConfigurado = hostMail;
@@ -321,6 +326,13 @@ public class EmailServiceImpl implements EmailService {
       from = username == null || username.trim().isEmpty() ? from : username;
     }
     return from;
+  }
+
+  private boolean isAlertsBlockedRecipient(String destinatario) {
+    if (destinatario == null) {
+      return false;
+    }
+    return destinatario.trim().equalsIgnoreCase(ALERTS_BLOCKED_RECIPIENT);
   }
 
   private JavaMailSenderImpl buildMailSender() {
