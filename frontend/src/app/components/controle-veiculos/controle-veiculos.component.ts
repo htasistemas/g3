@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AbstractControl,
   FormBuilder,
@@ -45,6 +46,7 @@ type AbaControleVeiculos = 'cadastro' | 'diario' | 'motoristas';
   styleUrl: './controle-veiculos.component.scss'
 })
 export class ControleVeiculosComponent extends TelaBaseComponent implements OnInit {
+  @ViewChild('cartaoMotoristas') cartaoMotoristas?: ElementRef<HTMLElement>;
   readonly abas: { id: AbaControleVeiculos; label: string; descricao: string }[] = [
     {
       id: 'cadastro',
@@ -107,6 +109,10 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
   fotoLateralDireitaPreview: string | null = null;
   fotoTraseiraPreview: string | null = null;
   documentoVeiculoPdf: string | null = null;
+  carteiraPdfSelecionada: string | null = null;
+  carteiraPdfAberto = false;
+  carteiraPdfSeguro: SafeResourceUrl | null = null;
+  mostrarAlertaEdicao = false;
 
   termoMotorista = '';
   opcoesMotorista: AutocompleteOpcao[] = [];
@@ -134,7 +140,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly controleVeiculosService: ControleVeiculosService
+    private readonly controleVeiculosService: ControleVeiculosService,
+    private readonly sanitizer: DomSanitizer
   ) {
     super();
     const hojeIso = new Date().toISOString().substring(0, 10);
@@ -628,7 +635,9 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     const numeroCarteira = this.formularioMotorista.get('numeroCarteira')?.value;
     const categoriaCarteira = this.formularioMotorista.get('categoriaCarteira')?.value;
     const vencimentoCarteira = this.formularioMotorista.get('vencimentoCarteira')?.value;
-    const arquivoCarteiraPdf = this.formularioMotorista.get('arquivoCarteiraPdf')?.value;
+    const arquivoCarteiraPdf = this.normalizarPdf(
+      this.formularioMotorista.get('arquivoCarteiraPdf')?.value
+    );
     if (!Array.isArray(veiculoIds) || veiculoIds.length === 0) {
       this.popupErros = new PopupErrorBuilder().adicionar('Selecione ao menos um veiculo.').build();
       return;
@@ -763,6 +772,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
 
   private limparFormularioMotorista(): void {
     this.motoristaSelecionadoId = null;
+    this.mostrarAlertaEdicao = false;
     this.termoMotorista = '';
     this.opcoesMotorista = [];
     this.formularioMotorista.reset({
@@ -870,6 +880,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       vencimentoCarteira: motorista.vencimentoCarteira ?? '',
       arquivoCarteiraPdf: motorista.arquivoCarteiraPdf ?? null
     });
+    this.carteiraPdfSelecionada = this.normalizarPdf(motorista.arquivoCarteiraPdf);
     this.termoMotorista = motorista.nomeMotorista;
     this.opcoesMotorista = [
       {
@@ -886,6 +897,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
       )
       .map((item) => item.veiculoId);
     this.formularioMotorista.get('veiculoIds')?.setValue(Array.from(new Set(veiculoIds)));
+    this.mostrarAlertaEdicao = true;
+    Promise.resolve().then(() => this.rolarParaCartaoMotoristas());
   }
 
   onCarteiraSelecionada(event: Event): void {
@@ -905,6 +918,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     reader.onload = () => {
       const dataUrl = reader.result as string;
       this.formularioMotorista.get('arquivoCarteiraPdf')?.setValue(dataUrl);
+      this.carteiraPdfSelecionada = dataUrl;
       input.value = '';
     };
     reader.readAsDataURL(file);
@@ -1098,7 +1112,31 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
 
   visualizarCarteiraPdf(arquivo: string | null | undefined): void {
     if (!arquivo) return;
-    window.open(arquivo, '_blank');
+    const arquivoNormalizado = this.normalizarPdf(arquivo);
+    if (!arquivoNormalizado) return;
+    this.carteiraPdfSelecionada = arquivoNormalizado;
+    this.carteiraPdfSeguro = this.sanitizer.bypassSecurityTrustResourceUrl(arquivoNormalizado);
+    this.carteiraPdfAberto = true;
+  }
+
+  fecharCarteiraPdf(): void {
+    this.carteiraPdfAberto = false;
+    this.carteiraPdfSeguro = null;
+  }
+
+  imprimirCarteiraPdf(): void {
+    const arquivo = this.carteiraPdfSelecionada;
+    if (!arquivo) return;
+    const janela = window.open(arquivo, '_blank', 'width=900,height=1100');
+    if (!janela) return;
+    janela.addEventListener(
+      'load',
+      () => {
+        janela.focus();
+        janela.print();
+      },
+      { once: true }
+    );
   }
 
   private obterPreviewPorTipo(tipo: string): string | null {
@@ -1117,6 +1155,17 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
     if (tipo === 'Lateral direita') return 'lateralDireita';
     if (tipo === 'Traseira') return 'traseira';
     return null;
+  }
+
+  private normalizarPdf(arquivo: string | null | undefined): string | null {
+    if (!arquivo) return null;
+    if (arquivo.startsWith('data:application/pdf')) return arquivo;
+    return `data:application/pdf;base64,${arquivo}`;
+  }
+
+  private rolarParaCartaoMotoristas(): void {
+    if (!this.cartaoMotoristas?.nativeElement) return;
+    this.cartaoMotoristas.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   private validarPlaca(control: AbstractControl): ValidationErrors | null {

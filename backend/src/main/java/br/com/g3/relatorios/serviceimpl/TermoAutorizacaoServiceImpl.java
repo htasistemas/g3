@@ -65,6 +65,7 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     String instituicaoCnpj = unidade != null ? textoSeguro(unidade.getCnpj()) : "Nao informado";
 
     StringBuilder sb = new StringBuilder();
+    sb.append("<div style=\"font-size: 12px;\">");
     sb.append("<p>Pelo presente instrumento, eu, <strong>")
         .append(escapeHtml(beneficiario))
         .append("</strong>, portador(a) do documento de identidade RG n&#186; ")
@@ -108,11 +109,18 @@ public class TermoAutorizacaoServiceImpl implements TermoAutorizacaoService {
     sb.append("</ol>");
 
     sb.append("<p>Por estar de acordo com os termos e condicoes acima, firmo o presente documento.</p>");
-    sb.append("<p>").append(escapeHtml(localAssinatura)).append(", ").append(escapeHtml(dataAssinatura)).append(".</p>");
+    sb.append("<p style=\"margin-bottom: 1cm;\">")
+        .append(escapeHtml(localAssinatura))
+        .append(", ")
+        .append(escapeHtml(dataAssinatura))
+        .append(".</p>");
 
-    sb.append("<div class=\"signature\">");
-    sb.append("  <div class=\"signature__line\">Assinatura do(a) Beneficiario(a) / Titular dos Dados</div>");
-    sb.append("  <div class=\"signature__line\">Assinatura do(a) Representante da Instituicao</div>");
+    sb.append("<div class=\"signature\" style=\"margin-top: 12px;\">");
+    sb.append("  <div class=\"signature__line\" style=\"border-top: none; border-bottom: 1px solid #111827; min-height: 90px; display: flex; align-items: flex-end; padding-bottom: 6px;\">");
+    sb.append("Assinatura do(a) Beneficiario(a) / Titular dos Dados</div>");
+    sb.append("  <div class=\"signature__line\" style=\"border-top: none; border-bottom: 1px solid #111827; min-height: 90px; display: flex; align-items: flex-end; padding-bottom: 6px;\">");
+    sb.append("Assinatura do(a) Representante da Instituicao</div>");
+    sb.append("</div>");
     sb.append("</div>");
 
     return sb.toString();

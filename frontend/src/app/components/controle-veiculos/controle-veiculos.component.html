@@ -56,7 +56,7 @@
     </div>
 
     <form *ngIf="abaAtiva === 'cadastro'" [formGroup]="formularioVeiculo" class="form-shell">
-      <section class="tab-card">
+      <section class="tab-card" #cartaoMotoristas>
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Cadastro de veiculos</p>
@@ -494,10 +494,38 @@
             ></app-autocomplete>
           </label>
 
-          <label class="field">
-            Arquivo da carteira (PDF)
-            <input type="file" accept="application/pdf" (change)="onCarteiraSelecionada($event)" />
-          </label>
+          <div class="document-table full">
+            <table>
+              <thead>
+                <tr>
+                  <th>Arquivo da carteira (PDF)</th>
+                  <th class="text-right">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="carteira-anexo">
+                      <input type="file" accept="application/pdf" (change)="onCarteiraSelecionada($event)" />
+                      <span class="muted">
+                        {{ carteiraPdfSelecionada ? 'Arquivo anexado' : 'Nenhum arquivo anexado' }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="text-right actions">
+                    <button
+                      type="button"
+                      class="ghost"
+                      [disabled]="!carteiraPdfSelecionada"
+                      (click)="visualizarCarteiraPdf(carteiraPdfSelecionada)"
+                    >
+                      Visualizar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -505,11 +533,19 @@
         <div class="list-card__header">
           <div>
             <p class="list-card__eyebrow">Motoristas autorizados</p>
-            <p class="list-card__title">Selecione para editar ou excluir.</p>
+            <p class="list-card__title">
+              {{ motoristaSelecionadoId ? 'Edite os dados dos motoristas autorizados.' : 'Selecione para editar ou excluir.' }}
+            </p>
           </div>
           <div class="list-card__actions">
             <span class="muted">Total: {{ motoristasAutorizados.length }}</span>
           </div>
+        </div>
+        <div class="alert alert-warning alert-inline" *ngIf="mostrarAlertaEdicao">
+          <span class="alert__message">Edite os dados dos motoristas autorizados.</span>
+          <button type="button" class="alert__close" aria-label="Fechar" (click)="mostrarAlertaEdicao = false">
+            &times;
+          </button>
         </div>
 
         <div class="motoristas-resumo" *ngIf="motoristasPorVeiculo.length">
@@ -580,3 +616,22 @@
     (cancelar)="cancelarExclusao()"
   ></app-dialog>
 </app-tela-padrao>
+
+<div class="modal-overlay" *ngIf="carteiraPdfAberto">
+  <div class="modal-card modal-card--carteira" role="dialog" aria-modal="true">
+    <div class="modal-card__header">
+      <div>
+        <p class="modal-card__eyebrow">Carteira de motorista</p>
+        <p class="modal-card__title">Visualizacao do PDF</p>
+      </div>
+      <button type="button" class="ghost" (click)="fecharCarteiraPdf()" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-card__body">
+      <iframe *ngIf="carteiraPdfSeguro" [src]="carteiraPdfSeguro" title="Carteira de motorista"></iframe>
+    </div>
+    <div class="modal-card__actions">
+      <button type="button" class="ghost" (click)="fecharCarteiraPdf()">Fechar</button>
+      <button type="button" class="primary" (click)="imprimirCarteiraPdf()">Imprimir</button>
+    </div>
+  </div>
+</div>
