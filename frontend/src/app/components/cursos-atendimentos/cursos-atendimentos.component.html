@@ -358,7 +358,11 @@
                 <td>{{ enrollment.beneficiaryName }}</td>
                 <td>{{ enrollment.cpf }}</td>
                 <td>
-                  <select [ngModel]="enrollment.status" (ngModelChange)="updateEnrollmentStatus(enrollment, $event)">
+                  <select
+                    [ngModel]="enrollment.status"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="updateEnrollmentStatus(enrollment, $event)"
+                  >
                     <option value="Ativo">Ativo</option>
                     <option value="Concluído">Concluído</option>
                     <option value="Cancelado">Cancelado</option>
