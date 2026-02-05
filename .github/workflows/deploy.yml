@@ -21,6 +21,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ -f docker-compose.tunnel.yml ]; then
+            echo "ERRO: docker-compose.tunnel.yml existe. Remova para evitar queda do sistema."
+            exit 1
+          fi
+
           arquivoVersao="backend/src/main/resources/static/version.txt"
 
           if [ ! -f "$arquivoVersao" ]; then
@@ -54,12 +59,8 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
-          COMPOSE="docker compose -p g3 -f docker-compose.yml"
-          if [ -f docker-compose.tunnel.yml ]; then
-            COMPOSE="$COMPOSE -f docker-compose.tunnel.yml"
-          fi
-          $COMPOSE down --remove-orphans
-          $COMPOSE up -d --build --force-recreate --remove-orphans
+          docker compose -p g3 -f docker-compose.yml down --remove-orphans
+          docker compose -p g3 -f docker-compose.yml up -d --build --force-recreate --remove-orphans
 
           echo "Aguardando backend subir..."
           for i in {1..20}; do

@@ -58,9 +58,13 @@ services:
   tunnel:
     image: cloudflare/cloudflared:latest
     entrypoint: ["cloudflared", "tunnel", "--config", "/etc/cloudflared/config.yml", "run"]
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     volumes:
       - ./docker/cloudflared:/etc/cloudflared:ro
     restart: always
+    networks:
+      - g3_net
     depends_on:
       backend:
         condition: service_healthy

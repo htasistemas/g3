@@ -1,6 +1,6 @@
 ingress:
   - hostname: g3.htasistemas.com.br
-    service: http://localhost:80
+    service: http://frontend:80
   - hostname: apig3.htasistemas.com.br
-    service: http://localhost:8080
+    service: http://backend:8080
   - service: http_status:404
