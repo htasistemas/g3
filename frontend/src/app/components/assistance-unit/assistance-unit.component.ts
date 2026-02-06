@@ -36,7 +36,7 @@ interface ViaCepResponse {
 export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly faHospitalUser = faHospitalUser;
   readonly tabs = [
-    { id: 'lista', label: 'Unidades cadastradas' },
+    { id: 'lista', label: 'Listagem de unidades' },
     { id: 'dados', label: 'Dados da unidade' },
     { id: 'endereco', label: 'Endereço da unidade' },
     { id: 'imagens', label: 'Imagens da unidade' },
@@ -1180,7 +1180,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     const content = `
       <html>
         <head>
-          <title>Listagem de unidades cadastradas</title>
+          <title>Listagem de unidades</title>
           <style>
             @page {
               size: A4;
@@ -1291,7 +1291,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
               </div>
               <div class="header-title">
                 <p class="instituicao">${unidadeReferencia?.razaoSocial || unidadeReferencia?.nomeFantasia || 'Instituicao'}</p>
-              <p class="relatorio">Listagem de unidades cadastradas</p>
+              <p class="relatorio">Listagem de unidades</p>
               </div>
             </div>
 

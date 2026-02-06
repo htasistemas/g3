@@ -63,6 +63,7 @@ import { VolunteerPayload, VolunteerService } from '../../services/volunteer.ser
 
 
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
+import { BeneficiaryPayload, BeneficiaryService } from '../../services/beneficiary.service';
 
 
 
@@ -167,6 +168,32 @@ interface StepTab {
 
 
 }
+
+interface BuscaVoluntarioItem {
+  tipo: 'profissional' | 'beneficiario';
+  origemLabel: string;
+  id?: number | string;
+  nomeCompleto: string;
+  cpf?: string;
+  dataNascimento?: string;
+  sexoBiologico?: string;
+  profissao?: string;
+  cep?: string;
+  logradouro?: string;
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  pontoReferencia?: string;
+  municipio?: string;
+  zona?: string;
+  uf?: string;
+  email?: string;
+  telefone?: string;
+  cidade?: string;
+  estado?: string;
+}
+
 
 
 
@@ -407,6 +434,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
   profissionaisVoluntarios: ProfessionalRecord[] = [];
+  beneficiariosVoluntarios: BeneficiaryPayload[] = [];
 
 
 
@@ -414,7 +442,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
 
-  profissionalResultados: ProfessionalRecord[] = [];
+  profissionalResultados: BuscaVoluntarioItem[] = [];
 
 
 
@@ -431,6 +459,8 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
   carregandoProfissionais = false;
+  carregandoBeneficiarios = false;
+  ultimoTermoBeneficiario = '';
 
 
 
@@ -731,6 +761,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
     private readonly professionalService: ProfessionalService,
+    private readonly beneficiaryService: BeneficiaryService,
 
 
 
@@ -1283,6 +1314,7 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
     this.loadProfissionaisVoluntarios();
+    this.loadBeneficiariosVoluntarios();
 
 
 
@@ -7109,54 +7141,21 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
 
-    this.profissionalResultados = this.profissionaisVoluntarios
+    this.buscarBeneficiariosPorTermo(term);
 
+    const profissionais = this.profissionaisVoluntarios.map((item) =>
+      this.mapProfissionalParaBusca(item)
+    );
+    const beneficiarios = this.beneficiariosVoluntarios.map((item) =>
+      this.mapBeneficiarioParaBusca(item)
+    );
 
-
-
-
-
-
+    this.profissionalResultados = [...profissionais, ...beneficiarios]
       .filter((item) => {
-
-
-
-
-
-
-
         const nome = this.normalizeText(item.nomeCompleto);
-
-
-
-
-
-
-
         const cpf = this.normalizeText(item.cpf);
-
-
-
-
-
-
-
         return nome.includes(normalized) || cpf.includes(normalized);
-
-
-
-
-
-
-
       })
-
-
-
-
-
-
-
       .slice(0, 6);
 
 
@@ -7182,276 +7181,157 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
   selecionarProfissional(profissional: ProfessionalRecord): void {
-
-
-
-
-
-
-
-    const emailProfissional = (profissional.email ?? '').trim();
-
-
-
-
-
-
-
-    const telefoneProfissional = (profissional.telefone ?? '').trim();
-
-
-
-
-
-
-
-    this.form.patchValue({
-
-
-
-
-
-
-
-      profissionalId: Number(profissional.id),
-
-
-
-
-
-
-
-      dadosPessoais: {
-
-
-
-
-
-
-
-        nomeCompleto: profissional.nomeCompleto,
-
-
-
-
-
-
-
-        cpf: this.formatCpf(profissional.cpf ?? ''),
-
-
-
-
-
-
-
-        dataNascimento: profissional.dataNascimento ?? '',
-
-
-
-
-
-
-
-        genero: this.normalizarSexoProfissional(profissional.sexoBiologico),
-
-
-
-
-
-
-
-        profissao: profissional.especialidade ?? ''
-
-
-
-
-
-
-
-      },
-
-
-
-
-
-
-
-      endereco: {
-
-
-
-
-
-
-
-        cep: profissional.cep ?? '',
-
-
-
-
-
-
-
-        logradouro: profissional.logradouro ?? '',
-
-
-
-
-
-
-
-        numero: profissional.numero ?? '',
-
-
-
-
-
-
-
-        complemento: profissional.complemento ?? '',
-
-
-
-
-
-
-
-        bairro: profissional.bairro ?? '',
-
-
-
-
-
-
-
-        pontoReferencia: profissional.pontoReferencia ?? '',
-
-
-
-
-
-
-
-        municipio: profissional.municipio ?? '',
-
-
-
-
-
-
-
-        zona: profissional.zona ?? '',
-
-
-
-
-
-
-
-        uf: profissional.uf ?? ''
-
-
-
-
-
-
-
-      },
-
-
-
-
-
-
-
-      contato: {
-
-
-
-
-
-
-
-        email: emailProfissional || this.form.get(['contato', 'email'])?.value || '',
-
-
-
-
-
-
-
-        telefone: telefoneProfissional || this.form.get(['contato', 'telefone'])?.value || '',
-
-
-
-
-
-
-
-        cidade: profissional.municipio ?? '',
-
-
-
-
-
-
-
-        estado: profissional.uf ?? ''
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-    this.profissionalBusca = profissional.nomeCompleto;
-
-
-
-
-
-
-
+    const resultado = this.mapProfissionalParaBusca(profissional);
+    this.aplicarDadosProfissional(resultado);
+    this.profissionalBusca = resultado.nomeCompleto;
     this.profissionalResultados = [];
-
-
-
-
-
-
-
   }
 
+  selecionarResultadoBusca(resultado: BuscaVoluntarioItem): void {
+    if (resultado.tipo === 'profissional') {
+      this.aplicarDadosProfissional(resultado);
+    } else {
+      this.aplicarDadosBeneficiario(resultado);
+    }
+    this.profissionalBusca = resultado.nomeCompleto;
+    this.profissionalResultados = [];
+  }
 
+  private aplicarDadosProfissional(resultado: BuscaVoluntarioItem): void {
+    const emailProfissional = (resultado.email ?? '').trim();
+    const telefoneProfissional = (resultado.telefone ?? '').trim();
+    const profissionalId = this.normalizarIdNumerico(resultado.id);
 
+    this.form.patchValue({
+      profissionalId: profissionalId ?? null,
+      dadosPessoais: {
+        nomeCompleto: resultado.nomeCompleto,
+        cpf: this.formatCpf(resultado.cpf ?? ''),
+        dataNascimento: resultado.dataNascimento ?? '',
+        genero: this.normalizarSexoProfissional(resultado.sexoBiologico),
+        profissao: resultado.profissao ?? ''
+      },
+      endereco: {
+        cep: resultado.cep ?? '',
+        logradouro: resultado.logradouro ?? resultado.endereco ?? '',
+        numero: resultado.numero ?? '',
+        complemento: resultado.complemento ?? '',
+        bairro: resultado.bairro ?? '',
+        pontoReferencia: resultado.pontoReferencia ?? '',
+        municipio: resultado.municipio ?? '',
+        zona: resultado.zona ?? '',
+        uf: resultado.uf ?? ''
+      },
+      contato: {
+        email: emailProfissional || this.form.get(['contato', 'email'])?.value || '',
+        telefone: telefoneProfissional || this.form.get(['contato', 'telefone'])?.value || '',
+        cidade: resultado.municipio ?? '',
+        estado: resultado.uf ?? ''
+      }
+    });
+  }
 
+  private aplicarDadosBeneficiario(resultado: BuscaVoluntarioItem): void {
+    const emailBeneficiario = (resultado.email ?? '').trim();
+    const telefoneBeneficiario = (resultado.telefone ?? '').trim();
 
+    this.form.patchValue({
+      profissionalId: null,
+      dadosPessoais: {
+        nomeCompleto: resultado.nomeCompleto,
+        cpf: this.formatCpf(resultado.cpf ?? ''),
+        dataNascimento: resultado.dataNascimento ?? '',
+        genero: this.normalizarSexoProfissional(resultado.sexoBiologico),
+        profissao: resultado.profissao ?? ''
+      },
+      endereco: {
+        cep: resultado.cep ?? '',
+        logradouro: resultado.logradouro ?? resultado.endereco ?? '',
+        numero: resultado.numero ?? '',
+        complemento: resultado.complemento ?? '',
+        bairro: resultado.bairro ?? '',
+        pontoReferencia: resultado.pontoReferencia ?? '',
+        municipio: resultado.municipio ?? resultado.cidade ?? '',
+        zona: resultado.zona ?? '',
+        uf: resultado.uf ?? resultado.estado ?? ''
+      },
+      contato: {
+        email: emailBeneficiario || this.form.get(['contato', 'email'])?.value || '',
+        telefone: telefoneBeneficiario || this.form.get(['contato', 'telefone'])?.value || '',
+        cidade: resultado.cidade ?? resultado.municipio ?? '',
+        estado: resultado.estado ?? resultado.uf ?? ''
+      }
+    });
+  }
 
+  private normalizarIdNumerico(valor?: number | string): number | null {
+    if (valor === null || valor === undefined) return null;
+    if (typeof valor === 'number' && Number.isFinite(valor)) return valor;
+    const convertido = Number(valor);
+    return Number.isFinite(convertido) ? convertido : null;
+  }
 
+  private mapProfissionalParaBusca(item: ProfessionalRecord): BuscaVoluntarioItem {
+    return {
+      tipo: 'profissional',
+      origemLabel: 'Profissional',
+      id: item.id,
+      nomeCompleto: item.nomeCompleto,
+      cpf: item.cpf,
+      dataNascimento: item.dataNascimento,
+      sexoBiologico: item.sexoBiologico,
+      profissao: item.especialidade ?? '',
+      cep: item.cep ?? '',
+      logradouro: item.logradouro ?? '',
+      numero: item.numero ?? '',
+      complemento: item.complemento ?? '',
+      bairro: item.bairro ?? '',
+      pontoReferencia: item.pontoReferencia ?? '',
+      municipio: item.municipio ?? '',
+      zona: item.zona ?? '',
+      uf: item.uf ?? '',
+      email: item.email ?? '',
+      telefone: item.telefone ?? '',
+      cidade: item.municipio ?? '',
+      estado: item.uf ?? ''
+    };
+  }
 
-
-
-
-
-
-
+  private mapBeneficiarioParaBusca(item: BeneficiaryPayload): BuscaVoluntarioItem {
+    const telefone = item.celular ?? item.telefone ?? item.telefoneFixo ?? item.telefoneRecado ?? '';
+    const nomeCompleto =
+      item.nomeCompleto ??
+      (item as unknown as { nome?: string }).nome ??
+      (item as unknown as { nome_completo?: string }).nome_completo ??
+      '';
+    const cpf = item.cpf ?? (item as unknown as { documentos?: string }).documentos ?? '';
+    const dataNascimento =
+      item.dataNascimento ?? (item as unknown as { data_nascimento?: string }).data_nascimento ?? '';
+    return {
+      tipo: 'beneficiario',
+      origemLabel: 'Beneficiário',
+      id: item.id,
+      nomeCompleto,
+      cpf,
+      dataNascimento,
+      sexoBiologico: item.sexoBiologico ?? item.sexo,
+      profissao: item.ocupacao ?? '',
+      cep: item.cep ?? '',
+      logradouro: item.logradouro ?? item.endereco ?? '',
+      endereco: item.endereco ?? '',
+      numero: item.numero ?? item.numeroEndereco ?? '',
+      complemento: item.complemento ?? '',
+      bairro: item.bairro ?? '',
+      pontoReferencia: item.pontoReferencia ?? '',
+      municipio: item.cidade ?? '',
+      zona: item.zona ?? '',
+      uf: item.uf ?? item.estado ?? '',
+      email: item.email ?? '',
+      telefone: telefone,
+      cidade: item.cidade ?? '',
+      estado: item.estado ?? item.uf ?? ''
+    };
+  }
 
   private normalizarSexoProfissional(sexo?: string | null): string {
 
@@ -9690,6 +9570,9 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
           this.carregandoProfissionais = false;
+          if (this.profissionalBusca.trim()) {
+            this.onBuscaProfissional(this.profissionalBusca);
+          }
 
 
 
@@ -9745,6 +9628,61 @@ export class VoluntariadoCadastroComponent extends TelaBaseComponent implements 
 
 
 
+  }
+
+  private buscarBeneficiariosPorTermo(term: string): void {
+    if (this.carregandoBeneficiarios) return;
+
+    const texto = (term ?? '').trim();
+    if (!texto || texto.length < 3) return;
+    if (texto === this.ultimoTermoBeneficiario) return;
+
+    const apenasNumeros = texto.replace(/\D/g, '');
+    const filtros: { nome?: string; cpf?: string; codigo?: string } = {};
+
+    if (apenasNumeros.length >= 3) {
+      filtros.cpf = apenasNumeros;
+    } else {
+      filtros.nome = texto;
+    }
+
+    this.carregandoBeneficiarios = true;
+    this.ultimoTermoBeneficiario = texto;
+    this.beneficiaryService
+      .list(filtros)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ beneficiarios }) => {
+          this.beneficiariosVoluntarios = beneficiarios ?? [];
+          this.carregandoBeneficiarios = false;
+          if (this.profissionalBusca.trim()) {
+            this.onBuscaProfissional(this.profissionalBusca);
+          }
+        },
+        error: () => {
+          this.carregandoBeneficiarios = false;
+        }
+      });
+  }
+
+  private loadBeneficiariosVoluntarios(): void {
+    this.carregandoBeneficiarios = true;
+    this.beneficiaryService
+      .list()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ beneficiarios }) => {
+          this.beneficiariosVoluntarios = beneficiarios ?? [];
+          this.carregandoBeneficiarios = false;
+          if (this.profissionalBusca.trim()) {
+            this.onBuscaProfissional(this.profissionalBusca);
+          }
+        },
+        error: () => {
+          this.beneficiariosVoluntarios = [];
+          this.carregandoBeneficiarios = false;
+        }
+      });
   }
 
 

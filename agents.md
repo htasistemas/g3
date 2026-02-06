@@ -45,6 +45,12 @@
 - MUST usar `app-tela-padrao` como base.
 - MUST usar cards padronizados do G3 para organizar conteúdo.
 - SHOULD usar abas/etapas quando houver separação lógica.
+- MUST seguir o padrão da tela **Cadastro de Beneficiários** para:
+  - Abas laterais em formato de menu.
+  - Título com ícone ao lado.
+  - Barra de ações no topo seguindo o mesmo layout.
+  - Tela responsiva ocupando 100% da área útil, com pequeno respiro nas laterais.
+  - Layout principal preenchendo 100% da altura e largura disponíveis.
 
 ### Cabeçalho da página (sempre)
 - MUST exibir no topo:
@@ -90,6 +96,12 @@
   - Aba ativa: verde escuro + texto branco
   - Abas anteriores: verde claro + texto verde escuro
   - Abas futuras: neutras
+- MUST usar **abas laterais em formato de menu**, sem linhas/separadores entre os itens (igual Cadastro de Beneficiários).
+- MUST manter o **mesmo tamanho das abas** do Cadastro de Beneficiários:
+  - `min-height: 44px`
+  - `padding: 0.35rem 0.55rem`
+  - `font-size: 0.8rem` no rótulo
+  - Índice: `22px` x `22px`, `font-size: 0.7rem`
 - MUST permitir apenas 1 aba ativa por vez.
 - MUST manter comportamento idêntico ao padrão já existente (cadastros do G3).
 
@@ -135,6 +147,9 @@
 
 ### Listagens
 - SHOULD usar como modelo a listagem de beneficiários (filtros, cards, lista e paginação).
+- MUST manter botões de filtro (Buscar/Limpar) alinhados ao campo **Status** e com a mesma altura dos campos.
+- MUST manter espaçamento horizontal entre os campos de filtro (ex.: Nome, Categoria, Status), evitando campos colados.
+- MUST remover botões de **Editar** nas listagens e permitir **duplo clique** na linha/card para abrir a edição.
 
 ---
 
@@ -224,4 +239,3 @@ Todo agente MUST confirmar:
 - Backend seguro
 - Banco atualizado via init.db
 - Layout sem sobreposição
-

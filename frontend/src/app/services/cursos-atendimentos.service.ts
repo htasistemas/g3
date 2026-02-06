@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { SalaRecord } from './salas.service';
 
 export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
-export type EnrollmentStatus = 'Ativo' | 'ConcluÃ­do' | 'Cancelado';
+export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
 
 export interface Enrollment {
   id: string;
@@ -116,4 +116,5 @@ export class CursosAtendimentosService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
+
 

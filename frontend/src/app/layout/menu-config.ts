@@ -64,8 +64,8 @@ export const menuSections: MenuItem[] = [
     label: 'Dashboard',
     icon: faGauge,
     children: [
-      { label: 'Indicadores', icon: faChartColumn, route: '/dashboard/indicadores' },
       { label: 'Visao Geral', icon: faChartPie, route: '/dashboard/visao-geral' },
+      { label: 'Indicadores', icon: faChartColumn, route: '/dashboard/indicadores' },
     ],
   },
   {

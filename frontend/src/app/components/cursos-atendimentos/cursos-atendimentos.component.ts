@@ -1,5 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import {
@@ -62,7 +64,6 @@ interface DashboardSnapshot {
   profissionais: number;
   mediaCargaHoraria: number;
   taxaConclusao: number;
-  engajamento: number;
 }
 
 interface DashboardWidget {
@@ -83,28 +84,29 @@ interface WidgetState {
 @Component({
   selector: 'app-cursos-atendimentos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, DialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, DialogComponent],
   templateUrl: './cursos-atendimentos.component.html',
   styleUrl: './cursos-atendimentos.component.scss'
 })
 export class CursosAtendimentosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  readonly faGraduationCap = faGraduationCap;
   readonly tabs: StepTab[] = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'dados', label: 'Dados de Matriculas' },
-    { id: 'catalogo', label: 'Catalogo e Vagas' },
-    { id: 'inscricoes', label: 'Inscricoes e Lista de Espera' },
-    { id: 'presenca', label: 'Presenca' },
-    { id: 'listagem', label: 'Listagem de matriculas' }
+    { id: 'dados', label: 'Dados de Matrículas' },
+    { id: 'catalogo', label: 'Catálogo e vagas' },
+    { id: 'inscricoes', label: 'Inscrições e lista de espera' },
+    { id: 'presenca', label: 'Presença' },
+    { id: 'listagem', label: 'Listagem de matrículas' }
   ];
 
   readonly diasSemana = [
     'Domingo',
     'Segunda-feira',
-    'TerÃ§a-feira',
+    'Terça-feira',
     'Quarta-feira',
     'Quinta-feira',
     'Sexta-feira',
-    'SÃ¡bado'
+    'Sábado'
   ];
 
   readonly faixasEtarias = [
@@ -145,9 +147,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   readonly dashboardWidgets: DashboardWidget[] = [
     {
       id: 'ocupacao',
-      title: 'Taxa de ocupaÃ§Ã£o',
-      description: 'Quanto das vagas estÃ¡ preenchido nos cursos e atendimentos.',
-      gradient: 'emerald',
+      title: 'Taxa de ocupação',
+      description: 'Quanto das vagas está preenchido nos cursos e atendimentos.',
+      gradient: 'teal',
       getValue: (snapshot) => `${snapshot.ocupacao}%`,
       getHelper: (snapshot) => `${snapshot.vagasEmUso}/${snapshot.totalVagas || 0} vagas em uso`,
       getProgress: (snapshot) => snapshot.ocupacao
@@ -155,46 +157,38 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     {
       id: 'profissionais',
       title: 'Profissionais ativos',
-      description: 'ResponsÃ¡veis vinculados Ã s ofertas cadastradas.',
+      description: 'Responsáveis vinculados às ofertas cadastradas.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.profissionais}`,
-      getHelper: (snapshot) => `${snapshot.mediaCargaHoraria}h mÃ©dia de carga semanal`
+      getHelper: (snapshot) => `${snapshot.mediaCargaHoraria}h média de carga semanal`
     },
     {
       id: 'matriculas',
-      title: 'InscriÃ§Ãµes ativas',
-      description: 'MatrÃ­culas em andamento e fila de espera.',
-      gradient: 'sky',
+      title: 'Inscrições ativas',
+      description: 'Matrículas em andamento e fila de espera.',
+      gradient: 'teal',
       getValue: (snapshot) => `${snapshot.totalMatriculas}`,
       getHelper: (snapshot) => `${snapshot.totalInscricoes} registros + ${snapshot.waitlist} em espera`,
       getProgress: (snapshot) => Math.min(100, Math.max(10, 100 - snapshot.waitlistPressao))
     },
     {
       id: 'conclusao',
-      title: 'Taxa de conclusÃ£o',
-      description: 'Percentual de beneficiarios que concluiram as atividades.',
-      gradient: 'indigo',
+      title: 'Taxa de conclusão',
+      description: 'Percentual de beneficiários que concluíram as atividades.',
+      gradient: 'teal',
       getValue: (snapshot) => `${snapshot.taxaConclusao}%`,
-      getHelper: (snapshot) => `${snapshot.concluidos} concluÃ­dos â€¢ ${snapshot.cancelados} cancelamentos`,
+      getHelper: (snapshot) => `${snapshot.concluidos} concluídos • ${snapshot.cancelados} cancelamentos`,
       getProgress: (snapshot) => snapshot.taxaConclusao
     },
     {
       id: 'portfolio',
-      title: 'PortfÃ³lio de ofertas',
-      description: 'DistribuiÃ§Ã£o entre cursos, atendimentos e oficinas.',
-      gradient: 'violet',
+      title: 'Portfólio de ofertas',
+      description: 'Distribuição entre cursos, atendimentos e oficinas.',
+      gradient: 'teal',
       getValue: (snapshot) => `${snapshot.cursos + snapshot.atendimentos + snapshot.oficinas}`,
-      getHelper: (snapshot) => `${snapshot.cursos} cursos â€¢ ${snapshot.atendimentos} atendimentos â€¢ ${snapshot.oficinas} oficinas`
+      getHelper: (snapshot) => `${snapshot.cursos} cursos • ${snapshot.atendimentos} atendimentos • ${snapshot.oficinas} oficinas`
     },
-    {
-      id: 'engajamento',
-      title: 'Engajamento',
-      description: 'CombinaÃ§Ã£o de ocupaÃ§Ã£o, fila e retenÃ§Ã£o.',
-      gradient: 'fuchsia',
-      getValue: (snapshot) => `${snapshot.engajamento}%`,
-      getHelper: (snapshot) => `${snapshot.waitlistPressao}% pressÃ£o de fila`,
-      getProgress: (snapshot) => snapshot.engajamento
-    }
+    
   ];
   private readonly widgetPrefsKey = 'g3.cursos.dashboard.widgets';
 
@@ -276,7 +270,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.roomsLoading = false;
-        this.feedback = 'Nao foi possÃ­vel carregar as salas. Tente novamente.';
+        this.feedback = 'Não foi possível carregar as salas. Tente novamente.';
       }
     });
   }
@@ -400,7 +394,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       const room = this.rooms.find((item) => item.id === roomId);
       if (room) return room.nome;
     }
-    return course.sala?.nome ?? 'Nao informado';
+    return course.sala?.nome ?? 'Não informado';
   }
 
   submit(): void {
@@ -446,7 +440,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.saving = false;
       },
       error: () => {
-        this.feedback = 'Nao foi possivel salvar o cadastro. Tente novamente.';
+        this.feedback = 'Não foi possível salvar o cadastro. Tente novamente.';
         this.saving = false;
       }
     });
@@ -463,7 +457,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.feedback = 'Nao foi possivel carregar os registros. Tente novamente.';
+        this.feedback = 'Não foi possível carregar os registros. Tente novamente.';
       }
     });
   }
@@ -485,6 +479,10 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.printDialogOpen = true;
   }
 
+  closeForm(): void {
+    window.history.back();
+  }
+
   closePrintDialog(): void {
     this.printDialogOpen = false;
   }
@@ -499,8 +497,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       );
       this.openPdfInNewWindow(blob);
     } catch (error) {
-      console.error('Erro ao gerar relacao de cursos e atendimentos', error);
-      this.feedback = 'Falha ao gerar a relacao de cursos e atendimentos.';
+      console.error('Erro ao gerar relação de cursos e atendimentos', error);
+      this.feedback = 'Falha ao gerar a relação de cursos e atendimentos.';
     }
   }
 
@@ -538,7 +536,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const url = URL.createObjectURL(blob);
     const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
     if (!documentWindow) {
-      this.feedback = 'Permita a abertura de pop-ups para visualizar o relatorio.';
+      this.feedback = 'Permita a abertura de pop-ups para visualizar o relatório.';
       URL.revokeObjectURL(url);
       return;
     }
@@ -632,7 +630,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.saving = false;
       },
       error: () => {
-        this.feedback = 'Nao foi possÃ­vel excluir o cadastro. Tente novamente.';
+        this.feedback = 'Não foi possível excluir o cadastro. Tente novamente.';
         this.saving = false;
       }
     });
@@ -682,7 +680,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   enroll(): void {
     this.feedback = null;
     if (!this.currentCourse) {
-      this.feedback = 'Selecione um curso/atendimento para gerenciar as inscriÃ§Ãµes.';
+      this.feedback = 'Selecione um curso/atendimento para gerenciar as inscrições.';
       return;
     }
 
@@ -708,7 +706,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     );
 
     if (alreadyRegistered || alreadyOnWaitlist) {
-      this.feedback = 'Este beneficiario ja estÃ¡ inscrito ou aguardando neste curso/atendimento.';
+      this.feedback = 'Este beneficiário já está inscrito ou aguardando neste curso/atendimento.';
       return;
     }
 
@@ -726,7 +724,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
     } else {
       const confirmWaitlist = window.confirm(
-        'Nao hÃ¡ vagas disponiveis. Deseja incluir o beneficiario na lista de espera?'
+        'Não há vagas disponíveis. Deseja incluir o beneficiário na lista de espera??'
       );
       if (confirmWaitlist) {
         const entry: WaitlistEntry = {
@@ -770,7 +768,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   removeEnrollment(enrollment: Enrollment): void {
     if (!this.currentCourse) return;
-    const confirm = window.confirm('A exclusÃ£o Ã© irreversÃ­vel, tem certeza?');
+    const confirm = window.confirm('A exclusão é irreversível, tem certeza?');
     if (!confirm) return;
 
     const statusAnterior = enrollment.status;
@@ -891,11 +889,11 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.feedback = null;
     const curso = this.currentCourse;
     if (!curso) {
-      this.feedback = 'Selecione um curso/atendimento para gerar a lista de presenca.';
+      this.feedback = 'Selecione um curso/atendimento para gerar a lista de presença.';
       return;
     }
     if (!this.dataPresencaSelecionada) {
-      this.feedback = 'Informe a data da aula para imprimir a lista de presenca.';
+      this.feedback = 'Informe a data da aula para imprimir a lista de presença.';
       return;
     }
     const linhas = this.matriculasAtivas
@@ -925,7 +923,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       <html lang="pt-BR">
         <head>
           <meta charset="utf-8" />
-          <title>Lista de presenca</title>
+          <title>lista de presença</title>
           <style>
             @page { size: A4; margin: 20mm; }
             body { font-family: Arial, sans-serif; color: #111827; }
@@ -956,7 +954,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         <body>
           <header>
             <div class="linha-info">G3 Assistencial</div>
-            <h1>Lista de presenca</h1>
+            <h1>lista de presença</h1>
             <p class="subtitulo">Curso/Atendimento: ${curso.nome}</p>
             <p class="linha-info">Data da aula: ${this.dataPresencaSelecionada}</p>
           </header>
@@ -965,7 +963,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Beneficiario</th>
+                  <th>beneficiário</th>
                   <th>CPF</th>
                   <th>Status</th>
                   <th>Assinatura</th>
@@ -1029,7 +1027,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           });
         },
         error: () => {
-          this.feedback = 'Nao foi possivel carregar a presenca desta data.';
+          this.feedback = 'Não foi possível carregar a presença desta data.';
         },
       });
   }
@@ -1050,7 +1048,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           });
         },
         error: () => {
-          this.feedback = 'Nao foi possivel salvar a presenca.';
+          this.feedback = 'Não foi possível salvar a presença.';
         },
       });
   }
@@ -1091,13 +1089,13 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       )
       .subscribe(({ beneficiarios }) => {
         this.beneficiaryResults = beneficiarios
-          .map((beneficiario) => this.mapearBeneficiarioParaBusca(beneficiario))
+          .map((beneficiario) => this.mapearbeneficiarioParaBusca(beneficiario))
           .slice(0, 5);
         this.beneficiarySearchLoading = false;
       });
   }
 
-  private mapearBeneficiarioParaBusca(beneficiario: BeneficiarioApiPayload): BeneficiaryPayload {
+  private mapearbeneficiarioParaBusca(beneficiario: BeneficiarioApiPayload): BeneficiaryPayload {
     return {
       id: beneficiario.id_beneficiario ? Number(beneficiario.id_beneficiario) : undefined,
       nomeCompleto: beneficiario.nome_completo || '',
@@ -1145,7 +1143,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.widgetState = { ...this.widgetState, ...(JSON.parse(saved) as WidgetState) };
       }
     } catch (error) {
-      console.warn('Nao foi possÃ­vel carregar as preferÃªncias do dashboard', error);
+      console.warn('Não foi possível carregar as preferências do dashboard', error);
     }
 
     this.normalizeWidgetState();
@@ -1157,7 +1155,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         localStorage.setItem(this.widgetPrefsKey, JSON.stringify(this.widgetState));
       }
     } catch (error) {
-      console.warn('Nao foi possÃ­vel salvar as preferÃªncias do dashboard', error);
+      console.warn('Não foi possível salvar as preferências do dashboard', error);
     }
   }
 
@@ -1183,7 +1181,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     );
     const totalInscricoes = this.records.reduce((sum, c) => sum + c.enrollments.length, 0);
     const concluidos = this.records.reduce(
-      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'ConcluÃ­do').length,
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Concluído').length,
       0
     );
     const cancelados = this.records.reduce(
@@ -1208,11 +1206,6 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const waitlistPressao = totalMatriculas
       ? Math.min(100, Math.round((waitlist / totalMatriculas) * 100))
       : 0;
-    const engajamento = Math.min(
-      100,
-      Math.round((ocupacao * 0.4 + (100 - waitlistPressao) * 0.25 + taxaConclusao * 0.35))
-    );
-
     return {
       totalVagas,
       vagasDisponiveis,
@@ -1229,8 +1222,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       oficinas,
       profissionais,
       mediaCargaHoraria,
-      taxaConclusao,
-      engajamento
+      taxaConclusao
     };
   }
 
@@ -1274,7 +1266,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.service.update(course.id, course).subscribe({
       next: (record) => this.replaceRecord(record),
       error: () => {
-        this.feedback = 'Nao foi possÃ­vel salvar as alteraÃ§Ãµes. Tente novamente.';
+        this.feedback = 'Não foi possível salvar as alterações. Tente novamente.';
       }
     });
   }
@@ -1284,6 +1276,22 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.persistCourse(this.currentCourse);
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

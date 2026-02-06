@@ -11006,7 +11006,7 @@
 
 
 
-        <label class="field field--wide">Buscar profissional voluntário
+        <label class="field field--wide">Buscar profissional ou beneficiário
 
 
 
@@ -11518,7 +11518,7 @@
 
 
 
-            <li *ngFor="let profissional of profissionalResultados">
+            <li *ngFor="let resultado of profissionalResultados">
 
 
 
@@ -11646,7 +11646,7 @@
 
 
 
-              <button type="button" (click)="selecionarProfissional(profissional)">
+              <button type="button" (click)="selecionarResultadoBusca(resultado)">
 
 
 
@@ -11774,7 +11774,7 @@
 
 
 
-                <span>{{ profissional.nomeCompleto }}</span>
+                <span>{{ resultado.nomeCompleto }}</span>
 
 
 
@@ -11902,7 +11902,8 @@
 
 
 
-                <small>{{ profissional.cpf || 'CPF não informado' }}</small>
+                <small>{{ resultado.cpf || 'CPF não informado' }}</small>
+                <small>{{ resultado.origemLabel }}</small>
 
 
 
