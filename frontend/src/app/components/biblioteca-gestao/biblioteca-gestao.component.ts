@@ -18,6 +18,8 @@ import { BeneficiaryService, BeneficiaryPayload } from '../../services/beneficia
 import { ProfessionalService, ProfessionalRecord } from '../../services/professional.service';
 import { VolunteerService, VolunteerPayload } from '../../services/volunteer.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBook } from '@fortawesome/free-solid-svg-icons';
 
 interface BibliotecaAba {
   id: BibliotecaAbaId;
@@ -39,17 +41,19 @@ type EntidadeExclusao = 'livro' | 'emprestimo' | null;
     TelaPadraoComponent,
     PopupMessagesComponent,
     AutocompleteComponent,
-    DialogComponent
+    DialogComponent,
+    FontAwesomeModule
   ],
   templateUrl: './biblioteca-gestao.component.html',
   styleUrl: './biblioteca-gestao.component.scss'
 })
 export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  readonly faBook = faBook;
   readonly abas: BibliotecaAba[] = [
     {
       id: 'visao',
       label: 'Visao geral',
-      descricao: 'Resumo do acervo, emprestimos ativos e alertas de devolucao.'
+      descricao: 'Resumo do acervo, empréstimos ativos e alertas de devolução.'
     },
     {
       id: 'livros',
@@ -58,23 +62,23 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     },
     {
       id: 'emprestimos',
-      label: 'Emprestimos',
-      descricao: 'Registre emprestimos para beneficiarios e acompanhe devolucoes.'
+      label: 'Empréstimos',
+      descricao: 'Registre empréstimos para beneficiários e acompanhe devoluções.'
     },
     {
       id: 'devolucoes',
       label: 'Devolucoes',
-      descricao: 'Registre devolucoes e atualize a disponibilidade dos livros.'
+      descricao: 'Registre devoluções e atualize a disponibilidade dos livros.'
     },
     {
       id: 'disponiveis',
       label: 'Livros disponiveis',
-      descricao: 'Relacao de livros com disponibilidade imediata para emprestimo.'
+      descricao: 'Relação de livros com disponibilidade imediata para empréstimo.'
     },
     {
       id: 'alertas',
       label: 'Alertas de devolucao',
-      descricao: 'Alertas automaticos de livros vencidos e prestes a vencer.'
+      descricao: 'Alertas automáticos de livros vencidos e prestes a vencer.'
     }
   ];
 
@@ -119,19 +123,19 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   responsavelTermo = '';
   responsavelOpcoes: AutocompleteOpcao[] = [];
   categoriasLivros: string[] = [
-    'Administracao',
+    'Administração',
     'Autoajuda',
     'Biografias',
-    'Ciencias',
+    'Ciências',
     'Contos',
-    'Culinaria',
-    'Didatico',
+    'Culinária',
+    'Didático',
     'Direito',
-    'Educacao',
+    'Educação',
     'Espiritualidade',
-    'Ficcao',
-    'Ficcao Cientifica',
-    'Historia',
+    'Ficção',
+    'Ficção Científica',
+    'História',
     'Infantil',
     'Juvenil',
     'Literatura Brasileira',
@@ -139,7 +143,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     'Medicina',
     'Psicologia',
     'Romance',
-    'Saude',
+    'Saúde',
     'Tecnologia'
   ];
   estadosLivro: string[] = [
@@ -148,7 +152,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     'Bom',
     'Regular',
     'Danificado',
-    'Restauracao',
+    'Restauração',
     'Extraviado'
   ];
   codigoLivroGerado = '';
@@ -307,7 +311,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       },
       error: () => {
         this.carregandoLivros = false;
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os livros.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar os livros.').build();
       }
     });
   }
@@ -321,7 +325,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       },
       error: () => {
         this.carregandoEmprestimos = false;
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os emprestimos.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar os empréstimos.').build();
       }
     });
   }
@@ -335,7 +339,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       },
       error: () => {
         this.carregandoAlertas = false;
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os alertas de devolucao.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar os alertas de devolução.').build();
       }
     });
   }
@@ -400,7 +404,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       fonte.nome_social ||
       beneficiario.apelido ||
       fonte.apelido ||
-      'Beneficiario sem nome'
+      'Beneficiário sem nome'
     );
   }
 
@@ -514,7 +518,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
         },
         error: () => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel gerar o codigo do livro automaticamente.')
+            .adicionar('Não foi possível gerar o código do livro automaticamente.')
             .build();
         }
       });
@@ -536,7 +540,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
         },
         error: (erro) => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar(erro?.error?.mensagem || 'Nao foi possivel atualizar o livro.')
+            .adicionar(erro?.error?.mensagem || 'Não foi possível atualizar o livro.')
             .build();
         }
       });
@@ -551,7 +555,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       },
       error: (erro) => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar(erro?.error?.mensagem || 'Nao foi possivel cadastrar o livro.')
+          .adicionar(erro?.error?.mensagem || 'Não foi possível cadastrar o livro.')
           .build();
       }
     });
@@ -585,7 +589,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     const livroSelecionado = this.livros.find((livro) => livro.id === dados.livroId);
     if (livroSelecionado && this.obterDisponibilidadeLivro(livroSelecionado) <= 0) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Livro selecionado sem disponibilidade para emprestimo.')
+        .adicionar('Livro selecionado sem disponibilidade para empréstimo.')
         .build();
       return;
     }
@@ -595,13 +599,13 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
         next: (emprestimo) => {
           this.emprestimos = this.emprestimos.map((item) => (item.id === emprestimo.id ? emprestimo : item));
           this.emprestimoSelecionado = emprestimo;
-          this.mostrarFeedbackTemporario('Emprestimo atualizado com sucesso.');
+          this.mostrarFeedbackTemporario('Empréstimo atualizado com sucesso.');
           this.carregarLivros();
           this.carregarAlertas();
         },
         error: (erro) => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar(erro?.error?.mensagem || 'Nao foi possivel atualizar o emprestimo.')
+            .adicionar(erro?.error?.mensagem || 'Não foi possível atualizar o empréstimo.')
             .build();
         }
       });
@@ -612,13 +616,13 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       next: (emprestimo) => {
         this.emprestimos = [emprestimo, ...this.emprestimos];
         this.emprestimoSelecionado = emprestimo;
-        this.mostrarFeedbackTemporario('Emprestimo registrado com sucesso.');
+        this.mostrarFeedbackTemporario('Empréstimo registrado com sucesso.');
         this.carregarLivros();
         this.carregarAlertas();
       },
       error: (erro) => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar(erro?.error?.mensagem || 'Nao foi possivel registrar o emprestimo.')
+          .adicionar(erro?.error?.mensagem || 'Não foi possível registrar o empréstimo.')
           .build();
       }
     });
@@ -633,18 +637,18 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
         this.carregarAlertas();
       },
       error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel registrar a devolucao.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível registrar a devolução.').build();
       }
     });
   }
 
   abrirDialogoExclusao(entidade: EntidadeExclusao): void {
     this.entidadeExclusao = entidade;
-    this.dialogTitulo = entidade === 'livro' ? 'Excluir livro' : 'Excluir emprestimo';
+    this.dialogTitulo = entidade === 'livro' ? 'Excluir livro' : 'Excluir empréstimo';
     this.dialogMensagem =
       entidade === 'livro'
         ? 'Deseja realmente excluir o livro selecionado?'
-        : 'Deseja realmente excluir o emprestimo selecionado?';
+        : 'Deseja realmente excluir o empréstimo selecionado?';
     this.dialogConfirmarLabel = 'Excluir';
     this.dialogConfirmacaoAberta = true;
   }
@@ -678,7 +682,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
       },
       error: (erro) => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar(erro?.error?.mensagem || 'Nao foi possivel excluir o livro.')
+          .adicionar(erro?.error?.mensagem || 'Não foi possível excluir o livro.')
           .build();
       }
     });
@@ -695,11 +699,11 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
         this.resetarEmprestimoForm();
         this.carregarLivros();
         this.carregarAlertas();
-        this.mostrarFeedbackTemporario('Emprestimo excluido com sucesso.');
+        this.mostrarFeedbackTemporario('Empréstimo excluído com sucesso.');
       },
       error: (erro) => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar(erro?.error?.mensagem || 'Nao foi possivel excluir o emprestimo.')
+          .adicionar(erro?.error?.mensagem || 'Não foi possível excluir o empréstimo.')
           .build();
       }
     });
@@ -747,7 +751,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
   private validarLivroObrigatorio(): string[] {
     const builder = new PopupErrorBuilder();
     const campos = [
-      { campo: 'titulo', label: 'Titulo' },
+      { campo: 'titulo', label: 'Título' },
       { campo: 'autor', label: 'Autor' },
       { campo: 'quantidadeTotal', label: 'Quantidade total' },
       { campo: 'status', label: 'Status' },
@@ -757,7 +761,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     campos.forEach(({ campo, label }) => {
       const valor = this.formLivro.get(campo)?.value;
       if (valor === null || valor === undefined || valor === '') {
-        builder.adicionar(`Campo obrigatorio nao preenchido: ${label}.`);
+        builder.adicionar(`Campo obrigatório não preenchido: ${label}.`);
       }
     });
 
@@ -768,15 +772,15 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     const builder = new PopupErrorBuilder();
     const campos = [
       { campo: 'livroId', label: 'Livro' },
-      { campo: 'beneficiarioNome', label: 'Beneficiario' },
-      { campo: 'dataEmprestimo', label: 'Data de emprestimo' },
-      { campo: 'dataDevolucaoPrevista', label: 'Data prevista de devolucao' }
+      { campo: 'beneficiarioNome', label: 'Beneficiário' },
+      { campo: 'dataEmprestimo', label: 'Data de empréstimo' },
+      { campo: 'dataDevolucaoPrevista', label: 'Data prevista de devolução' }
     ];
 
     campos.forEach(({ campo, label }) => {
       const valor = this.formEmprestimo.get(campo)?.value;
       if (valor === null || valor === undefined || valor === '') {
-        builder.adicionar(`Campo obrigatorio nao preenchido: ${label}.`);
+        builder.adicionar(`Campo obrigatório não preenchido: ${label}.`);
       }
     });
 
@@ -1041,13 +1045,13 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
 
   private imprimirLivros(): void {
     if (!this.livros.length) {
-      this.popupErros = new PopupErrorBuilder().adicionar('Nao ha livros cadastrados para imprimir.').build();
+      this.popupErros = new PopupErrorBuilder().adicionar('Não há livros cadastrados para imprimir.').build();
       return;
     }
     const html = `
       <html>
         <head>
-          <title>Relatorio de livros</title>
+          <title>Relatório de livros</title>
           <style>
             @page { size: A4; margin: 18mm; }
             body { font-family: Arial, sans-serif; color: #111827; }
@@ -1058,15 +1062,15 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
           </style>
         </head>
         <body>
-          <h1>Relatorio de livros</h1>
+          <h1>Relatório de livros</h1>
           <table>
             <thead>
               <tr>
-                <th>Codigo</th>
-                <th>Titulo</th>
+                <th>Código</th>
+                <th>Título</th>
                 <th>Autor</th>
                 <th>Categoria</th>
-                <th>Disponiveis</th>
+                <th>Disponíveis</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -1093,7 +1097,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     `;
     const janelaImpressao = window.open('', '_blank');
     if (!janelaImpressao) {
-      this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel abrir a janela de impressao.').build();
+      this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível abrir a janela de impressão.').build();
       return;
     }
     janelaImpressao.document.write(html);
@@ -1104,13 +1108,13 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
 
   private imprimirEmprestimos(): void {
     if (!this.emprestimos.length) {
-      this.popupErros = new PopupErrorBuilder().adicionar('Nao ha emprestimos cadastrados para imprimir.').build();
+      this.popupErros = new PopupErrorBuilder().adicionar('Não há empréstimos cadastrados para imprimir.').build();
       return;
     }
     const html = `
       <html>
         <head>
-          <title>Relatorio de emprestimos</title>
+          <title>Relatório de empréstimos</title>
           <style>
             @page { size: A4; margin: 18mm; }
             body { font-family: Arial, sans-serif; color: #111827; }
@@ -1121,13 +1125,13 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
           </style>
         </head>
         <body>
-          <h1>Relatorio de emprestimos</h1>
+          <h1>Relatório de empréstimos</h1>
           <table>
             <thead>
               <tr>
                 <th>Livro</th>
-                <th>Beneficiario</th>
-                <th>Emprestimo</th>
+                <th>Beneficiário</th>
+                <th>Empréstimo</th>
                 <th>Previsto</th>
                 <th>Status</th>
               </tr>
@@ -1153,7 +1157,7 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
     `;
     const janelaImpressao = window.open('', '_blank');
     if (!janelaImpressao) {
-      this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel abrir a janela de impressao.').build();
+      this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível abrir a janela de impressão.').build();
       return;
     }
     janelaImpressao.document.write(html);
@@ -1175,9 +1179,16 @@ export class BibliotecaGestaoComponent extends TelaBaseComponent implements OnIn
 
   getEmprestimoSelecionadoTitulo(): string {
     if (!this.emprestimoSelecionado) {
-      return 'Nenhum emprestimo selecionado';
+      return 'Nenhum empréstimo selecionado';
     }
     return `${this.emprestimoSelecionado.livroTitulo || 'Livro'} - ${this.emprestimoSelecionado.beneficiarioNome || ''}`;
   }
 }
+
+
+
+
+
+
+
 

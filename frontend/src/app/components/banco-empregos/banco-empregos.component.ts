@@ -9,6 +9,8 @@ import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/b
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import {
   BancoEmpregosService,
@@ -22,7 +24,15 @@ import {
 @Component({
   selector: 'app-banco-empregos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, TelaPadraoComponent, PopupMessagesComponent, DialogComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    DialogComponent,
+    FontAwesomeModule
+  ],
   templateUrl: './banco-empregos.component.html',
   styleUrl: './banco-empregos.component.scss'
 })
@@ -36,13 +46,15 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
     buscar: true
   });
 
+  readonly faBriefcase = faBriefcase;
+
   readonly tabs = [
     { id: 'dadosVaga', label: 'Dados da Vaga' },
     { id: 'empresaLocal', label: 'Empresa e Local' },
-    { id: 'requisitos', label: 'Requisitos e Descricao' },
+    { id: 'requisitos', label: 'Requisitos e Descrição' },
     { id: 'encaminhamentos', label: 'Encaminhamentos' },
-    { id: 'candidatos', label: 'Candidatos a vaga' },
-    { id: 'listagemVagas', label: 'Listagem de vagas' }
+    { id: 'candidatos', label: 'Candidatos da Vaga' },
+    { id: 'listagemVagas', label: 'Listagem de Vagas' }
   ] as const;
 
   activeTab: (typeof this.tabs)[number]['id'] = 'dadosVaga';
@@ -380,6 +392,12 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
   }
 
   onBuscar(): void {
+    this.applyFilters();
+  }
+
+  onLimparListagem(): void {
+    this.listSearch.setValue('');
+    this.statusFilter.setValue('todos');
     this.applyFilters();
   }
 

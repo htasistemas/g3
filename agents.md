@@ -1,4 +1,4 @@
-# AGENTS.md — Sistema G3 (Padrões para Codex/Agentes)
+﻿# AGENTS.md — Sistema G3 (Padrões para Codex/Agentes)
 
 > Objetivo: orientar **implementação de telas** e mudanças correlatas no G3 com padrão único, sem gambiarras e sem divergências visuais/arquiteturais.
 
@@ -50,7 +50,13 @@
   - Título com ícone ao lado.
   - Barra de ações no topo seguindo o mesmo layout.
   - Tela responsiva ocupando 100% da área útil, com pequeno respiro nas laterais.
+  - MUST usar `[fullWidth]="true"` no `app-tela-padrao` para ocupar 100% da largura, mantendo respiro lateral.
   - Layout principal preenchendo 100% da altura e largura disponíveis.
+  - Tipografia, tamanhos de fonte e espaçamentos iguais ao Cadastro de Beneficiários.
+  - Ícone do título igual ao ícone do menu correspondente.
+  - Títulos sem comentários auxiliares.
+  - Botões CRUD em pleno funcionamento (Buscar/Novo/Salvar/Cancelar/Excluir/Imprimir/Fechar).
+  - Acentuação correta em português Brasil.
 
 ### Cabeçalho da página (sempre)
 - MUST exibir no topo:
@@ -58,6 +64,7 @@
   - Linha 2: **Tela atual** (Primeira letra maiúscula), preta.
 - MUST NOT omitir este cabeçalho.
 - MUST NOT criar variações visuais por tela.
+- MUST NOT adicionar títulos fora dos cards das abas em telas novas ou alteradas.
 
 ### Título e subtítulo (anti-redundância)
 - MUST existir **apenas 1 título principal** por área visual.
@@ -102,8 +109,10 @@
   - `padding: 0.35rem 0.55rem`
   - `font-size: 0.8rem` no rótulo
   - Índice: `22px` x `22px`, `font-size: 0.7rem`
+- MUST aplicar o padrão global das abas laterais via `src/styles.scss` (classe `.cadastro-layout .step-tabs`) e **não duplicar** CSS de abas laterais nos componentes.
 - MUST permitir apenas 1 aba ativa por vez.
 - MUST manter comportamento idêntico ao padrão já existente (cadastros do G3).
+- MUST aplicar o mesmo estilo de título das abas do Cadastro de Beneficiários (badge verde com texto em maiúsculas) nas telas com abas laterais.
 
 ### Regras visuais (anti-bug)
 - MUST verificar visualmente: **nenhum texto sobreposto** (títulos, breadcrumbs, subtítulos, comentários).
