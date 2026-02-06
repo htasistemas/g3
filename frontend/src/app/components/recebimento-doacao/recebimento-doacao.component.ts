@@ -45,10 +45,10 @@ export class RecebimentoDoacaoComponent implements OnInit {
   tabs: TabItem[] = [
     { id: 'doador', label: 'Cadastro do doador', icon: faUserPlus },
     { id: 'doadores', label: 'Listagem de doadores', icon: faClipboardList },
-    { id: 'dados', label: 'Dados da doacao', icon: faHandshake },
-    { id: 'recorrencia', label: 'Recorrencia', icon: faListCheck },
-    { id: 'gestao', label: 'Gestao de doacao', icon: faIdCard },
-    { id: 'lista', label: 'Listagem de doacoes', icon: faClipboardList }
+    { id: 'dados', label: 'Dados da doação', icon: faHandshake },
+    { id: 'recorrencia', label: 'Recorrência', icon: faListCheck },
+    { id: 'gestao', label: 'Gestão de doação', icon: faIdCard },
+    { id: 'lista', label: 'Listagem de doações', icon: faClipboardList }
   ];
 
   activeTab: TabItem['id'] = 'doador';
@@ -188,7 +188,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   onExcluir(): void {
     this.popupErros = new PopupErrorBuilder()
-      .adicionar('Exclusao nao implementada para esta aba.')
+      .adicionar('Exclusão não implementada para esta aba.')
       .build();
   }
 
@@ -235,7 +235,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         this.doadores = [];
         this.carregandoDoadores = false;
         this.doadoresCarregando = false;
-        this.doadoresErro = 'NÃ£o foi possÃ­vel carregar os doadores.';
+        this.doadoresErro = 'Não foi possível carregar os doadores.';
       }
     });
   }
@@ -291,7 +291,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         this.cancelarExcluirDoador();
       },
       error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o doador.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível excluir o doador.').build();
       }
     });
   }
@@ -364,9 +364,9 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   aplicarTemplateMensagem(tipo: 'lembrete' | 'agradecimento' | 'transparencia'): void {
     const templates: Record<string, string> = {
-      lembrete: 'Ola! Passando para lembrar sobre a doacao programada. Podemos ajudar em algo?',
-      agradecimento: 'Obrigado pelo apoio! Sua doacao faz a diferenca no atendimento social.',
-      transparencia: 'Segue um resumo da aplicacao dos recursos recebidos. Obrigado pela parceria.'
+      lembrete: 'Olá! Passando para lembrar sobre a doação programada. Podemos ajudar em algo?',
+      agradecimento: 'Obrigado pelo apoio! Sua doação faz a diferença no atendimento social.',
+      transparencia: 'Segue um resumo da aplicação dos recursos recebidos. Obrigado pela parceria.'
     };
     this.gestaoForm.get('mensagem')?.setValue(templates[tipo]);
   }
@@ -566,7 +566,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         }
       },
       error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o doador.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível salvar o doador.').build();
       }
     });
   }
@@ -606,7 +606,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         this.changeTab('lista');
       },
       error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel registrar o recebimento.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível registrar o recebimento.').build();
       }
     });
   }
@@ -644,7 +644,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
         this.recebimentos = this.recebimentos.filter((registro) => registro.id !== item.id);
       },
       error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o recebimento.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível excluir o recebimento.').build();
       }
     });
   }
@@ -715,4 +715,6 @@ export class RecebimentoDoacaoComponent implements OnInit {
     return null;
   }
 }
+
+
 
