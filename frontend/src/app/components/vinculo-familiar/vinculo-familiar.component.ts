@@ -6,6 +6,8 @@ import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/b
 import { FamiliaMembroPayload, FamiliaPayload, FamilyService } from '../../services/family.service';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
@@ -16,11 +18,12 @@ import { criarDataLocal, formatarDataSemFuso } from '../../utils/data-format.uti
 @Component({
   selector: 'app-vinculo-familiar',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './vinculo-familiar.component.html',
   styleUrl: './vinculo-familiar.component.scss'
 })
 export class VinculoFamiliarComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  readonly faPeopleGroup = faPeopleGroup;
   familyForm: FormGroup;
   feedback: string | null = null;
   popupErros: string[] = [];
@@ -43,25 +46,25 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   applyAddressToMembers = true;
   activeTab = 'lista';
   readonly tabs = [
-    { id: 'lista', label: 'Listagem de familias' },
-    { id: 'cadastro', label: 'Cadastro da familia' },
-    { id: 'endereço', label: 'Endereço da familia' },
+    { id: 'lista', label: 'Listagem de famílias' },
+    { id: 'cadastro', label: 'Cadastro da família' },
+    { id: 'endereco', label: 'Endereço da família' },
     { id: 'membros', label: 'Membros vinculados' },
     { id: 'indicadores', label: 'Indicadores sociais' }
   ];
   readonly statusOptions = ['ATIVO', 'INATIVO', 'BLOQUEADO'];
   readonly relationshipOptions = [
-    'Responsavel familiar',
-    'Conjuge/companheiro(a)',
+    'Responsável familiar',
+    'Cônjuge/companheiro(a)',
     'Filho(a)',
     'Enteado(a)',
-    'Pai/Mae',
-    'Avo/Avo',
-    'Irmao(a)',
+    'Pai/Mãe',
+    'Avô/Avó',
+    'Irmão(a)',
     'Outro'
   ];
-  readonly housingOptions = ['Proprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupacao', 'Outro'];
-  readonly housingTypes = ['Casa', 'Apartamento', 'Comodo', 'Barraco', 'Casa de madeira', 'Sitio/Chacara', 'Outro'];
+  readonly housingOptions = ['Próprio', 'Alugado', 'Cedido', 'Financiado', 'Ocupação', 'Outro'];
+  readonly housingTypes = ['Casa', 'Apartamento', 'Cômodo', 'Barraco', 'Casa de madeira', 'Sítio/Chácara', 'Outro'];
   private readonly destroy$ = new Subject<void>();
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   familias: FamiliaPayload[] = [];
@@ -129,9 +132,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
     });
     this.listagemForm = this.fb.group({
       nome: [''],
-      cpf: [''],
       codigo: [''],
-      dataNascimento: [''],
       status: ['']
     });
     this.setupCapitalizationRules();
@@ -521,7 +522,7 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   }
 
   limparFiltrosListagem(): void {
-    this.listagemForm.reset({ nome: '', cpf: '', codigo: '', dataNascimento: '', status: '' });
+    this.listagemForm.reset({ nome: '', codigo: '', status: '' });
     this.applyListFilters();
   }
 
@@ -622,29 +623,23 @@ export class VinculoFamiliarComponent extends TelaBaseComponent implements OnIni
   }
 
   private applyListFilters(): void {
-    const { nome, cpf, codigo, dataNascimento, status } = this.listagemForm.getRawValue();
+    const { nome, codigo, status } = this.listagemForm.getRawValue();
     const filtroNome = this.normalizeText(nome);
-    const filtroCpf = this.normalizeText(cpf);
     const filtroCodigo = this.normalizeText(codigo);
     const filtroStatus = this.normalizeText(status);
-    const filtroData = (dataNascimento ?? '').toString();
 
     this.familiasFiltradas = (this.familias ?? [])
       .filter((familia) => {
         const referencia = this.getReferenciaFamilia(familia);
         const nomeFamilia = this.normalizeText(familia.nome_familia);
         const codigoReferencia = this.normalizeText(referencia?.codigo);
-        const cpfReferencia = this.normalizeText(referencia?.cpf);
         const statusFamilia = this.normalizeText(familia.status);
-        const dataRef = referencia?.data_nascimento ?? '';
 
         if (filtroNome && !nomeFamilia.includes(filtroNome)) return false;
-        if (filtroCpf && !cpfReferencia.includes(filtroCpf)) return false;
         if (filtroCodigo && !codigoReferencia.includes(filtroCodigo) && !this.normalizeText(familia.id_familia).includes(filtroCodigo)) {
           return false;
         }
         if (filtroStatus && statusFamilia !== filtroStatus) return false;
-        if (filtroData && dataRef !== filtroData) return false;
         return true;
       })
       .sort((a, b) => this.normalizeText(a.nome_familia).localeCompare(this.normalizeText(b.nome_familia), 'pt-BR'));

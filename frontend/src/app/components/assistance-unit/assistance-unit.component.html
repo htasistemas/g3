@@ -2,6 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (imprimir)="openPrintDialog()"
   (salvar)="save()"
   (cancelar)="resetForm()"
@@ -12,40 +13,42 @@
 >
 <header class="page-title page-title--row" slot="titulo">
   <div>
-    <p class="page-title__eyebrow">cadastros</p>
-    <p class="page-title__label">Unidade assistencial</p>
+    <p class="page-title__label"></p>
   </div>
-  <p class="page-title__note">cadastro e gestao das unidades assistenciais.</p>
 </header>
 
-<section class="unit-page">
-  <div class="tab-shell">
-    <p class="tab-shell__title">NavegaÃ§Ã£o por etapas</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-        [attr.data-tab]="tab.id"
-      >
-        <button
-          type="button"
-          class="step-tabs__button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index" aria-hidden="true">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+<section class="cadastro">
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faHospitalUser" class="tab-shell__icon"></fa-icon>
+          cadastros de Unidade Assistencial
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+            [attr.data-tab]="tab.id"
+          >
+            <button
+              type="button"
+              class="step-tabs__button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index" aria-hidden="true">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-
-  <div class="toolbar-top">
-  </div>
+    <div class="cadastro-conteudo">
 
   <div class="print-dialog" *ngIf="printDialogOpen">
     <div class="print-dialog__backdrop" (click)="closePrintDialog()"></div>
@@ -53,10 +56,10 @@
       class="print-dialog__card"
       role="dialog"
       aria-modal="true"
-      aria-label="Opcoes de impressão"
+      aria-label="Opções de impressão"
     >
       <div class="print-dialog__header">
-        <p class="print-dialog__title">Opcoes de impressão</p>
+        <p class="print-dialog__title">Opções de impressão</p>
         <p class="print-dialog__subtitle">Escolha o relatório que deseja gerar.</p>
       </div>
       <div class="print-dialog__actions">
@@ -82,7 +85,7 @@
     >
       <span class="alert__message">{{ feedback.message }}</span>
       <button type="button" class="alert__close" aria-label="Fechar mensagem" (click)="dismissFeedback()">
-        <span aria-hidden="true">Ã—</span>
+        <span aria-hidden="true">×</span>
       </button>
     </div>
 
@@ -90,7 +93,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
-          <p class="muted">InformaÃ§Ãµes institucionais e contatos principais.</p>
+          <p class="muted">Informações institucionais e contatos principais.</p>
         </div>
       </div>
 
@@ -112,10 +115,10 @@
           </span>
         </div>
 
-        <label class="field full">RazÃ£o social
+        <label class="field full">Razão social
           <input id="razaoSocial" type="text" formControlName="razaoSocial" placeholder="Nome empresarial" />
           <span class="hint" *ngIf="form.get('razaoSocial')?.touched && form.get('razaoSocial')?.invalid">
-            Informe a razÃ£o social da instituiÃ§Ã£o.
+            Informe a razão social da instituição.
           </span>
         </label>
 
@@ -128,7 +131,7 @@
             (input)="onCnpjInput($event)"
           />
           <span class="hint" *ngIf="form.get('cnpj')?.errors?.['cnpjInvalid']">
-            Informe um CNPJ vÃ¡lido.
+            Informe um CNPJ válido.
           </span>
         </label>
 
@@ -145,7 +148,7 @@
         <label class="field">E-mail
           <input id="email" type="email" formControlName="email" placeholder="contato@unidade.com" />
           <span class="hint" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-            Informe um e-mail vÃ¡lido.
+            Informe um e-mail válido.
           </span>
         </label>
 
@@ -153,21 +156,21 @@
           <input id="site" type="text" formControlName="site" placeholder="www.unidade.com.br" />
         </label>
 
-        <label class="field">HorÃ¡rio de funcionamento
+        <label class="field">Horário de funcionamento
           <input
             id="horarioFuncionamento"
             type="text"
             formControlName="horarioFuncionamento"
-            placeholder="Ex.: Segunda a sexta, das 8h Ã s 17h"
+            placeholder="Ex.: Segunda a sexta, das 8h às 17h"
           />
         </label>
 
-        <label class="field full">ObservaÃ§Ãµes
+        <label class="field full">Observações
           <textarea
             id="observacoes"
             formControlName="observacoes"
             rows="3"
-            placeholder="InstruÃ§Ãµes internas, horÃ¡rio de atendimento, etc."
+            placeholder="Instruções internas, horário de atendimento, etc."
           ></textarea>
         </label>
 
@@ -208,7 +211,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
-          <p class="muted">LocalizaÃ§Ã£o completa para correspondÃªncias e visitas.</p>
+          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
 
@@ -229,8 +232,8 @@
           <input id="endereco" type="text" formControlName="endereco" placeholder="Rua, avenida..." />
         </label>
 
-        <label class="field">NÃºmero
-          <input id="numeroEndereco" type="text" formControlName="numeroEndereco" placeholder="NÃºmero" />
+        <label class="field">Número
+          <input id="numeroEndereco" type="text" formControlName="numeroEndereco" placeholder="Número" />
         </label>
 
         <label class="field">Complemento
@@ -241,8 +244,8 @@
           <input id="bairro" type="text" formControlName="bairro" placeholder="Bairro" />
         </label>
 
-        <label class="field">Ponto de referÃªncia
-          <input id="pontoReferencia" type="text" formControlName="pontoReferencia" placeholder="PrÃ³ximo a..." />
+        <label class="field">Ponto de referência
+          <input id="pontoReferencia" type="text" formControlName="pontoReferencia" placeholder="Próximo a..." />
         </label>
 
         <label class="field">Cidade
@@ -291,7 +294,7 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('imagens') }}</p>
-          <p class="muted">Inclua logomarcas e versÃµes para relatÃ³rios.</p>
+          <p class="muted">Inclua logomarcas e versões para relatórios.</p>
         </div>
       </div>
 
@@ -309,14 +312,14 @@
               <button type="button" class="btn-outline" (click)="clearLogo()" *ngIf="logoPreview">Remover</button>
             </div>
             <div *ngIf="logoPreview" class="preview">
-              <p class="hint">PrÃ©-visualizaÃ§Ã£o</p>
-              <img [src]="logoPreview" alt="PrÃ©-visualizaÃ§Ã£o da logomarca" />
+              <p class="hint">Pré-visualização</p>
+              <img [src]="logoPreview" alt="Pré-visualização da logomarca" />
             </div>
             <p class="hint">Imagens quadradas funcionam melhor na tela de login.</p>
           </div>
         </label>
 
-        <label class="field full">Imagem para relatÃ³rios (PDF)
+        <label class="field full">Imagem para relatórios (PDF)
           <div class="file-row">
             <div class="file-row__controls">
               <input
@@ -329,10 +332,10 @@
               <button type="button" class="btn-outline" (click)="clearReportLogo()" *ngIf="reportLogoPreview">Remover</button>
             </div>
             <div *ngIf="reportLogoPreview" class="preview">
-              <p class="hint">PrÃ©-visualizaÃ§Ã£o</p>
-              <img [src]="reportLogoPreview" alt="PrÃ©-visualizaÃ§Ã£o da imagem para relatÃ³rios" />
+              <p class="hint">Pré-visualização</p>
+              <img [src]="reportLogoPreview" alt="Pré-visualização da imagem para relatórios" />
             </div>
-            <p class="hint">Use uma versÃ£o horizontal ou em alta resoluÃ§Ã£o para relatÃ³rios e PDFs.</p>
+            <p class="hint">Use uma versão horizontal ou em alta resolução para relatórios e PDFs.</p>
           </div>
         </label>
       </div>
@@ -364,8 +367,8 @@
         <div class="diretoria-grid__header">
           <span>Nome completo</span>
           <span>CPF</span>
-          <span>Funcao</span>
-          <span>AÃ§Ãµes</span>
+          <span>Função</span>
+          <span>Ações</span>
         </div>
         <div
           class="diretoria-grid__row"
@@ -403,12 +406,12 @@
 
     <div *ngIf="deleteConfirmation" class="alert alert-warning delete-warning">
       <div class="flex-1">
-        <p class="font-semibold">AtenÃ§Ã£o</p>
-        <p>VocÃª estÃ¡ excluindo a unidade. Tem certeza? Esta aÃ§Ã£o Ã© irreversÃ­vel.</p>
+        <p class="font-semibold">Atenção</p>
+        <p>Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.</p>
       </div>
       <div class="flex gap-2 flex-wrap justify-end">
         <button type="button" class="btn-outline" (click)="cancelDeletion()">Cancelar</button>
-        <button type="button" class="btn-danger" (click)="confirmDeletion()">Confirmar exclusÃ£o</button>
+        <button type="button" class="btn-danger" (click)="confirmDeletion()">Confirmar exclusão</button>
       </div>
     </div>
   </form>
@@ -421,59 +424,56 @@
         </div>
       </div>
 
-      <div class="unit-active" *ngIf="unidadePrincipal">
+      <div class="unit-active" *ngIf="unidadePrincipal" (dblclick)="selecionarUnidade(unidadePrincipal)">
         <div>
           <p class="unit-active__eyebrow">Unidade principal</p>
           <p class="unit-active__name">{{ unidadePrincipal.nomeFantasia || 'Unidade sem nome' }}</p>
           <p class="unit-active__meta">
-            {{ unidadePrincipal.cnpj || 'CNPJ nÃ£o informado' }} Â· {{ unidadePrincipal.email || 'Sem e-mail' }}
+            {{ unidadePrincipal.cnpj || 'CNPJ não informado' }} · {{ unidadePrincipal.email || 'Sem e-mail' }}
           </p>
         </div>
-        <button type="button" class="btn-outline btn-small" (click)="selecionarUnidade(unidadePrincipal)">
-          Editar
-        </button>
       </div>
 
     <div class="unit-list" *ngIf="unidadesOrdenadas.length && unidadesPaginadas.length">
         <div
           class="unit-list__item"
           *ngFor="let unidadeItem of unidadesPaginadas"
+          (dblclick)="selecionarUnidade(unidadeItem)"
         >
           <div>
             <p class="unit-list__name">{{ unidadeItem.nomeFantasia || 'Unidade sem nome' }}</p>
             <p class="unit-list__meta">
-              {{ unidadeItem.cnpj || 'CNPJ nÃ£o informado' }} Â· {{ unidadeItem.email || 'Sem e-mail' }}
+              {{ unidadeItem.cnpj || 'CNPJ não informado' }} · {{ unidadeItem.email || 'Sem e-mail' }}
             </p>
           </div>
           <div class="unit-list__actions">
             <span class="unit-list__action" *ngIf="unidadeItem.unidadePrincipal">Ativa</span>
-            <button type="button" class="btn-outline btn-small" (click)="selecionarUnidade(unidadeItem)">
-              Editar
-            </button>
           </div>
         </div>
       </div>
 
     <div class="unit-list__pagination" *ngIf="unidadesOrdenadas.length && unidadesPaginadas.length">
       <span class="unit-list__total">
-        Total: {{ unidadesOrdenadas.length }} unidades Â· {{ unidadePrincipal ? '1 ativa' : '0 ativa' }}
+        Total: {{ unidadesOrdenadas.length }} unidades · {{ unidadePrincipal ? '1 ativa' : '0 ativa' }}
       </span>
       <button type="button" class="btn-outline" (click)="paginaAnterior()" [disabled]="paginaAtual === 1">
         Anterior
       </button>
       <span class="unit-list__page">
-        PÃ¡gina {{ paginaAtual }} de {{ totalPaginas }}
+        Página {{ paginaAtual }} de {{ totalPaginas }}
       </span>
       <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-        PrÃ³ximo
+        Próximo
       </button>
     </div>
 
-    <p class="muted" *ngIf="!unidadesOrdenadas.length">Nenhuma unidade cadastrada atÃ© o momento.</p>
+    <p class="muted" *ngIf="!unidadesOrdenadas.length">Nenhuma unidade cadastrada até o momento.</p>
     <p class="muted" *ngIf="unidadesOrdenadas.length && !unidadesPaginadas.length">
       Nenhuma unidade para listar.
     </p>
   </section>
+    </div>
+  </div>
 </section>
 </app-tela-padrao>
 

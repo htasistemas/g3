@@ -3,6 +3,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { filter, Subscription } from 'rxjs';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faHospitalUser } from '@fortawesome/free-solid-svg-icons';
 import { AssistanceUnitPayload, AssistanceUnitService, DiretoriaUnidadePayload } from '../../services/assistance-unit.service';
 import { SalaRecord, SalasService } from '../../services/salas.service';
 import { AuthService } from '../../services/auth.service';
@@ -27,17 +29,18 @@ interface ViaCepResponse {
 @Component({
   selector: 'app-assistance-unit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HttpClientModule, TelaPadraoComponent],
+  imports: [CommonModule, ReactiveFormsModule, HttpClientModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './assistance-unit.component.html',
   styleUrl: './assistance-unit.component.scss'
 })
 export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  readonly faHospitalUser = faHospitalUser;
   readonly tabs = [
     { id: 'lista', label: 'Unidades cadastradas' },
-    { id: 'dados', label: 'Dados da Unidade' },
-    { id: 'endereco', label: 'Endereço da Unidade' },
-    { id: 'imagens', label: 'Imagens da Unidade' },
-    { id: 'diretoria', label: 'Diretoria da Unidade' }
+    { id: 'dados', label: 'Dados da unidade' },
+    { id: 'endereco', label: 'Endereço da unidade' },
+    { id: 'imagens', label: 'Imagens da unidade' },
+    { id: 'diretoria', label: 'Diretoria da unidade' }
   ] as const;
 
   unidade: AssistanceUnitPayload | null = null;

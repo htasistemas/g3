@@ -49,6 +49,12 @@
   gap: 0.5rem;
 }
 
+.sidebar__footer {
+  @apply p-4 flex items-center justify-center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.08));
+}
+
 .sidebar__logo-wrapper {
   display: flex;
   align-items: center;

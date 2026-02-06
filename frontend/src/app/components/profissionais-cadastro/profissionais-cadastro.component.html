@@ -2,6 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="onSave()"
   (excluir)="onDelete()"
   (novo)="onNew()"
@@ -12,55 +13,42 @@
 >
 <header class="page-title page-title--row" slot="titulo">
   <div>
-  <p class="page-title__eyebrow">cadastros</p>
-  <p class="page-title__label">Profissionais</p>
+  <p class="page-title__label"></p>
   </div>
-  <p class="page-title__note">cadastro e gestao de profissionais.</p>
 </header>
 
   <section class="cadastro">
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-      >
-        <button
-          class="step-tabs__button"
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faUserDoctor" class="tab-shell__icon"></fa-icon>
+          cadastros de Profissionais
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+          >
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-  <div class="metrics-grid">
-    <div class="metric">
-      <p class="metric__label">Profissionais disponAveis</p>
-      <p class="metric__value">{{ totalDisponiveis }}</p>
-      <p class="metric__hint">Prontos para novos atendimentos</p>
-    </div>
-    <div class="metric">
-      <p class="metric__label">Atendimento presencial</p>
-      <p class="metric__value">{{ totalPresencial }}</p>
-      <p class="metric__hint">Escala em unidades e salas</p>
-    </div>
-    <div class="metric">
-      <p class="metric__label">Atendimento online</p>
-      <p class="metric__value">{{ totalOnline }}</p>
-      <p class="metric__hint">Teleatendimento e orientaAAes</p>
-    </div>
-  </div>
-
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
+    <div class="cadastro-conteudo">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-shell">
     <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
     <div *ngIf="feedback" class="feedback">
       <span>{{ feedback }}</span>
@@ -71,10 +59,10 @@
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="ghost" *ngIf="hasNextTab" (click)="goToNextTab()">
-          PrAximo: {{ nextTabLabel }}
+          Próximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
-          {{ saving ? 'Salvando...' : editingId ? 'Salvar alteraAAes' : 'Cadastrar profissional' }}
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
         </button>
       </div>
     </ng-template>
@@ -98,17 +86,17 @@
             <input type="file" accept="image/*" (change)="onPhotoSelected($event)" hidden />
           </label>
           <button type="button" class="ghost" (click)="handleCameraCapture()">
-            {{ cameraActive ? 'Registrar foto' : 'Capturar pela camera' }}
+            {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
           </button>
           <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
-          <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar camera</button>
+          <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
           <p class="photo-hint">Status: {{ form.get('status')?.value || 'EM_ANALISE' }}</p>
           <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
         </div>
       </div>
 
       <div class="camera-panel" *ngIf="cameraActive">
-        <p class="camera-panel__title">Visualização da camera</p>
+        <p class="camera-panel__title">Visualização da câmera</p>
         <div class="camera-panel__preview">
           <video #videoElement autoplay muted playsinline></video>
         </div>
@@ -120,7 +108,7 @@
         <label class="field field-nome-completo">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" (input)="applyCapitalization('dadosPessoais.nome_completo', $any($event.target).value)" /></label>
 
         <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
-        <label class="field">Sexo biologico<select formControlName="sexo_biologico">
+        <label class="field">Sexo biológico<select formControlName="sexo_biologico">
             <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
@@ -141,7 +129,7 @@
             <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
           </select></label>
 
-        <label class="field field-nome-mae">Nome da mae*<input formControlName="nome_mae" (input)="applyCapitalization('dadosPessoais.nome_mae', $any($event.target).value)" /></label>
+        <label class="field field-nome-mae">Nome da mãe*<input formControlName="nome_mae" (input)="applyCapitalization('dadosPessoais.nome_mae', $any($event.target).value)" /></label>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -151,23 +139,23 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">endereço completo do profissional.</p>
+          <p class="muted">Endereço completo do profissional.</p>
         </div>
       </div>
 
       <div class="field-grid cols-3">
         <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
-            Informe um CEP válido com 8 digitos.
+            Informe um CEP válido com 8 dígitos.
           </p>
           <p class="field-error" *ngIf="cepLookupError">{{ cepLookupError }}</p>
         </label>
-        <label class="field">endereço<input formControlName="logradouro" (input)="applyCapitalization('endereco.logradouro', $any($event.target).value)" /></label>
-        <label class="field">NAmero<input formControlName="numero" /></label>
+        <label class="field">Endereço<input formControlName="logradouro" (input)="applyCapitalization('endereco.logradouro', $any($event.target).value)" /></label>
+        <label class="field">Número<input formControlName="numero" /></label>
         <label class="field">Complemento<input formControlName="complemento" (input)="applyCapitalization('endereco.complemento', $any($event.target).value)" /></label>
         <label class="field">Bairro<input formControlName="bairro" (input)="applyCapitalization('endereco.bairro', $any($event.target).value)" /></label>
-        <label class="field">Ponto de referencia<input formControlName="ponto_referencia" (input)="applyCapitalization('endereco.ponto_referencia', $any($event.target).value)" /></label>
-        <label class="field">MunicApio<input formControlName="municipio" (input)="applyCapitalization('endereco.municipio', $any($event.target).value)" /></label>
+        <label class="field">Ponto de referência<input formControlName="ponto_referencia" (input)="applyCapitalization('endereco.ponto_referencia', $any($event.target).value)" /></label>
+        <label class="field">Município<input formControlName="municipio" (input)="applyCapitalization('endereco.municipio', $any($event.target).value)" /></label>
         <label class="field">Zona<input formControlName="zona" /></label>
         <label class="field">Subzona<input formControlName="subzona" /></label>
         <label class="field">UF<select formControlName="uf">
@@ -225,7 +213,7 @@
             Informe um CPF válido.
           </p>
         </label>
-        <label class="field">VAnculo
+        <label class="field">Vínculo
           <select formControlName="vinculo">
             <option *ngFor="let vinculo of vinculos" [value]="vinculo.value">{{ vinculo.label }}</option>
           </select>
@@ -234,7 +222,7 @@
           >Especialidade<input
             type="text"
             formControlName="especialidade"
-            placeholder="Area principal de atuaAAo"
+            placeholder="Área principal de atuação"
             (input)="applyCapitalization('especialidade', $any($event.target).value)"
             (blur)="applyCapitalization('especialidade', $any($event.target).value)"
         /></label>
@@ -283,7 +271,7 @@
           </select>
           <div class="search-hint" *ngIf="salasLoading">Carregando salas...</div>
         </label>
-        <label class="field">Carga horAria semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponAveis" /></label>
+        <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
         <label class="field">Status*<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
           </select></label>
@@ -315,9 +303,8 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Resumo, observaAAes e palavras-chave para encontrar rApido.</p>
+          <p class="muted">Resumo, observações e palavras-chave para encontrar rápido.</p>
         </div>
-        <span class="pill">FinalizaAAo</span>
       </div>
 
       <div class="field-grid cols-2">
@@ -337,20 +324,20 @@
           <div class="tag-list" *ngIf="form.value.tags?.length">
             <span class="tag" *ngFor="let tag of form.value.tags">
               {{ tag }}
-              <button type="button" (click)="removeTag(tag)">A</button>
+              <button type="button" (click)="removeTag(tag)">X</button>
             </span>
           </div>
         </div>
 
         <label class="field">Resumo breve<textarea formControlName="resumo" rows="3" placeholder="Como este profissional contribui?"></textarea></label>
-        <label class="field">ObservaAAes internas<textarea formControlName="observacoes" rows="3" placeholder="Notas de equipe e agenda"></textarea></label>
+        <label class="field">Observações internas<textarea formControlName="observacoes" rows="3" placeholder="Notas de equipe e agenda"></textarea></label>
       </div>
 
       <div class="actions">
         <button type="button" class="ghost" (click)="resetForm()">Limpar</button>
-        <button type="button" class="secondary" (click)="startNew()">Cancelar ediAAo</button>
+        <button type="button" class="ghost" (click)="startNew()">Cancelar</button>
         <button type="submit" class="primary" [disabled]="saving">
-          {{ saving ? 'Salvando...' : editingId ? 'Salvar alteraAAes' : 'Cadastrar profissional' }}
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar profissional' }}
         </button>
       </div>
     </div>
@@ -360,10 +347,6 @@
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
           <p class="muted">Listagem completa para localizar profissionais cadastrados.</p>
         </div>
-        <div class="tab-card__header-actions">
-          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
-          <button type="button" class="btn-outline" (click)="searchProfessionalsList()">Buscar</button>
-        </div>
       </div>
 
       <div [formGroup]="searchForm" class="list-filters">
@@ -371,10 +354,7 @@
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
         <label class="field">Categoria
-          <input type="text" formControlName="categoria" placeholder="Ex.: Psicologo" />
-        </label>
-        <label class="field">E-mail
-          <input type="email" formControlName="email" placeholder="contato@exemplo.com" />
+          <input type="text" formControlName="categoria" placeholder="Ex.: Psicólogo" />
         </label>
         <label class="field">Status
           <select formControlName="status">
@@ -382,10 +362,14 @@
             <option *ngFor="let option of statuses" [value]="option">{{ option }}</option>
           </select>
         </label>
+        <div class="list-panel__filter-actions">
+          <button type="button" class="btn-outline" (click)="searchProfessionalsList()">Buscar</button>
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+        </div>
       </div>
 
       <div class="unit-list" *ngIf="professionalsPaginados.length">
-        <div class="unit-list__item" *ngFor="let professional of professionalsPaginados">
+        <div class="unit-list__item" *ngFor="let professional of professionalsPaginados" (dblclick)="edit(professional)">
           <div>
             <div class="unit-list__name-row">
               <div class="unit-list__avatar" [class.unit-list__avatar--empty]="!professional.foto3x4">
@@ -402,20 +386,16 @@
                 <div class="unit-list__info-row">
                   <span class="unit-list__meta-text">Categoria: {{ professional.categoria }}</span>
                   <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">E-mail: {{ professional.email || 'NAo informado' }}</span>
+                  <span class="unit-list__meta-text">E-mail: {{ professional.email || 'Não informado' }}</span>
                   <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">Telefone: {{ professional.telefone || 'NAo informado' }}</span>
+                  <span class="unit-list__meta-text">Telefone: {{ professional.telefone || 'Não informado' }}</span>
                   <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">Unidade: {{ professional.unidade || 'NAo informada' }}</span>
+                  <span class="unit-list__meta-text">Unidade: {{ professional.unidade || 'Não informada' }}</span>
                   <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">Sala: {{ professional.salaAtendimento || 'NAo informada' }}</span>
+                  <span class="unit-list__meta-text">Sala: {{ professional.salaAtendimento || 'Não informada' }}</span>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="unit-list__actions">
-            <button type="button" class="btn-outline btn-small" (click)="edit(professional)">Editar</button>
-            <button type="button" class="danger btn-small" (click)="remove(professional)">Excluir</button>
           </div>
         </div>
       </div>
@@ -428,19 +408,29 @@
           Anterior
         </button>
         <span class="unit-list__page">
-          PAgina {{ paginaAtual }} de {{ totalPaginas }}
+          Página {{ paginaAtual }} de {{ totalPaginas }}
         </span>
         <button type="button" class="btn-outline" (click)="proximaPagina()" [disabled]="paginaAtual >= totalPaginas">
-          PrAximo
+          Próximo
         </button>
       </div>
 
-      <p class="muted" *ngIf="!filteredProfessionals.length">Nenhum profissional cadastrado ate o momento.</p>
+      <p class="muted" *ngIf="!filteredProfessionals.length">Nenhum profissional cadastrado até o momento.</p>
     </div>
 
   </form>
+    </div>
+  </div>
 
 </section>
+<app-dialog
+  [aberto]="dialogConfirmacaoAberta"
+  [titulo]="dialogTitulo"
+  [mensagem]="dialogMensagem"
+  [confirmarLabel]="dialogConfirmarLabel"
+  (confirmar)="confirmarDialogo()"
+  (cancelar)="cancelarDialogo()"
+></app-dialog>
 </app-tela-padrao>
 
 
