@@ -1,54 +1,52 @@
-﻿<app-tela-padrao>
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-      <p class="page-title__eyebrow">ATENDIMENTOS</p>
-      <p class="page-title__label">Chamada de senhas</p>
-    </div>
-    <p class="page-title__note">Controle de fila e chamada de beneficiarios.</p>
-  </header>
-
-  <section class="cadastro">
+﻿<app-tela-padrao [fullWidth]="true">
+<section class="cadastro">
     <app-popup-messages *ngIf="popupErros.length" [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
     <div class="feedback" *ngIf="mensagem">
       <span>{{ mensagem }}</span>
       <button type="button" class="feedback__close" (click)="mensagem = null">x</button>
     </div>
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informações</p>
-      <ol class="step-tabs" role="tablist">
-        <li
-          *ngFor="let aba of abas; index as idx"
-          class="step-tabs__item"
-          [class.active]="abaAtiva === aba.id"
-          [class.completed]="idx < abaAtivaIndex"
-        >
-          <button
-            class="step-tabs__button"
-            type="button"
-            role="tab"
-            [attr.aria-selected]="abaAtiva === aba.id"
-            (click)="selecionarAba(aba.id)"
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faBullhorn" class="tab-shell__icon"></fa-icon>
+          Chamada de senhas
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let aba of abas; index as idx"
+            class="step-tabs__item"
+            [class.active]="abaAtiva === aba.id"
+            [class.completed]="idx < abaAtivaIndex"
           >
-            <span class="step-tabs__index">{{ idx + 1 }}</span>
-            <span class="step-tabs__label">{{ aba.label }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="abaAtiva === aba.id"
+              (click)="selecionarAba(aba.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ aba.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-    <div class="painel-grid painel-grid--single" *ngIf="abaAtiva === 'entrada'">
+    <div class="cadastro-conteudo">
+<div class="painel-grid painel-grid--single" *ngIf="abaAtiva === 'entrada'">
       <div class="g3-card g3-card--form g3-card--compact">
         <div class="g3-card__header">
           <div>
             <p class="g3-card__title">Entrada na fila</p>
-            <p class="g3-card__subtitle">Selecione o beneficiario e defina prioridade.</p>
           </div>
           <div class="g3-card__badge">Passo 1</div>
         </div>
 
         <div class="field-grid field-grid--compact">
           <label class="field field--full">
-            Beneficiario (*)
+            Beneficiário (*)
             <app-autocomplete
               [placeholder]="'Nome, CPF ou codigo'"
               [termo]="termoBusca"
@@ -99,7 +97,6 @@
         </div>
 
         <div class="g3-card__footer g3-card__footer--actions">
-          <p class="g3-card__hint">Inclua o beneficiario na fila de atendimento.</p>
           <button type="button" class="primary incluir-button" (click)="emitirSenha()">Incluir na fila</button>
         </div>
       </div>
@@ -111,7 +108,6 @@
         <div class="g3-card__header g3-card__header--row">
           <div>
             <p class="g3-card__title">Fila aguardando</p>
-            <p class="g3-card__subtitle">Chame o beneficiario para a sala informada.</p>
           </div>
           <div class="fila-resumo">
             <div class="fila-chip">
@@ -150,7 +146,7 @@
             <thead>
               <tr>
                 <th class="tag-col"></th>
-                <th>Beneficiario</th>
+                <th>Beneficiário</th>
                 <th>Sala</th>
                 <th>Prioridade</th>
                 <th>Entrada</th>
@@ -190,7 +186,7 @@
                 </td>
               </tr>
               <tr *ngIf="!filaFiltrada.length">
-                <td colspan="6" class="muted">Nenhum beneficiario aguardando.</td>
+                <td colspan="6" class="muted">Nenhum benefici?rio aguardando.</td>
               </tr>
             </tbody>
           </table>
@@ -203,12 +199,10 @@
         <div class="g3-card__header">
           <div>
             <p class="g3-card__title">Configurações gerais</p>
-            <p class="g3-card__subtitle">Personalize o painel e a chamada por voz.</p>
           </div>
         </div>
 
         <div class="g3-card__footer g3-card__footer--actions">
-          <p class="g3-card__hint">Salve as configurações antes de abrir o painel.</p>
           <div class="actions-row">
             <button
               type="button"
@@ -233,11 +227,11 @@
 
         <div class="field-grid field-grid--compact">
           <label class="field field--full">
-            Titulo da tela de chamada
+            Título da tela de chamada
             <input type="text" [(ngModel)]="tituloTela" />
           </label>
           <label class="field field--full">
-            Descricao da tela de chamada
+            Descri??o da tela de chamada
             <input type="text" [(ngModel)]="descricaoTela" />
           </label>
           <label class="field field--full">
@@ -287,7 +281,7 @@
             <span class="field-hint">Quanto maior o segundo, mais lento sera o ticker.</span>
           </label>
           <label class="field field--compact">
-            Quantidade de ultimas chamadas (*)
+            Quantidade de ?ltimas chamadas (*)
             <select [(ngModel)]="quantidadeUltimasChamadas">
               <option *ngFor="let quantidade of quantidadesUltimasChamadasDisponiveis" [ngValue]="quantidade">
                 {{ quantidade }}
@@ -306,6 +300,8 @@
         </div>
       </div>
     </div>
+    </div>
+  </div>
   </section>
 </app-tela-padrao>
 

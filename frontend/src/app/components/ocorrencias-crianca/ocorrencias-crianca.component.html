@@ -3,6 +3,7 @@
   [desabilitado]="acoesDesabilitadas"
   [mostrarToolbar]="false"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (buscar)="abrirBusca()"
   (salvar)="onSalvar()"
   (excluir)="onExcluir()"
@@ -13,16 +14,9 @@
 >
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-    <p class="page-title__eyebrow">Atendimentos</p>
-    <p class="page-title__label">Ocorrencias</p>
-    </div>
-    <p class="page-title__note">Violencia praticada contra criancas e adolescentes.</p>
-  </header>
 
   <section class="cadastro">
-    <div class="page-actions-inline">
+    <div class="page-actions">
       <app-barra-acoes-crud
         [acoes]="acoesToolbar"
         [desabilitado]="acoesDesabilitadas"
@@ -37,40 +31,45 @@
       ></app-barra-acoes-crud>
     </div>
 
-    <div class="tab-card tab-card--tabs">
-      <div class="tab-shell">
-        <p class="tab-shell__title">Navegue pelas etapas do formulario</p>
-        <ol class="step-tabs" role="tablist">
-          <li
-            *ngFor="let tab of tabs; index as idx"
-            class="step-tabs__item"
-            [class.active]="activeTab === tab.id"
-            [class.completed]="idx < activeTabIndex"
-          >
-            <button
-              class="step-tabs__button"
-              type="button"
-              role="tab"
-              [attr.aria-selected]="activeTab === tab.id"
-              (click)="changeTab(tab.id)"
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faTriangleExclamation" class="tab-shell__icon"></fa-icon>
+            Ocorrências
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of tabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeTab === tab.id"
+              [class.completed]="idx < activeTabIndex"
             >
-              <span class="step-tabs__index">{{ idx + 1 }}</span>
-              <span class="step-tabs__label">{{ tab.label }}</span>
-            </button>
-          </li>
-        </ol>
-      </div>
-    </div>
+              <button
+                class="step-tabs__button"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeTab === tab.id"
+                (click)="changeTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
 
+      <div class="cadastro-conteudo">
     <form [formGroup]="form" class="form-shell">
       <ng-template #navigationControls>
         <div class="tab-actions">
           <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
           <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-            Proximo: {{ nextTabLabel }}
+            Próximo: {{ nextTabLabel }}
           </button>
           <button type="button" class="primary" [disabled]="saving" *ngIf="!hasNextTab" (click)="onSalvar()">
-            {{ saving ? 'Salvando...' : 'Salvar ocorrencia' }}
+            {{ saving ? 'Salvando...' : 'Salvar ocorrência' }}
           </button>
         </div>
       </ng-template>
@@ -79,7 +78,6 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Violencia contra a crianca e o adolescente</p>
           </div>
         </div>
 
@@ -93,23 +91,23 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">1) Violencia praticada contra crianca/adolescente (LOCAL)</p>
+          <p class="form-block__title">1) Violência praticada contra criança/adolescente (LOCAL)</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field">
               <input type="radio" formControlName="localViolencia" value="Na escola" />
               <span>Na escola</span>
             </label>
             <label class="radio-field">
-              <input type="radio" formControlName="localViolencia" value="No ambito familiar" />
-              <span>No ambito familiar</span>
+              <input type="radio" formControlName="localViolencia" value="No âmbito familiar" />
+              <span>No âmbito familiar</span>
             </label>
             <label class="radio-field">
-              <input type="radio" formControlName="localViolencia" value="Outros espacos" />
-              <span>Outros espacos</span>
+              <input type="radio" formControlName="localViolencia" value="Outros espaços" />
+              <span>Outros espaços</span>
             </label>
             <label
               class="field full"
-              *ngIf="form.get('localViolencia')?.value === 'Outros espacos'"
+              *ngIf="form.get('localViolencia')?.value === 'Outros espaços'"
               [class.invalid]="form.get('localViolenciaOutro')?.invalid && form.get('localViolenciaOutro')?.touched"
             >
               <span>Outros: *</span>
@@ -122,7 +120,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">2) Violencia motivada por</p>
+          <p class="form-block__title">2) Violência motivada por</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of violenciaMotivadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaMotivadaPor', opcao)" (change)="alternarSelecao('violenciaMotivadaPor', opcao)" />
@@ -143,7 +141,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">3) Violencia praticada por</p>
+          <p class="form-block__title">3) Violência praticada por</p>
           <div class="options-grid options-grid--tight">
             <label class="checkbox-field" *ngFor="let opcao of violenciaPraticadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaPraticadaPor', opcao)" (change)="alternarSelecao('violenciaPraticadaPor', opcao)" />
@@ -151,7 +149,7 @@
             </label>
             <label
               class="field full"
-              *ngIf="possuiSelecao('violenciaPraticadaPor', 'outro')"
+              *ngIf="possuiSelecao('violenciaPraticadaPor', 'Outro')"
               [class.invalid]="form.get('violenciaPraticadaOutro')?.invalid && form.get('violenciaPraticadaOutro')?.touched"
             >
               <span>Outro: *</span>
@@ -180,27 +178,26 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Identificação completa da vitima.</p>
           </div>
         </div>
 
         <div class="field-grid cols-2">
           <label class="field" [class.invalid]="form.get('vitimaNome')?.invalid && form.get('vitimaNome')?.touched">2.1 Nome*
-            <input formControlName="vitimaNome" placeholder="Informe o nome da vitima" />
+            <input formControlName="vitimaNome" placeholder="Informe o nome da vítima" />
             <span class="field-error" *ngIf="form.get('vitimaNome')?.invalid && form.get('vitimaNome')?.touched">
-              Informe o nome da vitima.
+              Informe o nome da vítima.
             </span>
           </label>
           <label class="field" [class.invalid]="form.get('vitimaIdade')?.invalid && form.get('vitimaIdade')?.touched">Idade*
             <input type="number" formControlName="vitimaIdade" min="0" />
             <span class="field-error" *ngIf="form.get('vitimaIdade')?.invalid && form.get('vitimaIdade')?.touched">
-              Informe a idade da vitima.
+              Informe a idade da vítima.
             </span>
           </label>
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">5) Raca/cor</p>
+          <p class="form-block__title">5) Raça/cor</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of racaCorOpcoes">
               <input type="radio" formControlName="vitimaRacaCor" [value]="opcao" />
@@ -210,7 +207,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">6) Identidade de genero</p>
+          <p class="form-block__title">6) Identidade de gênero</p>
           <div class="options-grid options-grid--tight">
             <label class="radio-field" *ngFor="let opcao of identidadeGeneroOpcoes">
               <input type="radio" formControlName="vitimaIdentidadeGenero" [value]="opcao" />
@@ -251,11 +248,11 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">9) Responsavel</p>
+          <p class="form-block__title">9) Responsável</p>
           <div class="field-grid cols-3">
             <label class="radio-field">
-              <input type="radio" formControlName="vitimaResponsavelTipo" value="Mae" />
-              <span>Mae</span>
+              <input type="radio" formControlName="vitimaResponsavelTipo" value="Mãe" />
+              <span>Mãe</span>
             </label>
             <label class="radio-field">
               <input type="radio" formControlName="vitimaResponsavelTipo" value="Pai" />
@@ -266,18 +263,18 @@
               <span>Outro</span>
             </label>
             <label class="field full">
-              <span>Nome do responsavel</span>
+              <span>Nome do responsável</span>
               <input formControlName="vitimaResponsavelNome" />
             </label>
             <label class="field full">
-              <span>Telefone do responsavel</span>
+              <span>Telefone do responsável</span>
               <input formControlName="vitimaTelefoneResponsavel" />
             </label>
           </div>
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">10) endereço da vitima</p>
+          <p class="form-block__title">10) endereço da vítima</p>
           <div class="field-grid cols-2">
             <label class="field">Logradouro
               <input formControlName="vitimaEnderecoLogradouro" />
@@ -301,7 +298,6 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Informações do possível autor.</p>
           </div>
         </div>
 
@@ -322,18 +318,18 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">12) Possui vinculo de parentesco?</p>
+          <p class="form-block__title">12) Possui vínculo de parentesco?</p>
           <div class="options-grid">
             <label class="radio-field">
               <input type="radio" formControlName="autorParentesco" value="Sim" />
               <span>Sim</span>
             </label>
             <label class="radio-field">
-              <input type="radio" formControlName="autorParentesco" value="Nao" />
+              <input type="radio" formControlName="autorParentesco" value="Não" />
               <span>Não</span>
             </label>
             <label class="radio-field">
-              <input type="radio" formControlName="autorParentesco" value="Nao consta" />
+              <input type="radio" formControlName="autorParentesco" value="Não consta" />
               <span>Não consta</span>
             </label>
             <label class="field full" [class.invalid]="form.get('autorParentescoGrau')?.invalid && form.get('autorParentescoGrau')?.touched">
@@ -347,11 +343,11 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">13) Nome do responsavel (quando crianca/adolescente)</p>
+          <p class="form-block__title">13) Nome do responsável (quando criança/adolescente)</p>
           <div class="field-grid cols-3">
             <label class="radio-field">
-              <input type="radio" formControlName="autorResponsavelTipo" value="Mae" />
-              <span>Mae</span>
+              <input type="radio" formControlName="autorResponsavelTipo" value="Mãe" />
+              <span>Mãe</span>
             </label>
             <label class="radio-field">
               <input type="radio" formControlName="autorResponsavelTipo" value="Outro" />
@@ -362,11 +358,11 @@
               <span>Não consta</span>
             </label>
             <label class="field full">
-              <span>Nome do responsavel</span>
+              <span>Nome do responsável</span>
               <input formControlName="autorResponsavelNome" />
             </label>
             <label class="field full">
-              <span>Telefone do responsavel</span>
+              <span>Telefone do responsável</span>
               <input formControlName="autorResponsavelTelefone" />
             </label>
           </div>
@@ -401,12 +397,11 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Classifique o tipo de violencia informada.</p>
           </div>
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">15) Tipificação da violencia</p>
+          <p class="form-block__title">15) Tipificação da violência</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of tipificacaoViolenciaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('tipificacaoViolencia', opcao)" (change)="alternarSelecao('tipificacaoViolencia', opcao)" />
@@ -415,7 +410,7 @@
           </div>
 
           <div class="sub-options">
-            <p class="form-block__subtitle">Violencia psicologica</p>
+            <p class="form-block__subtitle">Violência psicológica</p>
             <div class="options-grid options-grid--columns">
               <label class="checkbox-field" *ngFor="let opcao of tipificacaoPsicologicaOpcoes">
                 <input type="checkbox" [checked]="possuiSelecao('tipificacaoPsicologica', opcao)" (change)="alternarSelecao('tipificacaoPsicologica', opcao)" />
@@ -425,7 +420,7 @@
           </div>
 
           <div class="sub-options">
-            <p class="form-block__subtitle">Violencia sexual</p>
+            <p class="form-block__subtitle">Violência sexual</p>
             <div class="options-grid options-grid--columns">
               <label class="checkbox-field" *ngFor="let opcao of tipificacaoSexualOpcoes">
                 <input type="checkbox" [checked]="possuiSelecao('tipificacaoSexual', opcao)" (change)="alternarSelecao('tipificacaoSexual', opcao)" />
@@ -436,7 +431,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">16) Violencia autoprovocada</p>
+          <p class="form-block__title">16) Violência autoprovocada</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of violenciaAutoprovocadaOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('violenciaAutoprovocada', opcao)" (change)="alternarSelecao('violenciaAutoprovocada', opcao)" />
@@ -446,7 +441,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">17) Outro tipo de violencia (descreva)</p>
+          <p class="form-block__title">17) Outro tipo de violência (descreva)</p>
           <label class="field full">
             <textarea rows="3" formControlName="outroTipoViolenciaDescricao"></textarea>
           </label>
@@ -459,16 +454,15 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Resumo e encaminhamento da ocorrencia.</p>
           </div>
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">18) Resumo da violencia (ou suspeita)*</p>
+          <p class="form-block__title">18) Resumo da violência (ou suspeita)*</p>
           <label class="field full" [class.invalid]="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
             <textarea rows="6" formControlName="resumoViolencia"></textarea>
             <span class="field-error" *ngIf="form.get('resumoViolencia')?.invalid && form.get('resumoViolencia')?.touched">
-              Informe o resumo da violencia.
+              Informe o resumo da violência.
             </span>
           </label>
         </div>
@@ -507,7 +501,7 @@
         </div>
 
         <div class="form-block">
-          <p class="form-block__title">20) Como a denuncia chegou a ADRA</p>
+          <p class="form-block__title">20) Como a denúncia chegou a ADRA</p>
           <div class="options-grid options-grid--columns">
             <label class="checkbox-field" *ngFor="let opcao of denunciaOrigemOpcoes">
               <input type="checkbox" [checked]="possuiSelecao('denunciaOrigem', opcao)" (change)="alternarSelecao('denunciaOrigem', opcao)" />
@@ -521,7 +515,7 @@
               <span>Outro: *</span>
               <input formControlName="denunciaOrigemOutro" />
               <span class="field-error" *ngIf="form.get('denunciaOrigemOutro')?.invalid && form.get('denunciaOrigemOutro')?.touched">
-                Informe a origem da denuncia.
+                Informe a origem da denúncia.
               </span>
             </label>
           </div>
@@ -549,7 +543,7 @@
               Adicionar anexos
               <input type="file" multiple accept="application/pdf,image/jpeg,image/png" (change)="onAnexosSelecionados($event)" />
             </label>
-            <p class="muted">Ate 10 anexos (PDF/JPG/PNG) de ate 10MB cada.</p>
+            <p class="muted">At? 10 anexos (PDF/JPG/PNG) de at? 10MB cada.</p>
           </div>
           <div class="anexo-lista" *ngIf="anexos.length; else semAnexos">
             <div class="anexo-item" *ngFor="let anexo of anexos">
@@ -571,42 +565,44 @@
         <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
       </div>
     </form>
+      </div>
+    </div>
 
     <div class="modal" *ngIf="buscarModalOpen">
       <div class="modal__backdrop" (click)="fecharBusca()"></div>
       <div class="modal__content modal__content--wide">
         <div class="modal__header">
           <div>
-            <p class="modal__eyebrow">Ocorrencias registradas</p>
-            <h3>Buscar ocorrencia</h3>
+            <p class="modal__eyebrow">Ocorrências registradas</p>
+            <h3>Buscar ocorrência</h3>
           </div>
           <button type="button" class="ghost" (click)="fecharBusca()" aria-label="Fechar">&times;</button>
         </div>
         <label class="field full">
-          <span>Buscar por nome da vitima ou data</span>
+          <span>Buscar por nome da vítima ou data</span>
           <input [(ngModel)]="termoBusca" [ngModelOptions]="{ standalone: true }" placeholder="Ex.: Maria ou 2026-01-12" />
         </label>
         <div class="list-card">
           <div class="list-card__header">
             <div>
               <p class="list-card__eyebrow">Registros</p>
-              <p class="list-card__title">Ocorrencias cadastradas</p>
+              <p class="list-card__title">Ocorrências cadastradas</p>
             </div>
           </div>
           <table>
             <thead>
               <tr>
                 <th>Data</th>
-                <th>Vitima</th>
+                <th>Vítima</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let ocorrencia of ocorrenciasFiltradas" (click)="selecionarOcorrencia(ocorrencia)">
+              <tr *ngFor="let ocorrencia of ocorrenciasFiltradas" (dblclick)="selecionarOcorrencia(ocorrencia)">
                 <td>{{ ocorrencia.dataPreenchimento }}</td>
                 <td>{{ ocorrencia.vitimaNome }}</td>
               </tr>
               <tr *ngIf="!ocorrenciasFiltradas.length">
-                <td colspan="2" class="empty">Nenhuma ocorrencia encontrada.</td>
+                <td colspan="2" class="empty">Nenhuma ocorrência encontrada.</td>
               </tr>
             </tbody>
           </table>
@@ -616,20 +612,19 @@
 
     <div class="print-dialog" *ngIf="printMenuOpen">
       <div class="print-dialog__backdrop" (click)="fecharMenuImpressao()"></div>
-      <div class="print-dialog__card" role="dialog" aria-modal="true" aria-label="Opcoes de impressão">
+      <div class="print-dialog__card" role="dialog" aria-modal="true" aria-label="Opções de impressão">
         <div class="print-dialog__header">
           <div>
-            <p class="print-dialog__title">Opcoes de impressão</p>
+            <p class="print-dialog__title">Opções de impressão</p>
             <p class="print-dialog__subtitle">Selecione o documento desejado.</p>
           </div>
           <button type="button" class="print-dialog__close" (click)="fecharMenuImpressao()" aria-label="Fechar">&times;</button>
         </div>
         <div class="print-dialog__actions">
-          <button type="button" class="btn-primary" (click)="imprimirDenuncia()">Ficha completa da denuncia</button>
+          <button type="button" class="btn-primary" (click)="imprimirDenuncia()">Ficha completa da denúncia</button>
           <button type="button" class="btn-outline" (click)="imprimirConselhoTutelar()">Ficha de notificação ao Conselho Tutelar</button>
         </div>
       </div>
     </div>
   </section>
 </app-tela-padrao>
-

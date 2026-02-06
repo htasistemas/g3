@@ -602,3 +602,105 @@
   align-self: flex-start;
   text-align: right;
 }
+
+:host {
+  padding: 0;
+}
+
+.cadastro {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem 1rem;
+}
+
+.cadastro-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.cadastro-menu {
+  position: sticky;
+  top: 0.75rem;
+  align-self: start;
+}
+
+.cadastro-conteudo {
+  min-width: 0;
+}
+
+.tab-shell__title--destaque {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #0f7a43;
+  text-transform: uppercase;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.tab-shell__icon {
+  font-size: 1.45rem;
+}
+
+.step-tabs {
+  grid-template-columns: 1fr;
+}
+
+.step-tabs__button {
+  padding: 0.35rem 0.55rem;
+  min-height: 44px;
+}
+
+.step-tabs__label {
+  font-size: 0.8rem;
+}
+
+.step-tabs__index {
+  width: 22px;
+  height: 22px;
+  font-size: 0.7rem;
+  border-radius: 6px;
+}
+
+.step-tabs__item.completed .step-tabs__button {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.step-tabs__item::after {
+  content: none;
+}
+
+.tab-card__header {
+  justify-content: flex-start;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+}
+
+.tab-card__highlight {
+  font-weight: 800;
+  color: #166534;
+  background: linear-gradient(135deg, #ecfdf3, #dcfce7);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1024px) {
+  .cadastro-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cadastro-menu {
+    position: static;
+  }
+}

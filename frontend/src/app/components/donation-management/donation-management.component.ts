@@ -163,15 +163,15 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   private readonly beneficiaryService = inject(BeneficiarioApiService);
   private readonly familyService = inject(FamilyService);
   private readonly almoxarifadoService = inject(AlmoxarifadoService);
-  private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);     
+  private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);
   private readonly authService = inject(AuthService);
   private readonly visitaService = inject(VisitaDomiciliarService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
   tabs: { id: TabId; label: string }[] = [
-    { id: 'identificacao', label: 'Identificacao' },
-    { id: 'historico', label: 'HistÃ³rico de doaÃ§Ãµes' },
-    { id: 'planejamento', label: 'DoaÃ§Ãµes a realizar' },
+    { id: 'identificacao', label: 'Identificação' },
+    { id: 'historico', label: 'Histórico de doações' },
+    { id: 'planejamento', label: 'Doações a realizar' },
     { id: 'dashboard', label: 'Dashboard' }
   ];
 
@@ -201,7 +201,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   identificationForm: FormGroup = this.fb.group({
     beneficiaryName: ['', Validators.required],
-    responsible: ['UsuÃ¡rio logado', Validators.required],
+    responsible: ['Usuário logado', Validators.required],
     notes: ['']
   });
 
@@ -256,6 +256,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   editandoDoacaoId: string | null = null;
   editBeneficiarioId: number | null = null;
   editFamiliaId: number | null = null;
+  fotoBeneficiarioAberta = signal(false);
+  fotoBeneficiarioUrl = signal<string | null>(null);
 
   filteredBeneficiaries = computed(() => {
     const term = this.beneficiarySearch().toLowerCase();
@@ -422,8 +424,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
     return {
       id: payload.id_beneficiario ?? '',
-      name: payload.nome_completo || payload.nome_social || 'Beneficiario',
-      document: payload.cpf || payload.nis || 'Documento n?o informado',
+      name: payload.nome_completo || payload.nome_social || 'Beneficiário',
+      document: payload.cpf || payload.nis || 'Documento não informado',
       cpf: payload.cpf || undefined,
       optaReceberCestaBasica: payload.opta_receber_cesta_basica,
       aptoReceberCestaBasica: payload.apto_receber_cesta_basica,
@@ -451,7 +453,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     return {
       id: payload.id_familia ?? '',
       name: payload.nome_familia,
-      document: payload.municipio ? `MunicÃ­pio: ${payload.municipio}` : 'Familia cadastrada',
+      document: payload.municipio ? `Município: ${payload.municipio}` : 'Família cadastrada',
       cpf: undefined,
       birthDate: undefined,
       age: null,
@@ -501,7 +503,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       }
     } catch (error) {
       console.error('Failed to search beneficiaries', error);
-      this.beneficiarySearchError.set('Nao foi possÃ­vel buscar beneficiarios no momento.');
+      this.beneficiarySearchError.set('Não foi possível buscar beneficiários no momento.');
     } finally {
       this.searchingBeneficiaries.set(false);
     }
@@ -561,7 +563,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   registerDonation(): void {
     this.itemError.set(null);
     if (!this.selectedBeneficiary()) {
-      this.beneficiarySearchError.set('Selecione um beneficiario ou familia para continuar.');
+      this.beneficiarySearchError.set('Selecione um beneficiário ou família para continuar.');
       this.identificationForm.markAllAsTouched();
       return;
     }
@@ -590,14 +592,14 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     });
 
     if (payloadItens.some((item) => item.itemId === 0)) {
-      this.itemError.set('Selecione itens validos do almoxarifado antes de registrar a doacao.');
+      this.itemError.set('Selecione itens válidos do almoxarifado antes de registrar a doação.');
       return;
     }
 
     const payload = {
       beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
       vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
-      tipoDoacao: 'Nao informado',
+      tipoDoacao: 'Não informado',
       situacao: 'entregue',
       responsavel: formValue['responsible'],
       observacoes: formValue['notes'],
@@ -618,7 +620,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.changeTab('historico');
       },
       error: () => {
-        this.itemError.set('Nao foi possÃ­vel registrar a doacao agora.');
+        this.itemError.set('Não foi possível registrar a doação agora.');
       }
     });
   }
@@ -626,7 +628,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   submitPlannedDonation(): void {
     this.plannedError.set(null);
     if (!this.selectedBeneficiary()) {
-      this.plannedError.set('Selecione um Beneficiario primeiro.');
+      this.plannedError.set('Selecione um beneficiário primeiro.');
       return;
     }
 
@@ -696,7 +698,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       deliveryDate: this.todayIso,
       donationType: 'Entrega planejada',
       status: 'entregue',
-      responsible: this.identificationForm.value['responsible'] || 'UsuÃ¡rio logado',
+      responsible: this.identificationForm.value['responsible'] || 'Usuário logado',
       notes: plan.notes,
       items: [
         {
@@ -717,12 +719,12 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   realizarDoacaoPlanejada(plan: PlannedDonation): void {
     this.plannedError.set(null);
     if (!this.selectedBeneficiary()) {
-      this.plannedError.set('Selecione um Beneficiario primeiro.');
+      this.plannedError.set('Selecione um beneficiário primeiro.');
       return;
     }
 
     if (plan.status === 'entregue') {
-      this.plannedError.set('Esta doacao planejada ja foi entregue.');
+      this.plannedError.set('Esta doação planejada já foi entregue.');
       return;
     }
 
@@ -732,7 +734,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
     const estoqueItem = this.findStockItem(plan.itemCode);
     if (!estoqueItem) {
-      this.plannedError.set('Item n?o encontrado no almoxarifado.');
+      this.plannedError.set('Item não encontrado no almoxarifado.');
       return;
     }
 
@@ -740,7 +742,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const payload = {
       beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
       vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
-      tipoDoacao: 'DoaÃ§Ã£o planejada',
+      tipoDoacao: 'Doação planejada',
       situacao: 'entregue',
       responsavel: this.identificationForm.value['responsible'],
       observacoes: plan.notes,
@@ -764,7 +766,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.changeTab('historico');
       },
       error: () => {
-        this.plannedError.set('Nao foi possÃ­vel registrar a doacao planejada.');
+        this.plannedError.set('Não foi possível registrar a doação planejada.');
       }
     });
   }
@@ -799,10 +801,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   formatPlanStatus(status: PlannedDonation['status']): string {
     if (status === 'cancelado') {
-      return 'DoaÃ§Ã£o cancelada';
+      return 'Doação cancelada';
     }
     if (status === 'entregue') {
-      return 'DoaÃ§Ã£o entregue';
+      return 'Doação entregue';
     }
     return status;
   }
@@ -844,13 +846,13 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
           description: item.description,
           unit: item.unit || '',
           currentStock: item.currentStock,
-          category: item.category || 'Nao informado',
+          category: item.category || 'Não informado',
           status: item.status
         }));
         this.stockItems.set(mapped);
       },
       error: () => {
-        this.itemError.set('Nao foi possÃ­vel carregar itens do almoxarifado.');
+        this.itemError.set('Não foi possível carregar itens do almoxarifado.');
       }
     });
   }
@@ -863,7 +865,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.donationHistory.set(mapped);
       },
       error: () => {
-        this.historicoErro.set('Nao foi possÃ­vel carregar as doaÃ§Ãµes realizadas.');
+        this.historicoErro.set('Não foi possível carregar as doações realizadas.');
       }
     });
   }
@@ -872,19 +874,19 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const beneficiarioNome =
       record.beneficiarioNome ||
       record.familiaNome ||
-      (record.beneficiarioId ? `Beneficiario ${record.beneficiarioId}` : 'Familia');
+      (record.beneficiarioId ? `Beneficiário ${record.beneficiarioId}` : 'Família');
 
     return {
       id: String(record.id),
       beneficiaryId: String(record.beneficiarioId ?? record.vinculoFamiliarId ?? ''),
       beneficiaryName: beneficiarioNome,
-      beneficiaryDocument: 'Nao informado',
+      beneficiaryDocument: 'Não informado',
       beneficiaryType: record.beneficiarioId ? 'beneficiario' : 'familia',
       date: record.dataDoacao,
       deliveryDate: record.dataDoacao,
       donationType: record.tipoDoacao,
       status: record.situacao,
-      responsible: record.responsavel || 'Nao informado',
+      responsible: record.responsavel || 'Não informado',
       notes: record.observacoes,
       items: (record.itens || []).map((item) => ({
         itemId: item.itemId ?? undefined,
@@ -898,7 +900,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   }
 
   private preencherResponsavelLogado(): void {
-    const usuario = this.authService.user()?.nomeUsuario;
+    const usuario = this.authService.user()?.nome || this.authService.user()?.nomeUsuario;
     if (!usuario) {
       return;
     }
@@ -908,13 +910,13 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   private ensureStockAvailable(code: string, quantity: number): boolean {
     const item = this.findStockItem(code);
     if (!item) {
-      this.itemError.set('Item n?o encontrado no almoxarifado.');
+      this.itemError.set('Item não encontrado no almoxarifado.');
       return false;
     }
 
     if (quantity > item.currentStock) {
       this.itemError.set(
-        `Estoque insuficiente para ${item.description}. Disponivel: ${item.currentStock} ${item.unit}.`
+        `Estoque insuficiente para ${item.description}. Disponível: ${item.currentStock} ${item.unit}.`
       );
       return false;
     }
@@ -974,7 +976,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       dueDate: this.offsetDate(30),
       priority: 'media',
       status: 'pendente',
-      notes: 'Proxima cesta basica programada automaticamente apos a entrega.'
+      notes: 'Próxima cesta básica programada automaticamente após a entrega.'
     };
 
     this.plannedDonations.update((plans) => [payload, ...plans]);
@@ -1026,9 +1028,9 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     if (String(beneficiary.status).toUpperCase() !== 'BLOQUEADO') {
       return;
     }
-    const reason = beneficiary.blockReason || 'Nao informado';
+    const reason = beneficiary.blockReason || 'Não informado';
     const builder = new PopupErrorBuilder();
-    builder.adicionar(`Beneficiario bloqueado. Motivo: ${reason}.`);
+    builder.adicionar(`Beneficiário bloqueado. Motivo: ${reason}.`);
     this.popupErros = builder.build();
   }
 
@@ -1059,7 +1061,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   abrirEdicaoDoacao(record: DonationRecord): void {
     if (!this.podeEditarDoacao(record)) {
-      this.historicoErro.set('Esta doacao nao pode mais ser alterada. Prazo maximo: 10 dias.');
+      this.historicoErro.set('Esta doação não pode mais ser alterada. Prazo máximo: 10 dias.');
       return;
     }
     this.historicoErro.set(null);
@@ -1097,6 +1099,19 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.editError.set(null);
   }
 
+  abrirFotoBeneficiario(url?: string | null): void {
+    if (!url) {
+      return;
+    }
+    this.fotoBeneficiarioUrl.set(url);
+    this.fotoBeneficiarioAberta.set(true);
+  }
+
+  fecharFotoBeneficiario(): void {
+    this.fotoBeneficiarioAberta.set(false);
+    this.fotoBeneficiarioUrl.set(null);
+  }
+
   addEditItem(): void {
     this.editError.set(null);
     if (this.editItemForm.invalid) {
@@ -1105,12 +1120,12 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     }
     const item = this.findStockItem(this.editItemForm.value['itemCode']);
     if (!item) {
-      this.editError.set('Selecione um item valido do almoxarifado.');
+      this.editError.set('Selecione um item válido do almoxarifado.');
       return;
     }
     const jaExiste = this.editItems().some((current) => current.itemId === item.id);
     if (jaExiste) {
-      this.editError.set('Item ja adicionado na edicao.');
+      this.editError.set('Item já adicionado na edição.');
       return;
     }
     this.editItems.update((current) => [
@@ -1148,7 +1163,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   salvarEdicaoDoacao(): void {
     this.editError.set(null);
     if (!this.editandoDoacaoId) {
-      this.editError.set('Selecione uma doacao para editar.');
+      this.editError.set('Selecione uma doação para editar.');
       return;
     }
     if (this.editForm.invalid) {
@@ -1156,7 +1171,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       return;
     }
     if (!this.editItems().length) {
-      this.editError.set('Informe ao menos um item para a doacao.');
+      this.editError.set('Informe ao menos um item para a doação.');
       return;
     }
     if (this.editItems().some((item) => item.quantity <= 0)) {
@@ -1169,7 +1184,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       observacoes: item.notes
     }));
     if (itens.some((item) => item.itemId === 0)) {
-      this.editError.set('Informe itens validos do almoxarifado.');
+      this.editError.set('Informe itens válidos do almoxarifado.');
       return;
     }
     const payload = {
@@ -1191,7 +1206,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.fecharEdicaoDoacao();
       },
       error: () => {
-        this.editError.set('Nao foi possivel atualizar a doacao agora.');
+        this.editError.set('Não foi possível atualizar a doação agora.');
       }
     });
   }
@@ -1219,18 +1234,18 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   formatarAptidaoDoacao(beneficiary: Beneficiary): string {
     if (beneficiary.optaReceberCestaBasica === false) {
-      return 'Nao opta por cesta basica';
+      return 'Não opta por cesta básica';
     }
     if (beneficiary.optaReceberCestaBasica === true && beneficiary.aptoReceberCestaBasica == null) {
-      return 'Opta por cesta basica';
+      return 'Opta por cesta básica';
     }
     if (beneficiary.aptoReceberCestaBasica === true) {
-      return 'Apto para Receber DoaÃ§Ãµes';
+      return 'Apto para Receber Doações';
     }
     if (beneficiary.aptoReceberCestaBasica === false) {
-      return 'NÃ£o Apto para Receber DoaÃ§Ãµes';
+      return 'Não Apto para Receber Doações';
     }
-    return 'Nao informado';
+    return 'Não informado';
   }
 
   alternarMotivoCestaBasica(): void {
@@ -1295,7 +1310,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.mostrarMotivoCestaBasica.set(false);
     this.identificationForm.reset({
       beneficiaryName: '',
-      responsible: this.identificationForm.value['responsible'] || 'UsuÃƒÂ¡rio logado',
+      responsible: this.identificationForm.value['responsible'] || 'Usuário logado',
       notes: ''
     });
     this.deliveredItems.set([]);
@@ -1325,6 +1340,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   }
 
 }
+
+
 
 
 

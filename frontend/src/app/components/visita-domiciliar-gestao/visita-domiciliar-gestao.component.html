@@ -2,6 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="submit()"
   (excluir)="handleExcluir()"
   (novo)="novaVisita()"
@@ -10,38 +11,37 @@
   (buscar)="onBuscar()"
   (fechar)="closeForm()"
 >
-<header class="page-title page-title--row" slot="titulo">
-  <div>
-    <p class="page-title__eyebrow">ATENDIMENTOS</p>
-    <p class="page-title__label">Registro de visitas</p>
-  </div>
-    <p class="page-title__note">Registro e acompanhamento de visitas domiciliares.</p>
-</header>
-
   <section class="cadastro">
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informações</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-      >
-        <button
-          class="step-tabs__button"
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faClipboardUser" class="tab-shell__icon"></fa-icon>
+          Registro de visitas
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+          >
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
+    <div class="cadastro-conteudo">
   <form [formGroup]="visitForm" (ngSubmit)="submit()" class="form-shell">
     <div *ngIf="feedback" class="feedback">
       <span>{{ feedback }}</span>
@@ -52,7 +52,7 @@
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
         <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">
-          Proximo: {{ nextTabLabel }}
+          Próximo: {{ nextTabLabel }}
         </button>
         <button type="submit" class="primary" [disabled]="saving" *ngIf="!hasNextTab">
           {{ saving ? 'Salvando...' : editingId ? 'Atualizar visita' : 'Salvar visita' }}
@@ -64,13 +64,12 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Identifique beneficiario, responsavel e parametros basicos da agenda.</p>
         </div>
-        <span class="pill">Obrigatorio</span>
+        <span class="pill">Obrigatório</span>
       </div>
       <div class="tab-card__status" *ngIf="beneficiarioAptidao">
         <p class="muted">
-          <strong>Aptidao para doações:</strong> {{ formatarAptidaoDoacoes() }}
+          <strong>Aptidão para doações:</strong> {{ formatarAptidaoDoacoes() }}
         </p>
       </div>
       <div class="field-grid cols-3">
@@ -80,26 +79,26 @@
             <option *ngFor="let unidade of unidades" [value]="unidade">{{ unidade }}</option>
           </select>
         </label>
-        <label class="field">Beneficiario*
+        <label class="field">Beneficiário*
           <app-autocomplete
             [opcoes]="beneficiarioOpcoes"
             [termo]="beneficiarioTermo"
             [carregando]="beneficiariosLoading"
             [erro]="beneficiariosError"
-            placeholder="Digite o nome do beneficiario"
+            placeholder="Digite o nome do beneficiário"
             (termoChange)="atualizarTermoBeneficiario($event)"
             (selecionar)="selecionarBeneficiario($event)"
           ></app-autocomplete>
         </label>
-        <p class="muted" *ngIf="beneficiariosLoading">Carregando beneficiarios...</p>
+        <p class="muted" *ngIf="beneficiariosLoading">Carregando beneficiários...</p>
         <p class="muted text-red-600" *ngIf="beneficiariosError">{{ beneficiariosError }}</p>
-        <label class="field">Responsavel pela visita*<select formControlName="responsavel">
+        <label class="field">Responsável pela visita*<select formControlName="responsavel">
             <option value=""></option>
             <option *ngFor="let responsavel of responsaveis" [value]="responsavel">{{ responsavel }}</option>
           </select></label>
         <label class="field">Data da visita*<input type="date" formControlName="dataVisita" /></label>
-        <label class="field">Horario inicial*<input type="time" formControlName="horarioInicial" /></label>
-        <label class="field">Horario final<input type="time" formControlName="horarioFinal" /></label>
+        <label class="field">Horário inicial*<input type="time" formControlName="horarioInicial" /></label>
+        <label class="field">Horário final<input type="time" formControlName="horarioFinal" /></label>
         <label class="field">Tipo de visita<select formControlName="tipoVisita">
             <option value=""></option>
             <option *ngFor="let tipo of tiposVisita" [value]="tipo">{{ tipo }}</option>
@@ -111,13 +110,13 @@
         <label class="field full">Observações iniciais<textarea formControlName="observacoesIniciais" rows="3" placeholder="Resumo do objetivo da visita"></textarea></label>
         <div class="feature-grid">
           <label class="checkbox-field"><input type="checkbox" formControlName="usarEnderecoBeneficiario" (change)="onToggleEnderecoBeneficiario()" />
-            <span>Utilizar endereço do beneficiario</span></label>
+            <span>Utilizar endereço do beneficiário</span></label>
         </div>
         <div class="field full" formGroupName="endereco">
-          <p class="field-title">endereço da visita (preencha apenas se diferente do beneficiario)</p>
+          <p class="field-title">Endereço da visita (preencha apenas se diferente do beneficiário)</p>
           <div class="field-grid cols-3">
             <label class="field">Logradouro<input formControlName="logradouro" /></label>
-            <label class="field">Numero<input formControlName="numero" /></label>
+            <label class="field">Número<input formControlName="numero" /></label>
             <label class="field">Bairro<input formControlName="bairro" /></label>
             <label class="field">Cidade<input formControlName="cidade" /></label>
             <label class="field">UF<input maxlength="2" formControlName="uf" /></label>
@@ -132,7 +131,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Registre condicoes fisicas e sanitarias do domicilio.</p>
         </div>
       </div>
       <div class="field-grid cols-3">
@@ -157,7 +155,7 @@
             <option value=""></option>
             <option *ngFor="let option of energia" [value]="option">{{ option }}</option>
           </select></label>
-        <label class="field">Condicoes de higiene<select formControlName="condicoesHigiene">
+        <label class="field">Condições de higiene<select formControlName="condicoesHigiene">
             <option value=""></option>
             <option *ngFor="let option of higiene" [value]="option">{{ option }}</option>
           </select></label>
@@ -179,7 +177,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Contexto social e de vinculos da familia.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -208,24 +205,23 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Registre o relato tecnico, encaminhamentos e plano de acompanhamento.</p>
         </div>
-        <span class="pill">Obrigatorio se realizada</span>
+        <span class="pill">Obrigatório se realizada</span>
       </div>
       <div class="field-grid cols-2">
         <label class="field full">Relato da visita<textarea formControlName="relato" rows="4" placeholder="Descreva como foi a visita"></textarea></label>
         <label class="field">Necessidades identificadas<textarea formControlName="necessidades" rows="3"></textarea></label>
-        <label class="field">Encaminhamentos realizados<textarea formControlName="encaminhamentos" rows="3" placeholder="Servico/setor, data, responsavel"></textarea></label>
+        <label class="field">Encaminhamentos realizados<textarea formControlName="encaminhamentos" rows="3" placeholder="Serviço/setor, data, responsável"></textarea></label>
         <label class="field">Orientações dadas<textarea formControlName="orientacoes" rows="3"></textarea></label>
-        <label class="field full">Plano de acompanhamento<textarea formControlName="plano" rows="3" placeholder="ações planejadas com prazo/responsavel"></textarea></label>
-        <label class="field">usuário necessita de cesta basica?*
+        <label class="field full">Plano de acompanhamento<textarea formControlName="plano" rows="3" placeholder="ações planejadas com prazo/responsável"></textarea></label>
+        <label class="field">Usuário necessita de cesta básica?*
           <select formControlName="optaReceberCestaBasica" (change)="onOptaCestaBasicaChange()">
             <option [ngValue]="null"></option>
             <option [ngValue]="true">Sim</option>
             <option [ngValue]="false">Não</option>
           </select>
         </label>
-        <label class="field" *ngIf="visitForm.get('registro.optaReceberCestaBasica')?.value === true">Apto a receber cesta basica?*
+        <label class="field" *ngIf="visitForm.get('registro.optaReceberCestaBasica')?.value === true">Apto a receber cesta básica?*
           <select formControlName="aptoReceberCestaBasica" (change)="onAptoCestaBasicaChange()">
             <option [ngValue]="null"></option>
             <option [ngValue]="true">Sim</option>
@@ -243,7 +239,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Adicione fotos ou documentos relacionados a visita.</p>
         </div>
       </div>
       <div class="field-grid cols-3" [formGroup]="anexoForm">
@@ -300,7 +295,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Visualize rapidamente visitas anteriores do mesmo beneficiario.</p>
         </div>
       </div>
       <div class="list-card compact">
@@ -310,7 +304,7 @@
               <tr>
                 <th>Data</th>
                 <th>Situação</th>
-                <th>Responsavel</th>
+                <th>Responsável</th>
                 <th>Unidade</th>
                 <th>Resumo</th>
               </tr>
@@ -340,7 +334,7 @@
                 <td>{{ visita.observacoesIniciais || visita.registro.relato || '---' }}</td>
               </tr>
               <tr *ngIf="!historicoBeneficiario.length">
-                <td colspan="5" class="muted">Nenhuma visita anterior encontrada para este beneficiario.</td>
+                <td colspan="5" class="muted">Nenhuma visita anterior encontrada para este beneficiário.</td>
               </tr>
             </tbody>
           </table>
@@ -353,7 +347,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Listagem completa das visitas registradas.</p>
         </div>
       </div>
 
@@ -380,8 +373,8 @@
                 <option value=""></option>
                 <option *ngFor="let situacao of situacoes" [value]="situacao">{{ situacao }}</option>
               </select></label>
-            <label class="field">Beneficiario<input formControlName="beneficiario" placeholder="Buscar por nome" /></label>
-            <label class="field">Responsavel<input formControlName="responsavel" placeholder="Profissional/voluntario" /></label>
+            <label class="field">Beneficiário<input formControlName="beneficiario" placeholder="Buscar por nome" /></label>
+            <label class="field">Responsável<input formControlName="responsavel" placeholder="Profissional/voluntário" /></label>
           </div>
           <div class="actions">
             <button class="ghost" type="button" (click)="filterForm.reset(); aplicarFiltros();">Limpar filtros</button>
@@ -394,15 +387,15 @@
             <thead>
               <tr>
                 <th>Data da visita</th>
-                <th>Beneficiario</th>
-                <th>Responsavel</th>
+                <th>Beneficiário</th>
+                <th>Responsável</th>
                 <th>Unidade</th>
                 <th>Situação</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let visita of filteredVisitas">
+              <tr *ngFor="let visita of filteredVisitas" (dblclick)="editarVisita(visita)">
                 <td>{{ visita.dataVisita }}</td>
                 <td>
                   <div class="strong">{{ visita.beneficiario }}</div>
@@ -413,7 +406,6 @@
                 <td>{{ visita.situacao }}</td>
                 <td class="text-right">
                   <div class="table-actions">
-                    <button class="ghost" type="button" (click)="editarVisita(visita)">Editar</button>
                     <button class="primary" type="button" (click)="cancelarVisita(visita)" [disabled]="visita.situacao === 'Cancelada'">Cancelar</button>
                     <button class="danger" type="button" (click)="excluirVisita(visita)">Excluir</button>
                   </div>
@@ -430,9 +422,8 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
   </form>
+    </div>
+  </div>
 </section>
 </app-tela-padrao>
-
-
-
 

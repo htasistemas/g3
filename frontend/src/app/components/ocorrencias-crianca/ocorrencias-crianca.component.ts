@@ -1,6 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import {
   OcorrenciaCriancaAnexoPayload,
   OcorrenciaCriancaPayload,
@@ -24,6 +26,7 @@ interface StepTab {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     BarraAcoesCrudComponent,
     PopupMessagesComponent
@@ -34,13 +37,14 @@ interface StepTab {
 export class OcorrenciasCriancaComponent extends TelaBaseComponent implements OnInit {
   form: FormGroup;
   tabs: StepTab[] = [
-    { id: 'ocorrencia', label: 'Ocorrencia' },
-    { id: 'vitima', label: 'Vitima' },
-    { id: 'autor', label: 'Possivel autor' },
-    { id: 'classificacao', label: 'Classificacao' },
+    { id: 'ocorrencia', label: 'Ocorrência' },
+    { id: 'vitima', label: 'Vítima' },
+    { id: 'autor', label: 'Possível autor' },
+    { id: 'classificacao', label: 'Classificação' },
     { id: 'relato', label: 'Relato e encaminhamento' }
   ];
   activeTab = 'ocorrencia';
+  readonly faTriangleExclamation = faTriangleExclamation;
   popupErros: string[] = [];
   popupTitulo = 'Aviso';
   saving = false;
@@ -51,42 +55,42 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
   buscarModalOpen = false;
   termoBusca = '';
 
-  readonly localViolenciaOpcoes = ['Na escola', 'No ambito familiar', 'Outros espacos'];
+  readonly localViolenciaOpcoes = ['Na escola', 'No âmbito familiar', 'Outros espaços'];
   readonly violenciaMotivadaOpcoes = [
     'Sexismo',
     'LGBTfobia',
     'Racismo',
-    'Intolerancia religiosa',
+    'Intolerância religiosa',
     'Xenofobia',
     'Conflito geracional',
     'Capacitismo',
-    'Condicao economica',
+    'Condição econômica',
     'Outros'
   ];
   readonly violenciaPraticadaOpcoes = [
-    'crianca',
-    'adolescente',
-    'pai',
-    'mae',
-    'responsavel',
-    'professor/a',
-    'gestor/a',
-    'funcionario',
-    'outro'
+    'Criança',
+    'Adolescente',
+    'Pai',
+    'Mãe',
+    'Responsável',
+    'Professor(a)',
+    'Gestor(a)',
+    'Funcionário',
+    'Outro'
   ];
   readonly outrasViolacoesOpcoes = [
     'Abandono escolar',
-    'Evasao escolar',
-    'Gravidez na adolescencia',
+    'Evasão escolar',
+    'Gravidez na adolescência',
     'Trabalho Infantil'
   ];
-  readonly racaCorOpcoes = ['Branca', 'Preta', 'Parda', 'Indigena', 'Amarela'];
+  readonly racaCorOpcoes = ['Branca', 'Preta', 'Parda', 'Indígena', 'Amarela'];
   readonly identidadeGeneroOpcoes = [
-    'Masculino Cisgenero',
-    'Feminino Cisgenero',
+    'Masculino Cisgênero',
+    'Feminino Cisgênero',
     'Masculino Transexual',
     'Feminino Transexual',
-    'Nao binario'
+    'Não binário'
   ];
   readonly orientacaoSexualOpcoes = [
     'Heterossexual',
@@ -98,54 +102,54 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
   ];
   readonly escolaridadeOpcoes = [
     'Creche (0-3)',
-    'Pre-escola (4-5)',
-    '1Âº EF',
-    '2Âº EF',
-    '3Âº EF',
-    '4Âº EF',
-    '5Âº EF',
-    '6Âº EF',
-    '7Âº EF',
-    '8Âº EF',
-    '9Âº EF',
-    '1Âº EM',
-    '2Âº EM',
-    '3Âº EM'
+    'Pré-escola (4-5)',
+    '1º EF',
+    '2º EF',
+    '3º EF',
+    '4º EF',
+    '5º EF',
+    '6º EF',
+    '7º EF',
+    '8º EF',
+    '9º EF',
+    '1º EM',
+    '2º EM',
+    '3º EM'
   ];
   readonly denunciaOrigemOpcoes = [
-    'Denuncia espontanea',
-    'Suspeita por observacao',
+    'Denúncia espontânea',
+    'Suspeita por observação',
     'Relato de outros alunos',
     'Familiares',
-    'Denuncia anonima',
+    'Denúncia anônima',
     'Comunidade',
     'Outro'
   ];
   readonly tipificacaoViolenciaOpcoes = [
-    'Violencia fisica',
-    'Violencia psicologica',
-    'Exposicao da crianca/adolescente a crime violento contra membro da familia ou rede de apoio',
-    'Violencia sexual',
-    'Negligencia',
-    'Maus tratos',
-    'Violencia institucional'
+    'Violência física',
+    'Violência psicológica',
+    'Exposição da criança/adolescente a crime violento contra membro da família ou rede de apoio',
+    'Violência sexual',
+    'Negligência',
+    'Maus-tratos',
+    'Violência institucional'
   ];
   readonly tipificacaoPsicologicaOpcoes = [
-    'ameaca',
-    'constrangimento',
-    'humilhacao',
-    'manipulacao',
-    'isolamento',
-    'agressao verbal e xingamento',
-    'bullying',
-    'alienacao parental'
+    'Ameaça',
+    'Constrangimento',
+    'Humilhação',
+    'Manipulação',
+    'Isolamento',
+    'Agressão verbal e xingamento',
+    'Bullying',
+    'Alienação parental'
   ];
-  readonly tipificacaoSexualOpcoes = ['abuso sexual', 'exploracao sexual', 'trafico de pessoas', 'violencia mediada por TICS'];
+  readonly tipificacaoSexualOpcoes = ['Abuso sexual', 'Exploração sexual', 'Tráfico de pessoas', 'Violência mediada por TICS'];
   readonly violenciaAutoprovocadaOpcoes = [
-    'Suicidio consumado',
-    'Tentativa de suicidio',
-    'Automutilacao',
-    'Ideacao suicida'
+    'Suicídio consumado',
+    'Tentativa de suicídio',
+    'Automutilação',
+    'Ideação suicida'
   ];
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
@@ -303,7 +307,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
         },
         error: () => {
           this.popupTitulo = 'Erro ao salvar';
-          this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar a ocorrencia.').build();
+          this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível salvar a ocorrência.').build();
         },
         complete: () => {
           this.saving = false;
@@ -323,7 +327,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.popupTitulo = 'Erro ao salvar';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar a ocorrencia.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível salvar a ocorrência.').build();
       },
       complete: () => {
         this.saving = false;
@@ -336,13 +340,13 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
     this.service.remover(this.editingId).subscribe({
       next: () => {
         this.popupTitulo = 'Sucesso';
-        this.popupErros = new PopupErrorBuilder().adicionar('Ocorrencia removida com sucesso.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Ocorrência removida com sucesso.').build();
         this.carregarOcorrencias();
         this.resetState();
       },
       error: () => {
         this.popupTitulo = 'Erro ao excluir';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel remover a ocorrencia.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível remover a ocorrência.').build();
       }
     });
   }
@@ -351,7 +355,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
     if (!this.editingId) {
       this.popupTitulo = 'Aviso';
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Salve a ocorrencia antes de gerar a impressao.')
+        .adicionar('Salve a ocorrência antes de gerar a impressão.')
         .build();
       return;
     }
@@ -415,7 +419,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
     if (arquivos.length === 0) return;
     if (this.anexos.length + arquivos.length > 10) {
       this.popupTitulo = 'Aviso';
-      this.popupErros = new PopupErrorBuilder().adicionar('Limite maximo de 10 anexos por ocorrencia.').build();
+      this.popupErros = new PopupErrorBuilder().adicionar('Limite máximo de 10 anexos por ocorrência.').build();
       input.value = '';
       return;
     }
@@ -437,7 +441,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
         },
         error: () => {
           this.popupTitulo = 'Erro ao remover';
-          this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel remover o anexo.').build();
+          this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível remover o anexo.').build();
         }
       });
       return;
@@ -474,7 +478,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.popupTitulo = 'Erro ao carregar';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar as ocorrencias.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar as ocorrências.').build();
       }
     });
   }
@@ -488,7 +492,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
       error: () => {
         this.anexos = [];
         this.popupTitulo = 'Aviso';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os anexos.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar os anexos.').build();
       }
     });
   }
@@ -512,7 +516,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
         },
         error: () => {
           this.popupTitulo = 'Erro ao anexar';
-          this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel anexar um dos arquivos.').build();
+          this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível anexar um dos arquivos.').build();
           aoFinal();
         }
       });
@@ -642,7 +646,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
 
   private finalizarSalvar(): void {
     this.popupTitulo = 'Sucesso';
-    this.popupErros = new PopupErrorBuilder().adicionar('Ocorrencia salva com sucesso.').build();
+    this.popupErros = new PopupErrorBuilder().adicionar('Ocorrência salva com sucesso.').build();
     this.carregarOcorrencias();
     this.resetState();
   }
@@ -693,7 +697,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
     this.form.get('localViolencia')?.valueChanges.subscribe((valor) => {
       const campoOutro = this.form.get('localViolenciaOutro');
       if (!campoOutro) return;
-      if (valor === 'Outros espacos') {
+      if (valor === 'Outros espaços') {
         campoOutro.setValidators([Validators.required]);
       } else {
         campoOutro.clearValidators();
@@ -726,7 +730,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
     this.form.get('violenciaPraticadaPor')?.valueChanges.subscribe((valores: string[]) => {
       const campoOutro = this.form.get('violenciaPraticadaOutro');
       if (!campoOutro) return;
-      if (valores?.includes('outro')) {
+      if (valores?.includes('Outro')) {
         campoOutro.setValidators([Validators.required]);
       } else {
         campoOutro.clearValidators();
@@ -796,7 +800,7 @@ export class OcorrenciasCriancaComponent extends TelaBaseComponent implements On
       pendentes.push('Data de envio ao Conselho Tutelar');
     }
     if (this.form.get('encaminharConselho')?.value === false && !this.form.get('encaminharMotivo')?.value) {
-      pendentes.push('Motivo do nao encaminhamento');
+      pendentes.push('Motivo do não encaminhamento');
     }
     if (pendentes.length > 0) {
       this.form.markAllAsTouched();

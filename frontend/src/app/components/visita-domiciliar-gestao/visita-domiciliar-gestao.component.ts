@@ -1,6 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faClipboardUser } from '@fortawesome/free-solid-svg-icons';
 import {
   SituacaoVisita,
   VisitaAnexo,
@@ -35,6 +37,7 @@ interface StepTab {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     AutocompleteComponent
   ],
@@ -46,13 +49,14 @@ export class VisitaDomiciliarGestaoComponent
   implements OnInit
 {
   tabs: StepTab[] = [
-    { id: 'identificacao', label: 'Identificacao da visita' },
+    { id: 'identificacao', label: 'Identificação da visita' },
     { id: 'condicoes', label: 'Condições do domicílio' },
     { id: 'social', label: 'Situação familiar e social' },
     { id: 'registro', label: 'Registro da visita' },
     { id: 'anexos', label: 'Anexos' },
     { id: 'historico', label: 'Histórico do beneficiário' }
   ];
+  readonly faClipboardUser = faClipboardUser;
 
   readonly tiposVisita = ['Social', 'Técnica', 'Acompanhamento', 'Retorno'];
   readonly situacoes: SituacaoVisita[] = ['Agendada', 'Em andamento', 'Realizada', 'Cancelada'];
@@ -193,7 +197,7 @@ export class VisitaDomiciliarGestaoComponent
       },
       error: () => {
         this.beneficiariosDados = [];
-        this.beneficiariosError = 'Nao foi possivel carregar os beneficiarios.';
+        this.beneficiariosError = 'Não foi possível carregar os beneficiários.';
         this.beneficiarioOpcoes = [];
         this.beneficiariosLoading = false;
       }
@@ -647,7 +651,7 @@ export class VisitaDomiciliarGestaoComponent
       .slice(0, 20)
       .map((beneficiario) => ({
         id: beneficiario.id ?? '',
-        label: beneficiario.nomeCompleto || 'Beneficiario'
+        label: beneficiario.nomeCompleto || 'Beneficiário'
       }));
   }
 
@@ -661,7 +665,7 @@ export class VisitaDomiciliarGestaoComponent
 
   private mapBeneficiarioApi(beneficiario: BeneficiarioApiPayload): BeneficiaryPayload {
     const nomeCompleto =
-      beneficiario.nome_completo || beneficiario.nome_social || 'Beneficiario';
+      beneficiario.nome_completo || beneficiario.nome_social || 'Beneficiário';
     return {
       id: beneficiario.id_beneficiario ? Number(beneficiario.id_beneficiario) : undefined,
       nomeCompleto,

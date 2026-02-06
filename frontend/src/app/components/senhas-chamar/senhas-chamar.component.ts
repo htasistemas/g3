@@ -2,6 +2,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription, debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBullhorn } from '@fortawesome/free-solid-svg-icons';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 import { SenhasService, SenhaFilaResponse } from '../../services/senhas.service';
@@ -19,6 +21,7 @@ import { SenhasConfigService, SenhasConfigRequest } from '../../services/senhas-
   imports: [
     CommonModule,
     FormsModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
     AutocompleteComponent
@@ -30,9 +33,10 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
   abas = [
     { id: 'entrada', label: 'Entrada na fila' },
     { id: 'fila', label: 'Fila aguardando' },
-    { id: 'config', label: 'Configuracoes do painel' }
+    { id: 'config', label: 'Configurações do painel' }
   ];
   abaAtiva = 'entrada';
+  readonly faBullhorn = faBullhorn;
   get abaAtivaIndex(): number {
     return this.abas.findIndex((aba) => aba.id === this.abaAtiva);
   }
@@ -55,7 +59,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
   salaSelecionadaId: string | null = null;
   salasCarregando = false;
   unidadePainelId: number | null = null;
-  fraseFala = 'BeneficiÃ¡rio {beneficiario} dirija-se a {sala} para atendimento.';
+  fraseFala = 'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.';
   rssUrl = 'https://www.gov.br/pt-br/noticias/assistencia-social/RSS';
   velocidadeTicker: number | null = 60;
   modoNoticias: 'RSS' | 'MANUAL' = 'RSS';
@@ -66,7 +70,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
   velocidadesDisponiveis: number[] = [10, 20, 30, 45, 60, 90, 120, 300, 400, 500, 600];
   quantidadesUltimasChamadasDisponiveis: number[] = [2, 3, 4, 5, 6, 8, 10];
   tituloTela = 'Chamada de senhas';
-  descricaoTela = 'Controle de fila e chamada de beneficiarios.';
+  descricaoTela = 'Controle de fila e chamada de beneficiários.';
   prioridades: string[] = ['Normal', 'Prioridade'];
   prioridadeSelecionada = 'Normal';
   novaPrioridade = '';
@@ -169,11 +173,11 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
     }
 
     if (!this.salaSelecionadaId) {
-      builder.adicionar('Sala de atendimento e obrigatoria.');
+      builder.adicionar('Sala de atendimento é obrigatória.');
     }
 
     if (!this.prioridadeSelecionada?.trim()) {
-      builder.adicionar('Prioridade e obrigatoria.');
+      builder.adicionar('Prioridade é obrigatória.');
     }
 
     const mensagens = builder.build();
@@ -201,7 +205,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
           this.carregarFila();
         },
         error: () => {
-          this.mensagem = 'Nao foi possivel inserir o beneficiario na fila.';
+          this.mensagem = 'Não foi possível inserir o beneficiário na fila.';
         }
       });
   }
@@ -210,7 +214,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
     this.popupErros = [];
     const salaNome = item.salaAtendimento;
     if (!salaNome) {
-      this.popupErros = ['Sala de atendimento nao definida na entrada da fila.'];
+      this.popupErros = ['Sala de atendimento não definida na entrada da fila.'];
       return;
     }
 
@@ -282,7 +286,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
     if (primeira?.defaultMessage) {
       return primeira.defaultMessage;
     }
-    return 'Nao foi possivel chamar o beneficiario.';
+    return 'Não foi possível chamar o beneficiário.';
   }
 
   private carregarUnidades(): void {
@@ -401,7 +405,7 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
     const builder = new PopupErrorBuilder();
 
     if (!this.fraseFala?.trim()) {
-      builder.adicionar('Frase da chamada e obrigatoria.');
+      builder.adicionar('Frase da chamada é obrigatória.');
     }
     if (this.fraseFala && !this.fraseFala.includes('{beneficiario}')) {
       builder.adicionar('A frase deve conter {beneficiario}.');
@@ -424,10 +428,10 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
     }
 
     if (this.velocidadeTicker == null) {
-      builder.adicionar('Velocidade do ticker e obrigatoria.');
+      builder.adicionar('Velocidade do ticker é obrigatória.');
     }
     if (this.quantidadeUltimasChamadas == null) {
-      builder.adicionar('Quantidade de ultimas chamadas e obrigatoria.');
+      builder.adicionar('Quantidade de últimas chamadas é obrigatória.');
     }
 
     const mensagens = builder.build();
@@ -489,10 +493,10 @@ export class SenhasChamarComponent extends TelaBaseComponent implements OnInit, 
 
   testarFrase(): void {
     const frase = this.fraseFala
-      .replace('{beneficiario}', this.beneficiarioSelecionadoNome ?? 'Beneficiario')
+      .replace('{beneficiario}', this.beneficiarioSelecionadoNome ?? 'Beneficiário')
       .replace('{sala}', this.buscarSalaNome(this.salaSelecionadaId ?? '') ?? 'Sala');
     if (!('speechSynthesis' in window)) {
-      this.popupErros = ['Navegador nao suporta chamada por voz.'];
+      this.popupErros = ['Navegador não suporta chamada por voz.'];
       return;
     }
     const synth = window.speechSynthesis;
