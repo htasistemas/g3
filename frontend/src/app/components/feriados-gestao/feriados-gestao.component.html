@@ -86,6 +86,11 @@
             <div class="tab-card__divider"></div>
 
             <div class="filter-panel" [formGroup]="filtroForm">
+              <label class="field">Ano
+                <select formControlName="ano" (change)="onAnoChange()">
+                  <option *ngFor="let ano of anosDisponiveis" [value]="ano">{{ ano }}</option>
+                </select>
+              </label>
               <label class="field">Data
                 <input type="date" formControlName="data" />
               </label>

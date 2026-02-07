@@ -42,8 +42,8 @@ export class UserManagementComponent implements OnInit {
     this.userService.list().subscribe({
       next: (users) => (this.users = users),
       error: (error) => {
-        console.error('Erro ao carregar usuÃ¡rios', error);
-        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel carregar os usuÃ¡rios.' };
+        console.error('Erro ao carregar usuários', error);
+        this.feedback = { type: 'error', message: 'Não foi possível carregar os usuários.' };
       },
       complete: () => (this.loading = false)
     });
@@ -55,8 +55,8 @@ export class UserManagementComponent implements OnInit {
         this.permissoesDisponiveis = permissoes;
       },
       error: (error) => {
-        console.error('Erro ao carregar permissÃµes', error);
-        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel carregar as permissÃµes.' };
+        console.error('Erro ao carregar permissões', error);
+        this.feedback = { type: 'error', message: 'Não foi possível carregar as permissões.' };
       }
     });
   }
@@ -95,8 +95,8 @@ export class UserManagementComponent implements OnInit {
         this.loadUsers();
       },
       error: (error) => {
-        console.error('Erro ao salvar usuÃ¡rio', error);
-        const message = error?.error?.message ?? 'NÃ£o foi possÃ­vel salvar o usuÃ¡rio.';
+        console.error('Erro ao salvar usuário', error);
+        const message = error?.error?.message ?? 'Não foi possível salvar o usuário.';
         this.feedback = { type: 'error', message };
       }
     });
@@ -113,7 +113,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   delete(user: UserPayload): void {
-    const confirmDelete = confirm(`Deseja realmente remover o usuÃ¡rio "${user.nomeUsuario}"?`);
+    const confirmDelete = confirm(`Deseja realmente remover o usuário "${user.nomeUsuario}"?`);
     if (!confirmDelete) {
       return;
     }
@@ -127,8 +127,8 @@ export class UserManagementComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Erro ao remover usuÃ¡rio', error);
-        this.feedback = { type: 'error', message: 'NÃ£o foi possÃ­vel remover o usuÃ¡rio.' };
+        console.error('Erro ao remover usuário', error);
+        this.feedback = { type: 'error', message: 'Não foi possível remover o usuário.' };
       }
     });
   }
@@ -155,4 +155,6 @@ export class UserManagementComponent implements OnInit {
     return this.form.get('permissoes')?.value ?? [];
   }
 }
+
+
 

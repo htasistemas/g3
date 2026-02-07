@@ -1,4 +1,4 @@
-﻿import { ChangeDetectorRef, Component } from '@angular/core';
+﻿import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,14 @@ import { EMPTY } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
+import { environment } from '../../../environments/environment';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 
 @Component({
   selector: 'app-login',
@@ -15,7 +23,7 @@ import { ConfigService } from '../../services/config.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit, OnDestroy {
   nomeUsuario = '';
   senha = '';
   loading = false;
@@ -31,6 +39,11 @@ export class LoginComponent {
   recuperacaoSubmetida = false;
   redefinicaoSubmetida = false;
   recuperacaoEtapa: 'solicitar' | 'redefinir' = 'solicitar';
+  googleErro: string | null = null;
+  googleMensagem: string | null = null;
+  googleCarregando = false;
+  private googleInicializado = false;
+  private googleTimeout?: ReturnType<typeof setTimeout>;
 
   cadastroNome = '';
   cadastroEmail = '';
@@ -57,6 +70,18 @@ export class LoginComponent {
     this.carregarVersaoSistema();
   }
 
+  ngAfterViewInit(): void {
+    this.inicializarGoogle();
+  }
+
+  ngOnDestroy(): void {
+    this.googleInicializado = false;
+    if (this.googleTimeout) {
+      clearTimeout(this.googleTimeout);
+      this.googleTimeout = undefined;
+    }
+  }
+
   private carregarVersaoSistema(): void {
     this.configService.getVersaoSistema().subscribe({
       next: (response) => {
@@ -68,6 +93,81 @@ export class LoginComponent {
     });
   }
 
+  private inicializarGoogle(): void {
+    if (this.googleInicializado) return;
+    const clientId = environment.googleClientId;
+    if (!clientId) {
+      this.googleErro = 'Login Google indisponível no momento.';
+      return;
+    }
+    if (!this.googleTimeout) {
+      this.googleTimeout = setTimeout(() => {
+        if (!this.googleInicializado) {
+          this.googleErro = 'Login Google indisponível no momento.';
+          this.cdr.detectChanges();
+        }
+      }, 5000);
+    }
+    const aguardarGoogle = () => {
+      if (!window.google?.accounts?.id) {
+        setTimeout(aguardarGoogle, 200);
+        return;
+      }
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: { credential?: string }) => {
+          const token = response?.credential;
+          if (!token) {
+            this.googleErro = 'Falha ao autenticar com Google.';
+            this.cdr.detectChanges();
+            return;
+          }
+          this.googleCarregando = true;
+          this.googleMensagem = 'Conectado. Redirecionando...';
+          this.googleErro = null;
+          this.auth
+            .loginGoogle(token)
+            .pipe(
+              catchError((err) => {
+                this.googleErro = this.mapError(err) || 'Falha ao autenticar com Google.';
+                return EMPTY;
+              }),
+              finalize(() => {
+                this.googleCarregando = false;
+                this.cdr.detectChanges();
+              })
+            )
+            .subscribe(() => {
+              this.router.navigate(['/']);
+            });
+        }
+      });
+
+      const container = document.getElementById('google-signin-button');
+      if (container) {
+        container.innerHTML = '';
+        window.google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'pill',
+          width: 320
+        });
+      }
+      window.google.accounts.id.prompt();
+      this.googleInicializado = true;
+    };
+    aguardarGoogle();
+  }
+
+  forcarPromptGoogle(): void {
+    if (!window.google?.accounts?.id) {
+      this.googleErro = 'Login Google indisponível no momento.';
+      return;
+    }
+    this.googleErro = null;
+    window.google.accounts.id.prompt();
+  }
   submit(): void {
     this.error = null;
     this.success = null;
@@ -357,6 +457,7 @@ export class LoginComponent {
     return 'Falha ao processar a solicitacao. Tente novamente.';
   }
 }
+
 
 
 

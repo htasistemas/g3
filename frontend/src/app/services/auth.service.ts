@@ -69,6 +69,22 @@ export class AuthService {
       );
   }
 
+  loginGoogle(idToken: string): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${environment.apiUrl}/api/auth/google`, { idToken })
+      .pipe(
+        timeout(this.requestTimeoutMs),
+        tap((response) => {
+          const usuario =
+            response.usuario ?? response.user ?? { id: '0', nomeUsuario: '' };
+          this.persistSession({
+            ...response,
+            user: usuario,
+          });
+        })
+      );
+  }
+
   registrarConta(payload: CadastroContaRequest): Observable<void> {
     return this.http
       .post<void>(`${environment.apiUrl}/api/auth/registrar`, payload)

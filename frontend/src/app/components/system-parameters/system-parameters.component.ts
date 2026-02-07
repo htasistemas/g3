@@ -3,12 +3,12 @@ import { Component } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import { PersonalizacaoComponent } from '../personalizacao/personalizacao.component';
-import { SystemSettingsComponent } from '../system-settings/system-settings.component';
-import { TextTemplatesComponent } from '../text-templates/text-templates.component';
 import { UserManagementComponent } from '../user-management/user-management.component';
+import { AlertasSistemaComponent } from '../alertas-sistema/alertas-sistema.component';
+import { FeriadosGestaoComponent } from '../feriados-gestao/feriados-gestao.component';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
-type ParameterTabId = 'documentos' | 'modelos' | 'usuarios' | 'personalizacao';
+type ParameterTabId = 'alertas' | 'feriados' | 'usuarios' | 'personalizacao';
 
 interface ParameterTab {
   id: ParameterTabId;
@@ -23,10 +23,10 @@ interface ParameterTab {
   imports: [
     CommonModule,
     FontAwesomeModule,
-    SystemSettingsComponent,
-    TextTemplatesComponent,
     UserManagementComponent,
     PersonalizacaoComponent,
+    AlertasSistemaComponent,
+    FeriadosGestaoComponent,
     TelaPadraoComponent
   ],
   templateUrl: './system-parameters.component.html',
@@ -36,16 +36,16 @@ export class SystemParametersComponent {
   readonly faSliders = faSliders;
   readonly tabs: ParameterTab[] = [
     {
-      id: 'documentos',
-      label: 'Documentos obrigatórios',
-      description: 'Defina quais comprovantes e documentos são exigidos para cadastro de beneficiários.',
-      badge: 'Fluxo de cadastro'
+      id: 'alertas',
+      label: 'Alertas do sistema',
+      description: 'Controle mensagens e notificações que serão exibidas para os usuários.',
+      badge: 'Comunicados'
     },
     {
-      id: 'modelos',
-      label: 'Modelos de textos',
-      description: 'Edite e restaure os modelos utilizados nos termos e comunicações oficiais.',
-      badge: 'Textos padrão'
+      id: 'feriados',
+      label: 'Feriados',
+      description: 'Gerencie o calendário de feriados nacionais e municipais.',
+      badge: 'Calendário'
     },
     {
       id: 'usuarios',

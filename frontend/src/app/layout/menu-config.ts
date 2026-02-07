@@ -171,11 +171,6 @@ export const menuSections: MenuItem[] = [
     icon: faWrench,
     children: [
       {
-        label: 'Alertas do sistema',
-        icon: faBell,
-        route: '/configuracoes/alertas-sistema',
-      },
-      {
         label: 'Chamado tecnico',
         icon: faHeadset,
         route: '/configuracoes/chamados-tecnicos',
@@ -185,7 +180,6 @@ export const menuSections: MenuItem[] = [
         icon: faServer,
         route: '/configuracoes/gerenciamento-dados',
       },
-      { label: 'Feriados', icon: faCalendarDay, route: '/administrativo/feriados' },
       { label: 'Configurações do sistema', icon: faSliders, route: '/configuracoes/parametros' },
       { label: 'Versao do sistema', icon: faTags, route: '/configuracoes/versao' },
     ],

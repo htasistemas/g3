@@ -33,6 +33,12 @@ public class Usuario {
   @Column(name = "senha_hash", length = 255, nullable = false)
   private String senhaHash;
 
+  @Column(name = "google_id", length = 80)
+  private String googleId;
+
+  @Column(name = "foto_url", length = 255)
+  private String fotoUrl;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -84,6 +90,22 @@ public class Usuario {
 
   public void setSenhaHash(String senhaHash) {
     this.senhaHash = senhaHash;
+  }
+
+  public String getGoogleId() {
+    return googleId;
+  }
+
+  public void setGoogleId(String googleId) {
+    this.googleId = googleId;
+  }
+
+  public String getFotoUrl() {
+    return fotoUrl;
+  }
+
+  public void setFotoUrl(String fotoUrl) {
+    this.fotoUrl = fotoUrl;
   }
 
   public LocalDateTime getCriadoEm() {

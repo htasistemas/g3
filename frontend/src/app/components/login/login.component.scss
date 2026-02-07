@@ -92,6 +92,19 @@
   transition: color 0.2s ease, text-decoration-color 0.2s ease;
 }
 
+.google-login {
+  display: grid;
+  gap: 0.4rem;
+  align-items: center;
+  justify-items: center;
+}
+
+.google-login__button {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .modal {
   position: fixed;
   inset: 0;

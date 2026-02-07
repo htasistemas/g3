@@ -2,15 +2,15 @@
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
       <p class="section-kicker">UsuÃ¡rios</p>
-      <h1 class="page-heading">UsuÃ¡rios e permissÃµes</h1>
+      <h1 class="page-heading">Usuários e permissões</h1>
       <p class="section-subtitle">
-        Cadastre, edite ou remova usuÃ¡rios com acesso ao sistema.
+        Cadastre, edite ou remova usuários com acesso ao sistema.
       </p>
     </div>
   </div>
 
   <div class="card space-y-4" [formGroup]="form">
-    <div class="card__header">{{ editingId ? 'Editar usuÃ¡rio' : 'Novo usuÃ¡rio' }}</div>
+    <div class="card__header">{{ editingId ? 'Editar usuário' : 'Novo usuário' }}</div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="space-y-2">
@@ -49,7 +49,7 @@
     </div>
 
     <div class="space-y-2">
-      <label class="form-label">PermissÃµes *</label>
+      <label class="form-label">Permissões *</label>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <label
           *ngFor="let permissao of permissoesDisponiveis"
@@ -65,7 +65,7 @@
         </label>
       </div>
       <p *ngIf="form.get('permissoes')?.touched && form.get('permissoes')?.invalid" class="form-error">
-        Selecione ao menos uma permissÃ£o.
+        Selecione ao menos uma permissão.
       </p>
     </div>
 
@@ -84,8 +84,8 @@
 
   <div class="card space-y-4">
     <div class="card__header">UsuÃ¡rios cadastrados</div>
-    <p class="section-subtitle" *ngIf="loading">Carregando usuÃ¡rios...</p>
-    <p class="section-subtitle" *ngIf="!loading && !users.length">Nenhum usuÃ¡rio cadastrado.</p>
+    <p class="section-subtitle" *ngIf="loading">Carregando usuários...</p>
+    <p class="section-subtitle" *ngIf="!loading && !users.length">Nenhum usuário cadastrado.</p>
 
     <div class="overflow-x-auto" *ngIf="users.length">
       <table class="min-w-full text-sm">
@@ -93,7 +93,7 @@
           <tr class="text-left border-b border-slate-200 dark:border-slate-700">
             <th class="py-2 pr-4">Nome completo</th>
             <th class="py-2 pr-4">Email</th>
-            <th class="py-2 pr-4">PermissÃµes</th>
+            <th class="py-2 pr-4">Permissões</th>
             <th class="py-2 pr-4">Criado em</th>
             <th class="py-2">AÃ§Ãµes</th>
           </tr>
@@ -116,4 +116,5 @@
     </div>
   </div>
 </div>
+
 

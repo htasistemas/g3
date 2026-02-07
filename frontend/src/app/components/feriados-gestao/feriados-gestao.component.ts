@@ -34,6 +34,8 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
   popupErros: string[] = [];
   popupTitulo = 'Aviso';
   private importacaoExecutada = false;
+  anosDisponiveis: number[] = [];
+  anoSelecionado = new Date().getFullYear();
 
   private readonly feriadosImportados: FeriadoPayload[] = [
     { data: '2026-01-01', descricao: 'Confraternização Universal - Ano Novo' },
@@ -74,12 +76,14 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
       descricao: ['', Validators.required]
     });
     this.filtroForm = this.fb.group({
+      ano: [this.anoSelecionado],
       data: [''],
       descricao: ['']
     });
   }
 
   ngOnInit(): void {
+    this.anosDisponiveis = this.gerarAnosDisponiveis();
     this.carregarFeriados();
   }
 
@@ -229,9 +233,14 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
   }
 
   aplicarFiltro(): void {
+    const anoFiltro = this.filtroForm.value.ano;
     const filtroData = (this.filtroForm.value.data || '').trim();
     const filtroDescricao = (this.filtroForm.value.descricao || '').trim().toLowerCase();
     this.feriadosFiltrados = this.feriados.filter((feriado) => {
+      if (anoFiltro) {
+        const anoFeriado = Number(feriado.data?.slice(0, 4));
+        if (anoFeriado && anoFeriado !== Number(anoFiltro)) return false;
+      }
       const dataOk = !filtroData || feriado.data === filtroData;
       const descOk =
         !filtroDescricao || (feriado.descricao || '').toLowerCase().includes(filtroDescricao);
@@ -240,7 +249,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
   }
 
   limparFiltro(): void {
-    this.filtroForm.reset({ data: '', descricao: '' });
+    this.filtroForm.reset({ ano: this.anoSelecionado, data: '', descricao: '' });
     this.feriadosFiltrados = [...this.feriados];
   }
 
@@ -317,7 +326,8 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
     const chaveExistente = new Set(
       this.feriados.map((feriado) => `${feriado.data}|${feriado.descricao}`.toLowerCase().trim())
     );
-    this.feriadoService.listarPublicos(2026, 'BR').subscribe({
+    const ano = this.anoSelecionado;
+    this.feriadoService.listarPublicos(ano, 'BR').subscribe({
       next: (feriadosPublicos) => {
         const base = feriadosPublicos.length ? feriadosPublicos : this.feriadosImportados;
         const faltantes = base.filter(
@@ -345,5 +355,16 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
           .build();
       }
     });
+  }
+
+  onAnoChange(): void {
+    this.anoSelecionado = Number(this.filtroForm.value.ano || new Date().getFullYear());
+    this.importacaoExecutada = false;
+    this.carregarFeriados();
+  }
+
+  private gerarAnosDisponiveis(): number[] {
+    const anoAtual = new Date().getFullYear();
+    return [anoAtual - 1, anoAtual, anoAtual + 1, anoAtual + 2];
   }
 }

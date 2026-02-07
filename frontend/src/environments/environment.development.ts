@@ -11,5 +11,6 @@ const obterApiUrlRuntime = (): string | undefined => {
 export const environment = {
   production: false,
   apiUrl: obterApiUrlRuntime() ?? 'http://localhost:8080',
-  version: packageJson.version
+  version: packageJson.version,
+  googleClientId: '1026369251340-2eskbj74ierlra1i9fm0aas29ucvnudf.apps.googleusercontent.com'
 };

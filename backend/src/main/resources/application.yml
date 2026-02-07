@@ -39,6 +39,9 @@ server:
     max-swallow-size: 60MB
 
 app:
+  auth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:1026369251340-2eskbj74ierlra1i9fm0aas29ucvnudf.apps.googleusercontent.com}
   geocoding:
     base-url: https://nominatim.openstreetmap.org/search
     user-agent: g3-geocoder

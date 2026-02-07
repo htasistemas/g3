@@ -3,6 +3,7 @@ package br.com.g3.autenticacao.controller;
 import br.com.g3.autenticacao.dto.CadastroContaRequest;
 import br.com.g3.autenticacao.dto.LoginRequest;
 import br.com.g3.autenticacao.dto.LoginResponse;
+import br.com.g3.autenticacao.dto.GoogleLoginRequest;
 import br.com.g3.autenticacao.dto.RecuperarSenhaRequest;
 import br.com.g3.autenticacao.dto.RedefinirSenhaRequest;
 import br.com.g3.autenticacao.service.AutenticacaoService;
@@ -25,6 +26,11 @@ public class AutenticacaoController {
   @PostMapping("/login")
   public LoginResponse login(@Valid @RequestBody LoginRequest request) {
     return autenticacaoService.autenticar(request);
+  }
+
+  @PostMapping("/google")
+  public LoginResponse loginGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+    return autenticacaoService.autenticarGoogle(request);
   }
 
   @PostMapping("/registrar")

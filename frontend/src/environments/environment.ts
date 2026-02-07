@@ -18,5 +18,6 @@ const apiUrlFromLocation = browserLocation
 export const environment = {
   production: true,
   apiUrl: obterApiUrlRuntime() ?? apiUrlFromLocation ?? 'http://localhost:3000',
-  version: packageJson.version
+  version: packageJson.version,
+  googleClientId: '1026369251340-2eskbj74ierlra1i9fm0aas29ucvnudf.apps.googleusercontent.com'
 };
