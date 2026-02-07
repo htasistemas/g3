@@ -18,9 +18,9 @@ export class ProntuarioIndicadoresComponent {
       { key: 'atendimento', label: 'Atendimentos' },
       { key: 'procedimento', label: 'Procedimentos' },
       { key: 'encaminhamento', label: 'Encaminhamentos' },
-      { key: 'evolucao', label: 'EvoluÃ§Ãµes' },
+      { key: 'evolucao', label: 'Evoluções' },
       { key: 'documento', label: 'Documentos/Anexos' },
-      { key: 'visita_ref', label: 'Visitas domiciliares (referÃªncia)' },
+      { key: 'visita_ref', label: 'Visitas domiciliares (referência)' },
       { key: 'outro', label: 'Outros registros' }
     ];
 
@@ -51,4 +51,5 @@ export class ProntuarioIndicadoresComponent {
     return valor !== null && valor !== undefined ? `${valor.toFixed(1)} dias` : 'â€”';
   }
 }
+
 

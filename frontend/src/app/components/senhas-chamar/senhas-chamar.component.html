@@ -10,7 +10,7 @@
       <div class="tab-shell">
         <p class="tab-shell__title tab-shell__title--destaque">
           <fa-icon [icon]="faBullhorn" class="tab-shell__icon"></fa-icon>
-          Chamada de senhas
+          Chamada de Senhas
         </p>
         <ol class="step-tabs" role="tablist">
           <li
@@ -186,7 +186,7 @@
                 </td>
               </tr>
               <tr *ngIf="!filaFiltrada.length">
-                <td colspan="6" class="muted">Nenhum benefici?rio aguardando.</td>
+                <td colspan="6" class="muted">Nenhum beneficiário aguardando.</td>
               </tr>
             </tbody>
           </table>
@@ -231,7 +231,7 @@
             <input type="text" [(ngModel)]="tituloTela" />
           </label>
           <label class="field field--full">
-            Descri??o da tela de chamada
+            Descrição da tela de chamada
             <input type="text" [(ngModel)]="descricaoTela" />
           </label>
           <label class="field field--full">
@@ -281,7 +281,7 @@
             <span class="field-hint">Quanto maior o segundo, mais lento sera o ticker.</span>
           </label>
           <label class="field field--compact">
-            Quantidade de ?ltimas chamadas (*)
+            Quantidade de últimas chamadas (*)
             <select [(ngModel)]="quantidadeUltimasChamadas">
               <option *ngFor="let quantidade of quantidadesUltimasChamadasDisponiveis" [ngValue]="quantidade">
                 {{ quantidade }}

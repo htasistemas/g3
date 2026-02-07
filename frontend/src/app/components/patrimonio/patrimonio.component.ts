@@ -10,6 +10,7 @@ import {
   faDownload,
   faFileInvoice,
   faFloppyDisk,
+  faLandmark,
   faMagnifyingGlass,
   faPrint,
   faQrcode,
@@ -28,6 +29,7 @@ import { Subscription } from 'rxjs';
 import { TextTemplateService, TextTemplates } from '../../services/text-template.service';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
+import { ConfigAcoesCrud, EstadoAcoesCrud } from '../compartilhado/tela-base.component';
 type AssetTabId = 'dados' | 'visual' | 'localizacao' | 'dashboard' | 'listagem' | 'movimentacao';
 
 type AssetFormTextField =
@@ -108,49 +110,59 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   readonly faBuilding = faBuilding;
   readonly faCloudArrowUp = faCloudArrowUp;
   readonly faTrash = faTrash;
+  readonly faLandmark = faLandmark;
+
+  readonly acoesToolbar: Required<ConfigAcoesCrud> = {
+    buscar: true,
+    novo: true,
+    salvar: true,
+    cancelar: true,
+    excluir: false,
+    imprimir: true
+  };
 
   assetTabs: { id: AssetTabId; label: string; description: string }[] = [
     {
       id: 'dados',
       label: 'Dados gerais',
-      description: 'Campos obrigatÃ³rios para identificaÃ§Ã£o e classificaÃ§Ã£o do bem.'
+      description: 'Campos obrigatórios para identificação e classificação do bem.'
     },
     {
       id: 'visual',
-      label: 'IdentificaÃ§Ã£o visual',
-      description: 'Foto, etiqueta e observaÃ§Ãµes gerais para rastreabilidade.'
+      label: 'Identificação visual',
+      description: 'Foto, etiqueta e observações gerais para rastreabilidade.'
     },
     {
       id: 'localizacao',
-      label: 'LocalizaÃ§Ã£o e responsÃ¡vel',
-      description: 'Unidade, ambiente e responsÃ¡vel direto pelo patrimÃ´nio.'
+      label: 'Localização e responsável',
+      description: 'Unidade, ambiente e responsável direto pelo patrimônio.'
     },
     {
       id: 'dashboard',
-      label: 'Dashboards',
-      description: 'Indicadores de uso, depreciaÃ§Ã£o e status dos bens.'
+      label: 'Dashboard',
+      description: 'Indicadores de uso, depreciação e status dos bens.'
     },
     {
       id: 'movimentacao',
-      label: 'MovimentaÃ§Ã£o',
-      description: 'Registro de movimentaÃ§Ãµes e baixas do patrimÃ´nio.'
+      label: 'Movimentação',
+      description: 'Registro de movimentações e baixas do patrimônio.'
     },
     {
       id: 'listagem',
       label: 'Listagem',
-      description: 'Tabela geral de bens, filtros e impressÃ£o.'
+      description: 'Tabela geral de bens, filtros e impressão.'
     }
   ];
 
   activeAssetTab: AssetTabId = 'dados';
-  conservationOptions = ['Novo', 'Bom', 'Regular', 'Ruim', 'InservÃ­vel'];
-  statusOptions = ['Ativo', 'Em manutenÃ§Ã£o', 'Em emprÃ©stimo', 'Baixado / Inativo'];
-  origins = ['Compra', 'DoaÃ§Ã£o', 'ConvÃªnio', 'TransferÃªncia'];
+  conservationOptions = ['Novo', 'Bom', 'Regular', 'Ruim', 'Inservível'];
+  statusOptions = ['Ativo', 'Em manutenção', 'Em empréstimo', 'Baixado / Inativo'];
+  origins = ['Compra', 'Doação', 'Convênio', 'Transferência'];
   categories = [
-    { label: 'MÃ³veis', subcategories: ['Mesa', 'Cadeira', 'ArmÃ¡rio', 'Estante'] },
-    { label: 'EletrodomÃ©sticos', subcategories: ['Geladeira', 'Micro-ondas', 'Bebedouro'] },
-    { label: 'InformÃ¡tica', subcategories: ['Notebook', 'Desktop', 'Monitor', 'Impressora'] },
-    { label: 'VeÃ­culos', subcategories: ['AutomÃ³vel', 'CaminhÃ£o', 'Motocicleta'] }
+    { label: 'Móveis', subcategories: ['Mesa', 'Cadeira', 'Armário', 'Estante'] },
+    { label: 'Eletrodomésticos', subcategories: ['Geladeira', 'Micro-ondas', 'Bebedouro'] },
+    { label: 'Informática', subcategories: ['Notebook', 'Desktop', 'Monitor', 'Impressora'] },
+    { label: 'Veículos', subcategories: ['Automóvel', 'Caminhão', 'Motocicleta'] }
   ];
 
   assetForm: AssetForm = {
@@ -180,9 +192,9 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     observations: '',
     warranty: '',
     manualUrl: '',
-    lastMovement: 'NÃ£o registrado',
-    lastResponsible: 'NÃ£o registrado',
-    lastMaintenance: 'NÃ£o registrada'
+    lastMovement: 'Não registrado',
+    lastResponsible: 'Não registrado',
+    lastMaintenance: 'Não registrada'
   };
 
   assetLibrary: Patrimonio[] = [];
@@ -268,8 +280,44 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     this.updateCessionTermPreview();
   }
 
+  get acoesDesabilitadas(): EstadoAcoesCrud {
+    return {
+      salvar: this.isSaving,
+      cancelar: this.isSaving,
+      novo: this.isSaving,
+      imprimir: this.isSaving,
+      buscar: this.isSaving,
+      excluir: true
+    };
+  }
+
   changeAssetTab(tabId: AssetTabId): void {
     this.activeAssetTab = tabId;
+  }
+
+  onBuscar(): void {
+    this.changeAssetTab('listagem');
+  }
+
+  onNovo(): void {
+    this.resetForm();
+    this.changeAssetTab('dados');
+  }
+
+  onSalvar(): void {
+    this.saveAsset();
+  }
+
+  onCancelar(): void {
+    this.cancelEdit();
+  }
+
+  onImprimir(): void {
+    this.generateCessionTerm();
+  }
+
+  closeForm(): void {
+    window.history.back();
   }
 
   goToNextAssetTab(): void {
@@ -382,7 +430,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.salasCarregando = false;
-        this.salasErro = 'NÃ£o foi possÃ­vel carregar as salas.';
+        this.salasErro = 'Não foi possível carregar as salas.';
       }
     });
   }
@@ -401,7 +449,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.profissionaisCarregando = false;
-        this.profissionaisErro = 'NÃ£o foi possÃ­vel carregar os profissionais.';
+        this.profissionaisErro = 'Não foi possível carregar os profissionais.';
       }
     });
   }
@@ -503,7 +551,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     } else {
       invalido = !String(valor ?? '').trim().length;
     }
-    this.requiredErrors[campo] = invalido ? 'Campo obrigatÃ³rio.' : null;
+    this.requiredErrors[campo] = invalido ? 'Campo obrigatório.' : null;
   }
 
   validarObrigatorios(): boolean {
@@ -533,7 +581,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       return (asset.numeroPatrimonio || '').trim().toLowerCase() === numeroPatrimonio.toLowerCase();
     });
     this.numeroPatrimonioErro = numeroDuplicado
-      ? 'JÃ¡ existe um patrimÃ´nio cadastrado com este nÃºmero.'
+      ? 'Já existe um patrimônio cadastrado com este número.'
       : null;
   }
 
@@ -546,12 +594,12 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     if (this.isSaving) return;
 
     if (!this.assetForm.patrimonyNumber.trim() || !this.assetForm.name.trim()) {
-      this.errorMessage = 'Informe o nÃºmero e o nome do patrimÃ´nio para salvar.';
+      this.errorMessage = 'Informe o número e o nome do patrimônio para salvar.';
       return;
     }
 
     if (!this.validarObrigatorios()) {
-      this.errorMessage = 'Preencha os campos obrigatÃ³rios destacados.';
+      this.errorMessage = 'Preencha os campos obrigatórios destacados.';
       return;
     }
 
@@ -604,7 +652,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
         error: (error) => {
           this.errorMessage =
             error?.error?.message ??
-            `NÃ£o foi possÃ­vel ${this.editingAssetId ? 'atualizar' : 'salvar'} o patrimÃ´nio. Tente novamente.`;
+            `Não foi possível ${this.editingAssetId ? 'atualizar' : 'salvar'} o patrimônio. Tente novamente.`;
         }
       });
   }
@@ -637,9 +685,9 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       observations: '',
       warranty: '',
       manualUrl: '',
-      lastMovement: 'NÃ£o registrado',
-      lastResponsible: 'NÃ£o registrado',
-      lastMaintenance: 'NÃ£o registrada'
+      lastMovement: 'Não registrado',
+      lastResponsible: 'Não registrado',
+      lastMaintenance: 'Não registrada'
     };
     this.filePreview = null;
     this.displayedAcquisitionValue = this.formatCurrency(0);
@@ -711,9 +759,9 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       observations: asset.observacoes || '',
       warranty: '',
       manualUrl: '',
-      lastMovement: asset.movimentos?.[0]?.dataMovimento || 'NÃ£o registrado',
-      lastResponsible: asset.movimentos?.[0]?.responsavel || 'NÃ£o registrado',
-      lastMaintenance: asset.movimentos?.find((m) => m.tipo === 'MANUTENCAO')?.dataMovimento || 'NÃ£o registrada'
+      lastMovement: asset.movimentos?.[0]?.dataMovimento || 'Não registrado',
+      lastResponsible: asset.movimentos?.[0]?.responsavel || 'Não registrado',
+      lastMaintenance: asset.movimentos?.find((m) => m.tipo === 'MANUTENCAO')?.dataMovimento || 'Não registrada'
     };
 
     this.displayedAcquisitionValue = this.formatCurrency(this.assetForm.acquisitionValue);
@@ -743,7 +791,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
           this.movementForm = this.createMovementForm(patrimonio);
         },
         error: (error) => {
-          this.movementError = error?.error?.message ?? 'NÃ£o foi possÃ­vel registrar a movimentaÃ§Ã£o';
+          this.movementError = error?.error?.message ?? 'Não foi possível registrar a movimentação';
         }
       });
   }
@@ -778,15 +826,15 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     this.modalValor = '';
     if (tipo === 'novaCategoria') {
       this.modalTitulo = 'Incluir categoria';
-      this.modalDescricao = 'Cadastre uma nova categoria para o patrimÃ´nio.';
+      this.modalDescricao = 'Cadastre uma nova categoria para o patrimônio.';
       this.modalLabel = 'Nome da categoria';
-      this.modalPlaceholder = 'Ex.: InformÃ¡tica';
+      this.modalPlaceholder = 'Ex.: Informática';
     }
     if (tipo === 'editarCategorias') {
       this.modalTitulo = 'Alterar categorias';
-      this.modalDescricao = 'Edite as categorias separando por vÃ­rgula.';
+      this.modalDescricao = 'Edite as categorias separando por vírgula.';
       this.modalLabel = 'Categorias';
-      this.modalPlaceholder = 'Ex.: InformÃ¡tica, MÃ³veis, VeÃ­culos';
+      this.modalPlaceholder = 'Ex.: Informática, Móveis, Veículos';
       this.modalValor = this.categories.map((category) => category.label).join(', ');
     }
     if (tipo === 'novaSubcategoria') {
@@ -825,7 +873,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       const formatted = this.toProperCase(valor);
       const exists = this.categories.some((category) => category.label.toLowerCase() === formatted.toLowerCase());
       if (exists) {
-        this.modalErro = 'Esta categoria jÃ¡ existe.';
+        this.modalErro = 'Esta categoria já existe.';
         return;
       }
       this.categories = [...this.categories, { label: formatted, subcategories: [] }];
@@ -893,7 +941,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
       .filter((line) => line.trim().length > 0)
       .map((line) => `<p>${line}</p>`)
       .join('');
-    this.openPrintWindow('Termo de cessÃ£o', formatted);
+    this.openPrintWindow('Termo de cessão', formatted);
   }
 
   generateLoanTerm(): void {
@@ -902,7 +950,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
 
     this.loanTermPreview = content;
     this.openPrintWindow(
-      'Termo de responsabilidade de emprÃ©stimo de bens a terceiros',
+      'Termo de responsabilidade de empréstimo de bens a terceiros',
       content
         .split('\n')
         .filter((line) => line.trim().length > 0)
@@ -932,38 +980,38 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
 
     const unitTitle = [this.assistanceUnit?.nomeFantasia, this.assistanceUnit?.cidade]
       .filter(Boolean)
-      .join(' â€¢ ');
+      .join(' • ');
 
     const items = assets
       .map(
         (asset) => {
-          const location = this.getLocationLabel(asset) || 'Local nÃ£o informado';
+          const location = this.getLocationLabel(asset) || 'Local não informado';
           const value = this.formatCurrency(asset.valorAquisicao || 0);
           return `<p style="margin-bottom:10px;">${
-            asset.numeroPatrimonio || 'Sem nÃºmero'
-          } â€” ${asset.nome || 'Sem nome'} â€¢ ${location} â€¢ Valor: ${value}</p>`;
+            asset.numeroPatrimonio || 'Sem número'
+          } — ${asset.nome || 'Sem nome'} • ${location} • Valor: ${value}</p>`;
         }
       )
       .join('');
 
     const header = unitTitle ? `<p class="report-highlight">${unitTitle}</p>` : '';
 
-    this.openPrintWindow('RelaÃ§Ã£o de bens patrimoniais', `${header}${items}`);
+    this.openPrintWindow('Relação de bens patrimoniais', `${header}${items}`);
   }
 
   private fillTemplate(template: string, asset: Patrimonio): string {
     const dataEmissao = this.formatDate(new Date());
-    const dataAquisicao = asset.dataAquisicao ? this.formatDate(new Date(asset.dataAquisicao)) : 'NÃ£o informada';
+    const dataAquisicao = asset.dataAquisicao ? this.formatDate(new Date(asset.dataAquisicao)) : 'Não informada';
     const replacements: Record<string, string> = {
-      nome: asset.nome || 'NÃ£o identificado',
-      numeroPatrimonio: asset.numeroPatrimonio || 'nÃ£o informado',
-      local: this.getLocationLabel(asset) || 'Local nÃ£o informado',
+      nome: asset.nome || 'Não identificado',
+      numeroPatrimonio: asset.numeroPatrimonio || 'não informado',
+      local: this.getLocationLabel(asset) || 'Local não informado',
       responsavel: this.getResponsible(asset),
       valor: this.formatCurrency(asset.valorAquisicao || this.assetForm.acquisitionValue),
-      categoria: asset.categoria || 'NÃ£o informada',
+      categoria: asset.categoria || 'Não informada',
       subcategoria: asset.subcategoria ? `(${asset.subcategoria})` : '',
-      conservacao: asset.conservacao || 'NÃ£o informada',
-      status: asset.status || 'NÃ£o informada',
+      conservacao: asset.conservacao || 'Não informada',
+      status: asset.status || 'Não informada',
       dataAquisicao,
       dataEmissao
     };
@@ -972,7 +1020,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   }
 
   private getResponsible(asset: Patrimonio): string {
-    return asset.responsavel || this.assetForm.responsibleName || 'NÃ£o informado';
+    return asset.responsavel || this.assetForm.responsibleName || 'Não informado';
   }
 
   private normalizeText(value?: string): string {
@@ -1066,7 +1114,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
   getPrimeiroNome(nome?: string | null): string {
     const valor = (nome ?? '').trim();
     if (!valor) {
-      return 'NÃ£o informado';
+      return 'Não informado';
     }
     return valor.split(/\s+/)[0];
   }
@@ -1075,7 +1123,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     const win = window.open('', '_blank', 'width=900,height=700');
     if (!win) return;
 
-    const unitTitle = this.assistanceUnit?.razaoSocial || this.assistanceUnit?.nomeFantasia || 'InstituiÃ§Ã£o';
+    const unitTitle = this.assistanceUnit?.razaoSocial || this.assistanceUnit?.nomeFantasia || 'Instituição';
     const unitName = this.assistanceUnit?.nomeFantasia || this.assistanceUnit?.razaoSocial || '';
     const unitCnpj = this.assistanceUnit?.cnpj ? `CNPJ: ${this.assistanceUnit.cnpj}` : '';
     const unitPhone = this.assistanceUnit?.telefone ? `Telefone: ${this.assistanceUnit.telefone}` : '';
@@ -1089,7 +1137,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
     ]
       .filter((item) => (item ?? '').toString().trim().length > 0)
       .join(', ');
-    const unitContact = [unitCnpj, unitAddress, unitPhone, unitEmail].filter(Boolean).join(' â€¢ ');
+    const unitContact = [unitCnpj, unitAddress, unitPhone, unitEmail].filter(Boolean).join(' • ');
     const timestamp = new Date();
     const timestampLabel = this.formatDateTime(timestamp);
     const logo = this.assistanceUnit?.logomarcaRelatorio || this.assistanceUnit?.logomarca || '';
@@ -1113,7 +1161,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
             .report-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10pt; color: #000; }
             .report-footer__line { border-top: 1px solid #000; margin-bottom: 2mm; }
             .report-footer__content { display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
-            .page-number::before { content: "PÃ¡gina " counter(page) " de " counter(pages); }
+            .page-number::before { content: "Página " counter(page) " de " counter(pages); }
           </style>
         </head>
         <body>
@@ -1130,7 +1178,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
             <footer class="report-footer">
               <div class="report-footer__line"></div>
               <div class="report-footer__content">
-                <div>${unitName || unitTitle} ${unitContact ? `â€¢ ${unitContact}` : ''}</div>
+                <div>${unitName || unitTitle} ${unitContact ? `• ${unitContact}` : ''}</div>
                 <div class="page-number"></div>
                 <div>Gerado em ${timestampLabel}</div>
               </div>

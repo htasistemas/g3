@@ -30,10 +30,10 @@ export class ProntuarioTimelineComponent {
   private readonly tipoLabels: Record<string, string> = {
     atendimento: 'Atendimento',
     procedimento: 'Procedimento',
-    evolucao: 'EvoluÃ§Ã£o',
+    evolucao: 'Evolução',
     encaminhamento: 'Encaminhamento',
     documento: 'Documento/Anexo',
-    visita_ref: 'Visita domiciliar (referÃªncia)',
+    visita_ref: 'Visita domiciliar (referência)',
     outro: 'Outro'
   };
 
@@ -42,12 +42,12 @@ export class ProntuarioTimelineComponent {
   }
 
   nomeProfissional(id?: number | null): string {
-    if (!id) return 'NÃ£o informado';
+    if (!id) return 'Não informado';
     return this.mapaProfissionais[id] ?? `#${id}`;
   }
 
   nomeUnidade(id?: number | null): string {
-    if (!id) return 'NÃ£o informado';
+    if (!id) return 'Não informado';
     return this.mapaUnidades[id] ?? `#${id}`;
   }
 
@@ -62,19 +62,19 @@ export class ProntuarioTimelineComponent {
   getExtraDetalhes(registro: ProntuarioRegistroResponse): { label: string; value: string }[] {
     const extra = registro.dadosExtra ?? {};
     const mapping: Record<string, string> = {
-      dataInicio: 'Data de inÃ­cio',
+      dataInicio: 'Data de início',
       dataFim: 'Data de fim',
       tipoAtendimento: 'Tipo de atendimento',
       localAtendimento: 'Local do atendimento',
-      servicoPrograma: 'ServiÃ§o/Programa',
+      servicoPrograma: 'Serviço/Programa',
       motivoDemanda: 'Motivo/Demanda',
-      classificacaoRisco: 'ClassificaÃ§Ã£o de risco',
+      classificacaoRisco: 'Classificação de risco',
       resultadoAtendimento: 'Resultado',
-      proximosPassos: 'PrÃ³ximos passos',
+      proximosPassos: 'Próximos passos',
       tipoProcedimento: 'Tipo de procedimento',
-      vinculoRegistro: 'VÃ­nculo com registro',
-      situacaoAtual: 'SituaÃ§Ã£o atual',
-      pendencias: 'PendÃªncias',
+      vinculoRegistro: 'Vínculo com registro',
+      situacaoAtual: 'Situação atual',
+      pendencias: 'Pendências',
       destino: 'Destino',
       motivo: 'Motivo',
       prioridade: 'Prioridade',
@@ -84,7 +84,7 @@ export class ProntuarioTimelineComponent {
       tipoDocumento: 'Tipo do documento',
       dataDocumento: 'Data do documento',
       origemDocumento: 'Origem',
-      descricaoDocumento: 'DescriÃ§Ã£o do documento'
+      descricaoDocumento: 'Descrição do documento'
     };
 
     return Object.entries(extra)
@@ -92,4 +92,5 @@ export class ProntuarioTimelineComponent {
       .map(([key, value]) => ({ label: mapping[key], value: String(value) }));
   }
 }
+
 

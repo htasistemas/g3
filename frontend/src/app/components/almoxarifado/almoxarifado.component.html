@@ -1,4 +1,5 @@
 ﻿<app-tela-padrao
+  [fullWidth]="true"
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -10,72 +11,57 @@
   (buscar)="onBuscarToolbar()"
   (fechar)="onFecharToolbar()"
 >
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-    <p class="page-title__eyebrow">Almoxarifado</p>
-    <p class="page-title__label">Controle de Estoque</p>
-    </div>
-    <p class="page-title__note">Controle de estoque e movimentações do almoxarifado.</p>
-  </header>
-
   <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
 
   <section class="cadastro">
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informações</p>
-      <ol class="step-tabs" role="tablist">
-        <li
-          *ngFor="let tab of tabs; index as idx"
-          class="step-tabs__item"
-          [class.active]="activeTab === tab.id"
-          [class.completed]="idx < activeTabIndex"
-        >
-          <button
-            class="step-tabs__button"
-            type="button"
-            role="tab"
-            [attr.aria-selected]="activeTab === tab.id"
-            (click)="changeTab(tab.id)"
-          >
-            <span class="step-tabs__index">{{ idx + 1 }}</span>
-            <span class="step-tabs__label">{{ tab.label }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faBoxesStacked" class="tab-shell__icon"></fa-icon>
+            Almoxarifado
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of tabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeTab === tab.id"
+              [class.completed]="idx < activeTabIndex"
+            >
+              <button
+                class="step-tabs__button"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeTab === tab.id"
+                (click)="changeTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
+
+      <div class="cadastro-conteudo">
 
     <ng-template #navigationControls>
       <div class="tab-actions">
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
-        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">PrÃ³ximo: {{ nextTabLabel }}</button>
+        <button type="button" class="primary" *ngIf="hasNextTab" (click)="goToNextTab()">Próximo: {{ nextTabLabel }}</button>
       </div>
     </ng-template>
 
-    <div class="tab-card" *ngIf="activeTab === 'dashboards'">
+      <div class="tab-card" *ngIf="activeTab === 'dashboards'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Indicadores consolidados para acompanhar estoque, valores e alertas.</p>
-        </div>
-        <div class="tab-card__actions">
-          <button class="ghost" type="button" (click)="abrirEntradaProdutos()">
-            <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
-            Entrada de produtos
-          </button>
-          <button class="ghost" type="button" (click)="resetItemForm()">
-            <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
-            Limpar formulario
-          </button>
-          <button class="primary" type="button" (click)="openMovementModal()">
-            <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
-            Nova movimentação
-          </button>
+          <p class="tab-card__highlight">Dashboards</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div class="card flex items-center gap-3 metric-card">
-          <div class="metric-icon metric-icon--primary">
+          <div class="metric-icon metric-icon--success">
             <fa-icon [icon]="faWarehouse"></fa-icon>
           </div>
           <div>
@@ -84,16 +70,16 @@
           </div>
         </div>
         <div class="card flex items-center gap-3 metric-card">
-          <div class="metric-icon metric-icon--alert">
-            <fa-icon [icon]="faTriangleExclamation"></fa-icon>
+          <div class="metric-icon metric-icon--success">
+            <fa-icon [icon]="faBoxesStacked"></fa-icon>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Itens abaixo do estoque minimo</p>
+            <p class="text-sm text-slate-500">Itens abaixo do estoque mínimo</p>
             <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().belowMin }}</p>
           </div>
         </div>
         <div class="card flex items-center gap-3 metric-card">
-          <div class="metric-icon metric-icon--info">
+          <div class="metric-icon metric-icon--success">
             <fa-icon [icon]="faMoneyBillTrendUp"></fa-icon>
           </div>
           <div>
@@ -104,14 +90,28 @@
           </div>
         </div>
         <div class="card flex items-center gap-3 metric-card">
-          <div class="metric-icon metric-icon--muted">
+          <div class="metric-icon metric-icon--success">
             <fa-icon [icon]="faArrowTrendUp"></fa-icon>
           </div>
           <div>
-            <p class="text-sm text-slate-500">MovimentaÃ§Ãµes nos ultimos 30 dias</p>
+            <p class="text-sm text-slate-500">Movimentações nos últimos 30 dias</p>
             <p class="text-2xl font-bold text-slate-900">{{ indicatorTotals().recentMovements }}</p>
           </div>
         </div>
+      </div>
+      <div class="tab-card__actions tab-card__actions--below">
+        <button class="ghost" type="button" (click)="abrirEntradaProdutos()">
+          <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+          Entrada de produtos
+        </button>
+        <button class="ghost" type="button" (click)="resetItemForm()">
+          <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
+          Limpar formulário
+        </button>
+        <button class="primary" type="button" (click)="openMovementModal()">
+          <fa-icon [icon]="faPlus" class="mr-2"></fa-icon>
+          Nova movimentação
+        </button>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -120,13 +120,12 @@
     <div class="tab-card" *ngIf="activeTab === 'cadastro'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Valide campos obrigatorios e acompanhe estoque e localização.</p>
+          <p class="tab-card__highlight">Cadastro de Itens</p>
         </div>
         <div class="tab-card__actions">
           <button class="ghost" type="button" (click)="resetItemForm()">
             <fa-icon [icon]="faRotate" class="mr-2"></fa-icon>
-            Limpar formulario
+            Limpar formulário
           </button>
           <button class="primary" type="button" (click)="saveItem()">
             <fa-icon [icon]="faCircleCheck" class="mr-2"></fa-icon>
@@ -138,7 +137,7 @@
       <div class="card border border-emerald-200 rounded-2xl p-4">
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-slate-800">CÃ³digo do item *</label>
+            <label class="text-sm font-medium text-slate-800">Código do item *</label>
             <input
               class="input"
               type="text"
@@ -149,22 +148,22 @@
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-slate-800">CÃ³digo de barras</label>
+            <label class="text-sm font-medium text-slate-800">Código de barras</label>
             <input
               class="input"
               type="text"
               [ngModel]="itemForm.barcode"
               (ngModelChange)="onCodigoBarrasCadastroInput($event)"
-              placeholder="Leitura do cÃ³digo de barras"
+              placeholder="Leitura do código de barras"
             />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-slate-800">DescriÃ§Ã£o do item *</label>
+            <label class="text-sm font-medium text-slate-800">Descrição do item *</label>
             <input
               class="input"
               type="text"
               [(ngModel)]="itemForm.description"
-              placeholder="Ex: MÃ¡scara descartÃ¡vel tripla"
+              placeholder="Ex: Máscara descartável tripla"
               required
             />
           </div>
@@ -210,8 +209,6 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Estoque atual</label>
-            <input class="input" type="number" min="0" [(ngModel)]="itemForm.currentStock" />
-            <p class="text-xs text-slate-500">Padrao zero para novos itens.</p>
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-800">Estoque minimo *</label>
@@ -254,14 +251,14 @@
             <label class="text-sm text-slate-800">Ignorar válidade</label>
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-slate-800">SituaÃ§Ã£o</label>
+            <label class="text-sm font-medium text-slate-800">Situação</label>
             <select class="input" [(ngModel)]="itemForm.status">
               <option value="Ativo">Ativo</option>
               <option value="Inativo">Inativo</option>
             </select>
           </div>
           <div class="flex flex-col gap-1 xl:col-span-3">
-            <label class="text-sm font-medium text-slate-800">ObservaÃ§Ãµes gerais</label>
+            <label class="text-sm font-medium text-slate-800">Observações gerais</label>
             <textarea
               class="input min-h-[96px]"
               [(ngModel)]="itemForm.notes"
@@ -290,7 +287,7 @@
               type="search"
               class="input flex-1"
               [(ngModel)]="itemFilters.term"
-              placeholder="DescriÃ§Ã£o ou cÃ³digo"
+              placeholder="Descrição ou código"
             />
           </div>
           <div class="flex items-center gap-2">
@@ -301,7 +298,7 @@
             </select>
           </div>
           <div class="flex items-center gap-2">
-            <fa-icon [icon]="faBoxArchive" class="text-slate-400"></fa-icon>
+            <fa-icon [icon]="faBoxesStacked" class="text-slate-400"></fa-icon>
             <select class="input flex-1" [(ngModel)]="itemFilters.status">
               <option value="all">Todas as situações</option>
               <option value="Ativo">Ativo</option>
@@ -331,15 +328,14 @@
     <div class="tab-card" *ngIf="activeTab === 'kit'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Defina a composicao dos itens para produtos compostos.</p>
+          <p class="tab-card__highlight">Composição do Kit</p>
         </div>
         <div class="tab-card__actions">
           <button class="ghost" type="button" (click)="changeTab('cadastro')">
             Voltar ao cadastro
           </button>
           <button class="primary" type="button" (click)="salvarComposicaoKit()" [disabled]="kitComposicaoSalvando || !itemForm.isKit">
-            {{ kitComposicaoSalvando ? 'Salvando...' : 'Salvar composicao' }}
+            {{ kitComposicaoSalvando ? 'Salvando...' : 'Salvar composição' }}
           </button>
         </div>
       </div>
@@ -350,17 +346,17 @@
             <div>
               <p class="text-sm text-slate-500">Kit selecionado</p>
               <p class="text-lg font-semibold text-slate-900">
-                {{ editingItemCode || itemForm.code || 'Novo kit' }} - {{ itemForm.description || 'Informe a descricao no cadastro' }}
+                {{ editingItemCode || itemForm.code || 'Novo kit' }} - {{ itemForm.description || 'Informe a descrição no cadastro' }}
               </p>
             </div>
             <div class="text-xs text-slate-500">
-              {{ kitComposicaoCarregando ? 'Carregando composicao...' : (kitComposicao.length + ' item(ns) na composicao') }}
+              {{ kitComposicaoCarregando ? 'Carregando composição...' : (kitComposicao.length + ' item(ns) na composição') }}
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div class="flex flex-col gap-1 md:col-span-2">
-              <label class="text-sm font-medium text-slate-800">Item da composicao *</label>
+              <label class="text-sm font-medium text-slate-800">Item da composição *</label>
               <app-autocomplete
                 [placeholder]="'Buscar item do almoxarifado'"
                 [termo]="kitComposicaoNovo.termo"
@@ -377,7 +373,7 @@
 
           <div class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm text-slate-600">
-              Adicione os itens que compoem o kit. Não e permitido repetir itens.
+              Adicione os itens que compõem o kit. Não é permitido repetir itens.
             </p>
             <button class="btn-primary" type="button" (click)="adicionarItemComposicao()">Adicionar item</button>
           </div>
@@ -405,12 +401,12 @@
             </table>
           </div>
 
-          <p class="text-sm text-slate-500" *ngIf="!kitComposicao.length">Nenhum item adicionado na composicao.</p>
+          <p class="text-sm text-slate-500" *ngIf="!kitComposicao.length">Nenhum item adicionado na composição.</p>
           <p class="text-sm text-red-600" *ngIf="kitComposicaoErro">{{ kitComposicaoErro }}</p>
         </ng-container>
         <ng-template #kitDesativado>
           <div class="text-sm text-slate-600">
-            Marque este produto como kit no cadastro para liberar a composicao.
+            Marque este produto como kit no cadastro para liberar a composição.
           </div>
         </ng-template>
       </div>
@@ -421,8 +417,7 @@
     <div class="tab-card" *ngIf="activeTab === 'itens'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">AÃ§Ãµes rapidas: editar, movimentar e visualizar historico de cada item.</p>
+          <p class="tab-card__highlight">Itens do Almoxarifado</p>
         </div>
         <div class="tab-card__actions">
           <button class="ghost" type="button" (click)="saveItem()">
@@ -439,16 +434,16 @@
         <table class="min-w-full text-sm border border-emerald-200 rounded-xl overflow-hidden">
           <thead>
             <tr class="bg-emerald-50 text-left text-slate-800">
-              <th class="px-4 py-3 border-b border-emerald-200">CÃ³digo</th>
-              <th class="px-4 py-3 border-b border-emerald-200">DescriÃ§Ã£o</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Código</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Descrição</th>
               <th class="px-4 py-3 border-b border-emerald-200">Categoria</th>
               <th class="px-4 py-3 border-b border-emerald-200">Unidade</th>
               <th class="px-4 py-3 border-b border-emerald-200">Localização</th>
               <th class="px-4 py-3 border-b border-emerald-200">Estoque atual</th>
               <th class="px-4 py-3 border-b border-emerald-200">Estoque minimo</th>
               <th class="px-4 py-3 border-b border-emerald-200">válidade</th>
-              <th class="px-4 py-3 border-b border-emerald-200">SituaÃ§Ã£o</th>
-              <th class="px-4 py-3 border-b border-emerald-200">AÃ§Ãµes</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Situação</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -456,11 +451,11 @@
               <td class="px-4 py-3 align-top">{{ item.code }}</td>
               <td class="px-4 py-3 align-top">
                 <div class="font-semibold text-slate-900">{{ item.description }}</div>
-                <p class="text-sm text-slate-700">{{ item.locationDetail || 'NÃ£o informado' }}</p>
+                <p class="text-sm text-slate-700">{{ item.locationDetail || 'Não informado' }}</p>
               </td>
               <td class="px-4 py-3 align-top">{{ item.category }}</td>
               <td class="px-4 py-3 align-top">{{ item.unit }}</td>
-              <td class="px-4 py-3 align-top">{{ item.location || 'NÃ£o informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ item.location || 'Não informado' }}</td>
               <td class="px-4 py-3 align-top">
                 <span
                   class="status-chip"
@@ -471,7 +466,7 @@
               </td>
               <td class="px-4 py-3 align-top">{{ item.minStock }}</td>
               <td class="px-4 py-3 align-top">
-                <ng-container *ngIf="item.ignoreValidity || !item.validity">NÃ£o informado</ng-container>
+                <ng-container *ngIf="item.ignoreValidity || !item.validity">Não informado</ng-container>
                 <ng-container *ngIf="!item.ignoreValidity && item.validity">
                   <div class="text-slate-900">{{ item.validity | date:'dd/MM/yyyy' }}</div>
                   <span
@@ -515,7 +510,7 @@
                     (click)="openHistoryModal(item)"
                   >
                     <fa-icon [icon]="faUser"></fa-icon>
-                    HistÃ³rico
+                    Histórico
                   </button>
                 </div>
               </td>
@@ -533,8 +528,7 @@
     <div class="tab-card" *ngIf="activeTab === 'movimentacoes'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-          <p class="muted">Entradas, saidas e ajustes com saldo atualizado automaticamente.</p>
+          <p class="tab-card__highlight">Movimentações</p>
         </div>
         <div class="tab-card__actions">
           <button class="ghost" type="button" (click)="openMovementModal()">
@@ -558,16 +552,16 @@
           <select class="input" [(ngModel)]="movementFilters.type">
             <option value="Todos">Todos</option>
             <option value="Entrada">Entrada</option>
-            <option value="Saida">Saida</option>
+            <option value="Saida">Saída</option>
             <option value="Ajuste">Ajuste</option>
           </select>
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-sm font-medium text-slate-800">Item</label>
-          <input class="input" type="search" [(ngModel)]="movementFilters.itemSearch" placeholder="CÃ³digo ou descricao" />
+          <input class="input" type="search" [(ngModel)]="movementFilters.itemSearch" placeholder="Código ou descrição" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-slate-800">Responsavel</label>
+          <label class="text-sm font-medium text-slate-800">Responsável</label>
           <input class="input" type="text" [(ngModel)]="movementFilters.responsible" placeholder="Filtrar por responsavel" />
         </div>
       </div>
@@ -581,10 +575,10 @@
               <th class="px-4 py-3 border-b border-emerald-200">Item</th>
               <th class="px-4 py-3 border-b border-emerald-200">Quantidade</th>
               <th class="px-4 py-3 border-b border-emerald-200">Saldo apos movimentação</th>
-              <th class="px-4 py-3 border-b border-emerald-200">Documento / Referencia</th>
-              <th class="px-4 py-3 border-b border-emerald-200">Responsavel</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Documento / Referência</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Responsável</th>
               <th class="px-4 py-3 border-b border-emerald-200">Itens do kit</th>
-              <th class="px-4 py-3 border-b border-emerald-200">ObservaÃ§Ãµes</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Observações</th>
             </tr>
           </thead>
           <tbody>
@@ -604,8 +598,8 @@
               </td>
               <td class="px-4 py-3 align-top">{{ movement.quantity }}</td>
               <td class="px-4 py-3 align-top">{{ movement.balanceAfter }}</td>
-              <td class="px-4 py-3 align-top">{{ movement.reference || 'NÃ£o informado' }}</td>
-              <td class="px-4 py-3 align-top">{{ movement.responsible || 'NÃ£o informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ movement.reference || 'Não informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ movement.responsible || 'Não informado' }}</td>
               <td class="px-4 py-3 align-top">
                 <button
                   class="btn-outline"
@@ -617,7 +611,7 @@
                 </button>
                 <span class="text-xs text-slate-500" *ngIf="!movimentosComKit[movement.id]">-</span>
               </td>
-              <td class="px-4 py-3 align-top">{{ movement.notes || 'NÃ£o informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ movement.notes || 'Não informado' }}</td>
             </tr>
             <tr *ngIf="filteredMovements.length === 0">
               <td colspan="9" class="text-center py-6 text-slate-500">Nenhuma movimentação encontrada para os filtros.</td>
@@ -627,6 +621,8 @@
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+    </div>
     </div>
   </section>
 
@@ -638,7 +634,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Nova movimentação</p>
-          <h3 class="text-lg font-semibold text-slate-900">Registrar entrada, saida ou ajuste</h3>
+          <h3 class="text-lg font-semibold text-slate-900">Registrar entrada, saída ou ajuste</h3>
         </div>
         <button class="btn-outline" type="button" (click)="showMovementModal = false">Fechar</button>
       </div>
@@ -651,22 +647,22 @@
           <label class="text-sm font-medium text-slate-800">Tipo *</label>
           <select class="input" [(ngModel)]="movementForm.type">
             <option value="Entrada">Entrada</option>
-            <option value="Saida">Saida</option>
+            <option value="Saida">Saída</option>
             <option value="Ajuste">Ajuste</option>
           </select>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-slate-800">CÃ³digo de barras</label>
+          <label class="text-sm font-medium text-slate-800">Código de barras</label>
           <input
             class="input"
             type="text"
             [ngModel]="movementForm.barcode"
             (ngModelChange)="onCodigoBarrasMovimentacaoInput($event)"
-            placeholder="Leitura do cÃ³digo de barras"
+            placeholder="Leitura do código de barras"
           />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-slate-800">Selecao do item *</label>
+          <label class="text-sm font-medium text-slate-800">Seleção do item *</label>
           <select class="input" [(ngModel)]="movementForm.itemCode" (ngModelChange)="onMovimentacaoItemChange($event)">
             <option value="">Selecione o item</option>
             <option *ngFor="let item of items()" [value]="item.code">{{ item.code }} - {{ item.description }}</option>
@@ -693,20 +689,20 @@
               </div>
             </div>
             <p class="text-xs text-slate-500" *ngIf="!movimentacaoKitCarregando && !movimentacaoKitComposicao.length">
-              Nenhum item configurado na composicao.
+              Nenhum item configurado na composição.
             </p>
             <label class="flex items-center gap-2 text-sm text-slate-800" *ngIf="movementForm.type === 'Entrada'">
               <input type="checkbox" [(ngModel)]="gerarItensKitEntrada" />
-              <span>Ao dar entrada deste kit, lancar entrada nos itens da composicao</span>
+              <span>Ao dar entrada deste kit, lançar entrada nos itens da composição</span>
             </label>
           </div>
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-slate-800">Documento / Referencia</label>
-          <input class="input" type="text" [(ngModel)]="movementForm.reference" placeholder="Nota fiscal, requisicao" />
+          <label class="text-sm font-medium text-slate-800">Documento / Referência</label>
+          <input class="input" type="text" [(ngModel)]="movementForm.reference" placeholder="Nota fiscal, requisição" />
         </div>
         <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium text-slate-800">Responsavel</label>
+          <label class="text-sm font-medium text-slate-800">Responsável</label>
           <input class="input" type="text" [(ngModel)]="movementForm.responsible" placeholder="Nome ou setor" />
         </div>
         <div class="flex flex-col gap-2 md:col-span-2" *ngIf="movementForm.type === 'Ajuste'">
@@ -720,18 +716,16 @@
               <input type="radio" name="adjust" value="decrease" [(ngModel)]="movementForm.adjustmentDirection" />
               Reduzir estoque
             </label>
-          </div>
-          <p class="text-xs text-slate-500">Ajustes solicitam confirmação para evitar lancamentos acidentais.</p>
         </div>
         <div class="flex flex-col gap-1 md:col-span-2">
-          <label class="text-sm font-medium text-slate-800">ObservaÃ§Ãµes</label>
+          <label class="text-sm font-medium text-slate-800">Observações</label>
           <textarea class="input min-h-[96px]" [(ngModel)]="movementForm.notes" placeholder="Detalhes adicionais"></textarea>
         </div>
       </div>
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div class="space-y-1">
           <p class="text-sm text-red-600" *ngIf="movementError">{{ movementError }}</p>
-          <p class="text-sm text-slate-700">SaÃ­da nÃ£o permite quantidade maior que o estoque atual.</p>
+          <p class="text-sm text-slate-700">Saída não permite quantidade maior que o estoque atual.</p>
         </div>
         <div class="flex gap-2">
           <button class="btn-outline" type="button" (click)="showMovementModal = false">Cancelar</button>
@@ -748,7 +742,7 @@
     <div class="bg-white rounded-2xl border border-emerald-200 w-full shadow-2xl space-y-4 p-6">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">HistÃ³rico do item</p>
+          <p class="text-sm font-semibold uppercase tracking-wide text-g3-green-500">Histórico do item</p>
           <h3 class="text-lg font-semibold text-slate-900">
             {{ historicoItemSelecionado?.code }} - {{ historicoItemSelecionado?.description }}
           </h3>
@@ -764,8 +758,8 @@
               <th class="px-4 py-3 border-b border-emerald-200">Tipo</th>
               <th class="px-4 py-3 border-b border-emerald-200">Quantidade</th>
               <th class="px-4 py-3 border-b border-emerald-200">Saldo apos movimentação</th>
-              <th class="px-4 py-3 border-b border-emerald-200">Documento / Referencia</th>
-              <th class="px-4 py-3 border-b border-emerald-200">Responsavel</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Documento / Referência</th>
+              <th class="px-4 py-3 border-b border-emerald-200">Responsável</th>
             </tr>
           </thead>
           <tbody>
@@ -774,8 +768,8 @@
               <td class="px-4 py-3 align-top">{{ movement.type }}</td>
               <td class="px-4 py-3 align-top">{{ movement.quantity }}</td>
               <td class="px-4 py-3 align-top">{{ movement.balanceAfter }}</td>
-              <td class="px-4 py-3 align-top">{{ movement.reference || 'NÃ£o informado' }}</td>
-              <td class="px-4 py-3 align-top">{{ movement.responsible || 'NÃ£o informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ movement.reference || 'Não informado' }}</td>
+              <td class="px-4 py-3 align-top">{{ movement.responsible || 'Não informado' }}</td>
               <td class="px-4 py-3 align-top">
                 <button
                   class="btn-outline"
@@ -841,6 +835,7 @@
         </table>
       </div>
     </div>
+  </div>
   </div>
 </app-tela-padrao>
 

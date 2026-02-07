@@ -153,7 +153,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private carregarResumoTarefas(): void {
     this.tarefasService.list().subscribe({
       next: (tarefas) => {
-        const abertas = tarefas.filter((item) => item.status !== 'ConcluÃ­da');
+        const abertas = tarefas.filter((item) => item.status !== 'Concluída');
         this.tarefasAbertas = abertas.length;
         this.tarefasVencidas = abertas.filter((item) => {
           const prazo = new Date(item.prazo ?? '');

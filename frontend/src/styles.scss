@@ -263,3 +263,141 @@ input[formcontrolname='documento'].ng-invalid.ng-dirty {
     margin-top: 0.35rem;
   }
 }
+
+/* Padrão global das abas laterais (Cadastro de Beneficiários) */
+/* Padrão único das abas laterais (Cadastro de Beneficiários) */
+.cadastro-layout {
+  display: grid !important;
+  grid-template-columns: 260px minmax(0, 1fr) !important;
+  gap: 1rem !important;
+  align-items: start !important;
+}
+
+.cadastro-menu {
+  position: sticky !important;
+  top: 0.75rem !important;
+  align-self: start !important;
+}
+
+.tab-shell {
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04) !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.tab-shell__title {
+  margin: 0 0 0.35rem !important;
+  font-weight: 600 !important;
+  color: #2b3648 !important;
+}
+
+.tab-shell__title--destaque {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: #0f7a43 !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.4rem !important;
+}
+
+.tab-shell__icon {
+  font-size: 1.45rem !important;
+}
+
+.step-tabs {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.35rem !important;
+}
+
+.step-tabs__item {
+  position: relative !important;
+  list-style: none !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.step-tabs__item::after {
+  content: none !important;
+}
+
+.step-tabs__button {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 22px 1fr !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.35rem 0.55rem !important;
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+  color: #1f2937 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
+.step-tabs__label {
+  font-size: 0.8rem !important;
+  text-align: left !important;
+}
+
+.step-tabs__index {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 8px !important;
+  background: rgba(15, 122, 67, 0.08) !important;
+  color: #0f7a43 !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  border: 1px solid rgba(15, 122, 67, 0.25) !important;
+}
+
+.step-tabs__item.active .step-tabs__button {
+  background: linear-gradient(135deg, #0f7a43, #16a34a) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 10px 20px rgba(15, 122, 67, 0.18) !important;
+}
+
+.step-tabs__item.active .step-tabs__index {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.step-tabs__item.completed .step-tabs__button {
+  background: #dcfce7 !important;
+  color: #0f7a43 !important;
+  border-color: #bbf7d0 !important;
+}
+
+.step-tabs__item.completed .step-tabs__index {
+  background: rgba(15, 122, 67, 0.12) !important;
+  border-color: rgba(15, 122, 67, 0.25) !important;
+  color: #0f7a43 !important;
+}
+
+@media (max-width: 960px) {
+  .cadastro-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cadastro-menu {
+    position: static !important;
+  }
+}

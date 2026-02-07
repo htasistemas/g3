@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faClipboardList, faHandshake, faIdCard, faListCheck, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { faClipboardList, faHandHoldingDollar, faHandshake, faIdCard, faListCheck, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
@@ -38,6 +38,7 @@ interface TabItem {
 export class RecebimentoDoacaoComponent implements OnInit {
   readonly faClipboardList = faClipboardList;
   readonly faUserPlus = faUserPlus;
+  readonly faHandHoldingDollar = faHandHoldingDollar;
   readonly faHandshake = faHandshake;
   readonly faIdCard = faIdCard;
   readonly faListCheck = faListCheck;

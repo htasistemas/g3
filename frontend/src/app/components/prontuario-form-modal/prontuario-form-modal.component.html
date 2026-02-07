@@ -13,7 +13,7 @@
           <select class="select" formControlName="tipo">
             <option value="atendimento">Atendimento</option>
             <option value="procedimento">Procedimento</option>
-            <option value="evolucao">EvoluÃ§Ã£o</option>
+            <option value="evolucao">Evolução</option>
             <option value="encaminhamento">Encaminhamento</option>
             <option value="documento">Documento/Anexo</option>
             <option value="outro">Outro</option>
@@ -28,7 +28,7 @@
         </label>
 
         <label class="form-field" *ngIf="tipoSelecionado === 'atendimento'">
-          <span>Data e hora (inÃ­cio)*</span>
+          <span>Data e hora (início)*</span>
           <input type="datetime-local" class="input" formControlName="dataInicio" />
           <p class="form-error" *ngIf="mostrarErro('dataInicio')">{{ mensagemErro('dataInicio') }}</p>
         </label>
@@ -46,7 +46,7 @@
         </label>
 
         <label class="form-field">
-          <span>Profissional responsÃ¡vel*</span>
+          <span>Profissional responsável*</span>
           <app-autocomplete
             [placeholder]="'Selecione o profissional'"
             [termo]="termoProfissional"
@@ -68,12 +68,12 @@
         </label>
 
         <label class="form-field">
-          <span>FamÃ­lia de referÃªncia</span>
-          <input type="number" class="input" formControlName="familiaId" placeholder="ID da famÃ­lia" />
+          <span>Família de referência</span>
+          <input type="number" class="input" formControlName="familiaId" placeholder="ID da família" />
         </label>
 
         <label class="form-field" *ngIf="tipoSelecionado !== 'documento'">
-          <span>TÃ­tulo</span>
+          <span>Título</span>
           <input type="text" class="input" formControlName="titulo" placeholder="Resumo do registro" />
         </label>
 
@@ -81,14 +81,14 @@
           <span>Status*</span>
           <select class="select" formControlName="status">
             <option value="aberto">Aberto</option>
-            <option value="concluido">ConcluÃ­do</option>
+            <option value="concluido">Concluído</option>
             <option value="cancelado">Cancelado</option>
           </select>
           <p class="form-error" *ngIf="mostrarErro('status')">{{ mensagemErro('status') }}</p>
         </label>
 
         <label class="form-field">
-          <span>NÃ­vel de sigilo</span>
+          <span>Nível de sigilo</span>
           <select class="select" formControlName="nivelSigilo">
             <option value="Normal">Normal</option>
             <option value="Reservado">Reservado</option>
@@ -119,7 +119,7 @@
           <p class="form-error" *ngIf="mostrarErro('localAtendimento')">{{ mensagemErro('localAtendimento') }}</p>
         </label>
         <label class="form-field">
-          <span>ServiÃ§o/Programa*</span>
+          <span>Serviço/Programa*</span>
           <input type="text" class="input" formControlName="servicoPrograma" placeholder="PAIF, PAEFI, etc." />
           <p class="form-error" *ngIf="mostrarErro('servicoPrograma')">{{ mensagemErro('servicoPrograma') }}</p>
         </label>
@@ -129,13 +129,13 @@
           <p class="form-error" *ngIf="mostrarErro('motivoDemanda')">{{ mensagemErro('motivoDemanda') }}</p>
         </label>
         <label class="form-field">
-          <span>ClassificaÃ§Ã£o de risco*</span>
+          <span>Classificação de risco*</span>
           <select class="select" formControlName="classificacaoRisco">
             <option value="">Selecione</option>
             <option value="Baixo">Baixo</option>
             <option value="Moderado">Moderado</option>
             <option value="Alto">Alto</option>
-            <option value="CrÃ­tico">CrÃ­tico</option>
+            <option value="Crítico">Crítico</option>
           </select>
           <p class="form-error" *ngIf="mostrarErro('classificacaoRisco')">{{ mensagemErro('classificacaoRisco') }}</p>
         </label>
@@ -145,7 +145,7 @@
           <p class="form-error" *ngIf="mostrarErro('resultadoAtendimento')">{{ mensagemErro('resultadoAtendimento') }}</p>
         </label>
         <label class="form-field">
-          <span>PrÃ³ximos passos*</span>
+          <span>Próximos passos*</span>
           <input type="text" class="input" formControlName="proximosPassos" />
           <p class="form-error" *ngIf="mostrarErro('proximosPassos')">{{ mensagemErro('proximosPassos') }}</p>
         </label>
@@ -158,29 +158,29 @@
           <p class="form-error" *ngIf="mostrarErro('tipoProcedimento')">{{ mensagemErro('tipoProcedimento') }}</p>
         </label>
         <label class="form-field">
-          <span>VÃ­nculo com outro registro</span>
+          <span>Vínculo com outro registro</span>
           <input type="text" class="input" formControlName="vinculoRegistro" placeholder="Tipo/ID do registro" />
         </label>
       </div>
 
       <div class="form-grid" *ngIf="tipoSelecionado === 'evolucao'">
         <label class="form-field">
-          <span>Resumo da evoluÃ§Ã£o*</span>
+          <span>Resumo da evolução*</span>
           <input type="text" class="input" formControlName="titulo" />
           <p class="form-error" *ngIf="mostrarErro('titulo')">{{ mensagemErro('titulo') }}</p>
         </label>
         <label class="form-field">
-          <span>SituaÃ§Ã£o atual*</span>
+          <span>Situação atual*</span>
           <select class="select" formControlName="situacaoAtual">
             <option value="">Selecione</option>
             <option value="Melhorou">Melhorou</option>
-            <option value="Estavel">EstÃ¡vel</option>
+            <option value="Estavel">Estável</option>
             <option value="Piorou">Piorou</option>
           </select>
           <p class="form-error" *ngIf="mostrarErro('situacaoAtual')">{{ mensagemErro('situacaoAtual') }}</p>
         </label>
         <label class="form-field">
-          <span>PendÃªncias ou aÃ§Ãµes futuras</span>
+          <span>Pendências ou ações futuras</span>
           <input type="text" class="input" formControlName="pendencias" />
         </label>
       </div>
@@ -201,7 +201,7 @@
           <select class="select" formControlName="prioridadeEncaminhamento">
             <option value="">Selecione</option>
             <option value="Baixa">Baixa</option>
-            <option value="Media">MÃ©dia</option>
+            <option value="Media">Média</option>
             <option value="Alta">Alta</option>
             <option value="Urgente">Urgente</option>
           </select>
@@ -213,8 +213,8 @@
             <option value="">Selecione</option>
             <option value="Aberto">Aberto</option>
             <option value="Em andamento">Em andamento</option>
-            <option value="Concluido">ConcluÃ­do</option>
-            <option value="Nao efetivado">NÃ£o efetivado</option>
+            <option value="Concluido">Concluído</option>
+            <option value="Nao efetivado">Não efetivado</option>
             <option value="Cancelado">Cancelado</option>
           </select>
           <p class="form-error" *ngIf="mostrarErro('statusEncaminhamento')">{{ mensagemErro('statusEncaminhamento') }}</p>
@@ -228,7 +228,7 @@
           <span>Forma de encaminhamento*</span>
           <select class="select" formControlName="formaEncaminhamento">
             <option value="">Selecione</option>
-            <option value="Oficio">OfÃ­cio</option>
+            <option value="Oficio">Ofício</option>
             <option value="Email">E-mail</option>
             <option value="Telefone">Telefone</option>
             <option value="Presencial">Presencial</option>
@@ -248,15 +248,15 @@
           <span>Origem*</span>
           <select class="select" formControlName="origemDocumento">
             <option value="">Selecione</option>
-            <option value="Beneficiario">BeneficiÃ¡rio</option>
-            <option value="Instituicao">InstituiÃ§Ã£o</option>
+            <option value="Beneficiario">Beneficiário</option>
+            <option value="Instituicao">Instituição</option>
             <option value="Rede">Rede</option>
             <option value="Profissional">Profissional</option>
           </select>
           <p class="form-error" *ngIf="mostrarErro('origemDocumento')">{{ mensagemErro('origemDocumento') }}</p>
         </label>
         <label class="form-field">
-          <span>VÃ­nculo com registro</span>
+          <span>Vínculo com registro</span>
           <input type="text" class="input" formControlName="vinculoRegistro" placeholder="Tipo/ID do registro" />
         </label>
         <label class="form-field">
@@ -283,4 +283,7 @@
     </form>
   </div>
 </div>
+
+
+
 

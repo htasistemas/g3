@@ -16,6 +16,7 @@ import br.com.g3.unidadeassistencial.domain.Endereco;
 import br.com.g3.unidadeassistencial.service.GeocodificacaoService;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,12 +85,26 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
   }
 
   @Override
-  public List<CadastroBeneficiarioResponse> listar(String nome, String status) {
+  public List<CadastroBeneficiarioResponse> listar(String nome, String status, String codigo) {
     boolean temNome = nome != null && !nome.trim().isEmpty();
     boolean temStatus = status != null && !status.trim().isEmpty();
+    boolean temCodigo = codigo != null && !codigo.trim().isEmpty();
 
     List<CadastroBeneficiario> cadastros;
-    if (temNome && temStatus) {
+    if (temCodigo) {
+      cadastros = repository.buscarPorCodigo(montarCodigosPesquisa(codigo));
+      if (temNome) {
+        cadastros = cadastros.stream()
+            .filter(cadastro -> cadastro.getNomeCompleto() != null
+                && cadastro.getNomeCompleto().toLowerCase(Locale.ROOT).contains(nome.toLowerCase(Locale.ROOT)))
+            .collect(Collectors.toList());
+      }
+      if (temStatus) {
+        cadastros = cadastros.stream()
+            .filter(cadastro -> status.equalsIgnoreCase(cadastro.getStatus()))
+            .collect(Collectors.toList());
+      }
+    } else if (temNome && temStatus) {
       cadastros = repository.listarPorNomeEStatus(nome, status);
     } else if (temNome) {
       cadastros = repository.buscarPorNome(nome);
@@ -109,12 +124,26 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
   }
 
   @Override
-  public List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status) {
+  public List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status, String codigo) {
     boolean temNome = nome != null && !nome.trim().isEmpty();
     boolean temStatus = status != null && !status.trim().isEmpty();
+    boolean temCodigo = codigo != null && !codigo.trim().isEmpty();
 
     List<CadastroBeneficiario> cadastros;
-    if (temNome && temStatus) {
+    if (temCodigo) {
+      cadastros = repository.buscarPorCodigo(montarCodigosPesquisa(codigo));
+      if (temNome) {
+        cadastros = cadastros.stream()
+            .filter(cadastro -> cadastro.getNomeCompleto() != null
+                && cadastro.getNomeCompleto().toLowerCase(Locale.ROOT).contains(nome.toLowerCase(Locale.ROOT)))
+            .collect(Collectors.toList());
+      }
+      if (temStatus) {
+        cadastros = cadastros.stream()
+            .filter(cadastro -> status.equalsIgnoreCase(cadastro.getStatus()))
+            .collect(Collectors.toList());
+      }
+    } else if (temNome && temStatus) {
       cadastros = repository.listarPorNomeEStatus(nome, status);
     } else if (temNome) {
       cadastros = repository.buscarPorNome(nome);
@@ -131,6 +160,31 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
         .values()
         .stream()
         .map(cadastro -> new CadastroBeneficiarioResumoResponse(cadastro.getId(), cadastro.getNomeCompleto()))
+        .collect(Collectors.toList());
+  }
+
+  private List<String> montarCodigosPesquisa(String codigo) {
+    String valor = codigo == null ? "" : codigo.trim();
+    if (valor.isEmpty()) {
+      return List.of();
+    }
+    String somenteNumeros = valor.replaceAll("\\D", "");
+    List<String> codigos = new java.util.ArrayList<>();
+    codigos.add(valor);
+    if (!somenteNumeros.isEmpty()) {
+      codigos.add(somenteNumeros);
+      if (somenteNumeros.length() < 4) {
+        try {
+          int numero = Integer.parseInt(somenteNumeros);
+          codigos.add(String.format("%04d", numero));
+        } catch (NumberFormatException ignored) {
+          // ignora padronizacao invalida
+        }
+      }
+    }
+    return codigos.stream()
+        .filter(item -> item != null && !item.trim().isEmpty())
+        .distinct()
         .collect(Collectors.toList());
   }
 

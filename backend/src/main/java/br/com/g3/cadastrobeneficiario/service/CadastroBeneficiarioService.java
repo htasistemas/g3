@@ -14,9 +14,9 @@ public interface CadastroBeneficiarioService {
 
   CadastroBeneficiarioResponse buscarPorId(Long id);
 
-  List<CadastroBeneficiarioResponse> listar(String nome, String status);
+  List<CadastroBeneficiarioResponse> listar(String nome, String status, String codigo);
 
-  List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status);
+  List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status, String codigo);
 
   void remover(Long id);
 

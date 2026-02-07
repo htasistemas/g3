@@ -87,16 +87,18 @@ public class CadastroBeneficiarioController {
   @GetMapping
   public CadastroBeneficiarioListaResponse listar(
       @RequestParam(value = "nome", required = false) String nome,
-      @RequestParam(value = "status", required = false) String status) {
-    List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome, status);
+      @RequestParam(value = "status", required = false) String status,
+      @RequestParam(value = "codigo", required = false) String codigo) {
+    List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome, status, codigo);
     return new CadastroBeneficiarioListaResponse(beneficiarios);
   }
 
   @GetMapping("/resumo")
   public CadastroBeneficiarioResumoListaResponse listarResumo(
       @RequestParam(value = "nome", required = false) String nome,
-      @RequestParam(value = "status", required = false) String status) {
-    List<CadastroBeneficiarioResumoResponse> beneficiarios = service.listarResumo(nome, status);
+      @RequestParam(value = "status", required = false) String status,
+      @RequestParam(value = "codigo", required = false) String codigo) {
+    List<CadastroBeneficiarioResumoResponse> beneficiarios = service.listarResumo(nome, status, codigo);
     return new CadastroBeneficiarioResumoListaResponse(beneficiarios);
   }
 

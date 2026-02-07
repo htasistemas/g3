@@ -13,6 +13,8 @@ public interface CadastroBeneficiarioRepository {
 
   List<CadastroBeneficiario> buscarPorNome(String nome);
 
+  List<CadastroBeneficiario> buscarPorCodigo(List<String> codigos);
+
   Optional<CadastroBeneficiario> buscarPorId(Long id);
 
   Integer buscarMaiorCodigo();

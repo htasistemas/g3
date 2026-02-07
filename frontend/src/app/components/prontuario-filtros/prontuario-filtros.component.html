@@ -1,9 +1,9 @@
 ﻿<div class="prontuario-filtros">
   <div class="prontuario-filtros__topo" *ngIf="mostrarBuscaBeneficiario">
     <label class="form-field">
-      <span>Buscar beneficiÃ¡rio</span>
+      <span>Buscar beneficiário</span>
       <app-autocomplete
-        [placeholder]="'Nome, CPF ou cÃ³digo'"
+        [placeholder]="'Nome, CPF ou código'"
         [termo]="termoBusca"
         [opcoes]="opcoesBeneficiarios"
         [carregando]="carregandoBeneficiarios"
@@ -20,7 +20,7 @@
 
   <div class="prontuario-filtros__grid">
     <label class="form-field">
-      <span>PerÃ­odo (de)</span>
+      <span>Período (de)</span>
       <input
         type="date"
         class="input"
@@ -29,7 +29,7 @@
       />
     </label>
     <label class="form-field">
-      <span>PerÃ­odo (atÃ©)</span>
+      <span>Período (até)</span>
       <input
         type="date"
         class="input"
@@ -43,10 +43,10 @@
         <option value="">Todos</option>
         <option value="atendimento">Atendimento</option>
         <option value="procedimento">Procedimento</option>
-        <option value="evolucao">EvoluÃ§Ã£o</option>
+        <option value="evolucao">Evolução</option>
         <option value="encaminhamento">Encaminhamento</option>
         <option value="documento">Documento/Anexo</option>
-        <option value="visita_ref">Visita domiciliar (referÃªncia)</option>
+        <option value="visita_ref">Visita domiciliar (referência)</option>
         <option value="outro">Outro</option>
       </select>
     </label>
@@ -55,7 +55,7 @@
       <select class="select" [ngModel]="filtros.status" (ngModelChange)="atualizarFiltro('status', $event)">
         <option value="">Todos</option>
         <option value="aberto">Aberto</option>
-        <option value="concluido">ConcluÃ­do</option>
+        <option value="concluido">Concluído</option>
         <option value="cancelado">Cancelado</option>
       </select>
     </label>
@@ -92,7 +92,7 @@
         class="input"
         [ngModel]="filtros.texto"
         (ngModelChange)="atualizarFiltro('texto', $event)"
-        placeholder="Pesquisar no histÃ³rico"
+        placeholder="Pesquisar no histórico"
       />
     </label>
     <div class="prontuario-filtros__acoes">
@@ -100,4 +100,6 @@
     </div>
   </div>
 </div>
+
+
 

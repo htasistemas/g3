@@ -8,7 +8,8 @@ import { AlmoxarifadoService, StockItem } from '../../services/almoxarifado.serv
 import { ReportService } from '../../services/report.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { AssistanceUnitService } from '../../services/assistance-unit.service';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { faCalendarCheck } from '@fortawesome/free-solid-svg-icons';
 
 interface AbaItem {
   id: string;
@@ -45,6 +46,8 @@ interface DashboardDiaResumo {
   quantidade: number;
 }
 
+type RespostaErro = { error?: { message?: string } };
+
 @Component({
   standalone: false,
   selector: 'app-emprestimos-eventos-page',
@@ -52,14 +55,16 @@ interface DashboardDiaResumo {
   styleUrl: './emprestimos-eventos-page.component.scss'
 })
 export class EmprestimosEventosPageComponent implements OnInit {
+  readonly faCalendarCheck = faCalendarCheck;
+
   readonly abas: AbaItem[] = [
-    { id: 'dashboard', label: 'Dashboard', descricao: 'Visao geral dos emprestimos e itens.' },
-    { id: 'agenda', label: 'Agenda', descricao: 'Calendario de indisponibilidade e eventos.' },
-    { id: 'lista', label: 'Lista', descricao: 'Resumo dos emprestimos cadastrados.' },
-    { id: 'cadastro', label: 'Cadastro', descricao: 'Dados principais do emprestimo.' },
-    { id: 'itens', label: 'Itens', descricao: 'Itens vinculados ao emprestimo.' },
-    { id: 'disponibilidade', label: 'Disponibilidade', descricao: 'Consulta por periodo e item.' },
-    { id: 'historico', label: 'Historico', descricao: 'Movimentacoes do emprestimo.' }
+    { id: 'dashboard', label: 'Dashboard', descricao: 'Visão geral dos empréstimos e itens.' },
+    { id: 'agenda', label: 'Agenda', descricao: 'Calendário de indisponibilidade e eventos.' },
+    { id: 'lista', label: 'Lista', descricao: 'Resumo dos empréstimos cadastrados.' },
+    { id: 'cadastro', label: 'Cadastro', descricao: 'Dados principais do empréstimo.' },
+    { id: 'itens', label: 'Itens', descricao: 'Itens vinculados ao empréstimo.' },
+    { id: 'disponibilidade', label: 'Disponibilidade', descricao: 'Consulta por período e item.' },
+    { id: 'historico', label: 'Histórico', descricao: 'Movimentações do empréstimo.' }
   ];
 
   abaAtiva = 'agenda';
@@ -188,8 +193,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.carregarEmprestimos();
     this.atualizarAgendaResumo();
     this.unidadeService.get().subscribe({
-      next: ({ unidade }) => {
-        this.unidadeAtualId = unidade?.id ?? null;
+      next: (resposta: { unidade: AssistanceUnitPayload | null }) => {
+        this.unidadeAtualId = resposta.unidade?.id ?? null;
       },
       error: () => {
         this.unidadeAtualId = null;
@@ -213,19 +218,19 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   carregarEmprestimos(): void {
     this.emprestimosService.listar({}).subscribe({
-      next: (resposta) => {
+      next: (resposta: { emprestimos: EmprestimoEventoResponse[] }) => {
         this.emprestimos = resposta.emprestimos ?? [];
         this.atualizarDashboard();
       },
       error: () => {
-        this.feedbackLocal = 'Nao foi possivel carregar os emprestimos.';
+        this.feedbackLocal = 'Não foi possível carregar os empréstimos.';
       }
     });
   }
 
   carregarEventos(): void {
     this.emprestimosService.listarEventos().subscribe({
-      next: (eventos) => {
+      next: (eventos: EventoEmprestimoResponse[]) => {
         this.eventos = eventos ?? [];
         this.eventosOpcoes = this.eventos.map((evento) => ({
           id: evento.id,
@@ -241,7 +246,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   carregarResponsaveis(): void {
     this.userService.list().subscribe({
-      next: (users) => {
+      next: (users: UserPayload[]) => {
         this.responsaveis = users ?? [];
         this.responsaveisOpcoes = this.responsaveis.map((user) => ({
           id: user.id,
@@ -257,7 +262,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   carregarPatrimonios(): void {
     this.patrimonioService.list().subscribe({
-      next: (patrimonios) => {
+      next: (patrimonios: Patrimonio[]) => {
         this.patrimonios = patrimonios ?? [];
         this.atualizarDashboard();
       },
@@ -269,7 +274,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   carregarAlmoxarifado(): void {
     this.almoxarifadoService.listItems().subscribe({
-      next: (itens) => {
+      next: (itens: StockItem[]) => {
         this.almoxarifadoItens = itens ?? [];
         this.atualizarDashboard();
       },
@@ -320,7 +325,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
       : this.emprestimosService.criar(dados);
 
     requisicao.subscribe({
-      next: (resposta) => {
+      next: (resposta: EmprestimoEventoResponse) => {
         this.feedbackLocal = 'Emprestimo salvo com sucesso.';
         this.emprestimoSelecionado = resposta;
         this.itensEmprestimo = resposta.itens ?? this.itensEmprestimo;
@@ -328,8 +333,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
         this.carregarEmprestimos();
         this.carregarMovimentacoes(resposta.id);
       },
-      error: (error) => {
-        this.feedbackLocal = error?.error?.message || 'Nao foi possivel salvar o emprestimo.';
+      error: (error: RespostaErro) => {
+        this.feedbackLocal = error?.error?.message || 'Não foi possível salvar o empréstimo.';
       }
     });
   }
@@ -377,7 +382,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
       ? this.emprestimosService.atualizarEvento(this.eventoEmEdicaoId, payload)
       : this.emprestimosService.criarEvento(payload);
     requisicao.subscribe({
-      next: (evento) => {
+      next: (evento: EventoEmprestimoResponse) => {
         this.feedbackLocal = this.eventoEmEdicaoId
           ? 'Evento atualizado com sucesso.'
           : 'Evento criado com sucesso.';
@@ -387,9 +392,9 @@ export class EmprestimosEventosPageComponent implements OnInit {
         this.formEmprestimo.patchValue({ eventoId: evento.id });
         this.eventoTermo = evento.titulo;
       },
-      error: (error) => {
+      error: (error: RespostaErro) => {
         this.feedbackLocal =
-          error?.error?.message || 'Nao foi possivel salvar o evento.';
+          error?.error?.message || 'Não foi possível salvar o evento.';
       }
     });
   }
@@ -398,20 +403,20 @@ export class EmprestimosEventosPageComponent implements OnInit {
     const alvo = emprestimo ?? this.emprestimoSelecionado;
     if (!alvo) return;
     this.emprestimosService.cancelar(alvo.id).subscribe({
-      next: (resposta) => {
+      next: (resposta: EmprestimoEventoResponse) => {
         this.feedbackLocal = 'Emprestimo cancelado.';
         this.emprestimoSelecionado = resposta;
         this.carregarEmprestimos();
       },
       error: () => {
-        this.feedbackLocal = 'Nao foi possivel cancelar o emprestimo.';
+        this.feedbackLocal = 'Não foi possível cancelar o empréstimo.';
       }
     });
   }
 
   onImprimir(): void {
     if (!this.emprestimoSelecionado) {
-      this.feedbackLocal = 'Selecione um emprestimo para imprimir.';
+      this.feedbackLocal = 'Selecione um empréstimo para imprimir.';
       return;
     }
 
@@ -424,7 +429,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   imprimirEmprestimosSelecionado(): void {
     if (!this.emprestimoSelecionado) {
-      this.feedbackLocal = 'Selecione um emprestimo para imprimir.';
+      this.feedbackLocal = 'Selecione um empréstimo para imprimir.';
       this.dialogImpressaoAberto = false;
       return;
     }
@@ -435,16 +440,16 @@ export class EmprestimosEventosPageComponent implements OnInit {
         usuarioEmissor: this.usuarioEmissor()
       })
       .subscribe({
-        next: (blob) => this.abrirPdf(blob),
+        next: (blob: Blob) => this.abrirPdf(blob),
         error: () => {
-          this.feedbackLocal = 'Nao foi possivel gerar o relatorio.';
+          this.feedbackLocal = 'Não foi possível gerar o relatorio.';
         }
       });
   }
 
   imprimirTermoSelecionado(): void {
     if (!this.emprestimoSelecionado) {
-      this.feedbackLocal = 'Selecione um emprestimo para imprimir.';
+      this.feedbackLocal = 'Selecione um empréstimo para imprimir.';
       this.dialogImpressaoAberto = false;
       return;
     }
@@ -455,9 +460,9 @@ export class EmprestimosEventosPageComponent implements OnInit {
         usuarioEmissor: this.usuarioEmissor()
       })
       .subscribe({
-        next: (blob) => this.abrirPdf(blob),
+        next: (blob: Blob) => this.abrirPdf(blob),
         error: () => {
-          this.feedbackLocal = 'Nao foi possivel gerar o termo.';
+          this.feedbackLocal = 'Não foi possível gerar o termo.';
         }
       });
   }
@@ -506,15 +511,15 @@ export class EmprestimosEventosPageComponent implements OnInit {
   }
 
   private validarDisponibilidadeItem(item: EmprestimoEventoItemResponse): void {
-    const periodo = this.obterPeriodoPrevisto();
-    if (!periodo) {
-      this.feedbackLocal = 'Informe o periodo do emprestimo antes de adicionar itens.';
+    const período = this.obterPeriodoPrevisto();
+    if (!período) {
+      this.feedbackLocal = 'Informe o período do empréstimo antes de adicionar itens.';
       return;
     }
     this.emprestimosService
-      .disponibilidade(this.montarParametrosDisponibilidadeItem(item, periodo))
+      .disponibilidade(this.montarParametrosDisponibilidadeItem(item, período))
       .subscribe({
-        next: (resposta) => {
+        next: (resposta: DisponibilidadeItemResponse) => {
           if (!resposta.disponivel) {
             this.feedbackLocal = this.montarMensagemConflito(resposta);
             return;
@@ -527,7 +532,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
           this.feedbackLocal = 'Item adicionado.';
         },
         error: () => {
-          this.feedbackLocal = 'Nao foi possivel validar a disponibilidade.';
+          this.feedbackLocal = 'Não foi possível validar a disponibilidade.';
         }
       });
   }
@@ -551,11 +556,11 @@ export class EmprestimosEventosPageComponent implements OnInit {
         fim: value.fim
       })
       .subscribe({
-        next: (resposta) => {
+        next: (resposta: DisponibilidadeItemResponse) => {
           this.resultadoDisponibilidade = resposta;
         },
         error: () => {
-          this.feedbackLocal = 'Nao foi possivel consultar a disponibilidade.';
+          this.feedbackLocal = 'Não foi possível consultar a disponibilidade.';
         }
       });
   }
@@ -564,13 +569,13 @@ export class EmprestimosEventosPageComponent implements OnInit {
     const alvo = emprestimo ?? this.emprestimoSelecionado;
     if (!alvo) return;
     this.emprestimosService.confirmarRetirada(alvo.id).subscribe({
-      next: (resposta) => {
+      next: (resposta: EmprestimoEventoResponse) => {
         this.emprestimoSelecionado = resposta;
         this.feedbackLocal = 'Retirada confirmada.';
         this.carregarEmprestimos();
       },
       error: () => {
-        this.feedbackLocal = 'Nao foi possivel confirmar a retirada.';
+        this.feedbackLocal = 'Não foi possível confirmar a retirada.';
       }
     });
   }
@@ -579,13 +584,13 @@ export class EmprestimosEventosPageComponent implements OnInit {
     const alvo = emprestimo ?? this.emprestimoSelecionado;
     if (!alvo) return;
     this.emprestimosService.confirmarDevolucao(alvo.id).subscribe({
-      next: (resposta) => {
+      next: (resposta: EmprestimoEventoResponse) => {
         this.emprestimoSelecionado = resposta;
         this.feedbackLocal = 'Devolucao confirmada.';
         this.carregarEmprestimos();
       },
       error: () => {
-        this.feedbackLocal = 'Nao foi possivel confirmar a devolucao.';
+        this.feedbackLocal = 'Não foi possível confirmar a devolucao.';
       }
     });
   }
@@ -596,11 +601,11 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.emprestimosService.agendaResumo(inicio, fim).subscribe({
       next: (resumo: AgendaResumoDiaResponse[]) => {
         this.resumoAgenda = resumo ?? [];
-        this.gerarCalendario();
+        this.gerarCalendário();
       },
       error: () => {
         this.resumoAgenda = [];
-        this.gerarCalendario();
+        this.gerarCalendário();
       }
     });
   }
@@ -618,7 +623,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
     this.modalAgendaEventos = this.obterEventosDoDia(dia.data);
     const dataApi = this.formatarData(dia.data);
     this.emprestimosService.agendaDia(dataApi).subscribe({
-      next: (detalhes) => {
+      next: (detalhes: AgendaDiaDetalheResponse[]) => {
         this.modalAgendaDetalhes = detalhes ?? [];
       },
       error: () => {
@@ -637,7 +642,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   abrirEmprestimoDoModal(emprestimoId: number): void {
     this.emprestimosService.obter(emprestimoId).subscribe({
-      next: (resposta) => {
+      next: (resposta: EmprestimoEventoResponse) => {
         this.selecionarEmprestimo(resposta);
         this.fecharModalAgenda();
         this.alterarAba('cadastro');
@@ -647,7 +652,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   carregarMovimentacoes(emprestimoId: number): void {
     this.emprestimosService.listarMovimentacoes(emprestimoId).subscribe({
-      next: (resposta) => {
+      next: (resposta: { movimentacoes: EmprestimoEventoMovimentacaoResponse[] }) => {
         this.movimentacoesEmprestimo = resposta.movimentacoes ?? [];
       },
       error: () => {
@@ -656,7 +661,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
     });
   }
 
-  private gerarCalendario(): void {
+  private gerarCalendário(): void {
     const inicioMes = new Date(this.mesAgenda.getFullYear(), this.mesAgenda.getMonth(), 1);
     const fimMes = new Date(this.mesAgenda.getFullYear(), this.mesAgenda.getMonth() + 1, 0);
     const primeiroDiaSemana = inicioMes.getDay();
@@ -793,9 +798,9 @@ export class EmprestimosEventosPageComponent implements OnInit {
         this.cancelarExcluirEvento();
         this.carregarEventos();
       },
-      error: (error) => {
+      error: (error: RespostaErro) => {
         this.feedbackLocal =
-          error?.error?.message || 'Nao foi possivel excluir o evento.';
+          error?.error?.message || 'Não foi possível excluir o evento.';
         this.cancelarExcluirEvento();
       }
     });
@@ -821,7 +826,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   private montarParametrosDisponibilidadeItem(
     item: EmprestimoEventoItemResponse,
-    periodo: { inicio: string; fim: string }
+    período: { inicio: string; fim: string }
   ): {
     itemId: number;
     tipoItem: TipoItemEmprestimo;
@@ -834,8 +839,8 @@ export class EmprestimosEventosPageComponent implements OnInit {
       itemId: item.itemId,
       tipoItem: item.tipoItem,
       quantidade: item.quantidade,
-      inicio: periodo.inicio,
-      fim: periodo.fim
+      inicio: período.inicio,
+      fim: período.fim
     };
     if (this.emprestimoSelecionado?.id) {
       return { ...parametros, emprestimoId: this.emprestimoSelecionado.id };
@@ -845,7 +850,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
 
   private montarMensagemConflito(resposta: DisponibilidadeItemResponse): string {
     if (!resposta?.conflitos?.length) {
-      return 'Item indisponivel para o periodo informado.';
+      return 'Item indisponivel para o período informado.';
     }
     const conflito = resposta.conflitos[0];
     return `Item indisponivel: evento ${conflito.eventoTitulo} (${conflito.inicio} a ${conflito.fim}).`;
@@ -997,7 +1002,7 @@ export class EmprestimosEventosPageComponent implements OnInit {
         return;
       }
       if (alvo >= inicio && alvo <= fim) {
-        eventos.add(emprestimo.evento?.titulo || 'Evento nao informado');
+        eventos.add(emprestimo.evento?.titulo || 'Evento não informado');
       }
     });
     return Array.from(eventos);

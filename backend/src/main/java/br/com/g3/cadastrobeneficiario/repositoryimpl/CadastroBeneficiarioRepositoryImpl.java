@@ -30,6 +30,11 @@ public class CadastroBeneficiarioRepositoryImpl implements CadastroBeneficiarioR
   }
 
   @Override
+  public List<CadastroBeneficiario> buscarPorCodigo(List<String> codigos) {
+    return jpaRepository.findByCodigoIn(codigos);
+  }
+
+  @Override
   public List<CadastroBeneficiario> listarPorNomeEStatus(String nome, String status) {
     return jpaRepository.findByNomeCompletoContainingIgnoreCaseAndStatus(nome, status);
   }

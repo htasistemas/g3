@@ -2,6 +2,8 @@
 import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faListCheck } from '@fortawesome/free-solid-svg-icons';
 import { finalize } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -21,7 +23,15 @@ interface StepTab {
 @Component({
   selector: 'app-tarefas-pendencias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, TelaPadraoComponent, PopupMessagesComponent, DragDropModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    DragDropModule
+  ],
   templateUrl: './tarefas-pendencias.component.html',
   styleUrl: './tarefas-pendencias.component.scss'
 })
@@ -54,8 +64,9 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
   private readonly routeSubs = new Subscription();
   filtroListagem: 'abertas' | 'vencidas' | null = null;
 
-  readonly prioridades: TaskPayload['prioridade'][] = ['Alta', 'MÃ©dia', 'Baixa'];
-  readonly statusOptions: TaskPayload['status'][] = ['Aberta', 'Em andamento', 'ConcluÃ­da', 'Em atraso'];
+  readonly faListCheck = faListCheck;
+  readonly prioridades: TaskPayload['prioridade'][] = ['Alta', 'Média', 'Baixa'];
+  readonly statusOptions: TaskPayload['status'][] = ['Aberta', 'Em andamento', 'Concluída', 'Em atraso'];
   readonly processStages = [
     { label: 'Aberta', status: 'Aberta' as TaskRecord['status'], next: 'Em andamento' as TaskRecord['status'] },
     {
@@ -68,9 +79,9 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
       label: 'Pendente',
       status: 'Em atraso' as TaskRecord['status'],
       prev: 'Em andamento' as TaskRecord['status'],
-      next: 'ConcluÃ­da' as TaskRecord['status']
+      next: 'Concluída' as TaskRecord['status']
     },
-    { label: 'ConcluÃ­da', status: 'ConcluÃ­da' as TaskRecord['status'], prev: 'Em atraso' as TaskRecord['status'] }
+    { label: 'Concluída', status: 'Concluída' as TaskRecord['status'], prev: 'Em atraso' as TaskRecord['status'] }
   ];
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
@@ -133,18 +144,18 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     const total = this.tasks.length;
     const abertas = this.tasks.filter((task) => task.status === 'Aberta').length;
     const andamento = this.tasks.filter((task) => task.status === 'Em andamento').length;
-    const concluidas = this.tasks.filter((task) => task.status === 'ConcluÃ­da').length;
-    const atrasadas = this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'ConcluÃ­da').length;
-    const proximas = this.tasks.filter((task) => this.isDueSoon(task) && task.status !== 'ConcluÃ­da').length;
+    const concluidas = this.tasks.filter((task) => task.status === 'Concluída').length;
+    const atrasadas = this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'Concluída').length;
+    const proximas = this.tasks.filter((task) => this.isDueSoon(task) && task.status !== 'Concluída').length;
     return { total, abertas, andamento, concluidas, atrasadas, proximas };
   }
 
   get tarefasFiltradas(): TaskRecord[] {
     if (!this.filtroListagem) return this.tasks;
     if (this.filtroListagem === 'abertas') {
-      return this.tasks.filter((task) => task.status !== 'ConcluÃ­da');
+      return this.tasks.filter((task) => task.status !== 'Concluída');
     }
-    return this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'ConcluÃ­da');
+    return this.tasks.filter((task) => this.isOverdue(task) && task.status !== 'Concluída');
   }
 
   get alertas() {
@@ -197,6 +208,10 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     this.changeTab('listagem');
   }
 
+  closeForm(): void {
+    window.history.back();
+  }
+
   goToNextTab(): void {
     if (!this.hasNextTab) return;
     this.changeTab(this.tabs[this.activeTabIndex + 1].id);
@@ -247,7 +262,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
       .pipe(finalize(() => (this.imprimindoRelatorio = false)))
       .subscribe({
         next: (blob) => this.baixarRelatorio(blob),
-        error: () => this.setFeedback('NÃ£o foi possÃ­vel gerar o relatÃ³rio de pendÃªncias.')
+        error: () => this.setFeedback('Não foi possível gerar o relatório de pendências.')
       });
   }
 
@@ -261,20 +276,20 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
       this.form.markAllAsTouched();
       const builder = new PopupErrorBuilder();
       [
-        { control: 'titulo', label: 'TÃ­tulo' },
-        { control: 'descricao', label: 'DescriÃ§Ã£o' },
-        { control: 'responsavel', label: 'ResponsÃ¡vel' },
+        { control: 'titulo', label: 'Título' },
+        { control: 'descricao', label: 'Descrição' },
+        { control: 'responsavel', label: 'Responsável' },
         { control: 'prioridade', label: 'Prioridade' },
         { control: 'prazo', label: 'Prazo previsto' },
         { control: 'status', label: 'Status' }
       ].forEach(({ control, label }) => {
         const field = this.form.get(control);
         if (!field?.value) {
-          builder.adicionar(`${label} Ã© obrigatÃ³rio.`);
+          builder.adicionar(`${label} é obrigatório.`);
         }
       });
       this.popupErros = builder.build();
-      this.setFeedback('Preencha os campos obrigatÃ³rios para registrar a pendÃªncia.');
+      this.setFeedback('Preencha os campos obrigatórios para registrar a pendência.');
       return;
     }
 
@@ -290,17 +305,17 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
         next: (record) => {
           if (this.editingId) {
             this.atualizarListagemAposSalvar(record, false);
-            this.setFeedback('PendÃªncia atualizada com sucesso.');
+            this.setFeedback('Pendência atualizada com sucesso.');
           } else {
             this.atualizarListagemAposSalvar(record, true);
-            this.setFeedback('PendÃªncia registrada com sucesso.');
+            this.setFeedback('Pendência registrada com sucesso.');
           }
           this.selectedTask = record;
           this.resetForm();
           this.changeTab('listagem');
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel salvar a pendÃªncia. Tente novamente.');
+          this.setFeedback('Não foi possível salvar a pendência. Tente novamente.');
         }
       });
   }
@@ -321,7 +336,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
   }
 
   removeTask(task: TaskRecord): void {
-    if (!window.confirm(`Remover a pendÃªncia "${task.titulo}"?`)) return;
+    if (!window.confirm(`Remover a pendência "${task.titulo}"?`)) return;
     this.tarefasService
       .delete(task.id)
       .pipe(finalize(() => {}))
@@ -334,10 +349,10 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
           if (this.editingId === task.id) {
             this.resetForm();
           }
-          this.setFeedback('PendÃªncia removida.');
+          this.setFeedback('Pendência removida.');
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel remover a pendÃªncia. Tente novamente.');
+          this.setFeedback('Não foi possível remover a pendência. Tente novamente.');
         }
       });
   }
@@ -368,14 +383,14 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     this.popupErros = [];
     this.tarefasService.toggleChecklist(task, item).subscribe({
       next: (updated) => this.updateTaskInList(updated),
-      error: () => this.setFeedback('NÃ£o foi possÃ­vel atualizar o checklist.')
+      error: () => this.setFeedback('Não foi possível atualizar o checklist.')
     });
   }
 
   changeStatus(task: TaskRecord, status: TaskRecord['status']): void {
     this.tarefasService.updateStatus(task, status).subscribe({
       next: (updated) => this.updateTaskInList(updated),
-      error: () => this.setFeedback('NÃ£o foi possÃ­vel atualizar o status.')
+      error: () => this.setFeedback('Não foi possível atualizar o status.')
     });
   }
 
@@ -400,11 +415,11 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     if (!this.historicoTask) return;
     const mensagem = this.historicoMensagem.trim();
     if (!mensagem) {
-      this.setFeedback('Informe a aÃ§Ã£o realizada antes de salvar.');
+      this.setFeedback('Informe a ação realizada antes de salvar.');
       return;
     }
     if (this.ultimaAcaoIgual(mensagem)) {
-      this.setFeedback('Esta aÃ§Ã£o jÃ¡ foi registrada como a Ãºltima atividade.');
+      this.setFeedback('Esta ação já foi registrada como a última atividade.');
       return;
     }
     if (this.salvandoHistorico) return;
@@ -417,11 +432,11 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
           this.updateTaskInList(atualizada);
           this.historicoTask = atualizada;
           this.historicoMensagem = '';
-          this.setFeedback('AÃ§Ã£o registrada no histÃ³rico.');
+          this.setFeedback('Ação registrada no histórico.');
           this.fecharHistorico();
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel registrar a aÃ§Ã£o no histÃ³rico.');
+          this.setFeedback('Não foi possível registrar a ação no histórico.');
         }
       });
   }
@@ -456,7 +471,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
           }
         },
         error: () => {
-          this.setFeedback('NÃ£o foi possÃ­vel carregar as pendÃªncias no momento.');
+          this.setFeedback('Não foi possível carregar as pendências no momento.');
         }
       });
   }
@@ -493,9 +508,9 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
   private registroVisivelNaListagem(registro: TaskRecord): boolean {
     if (!this.filtroListagem) return true;
     if (this.filtroListagem === 'abertas') {
-      return registro.status !== 'ConcluÃ­da';
+      return registro.status !== 'Concluída';
     }
-    return this.isOverdue(registro) && registro.status !== 'ConcluÃ­da';
+    return this.isOverdue(registro) && registro.status !== 'Concluída';
   }
 
   private buildPayload(): TaskPayload {
@@ -578,7 +593,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     const prazo = new Date(task.prazo ?? '');
     if (Number.isNaN(prazo.getTime())) return false;
     const hoje = new Date();
-    return prazo < hoje && task.status !== 'ConcluÃ­da';
+    return prazo < hoje && task.status !== 'Concluída';
   }
 
   private isDueSoon(task: TaskRecord): boolean {
@@ -587,7 +602,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
     const hoje = new Date();
     const diff = prazo.getTime() - hoje.getTime();
     const doisDias = 1000 * 60 * 60 * 24 * 2;
-    return diff > 0 && diff <= doisDias && task.status !== 'ConcluÃ­da';
+    return diff > 0 && diff <= doisDias && task.status !== 'Concluída';
   }
 
   dueLabel(task: TaskRecord): string {
@@ -603,7 +618,7 @@ export class TarefasPendenciasComponent extends TelaBaseComponent implements OnI
   }
 
   statusTone(task: TaskRecord): 'green' | 'amber' | 'red' {
-    if (task.status === 'ConcluÃ­da') return 'green';
+    if (task.status === 'Concluída') return 'green';
     if (this.isOverdue(task)) return 'red';
     if (task.status === 'Em andamento') return 'amber';
     return 'green';

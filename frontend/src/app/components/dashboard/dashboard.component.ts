@@ -205,7 +205,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.tarefasService.list().subscribe((tarefas) => {
-        this.pendenciasAbertas = tarefas.filter((item) => item.status !== 'ConcluÃ­da').length;
+        this.pendenciasAbertas = tarefas.filter((item) => item.status !== 'Concluída').length;
       })
     );
   }

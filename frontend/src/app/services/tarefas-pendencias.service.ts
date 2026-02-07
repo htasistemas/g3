@@ -22,9 +22,9 @@ export interface TaskPayload {
   titulo: string;
   descricao: string;
   responsavel: string;
-  prioridade: 'Alta' | 'MÃ©dia' | 'Baixa';
+  prioridade: 'Alta' | 'Média' | 'Baixa';
   prazo?: string | null;
-  status: 'Aberta' | 'Em andamento' | 'ConcluÃ­da' | 'Em atraso';
+  status: 'Aberta' | 'Em andamento' | 'Concluída' | 'Em atraso';
   checklist?: ChecklistItem[];
 }
 
@@ -185,11 +185,11 @@ export class TarefasPendenciasService {
   }
 
   private mapResponse(response: TarefaPendenciaApiResponse): TaskRecord {
-    const prioridadeOptions: TaskPayload['prioridade'][] = ['Alta', 'MÃ©dia', 'Baixa'];
+    const prioridadeOptions: TaskPayload['prioridade'][] = ['Alta', 'Média', 'Baixa'];
     const prioridade =
       prioridadeOptions.includes(response.prioridade as TaskPayload['prioridade'])
         ? (response.prioridade as TaskPayload['prioridade'])
-        : 'MÃ©dia';
+        : 'Média';
 
     return {
       id: String(response.id ?? ''),

@@ -253,6 +253,9 @@
     </header>
 
     <div class="modal__body" *ngIf="recuperacaoEtapa === 'solicitar'">
+      <p class="text-sm text-slate-600">
+        Abra seu email e cole o token recebido para redefinir a senha.
+      </p>
       <label class="block space-y-2">
         <span class="text-sm font-medium text-slate-700">Email *</span>
         <div class="input-field">
@@ -277,6 +280,13 @@
       </div>
       <div *ngIf="recuperacaoMensagem" class="text-sm text-g3-green-700 bg-g3-green-50 border border-g3-green-100 rounded-lg p-3">
         {{ recuperacaoMensagem }}
+      </div>
+
+      <div class="progress-wrap" *ngIf="recuperando">
+        <span class="progress-label">Enviando email...</span>
+        <div class="progress-bar">
+          <span class="progress-bar__fill"></span>
+        </div>
       </div>
     </div>
 
@@ -348,8 +358,9 @@
         type="button"
         class="primary"
         (click)="solicitarRecuperacao()"
+        [disabled]="recuperando"
       >
-        Enviar
+        {{ recuperando ? 'Enviando...' : 'Enviar' }}
       </button>
       <button
         *ngIf="recuperacaoEtapa === 'redefinir'"

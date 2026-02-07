@@ -46,6 +46,7 @@ export class LoginComponent {
   recuperacaoMensagem: string | null = null;
   recuperando = false;
   redefinindo = false;
+  private recuperacaoTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(
     private readonly auth: AuthService,
@@ -164,6 +165,17 @@ export class LoginComponent {
     this.recuperacaoSubmetida = true;
     this.recuperacaoErro = null;
     this.recuperacaoMensagem = null;
+    if (this.recuperacaoTimeout) {
+      clearTimeout(this.recuperacaoTimeout);
+    }
+    this.recuperacaoTimeout = setTimeout(() => {
+      if (this.recuperando) {
+        this.recuperando = false;
+        this.recuperacaoErro =
+          'O envio está demorando mais do que o esperado. Verifique sua conexão e tente novamente.';
+        this.cdr.detectChanges();
+      }
+    }, 15000);
 
     if (!this.recuperacaoEmailValido()) {
       this.recuperando = false;
@@ -187,6 +199,11 @@ export class LoginComponent {
         }),
         finalize(() => {
           this.recuperando = false;
+          if (this.recuperacaoTimeout) {
+            clearTimeout(this.recuperacaoTimeout);
+            this.recuperacaoTimeout = undefined;
+          }
+          this.cdr.detectChanges();
         })
       )
       .subscribe(() => {

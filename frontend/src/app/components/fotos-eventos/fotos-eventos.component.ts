@@ -1,4 +1,5 @@
 ﻿import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -26,6 +27,7 @@ import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../comparti
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { titleCaseWords } from '../../utils/capitalization.util';
 import { environment } from '../../../environments/environment';
+import { faImages } from '@fortawesome/free-solid-svg-icons';
 
 type FotoUploadItem = {
   arquivo: File;
@@ -46,12 +48,22 @@ type FotoUploadItem = {
     ReactiveFormsModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
-    DialogComponent
+    DialogComponent,
+    FontAwesomeModule
   ],
   templateUrl: './fotos-eventos.component.html',
   styleUrl: './fotos-eventos.component.scss'
 })
 export class FotosEventosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  readonly faImages = faImages;
+
+  readonly abas = [
+    { id: 'lista', label: 'Eventos' },
+    { id: 'detalhe', label: 'Detalhes' }
+  ];
+
+  abaAtiva = 'lista';
+
   filtrosForm: FormGroup;
   eventoForm: FormGroup;
   fotoForm: FormGroup;
@@ -174,8 +186,10 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       const idParam = params.get('id');
       this.detalheId = idParam ? Number(idParam) : null;
       if (this.detalheId) {
+        this.abaAtiva = 'detalhe';
         this.carregarDetalhe(this.detalheId);
       } else {
+        this.abaAtiva = 'lista';
         this.eventoSelecionado = null;
         this.fotosEvento = [];
       }
@@ -215,7 +229,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         error: () => {
           this.listLoading = false;
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel carregar os eventos.')
+            .adicionar('N?o foi poss?vel carregar os eventos.')
             .build();
         }
       });
@@ -253,6 +267,16 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.carregarEventos();
   }
 
+  alterarAba(tabId: string): void {
+    if (tabId === 'lista') {
+      this.voltarLista();
+      return;
+    }
+    if (tabId === 'detalhe') {
+      this.abaAtiva = 'detalhe';
+    }
+  }
+
   onBuscar(): void {
     if (this.mostrandoDetalhe) {
       this.voltarLista();
@@ -274,10 +298,12 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   }
 
   abrirDetalhe(evento: FotoEventoResponse): void {
+    this.abaAtiva = 'detalhe';
     this.router.navigate(['/administrativo/fotos-eventos', evento.id]);
   }
 
   voltarLista(): void {
+    this.abaAtiva = 'lista';
     this.router.navigate(['/administrativo/fotos-eventos']);
   }
 
@@ -295,7 +321,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         error: () => {
           this.detalheLoading = false;
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel carregar o detalhe do evento.')
+            .adicionar('N?o foi poss?vel carregar o detalhe do evento.')
             .build();
         }
       });
@@ -303,6 +329,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
 
   abrirFormularioNovo(): void {
     this.formularioAberto = true;
+    this.abaAtiva = 'lista';
     this.eventoEmEdicaoId = null;
     this.atualizarValidacaoFotoPrincipal(true);
     this.eventoForm.reset({
@@ -349,7 +376,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     if (this.eventoForm.invalid) {
       this.eventoForm.markAllAsTouched();
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios do evento.')
+        .adicionar('Preencha os campos obrigat?rios do evento.')
         .build();
       return;
     }
@@ -376,7 +403,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     } catch {
       this.salvandoEvento = false;
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel salvar o evento.')
+        .adicionar('N?o foi poss?vel salvar o evento.')
         .build();
     }
   }
@@ -414,7 +441,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel excluir o evento.')
+          .adicionar('N?o foi poss?vel excluir o evento.')
           .build();
       }
       return;
@@ -431,7 +458,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel remover a foto.')
+          .adicionar('N?o foi poss?vel remover a foto.')
           .build();
       }
     }
@@ -477,7 +504,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     } catch {
       this.enviandoFotos = false;
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel enviar as fotos.')
+        .adicionar('N?o foi poss?vel enviar as fotos.')
         .build();
     }
   }
@@ -531,7 +558,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       this.carregarDetalhe(this.eventoSelecionado.id);
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel atualizar a foto.')
+        .adicionar('N?o foi poss?vel atualizar a foto.')
         .build();
     }
   }
@@ -550,7 +577,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       this.carregarEventos();
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel atualizar a foto principal.')
+        .adicionar('N?o foi poss?vel atualizar a foto principal.')
         .build();
     }
   }

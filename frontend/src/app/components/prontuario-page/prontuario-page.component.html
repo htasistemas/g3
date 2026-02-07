@@ -2,83 +2,20 @@
   [acoes]="acoesTopo"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (imprimir)="imprimirCompleto()"
   (buscar)="onBuscar()"
   (fechar)="cancelarSelecao()"
 >
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-    <p class="page-title__eyebrow">ATENDIMENTOS</p>
-    <p class="page-title__label">Prontu&aacute;rio social</p>
-    </div>
-    <p class="page-title__note">Historico e registros do prontuario do beneficiario.</p>
-  </header>
-
   <section class="cadastro">
     <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
-
-    <div class="prontuario-card">
-      <app-prontuario-filtros
-        [mostrarBuscaBeneficiario]="!beneficiarioId"
-        [filtros]="filtros"
-        [beneficiarioSelecionado]="beneficiarioSelecionado"
-        [opcoesBeneficiarios]="opcoesBeneficiarios"
-        [opcoesProfissionais]="opcoesProfissionais"
-        [opcoesUnidades]="opcoesUnidades"
-        [termoBusca]="termoBusca"
-        [carregandoBeneficiarios]="carregandoBeneficiarios"
-        [erroBeneficiarios]="erroBeneficiarios"
-        (termoBuscaChange)="onTermoBuscaChange($event)"
-        (selecionarBeneficiario)="selecionarBeneficiario($event)"
-        (filtrosChange)="atualizarFiltros($event)"
-        (limpar)="limparFiltros()"
-      ></app-prontuario-filtros>
-    </div>
-
-    <div class="prontuario-grid" *ngIf="beneficiarioId; else selecioneBeneficiario">
-      <aside class="prontuario-resumo">
-        <div class="resumo-card" *ngIf="resumo">
-          <div class="resumo-card__foto" [class.resumo-card__foto--empty]="!resumo.beneficiario.foto3x4">
-            <img *ngIf="resumo.beneficiario.foto3x4" [src]="resumo.beneficiario.foto3x4" alt="Foto do beneficiÃƒÂ¡rio" />
-            <span *ngIf="!resumo.beneficiario.foto3x4">Sem foto</span>
-          </div>
-          <div class="resumo-card__info">
-            <h3>{{ resumo.beneficiario.nomeCompleto }}</h3>
-            <p>CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃƒÂ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃƒÂ£o informado' }}</p>
-            <p>FamÃƒÂ­lia de referÃƒÂªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃƒÂ£o informada' }}</p>
-            <p>Nascimento: {{ formatarDataNascimento(resumo.beneficiario.dataNascimento) }}</p>
-            <p>Nome da mae: {{ resumo.beneficiario.nomeMae || 'NÃƒÂ£o informado' }}</p>
-            <p>Telefone: {{ resumo.beneficiario.telefone || 'NÃƒÂ£o informado' }}</p>
-            <p>WhatsApp: {{ resumo.beneficiario.whatsapp || 'NÃƒÂ£o informado' }}</p>
-            <p>EndereÃƒÂ§o: {{ resumo.beneficiario.endereco || 'NÃƒÂ£o informado' }}</p>
-          </div>
-          <div class="resumo-card__tags">
-            <span class="pill">{{ resumo.beneficiario.status || 'Sem status' }}</span>
-        <span class="pill pill--ghost" *ngIf="resumo.ultimaAtualizacao">
-          Atualizado em {{ resumo.ultimaAtualizacao | date: 'dd/MM/yyyy' }}
-        </span>
-            <span class="pill pill--ghost" *ngFor="let vulnerabilidade of resumo.beneficiario.vulnerabilidades || []">
-              {{ vulnerabilidade }}
-            </span>
-          </div>
-          <div class="resumo-card__actions">
-            <button class="ghost" type="button" (click)="imprimirResumo()">Imprimir resumo</button>
-            <button class="ghost" type="button" (click)="imprimirCompleto()">Imprimir prontuario completo</button>
-          </div>
-        </div>
-
-        <div class="resumo-card" *ngIf="resumo">
-          <h4>Indicadores</h4>
-          <app-prontuario-indicadores
-            [contagens]="resumo.contagens"
-            [indicadoresResumo]="resumo.indicadores"
-          ></app-prontuario-indicadores>
-        </div>
-      </aside>
-
-      <section class="prontuario-conteudo">
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
         <div class="tab-shell">
-          <p class="tab-shell__title">Navegue pelas informa&ccedil;&otilde;es</p>
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faNotesMedical" class="tab-shell__icon"></fa-icon>
+            Prontuário social
+          </p>
           <ol class="step-tabs" role="tablist">
             <li
               *ngFor="let aba of abas; index as idx"
@@ -99,58 +36,143 @@
             </li>
           </ol>
         </div>
+      </aside>
 
-        <div class="prontuario-conteudo__body">
-          <div class="prontuario-card" [class.prontuario-card--timeline]="abaAtiva === 'linha'">
-            <app-prontuario-timeline
-              *ngIf="abaAtiva !== 'indicadores'"
-              [registros]="registros"
-              [mapaProfissionais]="mapaProfissionais"
-              [mapaUnidades]="mapaUnidades"
-              [total]="totalRegistros"
-              [carregando]="carregandoRegistros"
-              [pagina]="filtros.page || 0"
-              [tamanhoPagina]="filtros.pageSize || 10"
-              (carregarMais)="carregarMais()"
-              (filtrarTipo)="aplicarFiltroTipo($event)"
-              (filtrarProfissional)="aplicarFiltroProfissional($event)"
-              (filtrarUnidade)="aplicarFiltroUnidade($event)"
-            ></app-prontuario-timeline>
+      <div class="cadastro-conteudo">
+        <section class="tab-card">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Filtros</p>
+            </div>
+          </div>
+          <app-prontuario-filtros
+            [mostrarBuscaBeneficiario]="!beneficiarioId"
+            [filtros]="filtros"
+            [beneficiarioSelecionado]="beneficiarioSelecionado"
+            [opcoesBeneficiarios]="opcoesBeneficiarios"
+            [opcoesProfissionais]="opcoesProfissionais"
+            [opcoesUnidades]="opcoesUnidades"
+            [termoBusca]="termoBusca"
+            [carregandoBeneficiarios]="carregandoBeneficiarios"
+            [erroBeneficiarios]="erroBeneficiarios"
+            (termoBuscaChange)="onTermoBuscaChange($event)"
+            (selecionarBeneficiario)="selecionarBeneficiario($event)"
+            (filtrosChange)="atualizarFiltros($event)"
+            (limpar)="limparFiltros()"
+          ></app-prontuario-filtros>
+        </section>
 
-            <div *ngIf="abaAtiva === 'indicadores'">
+        <div class="prontuario-grid" *ngIf="beneficiarioId; else selecioneBeneficiario">
+          <aside class="prontuario-resumo">
+            <section class="tab-card" *ngIf="resumo">
+              <div class="tab-card__header">
+                <div class="tab-card__title-stack">
+                  <p class="tab-card__highlight">Resumo do beneficiário</p>
+                </div>
+              </div>
+              <div class="resumo-card">
+                <div class="resumo-card__foto" [class.resumo-card__foto--empty]="!resumo.beneficiario.foto3x4">
+                  <img *ngIf="resumo.beneficiario.foto3x4" [src]="resumo.beneficiario.foto3x4" alt="Foto do beneficiário" />
+                  <span *ngIf="!resumo.beneficiario.foto3x4">Sem foto</span>
+                </div>
+                <div class="resumo-card__info">
+                  <h3>{{ resumo.beneficiario.nomeCompleto }}</h3>
+                  <p>CPF/NIS: {{ resumo.beneficiario.cpf || 'Não informado' }} / {{ resumo.beneficiario.nis || 'Não informado' }}</p>
+                  <p>Família de referência: {{ resumo.beneficiario.familiaReferencia || 'Não informada' }}</p>
+                  <p>Nascimento: {{ formatarDataNascimento(resumo.beneficiario.dataNascimento) }}</p>
+                  <p>Nome da mãe: {{ resumo.beneficiario.nomeMae || 'Não informado' }}</p>
+                  <p>Telefone: {{ resumo.beneficiario.telefone || 'Não informado' }}</p>
+                  <p>WhatsApp: {{ resumo.beneficiario.whatsapp || 'Não informado' }}</p>
+                  <p>Endereço: {{ resumo.beneficiario.endereco || 'Não informado' }}</p>
+                </div>
+                <div class="resumo-card__tags">
+                  <span class="pill">{{ resumo.beneficiario.status || 'Sem status' }}</span>
+                  <span class="pill pill--ghost" *ngIf="resumo.ultimaAtualizacao">
+                    Atualizado em {{ resumo.ultimaAtualizacao | date: 'dd/MM/yyyy' }}
+                  </span>
+                  <span class="pill pill--ghost" *ngFor="let vulnerabilidade of resumo.beneficiario.vulnerabilidades || []">
+                    {{ vulnerabilidade }}
+                  </span>
+                </div>
+                <div class="resumo-card__actions">
+                  <button class="ghost" type="button" (click)="imprimirResumo()">Imprimir resumo</button>
+                  <button class="ghost" type="button" (click)="imprimirCompleto()">Imprimir prontuário completo</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="tab-card" *ngIf="resumo">
+              <div class="tab-card__header">
+                <div class="tab-card__title-stack">
+                  <p class="tab-card__highlight">Indicadores</p>
+                </div>
+              </div>
               <app-prontuario-indicadores
-                *ngIf="resumo"
                 [contagens]="resumo.contagens"
                 [indicadoresResumo]="resumo.indicadores"
               ></app-prontuario-indicadores>
-          </div>
-          </div>
+            </section>
+          </aside>
+
+          <section class="prontuario-conteudo">
+            <section class="tab-card" [class.prontuario-card--timeline]="abaAtiva === 'linha'">
+              <div class="tab-card__header">
+                <div class="tab-card__title-stack">
+                  <p class="tab-card__highlight">{{ labelAbaAtiva }}</p>
+                </div>
+              </div>
+              <div class="prontuario-conteudo__body">
+                <app-prontuario-timeline
+                  *ngIf="abaAtiva !== 'indicadores'"
+                  [registros]="registrosVisiveis"
+                  [mapaProfissionais]="mapaProfissionais"
+                  [mapaUnidades]="mapaUnidades"
+                  [total]="totalRegistrosVisiveis"
+                  [carregando]="carregandoRegistros"
+                  [pagina]="filtros.page || 0"
+                  [tamanhoPagina]="filtros.pageSize || 10"
+                  (carregarMais)="carregarMais()"
+                  (filtrarTipo)="aplicarFiltroTipo($event)"
+                  (filtrarProfissional)="aplicarFiltroProfissional($event)"
+                  (filtrarUnidade)="aplicarFiltroUnidade($event)"
+                ></app-prontuario-timeline>
+
+                <div *ngIf="abaAtiva === 'indicadores'">
+                  <app-prontuario-indicadores
+                    *ngIf="resumo"
+                    [contagens]="resumo.contagens"
+                    [indicadoresResumo]="resumo.indicadores"
+                  ></app-prontuario-indicadores>
+                </div>
+              </div>
+            </section>
+          </section>
         </div>
-      </section>
-    </div>
 
     <ng-template #selecioneBeneficiario>
-      <div class="empty-state">Selecione um beneficiÃƒÂ¡rio para visualizar o prontuario.</div>
+      <div class="empty-state">Selecione um beneficiário para visualizar o prontuário.</div>
     </ng-template>
+      </div>
+    </div>
   </section>
 
   <div class="print-area" [class.print-area--active]="modoImpressao === 'resumo'">
-    <h1>ProntuÃƒÂ¡rio - Resumo</h1>
-    <p *ngIf="resumo">BeneficiÃƒÂ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
-    <p *ngIf="resumo">CPF/NIS: {{ resumo.beneficiario.cpf || 'NÃƒÂ£o informado' }} / {{ resumo.beneficiario.nis || 'NÃƒÂ£o informado' }}</p>
-    <p *ngIf="resumo">EndereÃƒÂ§o: {{ resumo.beneficiario.endereco || 'NÃƒÂ£o informado' }}</p>
-    <p *ngIf="resumo">FamÃƒÂ­lia de referÃƒÂªncia: {{ resumo.beneficiario.familiaReferencia || 'NÃƒÂ£o informada' }}</p>
-    <h2>ultimos registros</h2>
+    <h1>Prontuário - Resumo</h1>
+    <p *ngIf="resumo">Beneficiário: {{ resumo.beneficiario.nomeCompleto }}</p>
+    <p *ngIf="resumo">CPF/NIS: {{ resumo.beneficiario.cpf || 'Não informado' }} / {{ resumo.beneficiario.nis || 'Não informado' }}</p>
+    <p *ngIf="resumo">Endereço: {{ resumo.beneficiario.endereco || 'Não informado' }}</p>
+    <p *ngIf="resumo">Família de referência: {{ resumo.beneficiario.familiaReferencia || 'Não informada' }}</p>
+    <h2>Últimos registros</h2>
     <ul>
       <li *ngFor="let registro of registros | slice:0:5">
-        {{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }} - {{ registro.tipo }} - {{ registro.titulo || 'Sem titulo' }}
+        {{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }} - {{ registro.tipo }} - {{ registro.titulo || 'Sem título' }}
       </li>
     </ul>
   </div>
 
   <div class="print-area" [class.print-area--active]="modoImpressao === 'completo'">
-    <h1>ProntuÃƒÂ¡rio completo</h1>
-    <p *ngIf="resumo">BeneficiÃƒÂ¡rio: {{ resumo.beneficiario.nomeCompleto }}</p>
+    <h1>Prontuário completo</h1>
+    <p *ngIf="resumo">Beneficiário: {{ resumo.beneficiario.nomeCompleto }}</p>
     <ul>
       <li *ngFor="let registro of registros">
         {{ registro.dataRegistro | date: 'dd/MM/yyyy HH:mm' }} - {{ registro.tipo }} - {{ registro.descricao }}
@@ -158,6 +180,11 @@
     </ul>
   </div>
 </app-tela-padrao>
+
+
+
+
+
 
 
 

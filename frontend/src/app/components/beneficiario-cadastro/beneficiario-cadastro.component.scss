@@ -413,6 +413,7 @@
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   width: 100%;
+  flex-wrap: nowrap;
 }
 
 .nav-buttons {
@@ -699,6 +700,7 @@
 .tab-card__header-actions {
   margin-left: auto;
 }
+
 
 .tab-card__header--listagem .tab-card__title-stack {
   align-items: flex-start;

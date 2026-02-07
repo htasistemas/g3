@@ -160,6 +160,42 @@
   gap: 0.75rem;
 }
 
+.progress-wrap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.progress-label {
+  font-size: 0.85rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e, #16a34a);
+  animation: progresso-email 1.2s ease-in-out infinite;
+}
+
+@keyframes progresso-email {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
 @media (max-width: 1023px) {
   .login-hero {
     min-height: 340px;

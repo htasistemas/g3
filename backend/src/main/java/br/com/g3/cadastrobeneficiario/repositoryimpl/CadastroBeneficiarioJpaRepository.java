@@ -10,6 +10,8 @@ public interface CadastroBeneficiarioJpaRepository extends JpaRepository<Cadastr
 
   List<CadastroBeneficiario> findByNomeCompletoContainingIgnoreCaseAndStatus(String nomeCompleto, String status);
 
+  List<CadastroBeneficiario> findByCodigoIn(List<String> codigos);
+
   @Query(
       value =
           "SELECT MAX(cast(codigo AS INTEGER)) FROM cadastro_beneficiario WHERE codigo IS NOT NULL AND codigo ~ '^[0-9]+$'",

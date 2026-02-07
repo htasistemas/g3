@@ -1,75 +1,47 @@
-﻿<app-tela-padrao
-
+<app-tela-padrao
   [acoes]="acoesToolbar"
-
   [desabilitado]="acoesDesabilitadas"
-
+  [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="onSave()"
-
   (cancelar)="onCancel()"
-
   (novo)="onNew()"
-
   (excluir)="onDelete()"
-
   (imprimir)="imprimirRelatorio()"
   (buscar)="onBuscar()"
-
+  (fechar)="closeForm()"
 >
+  <section class="cadastro">
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faListCheck" class="tab-shell__icon"></fa-icon>
+            Tarefas e Pendências
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of tabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeTab === tab.id"
+              [class.completed]="idx < activeTabIndex"
+            >
+              <button
+                type="button"
+                class="step-tabs__button"
+                (click)="changeTab(tab.id)"
+                [attr.aria-selected]="activeTab === tab.id"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
 
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-    <p class="page-title__eyebrow">Administrativo</p>
-    <p class="page-title__label">Tarefas e PendÃªncias</p>
-    </div>
-    <p class="page-title__note">Gestao de tarefas e pendencias.</p>
-  </header>
-
-
-
-  <div class="tab-shell">
-
-    <p class="tab-shell__title">Navegue pelas informaÃ§Ãµes</p>
-
-    <ol class="step-tabs" role="tablist">
-
-      <li
-
-        *ngFor="let tab of tabs; index as idx"
-
-        class="step-tabs__item"
-
-        [class.active]="activeTab === tab.id"
-
-      >
-
-        <button
-
-          type="button"
-
-          class="step-tabs__button"
-
-          (click)="changeTab(tab.id)"
-
-          [attr.aria-selected]="activeTab === tab.id"
-
-        >
-
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-
-          <span class="step-tabs__label">{{ tab.label }}</span>
-
-        </button>
-
-      </li>
-
-    </ol>
-
-  </div>
-
-
-
-  <form [formGroup]="form" (ngSubmit)="onSave()" class="form-shell">
+      <div class="cadastro-conteudo">
+<form [formGroup]="form" (ngSubmit)="onSave()" class="form-shell">
 
     <app-popup-messages
 
@@ -103,7 +75,7 @@
 
         <div>
 
-          <p class="tab-card__highlight">{{ editingId ? 'Atualizando pendÃªncia' : 'Cadastre uma nova pendÃªncia' }}</p>
+          <p class="tab-card__highlight">{{ editingId ? 'Atualizando pendência' : 'Cadastre uma nova pendência' }}</p>
 
         </div>
 
@@ -121,7 +93,6 @@
 
             <p class="panel__title">Dados da tarefa</p>
 
-            <p class="muted">Campos essenciais para priorizar e monitorar.</p>
 
           </div>
 
@@ -133,7 +104,7 @@
 
           <label class="field">
 
-            TÃ­tulo*
+            Título (*)
 
             <input formControlName="titulo" placeholder="Nome da tarefa" />
 
@@ -141,7 +112,7 @@
 
           <label class="field">
 
-            ResponsÃ¡vel*
+            Responsável (*)
 
             <input list="responsaveis" formControlName="responsavel" placeholder="Selecione ou digite" />
 
@@ -155,7 +126,7 @@
 
           <label class="field">
 
-            Prioridade*
+            Prioridade (*)
 
             <select formControlName="prioridade">
 
@@ -167,7 +138,7 @@
 
           <label class="field">
 
-            Prazo previsto*
+            Prazo previsto (*)
 
             <input type="date" formControlName="prazo" />
 
@@ -179,7 +150,7 @@
 
           <label class="field status-field">
 
-            Status*
+            Status (*)
 
             <select formControlName="status">
 
@@ -191,7 +162,7 @@
 
 <label class="field description-field">
 
-            DescriÃ§Ã£o*
+            Descrição (*)
 
             <textarea
 
@@ -199,7 +170,7 @@
 
               rows="1"
 
-              placeholder="Contexto, escopo da entrega e responsÃ¡veis tÃ©cnicos"
+              placeholder="Contexto, escopo da entrega e responsáveis técnicos"
 
             ></textarea>
 
@@ -218,7 +189,7 @@
           (click)="imprimirRelatorio()"
           [disabled]="imprimindoRelatorio"
         >
-          {{ imprimindoRelatorio ? 'Gerando relatÃ³rio...' : 'Imprimir pendÃªncias' }}
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
         </button>
 
         <button type="button" class="ghost" (click)="goToPreviousTab()" [disabled]="!hasPreviousTab">
@@ -229,13 +200,13 @@
 
         <button type="button" class="ghost" (click)="goToNextTab()" [disabled]="!hasNextTab">
 
-          PrÃ³xima: {{ nextTabLabel }}
+          Próxima: {{ nextTabLabel }}
 
         </button>
 
         <button type="submit" class="primary" [disabled]="saving">
 
-          {{ saving ? 'Salvando...' : editingId ? 'Salvar pendÃªncia' : 'Registrar pendÃªncia' }}
+          {{ saving ? 'Salvando...' : editingId ? 'Salvar pendência' : 'Registrar pendência' }}
 
         </button>
 
@@ -253,13 +224,12 @@
 
           <p class="panel__title">Acompanhamento das tarefas</p>
 
-          <p class="muted">Controle e acompanhamento por etapas.</p>
 
         </div>
 
         <div class="list-card__actions">
 
-          <button type="button" class="ghost" (click)="startNewTask()">Nova pendÃªncia</button>
+          <button type="button" class="ghost" (click)="startNewTask()">Nova pendência</button>
 
           <button type="button" class="ghost" (click)="goToPreviousTab()">Voltar ao cadastro</button>
 
@@ -290,9 +260,9 @@
             >
               <header>
                 <p class="kanban-card__title">{{ task.titulo }}</p>
-                <span class="kanban-pill" [ngClass]="{ 'kanban-pill--complete': task.status === 'ConcluÃ­da' }">{{ task.status }}</span>
+                <span class="kanban-pill" [ngClass]="{ 'kanban-pill--complete': task.status === 'Concluída' }">{{ task.status }}</span>
               </header>
-              <p class="kanban-card__meta">ResponsÃ¡vel: {{ task.responsavel }}</p>
+              <p class="kanban-card__meta">Responsável: {{ task.responsavel }}</p>
               <p class="kanban-card__meta">Prazo: {{ dueLabel(task) }}</p>
             </article>
           </div>
@@ -308,7 +278,7 @@
           [disabled]="imprimindoRelatorio"
         >
 
-          {{ imprimindoRelatorio ? 'Gerando relatÃ³rio...' : 'Imprimir pendÃªncias' }}
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
 
         </button>
 
@@ -320,7 +290,7 @@
 
         <button type="button" class="primary" (click)="goToNextTab()" [disabled]="!hasNextTab">
 
-          PrÃ³xima: {{ nextTabLabel }}
+          Próxima: {{ nextTabLabel }}
 
         </button>
 
@@ -338,7 +308,6 @@
 
           <p class="panel__title">Listagem das tarefas</p>
 
-          <p class="muted">Resumo completo com aÃ§Ãµes rÃ¡pidas.</p>
 
         </div>
 
@@ -348,7 +317,7 @@
             Filtro: {{ filtroListagem === 'abertas' ? 'Abertas' : 'Vencidas' }}
           </span>
 
-          <button type="button" class="ghost" (click)="startNewTask()">Nova pendÃªncia</button>
+          <button type="button" class="ghost" (click)="startNewTask()">Nova pendência</button>
 
           <button type="button" class="ghost" (click)="goToPreviousTab()">Voltar ao acompanhamento</button>
 
@@ -358,7 +327,7 @@
 
       <div class="list-card">
 
-        <div class="list-panel__loading" *ngIf="listLoading">Carregando pendÃªncias...</div>
+        <div class="list-panel__loading" *ngIf="listLoading">Carregando pendências...</div>
 
         <table *ngIf="!listLoading">
 
@@ -366,15 +335,15 @@
 
             <tr>
 
-              <th>TÃ­tulo</th>
+              <th>Título</th>
 
-              <th>ResponsÃ¡vel</th>
+              <th>Responsável</th>
 
               <th>Prazo</th>
 
               <th>Status</th>
 
-              <th class="text-right">AÃ§Ãµes</th>
+              <th class="text-right">Ações</th>
 
             </tr>
 
@@ -382,7 +351,7 @@
 
           <tbody>
 
-            <tr *ngFor="let task of tarefasFiltradas">
+            <tr *ngFor="let task of tarefasFiltradas" (dblclick)="editTask(task)">
 
               <td>
 
@@ -418,11 +387,10 @@
 
                 <div class="row-actions">
 
-                  <button type="button" class="ghost" (click)="abrirHistorico(task)">HistÃ³rico</button>
+                  <button type="button" class="ghost" (click)="abrirHistorico(task)">Histórico</button>
 
-                  <button type="button" class="ghost" (click)="editTask(task)">Editar</button>
 
-                  <button type="button" class="primary" (click)="changeStatus(task, 'ConcluÃ­da')" [disabled]="task.status === 'ConcluÃ­da'">
+                  <button type="button" class="primary" (click)="changeStatus(task, 'Concluída')" [disabled]="task.status === 'Concluída'">
 
                     Concluir
 
@@ -439,7 +407,7 @@
             <tr *ngIf="!tarefasFiltradas.length">
 
               <td colspan="5" class="muted">
-                {{ filtroListagem ? 'Nenhuma pendÃªncia encontrada para o filtro atual.' : 'Nenhuma pendÃªncia registrada.' }}
+                {{ filtroListagem ? 'Nenhuma pendência encontrada para o filtro atual.' : 'Nenhuma pendência registrada.' }}
               </td>
 
             </tr>
@@ -459,7 +427,7 @@
           [disabled]="imprimindoRelatorio"
         >
 
-          {{ imprimindoRelatorio ? 'Gerando relatÃ³rio...' : 'Imprimir pendÃªncias' }}
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
 
         </button>
 
@@ -471,7 +439,7 @@
 
         <button type="button" class="primary" (click)="goToNextTab()" [disabled]="!hasNextTab">
 
-          PrÃ³xima: {{ nextTabLabel }}
+          Próxima: {{ nextTabLabel }}
 
         </button>
 
@@ -489,7 +457,6 @@
 
           <p class="tab-card__highlight">Dashboard e alertas</p>
 
-          <p class="muted">Indicadores rÃ¡pidos e contexto das tarefas.</p>
 
         </div>
 
@@ -503,9 +470,8 @@
 
           <div>
 
-            <p class="panel__title">VisÃ£o geral</p>
+            <p class="panel__title">Visão geral</p>
 
-            <p class="muted">Status, checklist e alertas em um Ãºnico lugar.</p>
 
           </div>
 
@@ -515,11 +481,11 @@
 
           <div class="stat-card">
 
-            <p class="stat-card__label">PendÃªncias abertas</p>
+            <p class="stat-card__label">Pendências abertas</p>
 
             <p class="stat-card__value">{{ dashboard.abertas }}</p>
 
-            <p class="stat-card__hint">{{ dashboard.total }} pendÃªncias no total</p>
+            <p class="stat-card__hint">{{ dashboard.total }} pendências no total</p>
 
           </div>
 
@@ -529,13 +495,13 @@
 
             <p class="stat-card__value">{{ dashboard.andamento }}</p>
 
-            <p class="stat-card__hint">{{ checklistProgresso }} do checklist concluÃ­do</p>
+            <p class="stat-card__hint">{{ checklistProgresso }} do checklist concluído</p>
 
           </div>
 
           <div class="stat-card">
 
-            <p class="stat-card__label">ConcluÃ­das</p>
+            <p class="stat-card__label">Concluídas</p>
 
             <p class="stat-card__value">{{ dashboard.concluidas }}</p>
 
@@ -545,7 +511,7 @@
 
           <div class="stat-card">
 
-            <p class="stat-card__label">Prazos prÃ³ximos</p>
+            <p class="stat-card__label">Prazos próximos</p>
 
             <p class="stat-card__value">{{ dashboard.proximas }}</p>
 
@@ -569,7 +535,7 @@
 
                 <p class="strong">{{ alerta.titulo }}</p>
 
-                <p class="muted">ResponsÃ¡vel: {{ alerta.responsavel || 'NÃ£o informado' }}</p>
+                <p class="muted">Responsável: {{ alerta.responsavel || 'Não informado' }}</p>
 
               </div>
 
@@ -589,7 +555,7 @@
 
             <div>
 
-              <p class="panel__title">HistÃ³rico de andamento</p>
+              <p class="panel__title">Histórico de andamento</p>
 
               <p class="muted">{{ selectedTask.titulo }}</p>
 
@@ -626,7 +592,7 @@
           [disabled]="imprimindoRelatorio"
         >
 
-          {{ imprimindoRelatorio ? 'Gerando relatÃ³rio...' : 'Imprimir pendÃªncias' }}
+          {{ imprimindoRelatorio ? 'Gerando relatório...' : 'Imprimir pendências' }}
 
         </button>
 
@@ -638,7 +604,7 @@
 
         <button type="button" class="ghost" (click)="goToNextTab()" [disabled]="!hasNextTab">
 
-          PrÃ³xima: {{ nextTabLabel }}
+          Próxima: {{ nextTabLabel }}
 
         </button>
 
@@ -647,33 +613,36 @@
     </div>
 
   </form>
-
+      </div>
+    </div>
+  </section>
 </app-tela-padrao>
+
 
 <div class="modal-overlay" *ngIf="historicoAberto">
   <div class="modal-card" role="dialog" aria-modal="true">
     <div class="modal-card__header">
       <div>
-        <p class="modal-card__eyebrow">HistÃ³rico</p>
+        <p class="modal-card__eyebrow">Histórico</p>
         <p class="modal-card__title">{{ historicoTask?.titulo }}</p>
       </div>
       <button type="button" class="ghost" (click)="fecharHistorico()" aria-label="Fechar">&times;</button>
     </div>
     <div class="modal-card__body">
       <div class="field">
-        AÃ§Ã£o realizada*
+        Ação realizada (*)
         <textarea
           rows="2"
           [(ngModel)]="historicoMensagem"
-          placeholder="Descreva a aÃ§Ã£o realizada nesta pendÃªncia"
+          placeholder="Descreva a ação realizada nesta pendência"
         ></textarea>
       </div>
       <div class="modal-card__actions modal-card__actions--inline">
         <button type="button" class="primary" (click)="salvarHistorico()" [disabled]="salvandoHistorico">
-          {{ salvandoHistorico ? 'Salvando...' : 'Salvar aÃ§Ã£o' }}
+          {{ salvandoHistorico ? 'Salvando...' : 'Salvar ação' }}
         </button>
       </div>
-      <p class="muted" *ngIf="!historicoTask?.historico?.length">Nenhum histÃ³rico registrado.</p>
+      <p class="muted" *ngIf="!historicoTask?.historico?.length">Nenhum histórico registrado.</p>
       <ul class="modal-timeline" *ngIf="historicoTask?.historico?.length">
         <li *ngFor="let item of historicoOrdenado()">
           <p class="strong">{{ item.mensagem }}</p>
@@ -686,8 +655,6 @@
     </div>
   </div>
 </div>
-
-
 
 
 

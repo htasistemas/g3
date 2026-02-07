@@ -9,6 +9,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import {
   faArrowTrendUp,
   faBoxArchive,
+  faBoxesStacked,
   faCircleCheck,
   faCircleExclamation,
   faClipboardList,
@@ -101,6 +102,7 @@ interface MovementFormState {
 })
 export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
   readonly faBoxArchive = faBoxArchive;
+  readonly faBoxesStacked = faBoxesStacked;
   readonly faTriangleExclamation = faTriangleExclamation;
   readonly faMoneyBillTrendUp = faMoneyBillTrendUp;
   readonly faArrowTrendUp = faArrowTrendUp;

@@ -1,6 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faNotesMedical } from '@fortawesome/free-solid-svg-icons';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/beneficiario-api.service';
 import { ProfessionalRecord, ProfessionalService } from '../../services/professional.service';
@@ -28,6 +30,7 @@ import { formatarDataSemFuso } from '../../utils/data-format.util';
     RouterModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
+    FontAwesomeModule,
     ProntuarioFiltrosComponent,
     ProntuarioTimelineComponent,
     ProntuarioIndicadoresComponent
@@ -36,6 +39,7 @@ import { formatarDataSemFuso } from '../../utils/data-format.util';
   styleUrl: './prontuario-page.component.scss'
 })
 export class ProntuarioPageComponent implements OnInit, OnDestroy {
+  faNotesMedical = faNotesMedical;
   beneficiarioId: number | null = null;
   resumo: ProntuarioResumoResponse | null = null;
   registros: ProntuarioRegistroResponse[] = [];
@@ -65,12 +69,20 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     { id: 'linha', label: 'Linha do tempo', tipo: '' },
     { id: 'atendimentos', label: 'Atendimentos', tipo: 'atendimento' },
     { id: 'procedimentos', label: 'Procedimentos', tipo: 'procedimento' },
-    { id: 'evolucoes', label: 'EvoluÃ§Ãµes', tipo: 'evolucao' },
+    { id: 'evolucoes', label: 'Evoluções', tipo: 'evolucao' },
     { id: 'encaminhamentos', label: 'Encaminhamentos', tipo: 'encaminhamento' },
     { id: 'documentos', label: 'Documentos/Anexos', tipo: 'documento' },
     { id: 'indicadores', label: 'Indicadores', tipo: '' }
   ];
   abaAtiva = 'linha';
+  private readonly mapaTipoAba: Record<string, string> = {
+    atendimentos: 'atendimento',
+    procedimentos: 'procedimento',
+    evolucoes: 'evolucao',
+    encaminhamentos: 'encaminhamento',
+    documentos: 'documento',
+    linha: ''
+  };
 
   formatarDataNascimento(valor?: string | null): string {
     return formatarDataSemFuso(valor);
@@ -78,6 +90,31 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
 
   get abaAtivaIndex(): number {
     return this.abas.findIndex((aba) => aba.id === this.abaAtiva);
+  }
+
+  get labelAbaAtiva(): string {
+    return this.abas.find((aba) => aba.id === this.abaAtiva)?.label || 'Registros';
+  }
+
+  get registrosVisiveis(): ProntuarioRegistroResponse[] {
+    if (this.abaAtiva === 'linha') {
+      return this.registros;
+    }
+    if (this.abaAtiva === 'indicadores') {
+      return [];
+    }
+    const tipo = this.mapaTipoAba[this.abaAtiva] ?? this.abaAtiva;
+    return this.registros.filter((registro) => registro.tipo === tipo);
+  }
+
+  get totalRegistrosVisiveis(): number {
+    if (this.abaAtiva === 'linha') {
+      return this.totalRegistros;
+    }
+    if (this.abaAtiva === 'indicadores') {
+      return 0;
+    }
+    return this.registrosVisiveis.length;
   }
 
   private buscarBeneficiario$ = new Subject<string>();
@@ -231,7 +268,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoResumo = false;
       },
       error: () => {
-        this.popupErros = ['NÃ£o foi possÃ­vel carregar o resumo do prontuÃ¡rio.'];
+        this.popupErros = ['Não foi possível carregar o resumo do prontuário.'];
         this.carregandoResumo = false;
       }
     });
@@ -250,7 +287,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoRegistros = false;
       },
       error: () => {
-        this.popupErros = ['NÃ£o foi possÃ­vel carregar os registros do prontuÃ¡rio.'];
+        this.popupErros = ['Não foi possível carregar os registros do prontuário.'];
         this.carregandoRegistros = false;
       }
     });
@@ -270,7 +307,7 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
         this.carregandoBeneficiarios = false;
       },
       error: () => {
-        this.erroBeneficiarios = 'NÃ£o foi possÃ­vel buscar beneficiarios.';
+        this.erroBeneficiarios = 'Não foi possível buscar beneficiários.';
         this.carregandoBeneficiarios = false;
       }
     });
@@ -339,23 +376,19 @@ export class ProntuarioPageComponent implements OnInit, OnDestroy {
     const valor = termo.trim();
     if (!valor) return {};
 
-    const possuiLetra = /[a-zA-Z]/.test(valor);
-    const possuiEspaco = /\s/.test(valor);
     const apenasNumeros = valor.replace(/\D/g, '');
+    const somenteNumeros = /^\d+$/.test(valor);
 
     if (apenasNumeros.length === 11) {
       return { cpf: apenasNumeros };
     }
 
-    if (possuiLetra && !possuiEspaco) {
-      return { codigo: valor };
-    }
-
-    if (!possuiLetra && apenasNumeros.length > 0) {
+    if (somenteNumeros && apenasNumeros.length > 0) {
       return { codigo: apenasNumeros };
     }
 
     return { nome: valor };
   }
 }
+
 

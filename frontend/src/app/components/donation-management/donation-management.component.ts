@@ -10,6 +10,7 @@ import {
   faClipboardList,
   faClock,
   faFilter,
+  faGift,
   faMagnifyingGlass,
   faNotesMedical,
   faPeopleGroup,
@@ -138,6 +139,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   readonly faCheck = faCheck;
   readonly faChartPie = faChartPie;
   readonly faPeopleGroup = faPeopleGroup;
+  readonly faGift = faGift;
   readonly Math = Math;
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     salvar: true,

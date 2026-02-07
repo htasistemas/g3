@@ -1,74 +1,53 @@
-﻿<app-tela-padrao [mostrarToolbar]="false">
-<header class="page-title page-title--row" slot="titulo">
-  <div>
-    <p class="page-title__eyebrow">Administrativo</p>
-    <p class="page-title__label">GestÃ£o de controle patrimonial</p>
-  </div>
-    <p class="page-title__note">cadastro e controle do patrimonio institucional.</p>
-</header>
-
-  <div slot="acoes" class="nav-buttons" aria-label="AÃ§Ãµes do patrimÃ´nio">
-    <button
-      type="button"
-      class="nav-button"
-      (click)="startEditingSelected()"
-      [disabled]="!selectedAsset"
-    >
-      <span class="nav-button__icon" aria-hidden="true">
-        <fa-icon [icon]="faTools"></fa-icon>
-      </span>
-      <span class="nav-button__label">Editar patrimÃ´nio selecionado</span>
-    </button>
-    <button
-      type="button"
-      class="nav-button"
-      (click)="generateCessionTerm()"
-      [disabled]="isSaving"
-    >
-      <span class="nav-button__icon" aria-hidden="true">
-        <fa-icon [icon]="faPrint"></fa-icon>
-      </span>
-      <span class="nav-button__label">Imprimir termo de cessÃ£o</span>
-    </button>
-    <button type="button" class="nav-button" (click)="saveAsset()" [disabled]="isSaving">
-      <span class="nav-button__icon" aria-hidden="true">
-        <fa-icon [icon]="faFloppyDisk"></fa-icon>
-      </span>
-      <span class="nav-button__label">Salvar patrimÃ´nio</span>
-    </button>
-  </div>
-
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  [fullWidth]="true"
+  (salvar)="onSalvar()"
+  (novo)="onNovo()"
+  (cancelar)="onCancelar()"
+  (imprimir)="onImprimir()"
+  (buscar)="onBuscar()"
+  (fechar)="closeForm()"
+>
   <section class="cadastro patrimonio">
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas informaÃ§Ãµes</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of assetTabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeAssetTab === tab.id"
-        [class.completed]="idx < activeAssetTabIndex"
-      >
-        <button
-          class="step-tabs__button"
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeAssetTab === tab.id"
-          (click)="changeAssetTab(tab.id)"
-        >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">{{ tab.label }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faLandmark" class="tab-shell__icon"></fa-icon>
+            Patrimônio
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of assetTabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeAssetTab === tab.id"
+              [class.completed]="idx < activeAssetTabIndex"
+            >
+              <button
+                class="step-tabs__button"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeAssetTab === tab.id"
+                (click)="changeAssetTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
 
-  <div *ngIf="errorMessage" class="alert">{{ errorMessage }}</div>
+      <div class="cadastro-conteudo">
+<div *ngIf="errorMessage" class="alert">{{ errorMessage }}</div>
 
   <ng-template #navigationControls>
     <div class="tab-actions">
       <button type="button" class="ghost" *ngIf="hasPreviousAssetTab" (click)="goToPreviousAssetTab()">Voltar</button>
       <button type="button" class="primary" *ngIf="hasNextAssetTab" (click)="goToNextAssetTab()">
-        PrÃ³ximo: {{ nextAssetTabLabel }}
+        Próximo: {{ nextAssetTabLabel }}
       </button>
       <button
         type="button"
@@ -77,7 +56,7 @@
         (click)="saveAsset()"
         [disabled]="isSaving"
       >
-        {{ isSaving ? 'Salvando...' : editingAssetId ? 'Atualizar patrimÃ´nio' : 'Salvar patrimÃ´nio' }}
+        {{ isSaving ? 'Salvando...' : editingAssetId ? 'Atualizar patrimônio' : 'Salvar patrimônio' }}
       </button>
     </div>
   </ng-template>
@@ -91,7 +70,7 @@
 
     <div class="grid gap-4 md:grid-cols-2">
       <div class="form-group">
-        <label class="form-label">NÃºmero do patrimÃ´nio *</label>
+        <label class="form-label">Número do patrimônio *</label>
         <input
           class="input"
           [class.input--error]="numeroPatrimonioErro || requiredErrors.patrimonyNumber"
@@ -106,7 +85,7 @@
         </p>
       </div>
       <div class="form-group">
-        <label class="form-label">Nome do patrimÃ´nio *</label>
+        <label class="form-label">Nome do patrimônio *</label>
         <input
           class="input"
           [class.input--error]="requiredErrors.name"
@@ -159,12 +138,12 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">DescriÃ§Ã£o detalhada</label>
-        <textarea class="input" [(ngModel)]="assetForm.description" rows="3" placeholder="Identifique marca, modelo e caracterÃ­sticas"></textarea>
+        <label class="form-label">Descrição detalhada</label>
+        <textarea class="input" [(ngModel)]="assetForm.description" rows="3" placeholder="Identifique marca, modelo e características"></textarea>
       </div>
       <div class="grid gap-4 md:grid-cols-2">
         <div class="form-group">
-          <label class="form-label">Estado de conservaÃ§Ã£o *</label>
+          <label class="form-label">Estado de conservação *</label>
           <div class="grid grid-cols-2 gap-2" [class.chip-group--error]="requiredErrors.conservation">
             <label *ngFor="let option of conservationOptions" class="chip chip--compact">
               <input
@@ -181,7 +160,7 @@
           </p>
         </div>
         <div class="form-group">
-          <label class="form-label">SituaÃ§Ã£o atual *</label>
+          <label class="form-label">Situação atual *</label>
           <div class="grid grid-cols-2 gap-2" [class.chip-group--error]="requiredErrors.status">
             <label *ngFor="let status of statusOptions" class="chip chip--compact chip--small-text">
               <input
@@ -204,8 +183,8 @@
         <input type="number" min="1" class="input" [(ngModel)]="assetForm.quantity" />
       </div>
       <div class="form-group">
-        <label class="form-label">NÃºmero(s) de patrimÃ´nio individual</label>
-        <input class="input" [(ngModel)]="assetForm.individualNumbers" placeholder="Separe por vÃ­rgula" />
+        <label class="form-label">Número(s) de patrimônio individual</label>
+        <input class="input" [(ngModel)]="assetForm.individualNumbers" placeholder="Separe por vírgula" />
       </div>
     </div>
 
@@ -213,7 +192,7 @@
 
     <div class="grid gap-4 md:grid-cols-2">
       <div class="form-group">
-        <label class="form-label">Data de aquisiÃ§Ã£o *</label>
+        <label class="form-label">Data de aquisição *</label>
         <input
           type="date"
           class="input"
@@ -227,7 +206,7 @@
         </p>
       </div>
       <div class="form-group">
-        <label class="form-label">Valor de aquisiÃ§Ã£o *</label>
+        <label class="form-label">Valor de aquisição *</label>
         <input
           type="text"
           class="input"
@@ -256,7 +235,7 @@
         <p *ngIf="requiredErrors.origin" class="text-xs text-rose-600 mt-1">{{ requiredErrors.origin }}</p>
       </div>
       <div class="form-group">
-        <label class="form-label">NÃºmero da nota fiscal</label>
+        <label class="form-label">Número da nota fiscal</label>
         <input class="input" [(ngModel)]="assetForm.invoiceNumber" placeholder="NF-e" />
       </div>
       <div class="form-group">
@@ -266,19 +245,19 @@
           [(ngModel)]="assetForm.supplier"
           (input)="formatField('supplier')"
           (blur)="formatField('supplier')"
-          placeholder="RazÃ£o social"
+          placeholder="Razão social"
         />
       </div>
       <div class="form-group">
-        <label class="form-label">Vida Ãºtil estimada (meses)</label>
+        <label class="form-label">Vida útil estimada (meses)</label>
         <input type="number" class="input" [(ngModel)]="assetForm.usefulLife" />
       </div>
       <div class="form-group">
-        <label class="form-label">Data de inÃ­cio da depreciaÃ§Ã£o</label>
+        <label class="form-label">Data de início da depreciação</label>
         <input type="date" class="input" [(ngModel)]="assetForm.depreciationStartDate" />
       </div>
       <div class="form-group">
-        <label class="form-label">DepreciaÃ§Ã£o mensal (%)</label>
+        <label class="form-label">Depreciação mensal (%)</label>
         <input type="number" class="input" [(ngModel)]="assetForm.depreciationRate" />
       </div>
     </div>
@@ -294,19 +273,19 @@
       </div>
       <div class="tab-card__actions">
         <button type="button" class="ghost" (click)="goToPreviousAssetTab()">Voltar</button>
-        <button type="button" class="primary" (click)="goToNextAssetTab()">PrÃ³ximo: {{ nextAssetTabLabel }}</button>
+        <button type="button" class="primary" (click)="goToNextAssetTab()">Próximo: {{ nextAssetTabLabel }}</button>
       </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
       <div class="upload-box" [class.upload-box--empty]="!filePreview">
         <ng-container *ngIf="filePreview; else emptyState">
-          <img [src]="filePreview" alt="Foto do patrimÃ´nio" class="rounded-lg w-full h-48 object-cover" />
+          <img [src]="filePreview" alt="Foto do patrimônio" class="rounded-lg w-full h-48 object-cover" />
         </ng-container>
         <ng-template #emptyState>
           <div class="flex flex-col items-center justify-center text-slate-500 h-48">
             <fa-icon [icon]="faCloudArrowUp" class="text-2xl mb-2"></fa-icon>
-            <p>FaÃ§a upload para visualizar a foto</p>
+            <p>Faça upload para visualizar a foto</p>
           </div>
         </ng-template>
       </div>
@@ -318,7 +297,7 @@
             Gerar QR Code
           </button>
           <div class="px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-800 flex-1">
-            <p class="font-semibold">CÃ³digo interno</p>
+            <p class="font-semibold">Código interno</p>
             <p>{{ qrCodeValue }}</p>
           </div>
         </div>
@@ -337,24 +316,24 @@
 
     <div class="grid gap-4 md:grid-cols-2 mt-6">
       <div class="form-group">
-        <label class="form-label">ObservaÃ§Ãµes gerais</label>
+        <label class="form-label">Observações gerais</label>
         <textarea class="input" [(ngModel)]="assetForm.observations" rows="3"></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">CondiÃ§Ãµes de garantia</label>
+        <label class="form-label">Condições de garantia</label>
         <input class="input" [(ngModel)]="assetForm.warranty" placeholder="Prazo, cobertura e contato" />
       </div>
       <div class="form-group">
-        <label class="form-label">Ãšltima movimentaÃ§Ã£o</label>
-        <input class="input" [(ngModel)]="assetForm.lastMovement" placeholder="NÃ£o registrada" />
+        <label class="form-label">Última movimentação</label>
+        <input class="input" [(ngModel)]="assetForm.lastMovement" placeholder="Não registrada" />
       </div>
       <div class="form-group">
-        <label class="form-label">Ãšltimo responsÃ¡vel</label>
-        <input class="input" [(ngModel)]="assetForm.lastResponsible" placeholder="NÃ£o registrado" />
+        <label class="form-label">Último responsável</label>
+        <input class="input" [(ngModel)]="assetForm.lastResponsible" placeholder="Não registrado" />
       </div>
       <div class="form-group">
-        <label class="form-label">Ãšltima manutenÃ§Ã£o</label>
-        <input class="input" [(ngModel)]="assetForm.lastMaintenance" placeholder="NÃ£o registrada" />
+        <label class="form-label">Última manutenção</label>
+        <input class="input" [(ngModel)]="assetForm.lastMaintenance" placeholder="Não registrada" />
       </div>
     </div>
 
@@ -365,17 +344,17 @@
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">{{ assetTabs[activeAssetTabIndex].label }}</p>
-        <p class="muted">ResponsÃ¡veis, endereÃ§os e cÃ³digo interno do bem.</p>
+        <p class="muted">Responsáveis, endereços e código interno do bem.</p>
       </div>
       <div class="tab-card__actions">
         <button type="button" class="ghost" (click)="goToPreviousAssetTab()">Voltar</button>
-        <button type="button" class="primary" (click)="goToNextAssetTab()">PrÃ³ximo: {{ nextAssetTabLabel }}</button>
+        <button type="button" class="primary" (click)="goToNextAssetTab()">Próximo: {{ nextAssetTabLabel }}</button>
       </div>
     </div>
 
     <div class="grid gap-4 md:grid-cols-2">
       <div class="form-group">
-        <label class="form-label">Unidade / Setor responsÃ¡vel *</label>
+        <label class="form-label">Unidade / Setor responsável *</label>
         <app-autocomplete
           [placeholder]="'Selecione a sala'"
           [termo]="assetForm.unit"
@@ -399,7 +378,7 @@
         />
       </div>
       <div class="form-group">
-        <label class="form-label">EndereÃ§o completo</label>
+        <label class="form-label">Endereço completo</label>
         <input
           class="input"
           [(ngModel)]="assetForm.address"
@@ -409,9 +388,9 @@
         />
       </div>
       <div class="form-group">
-        <label class="form-label">ResponsÃ¡vel pelo item *</label>
+        <label class="form-label">Responsável pelo item *</label>
         <app-autocomplete
-          [placeholder]="'Selecione o responsÃ¡vel'"
+          [placeholder]="'Selecione o responsável'"
           [termo]="assetForm.responsibleName"
           [opcoes]="profissionaisFiltrados"
           [carregando]="profissionaisCarregando"
@@ -425,11 +404,11 @@
         </p>
       </div>
       <div class="form-group">
-        <label class="form-label">Contato do responsÃ¡vel</label>
+        <label class="form-label">Contato do responsável</label>
         <input class="input" [(ngModel)]="assetForm.responsibleContact" placeholder="Telefone ou e-mail" />
       </div>
       <div class="form-group">
-        <label class="form-label">CÃ³digo interno</label>
+        <label class="form-label">Código interno</label>
         <input class="input" [(ngModel)]="assetForm.internalCode" placeholder="Ex.: TAG-889" />
       </div>
     </div>
@@ -441,7 +420,7 @@
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">{{ assetTabs[activeAssetTabIndex].label }}</p>
-        <p class="muted">Indicadores de entradas, saÃ­das, bens ativos e valor de aquisiÃ§Ã£o.</p>
+        <p class="muted">Indicadores de entradas, saídas, bens ativos e valor de aquisição.</p>
       </div>
     </div>
 
@@ -449,19 +428,19 @@
       <div class="card">
         <div class="flex items-center justify-between mb-2">
           <p class="text-sm text-slate-500">Entradas registradas</p>
-          <span class="badge badge--success">+18% vs mÃªs anterior</span>
+          <span class="badge badge--success">+18% vs mês anterior</span>
         </div>
         <div class="flex items-baseline gap-2">
           <fa-icon [icon]="faArrowDown" class="text-emerald-600"></fa-icon>
           <p class="text-3xl font-semibold">{{ assetLibrary.length }}</p>
         </div>
-        <p class="text-xs text-slate-500 mt-1">Bens com nota fiscal lanÃ§ada na unidade.</p>
+        <p class="text-xs text-slate-500 mt-1">Bens com nota fiscal lançada na unidade.</p>
       </div>
 
       <div class="card">
         <div class="flex items-center justify-between mb-2">
-          <p class="text-sm text-slate-500">SaÃ­das / emprÃ©stimos</p>
-          <span class="badge">{{ loanedAssets.length }} em emprÃ©stimo</span>
+          <p class="text-sm text-slate-500">Saídas / empréstimos</p>
+          <span class="badge">{{ loanedAssets.length }} em empréstimo</span>
         </div>
         <div class="flex items-baseline gap-2">
           <fa-icon [icon]="faArrowUp" class="text-amber-500"></fa-icon>
@@ -469,13 +448,13 @@
         </div>
         <p class="text-xs text-slate-500 mt-1">Apenas bens emprestados com termo gerado.</p>
         <div *ngIf="overdueLoanedAssets.length" class="mt-2 space-y-2">
-          <p class="text-xs font-semibold text-rose-700">{{ overdueLoanedAssets.length }} atrasado(s) para devoluÃ§Ã£o</p>
+          <p class="text-xs font-semibold text-rose-700">{{ overdueLoanedAssets.length }} atrasado(s) para devolução</p>
           <div class="flex flex-wrap gap-2">
             <span
               *ngFor="let asset of overdueLoanedAssets"
               class="px-3 py-1 text-xs rounded-full bg-rose-50 border border-rose-200 text-rose-700"
             >
-              {{ asset.numeroPatrimonio }} â€¢ {{ asset.nome }}
+              {{ asset.numeroPatrimonio }} • {{ asset.nome }}
             </span>
           </div>
         </div>
@@ -490,16 +469,16 @@
           <fa-icon [icon]="faFileInvoice" class="text-emerald-600"></fa-icon>
           <p class="text-3xl font-semibold">{{ activeAssets }}</p>
         </div>
-        <p class="text-xs text-slate-500 mt-1">Soma de patrimÃ´nios disponÃ­veis e em uso.</p>
+        <p class="text-xs text-slate-500 mt-1">Soma de patrimônios disponíveis e em uso.</p>
       </div>
 
       <div class="card">
         <div class="flex items-center justify-between mb-2">
           <p class="text-sm text-slate-500">Valor dos bens</p>
-          <span class="badge badge--success">{{ monthlyDepreciation | number: '1.0-1' }}% ao mÃªs</span>
+          <span class="badge badge--success">{{ monthlyDepreciation | number: '1.0-1' }}% ao mês</span>
         </div>
         <p class="text-3xl font-semibold text-slate-800">{{ totalAcquisitionValue | currency:'BRL' }}</p>
-        <p class="text-xs text-slate-500 mt-1">Soma do valor de todos os bens lanÃ§ados.</p>
+        <p class="text-xs text-slate-500 mt-1">Soma do valor de todos os bens lançados.</p>
       </div>
     </div>
 
@@ -523,7 +502,7 @@
     <div class="grid gap-3 md:grid-cols-3 mb-4">
       <div class="input-with-icon">
         <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
-        <input class="input" [(ngModel)]="searchTerm" placeholder="Buscar por nÃºmero, placa ou responsÃ¡vel" />
+        <input class="input" [(ngModel)]="searchTerm" placeholder="Buscar por número, placa ou responsável" />
       </div>
       <div class="input-with-icon">
         <fa-icon [icon]="faTags"></fa-icon>
@@ -540,8 +519,8 @@
         <div class="flex items-center gap-2">
           <label class="text-sm text-slate-600">Imprimir bens por</label>
           <select class="input" [(ngModel)]="printOrder">
-            <option value="alphabetical">Ordem alfabÃ©tica</option>
-            <option value="patrimony">NÃºmero de patrimÃ´nio</option>
+            <option value="alphabetical">Ordem alfabética</option>
+            <option value="patrimony">Número de patrimônio</option>
             <option value="value">Valor</option>
             <option value="location">Local</option>
           </select>
@@ -562,16 +541,16 @@
 
     <div class="lista-patrimonio">
       <div class="lista-patrimonio__header">
-        <span>NÃºmero</span>
+        <span>Número</span>
         <span>Nome</span>
         <span>Categoria</span>
-        <span>SituaÃ§Ã£o</span>
+        <span>Situação</span>
         <span>Estado</span>
         <span>Local</span>
         <span>Data</span>
-        <span>Valor / DepreciaÃ§Ã£o</span>
-        <span>ResponsÃ¡vel</span>
-        <span>AÃ§Ãµes</span>
+        <span>Valor / Depreciação</span>
+        <span>Responsável</span>
+        <span>Ações</span>
       </div>
       <div
         *ngFor="let asset of filteredAssets"
@@ -587,20 +566,20 @@
         <span>
           <span
             class="status-pill"
-            [class.status-pill--warning]="(asset.status ?? '').includes('manutenÃ§Ã£o')"
+            [class.status-pill--warning]="(asset.status ?? '').includes('manutenção')"
             [class.status-pill--muted]="(asset.status ?? '').toLowerCase().includes('inativo')"
           >
-            {{ asset.status || 'NÃ£o informado' }}
+            {{ asset.status || 'Não informado' }}
           </span>
         </span>
         <span>{{ asset.conservacao }}</span>
-        <span class="lista-patrimonio__local" [title]="getLocationLabel(asset) || 'NÃ£o informado'">
-          {{ getLocationLabel(asset) || 'NÃ£o informado' }}
+        <span class="lista-patrimonio__local" [title]="getLocationLabel(asset) || 'Não informado'">
+          {{ getLocationLabel(asset) || 'Não informado' }}
         </span>
         <span>{{ asset.dataAquisicao | date: 'dd/MM/yyyy' }}</span>
         <span class="lista-patrimonio__valor">
           {{ asset.valorAquisicao | currency:'BRL' }}
-          <span class="text-slate-500">â€¢ {{ asset.taxaDepreciacao }}% / mÃªs</span>
+          <span class="text-slate-500">• {{ asset.taxaDepreciacao }}% / mês</span>
         </span>
         <span class="lista-patrimonio__responsavel">
           {{ getPrimeiroNome(asset.responsavel) }}
@@ -609,11 +588,11 @@
         <span class="lista-patrimonio__acoes" (click)="$event.stopPropagation()">
           <div class="actions-dropdown">
             <button type="button" class="btn-outline" (click)="toggleAcoesCard(asset.idPatrimonio)">
-              AÃ§Ãµes
+              Ações
             </button>
             <div class="actions-dropdown__menu" *ngIf="acaoCardAberto === asset.idPatrimonio">
               <button type="button" (click)="quickMovement(asset, 'MOVIMENTACAO'); fecharAcoesCard()">Mover</button>
-              <button type="button" (click)="quickMovement(asset, 'MANUTENCAO'); fecharAcoesCard()">ManutenÃ§Ã£o</button>
+              <button type="button" (click)="quickMovement(asset, 'MANUTENCAO'); fecharAcoesCard()">Manutenção</button>
               <button type="button" (click)="quickMovement(asset, 'BAIXA'); fecharAcoesCard()">Baixar</button>
             </div>
           </div>
@@ -628,7 +607,7 @@
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">{{ assetTabs[activeAssetTabIndex].label }}</p>
-        <p class="muted">Registro de movimentaÃ§Ãµes e baixas do patrimÃ´nio.</p>
+        <p class="muted">Registro de movimentações e baixas do patrimônio.</p>
       </div>
       <div class="tab-card__actions">
         <button type="button" class="ghost" (click)="changeAssetTab('listagem')">Ir para listagem</button>
@@ -637,14 +616,14 @@
 
     <div class="movement-form" *ngIf="selectedAsset; else noSelection">
       <div class="space-y-1">
-        <p class="text-xs uppercase text-slate-500">Movimentar patrimÃ´nio</p>
-        <h3 class="text-lg font-semibold text-slate-800">{{ selectedAsset.numeroPatrimonio }} â€¢ {{ selectedAsset.nome }}</h3>
+        <p class="text-xs uppercase text-slate-500">Movimentar patrimônio</p>
+        <h3 class="text-lg font-semibold text-slate-800">{{ selectedAsset.numeroPatrimonio }} • {{ selectedAsset.nome }}</h3>
       </div>
       <div class="grid gap-3 md:grid-cols-4">
         <label class="form-label">Tipo
           <select class="input" [(ngModel)]="movementForm.tipo">
-            <option value="MOVIMENTACAO">MovimentaÃ§Ã£o</option>
-            <option value="MANUTENCAO">ManutenÃ§Ã£o</option>
+            <option value="MOVIMENTACAO">Movimentação</option>
+            <option value="MANUTENCAO">Manutenção</option>
             <option value="BAIXA">Baixa</option>
           </select>
         </label>
@@ -657,7 +636,7 @@
             placeholder="Sala, setor ou unidade"
           />
         </label>
-        <label class="form-label">ResponsÃ¡vel
+        <label class="form-label">Responsável
           <input
             class="input"
             [(ngModel)]="movementForm.responsavel"
@@ -666,8 +645,8 @@
             placeholder="Quem autoriza"
           />
         </label>
-        <label class="form-label">ObservaÃ§Ã£o
-          <input class="input" [(ngModel)]="movementForm.observacao" placeholder="NÃºmero de termo ou motivo" />
+        <label class="form-label">Observação
+          <input class="input" [(ngModel)]="movementForm.observacao" placeholder="Número de termo ou motivo" />
         </label>
       </div>
       <div class="flex items-center justify-between">
@@ -683,7 +662,7 @@
       </div>
     </div>
     <ng-template #noSelection>
-      <p class="text-sm text-slate-500 mb-3">Selecione um patrimÃ´nio na listagem para registrar movimentaÃ§Ãµes.</p>
+      <p class="text-sm text-slate-500 mb-3">Selecione um patrimônio na listagem para registrar movimentações.</p>
     </ng-template>
 
     <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -694,7 +673,7 @@
     <div class="modal__content" role="dialog" aria-modal="true">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">PatrimÃ´nio</p>
+          <p class="modal__eyebrow">Patrimônio</p>
           <h3>{{ modalTitulo }}</h3>
           <p class="text-sm text-slate-500" *ngIf="modalDescricao">{{ modalDescricao }}</p>
         </div>
@@ -724,10 +703,7 @@
       </div>
     </div>
   </div>
-</section>
+      </div>
+    </div>
+  </section>
 </app-tela-padrao>
-
-
-
-
-

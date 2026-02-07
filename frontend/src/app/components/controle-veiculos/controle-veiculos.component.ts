@@ -1,6 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faCarSide } from '@fortawesome/free-solid-svg-icons';
 import {
   AbstractControl,
   FormBuilder,
@@ -40,12 +42,14 @@ type AbaControleVeiculos = 'cadastro' | 'diario' | 'motoristas';
     AutocompleteComponent,
     TelaPadraoComponent,
     PopupMessagesComponent,
-    DialogComponent
+    DialogComponent,
+    FontAwesomeModule
   ],
   templateUrl: './controle-veiculos.component.html',
   styleUrl: './controle-veiculos.component.scss'
 })
 export class ControleVeiculosComponent extends TelaBaseComponent implements OnInit {
+  readonly faCarSide = faCarSide;
   @ViewChild('cartaoMotoristas') cartaoMotoristas?: ElementRef<HTMLElement>;
   readonly abas: { id: AbaControleVeiculos; label: string; descricao: string }[] = [
     {

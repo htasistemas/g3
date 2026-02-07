@@ -128,24 +128,24 @@ export class ProntuarioFormModalComponent implements OnChanges {
       return '';
     }
     if (control.errors['required']) {
-      return 'Campo obrigatÃ³rio.';
+      return 'Campo obrigatório.';
     }
     if (control.errors['minlength']) {
-      return `Informe no mÃ­nimo ${control.errors['minlength'].requiredLength} caracteres.`;
+      return `Informe no mínimo ${control.errors['minlength'].requiredLength} caracteres.`;
     }
-    return 'Campo invÃ¡lido.';
+    return 'Campo inválido.';
   }
 
   getLabelDescricao(): string {
     switch (this.tipoSelecionado) {
       case 'procedimento':
-        return 'DescriÃ§Ã£o do procedimento*';
+        return 'Descrição do procedimento*';
       case 'evolucao':
-        return 'EvoluÃ§Ã£o detalhada*';
+        return 'Evolução detalhada*';
       case 'encaminhamento':
-        return 'DescriÃ§Ã£o do encaminhamento*';
+        return 'Descrição do encaminhamento*';
       case 'documento':
-        return 'DescriÃ§Ã£o do documento*';
+        return 'Descrição do documento*';
       case 'atendimento':
       default:
         return 'Registro pormenorizado do atendimento*';
@@ -433,4 +433,6 @@ export class ProntuarioFormModalComponent implements OnChanges {
     setRequired('origemDocumento', tipo === 'documento');
   }
 }
+
+
 

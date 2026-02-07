@@ -2,6 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { AutocompleteComponent } from '../compartilhado/autocomplete/autocomplete.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
@@ -32,6 +33,7 @@ import { AgendaDiaModalComponent } from './agenda-dia-modal.component';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    FontAwesomeModule,
     EmprestimosEventosRoutingModule,
     TelaPadraoComponent,
     AutocompleteComponent,

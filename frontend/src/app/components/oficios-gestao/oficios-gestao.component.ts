@@ -1,6 +1,8 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faFileSignature } from '@fortawesome/free-solid-svg-icons';
 import {
   OficioImagemPayload,
   OficioPayload,
@@ -27,7 +29,15 @@ interface StepTab {
 @Component({
   selector: 'app-oficios-gestao',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent, AutocompleteComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    AutocompleteComponent
+  ],
   templateUrl: './oficios-gestao.component.html',
   styleUrl: './oficios-gestao.component.scss'
 })
@@ -35,10 +45,10 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
   form: FormGroup;
   tabs: StepTab[] = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'identificacao', label: 'Identificacao e protocolo' },
-    { id: 'conteudo', label: 'Redacao do oficio' },
-    { id: 'tramitacao', label: 'Tramitacao e acompanhamento' },
-    { id: 'listagem', label: 'Oficios registrados' }
+    { id: 'identificacao', label: 'Identificação e protocolo' },
+    { id: 'conteudo', label: 'Redação do ofício' },
+    { id: 'tramitacao', label: 'Tramitação e acompanhamento' },
+    { id: 'listagem', label: 'Ofícios registrados' }
   ];
   activeTab = 'identificacao';
   saving = false;
@@ -64,6 +74,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
   responsavelCargos: string[] = [];
   feriados: FeriadoPayload[] = [];
   feriadosSet = new Set<string>();
+  faFileSignature = faFileSignature;
 
   readonly saudacoes = ['Sr.', 'Sra.', 'Exmo. Sr.', 'Exma. Sra.', 'Prezados', 'Prezada', 'Prezado'];
   readonly statusOptions = ['Rascunho', 'Em preparacao', 'Enviado', 'Recebido', 'Em analise', 'Arquivado'];
@@ -371,7 +382,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       this.oficioService.update(this.editingId, payload).subscribe({
         next: (resposta) => {
           this.popupTitulo = 'Sucesso';
-          this.popupErros = new PopupErrorBuilder().adicionar('Registro de oficio atualizado com sucesso.').build();
+          this.popupErros = new PopupErrorBuilder().adicionar('Registro de ofício atualizado com sucesso.').build();
           const id = resposta.id ? String(resposta.id) : this.editingId;
           if (!id) {
             this.loadOficios();
@@ -385,7 +396,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         },
         error: () => {
           this.popupTitulo = 'Erro ao salvar';
-          this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o oficio.').build();
+          this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível salvar o ofício.').build();
         },
         complete: () => {
           this.saving = false;
@@ -397,7 +408,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
     this.oficioService.create(payload).subscribe({
       next: (resposta) => {
         this.popupTitulo = 'Sucesso';
-        this.popupErros = new PopupErrorBuilder().adicionar('Oficio cadastrado e protocolado com sucesso.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Ofício cadastrado e protocolado com sucesso.').build();
         const id = resposta.id ? String(resposta.id) : '';
         if (!id) {
           this.loadOficios();
@@ -411,7 +422,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       },
       error: () => {
         this.popupTitulo = 'Erro ao salvar';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel salvar o oficio.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível salvar o ofício.').build();
       },
       complete: () => {
         this.saving = false;
@@ -451,8 +462,8 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       }
     });
     this.activeTab = 'identificacao';
-    this.popupTitulo = 'Edicao ativa';
-    this.popupErros = new PopupErrorBuilder().adicionar('Edicao ativa. Atualize os dados e salve para registrar a nova versao.').build();
+    this.popupTitulo = 'Edição ativa';
+    this.popupErros = new PopupErrorBuilder().adicionar('Edição ativa. Atualize os dados e salve para registrar a nova versão.').build();
     if (this.editingId) {
       this.carregarImagensOficio(this.editingId);
     } else {
@@ -473,7 +484,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       },
       error: () => {
         this.popupTitulo = 'Erro ao excluir';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel excluir o oficio.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível excluir o ofício.').build();
       }
     });
   }
@@ -520,7 +531,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       },
       error: () => {
         this.popupTitulo = 'Erro ao carregar';
-        this.popupErros = new PopupErrorBuilder().adicionar('Nao foi possivel carregar os oficios.').build();
+        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível carregar os ofícios.').build();
       }
     });
   }
@@ -643,7 +654,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
 
   getLocalAtual(oficio: OficioPayload): string {
     if (oficio.tramites && oficio.tramites.length > 0) {
-      return oficio.tramites[0].destino || oficio.tramites[0].origem || 'Em transito';
+      return oficio.tramites[0].destino || oficio.tramites[0].origem || 'Em trânsito';
     }
     return oficio.protocolo?.proximoDestino || oficio.conteudo.para || '-';
   }
@@ -657,7 +668,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         error: () => {
           this.popupTitulo = 'Aviso';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel carregar as imagens do oficio.')
+            .adicionar('Não foi possível carregar as imagens do ofício.')
             .build();
           this.renderizarImpressao(oficio, []);
         }
@@ -787,7 +798,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
     if (!termo) {
       this.popupTitulo = 'Aviso';
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Informe o numero e ano do oficio para buscar.')
+        .adicionar('Informe o número e ano do ofício para buscar.')
         .build();
       return;
     }
@@ -797,7 +808,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
     if (!oficioEncontrado) {
       this.popupTitulo = 'Aviso';
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Oficio nao encontrado para o numero informado.')
+        .adicionar('Ofício não encontrado para o número informado.')
         .build();
       return;
     }
@@ -822,7 +833,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
 
     this.popupTitulo = 'Sucesso';
     this.popupErros = new PopupErrorBuilder()
-      .adicionar('Oficio copiado com sucesso. Ajuste os dados se necessario.')
+      .adicionar('Ofício copiado com sucesso. Ajuste os dados se necessário.')
       .build();
   }
 
@@ -860,7 +871,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         error: () => {
           this.popupTitulo = 'Erro ao anexar';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel anexar o PDF assinado.')
+            .adicionar('Não foi possível anexar o PDF assinado.')
             .build();
         }
       });
@@ -878,7 +889,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
     if (this.imagensAnexo.length + arquivos.length > 10) {
       this.popupTitulo = 'Aviso';
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Limite maximo de 10 imagens por oficio.')
+        .adicionar('Limite máximo de 10 imagens por ofício.')
         .build();
       input.value = '';
       return;
@@ -902,7 +913,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         error: () => {
           this.popupTitulo = 'Erro ao remover';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel remover a imagem anexada.')
+            .adicionar('Não foi possível remover a imagem anexada.')
             .build();
         }
       });
@@ -974,7 +985,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       error: () => {
         this.popupTitulo = 'Erro ao remover';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel remover o PDF assinado.')
+          .adicionar('Não foi possível remover o PDF assinado.')
           .build();
       }
     });
@@ -1051,7 +1062,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
     const meses = [
       'janeiro',
       'fevereiro',
-      'marco',
+      'março',
       'abril',
       'maio',
       'junho',
@@ -1112,6 +1123,14 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
       default:
         return true;
     }
+  }
+
+  formatarStatus(status?: string): string {
+    if (!status) return '-';
+    const normalizado = this.normalizarTextoBusca(status);
+    if (normalizado === 'em preparacao') return 'Em preparação';
+    if (normalizado === 'em analise') return 'Em análise';
+    return status;
   }
 
   obterClasseStatus(status: string | undefined): string {
@@ -1311,7 +1330,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         this.imagensAnexo = [];
         this.popupTitulo = 'Aviso';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel carregar as imagens do oficio.')
+          .adicionar('Não foi possível carregar as imagens do ofício.')
           .build();
       }
     });
@@ -1337,7 +1356,7 @@ export class OficiosGestaoComponent extends TelaBaseComponent implements OnInit 
         error: () => {
           this.popupTitulo = 'Erro ao anexar';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel anexar uma das imagens do oficio.')
+            .adicionar('Não foi possível anexar uma das imagens do ofício.')
             .build();
           aoFinal();
         }

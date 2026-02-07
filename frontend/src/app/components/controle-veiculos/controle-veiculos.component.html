@@ -1,4 +1,5 @@
 ﻿<app-tela-padrao
+  [fullWidth]="true"
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -10,17 +11,7 @@
   (imprimir)="imprimir()"
   (fechar)="fechar()"
 >
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-      <p class="page-title__eyebrow">SETOR ADMINISTRATIVO</p>
-      <p class="page-title__label">Controle de veiculos</p>
-    </div>
-    <p class="page-title__note page-title__note--right">
-      Diario de bordo e cadastro de veiculos.
-    </p>
-  </header>
-
-  <section class="controle-veiculos">
+<section class="cadastro">
     <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopup()"></app-popup-messages>
 
     <div class="muted" *ngIf="carregando">Carregando dados do controle de veiculos...</div>
@@ -32,8 +23,14 @@
       </button>
     </div>
 
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informações</p>
+    <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faCarSide" class="tab-shell__icon"></fa-icon>
+          Controle de Veiculos
+        </p>
+      
       <ol class="step-tabs" role="tablist">
         <li
         *ngFor="let tab of abas; index as idx"
@@ -54,13 +51,15 @@
         </li>
       </ol>
     </div>
+    </aside>
 
+    <div class="cadastro-conteudo">
     <form *ngIf="abaAtiva === 'cadastro'" [formGroup]="formularioVeiculo" class="form-shell">
       <section class="tab-card" #cartaoMotoristas>
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
-            <p class="tab-card__highlight">cadastro de veiculos</p>
-            <p class="muted">Mantenha a frota organizada com dados completos.</p>
+            <p class="tab-card__highlight">Cadastro de veiculos</p>
+            
           </div>
         </div>
 
@@ -239,7 +238,7 @@
                   <tbody>
                     <tr>
                       <td colspan="3" class="list-panel__empty">
-                        Nenhuma foto anexada ate o momento.
+                        Nenhuma foto anexada até o momento.
                       </td>
                     </tr>
                   </tbody>
@@ -248,7 +247,7 @@
             </div>
           </div>
         </div>
-      </section>
+</section>
 
       <section class="list-card">
         <div class="list-card__header">
@@ -287,7 +286,7 @@
         </table>
 
         <ng-template #semVeiculos>
-          <p class="empty">Nenhum veiculo cadastrado ate o momento.</p>
+          <p class="empty">Nenhum veiculo cadastrado até o momento.</p>
         </ng-template>
       </section>
     </form>
@@ -297,7 +296,7 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Mapa de bordo</p>
-            <p class="muted">Registre cada viagem e acompanhe o consumo.</p>
+            
           </div>
         </div>
 
@@ -417,7 +416,7 @@
         </table>
 
         <ng-template #semRegistros>
-          <p class="empty">Nenhum registro de bordo cadastrado ate o momento.</p>
+          <p class="empty">Nenhum registro de bordo cadastrado até o momento.</p>
         </ng-template>
       </section>
     </form>
@@ -427,7 +426,7 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">Motoristas autorizados</p>
-            <p class="muted">Defina quem esta autorizado a conduzir veiculos da instituicao.</p>
+            
           </div>
         </div>
 
@@ -601,10 +600,12 @@
         </table>
 
         <ng-template #semMotoristas>
-          <p class="empty">Nenhum motorista autorizado cadastrado ate o momento.</p>
+          <p class="empty">Nenhum motorista autorizado cadastrado até o momento.</p>
         </ng-template>
       </section>
     </form>
+    </div>
+  </div>
   </section>
 
   <app-dialog
