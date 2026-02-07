@@ -25,10 +25,12 @@ import { TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { menuSections } from '../../layout/menu-config';
+import { ChamadoTecnicoKanbanComponent } from '../chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 
 type AbaChamadoTecnico =
   | 'listagem'
   | 'resumo'
+  | 'kanban'
   | 'historico'
   | 'comentarios'
   | 'anexos'
@@ -48,6 +50,7 @@ type AbaChamadoTecnico =
     TelaPadraoComponent,
     PopupMessagesComponent,
     AutocompleteComponent,
+    ChamadoTecnicoKanbanComponent,
   ],
 })
 export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements OnInit, OnDestroy {
@@ -335,6 +338,10 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     }
   }
 
+  get activeTabIndex(): number {
+    return this.tabs.findIndex((tab) => tab.id === this.activeTab);
+  }
+
   formatStatus(status?: string): string {
     if (!status) return '---';
     return status.replace(/_/g, ' ');
@@ -412,6 +419,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     const baseTabs: { id: AbaChamadoTecnico; label: string }[] = [
       { id: 'listagem', label: 'Listagem de chamados' },
       { id: 'resumo', label: 'Resumo' },
+      { id: 'kanban', label: 'Kanban' },
       { id: 'historico', label: 'Histórico' },
       { id: 'comentarios', label: 'Comentários' },
       { id: 'anexos', label: 'Anexos' },

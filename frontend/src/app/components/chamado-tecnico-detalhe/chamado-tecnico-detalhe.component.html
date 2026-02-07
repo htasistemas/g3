@@ -33,6 +33,7 @@
               class="step-tabs__item"
               *ngFor="let tab of tabs; index as idx"
               [class.active]="activeTab === tab.id"
+              [class.completed]="idx < activeTabIndex"
             >
               <button
                 type="button"
@@ -179,6 +180,16 @@
           </tbody>
         </table>
       </div>
+        </section>
+
+        <section class="tab-card" *ngIf="activeTab === 'kanban'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Kanban</p>
+            </div>
+          </div>
+          <div class="tab-card__divider"></div>
+          <app-chamado-tecnico-kanban></app-chamado-tecnico-kanban>
         </section>
 
         <section class="tab-card" *ngIf="activeTab === 'historico'">

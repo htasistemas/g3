@@ -32,7 +32,6 @@ import { AutorizacaoComprasComponent } from './components/autorizacao-compras/au
 import { FotosEventosComponent } from './components/fotos-eventos/fotos-eventos.component';
 import { ChamadosTecnicosComponent } from './components/chamados-tecnicos/chamados-tecnicos.component';
 import { ChamadoTecnicoDetalheComponent } from './components/chamado-tecnico-detalhe/chamado-tecnico-detalhe.component';
-import { ChamadoTecnicoKanbanComponent } from './components/chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 import { AlertasSistemaComponent } from './components/alertas-sistema/alertas-sistema.component';
 import { OcorrenciasCriancaComponent } from './components/ocorrencias-crianca/ocorrencias-crianca.component';
 import { ControleVeiculosComponent } from './components/controle-veiculos/controle-veiculos.component';
@@ -188,7 +187,7 @@ export const routes: Routes = [
       },
       {
         path: 'configuracoes/chamados-tecnicos',
-        component: ChamadoTecnicoKanbanComponent,
+        component: ChamadosTecnicosComponent,
         data: { title: 'Chamado tecnico', perfil: 'usuario' }
       },
       {
@@ -208,7 +207,7 @@ export const routes: Routes = [
       },
       {
         path: 'configuracoes/chamados-tecnicos-dev',
-        component: ChamadoTecnicoKanbanComponent,
+        component: ChamadosTecnicosComponent,
         data: { title: 'Chamado tecnico', perfil: 'desenvolvedor' }
       },
       {
