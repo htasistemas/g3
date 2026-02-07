@@ -1,14 +1,14 @@
 ﻿<form class="p-6 space-y-6" [formGroup]="form">
   <header class="header">
     <div>
-      <p class="eyebrow">ConfiguraÃ§Ãµes â€¢ PersonalizaÃ§Ã£o</p>
-      <h1>Personalize a aparÃªncia do sistema</h1>
-      <p class="muted">Ajuste cores, espaÃ§amentos e tema para melhorar a legibilidade e o conforto visual.</p>
+      <p class="eyebrow">Configurações • Personalização</p>
+      <h1>Personalize a aparência do sistema</h1>
+      <p class="muted">Ajuste cores, espaçamentos e tema para melhorar a legibilidade e o conforto visual.</p>
     </div>
     <div class="actions">
       <button type="button" class="btn-outline" (click)="reset()">
         <fa-icon [icon]="faRotateLeft" class="mr-2"></fa-icon>
-        Restaurar padrÃ£o
+        Restaurar padrão
       </button>
     </div>
   </header>
@@ -18,9 +18,9 @@
       <div class="card__header">Cores principais</div>
       <div class="grid gap-4 md:grid-cols-3">
         <label class="field">
-          <span>PrimÃ¡ria intensa</span>
+          <span>Primária intensa</span>
           <input type="color" class="input color-input" formControlName="primaryStrong" />
-          <small>TÃ­tulos, botÃµes e destaques.</small>
+          <small>Títulos, botões e destaques.</small>
         </label>
         <label class="field">
           <span>Gradiente final</span>
@@ -30,25 +30,25 @@
         <label class="field">
           <span>Borda e contorno</span>
           <input type="color" class="input color-input" formControlName="border" />
-          <small>Linhas divisÃ³rias e caixas.</small>
+          <small>Linhas divisórias e caixas.</small>
         </label>
         <label class="field">
-          <span>Fundo da aplicaÃ§Ã£o</span>
+          <span>Fundo da aplicação</span>
           <input type="color" class="input color-input" formControlName="background" />
-          <small>Plano de fundo das pÃ¡ginas.</small>
+          <small>Plano de fundo das páginas.</small>
         </label>
         <label class="field">
-          <span>SuperfÃ­cies</span>
+          <span>Superfícies</span>
           <input type="color" class="input color-input" formControlName="surface" />
-          <small>CartÃµes, formulÃ¡rios e menus.</small>
+          <small>Cartões, formulários e menus.</small>
         </label>
         <label class="field">
-          <span>CartÃµes e controles</span>
+          <span>Cartões e controles</span>
           <div class="grid grid-cols-2 gap-2">
             <input type="text" class="input" formControlName="cardRadius" placeholder="1rem" />
             <input type="text" class="input" formControlName="controlRadius" placeholder="0.75rem" />
           </div>
-          <small>Raio de borda dos cartÃµes e campos.</small>
+          <small>Raio de borda dos cartões e campos.</small>
         </label>
       </div>
     </div>
@@ -65,7 +65,7 @@
           Tema escuro
         </button>
       </div>
-      <p class="muted mt-3">A personalizaÃ§Ã£o de cores Ã© aplicada sobre o tema selecionado.</p>
+      <p class="muted mt-3">A personalização de cores é aplicada sobre o tema selecionado.</p>
     </div>
   </div>
 </form>

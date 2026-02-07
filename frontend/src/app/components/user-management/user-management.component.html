@@ -1,7 +1,7 @@
 ﻿<div class="p-6 space-y-6">
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <p class="section-kicker">UsuÃ¡rios</p>
+      <p class="section-kicker">Usuários</p>
       <h1 class="page-heading">Usuários e permissões</h1>
       <p class="section-subtitle">
         Cadastre, edite ou remova usuários com acesso ao sistema.
@@ -25,18 +25,18 @@
         <label class="form-label" for="email">Email *</label>
         <input id="email" type="email" formControlName="email" class="input" placeholder="email@exemplo.com" />
         <p *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="form-error">
-          Informe um email vÃ¡lido.
+          Informe um email válido.
         </p>
       </div>
 
       <div class="space-y-2">
-        <label class="form-label" for="senha">senha</label>
+        <label class="form-label" for="senha">Senha</label>
         <input
           id="senha"
           type="password"
           formControlName="senha"
           class="input"
-          placeholder="â€¢â€¢â€¢â€¢"
+          placeholder="********"
           [attr.aria-describedby]="editingId ? 'senha-help' : null"
         />
         <p id="senha-help" class="text-xs text-slate-500" *ngIf="editingId">
@@ -83,11 +83,39 @@
   </div>
 
   <div class="card space-y-4">
-    <div class="card__header">UsuÃ¡rios cadastrados</div>
+    <div class="card__header">Usuários cadastrados</div>
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div class="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+        <input
+          type="text"
+          class="input w-full sm:max-w-md"
+          placeholder="Buscar por nome ou email"
+          [(ngModel)]="filtroUsuarios"
+          (keyup.enter)="buscarUsuarios()"
+        />
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline" (click)="buscarUsuarios()">Buscar usuários cadastrados</button>
+          <button type="button" class="btn-outline" (click)="limparBusca()">Limpar</button>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="btn-primary" (click)="novoUsuario()">Criar novo usuário</button>
+        <button
+          type="button"
+          class="btn-danger"
+          (click)="excluirUsuarioSelecionado()"
+          [disabled]="!editingId"
+        >
+          Excluir
+        </button>
+      </div>
+    </div>
     <p class="section-subtitle" *ngIf="loading">Carregando usuários...</p>
-    <p class="section-subtitle" *ngIf="!loading && !users.length">Nenhum usuário cadastrado.</p>
+    <p class="section-subtitle" *ngIf="!loading && !usersFiltrados.length">
+      Nenhum usuário cadastrado.
+    </p>
 
-    <div class="overflow-x-auto" *ngIf="users.length">
+    <div class="overflow-x-auto" *ngIf="usersFiltrados.length">
       <table class="min-w-full text-sm">
         <thead>
           <tr class="text-left border-b border-slate-200 dark:border-slate-700">
@@ -95,11 +123,14 @@
             <th class="py-2 pr-4">Email</th>
             <th class="py-2 pr-4">Permissões</th>
             <th class="py-2 pr-4">Criado em</th>
-            <th class="py-2">AÃ§Ãµes</th>
+            <th class="py-2">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of users" class="border-b border-slate-100 dark:border-slate-700/50">
+          <tr
+            *ngFor="let user of usersFiltrados"
+            class="border-b border-slate-100 dark:border-slate-700/50"
+          >
             <td class="py-2 pr-4 font-semibold">{{ user.nome }}</td>
             <td class="py-2 pr-4 text-slate-600">{{ user.email || user.nomeUsuario }}</td>
             <td class="py-2 pr-4 text-slate-600">
@@ -116,5 +147,7 @@
     </div>
   </div>
 </div>
+
+
 
 

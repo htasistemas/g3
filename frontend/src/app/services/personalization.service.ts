@@ -61,7 +61,7 @@ export class PersonalizationService {
         const parsed = JSON.parse(stored) as PaletteSettings;
         return { ...defaultPalette, ...parsed };
       } catch (error) {
-        console.warn('NÃ£o foi possÃ­vel carregar personalizaÃ§Ã£o salva', error);
+        console.warn('Não foi possível carregar personalização salva', error);
       }
     }
     return defaultPalette;

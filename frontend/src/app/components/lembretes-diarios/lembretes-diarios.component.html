@@ -1,0 +1,155 @@
+<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarFechar]="true"
+  [fullWidth]="true"
+  (salvar)="submit()"
+  (excluir)="excluirSelecionado()"
+  (novo)="startNew()"
+  (cancelar)="resetForm()"
+  (buscar)="onBuscar()"
+>
+  <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo"></app-popup-messages>
+
+  <section class="cadastro">
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faBell" class="tab-shell__icon"></fa-icon>
+            Lembretes diários
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of tabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeTab === tab.id"
+              [class.completed]="idx < activeTabIndex"
+            >
+              <button
+                class="step-tabs__button"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeTab === tab.id"
+                (click)="changeTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
+
+      <div class="cadastro-conteudo">
+        <form [formGroup]="form" class="form-shell" (ngSubmit)="submit()">
+          <div class="tab-card" *ngIf="activeTab === 'cadastro'">
+            <div class="tab-card__header">
+              <div class="tab-card__title-stack">
+                <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+              </div>
+            </div>
+            <div class="tab-card__divider"></div>
+
+            <div class="field-grid cols-2">
+              <label class="field">Título*
+                <input type="text" formControlName="titulo" placeholder="Título do lembrete" />
+              </label>
+              <label class="field">Data inicial*
+                <input type="date" formControlName="dataInicial" />
+              </label>
+              <label class="field">Hora do aviso
+                <input type="time" formControlName="horaAviso" />
+              </label>
+              <label class="field full">Descrição
+                <textarea formControlName="descricao" rows="3" placeholder="Descrição opcional"></textarea>
+              </label>
+            </div>
+          </div>
+
+          <div class="tab-card" *ngIf="activeTab === 'listagem'">
+            <div class="tab-card__header">
+              <div class="tab-card__title-stack">
+                <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+              </div>
+            </div>
+            <div class="tab-card__divider"></div>
+
+            <div class="filter-panel">
+              <label class="field">Filtro
+                <select [(ngModel)]="filtroStatus" name="filtroStatus" (change)="aplicarFiltro()">
+                  <option value="pendentesHoje">Pendentes hoje ({{ totalPendentesHoje }})</option>
+                  <option value="atrasados">Atrasados ({{ totalAtrasados }})</option>
+                  <option value="agendados">Agendados ({{ totalAgendados }})</option>
+                  <option value="concluidos">Concluídos ({{ totalConcluidos }})</option>
+                  <option value="todos">Todos</option>
+                </select>
+              </label>
+              <label class="field">Buscar
+                <input type="text" [(ngModel)]="busca" name="busca" (input)="aplicarFiltro()" placeholder="Título ou descrição" />
+              </label>
+            </div>
+
+            <div class="list-card">
+              <div class="list-card__header">
+                <div>
+                  <p class="list-card__eyebrow">Registros</p>
+                  <p class="list-card__title">Lembretes diários</p>
+                </div>
+                <div class="list-card__actions">
+                  <button type="button" class="ghost" (click)="aplicarFiltro()">Atualizar</button>
+                </div>
+              </div>
+
+              <div *ngIf="carregando" class="muted">Carregando lembretes...</div>
+              <div *ngIf="!carregando && !lembretesFiltrados.length" class="muted">Nenhum lembrete encontrado.</div>
+
+              <div class="lembrete-list" *ngIf="lembretesFiltrados.length">
+                <div class="lembrete-item" *ngFor="let lembrete of lembretesFiltrados">
+                  <div class="lembrete-info">
+                    <p class="lembrete-title">{{ lembrete.titulo }}</p>
+                    <p class="lembrete-desc">{{ lembrete.descricao || 'Sem descrição' }}</p>
+                    <p class="lembrete-meta">
+                      Próxima execução: {{ lembrete.proximaExecucaoEm | date: 'dd/MM/yyyy HH:mm' }}
+                    </p>
+                  </div>
+                  <div class="lembrete-actions">
+                    <button type="button" class="btn-outline btn-small" (click)="selecionar(lembrete)">Editar</button>
+                    <button type="button" class="btn-outline btn-small" (click)="abrirModalAdiar(lembrete)">Adiar</button>
+                    <button type="button" class="btn-outline btn-small" (click)="concluir(lembrete)">Concluir</button>
+                    <button type="button" class="btn-outline btn-small" (click)="excluirItem(lembrete)">Excluir</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</app-tela-padrao>
+
+<div class="modal" *ngIf="adiarAberto">
+  <div class="modal__backdrop" (click)="fecharModalAdiar()"></div>
+  <div class="modal__container">
+    <header class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Adiar lembrete</p>
+        <h3 class="modal__title">Defina nova data e hora</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharModalAdiar()" aria-label="Fechar">&times;</button>
+    </header>
+    <div class="modal__body">
+      <label class="field">Data
+        <input type="date" [(ngModel)]="adiarData" name="adiarData" />
+      </label>
+      <label class="field">Hora
+        <input type="time" [(ngModel)]="adiarHora" name="adiarHora" />
+      </label>
+    </div>
+    <footer class="modal__footer">
+      <button type="button" class="ghost" (click)="fecharModalAdiar()">Cancelar</button>
+      <button type="button" class="primary" (click)="confirmarAdiar()">Salvar</button>
+    </footer>
+  </div>
+</div>

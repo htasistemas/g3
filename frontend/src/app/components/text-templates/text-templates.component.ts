@@ -50,14 +50,14 @@ export class TextTemplatesComponent implements OnInit, OnDestroy {
     if (!field) {
       const defaults = this.templates.reset();
       this.form.patchValue(defaults, { emitEvent: false });
-      this.feedback = { type: 'success', message: 'Modelos restaurados para o padrÃ£o.' };
+      this.feedback = { type: 'success', message: 'Modelos restaurados para o padrão.' };
       return;
     }
 
     const defaults = this.templates.getDefaults();
     const updated = this.templates.updateTemplates({ [field]: defaults[field] });
     this.form.patchValue({ [field]: updated[field] }, { emitEvent: false });
-    this.feedback = { type: 'success', message: 'Modelo restaurado para o padrÃ£o.' };
+    this.feedback = { type: 'success', message: 'Modelo restaurado para o padrão.' };
   }
 }
 

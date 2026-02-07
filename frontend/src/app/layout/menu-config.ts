@@ -143,6 +143,7 @@ export const menuSections: MenuItem[] = [
       { label: 'Oficios e Protocolos', icon: faFileSignature, route: '/administrativo/oficios' },
       { label: 'Patrimonio', icon: faLandmark, route: '/administrativo/patrimonio' },
       { label: 'Tarefas e pendencias', icon: faListCheck, route: '/administrativo/tarefas' },
+      { label: 'Lembretes Diários', icon: faBell, route: '/administrativo/lembretes-diarios' },
     ],
   },
   {
@@ -185,4 +186,5 @@ export const menuSections: MenuItem[] = [
     ],
   },
 ];
+
 

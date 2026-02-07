@@ -11,16 +11,16 @@ export class TextTemplateService {
   private readonly storageKey = 'g3_text_templates';
   private readonly defaults: TextTemplates = {
     cession:
-      'TERMO DE CESSÃƒO DE BEM PATRIMONIAL\n\n' +
-      'Pelo presente instrumento, fica registrado que o bem {{nome}}, identificado pelo nÃºmero de patrimÃ´nio {{numeroPatrimonio}}, ' +
-      'foi cedido para uso e responsabilidade de {{responsavel}}, alocado em {{local}}, com valor de aquisiÃ§Ã£o de {{valor}}.\n\n' +
-      'O responsÃ¡vel declara estar ciente de que o bem permanece de propriedade da instituiÃ§Ã£o, comprometendo-se a zelar pela sua conservaÃ§Ã£o, ' +
-      'utilizÃ¡-lo exclusivamente para fins institucionais, comunicar imediatamente qualquer dano, perda ou necessidade de manutenÃ§Ã£o e devolvÃª-lo ' +
-      'quando solicitado ou ao tÃ©rmino da cessÃ£o.\n\n' +
-      'Dados do bem: Categoria {{categoria}} {{subcategoria}}. Estado de conservaÃ§Ã£o {{conservacao}}. SituaÃ§Ã£o {{status}}. Data de aquisiÃ§Ã£o {{dataAquisicao}}.\n\n' +
-      'Este termo Ã© emitido na data de {{dataEmissao}}.',
+      'TERMO DE CESSÃO DE BEM PATRIMONIAL\n\n' +
+      'Pelo presente instrumento, fica registrado que o bem {{nome}}, identificado pelo número de patrimônio {{numeroPatrimonio}}, ' +
+      'foi cedido para uso e responsabilidade de {{responsavel}}, alocado em {{local}}, com valor de aquisição de {{valor}}.\n\n' +
+      'O responsável declara estar ciente de que o bem permanece de propriedade da instituição, comprometendo-se a zelar pela sua conservação, ' +
+      'utilizá-lo exclusivamente para fins institucionais, comunicar imediatamente qualquer dano, perda ou necessidade de manutenção e devolvê-lo ' +
+      'quando solicitado ou ao término da cessão.\n\n' +
+      'Dados do bem: Categoria {{categoria}} {{subcategoria}}. Estado de conservação {{conservacao}}. Situação {{status}}. Data de aquisição {{dataAquisicao}}.\n\n' +
+      'Este termo é emitido na data de {{dataEmissao}}.',
     loan:
-      'Eu, {{responsavel}}, assumo responsabilidade pelo emprÃ©stimo do bem {{nome}} (patrimÃ´nio {{numeroPatrimonio}}), alocado em {{local}}, comprometendo-me a devolvÃª-lo nas mesmas condiÃ§Ãµes. Valor de referÃªncia: {{valor}}.'
+      'Eu, {{responsavel}}, assumo responsabilidade pelo empréstimo do bem {{nome}} (patrimônio {{numeroPatrimonio}}), alocado em {{local}}, comprometendo-me a devolvê-lo nas mesmas condições. Valor de referência: {{valor}}.'
   };
 
   private readonly templatesSubject = new BehaviorSubject<TextTemplates>(this.loadTemplates());
@@ -54,7 +54,7 @@ export class TextTemplateService {
         const parsed = JSON.parse(stored) as Partial<TextTemplates>;
         return { ...this.defaults, ...parsed } as TextTemplates;
       } catch (error) {
-        console.warn('NÃ£o foi possÃ­vel carregar modelos de texto salvos', error);
+        console.warn('Não foi possível carregar modelos de texto salvos', error);
       }
     }
 

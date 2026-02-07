@@ -147,7 +147,7 @@ export class TarefasPendenciasService {
   imprimirPendencias(): Observable<Blob> {
     return this.http
       .get(`${environment.apiUrl}/api/reports/tarefas-pendencias`, { responseType: 'blob' })
-      .pipe(catchError(this.logAndRethrow('ao baixar o relatÃ³rio de pendÃªncias')));
+      .pipe(catchError(this.logAndRethrow('ao baixar o relatório de pendências')));
   }
 
   adicionarHistorico(id: string, mensagem: string): Observable<TaskRecord> {
@@ -155,7 +155,7 @@ export class TarefasPendenciasService {
       .post<TarefaPendenciaApiResponse>(`${this.baseUrl}/${id}/historico`, { mensagem })
       .pipe(
         map((response) => this.mapResponse(response)),
-        catchError(this.logAndRethrow('ao adicionar histÃ³rico da tarefa'))
+        catchError(this.logAndRethrow('ao adicionar histórico da tarefa'))
       );
   }
 

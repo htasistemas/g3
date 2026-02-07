@@ -29,7 +29,7 @@ export class SenhasPainelComponent implements OnInit, OnDestroy {
   nomeUnidadePainel: string | null = null;
   noticiasTicker: string[] = [];
   private ultimaChamadaId: string | null = null;
-  fraseFala = 'BeneficiÃ¡rio {beneficiario} dirija-se a {sala} para atendimento.';
+  fraseFala = 'Beneficiário {beneficiario} dirija-se a {sala} para atendimento.';
   velocidadeTicker = 60;
   modoNoticias: 'RSS' | 'MANUAL' = 'RSS';
   noticiasManuais = '';

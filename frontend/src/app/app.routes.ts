@@ -39,6 +39,7 @@ import { ControleVeiculosComponent } from './components/controle-veiculos/contro
 import { BibliotecaGestaoComponent } from './components/biblioteca-gestao/biblioteca-gestao.component';
 import { SenhasChamarComponent } from './components/senhas-chamar/senhas-chamar.component';
 import { SenhasPainelComponent } from './components/senhas-painel/senhas-painel.component';
+import { LembretesDiariosComponent } from './components/lembretes-diarios/lembretes-diarios.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -176,6 +177,11 @@ export const routes: Routes = [
         data: { title: 'Controle de veiculos' }
       },
       {
+        path: 'administrativo/lembretes-diarios',
+        component: LembretesDiariosComponent,
+        data: { title: 'Lembretes diários' }
+      },
+      {
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
         data: { title: 'Versao do sistema' }
@@ -272,4 +278,5 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '' }
 ];
+
 

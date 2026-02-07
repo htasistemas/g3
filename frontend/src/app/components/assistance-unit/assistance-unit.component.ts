@@ -231,7 +231,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     if (invalido) {
       this.setFeedback({
         type: 'error',
-        message: 'Preencha nome completo, documento e funÃ§Ã£o para cada membro da diretoria.'
+        message: 'Preencha nome completo, documento e função para cada membro da diretoria.'
       });
       return;
     }
@@ -266,7 +266,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         console.error('Erro ao salvar unidade', error);
         this.setFeedback({
           type: 'error',
-          message: 'NÃ£o foi possÃ­vel salvar a unidade. Tente novamente.'
+          message: 'Não foi possível salvar a unidade. Tente novamente.'
         });
       }
     });
@@ -281,7 +281,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     this.setFeedback(
       {
         type: 'warning',
-        message: 'VocÃª estÃ¡ excluindo a unidade. Tem certeza? Esta aÃ§Ã£o Ã© irreversÃ­vel.'
+        message: 'Você está excluindo a unidade. Tem certeza? Esta ação é irreversível.'
       },
       { autoDismiss: false }
     );
@@ -306,13 +306,13 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.reportLogoPreview = null;
         this.deleteConfirmation = false;
         this.loadUnits();
-        this.setFeedback({ type: 'success', message: 'Unidade excluÃ­da com sucesso.' }, { autoDismiss: true });
+        this.setFeedback({ type: 'success', message: 'Unidade excluída com sucesso.' }, { autoDismiss: true });
       },
       error: (error) => {
         console.error('Erro ao excluir unidade', error);
         this.setFeedback({
           type: 'error',
-          message: 'NÃ£o foi possÃ­vel excluir a unidade. Tente novamente.'
+          message: 'Não foi possível excluir a unidade. Tente novamente.'
         });
       }
     });
@@ -342,7 +342,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         this.setDiretoriaForm([]);
         this.logoPreview = null;
         this.reportLogoPreview = null;
-        this.unitService.setActiveUnit('NavegaÃ§Ã£o', null);
+        this.unitService.setActiveUnit('Navegação', null);
         this.salasUnidade = [];
       },
       error: (error) => console.error('Erro ao carregar unidade', error)
@@ -369,7 +369,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         );
       },
       error: () => {
-        this.setFeedback({ type: 'error', message: 'NÃ£o foi possÃ­vel salvar a sala.' });
+        this.setFeedback({ type: 'error', message: 'Não foi possível salvar a sala.' });
       }
     });
   }
@@ -393,7 +393,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         );
       },
       error: () => {
-        this.setFeedback({ type: 'error', message: 'NÃ£o foi possÃ­vel atualizar a sala.' });
+        this.setFeedback({ type: 'error', message: 'Não foi possível atualizar a sala.' });
       }
     });
   }
@@ -412,7 +412,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         );
       },
       error: () => {
-        this.setFeedback({ type: 'error', message: 'NÃ£o foi possÃ­vel remover a sala.' });
+        this.setFeedback({ type: 'error', message: 'Não foi possível remover a sala.' });
       }
     });
   }
@@ -668,7 +668,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     this.reportLogoPreview = null;
     this.deleteConfirmation = false;
     this.activeTab = 'dados';
-    this.unitService.setActiveUnit('NavegaÃ§Ã£o', null);
+    this.unitService.setActiveUnit('Navegação', null);
     this.dismissFeedback();
   }
 
@@ -978,7 +978,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         </head>
         <body>
           <div class="report">
-            <div class="report-meta-top">Emitido por ${emissor} Â· ${dataHora}</div>
+            <div class="report-meta-top">Emitido por ${emissor} · ${dataHora}</div>
             <div class="header">
               <div class="header-logo">
                 ${
@@ -1004,8 +1004,8 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                 <p class="eyebrow">Cadastro da unidade</p>
                 <h1>${unidade.nomeFantasia || 'Unidade assistencial'}</h1>
                 <p class="hero-subtitle">
-                  <span class="badge">${unidade.cidade || 'Cidade nÃ£o informada'} Â· ${unidade.estado || 'UF'}</span>
-                  <span class="badge">${unidade.horarioFuncionamento || 'HorÃ¡rio nÃ£o informado'}</span>
+                  <span class="badge">${unidade.cidade || 'Cidade não informada'} · ${unidade.estado || 'UF'}</span>
+                  <span class="badge">${unidade.horarioFuncionamento || 'Horário não informado'}</span>
                 </p>
               </div>
             </div>
@@ -1016,40 +1016,40 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                 <div class="section-card section-card--compact">
                 <div class="data-grid">
                   <div class="data-item">
-                    <span class="label">RazÃ£o social</span>
-                    <p class="value">${unidade.razaoSocial || 'NÃ£o informada'}</p>
+                    <span class="label">Razão social</span>
+                    <p class="value">${unidade.razaoSocial || 'Não informada'}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">CNPJ</span>
-                    <p class="value">${unidade.cnpj || 'NÃ£o informado'}</p>
+                    <p class="value">${unidade.cnpj || 'Não informado'}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">Telefone</span>
-                    <p class="value">${unidade.telefone || 'NÃ£o informado'}</p>
+                    <p class="value">${unidade.telefone || 'Não informado'}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">E-mail</span>
-                    <p class="value">${unidade.email || 'NÃ£o informado'}</p>
+                    <p class="value">${unidade.email || 'Não informado'}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">CEP</span>
-                    <p class="value">${unidade.cep || 'NÃ£o informado'}</p>
+                    <p class="value">${unidade.cep || 'Não informado'}</p>
                   </div>
                   <div class="data-item">
-                    <span class="label">HorÃ¡rio de funcionamento</span>
-                    <p class="value">${unidade.horarioFuncionamento || 'NÃ£o informado'}</p>
+                    <span class="label">Horário de funcionamento</span>
+                    <p class="value">${unidade.horarioFuncionamento || 'Não informado'}</p>
                   </div>
                 </div>
               </div>
               </div>
 
               <div>
-                <p class="section-title">LocalizaÃ§Ã£o</p>
+                <p class="section-title">Localização</p>
                 <div class="section-card">
                 <div class="data-grid">
                   <div class="data-item">
-                    <span class="label">EndereÃ§o</span>
-                    <p class="value">${unidade.endereco || 'EndereÃ§o nÃ£o informado'} ${unidade.numeroEndereco || ''}</p>
+                    <span class="label">Endereço</span>
+                    <p class="value">${unidade.endereco || 'Endereço não informado'} ${unidade.numeroEndereco || ''}</p>
                   </div>
                   <div class="data-item">
                     <span class="label">Cidade / Estado</span>
@@ -1069,9 +1069,9 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
                             (membro) => `
                               <div class="data-item">
                                 <span class="label">${membro.funcao || 'Funcao'}</span>
-                                <p class="value">${membro.nomeCompleto || 'NÃ£o informado'}</p>
+                                <p class="value">${membro.nomeCompleto || 'Não informado'}</p>
                                 <p class="muted">${membro.documento || 'Documento n?o informado'}</p>
-                                <p class="muted">Mandato: ${membro.mandatoInicio || 'NÃ£o informado'} - ${membro.mandatoFim || 'NÃ£o informado'}</p>
+                                <p class="muted">Mandato: ${membro.mandatoInicio || 'Não informado'} - ${membro.mandatoFim || 'Não informado'}</p>
                               </div>
                             `
                           )
@@ -1110,19 +1110,19 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
               </div>
 
               <div class="section-card section-card--no-border">
-                <p class="section-title">ObservaÃ§Ãµes</p>
+                <p class="section-title">Observações</p>
                 <div class="footer-note">
-                  ${unidade.observacoes || 'Nenhuma observaÃ§Ã£o registrada atÃ© o momento.'}
+                  ${unidade.observacoes || 'Nenhuma observação registrada até o momento.'}
                 </div>
               </div>
               <div class="footer">
                 <div>
-                  ${unidade.razaoSocial || unidade.nomeFantasia || 'Instituicao'} Â· ${unidade.cnpj || 'CNPJ nao informado'}
+                  ${unidade.razaoSocial || unidade.nomeFantasia || 'Instituicao'} · ${unidade.cnpj || 'CNPJ nao informado'}
                 </div>
                 <div>
-                  ${unidade.endereco || 'Endereco nao informado'} ${unidade.numeroEndereco || ''} Â· ${unidade.bairro || ''}
-                  Â· ${unidade.cidade || ''} ${unidade.estado || ''} Â· ${unidade.telefone || 'Telefone nao informado'}
-                  Â· ${unidade.email || 'Email nao informado'}
+                  ${unidade.endereco || 'Endereco nao informado'} ${unidade.numeroEndereco || ''} · ${unidade.bairro || ''}
+                  · ${unidade.cidade || ''} ${unidade.estado || ''} · ${unidade.telefone || 'Telefone nao informado'}
+                  · ${unidade.email || 'Email nao informado'}
                 </div>
             </div>
             </div>
@@ -1280,7 +1280,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         </head>
         <body>
           <div class="report">
-            <div class="report-meta-top">Emitido por ${emissor} Â· ${dataHora}</div>
+            <div class="report-meta-top">Emitido por ${emissor} · ${dataHora}</div>
             <div class="header">
               <div class="header-logo">
                 ${
@@ -1313,18 +1313,18 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
 
             <div class="footer">
               <div>
-                ${unidadeReferencia?.razaoSocial || unidadeReferencia?.nomeFantasia || 'Instituicao'} Â· ${
+                ${unidadeReferencia?.razaoSocial || unidadeReferencia?.nomeFantasia || 'Instituicao'} · ${
       unidadeReferencia?.cnpj || 'CNPJ nao informado'
     }
               </div>
               <div>
-                ${unidadeReferencia?.endereco || 'Endereco nao informado'} ${unidadeReferencia?.numeroEndereco || ''} Â· ${
+                ${unidadeReferencia?.endereco || 'Endereco nao informado'} ${unidadeReferencia?.numeroEndereco || ''} · ${
       unidadeReferencia?.bairro || ''
     }
-                Â· ${unidadeReferencia?.cidade || ''} ${unidadeReferencia?.estado || ''} Â· ${
+                · ${unidadeReferencia?.cidade || ''} ${unidadeReferencia?.estado || ''} · ${
       unidadeReferencia?.telefone || 'Telefone nao informado'
     }
-                Â· ${unidadeReferencia?.email || 'Email nao informado'}
+                · ${unidadeReferencia?.email || 'Email nao informado'}
               </div>
             </div>
           </div>

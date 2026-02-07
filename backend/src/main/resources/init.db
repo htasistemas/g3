@@ -184,6 +184,22 @@ CREATE TABLE IF NOT EXISTS historico_versao_sistema (
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS lembretes_diarios (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  data_inicial DATE NOT NULL,
+  recorrencia VARCHAR(20) NOT NULL,
+  hora_aviso TIME,
+  status VARCHAR(20) NOT NULL,
+  proxima_execucao_em TIMESTAMP NOT NULL,
+  adiado_ate TIMESTAMP,
+  concluido_em TIMESTAMP,
+  deletado_em TIMESTAMP,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS gerenciamento_dados (
   id BIGSERIAL PRIMARY KEY,
   frequencia VARCHAR(20) NOT NULL,
@@ -226,7 +242,7 @@ CREATE TABLE IF NOT EXISTS gerenciamento_dados_backup (
 );
 
 INSERT INTO versao_sistema (id, versao, descricao, atualizado_em)
-SELECT 1, '1.0.0', 'VersÃƒÂ£o inicial do sistema.', NOW()
+SELECT 1, '1.0.0', 'Versão inicial do sistema.', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM versao_sistema);
 
 INSERT INTO gerenciamento_dados (

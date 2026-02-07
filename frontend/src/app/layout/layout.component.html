@@ -91,6 +91,14 @@
     <header class="app-header">
       <div class="app-header__spacer" aria-hidden="true"></div>
       <div class="app-header__actions">
+        <button
+          *ngIf="lembretesPendentes.length"
+          type="button"
+          class="lembretes-chip"
+          (click)="abrirLembretes()"
+        >
+          Você tem {{ lembretesPendentes.length }} lembretes diários
+        </button>
         <div class="tarefas-chip">
           <button type="button" class="tarefas-chip__button" (click)="abrirTarefas()">Tarefas</button>
           <button
@@ -136,6 +144,61 @@
         <router-outlet></router-outlet>
       </div>
     </main>
+  </div>
+</div>
+
+<div class="modal" *ngIf="lembretesAbertos">
+  <div class="modal__backdrop" (click)="fecharLembretes()"></div>
+  <div class="modal__container lembretes-modal">
+    <header class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Lembretes diários</p>
+        <h3 class="modal__title">Pendentes e atrasados</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharLembretes()" aria-label="Fechar">&times;</button>
+    </header>
+    <div class="modal__body">
+      <div *ngIf="!lembretesPendentes.length" class="muted">Nenhum lembrete pendente para hoje.</div>
+      <div class="lembretes-lista" *ngIf="lembretesPendentes.length">
+        <div class="lembrete-card" *ngFor="let lembrete of lembretesPendentes">
+          <div>
+            <p class="lembrete-card__titulo">{{ lembrete.titulo }}</p>
+            <p class="lembrete-card__meta">
+              {{ lembrete.proximaExecucaoEm | date: 'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+          <div class="lembrete-card__acoes">
+            <button type="button" class="btn-outline btn-small" (click)="concluirLembrete(lembrete)">Concluir</button>
+            <button type="button" class="btn-outline btn-small" (click)="abrirAdiarLembrete(lembrete)">Adiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" *ngIf="adiarAberto">
+  <div class="modal__backdrop" (click)="fecharAdiarLembrete()"></div>
+  <div class="modal__container">
+    <header class="modal__header">
+      <div>
+        <p class="modal__eyebrow">Adiar lembrete</p>
+        <h3 class="modal__title">Defina nova data e hora</h3>
+      </div>
+      <button type="button" class="ghost" (click)="fecharAdiarLembrete()" aria-label="Fechar">&times;</button>
+    </header>
+    <div class="modal__body">
+      <label class="field">Data
+        <input type="date" [(ngModel)]="adiarData" />
+      </label>
+      <label class="field">Hora
+        <input type="time" [(ngModel)]="adiarHora" />
+      </label>
+    </div>
+    <footer class="modal__footer">
+      <button type="button" class="ghost" (click)="fecharAdiarLembrete()">Cancelar</button>
+      <button type="button" class="primary" (click)="confirmarAdiarLembrete()">Salvar</button>
+    </footer>
   </div>
 </div>
 

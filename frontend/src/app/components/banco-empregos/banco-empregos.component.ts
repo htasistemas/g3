@@ -307,14 +307,14 @@ export class BancoEmpregosComponent extends TelaBaseComponent implements OnInit,
 
   selectBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
-    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃ¡rio sem nome';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'Beneficiário sem nome';
     this.beneficiarioSelecionado = beneficiario;
     this.encaminhamentoForm.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }
 
   selecionarCandidato(beneficiario: BeneficiarioApiPayload): void {
     const id = beneficiario.id_beneficiario ?? beneficiario.codigo ?? beneficiario.cpf ?? '';
-    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'BeneficiÃƒÂ¡rio sem nome';
+    const nome = beneficiario.nome_completo ?? beneficiario.nome_social ?? 'Beneficiário sem nome';
     this.candidatoSelecionado = beneficiario;
     this.formularioCandidato.patchValue({ beneficiarioId: id, beneficiarioNome: nome });
   }

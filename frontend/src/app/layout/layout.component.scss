@@ -231,6 +231,131 @@
   flex: 1;
 }
 
+.lembretes-chip {
+  @apply inline-flex items-center rounded-full px-3 py-2 text-xs font-semibold;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.lembretes-chip:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 50;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal__container {
+  position: relative;
+  width: min(520px, 100%);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: #0f172a;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal__eyebrow {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0b6c56;
+  font-weight: 700;
+}
+
+.modal__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.lembretes-lista {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.lembrete-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.lembrete-card__titulo {
+  margin: 0;
+  font-weight: 700;
+}
+
+.lembrete-card__meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.lembrete-card__acoes {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.muted {
+  color: #64748b;
+}
+
 .user-chip {
   @apply inline-flex items-center gap-2 rounded-full border border-white/30 backdrop-blur;
   background: rgba(255, 255, 255, 0.08);

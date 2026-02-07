@@ -1,6 +1,7 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -19,11 +20,12 @@ import { ThemeService } from '../services/theme.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TarefasPendenciasService } from '../services/tarefas-pendencias.service';
+import { LembreteDiario, LembretesDiariosService } from '../services/lembretes-diarios.service';
 
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, FontAwesomeModule],
+  imports: [CommonModule, RouterModule, FontAwesomeModule, FormsModule],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })
@@ -50,6 +52,14 @@ export class LayoutComponent implements OnInit, OnDestroy {
   tarefasAbertas = 0;
   tarefasVencidas = 0;
   private tarefasRefreshId?: ReturnType<typeof setInterval>;
+  lembretesPendentes: LembreteDiario[] = [];
+  lembretesAtrasados: LembreteDiario[] = [];
+  lembretesAbertos = false;
+  lembreteSelecionado: LembreteDiario | null = null;
+  adiarAberto = false;
+  adiarData = '';
+  adiarHora = '';
+  private lembretesRefreshId?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly auth: AuthService,
@@ -57,7 +67,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
     public readonly themeService: ThemeService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly tarefasService: TarefasPendenciasService
+    private readonly tarefasService: TarefasPendenciasService,
+    private readonly lembretesService: LembretesDiariosService
   ) {}
 
   ngOnInit(): void {
@@ -78,6 +89,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.carregarResumoTarefas();
     this.tarefasRefreshId = setInterval(() => {
       this.carregarResumoTarefas();
+    }, 30000);
+
+    this.carregarResumoLembretes();
+    this.lembretesRefreshId = setInterval(() => {
+      this.carregarResumoLembretes();
     }, 30000);
   }
 
@@ -110,6 +126,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
     if (this.tarefasRefreshId) {
       clearInterval(this.tarefasRefreshId);
     }
+    if (this.lembretesRefreshId) {
+      clearInterval(this.lembretesRefreshId);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -124,6 +143,44 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   abrirTarefasVencidas(): void {
     this.router.navigate(['administrativo/tarefas'], { queryParams: { filtro: 'vencidas' } });
+  }
+
+  abrirLembretes(): void {
+    this.lembretesAbertos = true;
+  }
+
+  fecharLembretes(): void {
+    this.lembretesAbertos = false;
+  }
+
+  concluirLembrete(lembrete: LembreteDiario): void {
+    this.lembretesService.concluir(lembrete.id).subscribe({
+      next: () => this.carregarResumoLembretes()
+    });
+  }
+
+  abrirAdiarLembrete(lembrete: LembreteDiario): void {
+    this.lembreteSelecionado = lembrete;
+    this.adiarData = '';
+    this.adiarHora = '09:00';
+    this.adiarAberto = true;
+  }
+
+  fecharAdiarLembrete(): void {
+    this.adiarAberto = false;
+    this.adiarData = '';
+    this.adiarHora = '';
+  }
+
+  confirmarAdiarLembrete(): void {
+    if (!this.lembreteSelecionado || !this.adiarData || !this.adiarHora) return;
+    const dataHora = `${this.adiarData}T${this.adiarHora}:00`;
+    this.lembretesService.adiar(this.lembreteSelecionado.id, { novaDataHora: dataHora }).subscribe({
+      next: () => {
+        this.carregarResumoLembretes();
+        this.fecharAdiarLembrete();
+      }
+    });
   }
 
   private findDeepestChild(route: ActivatedRoute): ActivatedRoute {
@@ -167,7 +224,27 @@ export class LayoutComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  private carregarResumoLembretes(): void {
+    this.lembretesService.listar().subscribe({
+      next: (lembretes: LembreteDiario[]) => {
+        const agora = new Date();
+        const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0);
+        const pendentes = (lembretes ?? []).filter((item: LembreteDiario) => {
+          if (item.status !== 'PENDENTE') return false;
+          const execucao = new Date(item.proximaExecucaoEm);
+          return execucao <= agora;
+        });
+        this.lembretesAtrasados = pendentes.filter((item: LembreteDiario) => {
+          const execucao = new Date(item.proximaExecucaoEm);
+          return execucao < inicioHoje;
+        });
+        this.lembretesPendentes = pendentes;
+      },
+      error: () => {
+        this.lembretesPendentes = [];
+        this.lembretesAtrasados = [];
+      }
+    });
+  }
 }
-
-
-

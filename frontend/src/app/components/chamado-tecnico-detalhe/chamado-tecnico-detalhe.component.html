@@ -9,9 +9,9 @@
   <header class="page-title page-title--row" slot="titulo">
     <div>
       <p class="page-title__eyebrow">Configurações gerais</p>
-      <p class="page-title__label">Chamado tecnico</p>
+      <p class="page-title__label">Chamado técnico</p>
     </div>
-    <p class="page-title__note page-title__note--right">cadastro completo do chamado tecnico.</p>
+    <p class="page-title__note page-title__note--right">Cadastro completo do chamado técnico.</p>
   </header>
 
   <section class="cadastro">
@@ -24,42 +24,46 @@
       </button>
     </div>
 
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informações</p>
-      <ol class="step-tabs" role="tablist">
-        <li
-          class="step-tabs__item"
-          *ngFor="let tab of tabs; index as idx"
-          [class.active]="activeTab === tab.id"
-        >
-          <button
-            type="button"
-            class="step-tabs__button"
-            role="tab"
-            [attr.aria-selected]="activeTab === tab.id"
-            (click)="changeTab(tab.id)"
-          >
-            <span class="step-tabs__index">{{ idx + 1 }}</span>
-            <span class="step-tabs__label">{{ tab.label }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">Chamado técnico</p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              class="step-tabs__item"
+              *ngFor="let tab of tabs; index as idx"
+              [class.active]="activeTab === tab.id"
+            >
+              <button
+                type="button"
+                class="step-tabs__button"
+                role="tab"
+                [attr.aria-selected]="activeTab === tab.id"
+                (click)="changeTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
 
-    <section class="tab-card" *ngIf="activeTab === 'resumo'">
+      <div class="cadastro-conteudo">
+        <section class="tab-card" *ngIf="activeTab === 'resumo'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Resumo do chamado</p>
-          <p class="muted">Preencha os dados principais e detalhe a reproducao.</p>
-          <p class="muted">Envio automatico para: {{ destinoChamado }}</p>
+          <p class="muted">Preencha os dados principais e detalhe a reprodução.</p>
+          <p class="muted">Envio automático para: {{ destinoChamado }}</p>
         </div>
       </div>
       <form [formGroup]="form" class="form-shell">
         <div class="field-grid cols-2">
-          <label class="field full">Titulo*
+          <label class="field full">Título*
             <input type="text" formControlName="titulo" />
           </label>
-          <label class="field full">Descricao*
+          <label class="field full">Descrição*
             <textarea rows="4" formControlName="descricao"></textarea>
           </label>
           <label class="field">Tipo*
@@ -82,11 +86,11 @@
               <option *ngFor="let option of impactoOptions" [value]="option">{{ option }}</option>
             </select>
           </label>
-        <label class="field">Modulo*
+        <label class="field">Módulo*
           <app-autocomplete
             [termo]="moduloTermo"
             [opcoes]="moduloOpcoes"
-            placeholder="Selecione o modulo"
+            placeholder="Selecione o módulo"
             (termoChange)="atualizarTermoModulo($event)"
             (selecionar)="selecionarModulo($event)"
           ></app-autocomplete>
@@ -106,10 +110,10 @@
           <label class="field">Ambiente
             <input type="text" formControlName="ambiente" />
           </label>
-          <label class="field">Versao do sistema
+          <label class="field">Versão do sistema
             <input type="text" formControlName="versao_sistema" />
           </label>
-          <label class="field">Responsavel (ID)
+          <label class="field">Responsável (ID)
             <input type="text" formControlName="responsavel_usuario_id" />
           </label>
           <label class="field">SLA (horas)
@@ -118,8 +122,8 @@
           <label class="field full">Tags
             <input type="text" formControlName="tags" />
           </label>
-          <label class="field full">Passos para reproducao
-            <textarea rows="3" formControlName="passos_reproducao"></textarea>
+          <label class="field full">Passos para reprodução
+            <textarea rows="3" formControlName="passos_reprodução"></textarea>
           </label>
           <label class="field full">Resultado atual
             <textarea rows="3" formControlName="resultado_atual"></textarea>
@@ -127,7 +131,7 @@
           <label class="field full">Resultado esperado
             <textarea rows="3" formControlName="resultado_esperado"></textarea>
           </label>
-        <label class="field full">usuários de teste
+        <label class="field full">Usuários de teste
           <textarea rows="2" formControlName="usuarios_teste"></textarea>
         </label>
       </div>
@@ -136,13 +140,13 @@
         <p class="muted">{{ form.get('resposta_desenvolvedor')?.value }}</p>
       </div>
     </form>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'listagem'">
+        <section class="tab-card" *ngIf="activeTab === 'listagem'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Listagem de chamados abertos</p>
-          <p class="muted">Visao rapida dos chamados em aberto.</p>
+          <p class="muted">Visão rápida dos chamados em aberto.</p>
         </div>
       </div>
       <div class="list-card">
@@ -150,8 +154,8 @@
         <table *ngIf="!carregandoAbertos">
           <thead>
             <tr>
-              <th>código</th>
-              <th>Titulo</th>
+              <th>Código</th>
+              <th>Título</th>
               <th>Cliente</th>
               <th>Prioridade</th>
               <th>Impacto</th>
@@ -175,13 +179,13 @@
           </tbody>
         </table>
       </div>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'historico'">
+        <section class="tab-card" *ngIf="activeTab === 'historico'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Historico</p>
-          <p class="muted">ações registradas no chamado.</p>
+          <p class="tab-card__highlight">Histórico</p>
+          <p class="muted">Ações registradas no chamado.</p>
         </div>
       </div>
       <div class="timeline">
@@ -194,31 +198,31 @@
         </div>
         <p class="muted" *ngIf="!acoes.length">Nenhuma ação registrada.</p>
       </div>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'comentarios'">
+        <section class="tab-card" *ngIf="activeTab === 'comentarios'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Comentarios</p>
-          <p class="muted">Registro de comentarios do chamado.</p>
+          <p class="tab-card__highlight">Comentários</p>
+          <p class="muted">Registro de comentários do chamado.</p>
         </div>
       </div>
       <div class="comment-box">
-        <label class="field">Novo comentario*
+        <label class="field">Novo comentário*
           <textarea rows="3" [(ngModel)]="comentarioTexto" name="comentarioTexto"></textarea>
         </label>
-        <button type="button" class="primary" (click)="adicionarComentario()">Salvar comentario</button>
+        <button type="button" class="primary" (click)="adicionarComentario()">Salvar comentário</button>
       </div>
       <div class="timeline">
         <div class="timeline__item" *ngFor="let comentario of comentarios">
           <p class="timeline__title">{{ comentario.comentario }}</p>
           <p class="timeline__meta">{{ comentario.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
         </div>
-        <p class="muted" *ngIf="!comentarios.length">Nenhum comentario registrado.</p>
+        <p class="muted" *ngIf="!comentarios.length">Nenhum comentário registrado.</p>
       </div>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'anexos'">
+        <section class="tab-card" *ngIf="activeTab === 'anexos'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Anexos</p>
@@ -233,9 +237,9 @@
         </div>
         <p class="muted" *ngIf="!anexos.length">Nenhum anexo registrado.</p>
       </div>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'resposta'">
+        <section class="tab-card" *ngIf="activeTab === 'resposta'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Resposta</p>
@@ -247,9 +251,9 @@
           <textarea rows="6" formControlName="resposta_desenvolvedor"></textarea>
         </label>
       </form>
-    </section>
+        </section>
 
-    <section class="tab-card" *ngIf="activeTab === 'auditoria'">
+        <section class="tab-card" *ngIf="activeTab === 'auditoria'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">Auditoria</p>
@@ -258,7 +262,7 @@
       </div>
       <form [formGroup]="auditoriaFiltro" class="list-panel__filters">
         <label class="field">
-          Data inicio
+          Data início
           <input type="date" formControlName="data_inicio" />
         </label>
         <label class="field">
@@ -295,7 +299,9 @@
         </div>
         <p class="muted" *ngIf="!auditorias.length">Nenhum evento vinculado.</p>
       </div>
-    </section>
+        </section>
+      </div>
+    </div>
   </section>
 </app-tela-padrao>
 

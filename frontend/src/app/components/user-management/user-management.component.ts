@@ -1,19 +1,21 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PermissionPayload, PermissionService } from '../../services/permission.service';
 import { UserPayload, UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss'
 })
 export class UserManagementComponent implements OnInit {
   form: FormGroup;
   users: UserPayload[] = [];
+  usersFiltrados: UserPayload[] = [];
+  filtroUsuarios = '';
   permissoesDisponiveis: PermissionPayload[] = [];
   editingId: number | null = null;
   loading = false;
@@ -40,13 +42,53 @@ export class UserManagementComponent implements OnInit {
   loadUsers(): void {
     this.loading = true;
     this.userService.list().subscribe({
-      next: (users) => (this.users = users),
+      next: (users) => {
+        this.users = users;
+        this.aplicarFiltro();
+      },
       error: (error) => {
         console.error('Erro ao carregar usuários', error);
         this.feedback = { type: 'error', message: 'Não foi possível carregar os usuários.' };
       },
       complete: () => (this.loading = false)
     });
+  }
+
+  aplicarFiltro(): void {
+    const termo = this.filtroUsuarios.trim().toLowerCase();
+    if (!termo) {
+      this.usersFiltrados = [...this.users];
+      return;
+    }
+    this.usersFiltrados = this.users.filter((user) => {
+      const nome = (user.nome ?? user.nomeUsuario ?? '').toLowerCase();
+      const email = (user.email ?? user.nomeUsuario ?? '').toLowerCase();
+      return nome.includes(termo) || email.includes(termo);
+    });
+  }
+
+  buscarUsuarios(): void {
+    this.aplicarFiltro();
+  }
+
+  limparBusca(): void {
+    this.filtroUsuarios = '';
+    this.aplicarFiltro();
+  }
+
+  novoUsuario(): void {
+    this.resetForm();
+  }
+
+  excluirUsuarioSelecionado(): void {
+    if (!this.editingId) {
+      return;
+    }
+    const user = this.users.find((item) => item.id === this.editingId);
+    if (!user) {
+      return;
+    }
+    this.delete(user);
   }
 
   private loadPermissoes(): void {
@@ -90,7 +132,7 @@ export class UserManagementComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.feedback = { type: 'success', message: 'UsuÃ¡rio salvo com sucesso.' };
+        this.feedback = { type: 'success', message: 'Usuário salvo com sucesso.' };
         this.resetForm();
         this.loadUsers();
       },
@@ -120,7 +162,7 @@ export class UserManagementComponent implements OnInit {
 
     this.userService.delete(user.id).subscribe({
       next: () => {
-        this.feedback = { type: 'success', message: 'UsuÃ¡rio removido com sucesso.' };
+        this.feedback = { type: 'success', message: 'Usuário removido com sucesso.' };
         this.loadUsers();
         if (this.editingId === user.id) {
           this.resetForm();
@@ -155,6 +197,7 @@ export class UserManagementComponent implements OnInit {
     return this.form.get('permissoes')?.value ?? [];
   }
 }
+
 
 
 

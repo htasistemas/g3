@@ -190,7 +190,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   onSave(): void {
     if (this.form.invalid) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios antes de salvar.')
+        .adicionar('Preencha os campos obrigatórios antes de salvar.')
         .build();
       return;
     }
@@ -203,7 +203,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
         },
         error: () => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel atualizar o chamado.')
+            .adicionar('Não foi possível atualizar o chamado.')
             .build();
         },
       });
@@ -217,7 +217,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
         },
         error: () => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel criar o chamado.')
+            .adicionar('Não foi possível criar o chamado.')
             .build();
         },
       });
@@ -240,7 +240,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
         },
         error: () => {
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel carregar o chamado.')
+            .adicionar('Não foi possível carregar o chamado.')
             .build();
         },
       });
@@ -249,7 +249,9 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   carregarAbaDados(): void {
     if (!this.chamadoId) return;
     this.service.listarAcoes(this.chamadoId).subscribe((data) => (this.acoes = data));
-    this.service.listarComentarios(this.chamadoId).subscribe((data) => (this.comentarios = data));
+    this.service.listarComentarios(this.chamadoId).subscribe((data: ChamadoTecnicoComentario[]) => {
+      this.comentarios = data;
+    });
     this.service.listarAnexos(this.chamadoId).subscribe((data) => (this.anexos = data));
     this.service
       .listarAuditoriaVinculada(this.chamadoId)
@@ -266,7 +268,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       },
       error: () => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel adicionar o comentario.')
+          .adicionar('Não foi possível adicionar o comentário.')
           .build();
       },
     });
@@ -298,7 +300,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
           },
           error: () => {
             this.popupErros = new PopupErrorBuilder()
-              .adicionar('Nao foi possivel adicionar o anexo.')
+              .adicionar('Não foi possível adicionar o anexo.')
               .build();
           },
         });
@@ -320,7 +322,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       },
       error: () => {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel vincular a auditoria.')
+          .adicionar('Não foi possível vincular a auditoria.')
           .build();
       },
     });
@@ -351,7 +353,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     }
     if (acao.de_responsavel_id || acao.para_responsavel_id) {
       detalhes.push(
-        `Responsavel: ${acao.de_responsavel_id ?? '---'} -> ${acao.para_responsavel_id ?? '---'}`
+        `Responsável: ${acao.de_responsavel_id ?? '---'} -> ${acao.para_responsavel_id ?? '---'}`
       );
     }
     if (acao.criado_por_usuario_id) {
@@ -410,8 +412,8 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     const baseTabs: { id: AbaChamadoTecnico; label: string }[] = [
       { id: 'listagem', label: 'Listagem de chamados' },
       { id: 'resumo', label: 'Resumo' },
-      { id: 'historico', label: 'Historico' },
-      { id: 'comentarios', label: 'Comentarios' },
+      { id: 'historico', label: 'Histórico' },
+      { id: 'comentarios', label: 'Comentários' },
       { id: 'anexos', label: 'Anexos' },
     ];
     if (this.modoTela === 'desenvolvedor') {
@@ -563,7 +565,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
           this.carregouAbertos = true;
         },
         error: () => {
-          this.feedback = 'Nao foi possivel carregar os chamados abertos.';
+          this.feedback = 'Não foi possível carregar os chamados abertos.';
         },
       });
   }
