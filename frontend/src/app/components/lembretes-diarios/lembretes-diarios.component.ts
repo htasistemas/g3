@@ -1,13 +1,17 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { LembreteDiario, LembreteDiarioRequest, LembretesDiariosService } from '../../services/lembretes-diarios.service';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { UserPayload, UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 
 type TabId = 'cadastro' | 'listagem';
 type FiltroStatus = 'pendentesHoje' | 'atrasados' | 'agendados' | 'concluidos' | 'todos';
@@ -15,7 +19,7 @@ type FiltroStatus = 'pendentesHoje' | 'atrasados' | 'agendados' | 'concluidos' |
 @Component({
   selector: 'app-lembretes-diarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent, DialogComponent],
   templateUrl: './lembretes-diarios.component.html',
   styleUrl: './lembretes-diarios.component.scss'
 })
@@ -32,6 +36,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   lembretes: LembreteDiario[] = [];
   lembretesFiltrados: LembreteDiario[] = [];
   selecionado: LembreteDiario | null = null;
+  usuarios: UserPayload[] = [];
   totalPendentesHoje = 0;
   totalAtrasados = 0;
   totalAgendados = 0;
@@ -41,6 +46,11 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   popupTitulo = 'Aviso';
   salvando = false;
   carregando = false;
+  dialogConfirmacaoAberta = false;
+  dialogTitulo = 'Confirmação';
+  dialogMensagem = 'Deseja continuar?';
+  dialogConfirmarLabel = 'Confirmar';
+  dialogAcao?: () => void;
 
   adiarAberto = false;
   adiarData = '';
@@ -59,19 +69,44 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly service: LembretesDiariosService
+    private readonly service: LembretesDiariosService,
+    private readonly serviceUsuarios: UserService,
+    private readonly auth: AuthService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
   ) {
     super();
     this.form = this.fb.group({
       titulo: ['', [Validators.required, Validators.minLength(3)]],
       descricao: [''],
       dataInicial: ['', Validators.required],
+      usuarioId: [null],
+      todosUsuarios: [false],
       horaAviso: ['09:00']
     });
   }
 
   ngOnInit(): void {
+    this.carregarUsuarios();
     this.carregar();
+    this.form.get('todosUsuarios')?.valueChanges.subscribe((todos) => {
+      const usuarioControl = this.form.get('usuarioId');
+      if (todos) {
+        usuarioControl?.disable({ emitEvent: false });
+        usuarioControl?.setValue(null, { emitEvent: false });
+      } else {
+        usuarioControl?.enable({ emitEvent: false });
+        if (!usuarioControl?.value) {
+          usuarioControl?.setValue(this.usuarioPadraoId(), { emitEvent: false });
+        }
+      }
+    });
+    this.route.queryParamMap.subscribe((params) => {
+      const aba = params.get('aba');
+      if (aba === 'listagem') {
+        this.changeTab('listagem');
+      }
+    });
   }
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -95,6 +130,11 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
 
   onBuscar(): void {
     this.changeTab('listagem');
+    this.carregar();
+  }
+
+  onFechar(): void {
+    this.router.navigate(['/dashboard/visao-geral']);
   }
 
   startNew(): void {
@@ -102,7 +142,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   }
 
   resetForm(): void {
-    this.form.reset({ titulo: '', descricao: '', dataInicial: '', horaAviso: '09:00' });
+    this.form.reset({ titulo: '', descricao: '', dataInicial: '', horaAviso: '09:00', usuarioId: this.usuarioPadraoId(), todosUsuarios: false });
     this.selecionado = null;
     this.editingId = null;
     this.popupErros = [];
@@ -124,8 +164,18 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
       titulo: this.form.value.titulo,
       descricao: this.form.value.descricao,
       dataInicial: this.form.value.dataInicial,
+      usuarioId: this.form.value.todosUsuarios ? null : this.form.value.usuarioId,
+      todosUsuarios: this.form.value.todosUsuarios,
       horaAviso: this.form.value.horaAviso
     };
+
+    if (!payload.todosUsuarios && !payload.usuarioId) {
+      this.popupTitulo = 'Campos obrigatórios';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione um usuário ou marque a opção para todos.')
+        .build();
+      return;
+    }
 
     this.salvando = true;
     const request$ = this.editingId
@@ -136,7 +186,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
       next: () => {
         this.popupTitulo = 'Sucesso';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar(this.editingId ? 'Lembrete atualizado com sucesso.' : 'Lembrete cadastrado com sucesso.')
+          .adicionar('Lembrete salvo com sucesso.')
           .build();
         this.carregar();
         this.resetForm();
@@ -160,43 +210,30 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
       titulo: lembrete.titulo,
       descricao: lembrete.descricao ?? '',
       dataInicial: lembrete.dataInicial,
-      horaAviso: lembrete.horaAviso ?? '09:00'
+      horaAviso: lembrete.horaAviso ?? '09:00',
+      usuarioId: lembrete.usuarioId,
+      todosUsuarios: lembrete.todosUsuarios ?? false
     });
     this.changeTab('cadastro');
   }
 
   excluirSelecionado(): void {
     if (!this.editingId) return;
-    if (!confirm('Deseja realmente excluir este lembrete?')) {
-      return;
-    }
-    this.service.excluir(this.editingId).subscribe({
-      next: () => {
-        this.popupTitulo = 'Sucesso';
-        this.popupErros = new PopupErrorBuilder()
-          .adicionar('Lembrete excluído com sucesso.')
-          .build();
-        this.carregar();
-        this.resetForm();
-      },
-      error: () => {
-        this.popupTitulo = 'Erro ao excluir';
-        this.popupErros = new PopupErrorBuilder()
-          .adicionar('Não foi possível excluir o lembrete.')
-          .build();
-      }
-    });
+    this.abrirDialogoConfirmacao(
+      'Excluir lembrete',
+      'Deseja realmente excluir este lembrete?',
+      'Excluir',
+      () => this.executarExclusao(this.editingId as number)
+    );
   }
 
   excluirItem(lembrete: LembreteDiario): void {
-    if (!confirm(`Deseja realmente excluir o lembrete "${lembrete.titulo}"?`)) {
-      return;
-    }
-    this.service.excluir(lembrete.id).subscribe({
-      next: () => {
-        this.carregar();
-      }
-    });
+    this.abrirDialogoConfirmacao(
+      'Excluir lembrete',
+      `Deseja realmente excluir o lembrete "${lembrete.titulo}"?`,
+      'Excluir',
+      () => this.executarExclusao(lembrete.id)
+    );
   }
 
   concluir(lembrete: LembreteDiario): void {
@@ -280,6 +317,33 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
     });
   }
 
+  selecionarFiltro(filtro: FiltroStatus): void {
+    this.filtroStatus = filtro;
+    this.aplicarFiltro();
+  }
+
+  private carregarUsuarios(): void {
+    this.serviceUsuarios.list().subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios ?? [];
+        const usuarioPadrao = this.usuarioPadraoId();
+        if (usuarioPadrao) {
+          this.form.patchValue({ usuarioId: usuarioPadrao });
+        }
+      },
+      error: () => {
+        this.usuarios = [];
+      }
+    });
+  }
+
+  private usuarioPadraoId(): number | null {
+    const usuario = this.auth.user();
+    if (!usuario?.id) return null;
+    const id = Number(usuario.id);
+    return Number.isNaN(id) ? null : id;
+  }
+
   private carregar(): void {
     this.carregando = true;
     this.service.listar().subscribe({
@@ -300,4 +364,55 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
       }
     });
   }
+
+  private executarExclusao(id: number): void {
+    this.service.excluir(id).subscribe({
+      next: () => {
+        this.popupTitulo = 'Sucesso';
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Lembrete excluído com sucesso.')
+          .build();
+        this.carregar();
+        this.resetForm();
+      },
+      error: () => {
+        this.popupTitulo = 'Erro ao excluir';
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível excluir o lembrete.')
+          .build();
+      }
+    });
+  }
+
+  private abrirDialogoConfirmacao(
+    titulo: string,
+    mensagem: string,
+    confirmarLabel: string,
+    acao: () => void
+  ): void {
+    this.dialogTitulo = titulo;
+    this.dialogMensagem = mensagem;
+    this.dialogConfirmarLabel = confirmarLabel;
+    this.dialogAcao = acao;
+    this.dialogConfirmacaoAberta = true;
+  }
+
+  confirmarDialogo(): void {
+    const acao = this.dialogAcao;
+    this.dialogConfirmacaoAberta = false;
+    this.dialogAcao = undefined;
+    acao?.();
+  }
+
+  cancelarDialogo(): void {
+    this.dialogConfirmacaoAberta = false;
+    this.dialogAcao = undefined;
+  }
 }
+
+
+
+
+
+
+

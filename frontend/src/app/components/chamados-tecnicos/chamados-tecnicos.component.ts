@@ -17,6 +17,7 @@ import {
   ChamadoTipo,
 } from '../../services/chamado-tecnico.service';
 import { AuthService } from '../../services/auth.service';
+import { ChamadoTecnicoKanbanComponent } from '../chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 
 @Component({
   selector: 'app-chamados-tecnicos',
@@ -29,7 +30,8 @@ import { AuthService } from '../../services/auth.service';
     RouterModule,
     FontAwesomeModule,
     TelaPadraoComponent,
-    PopupMessagesComponent
+    PopupMessagesComponent,
+    ChamadoTecnicoKanbanComponent
   ],
 })
 export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
@@ -52,7 +54,7 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   popupErros: string[] = [];
   modoTela: 'usuario' | 'desenvolvedor' = 'usuario';
   readonly faHeadset = faHeadset;
-  abaAtiva: 'listagem' | 'resumo' | 'historico' | 'comentarios' | 'anexos' = 'listagem';
+  abaAtiva: 'listagem' | 'kanban' | 'resumo' | 'historico' | 'comentarios' | 'anexos' = 'listagem';
   abaStatusAtiva: ChamadoStatus = 'ABERTO';
   abasStatus: { id: ChamadoStatus; label: string }[] = [
     { id: 'ABERTO', label: 'Abertos' },
@@ -126,13 +128,13 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     this.listar();
   }
 
-  selecionarAba(aba: 'listagem' | 'resumo' | 'historico' | 'comentarios' | 'anexos'): void {
+  selecionarAba(aba: 'listagem' | 'kanban' | 'resumo' | 'historico' | 'comentarios' | 'anexos'): void {
     this.abaAtiva = aba;
   }
 
   onNovo(): void {
     if (this.modoTela === 'desenvolvedor') {
-      this.router.navigate(['/configuracoes/chamados-tecnicos']);
+      this.router.navigate(['/configuracoes/chamados-tecnicos-dev/novo']);
       return;
     }
     this.router.navigate(['/configuracoes/chamados-tecnicos/novo']);

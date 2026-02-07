@@ -121,6 +121,28 @@
   color: #1f2937;
 }
 
+.status-tabs .status-tabs__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  padding: 0.1rem 0;
+}
+
+.status-tabs .status-tabs__list .step-tabs__button {
+  min-height: 32px;
+  padding: 0.2rem 0.4rem;
+  border-radius: 7px;
+  font-size: 0.75rem;
+}
+
+.status-tabs .status-tabs__list .step-tabs__label {
+  font-size: 0.75rem;
+}
+
+.status-tabs .status-tabs__list .step-tabs__item::after {
+  content: none;
+}
+
 .tab-shell {
   background: #fff;
   border-radius: 14px;

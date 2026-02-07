@@ -9,6 +9,8 @@ public class LembreteDiarioResponse {
   private String titulo;
   private String descricao;
   private LocalDate dataInicial;
+  private Long usuarioId;
+  private boolean todosUsuarios;
   private String recorrencia;
   private LocalTime horaAviso;
   private String status;
@@ -23,6 +25,8 @@ public class LembreteDiarioResponse {
       String titulo,
       String descricao,
       LocalDate dataInicial,
+      Long usuarioId,
+      boolean todosUsuarios,
       String recorrencia,
       LocalTime horaAviso,
       String status,
@@ -35,6 +39,8 @@ public class LembreteDiarioResponse {
     this.titulo = titulo;
     this.descricao = descricao;
     this.dataInicial = dataInicial;
+    this.usuarioId = usuarioId;
+    this.todosUsuarios = todosUsuarios;
     this.recorrencia = recorrencia;
     this.horaAviso = horaAviso;
     this.status = status;
@@ -59,6 +65,14 @@ public class LembreteDiarioResponse {
 
   public LocalDate getDataInicial() {
     return dataInicial;
+  }
+
+  public Long getUsuarioId() {
+    return usuarioId;
+  }
+
+  public boolean isTodosUsuarios() {
+    return todosUsuarios;
   }
 
   public String getRecorrencia() {

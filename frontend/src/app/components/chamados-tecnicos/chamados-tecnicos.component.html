@@ -38,6 +38,18 @@
                 <span class="step-tabs__label">Resumo</span>
               </button>
             </li>
+            <li class="step-tabs__item" [class.active]="abaAtiva === 'kanban'">
+              <button
+                type="button"
+                class="step-tabs__button"
+                role="tab"
+                [attr.aria-selected]="abaAtiva === 'kanban'"
+                (click)="selecionarAba('kanban')"
+              >
+                <span class="step-tabs__index">3</span>
+                <span class="step-tabs__label">Kanban</span>
+              </button>
+            </li>
             <li class="step-tabs__item" [class.active]="abaAtiva === 'historico'">
               <button
                 type="button"
@@ -46,7 +58,7 @@
                 [attr.aria-selected]="abaAtiva === 'historico'"
                 (click)="selecionarAba('historico')"
               >
-                <span class="step-tabs__index">3</span>
+                <span class="step-tabs__index">4</span>
                 <span class="step-tabs__label">Histórico</span>
               </button>
             </li>
@@ -58,7 +70,7 @@
                 [attr.aria-selected]="abaAtiva === 'comentarios'"
                 (click)="selecionarAba('comentarios')"
               >
-                <span class="step-tabs__index">4</span>
+                <span class="step-tabs__index">5</span>
                 <span class="step-tabs__label">Comentários</span>
               </button>
             </li>
@@ -70,7 +82,7 @@
                 [attr.aria-selected]="abaAtiva === 'anexos'"
                 (click)="selecionarAba('anexos')"
               >
-                <span class="step-tabs__index">5</span>
+                <span class="step-tabs__index">6</span>
                 <span class="step-tabs__label">Anexos</span>
               </button>
             </li>
@@ -95,7 +107,7 @@
 
           <div class="status-tabs">
             <p class="status-tabs__title">Status dos chamados</p>
-            <ol class="step-tabs" role="tablist">
+            <ol class="step-tabs status-tabs__list" role="tablist">
               <li
                 class="step-tabs__item"
                 *ngFor="let aba of abasStatus"
@@ -246,6 +258,16 @@
           </div>
           <div class="tab-card__divider"></div>
           <p class="muted">Selecione um chamado para visualizar o resumo.</p>
+        </section>
+
+        <section class="list-panel" *ngIf="abaAtiva === 'kanban'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Kanban</p>
+            </div>
+          </div>
+          <div class="tab-card__divider"></div>
+          <app-chamado-tecnico-kanban></app-chamado-tecnico-kanban>
         </section>
 
         <section class="list-panel" *ngIf="abaAtiva === 'historico'">

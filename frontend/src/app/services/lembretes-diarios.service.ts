@@ -8,6 +8,8 @@ export interface LembreteDiario {
   titulo: string;
   descricao?: string;
   dataInicial: string;
+  usuarioId: number;
+  todosUsuarios?: boolean;
   recorrencia: string;
   horaAviso?: string;
   status: 'PENDENTE' | 'CONCLUIDO';
@@ -22,6 +24,8 @@ export interface LembreteDiarioRequest {
   titulo: string;
   descricao?: string;
   dataInicial: string;
+  usuarioId: number | null;
+  todosUsuarios?: boolean;
   horaAviso?: string | null;
 }
 
@@ -35,8 +39,9 @@ export class LembretesDiariosService {
 
   constructor(private readonly http: HttpClient) {}
 
-  listar(): Observable<LembreteDiario[]> {
-    return this.http.get<LembreteDiario[]>(this.baseUrl);
+  listar(usuarioId?: number): Observable<LembreteDiario[]> {
+    const params = usuarioId ? { usuario_id: String(usuarioId) } : undefined;
+    return this.http.get<LembreteDiario[]>(this.baseUrl, { params });
   }
 
   criar(payload: LembreteDiarioRequest): Observable<LembreteDiario> {

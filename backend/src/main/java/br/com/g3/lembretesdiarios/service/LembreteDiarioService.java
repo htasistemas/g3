@@ -6,7 +6,7 @@ import br.com.g3.lembretesdiarios.dto.LembreteDiarioResponse;
 import java.util.List;
 
 public interface LembreteDiarioService {
-  List<LembreteDiarioResponse> listar();
+  List<LembreteDiarioResponse> listar(Long usuarioId);
 
   LembreteDiarioResponse criar(LembreteDiarioRequest request);
 

@@ -23,6 +23,12 @@ public class LembreteDiario {
   @Column(name = "descricao")
   private String descricao;
 
+  @Column(name = "usuario_id")
+  private Long usuarioId;
+
+  @Column(name = "todos_usuarios", nullable = false)
+  private boolean todosUsuarios;
+
   @Column(name = "data_inicial", nullable = false)
   private LocalDate dataInicial;
 
@@ -75,6 +81,22 @@ public class LembreteDiario {
 
   public void setDescricao(String descricao) {
     this.descricao = descricao;
+  }
+
+  public Long getUsuarioId() {
+    return usuarioId;
+  }
+
+  public void setUsuarioId(Long usuarioId) {
+    this.usuarioId = usuarioId;
+  }
+
+  public boolean isTodosUsuarios() {
+    return todosUsuarios;
+  }
+
+  public void setTodosUsuarios(boolean todosUsuarios) {
+    this.todosUsuarios = todosUsuarios;
   }
 
   public LocalDate getDataInicial() {

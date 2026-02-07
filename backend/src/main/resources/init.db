@@ -185,12 +185,14 @@ CREATE TABLE IF NOT EXISTS historico_versao_sistema (
 );
 
 CREATE TABLE IF NOT EXISTS lembretes_diarios (
-  id BIGSERIAL PRIMARY KEY,
-  titulo VARCHAR(200) NOT NULL,
-  descricao TEXT,
-  data_inicial DATE NOT NULL,
-  recorrencia VARCHAR(20) NOT NULL,
-  hora_aviso TIME,
+    id BIGSERIAL PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    descricao TEXT,
+    usuario_id BIGINT,
+    todos_usuarios BOOLEAN NOT NULL DEFAULT FALSE,
+    data_inicial DATE NOT NULL,
+    recorrencia VARCHAR(20) NOT NULL,
+    hora_aviso TIME,
   status VARCHAR(20) NOT NULL,
   proxima_execucao_em TIMESTAMP NOT NULL,
   adiado_ate TIMESTAMP,
@@ -1057,6 +1059,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
   );
+
+ALTER TABLE lembretes_diarios
+    ADD COLUMN IF NOT EXISTS usuario_id BIGINT;
+
+ALTER TABLE lembretes_diarios
+    ADD COLUMN IF NOT EXISTS todos_usuarios BOOLEAN NOT NULL DEFAULT FALSE;
 
 ALTER TABLE usuarios
   ADD COLUMN IF NOT EXISTS nome VARCHAR(150);

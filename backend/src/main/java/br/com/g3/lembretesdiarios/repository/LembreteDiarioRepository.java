@@ -6,6 +6,7 @@ import java.util.Optional;
 
 public interface LembreteDiarioRepository {
   List<LembreteDiario> listarAtivos();
+  List<LembreteDiario> listarAtivosPorUsuario(Long usuarioId);
 
   Optional<LembreteDiario> buscarPorIdAtivo(Long id);
 

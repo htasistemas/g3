@@ -146,7 +146,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   abrirLembretes(): void {
-    this.lembretesAbertos = true;
+    this.router.navigate(['administrativo/lembretes-diarios']);
+  }
+
+  abrirLembretesDiarios(): void {
+    this.router.navigate(['administrativo/lembretes-diarios'], { queryParams: { aba: 'listagem' } });
   }
 
   fecharLembretes(): void {
@@ -226,7 +230,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   private carregarResumoLembretes(): void {
-    this.lembretesService.listar().subscribe({
+    const usuarioId = this.usuarioIdAtual();
+    this.lembretesService.listar(usuarioId ?? undefined).subscribe({
       next: (lembretes: LembreteDiario[]) => {
         const agora = new Date();
         const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0);
@@ -246,5 +251,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
         this.lembretesAtrasados = [];
       }
     });
+  }
+
+  private usuarioIdAtual(): number | null {
+    const usuario = this.auth.user();
+    if (!usuario?.id) return null;
+    const id = Number(usuario.id);
+    return Number.isNaN(id) ? null : id;
   }
 }

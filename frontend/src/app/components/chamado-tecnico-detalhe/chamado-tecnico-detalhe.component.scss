@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 40%, #f7fafc 100%);
   min-height: 100vh;
@@ -53,19 +53,7 @@
   margin: 0 0 0.35rem;
   font-weight: 600;
   color: #2b3648;
-}
-
-.tab-shell__title--destaque {
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #0f7a43;
-  text-transform: uppercase;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
+  background: transparent;
 }
 
 .step-tabs {
@@ -338,5 +326,24 @@
   color: #64748b;
   font-size: 0.85rem;
 }
+
+.tab-shell__title--destaque {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #0f7a43;
+  text-transform: uppercase;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: transparent;
+}
+
+
+
+
+
 
 

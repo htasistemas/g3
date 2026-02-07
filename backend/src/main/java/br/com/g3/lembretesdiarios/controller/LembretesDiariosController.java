@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,8 +27,8 @@ public class LembretesDiariosController {
   }
 
   @GetMapping
-  public List<LembreteDiarioResponse> listar() {
-    return service.listar();
+  public List<LembreteDiarioResponse> listar(@RequestParam(name = "usuario_id", required = false) Long usuarioId) {
+    return service.listar(usuarioId);
   }
 
   @PostMapping
@@ -37,25 +38,25 @@ public class LembretesDiariosController {
 
   @PutMapping("/{id}")
   public LembreteDiarioResponse atualizar(
-      @PathVariable Long id,
+      @PathVariable("id") Long id,
       @Valid @RequestBody LembreteDiarioRequest request) {
     return service.atualizar(id, request);
   }
 
   @PatchMapping("/{id}/concluir")
-  public LembreteDiarioResponse concluir(@PathVariable Long id) {
+  public LembreteDiarioResponse concluir(@PathVariable("id") Long id) {
     return service.concluir(id);
   }
 
   @PatchMapping("/{id}/adiar")
   public LembreteDiarioResponse adiar(
-      @PathVariable Long id,
+      @PathVariable("id") Long id,
       @Valid @RequestBody LembreteDiarioAdiarRequest request) {
     return service.adiar(id, request);
   }
 
   @DeleteMapping("/{id}")
-  public void excluir(@PathVariable Long id) {
+  public void excluir(@PathVariable("id") Long id) {
     service.excluir(id);
   }
 }

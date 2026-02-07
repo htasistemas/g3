@@ -20,6 +20,11 @@ public class LembreteDiarioRepositoryImpl implements LembreteDiarioRepository {
   }
 
   @Override
+  public List<LembreteDiario> listarAtivosPorUsuario(Long usuarioId) {
+    return jpaRepository.listarPorUsuarioOuTodos(usuarioId);
+  }
+
+  @Override
   public Optional<LembreteDiario> buscarPorIdAtivo(Long id) {
     return jpaRepository.findByIdAndDeletadoEmIsNull(id);
   }

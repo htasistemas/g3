@@ -31,8 +31,9 @@ public class LembreteDiarioServiceImpl implements LembreteDiarioService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<LembreteDiarioResponse> listar() {
-    List<LembreteDiario> lembretes = repository.listarAtivos();
+  public List<LembreteDiarioResponse> listar(Long usuarioId) {
+    List<LembreteDiario> lembretes =
+        usuarioId == null ? repository.listarAtivos() : repository.listarAtivosPorUsuario(usuarioId);
     return lembretes.stream().map(this::toResponse).collect(Collectors.toList());
   }
 
@@ -110,6 +111,8 @@ public class LembreteDiarioServiceImpl implements LembreteDiarioService {
     lembrete.setTitulo(request.getTitulo().trim());
     lembrete.setDescricao(request.getDescricao() == null ? null : request.getDescricao().trim());
     lembrete.setDataInicial(request.getDataInicial());
+    lembrete.setUsuarioId(request.getUsuarioId());
+    lembrete.setTodosUsuarios(Boolean.TRUE.equals(request.getTodosUsuarios()));
     LocalTime hora = request.getHoraAviso() == null ? HORA_AVISO_PADRAO : request.getHoraAviso();
     lembrete.setHoraAviso(hora);
   }
@@ -133,6 +136,8 @@ public class LembreteDiarioServiceImpl implements LembreteDiarioService {
         lembrete.getTitulo(),
         lembrete.getDescricao(),
         lembrete.getDataInicial(),
+        lembrete.getUsuarioId(),
+        lembrete.isTodosUsuarios(),
         lembrete.getRecorrencia(),
         lembrete.getHoraAviso(),
         lembrete.getStatus(),

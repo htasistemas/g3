@@ -14,6 +14,10 @@ public class LembreteDiarioRequest {
   @NotNull(message = "Data inicial e obrigatoria")
   private LocalDate dataInicial;
 
+  private Long usuarioId;
+
+  private Boolean todosUsuarios;
+
   private LocalTime horaAviso;
 
   public String getTitulo() {
@@ -38,6 +42,22 @@ public class LembreteDiarioRequest {
 
   public void setDataInicial(LocalDate dataInicial) {
     this.dataInicial = dataInicial;
+  }
+
+  public Long getUsuarioId() {
+    return usuarioId;
+  }
+
+  public void setUsuarioId(Long usuarioId) {
+    this.usuarioId = usuarioId;
+  }
+
+  public Boolean getTodosUsuarios() {
+    return todosUsuarios;
+  }
+
+  public void setTodosUsuarios(Boolean todosUsuarios) {
+    this.todosUsuarios = todosUsuarios;
   }
 
   public LocalTime getHoraAviso() {
