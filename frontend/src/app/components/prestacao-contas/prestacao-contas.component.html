@@ -2,6 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="salvar()"
   (excluir)="excluir()"
   (novo)="novo()"
@@ -10,51 +11,52 @@
   (buscar)="onBuscar()"
   (fechar)="fechar()"
 >
-  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-      <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
-      <p class="page-title__label">Prestação de Contas</p>
-    </div>
-    <p class="page-title__note">Transparencia de recursos e destino das doações.</p>
-  </header>
-
+    
   <section class="cadastro">
-    <div class="page-actions">
-      <button class="ghost" type="button">
-        <fa-icon [icon]="faHandHoldingHeart"></fa-icon>
-        Publicar resumo aos doadores
-      </button>
-      <button class="ghost" type="button">
-        <fa-icon [icon]="faShareNodes"></fa-icon>
-        Compartilhar evidencias
-      </button>
-    </div>
-
-    <div class="tab-shell">
-      <p class="tab-shell__title">Navegue pelas informações</p>
-      <ol class="step-tabs" role="tablist">
-        <li
-          *ngFor="let tab of tabs; index as idx"
-          class="step-tabs__item"
-          [class.active]="activeTab === tab.id"
-          [class.completed]="idx < activeTabIndex"
-        >
-          <button
-            class="step-tabs__button"
-            type="button"
-            role="tab"
-            [attr.aria-selected]="activeTab === tab.id"
-            (click)="changeTab(tab.id)"
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faReceipt" class="tab-shell__icon"></fa-icon>
+          Prestação de Contas
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
           >
-            <span class="step-tabs__index">{{ idx + 1 }}</span>
-            <span class="step-tabs__label">{{ tab.label }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-    <form [formGroup]="form" class="form-shell">
+    <div class="cadastro-conteudo">
+      <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+
+      <div class="page-actions">
+        <button class="ghost" type="button">
+          <fa-icon [icon]="faHandHoldingHeart"></fa-icon>
+          Publicar resumo aos doadores
+        </button>
+        <button class="ghost" type="button">
+          <fa-icon [icon]="faShareNodes"></fa-icon>
+          Compartilhar evidências
+        </button>
+      </div>
+
+<form [formGroup]="form" class="form-shell">
       <div class="tab-card" *ngIf="activeTab === 'resumo'" formGroupName="resumo">
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
@@ -125,7 +127,7 @@
           </article>
           <article class="summary-card">
             <div class="summary-card__header">
-              <p class="summary-card__label">Prestado no mes</p>
+              <p class="summary-card__label">Prestado no mês</p>
             </div>
             <input
               class="summary-input"
@@ -159,7 +161,7 @@
             <header class="panel__header">
               <div>
                 <p class="panel__eyebrow">Doações recebidas</p>
-                <p class="panel__title">Fontes e recorrencia</p>
+                <p class="panel__title">Fontes e recorrência</p>
               </div>
               <button class="ghost" type="button" (click)="addRecebimento()">
                 <fa-icon [icon]="faCloudArrowUp"></fa-icon>
@@ -235,7 +237,7 @@
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
             <p class="muted">{{ activeTabHelper }}</p>
           </div>
-          <span class="pill">Evidencias</span>
+          <span class="pill">Evidências</span>
         </div>
 
         <div class="panel-grid three-cols">
@@ -271,7 +273,7 @@
           <article class="panel" formArrayName="comprovantes">
             <header class="panel__header">
               <div>
-                <p class="panel__eyebrow">Comprovantes e evidencias</p>
+                <p class="panel__eyebrow">Comprovantes e evidências</p>
                 <p class="panel__title">Arquivos prontos para auditoria</p>
               </div>
               <button class="ghost" type="button" (click)="addComprovante()">
@@ -334,15 +336,15 @@
         <div class="tab-card__header">
           <div class="tab-card__title-stack">
             <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-            <p class="muted">Acompanhe os registros salvos e edite quando necessario.</p>
+            <p class="muted">Acompanhe os registros salvos e edite quando necessário.</p>
           </div>
           <button class="ghost" type="button" (click)="novo()">Novo registro</button>
         </div>
         <div class="list-card">
           <div class="list-card__header">
             <div>
-              <p class="page-title__eyebrow">Registros de transparencia</p>
-              <p class="page-title__label">Historico</p>
+              <p class="page-title__eyebrow">Registros de transparência</p>
+              <p class="page-title__label">Histórico</p>
             </div>
           </div>
           <div class="table-wrapper">
@@ -353,7 +355,7 @@
                   <th>Total recebido</th>
                   <th>Total aplicado</th>
                   <th>Saldo</th>
-                  <th>Prestado no mes</th>
+                  <th>Prestado no mês</th>
                   <th>ações</th>
                 </tr>
               </thead>
@@ -362,7 +364,7 @@
                   <td>{{ registro.id }}</td>
                   <td>{{ formatCurrency(registro.totalRecebido) }}</td>
                   <td>{{ formatCurrency(registro.totalAplicado) }}</td>
-                  <td>{{ formatCurrency(registro.saldoDisponivel) }}</td>
+          <td>{{ formatCurrency(registro.saldoDisponivel) }}</td>
                   <td>{{ formatCurrency(registro.prestadoMes) }}</td>
                   <td class="row-actions">
                     <button class="ghost" type="button" (click)="editarRegistro(registro)">Editar</button>
@@ -379,6 +381,8 @@
         </div>
       </div>
     </form>
+    </div>
+  </div>
   </section>
 </app-tela-padrao>
 

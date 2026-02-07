@@ -25,6 +25,7 @@ import {
   faArrowTrendUp,
   faBell,
   faChartLine,
+  faCalculator,
   faCircleCheck,
   faCircleDot,
   faCircleExclamation,
@@ -79,6 +80,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   readonly faCircleDot = faCircleDot;
   readonly faMoneyBillTransfer = faMoneyBillTransfer;
   readonly faChartLine = faChartLine;
+  readonly faCalculator = faCalculator;
   readonly faWallet = faWallet;
   readonly faPiggyBank = faPiggyBank;
   readonly faArrowTrendUp = faArrowTrendUp;
@@ -96,7 +98,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   popupErros: string[] = [];
   private popupTimeout?: ReturnType<typeof setTimeout>;
   dialogConfirmacaoAberta = false;
-  dialogTitulo = 'Confirmar acao';
+  dialogTitulo = 'Confirmar ação';
   dialogMensagem = 'Deseja continuar?';
   dialogConfirmarLabel = 'Confirmar';
   dialogCancelarLabel = 'Cancelar';
@@ -105,22 +107,22 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   tabs: FinanceTab[] = [
     {
       id: 'visao-geral',
-      label: 'Visao geral financeira',
+      label: 'Visão geral financeira',
       badge: ''
     },
     {
       id: 'movimentacoes',
-      label: 'Movimentacoes',
+      label: 'Movimentações',
       badge: ''
     },
     {
       id: 'contas',
-      label: 'Contas bancarias',
+      label: 'Contas bancárias',
       badge: ''
     },
     {
       id: 'lancamentos',
-      label: 'Lancamentos',
+      label: 'Lançamentos',
       badge: ''
     },
     {
@@ -130,7 +132,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     },
     {
       id: 'relatorios',
-      label: 'Relatorios e documentos',
+      label: 'Relatórios e documentos',
       badge: ''
     }
   ];

@@ -2,6 +2,7 @@
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="onSalvar()"
   (excluir)="onExcluir()"
   (novo)="onNovo()"
@@ -10,45 +11,42 @@
   (buscar)="onBuscar()"
   (fechar)="onFechar()"
 >
-<header class="page-title page-title--row" slot="titulo">
-  <div>
-    <p class="page-title__eyebrow">SETOR FINANCEIRO</p>
-    <p class="page-title__label">Contabilidade</p>
-  </div>
-  <p class="page-title__note">Gestao de contas a pagar, receber e movimentações.</p>
-</header>
 
-  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+    <section class="cadastro">
+  <div class="cadastro-layout">
+    <aside class="cadastro-menu">
+      <div class="tab-shell">
+        <p class="tab-shell__title tab-shell__title--destaque">
+          <fa-icon [icon]="faCalculator" class="tab-shell__icon"></fa-icon>
+          Contabilidade
+        </p>
+        <ol class="step-tabs" role="tablist">
+          <li
+            *ngFor="let tab of tabs; index as idx"
+            class="step-tabs__item"
+            [class.active]="activeTab === tab.id"
+            [class.completed]="idx < activeTabIndex"
+          >
+            <button
+              class="step-tabs__button"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeTab === tab.id"
+              (click)="changeTab(tab.id)"
+            >
+              <span class="step-tabs__index">{{ idx + 1 }}</span>
+              <span class="step-tabs__label">{{ tab.label }}</span>
+              <span *ngIf="tab.badge" class="pill pill--ghost">{{ tab.badge }}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
+    </aside>
 
-  <section class="cadastro">
-  <div class="tab-shell">
-    <p class="tab-shell__title">Navegue pelas visões financeiras</p>
-    <ol class="step-tabs" role="tablist">
-      <li
-        *ngFor="let tab of tabs; index as idx"
-        class="step-tabs__item"
-        [class.active]="activeTab === tab.id"
-        [class.completed]="idx < activeTabIndex"
-      >
-        <button
-          class="step-tabs__button"
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab === tab.id"
-          (click)="changeTab(tab.id)"
-        >
-          <span class="step-tabs__index">{{ idx + 1 }}</span>
-          <span class="step-tabs__label">
-            {{ tab.label }}
-            
-          </span>
-          <span *ngIf="tab.badge" class="pill pill--ghost">{{ tab.badge }}</span>
-        </button>
-      </li>
-    </ol>
-  </div>
+    <div class="cadastro-conteudo">
+      <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 
-  <div class="tab-card" *ngIf="activeTab === 'visao-geral'">
+<div class="tab-card" *ngIf="activeTab === 'visao-geral'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Resumo financeiro</p>
@@ -105,7 +103,7 @@
             </select>
           </label>
           <label class="form-field form-field--wide">
-            <span>Descricao *</span>
+            <span>Descrição *</span>
             <input
               type="text"
               class="input"
@@ -386,7 +384,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Referencia legal</span>
+            <span>Referência legal</span>
             <input
               type="text"
               class="input"
@@ -397,7 +395,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Previsao de recebimento *</span>
+            <span>Previsão de recebimento *</span>
             <input
               type="date"
               class="input"
@@ -421,7 +419,7 @@
             />
           </label>
           <label class="form-field">
-            <span>Antecedencia do alerta (dias) *</span>
+            <span>Antecedência do alerta (dias) *</span>
             <input
               type="number"
               class="input"
@@ -471,8 +469,8 @@
           <li *ngFor="let amendment of emendasFiltradas">
             <div>
               <p class="strong">{{ amendment.identificacao }}</p>
-              <p class="muted">{{ amendment.referenciaLegal || 'Sem referencia' }} - {{ formatDate(amendment.dataPrevista) }}</p>
-              <p class="muted">{{ amendment.observacoes || 'Sem observacoes' }}</p>
+              <p class="muted">{{ amendment.referenciaLegal || 'Sem referência' }} - {{ formatDate(amendment.dataPrevista) }}</p>
+              <p class="muted">{{ amendment.observacoes || 'Sem observações' }}</p>
             </div>
             <div class="tag-wrapper">
               <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
@@ -483,7 +481,7 @@
           </li>
         </ul>
         <ng-template #emptyAmendments>
-          <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automaticos.</p>
+          <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automáticos.</p>
         </ng-template>
       </article>
     </div>
@@ -495,7 +493,7 @@
             <p class="panel__eyebrow">Alertas e lembretes</p>
             <p class="panel__title">Próximas datas críticas</p>
           </div>
-          <span class="pill pill--ghost">Automatico</span>
+          <span class="pill pill--ghost">Automático</span>
         </header>
         <ul class="alert-list" *ngIf="alerts.length; else emptyAlerts">
           <li *ngFor="let alert of alerts">
@@ -718,7 +716,7 @@
         <p class="tab-card__highlight">Fluxo de caixa</p>
         <p class="muted">Projeções semanais com entradas, saídas e saldo estimado.</p>
       </div>
-      <span class="pill">Planejamento continuo</span>
+      <span class="pill">Planejamento contínuo</span>
     </div>
 
     <article class="panel">
@@ -739,7 +737,7 @@
             </select>
           </label>
           <label class="form-field form-field--wide">
-            <span>Descricao *</span>
+            <span>Descrição *</span>
             <input
               type="text"
               class="input"
@@ -781,7 +779,7 @@
             />
           </label>
           <label class="form-field form-field--wide">
-            <span>Conta bancaria *</span>
+            <span>Conta bancária *</span>
             <select class="select" name="movementAccount" [(ngModel)]="newMovement.contaBancariaId" required>
               <option value="" disabled>Selecione</option>
               <option *ngFor="let account of bankAccounts" [value]="account.id">
@@ -844,7 +842,7 @@
             </select>
           </label>
           <label class="form-field">
-            <span>Mes de referencia</span>
+            <span>Mês de referência</span>
             <input
               type="month"
               class="input"
@@ -962,11 +960,11 @@
           <input type="text" class="input" name="name" [(ngModel)]="newAmendment.identificacao" placeholder="Emenda 001/2024" required />
         </label>
         <label class="form-field">
-          <span>Referencia legal</span>
+          <span>Referência legal</span>
           <input type="text" class="input" name="lawReference" [(ngModel)]="newAmendment.referenciaLegal" placeholder="Lei ou oficio" />
         </label>
         <label class="form-field">
-          <span>Previsao de recebimento *</span>
+          <span>Previsão de recebimento *</span>
           <input type="date" class="input" name="expectedDate" [(ngModel)]="newAmendment.dataPrevista" required />
         </label>
         <label class="form-field">
@@ -974,7 +972,7 @@
           <input type="number" class="input" name="amount" [(ngModel)]="newAmendment.valorPrevisto" step="0.01" min="0" placeholder="0,00" required />
         </label>
         <label class="form-field">
-          <span>Antecedencia do alerta (dias) *</span>
+          <span>Antecedência do alerta (dias) *</span>
           <input type="number" class="input" name="alertDays" [(ngModel)]="newAmendment.diasAlerta" min="1" required />
         </label>
         <label class="form-field">
@@ -1019,8 +1017,8 @@
       <li *ngFor="let amendment of emendasFiltradas">
         <div>
           <p class="strong">{{ amendment.identificacao }}</p>
-          <p class="muted">{{ amendment.referenciaLegal || 'Sem referencia' }} - {{ formatDate(amendment.dataPrevista) }}</p>
-          <p class="muted">{{ amendment.observacoes || 'Sem observacoes' }}</p>
+          <p class="muted">{{ amendment.referenciaLegal || 'Sem referência' }} - {{ formatDate(amendment.dataPrevista) }}</p>
+          <p class="muted">{{ amendment.observacoes || 'Sem observações' }}</p>
         </div>
         <div class="tag-wrapper">
           <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
@@ -1029,7 +1027,7 @@
       </li>
     </ul>
     <ng-template #emptyAmendments>
-      <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automaticos.</p>
+      <p class="empty-state">Cadastre suas emendas impositivas para monitorar datas e alertas automáticos.</p>
     </ng-template>
   </div>
 
@@ -1041,7 +1039,7 @@
             <p class="panel__eyebrow">Alertas e lembretes</p>
             <p class="panel__title">Próximas datas críticas</p>
           </div>
-          <span class="pill pill--ghost">Automatico</span>
+          <span class="pill pill--ghost">Automático</span>
         </header>
         <ul class="alert-list" *ngIf="alerts.length; else emptyAlerts">
           <li *ngFor="let alert of alerts">
@@ -1114,14 +1112,14 @@
             <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
             <div>
               <p class="strong">Fluxo de caixa projetado</p>
-              <p class="muted">12 semanas com cenarios</p>
+              <p class="muted">12 semanas com cenários</p>
             </div>
           </button>
           <button type="button" class="report-card" (click)="printResumo()">
             <fa-icon [icon]="faChartLine"></fa-icon>
             <div>
               <p class="strong">Custeio administrativo</p>
-              <p class="muted">Gastos fixos e variaveis</p>
+              <p class="muted">Gastos fixos e variáveis</p>
             </div>
           </button>
         </div>
@@ -1130,7 +1128,7 @@
       <article class="panel">
         <header class="panel__header">
           <div>
-            <p class="panel__eyebrow">Agenda critica</p>
+            <p class="panel__eyebrow">Agenda crítica</p>
             <p class="panel__title">Resumo de pendências</p>
           </div>
           <span class="pill pill--ghost">Imediato</span>
@@ -1162,6 +1160,8 @@
           <button class="ghost" type="button" (click)="changeTab('movimentacoes')">Ver projeções</button>
         </div>
       </article>
+    </div>
+  </div>
     </div>
   </div>
 </section>

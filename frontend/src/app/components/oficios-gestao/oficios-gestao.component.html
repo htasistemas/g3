@@ -1,4 +1,4 @@
-<app-tela-padrao
+﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
   [mostrarFechar]="true"
@@ -17,7 +17,7 @@
         <div class="tab-shell">
           <p class="tab-shell__title tab-shell__title--destaque">
             <fa-icon [icon]="faFileSignature" class="tab-shell__icon"></fa-icon>
-            Ofícios e Documentos
+            Ofícios e Protocolos
           </p>
           <ul class="step-tabs" role="tablist">
             <li
@@ -131,7 +131,7 @@
                 <p class="dashboard-card__hint">Prazo de resposta expirado.</p>
               </div>
               <div class="dashboard-card dashboard-card--neutral">
-                <p class="dashboard-card__label">Responsável com mais ofícios</p>
+                <p class="dashboard-card__label">Responsável com mais Ofícios</p>
                 <p class="dashboard-card__value">{{ responsavelComMaisOficios.quantidade }}</p>
                 <p class="dashboard-card__hint">{{ responsavelComMaisOficios.nome }}</p>
               </div>
@@ -170,7 +170,7 @@
                     (selecionar)="selecionarUnidade($event)"
                   ></app-autocomplete>
                 </label>
-                <label class="field">Responsável pela emissão (*)
+                <label class="field">Responsável pela Emissão (*)
                   <input formControlName="responsavel" readonly />
                 </label>
                 <label class="field">Meio de envio (*)
@@ -205,7 +205,7 @@
                 <input type="date" formControlName="dataRecebimento" />
               </label>
               <label class="field">Próximo destino
-                <input formControlName="proximoDestino" placeholder="Quem receberá o próximo passo" />
+                <input formControlName="proximoDestino" placeholder="Quem receberÃ¡ o Próximo passo" />
               </label>
               <label class="field full">Observações
                 <textarea rows="2" formControlName="observacoes" placeholder="Instruções de protocolo ou pendências"></textarea>
@@ -305,7 +305,7 @@
                   <p class="muted">Nenhuma imagem anexada.</p>
                 </ng-template>
               </div>
-              <label class="field full">Rodapé com dados da instituição
+              <label class="field full">Rodapé com dados da instituiÃ§Ã£o
                 <textarea rows="2" formControlName="rodape" placeholder="Endereço, CNPJ, contatos e site"></textarea>
               </label>
             </div>
@@ -338,21 +338,21 @@
                 <input formControlName="responsavel" placeholder="Quem movimentou" />
               </label>
               <label class="field full">Ação realizada
-                <input formControlName="acao" placeholder="Envio, Análise, Assinatura, Devolução" />
+                <input formControlName="acao" placeholder="Envio, análise, Assinatura, DevoluÃ§Ã£o" />
               </label>
               <label class="field full">Observações
-                <textarea rows="2" formControlName="observacoes" placeholder="Pendências, documentos anexos ou prazos"></textarea>
+                <textarea rows="2" formControlName="observacoes" placeholder="pendências, documentos anexos ou prazos"></textarea>
               </label>
             </div>
 
             <div class="actions">
-              <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitação</button>
+              <button type="button" class="primary" (click)="addTramite()">Adicionar etapa de tramitAção</button>
             </div>
 
             <div class="timeline" *ngIf="tramites.length > 0">
               <div class="timeline__header">
                 <div>
-                  <p class="page-title__eyebrow">Histórico de tramitação</p>
+                  <p class="page-title__eyebrow">Histórico de tramitAção</p>
                   <p class="page-title__label">Controle de onde parou e para onde vai</p>
                 </div>
               </div>
@@ -361,8 +361,8 @@
                   <div class="timeline__bullet"></div>
                   <div class="timeline__content">
                     <p class="timeline__title">{{ tramite.acao }}</p>
-                    <p class="muted">{{ tramite.data | date: 'dd/MM/yyyy' }} • {{ tramite.origem || 'Origem não informada' }} ? {{ tramite.destino || 'Destino não informado' }}</p>
-                    <p class="muted">Responsável: {{ tramite.responsavel || 'Sem responsável' }}</p>
+                    <p class="muted">{{ tramite.data | date: 'dd/MM/yyyy' }} â€¢ {{ tramite.origem || 'Origem não informada' }} ? {{ tramite.destino || 'Destino não informado' }}</p>
+                    <p class="muted">Responsável: {{ tramite.responsavel || 'Sem Responsável' }}</p>
                     <p class="muted" *ngIf="tramite.observacoes">Notas: {{ tramite.observacoes }}</p>
                   </div>
                 </li>
@@ -404,7 +404,7 @@
                       <th>Para</th>
                       <th>Responsável</th>
                       <th class="col-anexo">Anexo</th>
-                      <th>Ações</th>
+                      <th>AÃ§Ãµes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -475,7 +475,7 @@
   >
     <div class="print-dialog__header">
       <p class="print-dialog__title">Anexo do ofício</p>
-      <p class="print-dialog__subtitle">Escolha a ação desejada.</p>
+      <p class="print-dialog__subtitle">Escolha a Ação desejada.</p>
     </div>
     <div class="print-dialog__actions">
       <button type="button" class="btn-primary" (click)="visualizarAnexo()">
@@ -487,3 +487,4 @@
     </div>
   </div>
 </div>
+

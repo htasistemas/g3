@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   background: linear-gradient(180deg, #f7fafc 0%, #eef2f7 40%, #f7fafc 100%);
   padding: 0;
@@ -756,3 +756,8 @@ button.text-button:hover { transform: none; text-decoration: underline; }
 .step-tabs__item::after {
   content: none;
 }
+
+.tab-card--lista .metric-card { background: #dcfce7; border-color: #bbf7d0; }
+.tab-card--lista .metric-label { color: #166534; }
+.tab-card--lista .metric-value { color: #166534; }
+

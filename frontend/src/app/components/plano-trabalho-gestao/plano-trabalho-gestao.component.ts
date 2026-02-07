@@ -19,6 +19,8 @@ import {
 import { TermoFomentoPayload, TermoFomentoService } from '../../services/termo-fomento.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { titleCaseWords } from '../../utils/capitalization.util';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
 
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -31,11 +33,12 @@ interface StepTab {
 @Component({
   selector: 'app-plano-trabalho-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './plano-trabalho-gestao.component.html',
   styleUrl: './plano-trabalho-gestao.component.scss'
 })
 export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements OnInit {
+  readonly faClipboardCheck = faClipboardCheck;
   form: FormGroup;
   activeTab = 'identificacao';
   saving = false;
@@ -53,27 +56,27 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
   });
 
   tabs: StepTab[] = [
-    { id: 'identificacao', label: 'IdentificaÃ§Ã£o' },
-    { id: 'vinculo', label: 'VinculaÃ§Ã£o ao Termo' },
+    { id: 'identificacao', label: 'Identificação' },
+    { id: 'vinculo', label: 'Vinculação ao Termo' },
     { id: 'metas', label: 'Metas e Atividades' },
-    { id: 'cronograma', label: 'Cronograma FÃ­sico-Financeiro' },
-    { id: 'equipe', label: 'Equipe / ResponsÃ¡veis' },
-    { id: 'arquivos', label: 'Arquivos e ExportaÃ§Ã£o' },
+    { id: 'cronograma', label: 'Cronograma Físico-Financeiro' },
+    { id: 'equipe', label: 'Equipe / Responsáveis' },
+    { id: 'arquivos', label: 'Arquivos e Exportação' },
     { id: 'listagem', label: 'Listagem de Planos' }
   ];
 
   statusOptions: { value: PlanoStatus; label: string }[] = [
-    { value: 'EM_ELABORACAO', label: 'Em elaboraÃ§Ã£o' },
-    { value: 'ENVIADO_ANALISE', label: 'Enviado para anÃ¡lise' },
+    { value: 'EM_ELABORACAO', label: 'Em elaboração' },
+    { value: 'ENVIADO_ANALISE', label: 'Enviado para análise' },
     { value: 'APROVADO', label: 'Aprovado' },
-    { value: 'EM_EXECUCAO', label: 'Em execuÃ§Ã£o' },
-    { value: 'CONCLUIDO', label: 'ConcluÃ­do' },
+    { value: 'EM_EXECUCAO', label: 'Em execução' },
+    { value: 'CONCLUIDO', label: 'Concluído' },
     { value: 'REPROVADO', label: 'Reprovado' }
   ];
 
-  orgaoOptions = ['UniÃ£o', 'Estado', 'MunicÃ­pio', 'Outro'];
+  orgaoOptions = ['União', 'Estado', 'Município', 'Outro'];
   statusEtapas = ['NAO_INICIADA', 'EM_ANDAMENTO', 'CONCLUIDA', 'ATRASADA'];
-  fonteRecursos = ['UniÃ£o', 'Estado', 'MunicÃ­pio', 'Contrapartida', 'Outros'];
+  fonteRecursos = ['União', 'Estado', 'Município', 'Contrapartida', 'Outros'];
 
   planos: PlanoTrabalho[] = [];
   termos: TermoFomentoPayload[] = [];
@@ -166,7 +169,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
         titulo: ['', Validators.required],
         descricaoGeral: ['', Validators.required],
         status: ['EM_ELABORACAO', Validators.required],
-        orgaoConcedente: ['UniÃ£o'],
+        orgaoConcedente: ['União'],
         orgaoOutroDescricao: [''],
         areaPrograma: [''],
         dataElaboracao: [''],
@@ -386,7 +389,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
       },
       error: () => {
         this.saving = false;
-        this.mostrarPopup('Nao foi possivel salvar o plano de trabalho.');
+        this.mostrarPopup('Não foi possível salvar o plano de trabalho.');
       }
     });
   }
@@ -453,10 +456,10 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
         if (this.editingId === plano.id) {
           this.startNovo();
         }
-        this.mostrarPopup('Plano de trabalho excluido com sucesso.');
+        this.mostrarPopup('Plano de trabalho excluído com sucesso.');
       },
       error: () => {
-        this.mostrarPopup('Nao foi possivel excluir o plano de trabalho.');
+        this.mostrarPopup('Não foi possível excluir o plano de trabalho.');
       }
     });
   }
@@ -470,7 +473,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
       error: () => {
         this.planos = [];
         this.planosFiltrados = [];
-        this.mostrarPopup('Nao foi possivel carregar os planos de trabalho.');
+        this.mostrarPopup('Não foi possível carregar os planos de trabalho.');
       }
     });
   }
@@ -482,14 +485,14 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
       },
       error: () => {
         this.termos = [];
-        this.mostrarPopup('Nao foi possivel carregar os termos de fomento.');
+        this.mostrarPopup('Não foi possível carregar os termos de fomento.');
       }
     });
   }
 
   totalCronogramaPorFonte(): Record<string, number> {
     return this.cronograma.value.reduce((acc: Record<string, number>, item: any) => {
-      const fonte = item.fonteRecurso || 'NÃ£o informado';
+      const fonte = item.fonteRecurso || 'Não informado';
       const valor = this.parseCurrencyValue(item.valorPrevisto) || 0;
       acc[fonte] = (acc[fonte] || 0) + valor;
       return acc;
@@ -555,11 +558,11 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
     const enviados = this.contarPorStatus('ENVIADO_ANALISE');
     return [
       { label: 'Total', total },
-      { label: 'Em elaboracao', total: emElaboracao },
+      { label: 'Em elaboração', total: emElaboracao },
       { label: 'Enviado', total: enviados },
       { label: 'Aprovado', total: aprovados },
-      { label: 'Em execucao', total: emExecucao },
-      { label: 'Concluido', total: concluidos },
+      { label: 'Em execução', total: emExecucao },
+      { label: 'Concluído', total: concluidos },
       { label: 'Reprovado', total: reprovados }
     ];
   }
@@ -599,7 +602,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
   gerarArquivo(planoSelecionado?: PlanoTrabalho): void {
     const targetId = planoSelecionado?.id || this.editingId;
     if (!targetId) {
-      this.mostrarPopup('Salve o plano antes de gerar o arquivo de exportacao.');
+      this.mostrarPopup('Salve o plano antes de gerar o arquivo de exportação.');
       this.changeTab('identificacao');
       return;
     }
@@ -611,7 +614,7 @@ export class PlanoTrabalhoGestaoComponent extends TelaBaseComponent implements O
         popup.document.write('<pre>' + JSON.stringify(payload, null, 2) + '</pre>');
       },
       error: () => {
-        this.mostrarPopup('Nao foi possivel gerar o arquivo de exportacao.');
+        this.mostrarPopup('Não foi possível gerar o arquivo de exportação.');
       }
     });
   }

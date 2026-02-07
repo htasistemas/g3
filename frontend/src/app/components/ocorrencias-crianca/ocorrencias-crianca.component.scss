@@ -392,8 +392,14 @@ tbody tr:hover {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.1rem 1rem 1rem;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+  padding-top: 0;
+}
+
+.page-actions {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 .cadastro-layout {

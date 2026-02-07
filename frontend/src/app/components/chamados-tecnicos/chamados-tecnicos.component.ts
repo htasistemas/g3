@@ -2,6 +2,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faHeadset } from '@fortawesome/free-solid-svg-icons';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
@@ -21,7 +23,14 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   templateUrl: './chamados-tecnicos.component.html',
   styleUrl: './chamados-tecnicos.component.scss',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent
+  ],
 })
 export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   readonly acoesToolbar = this.criarConfigAcoes({
@@ -42,10 +51,12 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   erroLista: string | null = null;
   popupErros: string[] = [];
   modoTela: 'usuario' | 'desenvolvedor' = 'usuario';
+  readonly faHeadset = faHeadset;
+  abaAtiva: 'listagem' | 'resumo' | 'historico' | 'comentarios' | 'anexos' = 'listagem';
   abaStatusAtiva: ChamadoStatus = 'ABERTO';
   abasStatus: { id: ChamadoStatus; label: string }[] = [
     { id: 'ABERTO', label: 'Abertos' },
-    { id: 'EM_ANALISE', label: 'Em analise' },
+    { id: 'EM_ANALISE', label: 'Em análise' },
     { id: 'EM_DESENVOLVIMENTO', label: 'Em desenvolvimento' },
     { id: 'AGUARDANDO_CLIENTE', label: 'Aguardando cliente' },
     { id: 'RESOLVIDO', label: 'Resolvidos' },
@@ -115,6 +126,10 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     this.listar();
   }
 
+  selecionarAba(aba: 'listagem' | 'resumo' | 'historico' | 'comentarios' | 'anexos'): void {
+    this.abaAtiva = aba;
+  }
+
   onNovo(): void {
     if (this.modoTela === 'desenvolvedor') {
       this.router.navigate(['/configuracoes/chamados-tecnicos']);
@@ -161,7 +176,7 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
           this.total = response.total ?? 0;
         },
         error: () => {
-          this.erroLista = 'Nao foi possivel carregar os chamados.';
+          this.erroLista = 'Não foi possível carregar os chamados.';
         },
       });
   }
@@ -229,7 +244,7 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     const usuarioId = Number(this.authService.user()?.id || 0) || null;
     this.service.alterarStatus(chamado.id, status, usuarioId).subscribe({
       next: () => this.listar(),
-      error: () => (this.erroLista = 'Nao foi possivel alterar o status.'),
+      error: () => (this.erroLista = 'Não foi possível alterar o status.'),
     });
   }
 
@@ -239,7 +254,7 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     const parsed = responsavelId ? Number(responsavelId) : null;
     this.service.atribuirResponsavel(chamado.id, parsed, usuarioId).subscribe({
       next: () => this.listar(),
-      error: () => (this.erroLista = 'Nao foi possivel atribuir o responsavel.'),
+      error: () => (this.erroLista = 'Não foi possível atribuir o responsável.'),
     });
   }
 

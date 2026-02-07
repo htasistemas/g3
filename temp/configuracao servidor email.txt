@@ -8,3 +8,6 @@
   set MAIL_USER=htasistemas@gmail.com
   set MAIL_PASS=hggl hsdi wgon tftn
   .\mvnw.cmd -q -DskipTests clean spring-boot:run
+
+  id para autenticar pelo google
+  1026369251340-2eskbj74ierlra1i9fm0aas29ucvnudf.apps.googleusercontent.com

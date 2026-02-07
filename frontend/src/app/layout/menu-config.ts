@@ -1,7 +1,7 @@
 ﻿import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBell,
-  faBookOpen,
+  faBook,
   faBoxesStacked,
   faBriefcase,
   faBullhorn,
@@ -104,7 +104,7 @@ export const menuSections: MenuItem[] = [
     icon: faHandshakeAngle,
     children: [
       { label: 'Banco de Empregos', icon: faBriefcase, route: '/atendimentos/banco-empregos' },
-      { label: 'Biblioteca', icon: faBookOpen, route: '/atendimentos/biblioteca' },
+      { label: 'Biblioteca', icon: faBook, route: '/atendimentos/biblioteca' },
       { label: 'Prontuario social', icon: faNotesMedical, route: '/atendimentos/prontuario' },
       {
         label: 'Recebimento de doacao',
@@ -140,7 +140,7 @@ export const menuSections: MenuItem[] = [
         icon: faFolderOpen,
         route: '/administrativo/documentos',
       },
-      { label: 'Oficios e Documentos', icon: faFileSignature, route: '/administrativo/oficios' },
+      { label: 'Oficios e Protocolos', icon: faFileSignature, route: '/administrativo/oficios' },
       { label: 'Patrimonio', icon: faLandmark, route: '/administrativo/patrimonio' },
       { label: 'Tarefas e pendencias', icon: faListCheck, route: '/administrativo/tarefas' },
     ],
@@ -150,7 +150,7 @@ export const menuSections: MenuItem[] = [
     icon: faWallet,
     children: [
       {
-        label: 'Autorizacao de Compras',
+        label: 'Autorização de Compras',
         icon: faFileInvoiceDollar,
         route: '/financeiro/autorizacao-compras',
       },
@@ -186,7 +186,7 @@ export const menuSections: MenuItem[] = [
         route: '/configuracoes/gerenciamento-dados',
       },
       { label: 'Feriados', icon: faCalendarDay, route: '/administrativo/feriados' },
-      { label: 'Parametros do sistema', icon: faSliders, route: '/configuracoes/parametros' },
+      { label: 'Configurações do sistema', icon: faSliders, route: '/configuracoes/parametros' },
       { label: 'Versao do sistema', icon: faTags, route: '/configuracoes/versao' },
     ],
   },

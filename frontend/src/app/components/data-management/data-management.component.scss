@@ -1,11 +1,73 @@
-.data-shell {
+﻿.data-shell {
   @apply space-y-6 p-4 md:p-6;
 }
 
 :host {
   display: block;
   background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 45%, #f8fafc 100%);
-  padding: clamp(1rem, 2vw, 2rem);
+  padding: 0;
+}
+
+.cadastro {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+
+.tab-shell__title--destaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 800;
+  color: #166534;
+  background: linear-gradient(135deg, #ecfdf3, #dcfce7);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.85rem;
+}
+
+.tab-shell__icon {
+  font-size: 1rem;
+}
+
+.tab-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+.tab-card__title-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tab-card__highlight {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ecfdf3, #dcfce7);
+  color: #166534;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  width: fit-content;
+}
+
+.tab-card__divider {
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 0.75rem;
 }
 
 .card__header-row {

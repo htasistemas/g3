@@ -1,21 +1,13 @@
 ﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="acoesDesabilitadas"
-  [mostrarToolbar]="false"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="salvar()"
   (cancelar)="cancelar()"
   (novo)="novo()"
   (fechar)="fechar()"
 >
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-      <p class="page-title__eyebrow">CONFIGURações GERAIS</p>
-      <p class="page-title__label">Alertas do Sistema</p>
-    </div>
-    <p class="page-title__note">Selecione alertas e frequencia para disparo automatico.</p>
-  </header>
-
   <section class="cadastro">
     <app-popup-messages
       [mensagens]="popupErros"
@@ -24,13 +16,13 @@
 
     <section class="alertas-card">
       <div class="alertas-card__header">
-        <div>
-          <p class="alertas-card__eyebrow">Preferencias</p>
-          <h2>Gestao de alertas</h2>
-          <p>Os alertas selecionados serao enviados para o email da instituicao.</p>
+        <div class="alertas-card__title">
+          <fa-icon [icon]="faBell" class="alertas-card__icon"></fa-icon>
+          <span>Alertas do Sistema</span>
         </div>
-        <div class="alertas-card__badge">Email principal da unidade</div>
+        <div class="alertas-card__badge">E-mail principal da unidade</div>
       </div>
+      <div class="alertas-card__divider"></div>
 
       <form [formGroup]="formulario" class="alertas-card__form">
         <label class="field full">
@@ -47,7 +39,7 @@
         </label>
 
         <label class="field">
-          Frequencia de envio *
+          Frequência de envio *
           <select formControlName="frequenciaEnvio">
             <option *ngFor="let frequencia of frequenciasEnvio" [value]="frequencia.id">
               {{ frequencia.label }}
@@ -70,4 +62,3 @@
     </section>
   </section>
 </app-tela-padrao>
-

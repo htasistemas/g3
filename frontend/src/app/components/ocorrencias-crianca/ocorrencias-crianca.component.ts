@@ -21,6 +21,7 @@ interface StepTab {
 
 @Component({
   selector: 'app-ocorrencias-crianca',
+  host: { class: 'ocorrencias-wrapper' },
   standalone: true,
   imports: [
     CommonModule,

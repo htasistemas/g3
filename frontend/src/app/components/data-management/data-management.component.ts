@@ -1,5 +1,7 @@
 ﻿import { CommonModule, formatDate } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { Subscription, timer } from 'rxjs';
@@ -29,11 +31,12 @@ interface BackupRecord {
 @Component({
   selector: 'app-data-management',
   standalone: true,
-  imports: [CommonModule, TelaPadraoComponent, DialogComponent],
+  imports: [CommonModule, FontAwesomeModule, TelaPadraoComponent, DialogComponent],
   templateUrl: './data-management.component.html',
   styleUrl: './data-management.component.scss'
 })
 export class DataManagementComponent implements OnInit, OnDestroy {
+  readonly faServer = faServer;
   configuracao: GerenciamentoDadosConfiguracaoResponse | null = null;
   runningBackupId: number | null = null;
   recentBackups: BackupRecord[] = [];
@@ -104,7 +107,7 @@ export class DataManagementComponent implements OnInit, OnDestroy {
     this.dialogoRestaurarAberto = false;
     this.restauracaoFeedback = {
       tipo: 'info',
-      mensagem: 'Restauracao iniciada. Aguarde a conclusao.',
+      mensagem: 'Restauração iniciada. Aguarde a conclusão.',
     };
     this.restauracaoEmAndamento = true;
     this.restauracaoInicio = new Date();
@@ -115,7 +118,7 @@ export class DataManagementComponent implements OnInit, OnDestroy {
       error: () => {
         this.restauracaoFeedback = {
           tipo: 'error',
-          mensagem: 'Falha ao solicitar a restauracao do backup.',
+          mensagem: 'Falha ao solicitar a restauração do backup.',
         };
         this.restauracaoEmAndamento = false;
         this.restauracaoInicio = null;

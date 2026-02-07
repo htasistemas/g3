@@ -195,33 +195,13 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
   }
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
-    const veiculoValido = this.formularioVeiculo.valid;
-    const diarioValido = this.formularioDiario.valid;
-    const veiculoIds = this.formularioMotorista.get('veiculoIds')?.value as number[];
-    const motoristaValido =
-      this.formularioMotorista.valid &&
-      Array.isArray(veiculoIds) &&
-      veiculoIds.length > 0 &&
-      !!this.formularioMotorista.get('motoristaId')?.value;
     return {
-      salvar:
-        this.carregando ||
-        (this.abaAtiva === 'cadastro'
-          ? !veiculoValido
-          : this.abaAtiva === 'diario'
-            ? !diarioValido
-            : !motoristaValido),
-      excluir:
-        this.carregando ||
-        (this.abaAtiva === 'cadastro'
-          ? !this.veiculoSelecionadoId
-          : this.abaAtiva === 'diario'
-            ? !this.registroSelecionadoId
-            : !this.motoristaSelecionadoId),
-      novo: this.carregando,
-      cancelar: this.carregando,
-      imprimir: this.carregando,
-      buscar: this.carregando
+      salvar: false,
+      excluir: false,
+      novo: false,
+      cancelar: false,
+      imprimir: false,
+      buscar: false
     };
   }
 
@@ -321,7 +301,8 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
 
   buscar(): void {
     this.popupErros = [];
-    this.mensagemFeedback = 'Dados atualizados automaticamente.';
+    this.mensagemFeedback = null;
+    this.carregarDados();
   }
 
   excluir(): void {
@@ -366,9 +347,7 @@ export class ControleVeiculosComponent extends TelaBaseComponent implements OnIn
   }
 
   imprimir(): void {
-    this.popupErros = new PopupErrorBuilder()
-      .adicionar('Funcao de impressao ainda nao disponivel para o controle de veiculos.')
-      .build();
+    window.print();
   }
 
   fechar(): void {

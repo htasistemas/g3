@@ -8,6 +8,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { finalize } from 'rxjs/operators';
 import { AlertasSistemaService } from '../../services/alertas-sistema.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
@@ -30,6 +32,7 @@ interface AlertaOpcao {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
   ],
@@ -41,16 +44,16 @@ export class AlertasSistemaComponent
   implements OnInit
 {
   readonly alertasDisponiveis: AlertaOpcao[] = [
-    { id: 'chamados_tecnicos', label: 'Chamados tecnicos' },
-    { id: 'beneficiarios_novos', label: 'Novos beneficiarios' },
-    { id: 'beneficiarios_atualizados', label: 'Atualizacoes de beneficiarios' },
+    { id: 'chamados_tecnicos', label: 'Chamados técnicos' },
+    { id: 'beneficiarios_novos', label: 'Novos beneficiários' },
+    { id: 'beneficiarios_atualizados', label: 'Atualizações de beneficiários' },
     { id: 'estoque_baixo', label: 'Estoque baixo' },
     { id: 'tarefas_pendentes', label: 'Tarefas pendentes' },
     { id: 'vagas_cursos', label: 'Vagas de cursos e atendimentos' },
   ];
   readonly frequenciasEnvio = [
     { id: 'imediato', label: 'Imediato' },
-    { id: 'diario', label: 'Diario' },
+    { id: 'diario', label: 'Diário' },
     { id: 'semanal', label: 'Semanal' },
     { id: 'mensal', label: 'Mensal' },
   ];
@@ -59,6 +62,7 @@ export class AlertasSistemaComponent
   popupErros: string[] = [];
   feedback: string | null = null;
   carregando = false;
+  readonly faBell = faBell;
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     salvar: true,
@@ -117,7 +121,7 @@ export class AlertasSistemaComponent
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       const builder = new PopupErrorBuilder();
-      builder.adicionar('Informe a frequencia de envio.');
+      builder.adicionar('Informe a frequência de envio.');
       this.popupErros = builder.build();
       return;
     }
@@ -131,11 +135,11 @@ export class AlertasSistemaComponent
       .subscribe({
         next: () => {
           this.feedback =
-            'Alertas atualizados e enviados para o email da instituicao.';
+            'Alertas atualizados e enviados para o e-mail da instituição.';
         },
         error: () => {
           this.feedback =
-            'Nao foi possivel salvar os alertas do sistema. Tente novamente.';
+            'Não foi possível salvar os alertas do sistema. Tente novamente.';
         },
       });
   }
@@ -175,7 +179,7 @@ export class AlertasSistemaComponent
         },
         error: () => {
           this.feedback =
-            'Nao foi possivel carregar os alertas do sistema. Tente novamente.';
+            'Não foi possível carregar os alertas do sistema. Tente novamente.';
         },
       });
   }

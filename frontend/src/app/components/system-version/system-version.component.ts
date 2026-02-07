@@ -1,5 +1,8 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faTags } from '@fortawesome/free-solid-svg-icons';
+import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigService, HistoricoVersaoResponse } from '../../services/config.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject, filter, takeUntil } from 'rxjs';
@@ -7,11 +10,12 @@ import { Subject, filter, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-system-version',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FontAwesomeModule, TelaPadraoComponent],
   templateUrl: './system-version.component.html',
   styleUrl: './system-version.component.scss'
 })
 export class SystemVersionComponent implements OnInit, OnDestroy {
+  readonly faTags = faTags;
   currentVersion = '';
   versaoDisponivel = '';
   historicoVersoes: HistoricoVersaoResponse[] = [];
@@ -27,7 +31,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
   readonly itensPorPagina = 5;
   private versaoAlvo = '';
   private readonly resumoAtualizacao =
-    'Controle de veiculos com persistencia no banco e ajustes no layout da tela.';
+    'Controle de veículos com persistência no banco e ajustes no layout da tela.';
 
   private readonly destroy$ = new Subject<void>();
 
@@ -71,7 +75,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
         this.atualizarVersaoSistemaSeNecessario();
       },
       error: () => {
-        this.erroVersao = 'Nao foi possivel carregar a versao do sistema.';     
+        this.erroVersao = 'Não foi possível carregar a versão do sistema.';     
       },
       complete: () => {
         this.carregandoVersao = false;
@@ -88,7 +92,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
         this.paginaAtual = 1;
       },
       error: () => {
-        this.erroHistorico = 'Nao foi possivel carregar o historico de versoes.';
+        this.erroHistorico = 'Não foi possível carregar o histórico de versões.';
       },
       complete: () => {
         this.carregandoHistorico = false;
@@ -107,7 +111,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
         this.atualizarVersaoSistemaSeNecessario();
       },
       error: () => {
-        this.erroVersaoDisponivel = 'Nao foi possivel carregar a versao disponivel.';
+        this.erroVersaoDisponivel = 'Não foi possível carregar a versão disponível.';
       },
       complete: () => {
         this.carregandoVersaoDisponivel = false;
@@ -166,11 +170,11 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.currentVersion = response.versao || this.versaoAlvo;
-          this.feedbackAtualizacao = 'Versao atualizada com sucesso.';
+          this.feedbackAtualizacao = 'Versão atualizada com sucesso.';
           this.loadHistorico();
         },
         error: () => {
-          this.feedbackAtualizacao = 'Nao foi possivel atualizar a versao.';
+          this.feedbackAtualizacao = 'Não foi possível atualizar a versão.';
         },
         complete: () => {
           this.atualizandoVersao = false;
@@ -182,7 +186,6 @@ export class SystemVersionComponent implements OnInit, OnDestroy {
     if (!this.versaoDisponivel || this.versaoDisponivel === this.currentVersion) {
       return;
     }
-    this.feedbackAtualizacao = 'Live update pendente de implementacao.';
+    this.feedbackAtualizacao = 'Live update pendente de implementação.';
   }
 }
-

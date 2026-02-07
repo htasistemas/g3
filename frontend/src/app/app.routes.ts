@@ -224,7 +224,7 @@ export const routes: Routes = [
       {
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
-        data: { title: 'Parametros do sistema' }
+        data: { title: 'Configurações do sistema' }
       },
       {
         path: 'configuracoes/alertas-sistema',

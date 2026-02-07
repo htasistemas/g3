@@ -14,7 +14,7 @@
 <section class="cadastro">
     <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopup()"></app-popup-messages>
 
-    <div class="muted" *ngIf="carregando">Carregando dados do controle de veiculos...</div>
+    <div class="muted" *ngIf="carregando"></div>
 
     <div *ngIf="mensagemFeedback" class="feedback">
       <span>{{ mensagemFeedback }}</span>

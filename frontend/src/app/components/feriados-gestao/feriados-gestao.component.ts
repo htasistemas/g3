@@ -1,11 +1,14 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faCalendarDay } from '@fortawesome/free-solid-svg-icons';
 import { FeriadoPayload, FeriadoService } from '../../services/feriado.service';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { concatMap, from, finalize } from 'rxjs';
 
 interface StepTab {
   id: string;
@@ -15,11 +18,12 @@ interface StepTab {
 @Component({
   selector: 'app-feriados-gestao',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './feriados-gestao.component.html',
   styleUrl: './feriados-gestao.component.scss'
 })
 export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit {
+  readonly faCalendarDay = faCalendarDay;
   form: FormGroup;
   filtroForm: FormGroup;
   feriados: FeriadoPayload[] = [];
@@ -29,6 +33,21 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
   saving = false;
   popupErros: string[] = [];
   popupTitulo = 'Aviso';
+  private importacaoExecutada = false;
+
+  private readonly feriadosImportados: FeriadoPayload[] = [
+    { data: '2026-01-01', descricao: 'Confraternização Universal - Ano Novo' },
+    { data: '2026-02-13', descricao: 'Carnaval' },
+    { data: '2026-03-29', descricao: 'Sexta-Feira Santa' },
+    { data: '2026-03-31', descricao: 'Páscoa' },
+    { data: '2026-04-21', descricao: 'Tiradentes' },
+    { data: '2026-05-01', descricao: 'Dia do Trabalhador' },
+    { data: '2026-09-07', descricao: 'Independência' },
+    { data: '2026-10-12', descricao: 'Nossa Senhora Aparecida' },
+    { data: '2026-11-02', descricao: 'Finados' },
+    { data: '2026-11-15', descricao: 'Proclamação da República' },
+    { data: '2026-12-25', descricao: 'Natal' }
+  ];
 
   tabs: StepTab[] = [
     { id: 'cadastro', label: 'Cadastro de feriados' },
@@ -110,9 +129,9 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
   submit(): void {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
-      this.popupTitulo = 'Campos obrigatorios';
+      this.popupTitulo = 'Campos obrigatórios';
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios antes de salvar.')
+        .adicionar('Preencha os campos obrigatórios antes de salvar.')
         .build();
       return;
     }
@@ -135,7 +154,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
         error: () => {
           this.popupTitulo = 'Erro ao salvar';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Nao foi possivel salvar o feriado.')
+            .adicionar('Não foi possível salvar o feriado.')
             .build();
         },
         complete: () => {
@@ -157,7 +176,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
       error: () => {
         this.popupTitulo = 'Erro ao salvar';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel salvar o feriado.')
+          .adicionar('Não foi possível salvar o feriado.')
           .build();
       },
       complete: () => {
@@ -172,7 +191,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
       next: () => {
         this.popupTitulo = 'Sucesso';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Feriado excluido com sucesso.')
+          .adicionar('Feriado excluído com sucesso.')
           .build();
         this.carregarFeriados();
         this.resetForm();
@@ -180,7 +199,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
       error: () => {
         this.popupTitulo = 'Erro ao excluir';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel excluir o feriado.')
+          .adicionar('Não foi possível excluir o feriado.')
           .build();
       }
     });
@@ -248,7 +267,7 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
     w.document.write(`
       <html>
         <head>
-          <title>Relatorio de feriados</title>
+          <title>Relatório de feriados</title>
           <style>
             @page { size: A4; margin: 20mm; }
             body { font-family: Arial, sans-serif; font-size: 12pt; color: #000; }
@@ -259,10 +278,10 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
           </style>
         </head>
         <body>
-          <h1>Relatorio de feriados</h1>
+          <h1>Relatório de feriados</h1>
           <table>
             <thead>
-              <tr><th>Data</th><th>Descricao</th></tr>
+              <tr><th>Data</th><th>Descrição</th></tr>
             </thead>
             <tbody>${linhasHtml}</tbody>
           </table>
@@ -279,16 +298,52 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
       next: (feriados) => {
         this.feriados = feriados ?? [];
         this.feriadosFiltrados = [...this.feriados];
+        this.importarFeriadosSeNecessario();
       },
       error: () => {
         this.feriados = [];
         this.feriadosFiltrados = [];
         this.popupTitulo = 'Erro ao carregar';
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel carregar os feriados.')
+          .adicionar('Não foi possível carregar os feriados.')
+          .build();
+      }
+    });
+  }
+
+  private importarFeriadosSeNecessario(): void {
+    if (this.importacaoExecutada) return;
+    this.importacaoExecutada = true;
+    const chaveExistente = new Set(
+      this.feriados.map((feriado) => `${feriado.data}|${feriado.descricao}`.toLowerCase().trim())
+    );
+    this.feriadoService.listarPublicos(2026, 'BR').subscribe({
+      next: (feriadosPublicos) => {
+        const base = feriadosPublicos.length ? feriadosPublicos : this.feriadosImportados;
+        const faltantes = base.filter(
+          (feriado) => !chaveExistente.has(`${feriado.data}|${feriado.descricao}`.toLowerCase().trim())
+        );
+        if (!faltantes.length) return;
+        from(faltantes)
+          .pipe(
+            concatMap((feriado) => this.feriadoService.criar(feriado)),
+            finalize(() => this.carregarFeriados())
+          )
+          .subscribe({
+            error: () => {
+              this.popupTitulo = 'Erro ao importar';
+              this.popupErros = new PopupErrorBuilder()
+                .adicionar('Não foi possível importar todos os feriados.')
+                .build();
+            }
+          });
+      },
+      error: () => {
+        this.popupTitulo = 'Erro ao importar';
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível importar os feriados públicos.')
           .build();
       }
     });
   }
 }
-

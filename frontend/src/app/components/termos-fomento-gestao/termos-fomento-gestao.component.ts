@@ -2,6 +2,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faFileContract } from '@fortawesome/free-solid-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { titleCaseWords } from '../../utils/capitalization.util';
@@ -25,7 +27,7 @@ interface StepTab {
 @Component({
   selector: 'app-termos-fomento-gestao',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
   templateUrl: './termos-fomento-gestao.component.html',
   styleUrl: './termos-fomento-gestao.component.scss'
 })
@@ -36,6 +38,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   feedback: string | null = null;
   editingTermoId: string | null = null;
   popupErros: string[] = [];
+  readonly faFileContract = faFileContract;
 
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
     salvar: true,
@@ -49,7 +52,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   tabs: StepTab[] = [
     { id: 'dados', label: 'Dados do Termo' },
     { id: 'anexos', label: 'Anexos' },
-    { id: 'aditivos', label: 'Historico / Aditivos' },
+    { id: 'aditivos', label: 'Histórico / Aditivos' },
     { id: 'listagem', label: 'Listagem de Termos' }
   ];
 
@@ -153,7 +156,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
         this.termos = [];
         this.applyFilters();
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('Nao foi possivel carregar os termos de fomento.')
+          .adicionar('Não foi possível carregar os termos de fomento.')
           .build();
       }
     });
@@ -226,7 +229,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   async submit(): Promise<void> {
     if (this.form.invalid) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios antes de salvar.')
+        .adicionar('Preencha os campos obrigatórios antes de salvar.')
         .build();
       return;
     }
@@ -263,7 +266,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
       this.loadTermos();
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel salvar o termo de fomento.')
+        .adicionar('Não foi possível salvar o termo de fomento.')
         .build();
     } finally {
       this.saving = false;
@@ -305,10 +308,10 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
       if (this.editingTermoId === termo.id) {
         this.resetForm();
       }
-      this.feedback = 'Termo excluido com sucesso.';
+      this.feedback = 'Termo excluído com sucesso.';
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel excluir o termo de fomento.')
+        .adicionar('Não foi possível excluir o termo de fomento.')
         .build();
     }
   }
@@ -324,7 +327,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
     const value = this.form.get('aditivo')?.value;
     if (!value?.tipoAditivo || !value?.dataAditivo) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios do aditivo.')
+        .adicionar('Preencha os campos obrigatórios do aditivo.')
         .build();
       return;
     }
@@ -340,7 +343,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
 
     try {
       const updated = await firstValueFrom(this.termoService.addAditivo(this.editingTermoId, aditivo));
-      this.feedback = 'Aditivo salvo e historico atualizado.';
+      this.feedback = 'Aditivo salvo e histórico atualizado.';
       this.termos = this.termos.map((item) => (item.id === updated.id ? updated : item));
       this.applyFilters();
       this.form.patchValue({
@@ -364,7 +367,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
       this.activeTab = 'aditivos';
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Nao foi possivel salvar o aditivo.')
+        .adicionar('Não foi possível salvar o aditivo.')
         .build();
     }
   }
@@ -434,7 +437,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
       return { label: 'Vencido', tone: 'danger' };
     }
     if (this.isProximoVencimento(termo)) {
-      return { label: 'Proximo do vencimento', tone: 'warning' };
+      return { label: 'Próximo do vencimento', tone: 'warning' };
     }
     if (termo.situacao === 'Aditivado') {
       return { label: 'Aditivado', tone: 'info' };
@@ -457,7 +460,7 @@ export class TermosFomentoGestaoComponent extends TelaBaseComponent {
   visualizarTermo(termo: TermoFomentoPayload): void {
     if (!termo.termoDocumento?.dataUrl) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Ainda nao ha PDF do termo de fomento vinculado.')
+        .adicionar('Ainda não há PDF do termo de fomento vinculado.')
         .build();
       return;
     }

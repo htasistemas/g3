@@ -1,5 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faSliders } from '@fortawesome/free-solid-svg-icons';
 import { PersonalizacaoComponent } from '../personalizacao/personalizacao.component';
 import { SystemSettingsComponent } from '../system-settings/system-settings.component';
 import { TextTemplatesComponent } from '../text-templates/text-templates.component';
@@ -20,39 +22,42 @@ interface ParameterTab {
   standalone: true,
   imports: [
     CommonModule,
+    FontAwesomeModule,
     SystemSettingsComponent,
     TextTemplatesComponent,
     UserManagementComponent,
-    PersonalizacaoComponent
-  , TelaPadraoComponent],
+    PersonalizacaoComponent,
+    TelaPadraoComponent
+  ],
   templateUrl: './system-parameters.component.html',
   styleUrl: './system-parameters.component.scss'
 })
 export class SystemParametersComponent {
+  readonly faSliders = faSliders;
   readonly tabs: ParameterTab[] = [
     {
       id: 'documentos',
-      label: 'Documentos obrigatÃ³rios',
-      description: 'Defina quais comprovantes e documentos sÃ£o exigidos para cadastro de beneficiÃ¡rios.',
+      label: 'Documentos obrigatórios',
+      description: 'Defina quais comprovantes e documentos são exigidos para cadastro de beneficiários.',
       badge: 'Fluxo de cadastro'
     },
     {
       id: 'modelos',
       label: 'Modelos de textos',
-      description: 'Edite e restaure os modelos utilizados nos termos e comunicaÃ§Ãµes oficiais.',
-      badge: 'Textos padrÃ£o'
+      description: 'Edite e restaure os modelos utilizados nos termos e comunicações oficiais.',
+      badge: 'Textos padrão'
     },
     {
       id: 'usuarios',
-      label: 'UsuÃ¡rios e permissÃµes',
-      description: 'Gerencie contas de acesso, redefina senhas e mantenha os responsÃ¡veis atualizados.',
-      badge: 'SeguranÃ§a'
+      label: 'Usuários e permissões',
+      description: 'Gerencie contas de acesso, redefina senhas e mantenha os responsáveis atualizados.',
+      badge: 'Segurança'
     },
     {
       id: 'personalizacao',
-      label: 'PersonalizaÃ§Ã£o',
+      label: 'Personalização',
       description: 'Ajuste tema, cores e bordas para alinhar a identidade visual do sistema.',
-      badge: 'ExperiÃªncia'
+      badge: 'Experiência'
     }
   ];
 
@@ -70,4 +75,3 @@ export class SystemParametersComponent {
     this.activeTab = tabId;
   }
 }
-

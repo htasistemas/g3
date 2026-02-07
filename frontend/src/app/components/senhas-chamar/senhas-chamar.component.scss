@@ -162,6 +162,8 @@
   justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .g3-card__header--row {
@@ -176,6 +178,20 @@
   font-weight: 700;
   font-size: 1.1rem;
   color: #0f172a;
+}
+
+.g3-card__title--badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ecfdf3, #dcfce7);
+  color: #166534;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
 }
 
 .g3-card__subtitle {
