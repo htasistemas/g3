@@ -7,5 +7,7 @@ public enum ChamadoStatus {
   EM_TESTE,
   AGUARDANDO_CLIENTE,
   RESOLVIDO,
+  FECHADO,
+  REABERTO,
   CANCELADO
 }

@@ -1962,7 +1962,7 @@ CREATE INDEX IF NOT EXISTS prontuario_registros_beneficiario_data_idx
 -- Chamados tecnicos
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE IF NOT EXISTS chamado_tipo AS ENUM ('ERRO', 'MELHORIA');
+CREATE TYPE IF NOT EXISTS chamado_tipo AS ENUM ('ERRO', 'MELHORIA', 'CORRECAO', 'NOVA_IMPLEMENTACAO');
 CREATE TYPE IF NOT EXISTS chamado_status AS ENUM (
   'ABERTO',
   'EM_ANALISE',
@@ -1970,8 +1970,11 @@ CREATE TYPE IF NOT EXISTS chamado_status AS ENUM (
   'EM_TESTE',
   'AGUARDANDO_CLIENTE',
   'RESOLVIDO',
+  'FECHADO',
+  'REABERTO',
   'CANCELADO'
 );
+
 CREATE TYPE IF NOT EXISTS chamado_prioridade AS ENUM ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA');
 CREATE TYPE IF NOT EXISTS chamado_impacto AS ENUM ('BAIXO', 'MEDIO', 'ALTO');
 CREATE TYPE IF NOT EXISTS chamado_acao_tipo AS ENUM (
@@ -3415,5 +3418,20 @@ WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
   WHERE versao = '1.00.28'
 );
+
+UPDATE versao_sistema
+SET versao = '1.00.31',
+    descricao = 'Inclusao do status fechado, filtro separado de fechados e ajuste de listagem de chamados tecnicos.',
+    atualizado_em = NOW()
+WHERE versao <> '1.00.31';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.31', 'Inclusao do status fechado, filtro separado de fechados e ajuste de listagem de chamados tecnicos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.31'
+);
+
+
 
 

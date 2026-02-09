@@ -75,6 +75,10 @@
       </div>
     </nav>
     <div class="sidebar__footer">
+      <div class="sidebar__version" *ngIf="versaoSistema">
+        <span class="sidebar__version-label">Versão</span>
+        <span class="sidebar__version-value">{{ versaoSistema }}</span>
+      </div>
       <button
         type="button"
         class="sidebar-toggle"

@@ -24,6 +24,8 @@ public interface ChamadoTecnicoService {
 
   ChamadoTecnicoResponse buscarPorId(UUID id);
 
+  void remover(UUID id, Long usuarioId);
+
   ChamadoTecnicoListaResponse listar(
       String status,
       String tipo,

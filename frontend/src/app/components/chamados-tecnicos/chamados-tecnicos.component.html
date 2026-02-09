@@ -4,6 +4,7 @@
   [fullWidth]="true"
   (buscar)="onBuscar()"
   (novo)="onNovo()"
+  (fechar)="onFechar()"
 >
   <section class="cadastro">
     <div class="cadastro-layout">
@@ -14,76 +15,10 @@
             Chamados técnicos
           </p>
           <ol class="step-tabs" role="tablist">
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'listagem'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'listagem'"
-                (click)="selecionarAba('listagem')"
-              >
+            <li class="step-tabs__item active">
+              <button type="button" class="step-tabs__button" role="tab" aria-selected="true">
                 <span class="step-tabs__index">1</span>
                 <span class="step-tabs__label">Listagem</span>
-              </button>
-            </li>
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'resumo'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'resumo'"
-                (click)="selecionarAba('resumo')"
-              >
-                <span class="step-tabs__index">2</span>
-                <span class="step-tabs__label">Resumo</span>
-              </button>
-            </li>
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'kanban'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'kanban'"
-                (click)="selecionarAba('kanban')"
-              >
-                <span class="step-tabs__index">3</span>
-                <span class="step-tabs__label">Kanban</span>
-              </button>
-            </li>
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'historico'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'historico'"
-                (click)="selecionarAba('historico')"
-              >
-                <span class="step-tabs__index">4</span>
-                <span class="step-tabs__label">Histórico</span>
-              </button>
-            </li>
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'comentarios'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'comentarios'"
-                (click)="selecionarAba('comentarios')"
-              >
-                <span class="step-tabs__index">5</span>
-                <span class="step-tabs__label">Comentários</span>
-              </button>
-            </li>
-            <li class="step-tabs__item" [class.active]="abaAtiva === 'anexos'">
-              <button
-                type="button"
-                class="step-tabs__button"
-                role="tab"
-                [attr.aria-selected]="abaAtiva === 'anexos'"
-                (click)="selecionarAba('anexos')"
-              >
-                <span class="step-tabs__index">6</span>
-                <span class="step-tabs__label">Anexos</span>
               </button>
             </li>
           </ol>
@@ -93,84 +28,58 @@
       <div class="cadastro-conteudo">
         <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
 
-        <section class="list-panel" *ngIf="abaAtiva === 'listagem'">
+        <section class="list-panel">
           <div class="tab-card__header">
             <div class="tab-card__title-stack">
               <p class="tab-card__highlight">Listagem</p>
-            </div>
-            <div class="list-panel__actions">
-              <button type="button" class="ghost" (click)="limparFiltros()">Limpar filtros</button>
-              <button type="button" class="primary" (click)="onBuscar()">Buscar</button>
+              <p class="muted">Clique duas vezes em um chamado para abrir.</p>
             </div>
           </div>
           <div class="tab-card__divider"></div>
 
-          <div class="status-tabs">
-            <p class="status-tabs__title">Status dos chamados</p>
-            <ol class="step-tabs status-tabs__list" role="tablist">
-              <li
-                class="step-tabs__item"
-                *ngFor="let aba of abasStatus"
-                [class.active]="abaStatusAtiva === aba.id"
-              >
-                <button
-                  type="button"
-                  class="step-tabs__button"
-                  role="tab"
-                  [attr.aria-selected]="abaStatusAtiva === aba.id"
-                  (click)="selecionarAbaStatus(aba.id)"
-                >
-                  <span class="step-tabs__label">{{ aba.label }}</span>
-                </button>
-              </li>
-            </ol>
-          </div>
-
-          <form [formGroup]="filtros" class="list-panel__filters">
+          <form class="list-panel__filters">
             <label class="field">
               Status
-              <select formControlName="status">
+              <select
+                name="statusSelecionado"
+                [(ngModel)]="statusSelecionado"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onSelecionarStatus($event)"
+              >
                 <option value="">Todos</option>
                 <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatus(option) }}</option>
               </select>
             </label>
-            <label class="field">
-              Tipo
-              <select formControlName="tipo">
-                <option value="">Todos</option>
-                <option *ngFor="let option of tipoOptions" [value]="option">{{ option }}</option>
-              </select>
+            <label class="field field--checkbox">
+              <span>Resolvidos</span>
+              <input
+                type="checkbox"
+                name="filtroResolvidos"
+                [(ngModel)]="filtrarResolvidos"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onSelecionarResolvidos($event)"
+              />
             </label>
-            <label class="field">
-              Prioridade
-              <select formControlName="prioridade">
-                <option value="">Todas</option>
-                <option *ngFor="let option of prioridadeOptions" [value]="option">{{ formatPrioridade(option) }}</option>
-              </select>
-            </label>
-            <label class="field">
-              Módulo
-              <input type="text" formControlName="modulo" placeholder="Módulo" />
-            </label>
-            <label class="field">
-              Cliente
-              <input type="text" formControlName="cliente" placeholder="Cliente" />
-            </label>
-            <label class="field">
-              Responsável (ID)
-              <input type="text" formControlName="responsavel" placeholder="Usuário" />
-            </label>
-            <label class="field">
-              Data início
-              <input type="date" formControlName="data_inicio" />
-            </label>
-            <label class="field">
-              Data fim
-              <input type="date" formControlName="data_fim" />
+            <label class="field field--checkbox">
+              <span>Fechados</span>
+              <input
+                type="checkbox"
+                name="filtroFechados"
+                [(ngModel)]="filtrarFechados"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onSelecionarFechados($event)"
+              />
             </label>
             <label class="field full">
               Texto
-              <input type="text" formControlName="texto" placeholder="Título, código ou descrição" />
+              <input
+                type="text"
+                name="textoFiltro"
+                [(ngModel)]="textoFiltro"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onTextoChange($event)"
+                placeholder="Título, código ou descrição"
+              />
             </label>
           </form>
 
@@ -183,54 +92,16 @@
 
           <div *ngIf="carregando" class="list-panel__loading">Carregando chamados...</div>
 
-          <div class="unit-active" *ngIf="chamadoSelecionado">
-            <div>
-              <p class="unit-active__eyebrow">Chamado ativo</p>
-              <p class="unit-active__name">{{ chamadoSelecionado.titulo }}</p>
-              <p class="unit-active__meta">
-                Código: {{ chamadoSelecionado.codigo || '---' }} - Status: {{ formatStatus(chamadoSelecionado.status) }} - Prioridade:
-                {{ formatPrioridade(chamadoSelecionado.prioridade) }}
-              </p>
-            </div>
-            <button type="button" class="btn-outline btn-small" (click)="abrirChamado(chamadoSelecionado)">Abrir</button>
-          </div>
-
           <div class="unit-list" *ngIf="chamados.length; else emptyList">
-            <div class="unit-list__item" *ngFor="let chamado of chamados">
-              <div>
-                <div class="unit-list__header-row">
-                  <span class="unit-list__code">{{ chamado.codigo || '---' }}</span>
-                  <span [ngClass]="statusClass(chamado.status)">{{ formatStatus(chamado.status) }}</span>
-                  <span [ngClass]="prioridadeClass(chamado.prioridade)">{{ formatPrioridade(chamado.prioridade) }}</span>
-                  <span class="pill pill--sla" [class.pill--sla-atrasado]="chamado.sla_atrasado">{{ slaLabel(chamado) }}</span>
-                </div>
-                <p class="unit-list__name-text">{{ chamado.titulo }}</p>
-                <div class="unit-list__info-row">
-                  <span class="unit-list__meta-text">Módulo: {{ chamado.modulo || '---' }}</span>
-                  <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">Cliente: {{ chamado.cliente || '---' }}</span>
-                  <span class="unit-list__separator">-</span>
-                  <span class="unit-list__meta-text">Responsável: {{ chamado.responsavel_usuario_id || '---' }}</span>
-                </div>
-              </div>
-              <div class="unit-list__actions">
-                <button type="button" class="btn-outline btn-small" (click)="selecionarChamado(chamado)">Selecionar</button>
-                <button type="button" class="btn-outline btn-small" (click)="abrirChamado(chamado)">Detalhar</button>
-                <select
-                  class="inline-select"
-                  [value]="chamado.status"
-                  (change)="alterarStatus(chamado, $any($event.target).value)"
-                  aria-label="Alterar status do chamado"
-                >
-                  <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatus(option) }}</option>
-                </select>
-                <input
-                  type="text"
-                  class="inline-input"
-                  placeholder="Responsável ID"
-                  (blur)="atribuirResponsavel(chamado, $any($event.target).value)"
-                  aria-label="Atribuir responsável"
-                />
+            <div class="unit-list__item" *ngFor="let chamado of chamados" (dblclick)="abrirChamado(chamado)">
+              <div class="unit-list__row">
+                <span class="unit-list__code unit-list__code--fixed">{{ chamado.codigo || '---' }}</span>
+                <span class="unit-list__status" [ngClass]="statusClass(chamado.status)">{{ formatStatus(chamado.status) }}</span>
+                <span class="unit-list__prioridade" [ngClass]="prioridadeClass(chamado.prioridade)">{{ formatPrioridade(chamado.prioridade) }}</span>
+                <span class="unit-list__title">{{ chamado.titulo }}</span>
+                <span class="unit-list__meta">Módulo: {{ chamado.modulo || '---' }}</span>
+                <span class="unit-list__meta">Cliente: {{ chamado.cliente || '---' }}</span>
+                <span class="unit-list__meta">Responsável: {{ chamado.responsavel_usuario_id || '---' }}</span>
               </div>
             </div>
           </div>
@@ -248,56 +119,6 @@
               Próximo
             </button>
           </div>
-        </section>
-
-        <section class="list-panel" *ngIf="abaAtiva === 'resumo'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Resumo</p>
-            </div>
-          </div>
-          <div class="tab-card__divider"></div>
-          <p class="muted">Selecione um chamado para visualizar o resumo.</p>
-        </section>
-
-        <section class="list-panel" *ngIf="abaAtiva === 'kanban'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Kanban</p>
-            </div>
-          </div>
-          <div class="tab-card__divider"></div>
-          <app-chamado-tecnico-kanban></app-chamado-tecnico-kanban>
-        </section>
-
-        <section class="list-panel" *ngIf="abaAtiva === 'historico'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Histórico</p>
-            </div>
-          </div>
-          <div class="tab-card__divider"></div>
-          <p class="muted">Selecione um chamado para visualizar o histórico.</p>
-        </section>
-
-        <section class="list-panel" *ngIf="abaAtiva === 'comentarios'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Comentários</p>
-            </div>
-          </div>
-          <div class="tab-card__divider"></div>
-          <p class="muted">Selecione um chamado para visualizar os comentários.</p>
-        </section>
-
-        <section class="list-panel" *ngIf="abaAtiva === 'anexos'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Anexos</p>
-            </div>
-          </div>
-          <div class="tab-card__divider"></div>
-          <p class="muted">Selecione um chamado para visualizar os anexos.</p>
         </section>
       </div>
     </div>

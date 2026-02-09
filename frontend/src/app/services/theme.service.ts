@@ -6,6 +6,7 @@ export type ThemeMode = 'light' | 'dark';
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly storageKey = 'g3_theme';
+  private readonly storageMigracaoKey = 'g3_theme_migrado_20260209';
   readonly currentTheme = signal<ThemeMode>(this.loadStoredTheme());
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {
@@ -30,14 +31,22 @@ export class ThemeService {
   }
 
   private loadStoredTheme(): ThemeMode {
+    const migrado = localStorage.getItem(this.storageMigracaoKey);
     const stored = localStorage.getItem(this.storageKey) as ThemeMode | null;
+
+    if (!migrado) {
+      if (stored === 'dark') {
+        localStorage.removeItem(this.storageKey);
+      }
+      localStorage.setItem(this.storageMigracaoKey, '1');
+      return 'light';
+    }
 
     if (stored === 'dark' || stored === 'light') {
       return stored;
     }
 
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? 'dark' : 'light';
+    return 'light';
   }
 }
 

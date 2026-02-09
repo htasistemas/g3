@@ -3,19 +3,19 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, finalize, takeUntil } from 'rxjs';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faHeadset } from '@fortawesome/free-solid-svg-icons';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { AuthService } from '../../services/auth.service';
 import { AssistanceUnitService } from '../../services/assistance-unit.service';
 import { ConfigService } from '../../services/config.service';
 import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 import {
-  AuditoriaEvento,
   ChamadoImpacto,
   ChamadoPrioridade,
   ChamadoStatus,
   ChamadoTecnicoAcao,
   ChamadoTecnicoAnexo,
-  ChamadoTecnicoAuditoriaVinculo,
   ChamadoTecnicoComentario,
   ChamadoTecnicoPayload,
   ChamadoTecnicoService,
@@ -24,18 +24,11 @@ import {
 import { TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { menuSections } from '../../layout/menu-config';
-import { ChamadoTecnicoKanbanComponent } from '../chamado-tecnico-kanban/chamado-tecnico-kanban.component';
+ 
 
-type AbaChamadoTecnico =
-  | 'listagem'
-  | 'resumo'
-  | 'kanban'
-  | 'historico'
-  | 'comentarios'
-  | 'anexos'
-  | 'auditoria'
-  | 'resposta';
+type AbaChamadoTecnico = 'registro' | 'acompanhamento' | 'atendimento';
 
 @Component({
   selector: 'app-chamado-tecnico-detalhe',
@@ -47,28 +40,34 @@ type AbaChamadoTecnico =
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
     AutocompleteComponent,
-    ChamadoTecnicoKanbanComponent,
+    DialogComponent,
   ],
 })
 export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   private static readonly PERMISSAO_DESENVOLVEDOR = 'ADMINISTRADOR';
+  private static readonly EMAIL_ATENDIMENTO = 'adrianomtorresbr@gmail.com';
+  private static readonly RESPONSAVEL_ATENDIMENTO = 'Adriano Martins Torres';
+  readonly faHeadset = faHeadset;
   readonly acoesToolbar = this.criarConfigAcoes({
-    salvar: true,
-    excluir: false,
-    novo: true,
-    cancelar: true,
-    imprimir: false,
     buscar: true,
+    novo: true,
+    salvar: true,
+    cancelar: true,
+    excluir: true,
+    imprimir: true,
   });
 
   popupErros: string[] = [];
+  popupTitulo = 'Campos obrigatorios';
   feedback: string | null = null;
   carregando = false;
   chamadoId: string | null = null;
-  activeTab: AbaChamadoTecnico = 'resumo';
+  excluirAberto = false;
+  activeTab: AbaChamadoTecnico = 'registro';
   tabs: { id: AbaChamadoTecnico; label: string }[] = [];
   modoTela: 'usuario' | 'desenvolvedor' = 'usuario';
   destinoChamado = 'htasistemas@gmail.com';
@@ -80,23 +79,32 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     'EM_TESTE',
     'AGUARDANDO_CLIENTE',
     'RESOLVIDO',
+    'FECHADO',
+    'REABERTO',
     'CANCELADO',
   ];
+  statusAtendimento: { valor: ChamadoStatus; label: string }[] = [
+    { valor: 'RESOLVIDO', label: 'Resolvido' },
+    { valor: 'FECHADO', label: 'Fechado' },
+    { valor: 'EM_DESENVOLVIMENTO', label: 'Em desenvolvimento' },
+    { valor: 'EM_ANALISE', label: 'Em análise' },
+    { valor: 'AGUARDANDO_CLIENTE', label: 'Aguardando cliente' },
+    { valor: 'EM_TESTE', label: 'Em teste' },
+    { valor: 'REABERTO', label: 'Reaberto' },
+    { valor: 'CANCELADO', label: 'Não será implementado' },
+  ];
   prioridadeOptions: ChamadoPrioridade[] = ['BAIXA', 'MEDIA', 'ALTA', 'CRITICA'];
-  tipoOptions: ChamadoTipo[] = ['ERRO', 'MELHORIA'];
+  tipoOptions: ChamadoTipo[] = ['ERRO', 'MELHORIA', 'NOVA_IMPLEMENTACAO', 'CORRECAO'];
   impactoOptions: ChamadoImpacto[] = ['BAIXO', 'MEDIO', 'ALTO'];
 
   acoes: ChamadoTecnicoAcao[] = [];
   comentarios: ChamadoTecnicoComentario[] = [];
   anexos: ChamadoTecnicoAnexo[] = [];
-  auditorias: ChamadoTecnicoAuditoriaVinculo[] = [];
-  auditoriaDisponivel: AuditoriaEvento[] = [];
-  chamadosAbertos: ChamadoTecnicoPayload[] = [];
-  carregandoAbertos = false;
-  carregouAbertos = false;
+  anexosPendentes: File[] = [];
+  previewsAnexos: { url: string; nome: string }[] = [];
 
   comentarioTexto = '';
-  auditoriaFiltro!: FormGroup;
+  comentarioReabrirTexto = '';
 
   form!: FormGroup;
   moduloTermo = '';
@@ -121,32 +129,21 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   }
 
   ngOnInit(): void {
-    this.auditoriaFiltro = this.fb.group({
-      data_inicio: [''],
-      data_fim: [''],
-      usuario_id: [''],
-      entidade: [''],
-      texto: [''],
-    });
     this.form = this.fb.group({
       titulo: ['', [Validators.required, Validators.maxLength(200)]],
       descricao: ['', [Validators.required]],
-      tipo: ['ERRO' as ChamadoTipo, Validators.required],
+      tipo: ['NOVA_IMPLEMENTACAO' as ChamadoTipo, Validators.required],
       status: ['ABERTO' as ChamadoStatus, Validators.required],
-      prioridade: ['MEDIA' as ChamadoPrioridade, Validators.required],
+      prioridade: ['BAIXA' as ChamadoPrioridade, Validators.required],
       impacto: ['MEDIO' as ChamadoImpacto, Validators.required],
       modulo: ['', [Validators.required, Validators.maxLength(120)]],
       menu: ['', [Validators.required, Validators.maxLength(160)]],
       cliente: ['', [Validators.required, Validators.maxLength(160)]],
       ambiente: ['PRODUCAO'],
       versao_sistema: [''],
-      passos_reproducao: [''],
-      resultado_atual: [''],
-      resultado_esperado: [''],
-      usuarios_teste: [''],
       prazo_sla_em_horas: [''],
       responsavel_usuario_id: [''],
-      tags: [''],
+      responsavel_usuario_nome: [''],
       resposta_desenvolvedor: [''],
       respondido_por_usuario_id: [''],
     });
@@ -157,6 +154,9 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       this.modoTela = data['perfil'] === 'desenvolvedor' ? 'desenvolvedor' : 'usuario';
       this.configurarTabs();
       this.validarPermissaoTela();
+      if (this.ehUsuarioAtendimento()) {
+        this.definirResponsavelLogado();
+      }
     });
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const id = params.get('id');
@@ -172,6 +172,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.previewsAnexos.forEach((preview) => URL.revokeObjectURL(preview.url));
   }
 
   onBuscar(): void {
@@ -180,13 +181,20 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   onNovo(): void {
     if (this.modoTela === 'desenvolvedor') {
-      this.router.navigate(['/configuracoes/chamados-tecnicos-dev']);
+      this.router.navigate(['/configuracoes/chamados-tecnicos-dev/novo']);
       return;
     }
     this.router.navigate(['/configuracoes/chamados-tecnicos/novo']);
   }
 
   onCancel(): void {
+    this.limparFormulario();
+    if (this.chamadoId) {
+      this.router.navigate([this.rotaBase()]);
+    }
+  }
+
+  onFechar(): void {
     this.router.navigate([this.rotaBase()]);
   }
 
@@ -201,7 +209,11 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     if (this.chamadoId) {
       this.service.atualizar(this.chamadoId, payload).subscribe({
         next: () => {
-          this.feedback = 'Chamado atualizado com sucesso.';
+          this.feedback = null;
+          this.popupTitulo = 'Sucesso';
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Chamado atualizado com sucesso.')
+            .build();
           this.carregarChamado();
         },
         error: () => {
@@ -213,10 +225,15 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     } else {
       this.service.criar(payload).subscribe({
         next: (novo) => {
-          this.feedback = 'Chamado criado com sucesso.';
+          this.feedback = null;
+          this.popupTitulo = 'Sucesso';
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Chamado incluído com sucesso.')
+            .build();
           if (novo.id) {
-            this.router.navigate(['/configuracoes/chamados-tecnicos', novo.id]);
+            this.enviarAnexosPendentes(novo.id);
           }
+          this.router.navigate([this.rotaBase()]);
         },
         error: () => {
           this.popupErros = new PopupErrorBuilder()
@@ -236,6 +253,9 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       .subscribe({
         next: (chamado) => {
           this.form.patchValue(chamado as any);
+          if (this.ehUsuarioAtendimento()) {
+            this.definirResponsavelLogado();
+          }
           this.moduloTermo = chamado.modulo || '';
           this.menuTermo = chamado.menu || '';
           this.atualizarMenuOpcoes(this.moduloTermo);
@@ -256,9 +276,118 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       this.comentarios = data;
     });
     this.service.listarAnexos(this.chamadoId).subscribe((data) => (this.anexos = data));
-    this.service
-      .listarAuditoriaVinculada(this.chamadoId)
-      .subscribe((data) => (this.auditorias = data));
+  }
+
+  onExcluir(): void {
+    if (!this.chamadoId) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione um chamado para excluir.')
+        .build();
+      return;
+    }
+    this.excluirAberto = true;
+  }
+
+  confirmarExcluir(): void {
+    if (!this.chamadoId) {
+      this.excluirAberto = false;
+      return;
+    }
+    const id = this.chamadoId;
+    const usuarioId = this.usuarioAtualId;
+    this.service.remover(id, usuarioId).subscribe({
+      next: () => {
+        this.excluirAberto = false;
+        this.feedback = null;
+        this.popupTitulo = 'Sucesso';
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Chamado excluído com sucesso.')
+          .build();
+        this.router.navigate([this.rotaBase()]);
+      },
+      error: () => {
+        this.excluirAberto = false;
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível excluir o chamado.')
+          .build();
+      },
+    });
+  }
+
+  cancelarExcluir(): void {
+    this.excluirAberto = false;
+  }
+
+  onImprimir(): void {
+    window.print();
+  }
+
+  reabrirChamado(): void {
+    if (!this.chamadoId) return;
+    if (!this.comentarioReabrirTexto.trim()) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Informe um comentário para reabrir o chamado.')
+        .build();
+      return;
+    }
+    const usuarioId = this.usuarioAtualId;
+    const comentario = this.comentarioReabrirTexto.trim();
+    this.service.alterarStatus(this.chamadoId, 'REABERTO', usuarioId).subscribe({
+      next: () => {
+        this.service.adicionarComentario(this.chamadoId!, comentario, usuarioId).subscribe({
+          next: () => {
+            this.popupTitulo = 'Sucesso';
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Chamado reaberto com sucesso.')
+              .build();
+            this.comentarioReabrirTexto = '';
+            this.carregarChamado();
+          },
+          error: () => {
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Chamado reaberto, mas não foi possível salvar o comentário.')
+              .build();
+            this.comentarioReabrirTexto = '';
+            this.carregarChamado();
+          },
+        });
+      },
+      error: () => {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível reabrir o chamado.')
+          .build();
+      },
+    });
+  }
+
+  encerrarChamado(): void {
+    if (!this.chamadoId) return;
+    const usuarioId = this.usuarioAtualId;
+    const comentario = 'Chamado encerrado pelo usuário.';
+    this.service.alterarStatus(this.chamadoId, 'FECHADO', usuarioId).subscribe({
+      next: () => {
+        this.service.adicionarComentario(this.chamadoId!, comentario, usuarioId).subscribe({
+          next: () => {
+            this.popupTitulo = 'Sucesso';
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Chamado encerrado com sucesso.')
+              .build();
+            this.carregarChamado();
+          },
+          error: () => {
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Chamado encerrado, mas não foi possível salvar o comentário.')
+              .build();
+            this.carregarChamado();
+          },
+        });
+      },
+      error: () => {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível encerrar o chamado.')
+          .build();
+      },
+    });
   }
 
   adicionarComentario(): void {
@@ -278,64 +407,42 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   }
 
   selecionarArquivo(event: Event): void {
-    if (!this.chamadoId) return;
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const conteudo = (reader.result as string) || '';
-      const usuarioId = this.usuarioAtualId;
-      this.service
-        .adicionarAnexo(
-          this.chamadoId!,
-          {
-            nome_arquivo: file.name,
-            mime_type: file.type,
-            tamanho_bytes: file.size,
-            conteudo_base64: conteudo,
-          },
-          usuarioId
-        )
-        .subscribe({
-          next: (anexo) => {
-            this.anexos = [anexo, ...this.anexos];
-          },
-          error: () => {
-            this.popupErros = new PopupErrorBuilder()
-              .adicionar('Não foi possível adicionar o anexo.')
-              .build();
-          },
-        });
-    };
-    reader.readAsDataURL(file);
+    this.adicionarPreview(file);
+    if (!this.chamadoId) {
+      this.anexosPendentes = [...this.anexosPendentes, file];
+      return;
+    }
+    this.enviarAnexoArquivo(this.chamadoId, file);
   }
 
-  buscarAuditoria(): void {
-    const filtros = this.normalizeAuditoriaFiltros();
-    this.service.listarAuditoria(filtros).subscribe((data) => (this.auditoriaDisponivel = data));
-  }
-
-  vincularAuditoria(evento: AuditoriaEvento): void {
-    if (!this.chamadoId) return;
-    const usuarioId = this.usuarioAtualId;
-    this.service.vincularAuditoria(this.chamadoId, evento.id, usuarioId).subscribe({
-      next: (vinculo) => {
-        this.auditorias = [vinculo, ...this.auditorias];
-      },
-      error: () => {
-        this.popupErros = new PopupErrorBuilder()
-          .adicionar('Não foi possível vincular a auditoria.')
-          .build();
-      },
-    });
+  onColarImagem(event: ClipboardEvent): void {
+    const itens = event.clipboardData?.items;
+    if (!itens?.length) return;
+    const imagens: File[] = [];
+    for (const item of itens) {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const nomeArquivo = `print-${new Date().getTime()}.${blob.type.split('/')[1] ?? 'png'}`;
+          imagens.push(new File([blob], nomeArquivo, { type: blob.type }));
+        }
+      }
+    }
+    if (!imagens.length) return;
+    event.preventDefault();
+    imagens.forEach((arquivo) => this.adicionarPreview(arquivo));
+    if (!this.chamadoId) {
+      this.anexosPendentes = [...this.anexosPendentes, ...imagens];
+      return;
+    }
+    imagens.forEach((arquivo) => this.enviarAnexoArquivo(this.chamadoId!, arquivo));
   }
 
   changeTab(tab: AbaChamadoTecnico): void {
     this.activeTab = tab;
-    if (tab === 'listagem') {
-      this.carregarChamadosAbertos();
-    }
   }
 
   get activeTabIndex(): number {
@@ -344,11 +451,26 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   formatStatus(status?: string): string {
     if (!status) return '---';
-    return status.replace(/_/g, ' ');
+    return status.replace(/[_-]+/g, ' ');
   }
 
   formatarTipoAcao(tipo: string): string {
     return tipo ? tipo.replace(/_/g, ' ') : '---';
+  }
+
+  formatTipo(tipo?: string): string {
+    switch (tipo) {
+      case 'ERRO':
+        return 'Erro';
+      case 'MELHORIA':
+        return 'Melhoria';
+      case 'NOVA_IMPLEMENTACAO':
+        return 'Nova implementação';
+      case 'CORRECAO':
+        return 'Correção';
+      default:
+        return '---';
+    }
   }
 
   detalhesAcao(acao: ChamadoTecnicoAcao): string[] {
@@ -372,6 +494,64 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     return detalhes;
   }
 
+  nomeRegistradoPor(acao: ChamadoTecnicoAcao): string {
+    const usuarioId = this.usuarioAtualId;
+    if (usuarioId && acao.criado_por_usuario_id === usuarioId) {
+      return this.nomeUsuarioLogado() || 'Você';
+    }
+    return acao.criado_por_usuario_id ? String(acao.criado_por_usuario_id) : '---';
+  }
+
+  nomeRegistradoPorComentario(comentario: ChamadoTecnicoComentario): string {
+    const usuarioId = this.usuarioAtualId;
+    if (usuarioId && comentario.criado_por_usuario_id === usuarioId) {
+      return this.nomeUsuarioLogado() || 'Você';
+    }
+    return this.nomeUsuarioLogado() || (comentario.criado_por_usuario_id ? String(comentario.criado_por_usuario_id) : '---');
+  }
+
+  private enviarAnexoArquivo(chamadoId: string, file: File): void {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const conteudo = (reader.result as string) || '';
+      const usuarioId = this.usuarioAtualId;
+      this.service
+        .adicionarAnexo(
+          chamadoId,
+          {
+            nome_arquivo: file.name,
+            mime_type: file.type,
+            tamanho_bytes: file.size,
+            conteudo_base64: conteudo,
+          },
+          usuarioId
+        )
+        .subscribe({
+          next: (anexo) => {
+            this.anexos = [anexo, ...this.anexos];
+          },
+          error: () => {
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Não foi possível adicionar o anexo.')
+              .build();
+          },
+        });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  private enviarAnexosPendentes(chamadoId: string): void {
+    if (!this.anexosPendentes.length) return;
+    const pendentes = [...this.anexosPendentes];
+    this.anexosPendentes = [];
+    pendentes.forEach((arquivo) => this.enviarAnexoArquivo(chamadoId, arquivo));
+  }
+
+  private adicionarPreview(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.previewsAnexos = [...this.previewsAnexos, { url, nome: file.name }];
+  }
+
   private buildPayload(): ChamadoTecnicoPayload {
     const usuarioId = this.usuarioAtualId;
     const raw = this.form.getRawValue();
@@ -379,36 +559,31 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
       ...raw,
       criado_por_usuario_id: usuarioId ?? undefined,
       respondido_por_usuario_id:
-        this.modoTela === 'desenvolvedor' && raw.resposta_desenvolvedor
+        this.ehUsuarioAtendimento() && raw.resposta_desenvolvedor
           ? usuarioId ?? undefined
           : undefined,
-      responsavel_usuario_id: raw.responsavel_usuario_id
+      responsavel_usuario_id: this.ehUsuarioAtendimento()
+        ? usuarioId ?? undefined
+        : raw.responsavel_usuario_id
         ? Number(raw.responsavel_usuario_id)
         : undefined,
       prazo_sla_em_horas: raw.prazo_sla_em_horas ? Number(raw.prazo_sla_em_horas) : undefined,
     };
-    if (this.modoTela !== 'desenvolvedor') {
+    delete (payload as any).responsavel_usuario_nome;
+    if (!this.chamadoId) {
+      delete payload.resposta_desenvolvedor;
+      delete payload.respondido_por_usuario_id;
+    }
+    if (!this.ehUsuarioAtendimento()) {
       delete payload.resposta_desenvolvedor;
       delete payload.respondido_por_usuario_id;
     }
     return payload;
   }
 
-  private normalizeAuditoriaFiltros(): {
-    data_inicio?: string;
-    data_fim?: string;
-    usuario_id?: string;
-    entidade?: string;
-    texto?: string;
-  } {
-    const raw = this.auditoriaFiltro.value as Record<string, string | null | undefined>;
-    return {
-      data_inicio: raw['data_inicio'] || undefined,
-      data_fim: raw['data_fim'] || undefined,
-      usuario_id: raw['usuario_id'] || undefined,
-      entidade: raw['entidade'] || undefined,
-      texto: raw['texto'] || undefined,
-    };
+  abrirChamadoSelecionado(chamado: ChamadoTecnicoPayload): void {
+    if (!chamado.id) return;
+    this.router.navigate([this.rotaBase(), chamado.id]);
   }
 
   get usuarioAtualId(): number | null {
@@ -417,29 +592,35 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   private configurarTabs(): void {
     const baseTabs: { id: AbaChamadoTecnico; label: string }[] = [
-      { id: 'listagem', label: 'Listagem de chamados' },
-      { id: 'resumo', label: 'Resumo' },
-      { id: 'kanban', label: 'Kanban' },
-      { id: 'historico', label: 'Histórico' },
-      { id: 'comentarios', label: 'Comentários' },
-      { id: 'anexos', label: 'Anexos' },
+      { id: 'registro', label: 'Registro do chamado' },
+      { id: 'acompanhamento', label: 'Acompanhamento' },
     ];
-    if (this.modoTela === 'desenvolvedor') {
-      baseTabs.push({ id: 'resposta', label: 'Resposta' });
-      baseTabs.push({ id: 'auditoria', label: 'Auditoria' });
+    if (this.ehUsuarioAtendimento()) {
+      baseTabs.push({ id: 'atendimento', label: 'Desenvolvimento' });
     }
     this.tabs = baseTabs;
     if (!this.tabs.find((tab) => tab.id === this.activeTab)) {
-      this.activeTab = 'resumo';
+      this.activeTab = 'registro';
     }
   }
 
   private validarPermissaoTela(): void {
     if (this.modoTela !== 'desenvolvedor') return;
+    if (this.ehUsuarioAtendimento()) return;
     const permissoes = this.authService.user()?.permissoes ?? [];
     if (!permissoes.includes(ChamadoTecnicoDetalheComponent.PERMISSAO_DESENVOLVEDOR)) {
       this.router.navigate(['/configuracoes/chamados-tecnicos']);
     }
+  }
+
+  private ehUsuarioAtendimento(): boolean {
+    const usuario = this.authService.user();
+    const email = (usuario?.email || '').trim().toLowerCase();
+    const nomeUsuario = (usuario?.nomeUsuario || '').trim().toLowerCase();
+    return (
+      email === ChamadoTecnicoDetalheComponent.EMAIL_ATENDIMENTO
+      || nomeUsuario === ChamadoTecnicoDetalheComponent.EMAIL_ATENDIMENTO
+    );
   }
 
   private rotaBase(): string {
@@ -480,6 +661,25 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   selecionarMenu(opcao: AutocompleteOpcao): void {
     this.menuTermo = opcao.label;
     this.form.patchValue({ menu: opcao.label });
+    if (opcao.sublabel) {
+      this.moduloTermo = opcao.sublabel;
+      this.form.patchValue({ modulo: opcao.sublabel });
+      this.moduloOpcoes = this.filtrarOpcoes(this.moduloOpcoesBase, opcao.sublabel);
+    }
+  }
+
+  onVersaoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = (input.value || '').replace(/\D/g, '').slice(0, 5);
+    let formatted = digits;
+    if (digits.length > 1) {
+      formatted = `${digits.slice(0, 1)}.${digits.slice(1)}`;
+    }
+    if (digits.length > 3) {
+      formatted = `${digits.slice(0, 1)}.${digits.slice(1, 3)}.${digits.slice(3)}`;
+    }
+    input.value = formatted;
+    this.form.get('versao_sistema')?.setValue(formatted, { emitEvent: false });
   }
 
   private atualizarMenuOpcoes(moduloSelecionado: string): void {
@@ -531,24 +731,12 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
   }
 
   private carregarClientePrincipal(): void {
-    this.assistanceUnitService.list().subscribe({
-      next: (unidades) => {
-        const principal =
-          unidades.find((unidade) => unidade.unidadePrincipal) ?? unidades[0];
-        const nome = principal?.nomeFantasia || principal?.razaoSocial;
-        if (nome && !this.form.get('cliente')?.value) {
+    this.assistanceUnitService.get().subscribe({
+      next: (response) => {
+        const nome = response.unidade?.nomeFantasia || response.unidade?.razaoSocial;
+        if (nome) {
           this.form.patchValue({ cliente: nome });
         }
-      },
-      error: () => {
-        this.assistanceUnitService.get().subscribe({
-          next: (response) => {
-            const nome = response.unidade?.nomeFantasia || response.unidade?.razaoSocial;
-            if (nome && !this.form.get('cliente')?.value) {
-              this.form.patchValue({ cliente: nome });
-            }
-          },
-        });
       },
     });
   }
@@ -561,21 +749,42 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     });
   }
 
-  private carregarChamadosAbertos(): void {
-    if (this.carregouAbertos || this.carregandoAbertos) return;
-    this.carregandoAbertos = true;
-    this.service
-      .listar({ status: 'ABERTO', tamanho_pagina: 50 })
-      .pipe(finalize(() => (this.carregandoAbertos = false)))
-      .subscribe({
-        next: (response) => {
-          this.chamadosAbertos = response?.chamados ?? [];
-          this.carregouAbertos = true;
-        },
-        error: () => {
-          this.feedback = 'Não foi possível carregar os chamados abertos.';
-        },
-      });
+
+  private limparFormulario(): void {
+    this.form.reset({
+      titulo: '',
+      descricao: '',
+      tipo: 'NOVA_IMPLEMENTACAO',
+      status: 'ABERTO',
+      prioridade: 'BAIXA',
+      impacto: 'MEDIO',
+      modulo: '',
+      menu: '',
+      cliente: this.form.get('cliente')?.value ?? '',
+      ambiente: 'PRODUCAO',
+      versao_sistema: '',
+      prazo_sla_em_horas: '',
+      responsavel_usuario_id: this.ehUsuarioAtendimento() ? this.usuarioAtualId : '',
+      responsavel_usuario_nome: this.ehUsuarioAtendimento() ? this.nomeUsuarioLogado() : '',
+      resposta_desenvolvedor: '',
+      respondido_por_usuario_id: '',
+    });
+    this.moduloTermo = '';
+    this.menuTermo = '';
+  }
+
+  private definirResponsavelLogado(): void {
+    const usuarioId = this.usuarioAtualId;
+    if (!usuarioId) return;
+    this.form.patchValue({
+      responsavel_usuario_id: usuarioId,
+      responsavel_usuario_nome: this.nomeUsuarioLogado(),
+    });
+  }
+
+  private nomeUsuarioLogado(): string {
+    const usuario = this.authService.user();
+    return usuario?.nome || usuario?.nomeUsuario || '';
   }
 }
 

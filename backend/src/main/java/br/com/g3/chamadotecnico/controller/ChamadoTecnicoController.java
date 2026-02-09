@@ -21,6 +21,7 @@ import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -75,6 +76,14 @@ public class ChamadoTecnicoController {
   public ChamadoTecnicoResponse atualizar(
       @PathVariable("id") UUID id, @Valid @RequestBody ChamadoTecnicoAtualizacaoRequest request) {
     return service.atualizar(id, request);
+  }
+
+  @DeleteMapping("/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void remover(
+      @PathVariable("id") UUID id,
+      @RequestParam(value = "usuario_id", required = false) Long usuarioId) {
+    service.remover(id, usuarioId);
   }
 
   @PostMapping("/{id}/status")

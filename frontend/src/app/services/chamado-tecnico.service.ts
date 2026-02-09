@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type ChamadoTipo = 'ERRO' | 'MELHORIA';
+export type ChamadoTipo = 'ERRO' | 'MELHORIA' | 'CORRECAO' | 'NOVA_IMPLEMENTACAO';
 export type ChamadoStatus =
   | 'ABERTO'
   | 'EM_ANALISE'
@@ -11,6 +11,8 @@ export type ChamadoStatus =
   | 'EM_TESTE'
   | 'AGUARDANDO_CLIENTE'
   | 'RESOLVIDO'
+  | 'FECHADO'
+  | 'REABERTO'
   | 'CANCELADO';
 export type ChamadoPrioridade = 'BAIXA' | 'MEDIA' | 'ALTA' | 'CRITICA';
 export type ChamadoImpacto = 'BAIXO' | 'MEDIO' | 'ALTO';
@@ -136,6 +138,14 @@ export class ChamadoTecnicoService {
 
   atualizar(id: string, payload: ChamadoTecnicoPayload): Observable<ChamadoTecnicoPayload> {
     return this.http.put<ChamadoTecnicoPayload>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  remover(id: string, usuarioId?: number | null): Observable<void> {
+    let params = new HttpParams();
+    if (usuarioId !== undefined && usuarioId !== null) {
+      params = params.set('usuario_id', String(usuarioId));
+    }
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { params });
   }
 
   alterarStatus(id: string, status: ChamadoStatus, usuarioId?: number | null): Observable<ChamadoTecnicoPayload> {

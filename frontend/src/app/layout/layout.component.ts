@@ -17,10 +17,11 @@ import {
 import { menuSections, MenuItem } from './menu-config';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter, take, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TarefasPendenciasService } from '../services/tarefas-pendencias.service';
 import { LembreteDiario, LembretesDiariosService } from '../services/lembretes-diarios.service';
+import { ConfigService } from '../services/config.service';
 
 @Component({
   selector: 'app-layout',
@@ -59,6 +60,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   adiarAberto = false;
   adiarData = '';
   adiarHora = '';
+  versaoSistema = '';
   private lembretesRefreshId?: ReturnType<typeof setInterval>;
 
   constructor(
@@ -68,13 +70,23 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly tarefasService: TarefasPendenciasService,
-    private readonly lembretesService: LembretesDiariosService
+    private readonly lembretesService: LembretesDiariosService,
+    private readonly configService: ConfigService
   ) {}
 
   ngOnInit(): void {
     this.menuSections = this.filtrarMenuPorPermissoes(menuSections);
     const initialRoute = this.findDeepestChild(this.activatedRoute);
     this.pageTitle = initialRoute.snapshot.data['title'] || 'Visao geral';
+
+    this.assistanceUnitService
+      .carregarUnidadeAtual()
+      .pipe(take(1))
+      .subscribe({
+        error: () => {
+          this.assistanceUnitService.setActiveUnit('Navegação', null);
+        }
+      });
 
     this.router.events
       .pipe(
@@ -95,6 +107,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.lembretesRefreshId = setInterval(() => {
       this.carregarResumoLembretes();
     }, 30000);
+
+    this.configService.getVersaoSistema().subscribe({
+      next: (response) => {
+        this.versaoSistema = response?.versao || '';
+      }
+    });
   }
 
   get username(): string {
@@ -259,4 +277,5 @@ export class LayoutComponent implements OnInit, OnDestroy {
     const id = Number(usuario.id);
     return Number.isNaN(id) ? null : id;
   }
+
 }

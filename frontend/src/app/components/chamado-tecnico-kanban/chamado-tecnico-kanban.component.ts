@@ -35,6 +35,8 @@ export class ChamadoTecnicoKanbanComponent extends TelaBaseComponent implements 
     EM_TESTE: [],
     AGUARDANDO_CLIENTE: [],
     RESOLVIDO: [],
+    FECHADO: [],
+    REABERTO: [],
     CANCELADO: [],
   };
   readonly statusOrdem: ChamadoStatus[] = [
@@ -44,6 +46,8 @@ export class ChamadoTecnicoKanbanComponent extends TelaBaseComponent implements 
     'EM_TESTE',
     'AGUARDANDO_CLIENTE',
     'RESOLVIDO',
+    'FECHADO',
+    'REABERTO',
     'CANCELADO',
   ];
 

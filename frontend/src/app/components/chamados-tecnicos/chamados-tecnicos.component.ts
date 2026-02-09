@@ -1,6 +1,6 @@
 ﻿import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faHeadset } from '@fortawesome/free-solid-svg-icons';
@@ -13,11 +13,8 @@ import {
   ChamadoTecnicoPayload,
   ChamadoTecnicoService,
   ChamadoStatus,
-  ChamadoPrioridade,
-  ChamadoTipo,
 } from '../../services/chamado-tecnico.service';
 import { AuthService } from '../../services/auth.service';
-import { ChamadoTecnicoKanbanComponent } from '../chamado-tecnico-kanban/chamado-tecnico-kanban.component';
 
 @Component({
   selector: 'app-chamados-tecnicos',
@@ -26,12 +23,11 @@ import { ChamadoTecnicoKanbanComponent } from '../chamado-tecnico-kanban/chamado
   styleUrl: './chamados-tecnicos.component.scss',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormsModule,
     RouterModule,
     FontAwesomeModule,
     TelaPadraoComponent,
-    PopupMessagesComponent,
-    ChamadoTecnicoKanbanComponent
+    PopupMessagesComponent
   ],
 })
 export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
@@ -45,7 +41,6 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   });
 
   chamados: ChamadoTecnicoPayload[] = [];
-  chamadoSelecionado: ChamadoTecnicoPayload | null = null;
   total = 0;
   pagina = 1;
   tamanhoPagina = 12;
@@ -54,16 +49,6 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   popupErros: string[] = [];
   modoTela: 'usuario' | 'desenvolvedor' = 'usuario';
   readonly faHeadset = faHeadset;
-  abaAtiva: 'listagem' | 'kanban' | 'resumo' | 'historico' | 'comentarios' | 'anexos' = 'listagem';
-  abaStatusAtiva: ChamadoStatus = 'ABERTO';
-  abasStatus: { id: ChamadoStatus; label: string }[] = [
-    { id: 'ABERTO', label: 'Abertos' },
-    { id: 'EM_ANALISE', label: 'Em análise' },
-    { id: 'EM_DESENVOLVIMENTO', label: 'Em desenvolvimento' },
-    { id: 'AGUARDANDO_CLIENTE', label: 'Aguardando cliente' },
-    { id: 'RESOLVIDO', label: 'Resolvidos' },
-    { id: 'CANCELADO', label: 'Fechados' },
-  ];
 
   statusOptions: ChamadoStatus[] = [
     'ABERTO',
@@ -71,42 +56,31 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     'EM_DESENVOLVIMENTO',
     'EM_TESTE',
     'AGUARDANDO_CLIENTE',
-    'RESOLVIDO',
+    'REABERTO',
     'CANCELADO',
   ];
-  prioridadeOptions: ChamadoPrioridade[] = ['BAIXA', 'MEDIA', 'ALTA', 'CRITICA'];
-  tipoOptions: ChamadoTipo[] = ['ERRO', 'MELHORIA'];
-
-  filtros!: FormGroup;
+  statusSelecionado: string = '';
+  filtrarResolvidos = false;
+  filtrarFechados = false;
+  textoFiltro = '';
 
   private readonly destroy$ = new Subject<void>();
+  private listarToken = 0;
 
   constructor(
-    private readonly fb: FormBuilder,
     private readonly service: ChamadoTecnicoService,
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly changeDetector: ChangeDetectorRef
   ) {
     super();
   }
 
   ngOnInit(): void {
-    this.filtros = this.fb.group({
-      status: [''],
-      tipo: [''],
-      prioridade: [''],
-      modulo: [''],
-      cliente: [''],
-      responsavel: [''],
-      data_inicio: [''],
-      data_fim: [''],
-      texto: [''],
-    });
     this.route.data.pipe(takeUntil(this.destroy$)).subscribe((data) => {
       this.modoTela = data['perfil'] === 'desenvolvedor' ? 'desenvolvedor' : 'usuario';
     });
-    this.selecionarAbaStatus(this.abaStatusAtiva, false);
     this.listar();
   }
 
@@ -121,15 +95,34 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
 
   onBuscar(): void {
     this.pagina = 1;
-    const statusSelecionado = this.filtros.value.status as ChamadoStatus | '';
-    if (statusSelecionado) {
-      this.abaStatusAtiva = statusSelecionado;
-    }
     this.listar();
   }
 
-  selecionarAba(aba: 'listagem' | 'kanban' | 'resumo' | 'historico' | 'comentarios' | 'anexos'): void {
-    this.abaAtiva = aba;
+  onSelecionarStatus(valor: string): void {
+    this.statusSelecionado = valor || '';
+    this.filtrarResolvidos = false;
+    this.pagina = 1;
+    this.listar();
+  }
+
+  onSelecionarResolvidos(valor: boolean): void {
+    this.filtrarResolvidos = !!valor;
+    if (this.filtrarResolvidos) {
+      this.statusSelecionado = '';
+      this.filtrarFechados = false;
+    }
+    this.pagina = 1;
+    this.listar();
+  }
+
+  onSelecionarFechados(valor: boolean): void {
+    this.filtrarFechados = !!valor;
+    if (this.filtrarFechados) {
+      this.statusSelecionado = '';
+      this.filtrarResolvidos = false;
+    }
+    this.pagina = 1;
+    this.listar();
   }
 
   onNovo(): void {
@@ -138,6 +131,10 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
       return;
     }
     this.router.navigate(['/configuracoes/chamados-tecnicos/novo']);
+  }
+
+  onFechar(): void {
+    this.router.navigate(['/dashboard/visao-geral']);
   }
 
   onNew(): void {
@@ -161,6 +158,7 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   listar(): void {
     this.carregando = true;
     this.erroLista = null;
+    const tokenAtual = ++this.listarToken;
     const filtros = this.normalizeFiltros();
     this.service
       .listar({
@@ -170,15 +168,31 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
       })
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.carregando = false))
+        finalize(() => {
+          this.carregando = false;
+          this.changeDetector.detectChanges();
+        })
       )
       .subscribe({
         next: (response: ChamadoTecnicoListaResponse) => {
-          this.chamados = response.chamados ?? [];
-          this.total = response.total ?? 0;
+          if (tokenAtual !== this.listarToken) return;
+          const chamadosResposta = response.chamados ?? [];
+          if (this.filtrarResolvidos) {
+            this.chamados = chamadosResposta.filter((chamado) => chamado.status === 'RESOLVIDO');
+          } else if (this.filtrarFechados) {
+            this.chamados = chamadosResposta.filter((chamado) => chamado.status === 'FECHADO');
+          } else {
+            this.chamados = chamadosResposta.filter(
+              (chamado) => chamado.status !== 'RESOLVIDO' && chamado.status !== 'FECHADO'
+            );
+          }
+          this.total = this.chamados.length;
+          this.changeDetector.detectChanges();
         },
         error: () => {
+          if (tokenAtual !== this.listarToken) return;
           this.erroLista = 'Não foi possível carregar os chamados.';
+          this.changeDetector.detectChanges();
         },
       });
   }
@@ -186,50 +200,24 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
   private normalizeFiltros(): {
     status?: string;
     tipo?: string;
-    prioridade?: string;
-    responsavel?: string;
-    modulo?: string;
-    cliente?: string;
-    data_inicio?: string;
-    data_fim?: string;
     texto?: string;
   } {
-    const raw = this.filtros.value as Record<string, string | null | undefined>;
     return {
-      status: raw['status'] || undefined,
-      tipo: raw['tipo'] || undefined,
-      prioridade: raw['prioridade'] || undefined,
-      responsavel: raw['responsavel'] || undefined,
-      modulo: raw['modulo'] || undefined,
-      cliente: raw['cliente'] || undefined,
-      data_inicio: raw['data_inicio'] || undefined,
-      data_fim: raw['data_fim'] || undefined,
-      texto: raw['texto'] || undefined,
+      status: this.filtrarResolvidos
+        ? 'RESOLVIDO'
+        : this.filtrarFechados
+        ? 'FECHADO'
+        : this.statusSelecionado || undefined,
+      texto: this.textoFiltro || undefined,
     };
   }
 
   limparFiltros(): void {
-    this.filtros.reset({
-      status: '',
-      tipo: '',
-      prioridade: '',
-      modulo: '',
-      cliente: '',
-      responsavel: '',
-      data_inicio: '',
-      data_fim: '',
-      texto: '',
-    });
+    this.textoFiltro = '';
+    this.statusSelecionado = '';
+    this.filtrarResolvidos = false;
+    this.filtrarFechados = false;
     this.listar();
-  }
-
-  selecionarAbaStatus(status: ChamadoStatus, listar = true): void {
-    this.abaStatusAtiva = status;
-    this.filtros.patchValue({ status });
-    if (listar) {
-      this.pagina = 1;
-      this.listar();
-    }
   }
 
   abrirChamado(chamado: ChamadoTecnicoPayload): void {
@@ -237,38 +225,17 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     this.router.navigate([this.rotaBase(), chamado.id]);
   }
 
-  selecionarChamado(chamado: ChamadoTecnicoPayload): void {
-    this.chamadoSelecionado = chamado;
-  }
-
-  alterarStatus(chamado: ChamadoTecnicoPayload, status: ChamadoStatus): void {
-    if (!chamado.id) return;
-    const usuarioId = Number(this.authService.user()?.id || 0) || null;
-    this.service.alterarStatus(chamado.id, status, usuarioId).subscribe({
-      next: () => this.listar(),
-      error: () => (this.erroLista = 'Não foi possível alterar o status.'),
-    });
-  }
-
-  atribuirResponsavel(chamado: ChamadoTecnicoPayload, responsavelId: string): void {
-    if (!chamado.id) return;
-    const usuarioId = Number(this.authService.user()?.id || 0) || null;
-    const parsed = responsavelId ? Number(responsavelId) : null;
-    this.service.atribuirResponsavel(chamado.id, parsed, usuarioId).subscribe({
-      next: () => this.listar(),
-      error: () => (this.erroLista = 'Não foi possível atribuir o responsável.'),
-    });
-  }
 
   formatStatus(status?: string): string {
     if (!status) return '---';
-    return status.replace(/_/g, ' ');
+    return status.replace(/[_-]+/g, ' ');
   }
 
   formatPrioridade(prioridade?: string): string {
     if (!prioridade) return '---';
     return prioridade.replace(/_/g, ' ');
   }
+
 
   statusClass(status?: string): string {
     switch (status) {
@@ -284,6 +251,8 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
         return 'pill pill--status pill--status-aguardando';
       case 'RESOLVIDO':
         return 'pill pill--status pill--status-resolvido';
+      case 'REABERTO':
+        return 'pill pill--status pill--status-reaberto';
       case 'CANCELADO':
         return 'pill pill--status pill--status-cancelado';
       default:
@@ -306,9 +275,10 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
     }
   }
 
-  slaLabel(chamado: ChamadoTecnicoPayload): string {
-    if (!chamado.data_limite_sla) return 'Sem SLA';
-    return chamado.sla_atrasado ? 'SLA atrasado' : 'SLA ok';
+  onTextoChange(valor: string): void {
+    this.textoFiltro = valor;
+    this.pagina = 1;
+    this.listar();
   }
 
   get usuarioAtualId(): number | null {
@@ -320,5 +290,6 @@ export class ChamadosTecnicosComponent extends TelaBaseComponent implements OnIn
       ? '/configuracoes/chamados-tecnicos-dev'
       : '/configuracoes/chamados-tecnicos';
   }
+
 }
 

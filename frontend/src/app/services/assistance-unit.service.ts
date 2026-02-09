@@ -64,6 +64,20 @@ export class AssistanceUnitService {
     return this.http.get<{ unidade: AssistanceUnitPayload | null }>(`${this.baseUrl}/atual`);
   }
 
+  carregarUnidadeAtual(): Observable<{ unidade: AssistanceUnitPayload | null }> {
+    return this.get().pipe(
+      tap((resposta) => {
+        const unidade = resposta?.unidade;
+        if (unidade?.nomeFantasia) {
+          this.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
+          return;
+        }
+
+        this.setActiveUnit('Navegação', null);
+      })
+    );
+  }
+
   list(): Observable<AssistanceUnitPayload[]> {
     return this.http.get<AssistanceUnitPayload[]>(this.baseUrl);
   }

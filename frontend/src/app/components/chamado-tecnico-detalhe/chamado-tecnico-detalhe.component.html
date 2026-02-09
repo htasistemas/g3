@@ -1,33 +1,31 @@
 ﻿<app-tela-padrao
   [acoes]="acoesToolbar"
   [mostrarFechar]="true"
+  [fullWidth]="true"
   (salvar)="onSave()"
   (cancelar)="onCancel()"
   (novo)="onNovo()"
   (buscar)="onBuscar()"
+  (excluir)="onExcluir()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
 >
-  <header class="page-title page-title--row" slot="titulo">
-    <div>
-      <p class="page-title__eyebrow">Configurações gerais</p>
-      <p class="page-title__label">Chamado técnico</p>
-    </div>
-    <p class="page-title__note page-title__note--right">Cadastro completo do chamado técnico.</p>
-  </header>
 
   <section class="cadastro">
-    <app-popup-messages [mensagens]="popupErros" (fechar)="popupErros = []"></app-popup-messages>
+    <app-popup-messages
+      [mensagens]="popupErros"
+      [titulo]="popupTitulo"
+      (fechar)="popupErros = []"
+    ></app-popup-messages>
 
-    <div *ngIf="feedback" class="feedback">
-      <span>{{ feedback }}</span>
-      <button type="button" class="feedback__close" (click)="feedback = null" aria-label="Fechar aviso">
-        &times;
-      </button>
-    </div>
 
     <div class="cadastro-layout">
       <aside class="cadastro-menu">
         <div class="tab-shell">
-          <p class="tab-shell__title tab-shell__title--destaque">Chamado técnico</p>
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faHeadset" class="tab-shell__icon"></fa-icon>
+            Chamado técnico
+          </p>
           <ol class="step-tabs" role="tablist">
             <li
               class="step-tabs__item"
@@ -51,268 +49,235 @@
       </aside>
 
       <div class="cadastro-conteudo">
-        <section class="tab-card" *ngIf="activeTab === 'resumo'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Resumo do chamado</p>
-          <p class="muted">Preencha os dados principais e detalhe a reprodução.</p>
-          <p class="muted">Envio automático para: {{ destinoChamado }}</p>
-        </div>
-      </div>
-      <form [formGroup]="form" class="form-shell">
-        <div class="field-grid cols-2">
-          <label class="field full">Título*
-            <input type="text" formControlName="titulo" />
-          </label>
-          <label class="field full">Descrição*
-            <textarea rows="4" formControlName="descricao"></textarea>
-          </label>
-          <label class="field">Tipo*
-            <select formControlName="tipo">
-              <option *ngFor="let option of tipoOptions" [value]="option">{{ option }}</option>
-            </select>
-          </label>
-          <label class="field">Status*
-            <select formControlName="status">
-              <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatus(option) }}</option>
-            </select>
-          </label>
-          <label class="field">Prioridade*
-            <select formControlName="prioridade">
-              <option *ngFor="let option of prioridadeOptions" [value]="option">{{ option }}</option>
-            </select>
-          </label>
-          <label class="field">Impacto*
-            <select formControlName="impacto">
-              <option *ngFor="let option of impactoOptions" [value]="option">{{ option }}</option>
-            </select>
-          </label>
-        <label class="field">Módulo*
-          <app-autocomplete
-            [termo]="moduloTermo"
-            [opcoes]="moduloOpcoes"
-            placeholder="Selecione o módulo"
-            (termoChange)="atualizarTermoModulo($event)"
-            (selecionar)="selecionarModulo($event)"
-          ></app-autocomplete>
-        </label>
-        <label class="field">Menu*
-          <app-autocomplete
-            [termo]="menuTermo"
-            [opcoes]="menuOpcoes"
-            placeholder="Selecione o menu"
-            (termoChange)="atualizarTermoMenu($event)"
-            (selecionar)="selecionarMenu($event)"
-          ></app-autocomplete>
-        </label>
-          <label class="field">Cliente*
-            <input type="text" formControlName="cliente" />
-          </label>
-          <label class="field">Ambiente
-            <input type="text" formControlName="ambiente" />
-          </label>
-          <label class="field">Versão do sistema
-            <input type="text" formControlName="versao_sistema" />
-          </label>
-          <label class="field">Responsável (ID)
-            <input type="text" formControlName="responsavel_usuario_id" />
-          </label>
-          <label class="field">SLA (horas)
-            <input type="number" formControlName="prazo_sla_em_horas" />
-          </label>
-          <label class="field full">Tags
-            <input type="text" formControlName="tags" />
-          </label>
-          <label class="field full">Passos para reprodução
-            <textarea rows="3" formControlName="passos_reprodução"></textarea>
-          </label>
-          <label class="field full">Resultado atual
-            <textarea rows="3" formControlName="resultado_atual"></textarea>
-          </label>
-          <label class="field full">Resultado esperado
-            <textarea rows="3" formControlName="resultado_esperado"></textarea>
-          </label>
-        <label class="field full">Usuários de teste
-          <textarea rows="2" formControlName="usuarios_teste"></textarea>
-        </label>
-      </div>
-      <div class="tab-card__response" *ngIf="modoTela === 'usuario' && form.get('resposta_desenvolvedor')?.value">
-        <p class="tab-card__highlight">Resposta do desenvolvedor</p>
-        <p class="muted">{{ form.get('resposta_desenvolvedor')?.value }}</p>
-      </div>
-    </form>
-        </section>
-
-        <section class="tab-card" *ngIf="activeTab === 'listagem'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Listagem de chamados abertos</p>
-          <p class="muted">Visão rápida dos chamados em aberto.</p>
-        </div>
-      </div>
-      <div class="list-card">
-        <div class="list-panel__loading" *ngIf="carregandoAbertos">Carregando chamados...</div>
-        <table *ngIf="!carregandoAbertos">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Título</th>
-              <th>Cliente</th>
-              <th>Prioridade</th>
-              <th>Impacto</th>
-              <th>Status</th>
-              <th>Aberto em</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let chamado of chamadosAbertos">
-              <td>{{ chamado.codigo || '---' }}</td>
-              <td>{{ chamado.titulo }}</td>
-              <td>{{ chamado.cliente }}</td>
-              <td>{{ chamado.prioridade }}</td>
-              <td>{{ chamado.impacto }}</td>
-              <td>{{ formatStatus(chamado.status) }}</td>
-              <td>{{ chamado.criado_em | date: 'dd/MM/yyyy' }}</td>
-            </tr>
-            <tr *ngIf="!chamadosAbertos.length">
-              <td colspan="7" class="muted">Nenhum chamado aberto encontrado.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-        </section>
-
-        <section class="tab-card" *ngIf="activeTab === 'kanban'">
+        <section class="tab-card" *ngIf="activeTab === 'registro'">
           <div class="tab-card__header">
             <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Kanban</p>
+              <p class="tab-card__highlight">Registro do chamado</p>
             </div>
           </div>
-          <div class="tab-card__divider"></div>
-          <app-chamado-tecnico-kanban></app-chamado-tecnico-kanban>
+          <form [formGroup]="form" class="form-shell">
+            <div class="field-grid cols-2">
+              <div class="field-row">
+                <label class="field field--titulo">Título (*)
+                  <input type="text" formControlName="titulo" />
+                </label>
+                <label class="field field--versao">Versão do sistema
+                  <input type="text" formControlName="versao_sistema" (input)="onVersaoInput($event)" placeholder="0.00.00" />
+                </label>
+              </div>
+              <label class="field full">Descrição (*)
+                <textarea rows="8" formControlName="descricao" (paste)="onColarImagem($event)"></textarea>
+                <span class="muted">Você pode colar prints da tela neste campo.</span>
+              </label>
+              <label class="field">Tipo (*)
+                <select formControlName="tipo">
+                  <option *ngFor="let option of tipoOptions" [value]="option">{{ formatTipo(option) }}</option>
+                </select>
+              </label>
+              <label class="field">Prioridade (*)
+                <select formControlName="prioridade">
+                  <option *ngFor="let option of prioridadeOptions" [value]="option">{{ option }}</option>
+                </select>
+              </label>
+              <label class="field">Módulo (*)
+                <app-autocomplete
+                  [termo]="moduloTermo"
+                  [opcoes]="moduloOpcoes"
+                  placeholder="Selecione o módulo"
+                  (termoChange)="atualizarTermoModulo($event)"
+                  (selecionar)="selecionarModulo($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field">Menu (*)
+                <app-autocomplete
+                  [termo]="menuTermo"
+                  [opcoes]="menuOpcoes"
+                  placeholder="Selecione o menu"
+                  (termoChange)="atualizarTermoMenu($event)"
+                  (selecionar)="selecionarMenu($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field">Cliente (*)
+                <input type="text" formControlName="cliente" readonly />
+              </label>
+              <label class="field">Ambiente
+                <input type="text" formControlName="ambiente" />
+              </label>
+              <label class="field full">Anexos (imagens)
+                <input type="file" accept="image/*" (change)="selecionarArquivo($event)" />
+              </label>
+              <div class="field full" *ngIf="previewsAnexos.length">
+                <span class="field__label">Prévias das imagens</span>
+                <div class="anexos-preview">
+                  <figure class="anexos-preview__item" *ngFor="let preview of previewsAnexos">
+                    <img [src]="preview.url" [alt]="preview.nome" />
+                    <figcaption>{{ preview.nome }}</figcaption>
+                  </figure>
+                </div>
+              </div>
+            </div>
+            <div class="tab-card__response" *ngIf="modoTela === 'usuario' && (form.get('resposta_desenvolvedor')?.value || form.get('status')?.value === 'RESOLVIDO' || form.get('status')?.value === 'FECHADO')">
+              <p class="muted" *ngIf="form.get('resposta_desenvolvedor')?.value">{{ form.get('resposta_desenvolvedor')?.value }}</p>
+              <label class="field" *ngIf="form.get('status')?.value === 'RESOLVIDO' || form.get('status')?.value === 'FECHADO'">
+                <textarea
+                  rows="3"
+                  [(ngModel)]="comentarioReabrirTexto"
+                  [ngModelOptions]="{ standalone: true }"
+                  name="comentarioReabrir"
+                ></textarea>
+              </label>
+              <div class="tab-card__actions" *ngIf="form.get('status')?.value === 'RESOLVIDO' || form.get('status')?.value === 'FECHADO'">
+                <button
+                  type="button"
+                  class="btn-outline"
+                  (click)="reabrirChamado()"
+                >
+                  Reabrir chamado
+                </button>
+                <button
+                  type="button"
+                  class="btn-outline"
+                  (click)="encerrarChamado()"
+                >
+                  Fechar chamado
+                </button>
+              </div>
+            </div>
+          </form>
         </section>
 
-        <section class="tab-card" *ngIf="activeTab === 'historico'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Histórico</p>
-          <p class="muted">Ações registradas no chamado.</p>
-        </div>
-      </div>
-      <div class="timeline">
-        <div class="timeline__item" *ngFor="let acao of acoes">
-          <p class="timeline__title">{{ acao.descricao }}</p>
-          <div class="timeline__meta">
-            <span *ngFor="let detalhe of detalhesAcao(acao)">{{ detalhe }}</span>
+        <section class="tab-card" *ngIf="activeTab === 'acompanhamento'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Acompanhamento</p>
+              <p class="muted">Ações, comentários e anexos do chamado.</p>
+            </div>
           </div>
-          <p class="timeline__meta">{{ acao.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
-        </div>
-        <p class="muted" *ngIf="!acoes.length">Nenhuma ação registrada.</p>
-      </div>
+
+          <div class="comment-box">
+            <label class="field">Novo comentário
+              <textarea rows="3" [(ngModel)]="comentarioTexto" name="comentarioTexto"></textarea>
+            </label>
+            <button type="button" class="primary" (click)="adicionarComentario()">Salvar comentário</button>
+          </div>
+
+          <div class="acoes-lista" *ngIf="acoes.length; else acoesVazias">
+            <div class="acoes-item" *ngFor="let acao of acoes">
+              <div class="acoes-item__linha-unica">
+                <span class="acoes-item__tipo">{{ formatarTipoAcao(acao.tipo) }}</span>
+                <span class="acoes-item__separador">•</span>
+                <span class="acoes-item__data">{{ acao.criado_em | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span class="acoes-item__separador">•</span>
+                <span class="acoes-item__descricao">{{ acao.descricao }}</span>
+                <ng-container *ngIf="acao.de_status || acao.para_status">
+                  <span class="acoes-item__separador">•</span>
+                  <span class="acoes-item__rotulo">Status:</span>
+                  <span class="acoes-item__valor">
+                    {{ formatStatus(acao.de_status || '') }} -> {{ formatStatus(acao.para_status || '') }}
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="acao.de_responsavel_id || acao.para_responsavel_id">
+                  <span class="acoes-item__separador">•</span>
+                  <span class="acoes-item__rotulo">Responsável:</span>
+                  <span class="acoes-item__valor">
+                    {{ acao.de_responsavel_id ?? '---' }} -> {{ acao.para_responsavel_id ?? '---' }}
+                  </span>
+                </ng-container>
+                <ng-container *ngIf="acao.criado_por_usuario_id">
+                  <span class="acoes-item__separador">•</span>
+                  <span class="acoes-item__rotulo">Registrado por:</span>
+                  <span class="acoes-item__valor">{{ nomeRegistradoPor(acao) }}</span>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <ng-template #acoesVazias>
+            <p class="muted">Nenhuma ação registrada.</p>
+          </ng-template>
+
+          <div class="comentarios-lista" *ngIf="comentarios.length; else comentariosVazios">
+            <div class="comentarios-item" *ngFor="let comentario of comentarios">
+              <div class="comentarios-item__linha-unica">
+                <span class="comentarios-item__tipo">COMENTÃRIO</span>
+                <span class="comentarios-item__separador">•</span>
+                <span class="comentarios-item__data">{{ comentario.criado_em | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span class="comentarios-item__separador">•</span>
+                <span class="comentarios-item__texto">{{ comentario.comentario }}</span>
+                <span class="comentarios-item__separador">•</span>
+                <span class="comentarios-item__rotulo">Registrado por:</span>
+                <span class="comentarios-item__valor">{{ nomeRegistradoPorComentario(comentario) }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #comentariosVazios>
+            <p class="muted">Nenhum comentário registrado.</p>
+          </ng-template>
+
+          <div class="timeline">
+            <div class="timeline__item" *ngFor="let anexo of anexos">
+              <p class="timeline__title">{{ anexo.nome_arquivo }}</p>
+              <p class="timeline__meta">{{ anexo.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <p class="muted" *ngIf="!anexos.length">Nenhum anexo registrado.</p>
+          </div>
         </section>
 
-        <section class="tab-card" *ngIf="activeTab === 'comentarios'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Comentários</p>
-          <p class="muted">Registro de comentários do chamado.</p>
-        </div>
-      </div>
-      <div class="comment-box">
-        <label class="field">Novo comentário*
-          <textarea rows="3" [(ngModel)]="comentarioTexto" name="comentarioTexto"></textarea>
-        </label>
-        <button type="button" class="primary" (click)="adicionarComentario()">Salvar comentário</button>
-      </div>
-      <div class="timeline">
-        <div class="timeline__item" *ngFor="let comentario of comentarios">
-          <p class="timeline__title">{{ comentario.comentario }}</p>
-          <p class="timeline__meta">{{ comentario.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
-        </div>
-        <p class="muted" *ngIf="!comentarios.length">Nenhum comentário registrado.</p>
-      </div>
-        </section>
-
-        <section class="tab-card" *ngIf="activeTab === 'anexos'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Anexos</p>
-          <p class="muted">Envie arquivos relacionados ao chamado.</p>
-        </div>
-      </div>
-      <input type="file" (change)="selecionarArquivo($event)" />
-      <div class="timeline">
-        <div class="timeline__item" *ngFor="let anexo of anexos">
-          <p class="timeline__title">{{ anexo.nome_arquivo }}</p>
-          <p class="timeline__meta">{{ anexo.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
-        </div>
-        <p class="muted" *ngIf="!anexos.length">Nenhum anexo registrado.</p>
-      </div>
-        </section>
-
-        <section class="tab-card" *ngIf="activeTab === 'resposta'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Resposta</p>
-          <p class="muted">Registre a devolutiva do desenvolvedor para o usuário.</p>
-        </div>
-      </div>
-      <form [formGroup]="form" class="form-shell">
-        <label class="field full">Resposta do desenvolvedor*
-          <textarea rows="6" formControlName="resposta_desenvolvedor"></textarea>
-        </label>
-      </form>
-        </section>
-
-        <section class="tab-card" *ngIf="activeTab === 'auditoria'">
-      <div class="tab-card__header">
-        <div class="tab-card__title-stack">
-          <p class="tab-card__highlight">Auditoria</p>
-          <p class="muted">Vincule eventos de auditoria ao chamado.</p>
-        </div>
-      </div>
-      <form [formGroup]="auditoriaFiltro" class="list-panel__filters">
-        <label class="field">
-          Data início
-          <input type="date" formControlName="data_inicio" />
-        </label>
-        <label class="field">
-          Data fim
-          <input type="date" formControlName="data_fim" />
-        </label>
-        <label class="field">
-          usuário ID
-          <input type="text" formControlName="usuario_id" />
-        </label>
-        <label class="field">
-          Entidade
-          <input type="text" formControlName="entidade" />
-        </label>
-        <label class="field full">
-          Texto
-          <input type="text" formControlName="texto" />
-        </label>
-        <button type="button" class="ghost" (click)="buscarAuditoria()">Buscar eventos</button>
-      </form>
-      <div class="timeline">
-        <div class="timeline__item" *ngFor="let evento of auditoriaDisponivel">
-          <p class="timeline__title">{{ evento.acao }} - {{ evento.entidade }}</p>
-          <p class="timeline__meta">{{ evento.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
-          <button type="button" class="btn-outline" (click)="vincularAuditoria(evento)">Vincular</button>
-        </div>
-        <p class="muted" *ngIf="!auditoriaDisponivel.length">Nenhum evento encontrado.</p>
-      </div>
-      <div class="timeline">
-        <h4>Eventos vinculados</h4>
-        <div class="timeline__item" *ngFor="let vinculo of auditorias">
-          <p class="timeline__title">{{ vinculo.auditoria_evento.acao }}</p>
-          <p class="timeline__meta">{{ vinculo.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
-        </div>
-        <p class="muted" *ngIf="!auditorias.length">Nenhum evento vinculado.</p>
-      </div>
+        <section class="tab-card" *ngIf="activeTab === 'atendimento'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Desenvolvimento</p>
+              <p class="muted">Registrar a tratativa do desenvolvedor.</p>
+            </div>
+          </div>
+          <form [formGroup]="form" class="form-shell">
+            <div class="field-grid cols-2">
+              <label class="field">Status do atendimento (*)
+                <select formControlName="status">
+                  <option *ngFor="let option of statusAtendimento" [value]="option.valor">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </label>
+              <label class="field">Responsável
+                <input type="text" formControlName="responsavel_usuario_nome" readonly />
+              </label>
+              <input type="hidden" formControlName="responsavel_usuario_id" />
+              <label class="field full">Comentários
+                <textarea rows="6" formControlName="resposta_desenvolvedor"></textarea>
+              </label>
+            </div>
+          </form>
         </section>
       </div>
     </div>
   </section>
+
+  <app-dialog
+    [aberto]="excluirAberto"
+    titulo="Excluir chamado"
+    mensagem="Confirma a exclusão deste chamado?"
+    confirmarLabel="Excluir"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarExcluir()"
+    (cancelar)="cancelarExcluir()"
+  ></app-dialog>
 </app-tela-padrao>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

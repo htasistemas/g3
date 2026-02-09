@@ -230,6 +230,17 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
           chamado.getResponsavelUsuarioId(),
           request.getRespondidoPorUsuarioId());
     }
+    if (statusAnterior != chamado.getStatus() && chamado.getStatus() == ChamadoStatus.CANCELADO) {
+      registrarAcao(
+          salvo.getId(),
+          ChamadoAcaoTipo.REGISTRO_ATIVIDADE,
+          "Nao sera implementado.",
+          statusAnterior,
+          chamado.getStatus(),
+          responsavelAnterior,
+          chamado.getResponsavelUsuarioId(),
+          request.getRespondidoPorUsuarioId());
+    }
 
     auditoriaService.registrarEvento(
         "Editar chamado tecnico", "chamado_tecnico", salvo.getId().toString(), null, request.getCriadoPorUsuarioId());
@@ -239,6 +250,24 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
   @Override
   public ChamadoTecnicoResponse buscarPorId(UUID id) {
     return mapResponse(buscarEntidade(id));
+  }
+
+  @Override
+  @Transactional
+  public void remover(UUID id, Long usuarioId) {
+    ChamadoTecnico chamado = buscarEntidade(id);
+    registrarAcao(
+        id,
+        ChamadoAcaoTipo.REGISTRO_ATIVIDADE,
+        "Chamado excluido.",
+        chamado.getStatus(),
+        null,
+        chamado.getResponsavelUsuarioId(),
+        null,
+        usuarioId);
+    chamadoRepository.remover(chamado);
+    auditoriaService.registrarEvento(
+        "Excluir chamado tecnico", "chamado_tecnico", id.toString(), null, usuarioId);
   }
 
   @Override
@@ -258,6 +287,19 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
     int tamanhoOk = Math.max(1, Math.min(tamanhoPagina, 100));
     int offset = (paginaOk - 1) * tamanhoOk;
 
+    String statusNormalizado = normalizarEnum(status, ChamadoStatus.values());
+    if (status != null && statusNormalizado == null) {
+      return new ChamadoTecnicoListaResponse(new ArrayList<>(), paginaOk, tamanhoOk, 0);
+    }
+    String tipoNormalizado = normalizarEnum(tipo, ChamadoTipo.values());
+    if (tipo != null && tipoNormalizado == null) {
+      return new ChamadoTecnicoListaResponse(new ArrayList<>(), paginaOk, tamanhoOk, 0);
+    }
+    String prioridadeNormalizada = normalizarEnum(prioridade, ChamadoPrioridade.values());
+    if (prioridade != null && prioridadeNormalizada == null) {
+      return new ChamadoTecnicoListaResponse(new ArrayList<>(), paginaOk, tamanhoOk, 0);
+    }
+
     StringBuilder sql =
         new StringBuilder(
             "SELECT id, codigo, titulo, status, prioridade, responsavel_usuario_id, modulo, cliente, criado_em, data_limite_sla "
@@ -265,20 +307,20 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
     StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM chamado_tecnico WHERE 1=1 ");
     List<Object> params = new ArrayList<>();
 
-    if (status != null && !status.trim().isEmpty()) {
-      sql.append(" AND status = ? ");
-      countSql.append(" AND status = ? ");
-      params.add(status.trim());
+    if (statusNormalizado != null) {
+      sql.append(" AND status::text = ? ");
+      countSql.append(" AND status::text = ? ");
+      params.add(statusNormalizado);
     }
-    if (tipo != null && !tipo.trim().isEmpty()) {
-      sql.append(" AND tipo = ? ");
-      countSql.append(" AND tipo = ? ");
-      params.add(tipo.trim());
+    if (tipoNormalizado != null) {
+      sql.append(" AND tipo::text = ? ");
+      countSql.append(" AND tipo::text = ? ");
+      params.add(tipoNormalizado);
     }
-    if (prioridade != null && !prioridade.trim().isEmpty()) {
-      sql.append(" AND prioridade = ? ");
-      countSql.append(" AND prioridade = ? ");
-      params.add(prioridade.trim());
+    if (prioridadeNormalizada != null) {
+      sql.append(" AND prioridade::text = ? ");
+      countSql.append(" AND prioridade::text = ? ");
+      params.add(prioridadeNormalizada);
     }
     if (responsavel != null && !responsavel.trim().isEmpty()) {
       sql.append(" AND CAST(responsavel_usuario_id AS TEXT) = ? ");
@@ -558,6 +600,22 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
     return base.plusHours(horas);
   }
 
+  private String normalizarEnum(String valor, Enum<?>[] valores) {
+    if (valor == null) {
+      return null;
+    }
+    String normalizado = valor.trim().toUpperCase().replace(' ', '_');
+    if (normalizado.isEmpty()) {
+      return null;
+    }
+    for (Enum<?> item : valores) {
+      if (item.name().equals(normalizado)) {
+        return normalizado;
+      }
+    }
+    return null;
+  }
+
   private void registrarAcao(
       UUID chamadoId,
       ChamadoAcaoTipo tipo,
@@ -661,7 +719,7 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
     if (dataLimite == null) {
       return false;
     }
-    if (status == ChamadoStatus.RESOLVIDO || status == ChamadoStatus.CANCELADO) {
+    if (status == ChamadoStatus.RESOLVIDO || status == ChamadoStatus.FECHADO || status == ChamadoStatus.CANCELADO) {
       return false;
     }
     return LocalDateTime.now().isAfter(dataLimite);
