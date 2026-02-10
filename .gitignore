@@ -10,6 +10,7 @@ frontend/node_modules
 backend-antigo/node_modules
 backend-antigo/dist
 frontend/dist
+docker/secrets/configuracao servidor email.txt
 backend-antigo/data
 backend/*.sqlite
 .env

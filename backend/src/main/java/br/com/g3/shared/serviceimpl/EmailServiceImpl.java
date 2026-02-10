@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import br.com.g3.shared.service.EmailService;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ public class EmailServiceImpl implements EmailService {
   private static final String CONFIG_EMAIL_ARQUIVO = "configuracao servidor email.txt";
   private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
   private static final String ALERTS_BLOCKED_RECIPIENT = "htasistemas@gmail.com";
+  private static final AtomicBoolean AVISO_CONFIG_EMAIL = new AtomicBoolean(false);
 
   private final JavaMailSender mailSender;
   private final boolean habilitado;
@@ -424,11 +426,13 @@ public class EmailServiceImpl implements EmailService {
 
   private Map<String, String> lerConfiguracaoEmail() {
     Map<String, String> valores = new HashMap<>();
+    boolean encontrado = false;
     for (Path caminho : new Path[] {
         Paths.get(CONFIG_EMAIL_ARQUIVO),
         Paths.get("..", CONFIG_EMAIL_ARQUIVO)
     }) {
       if (Files.exists(caminho)) {
+        encontrado = true;
         try {
           for (String linha : Files.readAllLines(caminho, StandardCharsets.UTF_8)) {
             String valor = extrairValorEnv(linha);
@@ -444,6 +448,12 @@ public class EmailServiceImpl implements EmailService {
         }
         break;
       }
+    }
+    if (!encontrado && habilitado && AVISO_CONFIG_EMAIL.compareAndSet(false, true)) {
+      LOGGER.warn(
+          "Arquivo de configuracao de email nao encontrado. Esperado em /app/{} ou ../{}. Configure via docker/secrets.",
+          CONFIG_EMAIL_ARQUIVO,
+          CONFIG_EMAIL_ARQUIVO);
     }
     return valores;
   }

@@ -33,6 +33,12 @@ Esse arquivo deve ser idempotente.
 1) `cd backend`
 2) `mvn spring-boot:run`
 
+## Configuracao de email (Docker)
+- O backend le as variaveis de ambiente `APP_EMAIL_*` e `MAIL_*`.
+- Para uso com Docker, crie o arquivo `docker/secrets/configuracao servidor email.txt`
+  usando o modelo `docker/secrets/configuracao servidor email.txt.example`.
+- Esse arquivo **nao deve** ser versionado.
+
 ## Endpoints iniciais
 - `POST /api/unidades-assistenciais`
 - `GET /api/unidades-assistenciais`

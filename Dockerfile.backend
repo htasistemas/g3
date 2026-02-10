@@ -20,7 +20,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /workspace/target/*.jar /app/app.jar
-COPY ["configuracao servidor email.txt", "/app/configuracao servidor email.txt"]
 
 EXPOSE 8080
 

@@ -729,7 +729,14 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
   private void enviarEmailChamado(ChamadoTecnico chamado) {
     ChamadoTecnicoResponse response = mapResponse(chamado);
     try {
-      emailService.enviarChamadoTecnico(DESTINO_PADRAO, response);
+      String destino = destinoChamado == null || destinoChamado.trim().isEmpty()
+          ? DESTINO_PADRAO
+          : destinoChamado.trim();
+      if (destino == null || destino.isEmpty()) {
+        LOGGER.warn("Envio de email do chamado ignorado: destino nao configurado.");
+        return;
+      }
+      emailService.enviarChamadoTecnico(destino, response);
     } catch (ResponseStatusException ex) {
       LOGGER.warn("Envio de email do chamado ignorado: {}", ex.getReason());
     } catch (Exception ex) {

@@ -24,6 +24,7 @@ services:
       - "8080:8080"
     volumes:
       - backend_storage:/app/storage
+      - ./docker/secrets/configuracao servidor email.txt:/app/configuracao servidor email.txt:ro
     depends_on:
       db:
         condition: service_started
