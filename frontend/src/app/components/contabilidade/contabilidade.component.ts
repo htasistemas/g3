@@ -668,9 +668,17 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   addBankAccount(): void {
+    this.onSaldoContaInput(this.saldoContaMascara);
     if (!this.newAccount.banco || !this.newAccount.numero) {
       this.popupErros = new PopupErrorBuilder()
         .adicionar('Informe banco e numero da conta.')
+        .build();
+      this.abrirPopupTemporario();
+      return;
+    }
+    if (!this.newAccount.dataAtualizacao) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Informe a data da ultima atualizacao da conta.')
         .build();
       this.abrirPopupTemporario();
       return;
@@ -692,14 +700,30 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     const request$ = this.contaEmEdicaoId
       ? this.contabilidadeService.atualizarContaBancaria(this.contaEmEdicaoId, payload)
       : this.contabilidadeService.criarContaBancaria(payload);
-    request$.subscribe((response) => {
-      if (this.contaEmEdicaoId) {
-        this.bankAccounts = this.bankAccounts.map((conta) => (conta.id === response.id ? response : conta));
-      } else {
-        this.bankAccounts = [...this.bankAccounts, response];
+    const estavaEditando = Boolean(this.contaEmEdicaoId);
+    request$.subscribe({
+      next: (response) => {
+        if (estavaEditando) {
+          this.bankAccounts = this.bankAccounts.map((conta) => (conta.id === response.id ? response : conta));
+        } else {
+          this.bankAccounts = [...this.bankAccounts, response];
+        }
+        this.resetContaBancariaForm();
+        this.refreshPanels();
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar(estavaEditando ? 'Conta atualizada com sucesso.' : 'Conta cadastrada com sucesso.')
+          .build();
+        this.abrirPopupTemporario();
+        this.changeDetector.detectChanges();
+      },
+      error: (erro) => {
+        const mensagem =
+          erro?.error?.message ||
+          erro?.message ||
+          'Nao foi possivel atualizar a conta bancaria. Verifique os dados informados.';
+        this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
+        this.abrirPopupTemporario();
       }
-      this.resetContaBancariaForm();
-      this.refreshPanels();
     });
   }
 
@@ -715,7 +739,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       tipoChavePix: conta.tipoChavePix || '',
       chavePix: conta.chavePix || '',
       saldo: Number(conta.saldo || 0),
-      dataAtualizacao: conta.dataAtualizacao
+      dataAtualizacao: this.formatarDataInput(conta.dataAtualizacao)
     };
     this.saldoContaMascara = this.formatarValorMonetario(Number(conta.saldo || 0));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1342,6 +1366,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   private todayISO(): string {
     return new Date().toISOString().substring(0, 10);
+  }
+
+  private formatarDataInput(date: string | Date | null | undefined): string {
+    const parsed = this.parseDate(date);
+    if (!parsed) {
+      return this.todayISO();
+    }
+    return parsed.toISOString().substring(0, 10);
   }
 
   private startOfWeek(date: Date): Date {
