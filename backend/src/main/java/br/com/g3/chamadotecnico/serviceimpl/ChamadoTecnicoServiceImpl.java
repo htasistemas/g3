@@ -52,6 +52,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChamadoTecnicoServiceImpl.class);
+  private static final String DESTINO_PADRAO = "htasistemas@gmail.com";
   private final String destinoChamado;
 
   private final ChamadoTecnicoRepository chamadoRepository;
@@ -728,7 +729,7 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
   private void enviarEmailChamado(ChamadoTecnico chamado) {
     ChamadoTecnicoResponse response = mapResponse(chamado);
     try {
-      emailService.enviarChamadoTecnico(destinoChamado, response);
+      emailService.enviarChamadoTecnico(DESTINO_PADRAO, response);
     } catch (ResponseStatusException ex) {
       LOGGER.warn("Envio de email do chamado ignorado: {}", ex.getReason());
     } catch (Exception ex) {
