@@ -220,24 +220,25 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 0.1rem;
-  scrollbar-width: thin;
+  flex-wrap: wrap;
+  white-space: normal;
+  overflow: hidden;
 }
 
 .unit-list__title {
   font-weight: 800;
   color: #0f172a;
-  min-width: 260px;
+  min-width: 0;
+  flex: 1 1 240px;
+  word-break: break-word;
 }
 
 .unit-list__meta {
   color: #64748b;
   font-size: 0.9rem;
   font-weight: 600;
+  min-width: 0;
+  word-break: break-word;
 }
 .unit-list__actions {
   display: flex;

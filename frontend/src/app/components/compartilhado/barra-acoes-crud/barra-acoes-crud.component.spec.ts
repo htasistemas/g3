@@ -29,21 +29,30 @@ describe('BarraAcoesCrudComponent', () => {
   }
 
   it('dispara salvar com um clique', () => {
-    spyOn(component.salvar, 'emit');
+    let chamadas = 0;
+    component.salvar.subscribe(() => {
+      chamadas += 1;
+    });
     obterBotaoPorTexto('Salvar').click();
-    expect(component.salvar.emit).toHaveBeenCalledTimes(1);
+    expect(chamadas).toBe(1);
   });
 
   it('dispara excluir com um clique', () => {
-    spyOn(component.excluir, 'emit');
+    let chamadas = 0;
+    component.excluir.subscribe(() => {
+      chamadas += 1;
+    });
     obterBotaoPorTexto('Excluir').click();
-    expect(component.excluir.emit).toHaveBeenCalledTimes(1);
+    expect(chamadas).toBe(1);
   });
 
   it('dispara cancelar com um clique', () => {
-    spyOn(component.cancelar, 'emit');
+    let chamadas = 0;
+    component.cancelar.subscribe(() => {
+      chamadas += 1;
+    });
     obterBotaoPorTexto('Cancelar').click();
-    expect(component.cancelar.emit).toHaveBeenCalledTimes(1);
+    expect(chamadas).toBe(1);
   });
 });
 

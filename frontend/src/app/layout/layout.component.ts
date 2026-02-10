@@ -168,7 +168,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   abrirLembretesDiarios(): void {
-    this.router.navigate(['administrativo/lembretes-diarios'], { queryParams: { aba: 'listagem' } });
+    this.router.navigate(['administrativo/lembretes-diarios'], { queryParams: { aba: 'lembretesCriados' } });
   }
 
   fecharLembretes(): void {

@@ -51,18 +51,18 @@
       </aside>
 
       <div class="cadastro-conteudo">
-        <form [formGroup]="form" class="form-shell" (ngSubmit)="submit()">
-          <div class="tab-card" *ngIf="activeTab === 'cadastro'">
-            <div class="tab-card__header">
-              <div class="tab-card__title-stack">
-                <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-              </div>
+        <div class="tab-card" *ngIf="activeTab === 'cadastro'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
             </div>
-            <div class="tab-card__divider"></div>
+          </div>
+          <div class="tab-card__divider"></div>
 
-            <div class="field-grid cols-2">
+          <form [formGroup]="form" class="form-shell" (ngSubmit)="submit()">
+            <div class="field-grid cols-5">
               <label class="field">Título*
-                <input type="text" formControlName="titulo" placeholder="Título do lembrete" />
+                <input type="text" class="field-input--titulo" formControlName="titulo" placeholder="Título do lembrete" />
               </label>
               <label class="field">Data inicial*
                 <input type="date" formControlName="dataInicial" />
@@ -86,123 +86,122 @@
                 <textarea formControlName="descricao" rows="3" placeholder="Descrição opcional"></textarea>
               </label>
             </div>
-          </div>
+          </form>
 
-          <div class="tab-card" *ngIf="activeTab === 'listagem'">
-            <div class="tab-card__header">
-              <div class="tab-card__title-stack">
-                <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
-              </div>
-            </div>
-            <div class="tab-card__divider"></div>
+        </div>
 
-            <div class="filter-panel">
-              <div class="filtros-cards">
-                <button
-                  type="button"
-                  class="filtro-card"
-                  [class.filtro-card--ativo]="filtroStatus === 'pendentesHoje'"
-                  (click)="selecionarFiltro('pendentesHoje')"
-                >
-                  <span class="filtro-card__label">Pendentes hoje</span>
-                  <span class="filtro-card__valor">{{ totalPendentesHoje }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="filtro-card"
-                  [class.filtro-card--ativo]="filtroStatus === 'atrasados'"
-                  (click)="selecionarFiltro('atrasados')"
-                >
-                  <span class="filtro-card__label">Atrasados</span>
-                  <span class="filtro-card__valor">{{ totalAtrasados }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="filtro-card"
-                  [class.filtro-card--ativo]="filtroStatus === 'agendados'"
-                  (click)="selecionarFiltro('agendados')"
-                >
-                  <span class="filtro-card__label">Agendados</span>
-                  <span class="filtro-card__valor">{{ totalAgendados }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="filtro-card"
-                  [class.filtro-card--ativo]="filtroStatus === 'concluidos'"
-                  (click)="selecionarFiltro('concluidos')"
-                >
-                  <span class="filtro-card__label">Concluídos</span>
-                  <span class="filtro-card__valor">{{ totalConcluidos }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="filtro-card"
-                  [class.filtro-card--ativo]="filtroStatus === 'todos'"
-                  (click)="selecionarFiltro('todos')"
-                >
-                  <span class="filtro-card__label">Todos</span>
-                </button>
-              </div>
-              <label class="field">Buscar
-                <input type="text" [(ngModel)]="busca" name="busca" (input)="aplicarFiltro()" placeholder="Título ou descrição" />
-              </label>
-            </div>
-
-            <div class="list-card">
-              <div class="list-card__header">
-                <div>
-                  <p class="list-card__eyebrow">Registros</p>
-                  <p class="list-card__title">Lembretes diários</p>
-                </div>
-            </div>
-
-              <div *ngIf="carregando" class="muted">Carregando lembretes...</div>
-              <div *ngIf="!carregando && !lembretesFiltrados.length" class="muted">Nenhum lembrete encontrado.</div>
-
-              <div class="lembrete-list" *ngIf="lembretesFiltrados.length">
-                <div class="lembrete-item" *ngFor="let lembrete of lembretesFiltrados">
-                  <div class="lembrete-info">
-                    <p class="lembrete-title">{{ lembrete.titulo }}</p>
-                    <p class="lembrete-desc">{{ lembrete.descricao || 'Sem descrição' }}</p>
-                    <p class="lembrete-meta">
-                      Próxima execução: {{ lembrete.proximaExecucaoEm | date: 'dd/MM/yyyy HH:mm' }}
-                    </p>
-                  </div>
-                  <div class="lembrete-actions">
-                    <button
-                      type="button"
-                      class="btn-outline btn-small"
-                      (click)="selecionar(lembrete); $event.preventDefault(); $event.stopPropagation()"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-outline btn-small"
-                      (click)="abrirModalAdiar(lembrete); $event.preventDefault(); $event.stopPropagation()"
-                    >
-                      Adiar
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-outline btn-small"
-                      (click)="concluir(lembrete); $event.preventDefault(); $event.stopPropagation()"
-                    >
-                      Concluir
-                    </button>
-                    <button
-                      type="button"
-                      class="btn-outline btn-small"
-                      (click)="excluirItem(lembrete); $event.preventDefault(); $event.stopPropagation()"
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </div>
-              </div>
+        <div class="tab-card" *ngIf="activeTab === 'lembretesCriados'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
             </div>
           </div>
-        </form>
+          <div class="tab-card__divider"></div>
+
+          <div class="filter-panel">
+            <div class="filtros-cards">
+              <button
+                type="button"
+                class="filtro-card"
+                [class.filtro-card--ativo]="filtroStatus === 'pendentesHoje'"
+                (click)="selecionarFiltro('pendentesHoje')"
+              >
+                <span class="filtro-card__label">Pendentes hoje</span>
+                <span class="filtro-card__valor">{{ totalPendentesHoje }}</span>
+              </button>
+              <button
+                type="button"
+                class="filtro-card"
+                [class.filtro-card--ativo]="filtroStatus === 'atrasados'"
+                (click)="selecionarFiltro('atrasados')"
+              >
+                <span class="filtro-card__label">Atrasados</span>
+                <span class="filtro-card__valor">{{ totalAtrasados }}</span>
+              </button>
+              <button
+                type="button"
+                class="filtro-card"
+                [class.filtro-card--ativo]="filtroStatus === 'agendados'"
+                (click)="selecionarFiltro('agendados')"
+              >
+                <span class="filtro-card__label">Agendados</span>
+                <span class="filtro-card__valor">{{ totalAgendados }}</span>
+              </button>
+              <button
+                type="button"
+                class="filtro-card"
+                [class.filtro-card--ativo]="filtroStatus === 'concluidos'"
+                (click)="selecionarFiltro('concluidos')"
+              >
+                <span class="filtro-card__label">Concluídos</span>
+                <span class="filtro-card__valor">{{ totalConcluidos }}</span>
+              </button>
+              <button
+                type="button"
+                class="filtro-card"
+                [class.filtro-card--ativo]="filtroStatus === 'todos'"
+                (click)="selecionarFiltro('todos')"
+              >
+                <span class="filtro-card__label">Todos</span>
+              </button>
+            </div>
+            <label class="field">Buscar
+              <input type="text" [(ngModel)]="busca" name="busca" (input)="aplicarFiltro()" placeholder="Título ou descrição" />
+            </label>
+          </div>
+
+          <div class="list-card">
+            <div class="list-card__header">
+              <div>
+                <p class="list-card__eyebrow">Registros</p>
+                <p class="list-card__title">Lembretes criados</p>
+              </div>
+            </div>
+
+            <div *ngIf="carregando" class="muted">Carregando lembretes...</div>
+            <div *ngIf="!carregando && !lembretesFiltrados.length" class="muted">Nenhum lembrete encontrado.</div>
+
+            <div class="lembrete-list" *ngIf="lembretesFiltrados.length">
+              <div class="lembrete-item" *ngFor="let lembrete of lembretesFiltrados" (dblclick)="selecionar(lembrete)">
+                <div class="lembrete-info">
+                  <p class="lembrete-linha">
+                    <span class="lembrete-title">{{ lembrete.dataInicial | date: 'dd/MM/yyyy' }}</span>
+                    <span class="lembrete-separador">•</span>
+                    <span class="lembrete-title">{{ lembrete.titulo }}</span>
+                    <span class="lembrete-separador">•</span>
+                    <span class="lembrete-meta">Usuário: {{ obterNomeUsuario(lembrete) }}</span>
+                    <span class="lembrete-separador">•</span>
+                    <span class="lembrete-meta">Próxima execução: {{ lembrete.proximaExecucaoEm | date: 'dd/MM/yyyy HH:mm' }}</span>
+                  </p>
+                  <p class="lembrete-desc">{{ lembrete.descricao || 'Sem descrição' }}</p>
+                </div>
+                <div class="lembrete-actions">
+                  <button
+                    type="button"
+                    class="btn-outline btn-small"
+                    (click)="abrirModalAdiar(lembrete); $event.stopPropagation()"
+                  >
+                    Adiar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-outline btn-small"
+                    (click)="concluir(lembrete); $event.stopPropagation()"
+                  >
+                    Concluir
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-outline btn-small"
+                    (click)="excluirItem(lembrete); $event.stopPropagation()"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

@@ -13,7 +13,7 @@ import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { UserPayload, UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 
-type TabId = 'cadastro' | 'listagem';
+type TabId = 'cadastro' | 'lembretesCriados';
 type FiltroStatus = 'pendentesHoje' | 'atrasados' | 'agendados' | 'concluidos' | 'todos';
 
 @Component({
@@ -27,7 +27,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   readonly faBell = faBell;
   readonly tabs: { id: TabId; label: string }[] = [
     { id: 'cadastro', label: 'Cadastro de lembretes' },
-    { id: 'listagem', label: 'Lembretes diários' }
+    { id: 'lembretesCriados', label: 'Lembretes criados' }
   ];
 
   activeTab: TabId = 'cadastro';
@@ -35,6 +35,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   busca = '';
   lembretes: LembreteDiario[] = [];
   lembretesFiltrados: LembreteDiario[] = [];
+  lembretesCadastro: LembreteDiario[] = [];
   selecionado: LembreteDiario | null = null;
   usuarios: UserPayload[] = [];
   totalPendentesHoje = 0;
@@ -103,8 +104,8 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
     });
     this.route.queryParamMap.subscribe((params) => {
       const aba = params.get('aba');
-      if (aba === 'listagem') {
-        this.changeTab('listagem');
+      if (aba === 'lembretesCriados') {
+        this.changeTab('lembretesCriados');
       }
     });
   }
@@ -129,7 +130,7 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
   }
 
   onBuscar(): void {
-    this.changeTab('listagem');
+    this.changeTab('lembretesCriados');
     this.carregar();
   }
 
@@ -141,13 +142,15 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
     this.resetForm();
   }
 
-  resetForm(): void {
+  resetForm(voltarParaCadastro = true): void {
     this.form.reset({ titulo: '', descricao: '', dataInicial: '', horaAviso: '09:00', usuarioId: this.usuarioPadraoId(), todosUsuarios: false });
     this.selecionado = null;
     this.editingId = null;
     this.popupErros = [];
     this.popupTitulo = 'Aviso';
-    this.changeTab('cadastro');
+    if (voltarParaCadastro) {
+      this.changeTab('cadastro');
+    }
   }
 
   submit(): void {
@@ -189,7 +192,8 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
           .adicionar('Lembrete salvo com sucesso.')
           .build();
         this.carregar();
-        this.resetForm();
+        this.resetForm(false);
+        this.changeTab('lembretesCriados');
       },
       error: () => {
         this.popupTitulo = 'Erro ao salvar';
@@ -349,11 +353,13 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
     this.service.listar().subscribe({
       next: (lembretes) => {
         this.lembretes = lembretes ?? [];
+        this.lembretesCadastro = this.ordenarLembretes(this.lembretes);
         this.aplicarFiltro();
       },
       error: () => {
         this.lembretes = [];
         this.lembretesFiltrados = [];
+        this.lembretesCadastro = [];
         this.popupTitulo = 'Erro ao carregar';
         this.popupErros = new PopupErrorBuilder()
           .adicionar('Não foi possível carregar os lembretes.')
@@ -363,6 +369,20 @@ export class LembretesDiariosComponent extends TelaBaseComponent implements OnIn
         this.carregando = false;
       }
     });
+  }
+
+  private ordenarLembretes(lembretes: LembreteDiario[]): LembreteDiario[] {
+    return [...lembretes].sort((a, b) => {
+      const dataA = new Date(a.proximaExecucaoEm).getTime();
+      const dataB = new Date(b.proximaExecucaoEm).getTime();
+      return dataB - dataA;
+    });
+  }
+
+  obterNomeUsuario(lembrete: LembreteDiario): string {
+    if (lembrete.todosUsuarios) return 'Todos';
+    const usuario = this.usuarios.find((item) => item.id === lembrete.usuarioId);
+    return usuario?.nome ?? usuario?.nomeUsuario ?? 'Usuário não informado';
   }
 
   private executarExclusao(id: number): void {

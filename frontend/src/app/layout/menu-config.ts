@@ -61,15 +61,15 @@ export interface MenuItem {
 
 export const menuSections: MenuItem[] = [
   {
-    label: 'dashboard',
+    label: 'Dashboard',
     icon: faGauge,
     children: [
-      { label: 'Visão geral', icon: faChartPie, route: '/dashboard/visao-geral' },
+      { label: 'Visão Geral', icon: faChartPie, route: '/dashboard/visao-geral' },
       { label: 'Indicadores', icon: faChartColumn, route: '/dashboard/indicadores' },
     ],
   },
   {
-    label: 'cadatros',
+    label: 'Cadastros',
     icon: faUsers,
     children: [
       {
@@ -83,12 +83,12 @@ export const menuSections: MenuItem[] = [
         route: '/cadastros/profissionais',
       },
       {
-        label: 'Unidade assistencial',
+        label: 'Unidade Assistencial',
         icon: faHospitalUser,
         route: '/unidades/cadastro',
       },
       {
-        label: 'Vínculo familiar',
+        label: 'Vínculo Familiar',
         icon: faPeopleGroup,
         route: '/cadastros/vinculo-familiar',
       },
@@ -100,89 +100,89 @@ export const menuSections: MenuItem[] = [
     ],
   },
   {
-    label: 'atendimentos',
+    label: 'Atendimentos',
     icon: faHandshakeAngle,
     children: [
-      { label: 'Banco de empregos', icon: faBriefcase, route: '/atendimentos/banco-empregos' },
+      { label: 'Banco de Empregos', icon: faBriefcase, route: '/atendimentos/banco-empregos' },
       { label: 'Biblioteca', icon: faBook, route: '/atendimentos/biblioteca' },
-      { label: 'Prontuário social', icon: faNotesMedical, route: '/atendimentos/prontuario' },
+      { label: 'Prontuário Social', icon: faNotesMedical, route: '/atendimentos/prontuario' },
       {
-        label: 'Recebimento de doação',
+        label: 'Recebimento de Doação',
         icon: faHandHoldingDollar,
         route: '/atendimentos/recebimento-doacao',
       },
-      { label: 'Registro de visitas', icon: faClipboardUser, route: '/atendimentos/visitas' },
-      { label: 'Doação realizada', icon: faGift, route: '/atendimentos/doacoes' },
+      { label: 'Registro de Visitas', icon: faClipboardUser, route: '/atendimentos/visitas' },
+      { label: 'Doação Realizada', icon: faGift, route: '/atendimentos/doacoes' },
       { label: 'Matrículas', icon: faGraduationCap, route: '/atendimentos/cursos' },
       { label: 'Ocorrências', icon: faTriangleExclamation, route: '/atendimentos/ocorrencias-crianca' },
-      { label: 'Chamada de senhas', icon: faBullhorn, route: '/senhas/chamar' },
-      { label: 'Painel de senhas', icon: faDisplay, urlExterna: '/senhas/painel' },
+      { label: 'Chamada de Senhas', icon: faBullhorn, route: '/senhas/chamar' },
+      { label: 'Painel de Senhas', icon: faDisplay, urlExterna: '/senhas/painel' },
     ],
   },
   {
-    label: 'setor administrativo',
+    label: 'Setor Administrativo',
     icon: faClipboardList,
     children: [
       { label: 'Almoxarifado', icon: faBoxesStacked, route: '/administrativo/almoxarifado' },
       {
-        label: 'Controle de veículos',
+        label: 'Controle de Veículos',
         icon: faCarSide,
         route: '/administrativo/controle-veiculos',
       },
       {
-        label: 'Empréstimo para eventos',
+        label: 'Empréstimo para Eventos',
         icon: faCalendarCheck,
         route: '/administrativo/patrimonio/emprestimos-eventos',
       },
-      { label: 'Fotos e eventos', icon: faImages, route: '/administrativo/fotos-eventos' },
+      { label: 'Fotos e Eventos', icon: faImages, route: '/administrativo/fotos-eventos' },
       {
-        label: 'Gestão de documentos',
+        label: 'Gestão de Documentos',
         icon: faFolderOpen,
         route: '/administrativo/documentos',
       },
-      { label: 'Ofícios e protocolos', icon: faFileSignature, route: '/administrativo/oficios' },
+      { label: 'Ofícios e Protocolos', icon: faFileSignature, route: '/administrativo/oficios' },
       { label: 'Patrimônio', icon: faLandmark, route: '/administrativo/patrimonio' },
-      { label: 'Tarefas e pendências', icon: faListCheck, route: '/administrativo/tarefas' },
-      { label: 'Lembretes diários', icon: faBell, route: '/administrativo/lembretes-diarios' },
+      { label: 'Tarefas e Pendências', icon: faListCheck, route: '/administrativo/tarefas' },
+      { label: 'Lembretes Diários', icon: faBell, route: '/administrativo/lembretes-diarios' },
     ],
   },
   {
-    label: 'setor financeiro',
+    label: 'Setor Financeiro',
     icon: faWallet,
     children: [
       {
-        label: 'Autorização de compras',
+        label: 'Autorização de Compras',
         icon: faFileInvoiceDollar,
         route: '/financeiro/autorizacao-compras',
       },
       { label: 'Contabilidade', icon: faCalculator, route: '/financeiro/contabilidade' },
-      { label: 'Prestação de contas', icon: faReceipt, route: '/financeiro/prestacao-contas' },
+      { label: 'Prestação de Contas', icon: faReceipt, route: '/financeiro/prestacao-contas' },
     ],
   },
   {
-    label: 'setor juridico',
+    label: 'Setor Jurídico',
     icon: faScaleBalanced,
     children: [
-      { label: 'Plano de trabalho', icon: faClipboardCheck, route: '/juridico/planos-trabalho' },
-      { label: 'Termo de fomento', icon: faFileContract, route: '/juridico/termos-fomento' },
+      { label: 'Plano de Trabalho', icon: faClipboardCheck, route: '/juridico/planos-trabalho' },
+      { label: 'Termo de Fomento', icon: faFileContract, route: '/juridico/termos-fomento' },
     ],
   },
   {
-    label: 'configurações gerais',
+    label: 'Configurações Gerais',
     icon: faWrench,
     children: [
       {
-        label: 'Chamado técnico',
+        label: 'Chamado Técnico',
         icon: faHeadset,
         route: '/configuracoes/chamados-tecnicos',
       },
       {
-        label: 'Gerenciamento de dados',
+        label: 'Gerenciamento de Dados',
         icon: faServer,
         route: '/configuracoes/gerenciamento-dados',
       },
-      { label: 'Configurações do sistema', icon: faSliders, route: '/configuracoes/parametros' },
-      { label: 'Versão do sistema', icon: faTags, route: '/configuracoes/versao' },
+      { label: 'Configurações do Sistema', icon: faSliders, route: '/configuracoes/parametros' },
+      { label: 'Versão do Sistema', icon: faTags, route: '/configuracoes/versao' },
     ],
   },
 ];

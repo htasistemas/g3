@@ -163,6 +163,10 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.field-grid.cols-5 {
+  grid-template-columns: minmax(260px, 2fr) repeat(4, minmax(150px, 1fr));
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -179,6 +183,10 @@
   border: 1px solid #cbd5e1;
   background: #ffffff;
   color: #111827;
+}
+
+.field-input--titulo {
+  padding: 0.35rem 0.5rem;
 }
 
 .field.full {
@@ -242,6 +250,7 @@
   padding: 1rem;
 }
 
+
 .list-card__header {
   display: flex;
   align-items: center;
@@ -286,6 +295,18 @@
   color: #0f172a;
 }
 
+.lembrete-linha {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.lembrete-separador {
+  color: #94a3b8;
+}
+
 .lembrete-desc {
   margin: 0.25rem 0;
   color: #64748b;
@@ -314,12 +335,14 @@
   justify-content: center;
   padding: 1.5rem;
   z-index: 40;
+  pointer-events: auto;
 }
 
 .modal__backdrop {
   position: absolute;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
+  z-index: 1;
 }
 
 .modal__container {
@@ -332,6 +355,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .modal__header {
