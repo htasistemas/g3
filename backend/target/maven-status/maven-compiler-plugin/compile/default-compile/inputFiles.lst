@@ -44,6 +44,7 @@ C:\g3\backend\src\main\java\br\com\g3\autenticacao\controller\AutenticacaoContro
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\controller\AutenticacaoDevController.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\domain\UsuarioRecuperacaoSenha.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\dto\CadastroContaRequest.java
+C:\g3\backend\src\main\java\br\com\g3\autenticacao\dto\GoogleLoginRequest.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\dto\LoginRequest.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\dto\LoginResponse.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\dto\RecuperarSenhaRequest.java
@@ -54,7 +55,9 @@ C:\g3\backend\src\main\java\br\com\g3\autenticacao\repository\UsuarioRecuperacao
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\repositoryimpl\UsuarioRecuperacaoSenhaJpaRepository.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\repositoryimpl\UsuarioRecuperacaoSenhaRepositoryImpl.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\service\AutenticacaoService.java
+C:\g3\backend\src\main\java\br\com\g3\autenticacao\service\GoogleTokenService.java
 C:\g3\backend\src\main\java\br\com\g3\autenticacao\serviceimpl\AutenticacaoServiceImpl.java
+C:\g3\backend\src\main\java\br\com\g3\autenticacao\serviceimpl\GoogleTokenServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\autorizacaocompras\controller\AutorizacaoComprasController.java
 C:\g3\backend\src\main\java\br\com\g3\autorizacaocompras\cotacoes\controller\AutorizacaoCompraCotacaoController.java
 C:\g3\backend\src\main\java\br\com\g3\autorizacaocompras\cotacoes\domain\AutorizacaoCompraCotacao.java
@@ -458,6 +461,16 @@ C:\g3\backend\src\main\java\br\com\g3\gerenciamentodados\repositoryimpl\Gerencia
 C:\g3\backend\src\main\java\br\com\g3\gerenciamentodados\repositoryimpl\GerenciamentoDadosConfiguracaoRepositoryImpl.java
 C:\g3\backend\src\main\java\br\com\g3\gerenciamentodados\service\GerenciamentoDadosService.java
 C:\g3\backend\src\main\java\br\com\g3\gerenciamentodados\serviceimpl\GerenciamentoDadosServiceImpl.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\controller\LembretesDiariosController.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\domain\LembreteDiario.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\dto\LembreteDiarioAdiarRequest.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\dto\LembreteDiarioRequest.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\dto\LembreteDiarioResponse.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\repository\LembreteDiarioRepository.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\repositoryimpl\LembreteDiarioJpaRepository.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\repositoryimpl\LembreteDiarioRepositoryImpl.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\service\LembreteDiarioService.java
+C:\g3\backend\src\main\java\br\com\g3\lembretesdiarios\serviceimpl\LembreteDiarioServiceImpl.java
 C:\g3\backend\src\main\java\br\com\g3\noticiasassistencia\controller\NoticiasAssistenciaController.java
 C:\g3\backend\src\main\java\br\com\g3\noticiasassistencia\dto\NoticiaAssistenciaResponse.java
 C:\g3\backend\src\main\java\br\com\g3\noticiasassistencia\service\NoticiasAssistenciaService.java
@@ -663,6 +676,7 @@ C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\domain\TarefaPendenciaCh
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\domain\TarefaPendenciaHistorico.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaChecklistRequest.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaChecklistResponse.java
+C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaHistoricoRequest.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaHistoricoResponse.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaRequest.java
 C:\g3\backend\src\main\java\br\com\g3\tarefaspendencias\dto\TarefaPendenciaResponse.java

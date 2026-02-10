@@ -168,6 +168,7 @@ public class EmailServiceImpl implements EmailService {
   @Override
   public void enviarChamadoTecnico(
       String destinatario, br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse chamado) {
+    configurarMailSeNecessario();
     if (destinatario == null || destinatario.trim().isEmpty()) {
       LOGGER.warn("Envio de email de chamado ignorado: destinatario vazio.");
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email do destinatario nao informado.");
@@ -188,8 +189,9 @@ public class EmailServiceImpl implements EmailService {
       helper.setFrom(remetenteFinal, nomeRemetente);
       helper.setTo(destinatario);
       helper.setSubject("Novo chamado tecnico - " + chamado.getCodigo());
-      helper.setText(montarCorpoChamado(chamado));
+      helper.setText(montarCorpoChamado(chamado), true);
       sender.send(helper.getMimeMessage());
+      LOGGER.info("Email de chamado tecnico enviado para {}", destinatario);
     } catch (Exception ex) {
       LOGGER.warn("Falha ao enviar email de chamado tecnico.", ex);
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Falha ao enviar email do chamado.");
@@ -286,37 +288,101 @@ public class EmailServiceImpl implements EmailService {
   }
 
   private String montarCorpoChamado(br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse chamado) {
+    String codigo = escapeHtml(chamado.getCodigo());
+    String titulo = escapeHtml(chamado.getTitulo());
+    String tipo = escapeHtml(chamado.getTipo());
+    String status = escapeHtml(chamado.getStatus());
+    String prioridade = escapeHtml(chamado.getPrioridade());
+    String impacto = escapeHtml(chamado.getImpacto());
+    String modulo = escapeHtml(chamado.getModulo());
+    String menu = escapeHtml(chamado.getMenu());
+    String cliente = escapeHtml(chamado.getCliente());
+    String descricao = escapeHtml(chamado.getDescricao());
+    String versao = escapeHtml(chamado.getVersaoSistema());
+    String dataCriacao = escapeHtml(chamado.getCriadoEm());
+
     StringBuilder sb = new StringBuilder();
-    sb.append("Novo chamado tecnico registrado no G3.\n\n");
-    sb.append("Codigo: ").append(chamado.getCodigo()).append("\n");
-    sb.append("Titulo: ").append(chamado.getTitulo()).append("\n");
-    sb.append("Tipo: ").append(chamado.getTipo()).append("\n");
-    sb.append("Status: ").append(chamado.getStatus()).append("\n");
-    sb.append("Prioridade: ").append(chamado.getPrioridade()).append("\n");
-    sb.append("Impacto: ").append(chamado.getImpacto()).append("\n");
-    sb.append("Modulo: ").append(chamado.getModulo()).append("\n");
-    sb.append("Menu: ").append(chamado.getMenu()).append("\n");
-    sb.append("Cliente: ").append(chamado.getCliente()).append("\n\n");
-    sb.append("Descricao:\n").append(chamado.getDescricao()).append("\n\n");
-    if (chamado.getPassosReproducao() != null && !chamado.getPassosReproducao().trim().isEmpty()) {
-      sb.append("Passos de reproducao:\n").append(chamado.getPassosReproducao()).append("\n\n");
+    sb.append("<!doctype html>");
+    sb.append("<html lang=\"pt-br\"><head><meta charset=\"utf-8\">");
+    sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+    sb.append("<title>Novo chamado tecnico</title>");
+    sb.append("</head><body style=\"margin:0;padding:0;background:#f3f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2933;\">");
+    sb.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f3f5f7;padding:24px 0;\">");
+    sb.append("<tr><td align=\"center\">");
+    sb.append("<table width=\"640\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.08);\">");
+    sb.append("<tr><td style=\"background:#0f3d2e;padding:20px 28px;color:#ffffff;\">");
+    sb.append("<div style=\"font-size:14px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.8;\">G3</div>");
+    sb.append("<div style=\"font-size:22px;font-weight:700;margin-top:6px;\">Novo chamado tecnico</div>");
+    sb.append("</td></tr>");
+    sb.append("<tr><td style=\"padding:24px 28px;\">");
+    sb.append("<div style=\"font-size:16px;margin-bottom:16px;\">Um novo chamado foi registrado no sistema.</div>");
+    sb.append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"border-collapse:separate;border-spacing:0 10px;\">");
+    sb.append(montarLinhaResumo("Codigo", codigo));
+    sb.append(montarLinhaResumo("Titulo", titulo));
+    if (!versao.isEmpty()) {
+      sb.append(montarLinhaResumo("Versao do sistema", versao));
     }
-    if (chamado.getResultadoAtual() != null && !chamado.getResultadoAtual().trim().isEmpty()) {
-      sb.append("Resultado atual:\n").append(chamado.getResultadoAtual()).append("\n\n");
+    sb.append(montarLinhaResumo("Tipo", tipo));
+    sb.append(montarLinhaResumo("Status", status));
+    sb.append(montarLinhaResumo("Prioridade", prioridade));
+    if (!impacto.isEmpty()) {
+      sb.append(montarLinhaResumo("Impacto", impacto));
     }
-    if (chamado.getResultadoEsperado() != null && !chamado.getResultadoEsperado().trim().isEmpty()) {
-      sb.append("Resultado esperado:\n").append(chamado.getResultadoEsperado()).append("\n\n");
+    if (!modulo.isEmpty()) {
+      sb.append(montarLinhaResumo("Modulo", modulo));
     }
-    if (chamado.getUsuariosTeste() != null && !chamado.getUsuariosTeste().trim().isEmpty()) {
-      sb.append("Usuarios de teste:\n").append(chamado.getUsuariosTeste()).append("\n\n");
+    if (!menu.isEmpty()) {
+      sb.append(montarLinhaResumo("Menu", menu));
     }
-    if (chamado.getPrazoSlaEmHoras() != null) {
-      sb.append("SLA (horas): ").append(chamado.getPrazoSlaEmHoras()).append("\n");
-      if (chamado.getDataLimiteSla() != null) {
-        sb.append("Data limite SLA: ").append(chamado.getDataLimiteSla()).append("\n");
-      }
+    if (!cliente.isEmpty()) {
+      sb.append(montarLinhaResumo("Cliente", cliente));
     }
+    if (!dataCriacao.isEmpty()) {
+      sb.append(montarLinhaResumo("Criado em", dataCriacao));
+    }
+    sb.append("</table>");
+    sb.append("<div style=\"margin-top:24px;font-size:15px;font-weight:700;\">Descricao</div>");
+    sb.append("<div style=\"margin-top:8px;white-space:pre-wrap;font-size:14px;line-height:1.55;color:#344053;\">");
+    sb.append(descricao.isEmpty() ? "Sem descricao informada." : descricao);
+    sb.append("</div>");
+    sb.append("</td></tr>");
+    sb.append("<tr><td style=\"padding:16px 28px;background:#f8fafc;color:#6b7280;font-size:12px;\">");
+    sb.append("Este email foi gerado automaticamente pelo G3.");
+    sb.append("</td></tr>");
+    sb.append("</table>");
+    sb.append("</td></tr>");
+    sb.append("</table>");
+    sb.append("</body></html>");
     return sb.toString();
+  }
+
+  private String montarLinhaResumo(String titulo, String valor) {
+    String tituloSeguro = escapeHtml(titulo);
+    String valorSeguro = valor == null || valor.trim().isEmpty() ? "Nao informado" : valor;
+    return "<tr>"
+        + "<td style=\"width:140px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.06em;\">"
+        + tituloSeguro
+        + "</td>"
+        + "<td style=\"font-size:14px;color:#111827;font-weight:600;\">"
+        + valorSeguro
+        + "</td>"
+        + "</tr>";
+  }
+
+  private String escapeHtml(Object valor) {
+    if (valor == null) {
+      return "";
+    }
+    String texto = String.valueOf(valor);
+    if (texto.trim().isEmpty()) {
+      return "";
+    }
+    return texto
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#39;");
   }
 
   private String resolveRemetente() {
@@ -324,6 +390,16 @@ public class EmailServiceImpl implements EmailService {
     if ((from == null || from.trim().isEmpty()) && mailSender instanceof JavaMailSenderImpl) {
       String username = ((JavaMailSenderImpl) mailSender).getUsername();
       from = username == null || username.trim().isEmpty() ? from : username;
+    }
+    if (from == null || from.trim().isEmpty()) {
+      Map<String, String> valores = new HashMap<>();
+      valores.putAll(System.getenv());
+      valores.putAll(lerConfiguracaoEmail());
+      String remetenteCfg = obterValor(valores, "APP_EMAIL_REMETENTE");
+      if (remetenteCfg == null) {
+        remetenteCfg = obterValor(valores, "MAIL_USER");
+      }
+      from = remetenteCfg == null ? from : remetenteCfg;
     }
     return from;
   }

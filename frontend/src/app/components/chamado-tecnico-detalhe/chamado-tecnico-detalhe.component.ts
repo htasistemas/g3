@@ -223,12 +223,16 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
         },
       });
     } else {
+      this.popupTitulo = 'Enviando';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Enviando chamado para o setor de desenvolvimento...')
+        .build();
       this.service.criar(payload).subscribe({
         next: (novo) => {
           this.feedback = null;
           this.popupTitulo = 'Sucesso';
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('Chamado incluído com sucesso.')
+            .adicionar('Seu chamado foi enviado para o setor de desenvolvimento.')
             .build();
           if (novo.id) {
             this.enviarAnexosPendentes(novo.id);
