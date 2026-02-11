@@ -19,6 +19,7 @@ import br.com.g3.contabilidade.repository.MovimentacaoFinanceiraRepository;
 import br.com.g3.contabilidade.service.ContabilidadeService;
 import br.com.g3.patrimonio.domain.PatrimonioItem;
 import br.com.g3.patrimonio.repository.PatrimonioRepository;
+import br.com.g3.recebimentodoacao.domain.RecebimentoDoacao;
 import br.com.g3.recebimentodoacao.dto.RecebimentoDoacaoItemRequest;
 import br.com.g3.recebimentodoacao.dto.RecebimentoDoacaoRequest;
 import br.com.g3.recebimentodoacao.repository.DoadorRepository;
@@ -80,7 +81,7 @@ class RecebimentoDoacaoServiceImplTeste {
     when(patrimonioRepository.existePorDoacaoId(any())).thenReturn(false);
 
     when(recebimentoRepository.salvar(any())).thenAnswer(invocation -> {
-      var recebimento = invocation.getArgument(0);
+      RecebimentoDoacao recebimento = invocation.getArgument(0);
       recebimento.setId(1L);
       return recebimento;
     });
@@ -114,7 +115,7 @@ class RecebimentoDoacaoServiceImplTeste {
     when(almoxarifadoRepository.obterProximoCodigo()).thenReturn(1);
 
     when(recebimentoRepository.salvar(any())).thenAnswer(invocation -> {
-      var recebimento = invocation.getArgument(0);
+      RecebimentoDoacao recebimento = invocation.getArgument(0);
       recebimento.setId(2L);
       return recebimento;
     });
@@ -144,7 +145,7 @@ class RecebimentoDoacaoServiceImplTeste {
     when(patrimonioRepository.existePorDoacaoId(any())).thenReturn(false);
 
     when(recebimentoRepository.salvar(any())).thenAnswer(invocation -> {
-      var recebimento = invocation.getArgument(0);
+      RecebimentoDoacao recebimento = invocation.getArgument(0);
       recebimento.setId(3L);
       return recebimento;
     });
@@ -166,7 +167,7 @@ class RecebimentoDoacaoServiceImplTeste {
     request.setValor(new BigDecimal("50.00"));
 
     when(recebimentoRepository.salvar(any())).thenAnswer(invocation -> {
-      var recebimento = invocation.getArgument(0);
+      RecebimentoDoacao recebimento = invocation.getArgument(0);
       recebimento.setId(4L);
       recebimento.setLancamentosGerados(true);
       return recebimento;

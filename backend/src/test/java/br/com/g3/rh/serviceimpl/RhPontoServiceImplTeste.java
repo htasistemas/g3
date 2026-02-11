@@ -88,7 +88,7 @@ public class RhPontoServiceImplTeste {
 
     ResponseStatusException ex = Assertions.assertThrows(
         ResponseStatusException.class,
-        () -> service.baterPonto(request, "127.0.0.1", "tester"));
+        () -> service.baterPonto(request, 10L, "127.0.0.1", "tester"));
 
     Assertions.assertEquals(HttpStatus.UNAUTHORIZED, ex.getStatusCode());
     Mockito.verify(auditoriaRepository, Mockito.times(1)).salvar(ArgumentMatchers.any());
@@ -127,7 +127,7 @@ public class RhPontoServiceImplTeste {
 
     ResponseStatusException ex = Assertions.assertThrows(
         ResponseStatusException.class,
-        () -> service.baterPonto(request, "127.0.0.1", "tester"));
+        () -> service.baterPonto(request, 10L, "127.0.0.1", "tester"));
 
     Assertions.assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }
