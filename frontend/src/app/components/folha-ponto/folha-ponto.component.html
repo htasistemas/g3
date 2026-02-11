@@ -1,0 +1,376 @@
+﻿<app-tela-padrao
+  [acoes]="acoesToolbar"
+  [desabilitado]="acoesDesabilitadas"
+  [mostrarToolbar]="false"
+  [mostrarFechar]="true"
+  [fullWidth]="true"
+  (buscar)="onBuscar()"
+  (imprimir)="onImprimir()"
+  (fechar)="onFechar()"
+>
+  <header class="page-title page-title--row" slot="titulo"></header>
+
+  <section class="cadastro">
+    <div class="page-actions">
+      <app-barra-acoes-crud
+        [acoes]="acoesToolbar"
+        [desabilitado]="acoesDesabilitadas"
+        [mostrarFechar]="true"
+        (imprimir)="onImprimir()"
+        (buscar)="onBuscar()"
+        (fechar)="onFechar()"
+      ></app-barra-acoes-crud>
+    </div>
+
+    <app-popup-messages
+      [mensagens]="popupErros"
+      [titulo]="popupTitulo"
+      (fechar)="fecharPopupErros()"
+    ></app-popup-messages>
+
+    <div class="cadastro-layout">
+      <aside class="cadastro-menu">
+        <div class="tab-shell">
+          <p class="tab-shell__title tab-shell__title--destaque">
+            <fa-icon [icon]="faUserClock" class="tab-shell__icon"></fa-icon>
+            Folha de ponto
+          </p>
+          <ol class="step-tabs" role="tablist">
+            <li
+              *ngFor="let tab of tabs; index as idx"
+              class="step-tabs__item"
+              [class.active]="activeTab === tab.id"
+              [class.completed]="idx < getTabIndex(activeTab)"
+            >
+              <button
+                class="step-tabs__button"
+                type="button"
+                role="tab"
+                [attr.aria-selected]="activeTab === tab.id"
+                (click)="changeTab(tab.id)"
+              >
+                <span class="step-tabs__index">{{ idx + 1 }}</span>
+                <span class="step-tabs__label">{{ tab.label }}</span>
+              </button>
+            </li>
+          </ol>
+        </div>
+      </aside>
+
+      <div class="cadastro-conteudo">
+        <div class="tab-card" *ngIf="activeTab === 'registro'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Registro diário</p>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <p class="info-card__label">Local de ponto ativo</p>
+              <h3>{{ localAtivo?.nome || 'Não configurado' }}</h3>
+              <p>{{ localAtivo?.endereco || 'Endereço não informado' }}</p>
+              <p *ngIf="localAtivo">
+                Raio: {{ localAtivo.raioMetros }}m • Precisão máxima: {{ localAtivo.accuracyMaxMetros }}m
+              </p>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Carga e tolerância</p>
+              <h3>{{ formatarMinutos(configuracao?.cargaSemanalMinutos) }} semanais</h3>
+              <p>Seg–qui: {{ formatarMinutos(configuracao?.cargaSegQuiMinutos) }}</p>
+              <p>Sexta: {{ formatarMinutos(configuracao?.cargaSextaMinutos) }}</p>
+              <p>Tolerância: {{ formatarMinutos(configuracao?.toleranciaMinutos) }}</p>
+            </div>
+          </div>
+
+          <div class="batida-grid">
+            <button
+              type="button"
+              class="batida-card"
+              [class.batida-card--ativa]="podeRegistrar('E1')"
+              [disabled]="!podeRegistrar('E1')"
+              (click)="iniciarBatida('E1')"
+            >
+              <span>Entrada manhã</span>
+              <strong>Registrar</strong>
+            </button>
+            <button
+              type="button"
+              class="batida-card"
+              [class.batida-card--ativa]="podeRegistrar('S1')"
+              [disabled]="!podeRegistrar('S1')"
+              (click)="iniciarBatida('S1')"
+            >
+              <span>Saída manhã</span>
+              <strong>Registrar</strong>
+            </button>
+            <button
+              type="button"
+              class="batida-card"
+              [class.batida-card--ativa]="podeRegistrar('E2')"
+              [disabled]="!podeRegistrar('E2')"
+              (click)="iniciarBatida('E2')"
+            >
+              <span>Entrada tarde</span>
+              <strong>Registrar</strong>
+            </button>
+            <button
+              type="button"
+              class="batida-card"
+              [class.batida-card--ativa]="podeRegistrar('S2')"
+              [disabled]="!podeRegistrar('S2')"
+              (click)="iniciarBatida('S2')"
+            >
+              <span>Saída tarde</span>
+              <strong>Registrar</strong>
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-card" *ngIf="activeTab === 'espelho'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Espelho mensal</p>
+            </div>
+            <div class="tab-card__header-actions" *ngIf="isRhAdmin">
+              <label class="field compact">
+                Funcionário
+                <select #selectFuncionario (change)="selecionarFuncionario(selectFuncionario.value)">
+                  <option *ngFor="let user of usuarios" [value]="user.id" [selected]="user.id === funcionarioSelecionadoId">
+                    {{ user.nome || user.nomeUsuario }}
+                  </option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="table-wrapper" *ngIf="espelho?.dias?.length">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Ocorr.</th>
+                  <th>Entrada</th>
+                  <th>Saída</th>
+                  <th>Entrada</th>
+                  <th>Saída</th>
+                  <th>Horas</th>
+                  <th>Extras</th>
+                  <th>Faltas/Atrasos</th>
+                  <th>Observações</th>
+                  <th *ngIf="isRhAdmin">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dia of espelho?.dias">
+                  <td>{{ dia.data | date: 'dd/MM/yyyy' }}</td>
+                  <td>{{ dia.ocorrencia }}</td>
+                  <td>{{ dia.entradaManha || '---' }}</td>
+                  <td>{{ dia.saidaManha || '---' }}</td>
+                  <td>{{ dia.entradaTarde || '---' }}</td>
+                  <td>{{ dia.saidaTarde || '---' }}</td>
+                  <td>{{ formatarMinutos(dia.totalTrabalhadoMinutos) }}</td>
+                  <td>{{ formatarMinutos(dia.extrasMinutos) }}</td>
+                  <td>{{ formatarMinutos(dia.faltasAtrasosMinutos) }}</td>
+                  <td>{{ dia.observacoes || '---' }}</td>
+                  <td *ngIf="isRhAdmin">
+                    <button type="button" class="ghost" (click)="abrirEditarOcorrencia(dia)" [disabled]="!dia.pontoDiaId">
+                      Corrigir
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6">Totais</td>
+                  <td>{{ formatarMinutos(espelho?.totalTrabalhadoMinutos) }}</td>
+                  <td>{{ formatarMinutos(espelho?.totalExtrasMinutos) }}</td>
+                  <td>{{ formatarMinutos(espelho?.totalFaltasAtrasosMinutos) }}</td>
+                  <td></td>
+                  <td *ngIf="isRhAdmin"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-card" *ngIf="activeTab === 'locais'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Locais de ponto</p>
+            </div>
+          </div>
+
+          <form class="field-grid cols-3">
+            <label class="field full">Unidade assistencial
+              <select
+                [ngModel]="unidadeSelecionadaId"
+                (ngModelChange)="selecionarUnidade($event)"
+                name="unidadeSelecionada"
+              >
+                <option *ngFor="let unidade of unidadesAssistenciais" [value]="unidade.id">
+                  {{ unidade.nomeFantasia }}
+                </option>
+              </select>
+            </label>
+          </form>
+
+          <div class="info-grid" *ngIf="unidadeAssistencial">
+            <div class="info-card">
+              <p class="info-card__label">Unidade assistencial</p>
+              <h3>{{ unidadeAssistencial.nomeFantasia }}</h3>
+              <p *ngIf="unidadeAssistencial.razaoSocial">{{ unidadeAssistencial.razaoSocial }}</p>
+              <p *ngIf="unidadeAssistencial.cnpj">CNPJ: {{ unidadeAssistencial.cnpj }}</p>
+              <p *ngIf="unidadeAssistencial.telefone">Telefone: {{ unidadeAssistencial.telefone }}</p>
+              <p *ngIf="unidadeAssistencial.email">Email: {{ unidadeAssistencial.email }}</p>
+              <p *ngIf="unidadeAssistencial.endereco">
+                Endereço:
+                {{ unidadeAssistencial.endereco }}
+                <span *ngIf="unidadeAssistencial.numeroEndereco">, {{ unidadeAssistencial.numeroEndereco }}</span>
+                <span *ngIf="unidadeAssistencial.bairro"> - {{ unidadeAssistencial.bairro }}</span>
+                <span *ngIf="unidadeAssistencial.cidade">, {{ unidadeAssistencial.cidade }}</span>
+                <span *ngIf="unidadeAssistencial.estado">/{{ unidadeAssistencial.estado }}</span>
+              </p>
+            </div>
+          </div>
+
+          <form class="field-grid cols-3" [formGroup]="localForm">
+            <label class="field full">Nome do local (*)
+              <input formControlName="nome" />
+            </label>
+            <label class="field full">Endereço
+              <input formControlName="endereco" />
+            </label>
+            <label class="field">Latitude (*)
+              <input formControlName="latitude" type="number" step="0.000001" />
+            </label>
+            <label class="field">Longitude (*)
+              <input formControlName="longitude" type="number" step="0.000001" />
+            </label>
+            <label class="field">Raio permitido (m) (*)
+              <input formControlName="raioMetros" type="number" />
+            </label>
+            <label class="field">Precisão máxima (m) (*)
+              <input formControlName="accuracyMaxMetros" type="number" />
+            </label>
+            <label class="checkbox-field full">
+              <input type="checkbox" formControlName="ativo" />
+              <span>Local ativo</span>
+            </label>
+          </form>
+
+          <div class="tab-actions">
+            <button type="button" class="primary" (click)="salvarLocal()">Salvar local</button>
+          </div>
+
+          <div class="table-wrapper" *ngIf="locais.length">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Endereço</th>
+                  <th>Raio</th>
+                  <th>Precisão</th>
+                  <th>Status</th>
+                  <th class="text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let local of locais">
+                  <td>{{ local.nome }}</td>
+                  <td>{{ local.endereco || '---' }}</td>
+                  <td>{{ local.raioMetros }}m</td>
+                  <td>{{ local.accuracyMaxMetros }}m</td>
+                  <td>{{ local.ativo ? 'Ativo' : 'Inativo' }}</td>
+                  <td class="text-right">
+                    <button type="button" class="ghost" (click)="editarLocal(local)">Editar</button>
+                    <button type="button" class="ghost ghost--danger" (click)="removerLocal(local)">Remover</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-card" *ngIf="activeTab === 'configuracao'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Configuração de carga</p>
+            </div>
+          </div>
+
+          <form class="field-grid cols-3" [formGroup]="configuracaoForm">
+            <label class="field">Carga semanal (min) (*)
+              <input type="number" formControlName="cargaSemanalMinutos" />
+            </label>
+            <label class="field">Seg–Qui (min) (*)
+              <input type="number" formControlName="cargaSegQuiMinutos" />
+            </label>
+            <label class="field">Sexta (min) (*)
+              <input type="number" formControlName="cargaSextaMinutos" />
+            </label>
+            <label class="field">Sábado (min) (*)
+              <input type="number" formControlName="cargaSabadoMinutos" />
+            </label>
+            <label class="field">Domingo (min) (*)
+              <input type="number" formControlName="cargaDomingoMinutos" />
+            </label>
+            <label class="field">Tolerância (min) (*)
+              <input type="number" formControlName="toleranciaMinutos" />
+            </label>
+          </form>
+
+          <div class="tab-actions">
+            <button type="button" class="primary" (click)="salvarConfiguracao()">Salvar configuração</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-dialog
+      [aberto]="dialogBatidaAberta"
+      titulo="Confirmar batida"
+      mensagem="Informe a senha para concluir o registro do ponto."
+      confirmarLabel="Confirmar"
+      cancelarLabel="Cancelar"
+      (confirmar)="confirmarBatida()"
+      (cancelar)="cancelarBatida()"
+    >
+      <div class="dialog-conteudo">
+        <p class="muted">Tipo de batida: {{ tipoBatidaAtual }}</p>
+        <p class="muted" *ngIf="localizacaoAtual">
+          Precisão: {{ localizacaoAtual.accuracy | number: '1.0-0' }}m • Distância: {{ localizacaoAtual.distancia | number: '1.0-0' }}m
+        </p>
+        <label class="field">Senha do funcionário (*)
+          <input type="password" [(ngModel)]="senhaBatida" name="senhaBatida" />
+        </label>
+      </div>
+    </app-dialog>
+
+    <app-dialog
+      [aberto]="dialogOcorrenciaAberta"
+      titulo="Corrigir ocorrência"
+      mensagem="Atualize a ocorrência ou observação do dia selecionado."
+      confirmarLabel="Salvar"
+      cancelarLabel="Cancelar"
+      (confirmar)="confirmarEditarOcorrencia()"
+      (cancelar)="cancelarEditarOcorrencia()"
+    >
+      <div class="dialog-conteudo" [formGroup]="ocorrenciaForm">
+        <label class="field">Ocorrência
+          <select #selectFuncionario formControlName="ocorrencia">
+            <option value="NORMAL">Normal</option>
+            <option value="FERIADO">Feriado</option>
+            <option value="FOLGA">Folga</option>
+            <option value="JUSTIFICADO">Justificado</option>
+            <option value="FERIAS">Férias</option>
+            <option value="FALTA">Falta</option>
+          </select>
+        </label>
+        <label class="field">Observações
+          <textarea rows="3" formControlName="observacoes"></textarea>
+        </label>
+      </div>
+    </app-dialog>
+  </section>
+</app-tela-padrao>

@@ -10,6 +10,7 @@ export interface ContaBancariaRequest {
   tipo: string;
   projetoVinculado?: string;
   pixVinculado?: boolean;
+  recebimentoLocal?: boolean;
   tipoChavePix?: string;
   chavePix?: string;
   saldo: number;
@@ -59,6 +60,7 @@ export interface MovimentacaoFinanceiraRequest {
   contaBancariaId?: number;
   dataMovimentacao: string;
   valor: number;
+  doacaoId?: number;
 }
 
 export interface MovimentacaoFinanceiraResponse extends MovimentacaoFinanceiraRequest {

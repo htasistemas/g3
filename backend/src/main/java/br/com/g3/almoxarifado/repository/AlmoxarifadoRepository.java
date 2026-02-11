@@ -31,6 +31,8 @@ public interface AlmoxarifadoRepository {
 
   Optional<AlmoxarifadoMovimentacao> buscarMovimentacaoPorId(Long id);
 
+  boolean existeMovimentacaoPorDoacaoId(Long doacaoId);
+
   int obterProximoCodigo();
 
   List<ProdutoKitComposicao> listarComposicaoKit(Long produtoKitId);

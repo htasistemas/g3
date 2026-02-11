@@ -11,5 +11,7 @@ public interface MovimentacaoFinanceiraRepository {
 
   Optional<MovimentacaoFinanceira> buscarPorId(Long id);
 
+  boolean existePorDoacaoId(Long doacaoId);
+
   void remover(Long id);
 }

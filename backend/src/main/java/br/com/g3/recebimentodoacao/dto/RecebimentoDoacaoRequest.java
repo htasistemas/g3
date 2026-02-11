@@ -18,6 +18,8 @@ public class RecebimentoDoacaoRequest {
   private LocalDate proximaCobranca;
   private String status;
   private String observacoes;
+  private Long contaRecebimentoId;
+  private java.util.List<RecebimentoDoacaoItemRequest> itens;
 
   public Long getDoadorId() {
     return doadorId;
@@ -129,5 +131,21 @@ public class RecebimentoDoacaoRequest {
 
   public void setObservacoes(String observacoes) {
     this.observacoes = observacoes;
+  }
+
+  public Long getContaRecebimentoId() {
+    return contaRecebimentoId;
+  }
+
+  public void setContaRecebimentoId(Long contaRecebimentoId) {
+    this.contaRecebimentoId = contaRecebimentoId;
+  }
+
+  public java.util.List<RecebimentoDoacaoItemRequest> getItens() {
+    return itens;
+  }
+
+  public void setItens(java.util.List<RecebimentoDoacaoItemRequest> itens) {
+    this.itens = itens;
   }
 }

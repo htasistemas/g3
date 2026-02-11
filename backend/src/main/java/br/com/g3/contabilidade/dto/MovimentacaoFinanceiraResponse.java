@@ -14,6 +14,7 @@ public class MovimentacaoFinanceiraResponse {
   private String contaBancariaBanco;
   private LocalDate dataMovimentacao;
   private BigDecimal valor;
+  private Long doacaoId;
 
   public Long getId() {
     return id;
@@ -93,5 +94,13 @@ public class MovimentacaoFinanceiraResponse {
 
   public void setValor(BigDecimal valor) {
     this.valor = valor;
+  }
+
+  public Long getDoacaoId() {
+    return doacaoId;
+  }
+
+  public void setDoacaoId(Long doacaoId) {
+    this.doacaoId = doacaoId;
   }
 }

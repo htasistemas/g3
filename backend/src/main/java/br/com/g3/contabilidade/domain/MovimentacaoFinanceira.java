@@ -42,6 +42,9 @@ public class MovimentacaoFinanceira {
   @Column(name = "valor", nullable = false, precision = 12, scale = 2)
   private BigDecimal valor;
 
+  @Column(name = "doacao_id")
+  private Long doacaoId;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -107,6 +110,14 @@ public class MovimentacaoFinanceira {
 
   public void setValor(BigDecimal valor) {
     this.valor = valor;
+  }
+
+  public Long getDoacaoId() {
+    return doacaoId;
+  }
+
+  public void setDoacaoId(Long doacaoId) {
+    this.doacaoId = doacaoId;
   }
 
   public LocalDateTime getCriadoEm() {

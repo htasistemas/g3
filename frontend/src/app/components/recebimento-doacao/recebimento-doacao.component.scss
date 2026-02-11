@@ -281,6 +281,18 @@
   align-items: center;
 }
 
+.alerta-sucesso {
+  background: #ecfdf3;
+  border: 1px solid #86efac;
+  color: #166534;
+  font-weight: 700;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .ghost {
   border: 1px solid #e2e8f0;
   background: #fff;
@@ -364,6 +376,15 @@ tr.is-selected td:first-child {
   border-left: 4px solid #16a34a;
 }
 
+tbody tr {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
+
 .status-chip {
   display: inline-flex;
   align-items: center;
@@ -423,6 +444,65 @@ tr.is-selected td:first-child {
   margin: 0;
   font-weight: 700;
   color: #111827;
+}
+
+:host ::ng-deep .dialog .dialog__content {
+  width: min(520px, 92vw);
+}
+
+:host ::ng-deep .dialog .dialog-conteudo {
+  display: grid;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .dialog .dialog-lista {
+  display: grid;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .dialog .dialog-item {
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  display: grid;
+  gap: 0.2rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+:host ::ng-deep .dialog .dialog-item:hover {
+  border-color: #86efac;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.18);
+  transform: translateY(-1px);
+}
+
+:host ::ng-deep .dialog .dialog-item--ativo {
+  border-color: #16a34a;
+  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.2);
+  background: #ecfdf3;
+}
+
+:host ::ng-deep .dialog .dialog-item__titulo {
+  font-weight: 800;
+  color: #14532d;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+}
+
+:host ::ng-deep .dialog .dialog-item__detalhe {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+:host ::ng-deep .dialog .dialog-vazio {
+  margin: 0;
+  padding: 0.5rem 0;
+  color: #64748b;
+  text-align: center;
+  font-weight: 600;
 }
 
 @media (max-width: 760px) {

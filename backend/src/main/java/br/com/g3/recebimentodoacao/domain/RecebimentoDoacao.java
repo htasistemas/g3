@@ -1,5 +1,6 @@
 package br.com.g3.recebimentodoacao.domain;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,10 +9,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "recebimento_doacao")
@@ -63,14 +67,23 @@ public class RecebimentoDoacao {
   @Column(name = "observacoes")
   private String observacoes;
 
+  @Column(name = "conta_recebimento_id")
+  private Long contaRecebimentoId;
+
   @Column(name = "contabilidade_pendente", nullable = false)
   private boolean contabilidadePendente;
+
+  @Column(name = "lancamentos_gerados", nullable = false)
+  private boolean lancamentosGerados;
 
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
   @Column(name = "atualizado_em", nullable = false)
   private LocalDateTime atualizadoEm;
+
+  @OneToMany(mappedBy = "recebimentoDoacao", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<RecebimentoDoacaoItem> itens = new ArrayList<>();
 
   public Long getId() {
     return id;
@@ -192,12 +205,28 @@ public class RecebimentoDoacao {
     this.observacoes = observacoes;
   }
 
+  public Long getContaRecebimentoId() {
+    return contaRecebimentoId;
+  }
+
+  public void setContaRecebimentoId(Long contaRecebimentoId) {
+    this.contaRecebimentoId = contaRecebimentoId;
+  }
+
   public boolean isContabilidadePendente() {
     return contabilidadePendente;
   }
 
   public void setContabilidadePendente(boolean contabilidadePendente) {
     this.contabilidadePendente = contabilidadePendente;
+  }
+
+  public boolean isLancamentosGerados() {
+    return lancamentosGerados;
+  }
+
+  public void setLancamentosGerados(boolean lancamentosGerados) {
+    this.lancamentosGerados = lancamentosGerados;
   }
 
   public LocalDateTime getCriadoEm() {
@@ -214,5 +243,13 @@ public class RecebimentoDoacao {
 
   public void setAtualizadoEm(LocalDateTime atualizadoEm) {
     this.atualizadoEm = atualizadoEm;
+  }
+
+  public List<RecebimentoDoacaoItem> getItens() {
+    return itens;
+  }
+
+  public void setItens(List<RecebimentoDoacaoItem> itens) {
+    this.itens = itens;
   }
 }

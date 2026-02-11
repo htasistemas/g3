@@ -990,6 +990,7 @@ CREATE TABLE IF NOT EXISTS almoxarifado_item (
     responsavel VARCHAR(150),
     observacoes TEXT,
     direcao_ajuste VARCHAR(20),
+    doacao_id BIGINT,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW()
   );
 
@@ -1119,13 +1120,29 @@ INSERT INTO permissao (nome)
 VALUES
   ('ADMINISTRADOR'),
   ('OPERADOR'),
-  ('LEITURA_APENAS')
+  ('LEITURA_APENAS'),
+  ('RH_ADMIN'),
+  ('RH_FUNCIONARIO')
 ON CONFLICT (nome) DO NOTHING;
 
 INSERT INTO usuario_permissao (usuario_id, permissao_id)
 SELECT u.id, p.id
 FROM usuarios u
 JOIN permissao p ON p.nome = 'ADMINISTRADOR'
+WHERE u.nome_usuario = 'admin'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO usuario_permissao (usuario_id, permissao_id)
+SELECT u.id, p.id
+FROM usuarios u
+JOIN permissao p ON p.nome = 'RH_ADMIN'
+WHERE u.nome_usuario = 'admin'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO usuario_permissao (usuario_id, permissao_id)
+SELECT u.id, p.id
+FROM usuarios u
+JOIN permissao p ON p.nome = 'RH_FUNCIONARIO'
 WHERE u.nome_usuario = 'admin'
 ON CONFLICT DO NOTHING;
 
@@ -1412,6 +1429,9 @@ ALTER TABLE almoxarifado_movimentacao
 
 ALTER TABLE almoxarifado_movimentacao
   ADD COLUMN IF NOT EXISTS direcao_ajuste VARCHAR(20);
+
+ALTER TABLE almoxarifado_movimentacao
+  ADD COLUMN IF NOT EXISTS doacao_id BIGINT;
 
 ALTER TABLE almoxarifado_movimentacao
   ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP NOT NULL DEFAULT NOW();
@@ -1810,7 +1830,9 @@ CREATE TABLE IF NOT EXISTS recebimento_doacao (
   proxima_cobranca DATE,
   status VARCHAR(40) NOT NULL,
   observacoes TEXT,
+  conta_recebimento_id BIGINT,
   contabilidade_pendente BOOLEAN NOT NULL DEFAULT FALSE,
+  lancamentos_gerados BOOLEAN NOT NULL DEFAULT FALSE,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -1824,6 +1846,27 @@ ALTER TABLE recebimento_doacao
 ALTER TABLE recebimento_doacao
   ADD COLUMN IF NOT EXISTS valor_total NUMERIC(12, 2);
 
+ALTER TABLE recebimento_doacao
+  ADD COLUMN IF NOT EXISTS lancamentos_gerados BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE recebimento_doacao
+  ADD COLUMN IF NOT EXISTS conta_recebimento_id BIGINT;
+
+CREATE TABLE IF NOT EXISTS recebimento_doacao_item (
+  id BIGSERIAL PRIMARY KEY,
+  recebimento_doacao_id BIGINT NOT NULL REFERENCES recebimento_doacao(id) ON DELETE CASCADE,
+  descricao VARCHAR(200) NOT NULL,
+  quantidade INTEGER NOT NULL,
+  unidade VARCHAR(20),
+  valor_unitario NUMERIC(12, 2),
+  valor_total NUMERIC(12, 2),
+  marca VARCHAR(120),
+  modelo VARCHAR(120),
+  conservacao VARCHAR(80),
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS conta_bancaria (
   id BIGSERIAL PRIMARY KEY,
   banco VARCHAR(120) NOT NULL,
@@ -1832,6 +1875,7 @@ CREATE TABLE IF NOT EXISTS conta_bancaria (
   tipo VARCHAR(30) NOT NULL,
   projeto_vinculado VARCHAR(200),
   pix_vinculado BOOLEAN NOT NULL DEFAULT FALSE,
+  recebimento_local BOOLEAN NOT NULL DEFAULT FALSE,
   tipo_chave_pix VARCHAR(20),
   chave_pix VARCHAR(200),
   saldo NUMERIC(12, 2) NOT NULL DEFAULT 0,
@@ -1843,6 +1887,7 @@ CREATE TABLE IF NOT EXISTS conta_bancaria (
 ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS agencia VARCHAR(20);
 ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS projeto_vinculado VARCHAR(200);
 ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS pix_vinculado BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS recebimento_local BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS tipo_chave_pix VARCHAR(20);
 ALTER TABLE conta_bancaria ADD COLUMN IF NOT EXISTS chave_pix VARCHAR(200);
 
@@ -1888,9 +1933,13 @@ CREATE TABLE IF NOT EXISTS patrimonio_item (
   sala VARCHAR(120),
   taxa_depreciacao NUMERIC(5, 2),
   observacoes TEXT,
+  doacao_id BIGINT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE patrimonio_item
+  ADD COLUMN IF NOT EXISTS doacao_id BIGINT;
 
 CREATE TABLE IF NOT EXISTS patrimonio_movimentacao (
   id BIGSERIAL PRIMARY KEY,
@@ -1919,8 +1968,12 @@ CREATE TABLE IF NOT EXISTS movimentacao_financeira (
   conta_bancaria_id BIGINT REFERENCES conta_bancaria(id) ON DELETE SET NULL,
   data_movimentacao DATE NOT NULL,
   valor NUMERIC(12, 2) NOT NULL,
+  doacao_id BIGINT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE movimentacao_financeira
+  ADD COLUMN IF NOT EXISTS doacao_id BIGINT;
 
 CREATE TABLE IF NOT EXISTS emenda_impositiva (
   id BIGSERIAL PRIMARY KEY,
@@ -3432,6 +3485,121 @@ WHERE NOT EXISTS (
   WHERE versao = '1.00.31'
 );
 
+UPDATE versao_sistema
+SET versao = '1.00.59',
+  descricao = 'Automacao de lancamentos por tipo de doacao com rastreabilidade e integracao aos modulos.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.59';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.59', 'Automacao de lancamentos por tipo de doacao com rastreabilidade e integracao aos modulos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.59'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.58',
+  descricao = 'Inclusao do checkbox de recebimento local nas contas bancarias.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.58';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.58', 'Inclusao do checkbox de recebimento local nas contas bancarias.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.58'
+);
 
 
 
+
+
+CREATE TABLE IF NOT EXISTS rh_local_ponto (
+  id BIGSERIAL PRIMARY KEY,
+  nome VARCHAR(150) NOT NULL,
+  endereco TEXT,
+  latitude NUMERIC(10, 7) NOT NULL,
+  longitude NUMERIC(10, 7) NOT NULL,
+  raio_metros INTEGER NOT NULL,
+  accuracy_max_metros INTEGER NOT NULL DEFAULT 80,
+  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rh_configuracao_ponto (
+  id BIGSERIAL PRIMARY KEY,
+  carga_semanal_minutos INTEGER NOT NULL DEFAULT 2400,
+  carga_seg_qui_minutos INTEGER NOT NULL DEFAULT 540,
+  carga_sexta_minutos INTEGER NOT NULL DEFAULT 240,
+  carga_sabado_minutos INTEGER NOT NULL DEFAULT 0,
+  carga_domingo_minutos INTEGER NOT NULL DEFAULT 0,
+  tolerancia_minutos INTEGER NOT NULL DEFAULT 10,
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO rh_configuracao_ponto (id)
+SELECT 1
+WHERE NOT EXISTS (SELECT 1 FROM rh_configuracao_ponto WHERE id = 1);
+
+CREATE TABLE IF NOT EXISTS rh_ponto_dia (
+  id BIGSERIAL PRIMARY KEY,
+  funcionario_id BIGINT NOT NULL,
+  data DATE NOT NULL,
+  ocorrencia VARCHAR(30) NOT NULL DEFAULT 'NORMAL',
+  observacoes TEXT,
+  carga_prevista_minutos INTEGER NOT NULL DEFAULT 0,
+  tolerancia_minutos INTEGER NOT NULL DEFAULT 0,
+  total_trabalhado_minutos INTEGER NOT NULL DEFAULT 0,
+  extras_minutos INTEGER NOT NULL DEFAULT 0,
+  faltas_atrasos_minutos INTEGER NOT NULL DEFAULT 0,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (funcionario_id, data)
+);
+
+CREATE TABLE IF NOT EXISTS rh_ponto_marcacao (
+  id BIGSERIAL PRIMARY KEY,
+  ponto_dia_id BIGINT NOT NULL,
+  tipo VARCHAR(2) NOT NULL,
+  data_hora_servidor TIMESTAMP NOT NULL,
+  latitude NUMERIC(10, 7) NOT NULL,
+  longitude NUMERIC(10, 7) NOT NULL,
+  accuracy NUMERIC(10, 2) NOT NULL,
+  distancia_metros NUMERIC(10, 2) NOT NULL,
+  dentro_perimetro BOOLEAN NOT NULL,
+  ip VARCHAR(60),
+  user_agent VARCHAR(255),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (ponto_dia_id) REFERENCES rh_ponto_dia(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS rh_ponto_auditoria (
+  id BIGSERIAL PRIMARY KEY,
+  funcionario_id BIGINT,
+  acao VARCHAR(120) NOT NULL,
+  detalhes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.60',
+  descricao = 'Implantacao da folha de ponto com geolocalizacao e relatorio.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.60';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.60', 'Implantacao da folha de ponto com geolocalizacao e relatorio.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.60'
+);
+ALTER TABLE rh_ponto_dia
+  DROP CONSTRAINT IF EXISTS fk_rh_ponto_dia_usuario;
+ALTER TABLE rh_ponto_dia
+  ADD CONSTRAINT fk_rh_ponto_dia_usuario FOREIGN KEY (funcionario_id) REFERENCES usuarios(id);
+ALTER TABLE rh_ponto_auditoria
+  DROP CONSTRAINT IF EXISTS fk_rh_ponto_auditoria_usuario;
+ALTER TABLE rh_ponto_auditoria
+  ADD CONSTRAINT fk_rh_ponto_auditoria_usuario FOREIGN KEY (funcionario_id) REFERENCES usuarios(id);

@@ -11,7 +11,7 @@
   (buscar)="onBuscar()"
 >
 <section class="cadastro">
-  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
+  <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
 
   <div class="cadastro-layout">
     <aside class="cadastro-menu">
@@ -123,9 +123,6 @@
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Listagem de doadores</p>
       </div>
-      <div class="tab-card__header-actions">
-        <button type="button" class="btn-outline" (click)="carregarDoadores()">Atualizar</button>
-      </div>
     </div>
 
     <div class="table-wrapper" *ngIf="doadores.length; else emptyDoadores">
@@ -140,13 +137,16 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let doador of doadores" [class.is-selected]="doador.id === doadorSelecionadoId">
+          <tr
+            *ngFor="let doador of doadores"
+            [class.is-selected]="doador.id === doadorSelecionadoId"
+            (click)="selecionarDoador(doador)"
+          >
             <td class="strong">{{ doador.nome }}</td>
             <td>{{ doador.documento || '---' }}</td>
             <td>{{ doador.email || '---' }}</td>
             <td>{{ doador.telefone || '---' }}</td>
             <td class="text-right">
-              <button type="button" class="ghost" (click)="selecionarDoador(doador)">Selecionar</button>
               <button type="button" class="ghost ghost--danger" (click)="abrirDialogoExcluirDoador(doador)">Excluir</button>
             </td>
           </tr>
@@ -175,11 +175,45 @@
     (cancelar)="cancelarExcluirDoador()"
   ></app-dialog>
 
+  <app-dialog
+    [aberto]="dialogContaRecebimentoAberto"
+    titulo="Selecionar conta de recebimento"
+    mensagem="Existe mais de uma conta marcada como recebimento local. Selecione a conta para registrar a doação."
+    confirmarLabel="Confirmar"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarContaRecebimento()"
+    (cancelar)="cancelarContaRecebimento()"
+  >
+    <div class="dialog-conteudo">
+      <div class="dialog-lista" *ngIf="contasRecebimentoLocal.length; else dialogSemContas">
+        <button
+          type="button"
+          class="dialog-item"
+          *ngFor="let conta of contasRecebimentoLocal"
+          [class.dialog-item--ativo]="contaRecebimentoSelecionadaId === conta.id"
+          (click)="selecionarContaRecebimento(conta.id)"
+        >
+          <span class="dialog-item__titulo">{{ conta.banco || 'Conta sem banco' }}</span>
+          <span class="dialog-item__detalhe">
+            Agência {{ conta.agencia || '---' }} • Conta {{ conta.numero || '---' }} • {{ conta.tipo || '---' }}
+          </span>
+        </button>
+      </div>
+      <ng-template #dialogSemContas>
+        <p class="dialog-vazio">Nenhuma conta de recebimento local cadastrada.</p>
+      </ng-template>
+    </div>
+  </app-dialog>
+
   <div class="tab-card" *ngIf="activeTab === 'dados'" [formGroup]="recebimentoForm">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
         <p class="tab-card__highlight">Dados da doação</p>
       </div>
+    </div>
+
+    <div class="alerta-sucesso" *ngIf="mensagemSucessoDoacao">
+      {{ mensagemSucessoDoacao }}
     </div>
 
     <div class="field-grid cols-3 doacao-grid">

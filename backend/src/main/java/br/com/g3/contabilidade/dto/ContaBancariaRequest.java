@@ -10,6 +10,7 @@ public class ContaBancariaRequest {
   private String tipo;
   private String projetoVinculado;
   private Boolean pixVinculado;
+  private Boolean recebimentoLocal;
   private String tipoChavePix;
   private String chavePix;
   private BigDecimal saldo;
@@ -61,6 +62,14 @@ public class ContaBancariaRequest {
 
   public void setPixVinculado(Boolean pixVinculado) {
     this.pixVinculado = pixVinculado;
+  }
+
+  public Boolean getRecebimentoLocal() {
+    return recebimentoLocal;
+  }
+
+  public void setRecebimentoLocal(Boolean recebimentoLocal) {
+    this.recebimentoLocal = recebimentoLocal;
   }
 
   public String getTipoChavePix() {

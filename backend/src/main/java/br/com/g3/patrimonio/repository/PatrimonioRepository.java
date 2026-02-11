@@ -10,4 +10,6 @@ public interface PatrimonioRepository {
   List<PatrimonioItem> listar();
 
   Optional<PatrimonioItem> buscarPorId(Long id);
+
+  boolean existePorDoacaoId(Long doacaoId);
 }

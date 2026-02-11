@@ -66,6 +66,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     conta.setTipo(request.getTipo());
     conta.setProjetoVinculado(request.getProjetoVinculado());
     conta.setPixVinculado(Boolean.TRUE.equals(request.getPixVinculado()));
+    conta.setRecebimentoLocal(Boolean.TRUE.equals(request.getRecebimentoLocal()));
     conta.setTipoChavePix(Boolean.TRUE.equals(request.getPixVinculado()) ? request.getTipoChavePix() : null);
     conta.setChavePix(Boolean.TRUE.equals(request.getPixVinculado()) ? request.getChavePix() : null);
     conta.setSaldo(normalizarValor(request.getSaldo()));
@@ -85,15 +86,16 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
   @Override
   @Transactional
   public ContaBancariaResponse atualizarContaBancaria(Long id, ContaBancariaRequest request) {
-    validarChavePix(request);
     ContaBancaria conta =
         contaRepository.buscarPorId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    validarChavePixAtualizacao(request, conta);
     conta.setBanco(request.getBanco());
     conta.setAgencia(request.getAgencia());
     conta.setNumero(request.getNumero());
     conta.setTipo(request.getTipo());
     conta.setProjetoVinculado(request.getProjetoVinculado());
     conta.setPixVinculado(Boolean.TRUE.equals(request.getPixVinculado()));
+    conta.setRecebimentoLocal(Boolean.TRUE.equals(request.getRecebimentoLocal()));
     conta.setTipoChavePix(Boolean.TRUE.equals(request.getPixVinculado()) ? request.getTipoChavePix() : null);
     conta.setChavePix(Boolean.TRUE.equals(request.getPixVinculado()) ? request.getChavePix() : null);
     conta.setSaldo(normalizarValor(request.getSaldo()));
@@ -236,6 +238,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     movimentacao.setCategoria(request.getCategoria());
     movimentacao.setDataMovimentacao(request.getDataMovimentacao());
     movimentacao.setValor(normalizarValor(request.getValor()));
+    movimentacao.setDoacaoId(request.getDoacaoId());
     movimentacao.setCriadoEm(LocalDateTime.now());
 
     ContaBancaria conta = null;
@@ -278,6 +281,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     movimentacao.setCategoria(request.getCategoria());
     movimentacao.setDataMovimentacao(request.getDataMovimentacao());
     movimentacao.setValor(normalizarValor(request.getValor()));
+    movimentacao.setDoacaoId(request.getDoacaoId());
     movimentacao.setContaBancaria(contaNova);
 
     if (contaNova != null) {
@@ -354,6 +358,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     response.setTipo(conta.getTipo());
     response.setProjetoVinculado(conta.getProjetoVinculado());
     response.setPixVinculado(conta.getPixVinculado());
+    response.setRecebimentoLocal(conta.getRecebimentoLocal());
     response.setTipoChavePix(conta.getTipoChavePix());
     response.setChavePix(conta.getChavePix());
     response.setSaldo(conta.getSaldo());
@@ -387,6 +392,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     response.setCategoria(movimentacao.getCategoria());
     response.setDataMovimentacao(movimentacao.getDataMovimentacao());
     response.setValor(movimentacao.getValor());
+    response.setDoacaoId(movimentacao.getDoacaoId());
     if (conta != null) {
       response.setContaBancariaId(conta.getId());
       response.setContaBancariaNumero(conta.getNumero());
@@ -473,6 +479,27 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     if ("aleatoria".equalsIgnoreCase(tipo) && !validarChaveAleatoria(chaveLimpa)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chave aleatoria invalida.");
     }
+  }
+
+  private void validarChavePixAtualizacao(ContaBancariaRequest request, ContaBancaria contaAtual) {
+    if (!Boolean.TRUE.equals(request.getPixVinculado())) {
+      return;
+    }
+    String tipoAtual = normalizarTexto(contaAtual.getTipoChavePix());
+    String chaveAtual = normalizarTexto(contaAtual.getChavePix());
+    String tipoNovo = normalizarTexto(request.getTipoChavePix());
+    String chaveNova = normalizarTexto(request.getChavePix());
+
+    boolean mesmoTipo = tipoNovo.equalsIgnoreCase(tipoAtual);
+    boolean mesmaChave = chaveNova.equalsIgnoreCase(chaveAtual);
+    if (mesmoTipo && mesmaChave) {
+      return;
+    }
+    validarChavePix(request);
+  }
+
+  private String normalizarTexto(String valor) {
+    return valor == null ? "" : valor.trim();
   }
 
   private boolean validarCnpj(String valor) {

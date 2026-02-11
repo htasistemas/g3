@@ -2,10 +2,14 @@ package br.com.g3.recebimentodoacao.mapper;
 
 import br.com.g3.recebimentodoacao.domain.Doador;
 import br.com.g3.recebimentodoacao.domain.RecebimentoDoacao;
+import br.com.g3.recebimentodoacao.domain.RecebimentoDoacaoItem;
 import br.com.g3.recebimentodoacao.dto.DoadorRequest;
 import br.com.g3.recebimentodoacao.dto.DoadorResponse;
 import br.com.g3.recebimentodoacao.dto.RecebimentoDoacaoRequest;
 import br.com.g3.recebimentodoacao.dto.RecebimentoDoacaoResponse;
+import br.com.g3.recebimentodoacao.dto.RecebimentoDoacaoItemResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecebimentoDoacaoMapper {
   public Doador toDoador(DoadorRequest request) {
@@ -61,6 +65,7 @@ public class RecebimentoDoacaoMapper {
     recebimento.setProximaCobranca(request.getProximaCobranca());
     recebimento.setStatus(request.getStatus());
     recebimento.setObservacoes(request.getObservacoes());
+    recebimento.setContaRecebimentoId(request.getContaRecebimentoId());
   }
 
   public RecebimentoDoacaoResponse toRecebimentoResponse(RecebimentoDoacao recebimento) {
@@ -84,6 +89,31 @@ public class RecebimentoDoacaoMapper {
     response.setStatus(recebimento.getStatus());
     response.setObservacoes(recebimento.getObservacoes());
     response.setContabilidadePendente(recebimento.isContabilidadePendente());
+    response.setLancamentosGerados(recebimento.isLancamentosGerados());
+    response.setContaRecebimentoId(recebimento.getContaRecebimentoId());
+    response.setItens(mapItens(recebimento.getItens()));
     return response;
+  }
+
+  private List<RecebimentoDoacaoItemResponse> mapItens(List<RecebimentoDoacaoItem> itens) {
+    if (itens == null || itens.isEmpty()) {
+      return new ArrayList<>();
+    }
+    List<RecebimentoDoacaoItemResponse> resposta = new ArrayList<>();
+    for (RecebimentoDoacaoItem item : itens) {
+      RecebimentoDoacaoItemResponse response = new RecebimentoDoacaoItemResponse();
+      response.setId(item.getId());
+      response.setDescricao(item.getDescricao());
+      response.setQuantidade(item.getQuantidade());
+      response.setUnidade(item.getUnidade());
+      response.setValorUnitario(item.getValorUnitario());
+      response.setValorTotal(item.getValorTotal());
+      response.setMarca(item.getMarca());
+      response.setModelo(item.getModelo());
+      response.setConservacao(item.getConservacao());
+      response.setObservacoes(item.getObservacoes());
+      resposta.add(response);
+    }
+    return resposta;
   }
 }

@@ -11,6 +11,7 @@ import {
   faCarSide,
   faChartColumn,
   faChartPie,
+  faClock,
   faClipboardCheck,
   faClipboardList,
   faClipboardUser,
@@ -39,6 +40,7 @@ import {
   faTags,
   faTriangleExclamation,
   faUserDoctor,
+  faUserClock,
   faUsers,
   faWallet,
   faWrench,
@@ -165,6 +167,13 @@ export const menuSections: MenuItem[] = [
     children: [
       { label: 'Plano de Trabalho', icon: faClipboardCheck, route: '/juridico/planos-trabalho' },
       { label: 'Termo de Fomento', icon: faFileContract, route: '/juridico/termos-fomento' },
+    ],
+  },
+  {
+    label: 'Setor RH',
+    icon: faUserClock,
+    children: [
+      { label: 'Folha de ponto', icon: faClock, route: '/rh/folha-ponto' },
     ],
   },
   {

@@ -35,6 +35,9 @@ public class ContaBancaria {
   @Column(name = "pix_vinculado", nullable = false)
   private Boolean pixVinculado = false;
 
+  @Column(name = "recebimento_local", nullable = false)
+  private Boolean recebimentoLocal = false;
+
   @Column(name = "tipo_chave_pix", length = 20)
   private String tipoChavePix;
 
@@ -107,6 +110,14 @@ public class ContaBancaria {
 
   public void setPixVinculado(Boolean pixVinculado) {
     this.pixVinculado = pixVinculado;
+  }
+
+  public Boolean getRecebimentoLocal() {
+    return recebimentoLocal;
+  }
+
+  public void setRecebimentoLocal(Boolean recebimentoLocal) {
+    this.recebimentoLocal = recebimentoLocal;
   }
 
   public String getTipoChavePix() {

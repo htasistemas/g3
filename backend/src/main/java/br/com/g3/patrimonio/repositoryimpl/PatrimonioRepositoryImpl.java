@@ -28,4 +28,9 @@ public class PatrimonioRepositoryImpl implements PatrimonioRepository {
   public Optional<PatrimonioItem> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }
+
+  @Override
+  public boolean existePorDoacaoId(Long doacaoId) {
+    return doacaoId != null && jpaRepository.existsByDoacaoId(doacaoId);
+  }
 }

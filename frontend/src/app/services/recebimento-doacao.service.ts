@@ -40,12 +40,32 @@ export interface RecebimentoDoacaoRequest {
   proximaCobranca?: string;
   status: string;
   observacoes?: string;
+  contaRecebimentoId?: number;
+  itens?: RecebimentoDoacaoItemRequest[];
+}
+
+export interface RecebimentoDoacaoItemRequest {
+  descricao?: string;
+  quantidade?: number;
+  unidade?: string;
+  valorUnitario?: number;
+  valorTotal?: number;
+  marca?: string;
+  modelo?: string;
+  conservacao?: string;
+  observacoes?: string;
+}
+
+export interface RecebimentoDoacaoItemResponse extends RecebimentoDoacaoItemRequest {
+  id: number;
 }
 
 export interface RecebimentoDoacaoResponse extends RecebimentoDoacaoRequest {
   id: number;
   doadorNome?: string;
   contabilidadePendente: boolean;
+  lancamentosGerados?: boolean;
+  itens?: RecebimentoDoacaoItemResponse[];
 }
 
 @Injectable({ providedIn: 'root' })

@@ -11,5 +11,9 @@ public interface ContaBancariaRepository {
 
   Optional<ContaBancaria> buscarPorId(Long id);
 
+  Optional<ContaBancaria> buscarRecebimentoLocal();
+
+  List<ContaBancaria> listarRecebimentoLocal();
+
   void remover(Long id);
 }

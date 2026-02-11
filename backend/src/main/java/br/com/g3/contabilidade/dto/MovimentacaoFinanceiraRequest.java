@@ -11,6 +11,7 @@ public class MovimentacaoFinanceiraRequest {
   private Long contaBancariaId;
   private LocalDate dataMovimentacao;
   private BigDecimal valor;
+  private Long doacaoId;
 
   public String getTipo() {
     return tipo;
@@ -66,5 +67,13 @@ public class MovimentacaoFinanceiraRequest {
 
   public void setValor(BigDecimal valor) {
     this.valor = valor;
+  }
+
+  public Long getDoacaoId() {
+    return doacaoId;
+  }
+
+  public void setDoacaoId(Long doacaoId) {
+    this.doacaoId = doacaoId;
   }
 }

@@ -30,6 +30,11 @@ public class MovimentacaoFinanceiraRepositoryImpl implements MovimentacaoFinance
   }
 
   @Override
+  public boolean existePorDoacaoId(Long doacaoId) {
+    return doacaoId != null && jpaRepository.existsByDoacaoId(doacaoId);
+  }
+
+  @Override
   public void remover(Long id) {
     jpaRepository.deleteById(id);
   }

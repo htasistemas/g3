@@ -82,6 +82,11 @@ public class AlmoxarifadoRepositoryImpl implements AlmoxarifadoRepository {
   }
 
   @Override
+  public boolean existeMovimentacaoPorDoacaoId(Long doacaoId) {
+    return doacaoId != null && movimentacaoRepository.existsByDoacaoId(doacaoId);
+  }
+
+  @Override
   public int obterProximoCodigo() {
     String sql =
         "SELECT COALESCE(MAX(CAST(codigo AS INTEGER)), 0) FROM almoxarifado_item " +

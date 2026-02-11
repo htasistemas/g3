@@ -524,7 +524,7 @@
         <span class="pill">Saldo real</span>
       </header>
 
-      <form class="form-grid" (ngSubmit)="addBankAccount()">
+      <form class="form-grid" id="formContaBancaria" (ngSubmit)="addBankAccount()">
         <label class="form-field">
           <span>Banco *</span>
           <input
@@ -581,15 +581,6 @@
             required
           />
         </label>
-        <label class="checkbox-field full">
-          <input
-            type="checkbox"
-            name="pixVinculado"
-            [ngModel]="newAccount.pixVinculado"
-            (ngModelChange)="onPixVinculadoChange($event)"
-          />
-          <span>Possui Pix vinculado</span>
-        </label>
         <label class="form-field" *ngIf="newAccount.pixVinculado">
           <span>Tipo de chave Pix</span>
           <select class="select" name="tipoChavePix" [ngModel]="newAccount.tipoChavePix" (ngModelChange)="onTipoChavePixChange($event)">
@@ -607,6 +598,9 @@
             (ngModelChange)="onChavePixInput($event)"
           />
           <p class="field-error" *ngIf="erroChavePix">{{ erroChavePix }}</p>
+          <p class="field-warning" *ngIf="erroChavePix && contaEmEdicaoId && !isPixAlterado()">
+            Pix invalido cadastrado. Atualize a chave para corrigir.
+          </p>
         </label>
         <label class="form-field">
           <span>Saldo informado</span>
@@ -621,24 +615,48 @@
             required
           />
         </label>
-        <label class="form-field">
-          <span>ultima atualização</span>
-          <input
-            type="date"
-            class="input"
-            name="lastUpdate"
-            [(ngModel)]="newAccount.dataAtualizacao"
-            autocomplete="on"
-            required
-          />
-        </label>
-        <div class="form-actions">
-          <button class="primary" type="submit">{{ contaEmEdicaoId ? 'Atualizar conta' : 'Salvar conta' }}</button>
-          <button *ngIf="contaEmEdicaoId" class="ghost" type="button" (click)="cancelarEdicaoContaBancaria()">
-            Cancelar
-          </button>
+        <div class="form-row-inline">
+          <label class="form-field">
+            <span>ultima atualização</span>
+            <input
+              type="date"
+              class="input"
+              name="lastUpdate"
+              [(ngModel)]="newAccount.dataAtualizacao"
+              autocomplete="on"
+              required
+            />
+          </label>
+          <div class="checkbox-inline-group">
+            <label class="checkbox-field full">
+              <input type="checkbox" name="recebimentoLocal" [(ngModel)]="newAccount.recebimentoLocal" />
+              <span>Recebimento local</span>
+            </label>
+            <label class="checkbox-field full">
+              <input
+                type="checkbox"
+                name="pixVinculado"
+                [ngModel]="newAccount.pixVinculado"
+                (ngModelChange)="onPixVinculadoChange($event)"
+              />
+              <span>Possui Pix vinculado</span>
+            </label>
+          </div>
         </div>
       </form>
+      <div class="form-actions form-actions--card-end">
+        <button class="primary" type="submit" form="formContaBancaria">
+          {{ contaEmEdicaoId ? 'Atualizar conta' : 'Salvar conta' }}
+        </button>
+        <button
+          *ngIf="contaEmEdicaoId"
+          class="ghost"
+          type="button"
+          (click)="cancelarEdicaoContaBancaria()"
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
 
     <div class="filter-bar">
@@ -699,8 +717,12 @@
         </div>
         <p class="bank-card__balance">{{ account.saldo | currency:'BRL' }}</p>
         <p class="bank-card__updated">Atualizado em {{ formatDate(account.dataAtualizacao) }}</p>
+        <p class="bank-card__local-center" *ngIf="account.recebimentoLocal">Recebimento local</p>
         <div class="bank-card__actions">
           <button class="ghost" type="button" (click)="editarContaBancaria(account)">Editar</button>
+          <button class="ghost" type="button" *ngIf="isChavePixInvalida(account)" (click)="corrigirPix(account)">
+            Corrigir Pix
+          </button>
           <button class="ghost" type="button" (click)="removerContaBancaria(account)">Excluir</button>
         </div>
       </article>

@@ -241,6 +241,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   valorMovimentacaoMascara = 'R$ 0,00';
 
   contaEmEdicaoId: number | null = null;
+  pixOriginal = {
+    pixVinculado: false,
+    tipoChavePix: '',
+    chavePix: ''
+  };
   saldoContaMascara = '';
 
   newAmendment: EmendaImpositivaRequest = {
@@ -533,6 +538,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     tipo: 'corrente',
     projetoVinculado: '',
     pixVinculado: false,
+    recebimentoLocal: false,
     tipoChavePix: '',
     chavePix: '',
     saldo: 0,
@@ -691,12 +697,18 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return;
     }
     this.erroChavePix = this.validarChavePix();
-    if (this.erroChavePix) {
+    const podeIgnorarPixInvalido = this.contaEmEdicaoId && !this.isPixAlterado();
+    if (this.erroChavePix && !podeIgnorarPixInvalido) {
       this.popupErros = new PopupErrorBuilder().adicionar(this.erroChavePix).build();
       this.abrirPopupTemporario();
       return;
     }
-    const payload = { ...this.newAccount };
+    const payload = {
+      ...this.newAccount,
+      recebimentoLocal: Boolean(this.newAccount.recebimentoLocal),
+      tipoChavePix: (this.newAccount.tipoChavePix || '').trim(),
+      chavePix: (this.newAccount.chavePix || '').trim()
+    };
     const request$ = this.contaEmEdicaoId
       ? this.contabilidadeService.atualizarContaBancaria(this.contaEmEdicaoId, payload)
       : this.contabilidadeService.criarContaBancaria(payload);
@@ -729,6 +741,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   editarContaBancaria(conta: ContaBancariaResponse): void {
     this.contaEmEdicaoId = conta.id;
+    this.pixOriginal = {
+      pixVinculado: Boolean(conta.pixVinculado),
+      tipoChavePix: (conta.tipoChavePix || '').trim(),
+      chavePix: (conta.chavePix || '').trim()
+    };
     this.newAccount = {
       banco: conta.banco,
       agencia: conta.agencia || '',
@@ -736,12 +753,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       tipo: conta.tipo,
       projetoVinculado: conta.projetoVinculado || '',
       pixVinculado: Boolean(conta.pixVinculado),
+      recebimentoLocal: Boolean(conta.recebimentoLocal),
       tipoChavePix: conta.tipoChavePix || '',
       chavePix: conta.chavePix || '',
       saldo: Number(conta.saldo || 0),
       dataAtualizacao: this.formatarDataInput(conta.dataAtualizacao)
     };
     this.saldoContaMascara = this.formatarValorMonetario(Number(conta.saldo || 0));
+    this.erroChavePix = this.validarChavePix();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1032,6 +1051,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   private resetContaBancariaForm(): void {
     this.contaEmEdicaoId = null;
+    this.pixOriginal = {
+      pixVinculado: false,
+      tipoChavePix: '',
+      chavePix: ''
+    };
     this.newAccount = {
       banco: '',
       agencia: '',
@@ -1039,12 +1063,55 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       tipo: 'corrente',
       projetoVinculado: '',
       pixVinculado: false,
+      recebimentoLocal: false,
       tipoChavePix: '',
       chavePix: '',
       saldo: 0,
       dataAtualizacao: this.todayISO()
     };
     this.saldoContaMascara = this.formatarValorMonetario(0);
+  }
+
+  corrigirPix(conta: ContaBancariaResponse): void {
+    this.editarContaBancaria(conta);
+    if (this.newAccount.pixVinculado) {
+      this.erroChavePix = this.validarChavePix();
+    }
+  }
+
+  isChavePixInvalida(conta: ContaBancariaResponse): boolean {
+    if (!conta.pixVinculado) {
+      return false;
+    }
+    const tipo = (conta.tipoChavePix || '').trim().toLowerCase();
+    const chave = (conta.chavePix || '').trim();
+    if (!tipo || !chave) {
+      return true;
+    }
+    if (tipo === 'cnpj') {
+      return !this.validarCnpj(chave);
+    }
+    if (tipo === 'email') {
+      return !this.validarEmail(chave);
+    }
+    if (tipo === 'telefone') {
+      return !this.validarTelefone(chave);
+    }
+    if (tipo === 'aleatoria') {
+      return !this.validarChaveAleatoria(chave);
+    }
+    return false;
+  }
+
+  isPixAlterado(): boolean {
+    const pixVinculado = Boolean(this.newAccount.pixVinculado);
+    const tipo = (this.newAccount.tipoChavePix || '').trim();
+    const chave = (this.newAccount.chavePix || '').trim();
+    return (
+      pixVinculado !== this.pixOriginal.pixVinculado ||
+      tipo !== this.pixOriginal.tipoChavePix ||
+      chave !== this.pixOriginal.chavePix
+    );
   }
 
   onPixVinculadoChange(valor: boolean): void {

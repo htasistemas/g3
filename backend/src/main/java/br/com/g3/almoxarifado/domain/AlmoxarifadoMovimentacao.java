@@ -47,6 +47,9 @@ public class AlmoxarifadoMovimentacao {
   @Column(name = "direcao_ajuste", length = 20)
   private String direcaoAjuste;
 
+  @Column(name = "doacao_id")
+  private Long doacaoId;
+
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -128,6 +131,14 @@ public class AlmoxarifadoMovimentacao {
 
   public void setDirecaoAjuste(String direcaoAjuste) {
     this.direcaoAjuste = direcaoAjuste;
+  }
+
+  public Long getDoacaoId() {
+    return doacaoId;
+  }
+
+  public void setDoacaoId(Long doacaoId) {
+    this.doacaoId = doacaoId;
   }
 
   public LocalDateTime getCriadoEm() {

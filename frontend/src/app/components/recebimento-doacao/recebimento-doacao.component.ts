@@ -13,6 +13,7 @@ import {
   RecebimentoDoacaoResponse,
   RecebimentoDoacaoService
 } from '../../services/recebimento-doacao.service';
+import { ContabilidadeService, ContaBancariaResponse } from '../../services/contabilidade.service';
 
 interface TabItem {
   id: 'doador' | 'doadores' | 'dados' | 'recorrencia' | 'gestao' | 'lista';
@@ -73,6 +74,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
   };
 
   popupErros: string[] = [];
+  popupTitulo = 'Campos obrigatorios';
+  mensagemSucessoDoacao = '';
 
   doadorForm: FormGroup;
   recebimentoForm: FormGroup;
@@ -91,6 +94,9 @@ export class RecebimentoDoacaoComponent implements OnInit {
   recebimentoEditandoId: number | null = null;
   dialogExcluirDoadorAberto = false;
   doadorParaExcluir: DoadorResponse | null = null;
+  dialogContaRecebimentoAberto = false;
+  contasRecebimentoLocal: ContaBancariaResponse[] = [];
+  contaRecebimentoSelecionadaId: number | null = null;
 
   get isDoacaoDinheiro(): boolean {
     const tipo = (this.recebimentoForm.get('tipoDoacao')?.value ?? '').toString().toLowerCase();
@@ -103,7 +109,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly service: RecebimentoDoacaoService
+    private readonly service: RecebimentoDoacaoService,
+    private readonly contabilidadeService: ContabilidadeService
   ) {
     this.doadorForm = this.fb.group({
       tipoPessoa: ['FISICA', Validators.required],
@@ -154,10 +161,14 @@ export class RecebimentoDoacaoComponent implements OnInit {
   ngOnInit(): void {
     this.carregarDoadores();
     this.carregarRecebimentos();
+    this.carregarContasRecebimentoLocal();
   }
 
   changeTab(tab: TabItem['id']): void {
     this.activeTab = tab;
+    if (tab !== 'dados') {
+      this.mensagemSucessoDoacao = '';
+    }
     if (tab === 'doador' || tab === 'doadores') {
       this.doadorSelecionadoId = null;
       this.carregarDoadores();
@@ -169,6 +180,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
       const selectedId = this.recebimentoForm.get('doadorId')?.value;
       const selected = this.doadores.find((doador) => doador.id === Number(selectedId));
       this.termoBuscaDoador = selected?.nome || '';
+      this.carregarContasRecebimentoLocal();
     }
   }
 
@@ -198,6 +210,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.recebimentoForm.reset({ status: 'Aguardando' });
     this.recorrenciaForm.reset({ recorrente: false, periodicidade: 'Mensal' });
     this.gestaoForm.reset({ canal: 'whatsapp' });
+    this.contaRecebimentoSelecionadaId = null;
+    this.mensagemSucessoDoacao = '';
     this.popupErros = [];
   }
 
@@ -216,6 +230,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   fecharPopupErros(): void {
     this.popupErros = [];
+    this.popupTitulo = 'Campos obrigatorios';
   }
 
   carregarDoadores(): void {
@@ -251,6 +266,17 @@ export class RecebimentoDoacaoComponent implements OnInit {
       error: () => {
         this.recebimentos = [];
         this.carregandoRecebimentos = false;
+      }
+    });
+  }
+
+  carregarContasRecebimentoLocal(): void {
+    this.contabilidadeService.listarContasBancarias().subscribe({
+      next: (lista) => {
+        this.contasRecebimentoLocal = (lista || []).filter((conta) => conta.recebimentoLocal);
+      },
+      error: () => {
+        this.contasRecebimentoLocal = [];
       }
     });
   }
@@ -582,6 +608,11 @@ export class RecebimentoDoacaoComponent implements OnInit {
       return;
     }
 
+    if (this.isDoacaoDinheiro && this.contasRecebimentoLocal.length > 1 && !this.contaRecebimentoSelecionadaId) {
+      this.dialogContaRecebimentoAberto = true;
+      return;
+    }
+
     const recorrencia = this.recorrenciaForm.getRawValue();
     const raw = this.recebimentoForm.getRawValue();
     const payload = {
@@ -591,7 +622,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
       valorTotal: this.parseCurrencyValue(raw.valorTotal),
       recorrente: !!recorrencia.recorrente,
       periodicidade: recorrencia.periodicidade,
-      proximaCobranca: recorrencia.proximaCobranca || undefined
+      proximaCobranca: recorrencia.proximaCobranca || undefined,
+      contaRecebimentoId: this.isDoacaoDinheiro ? this.contaRecebimentoSelecionadaId ?? undefined : undefined
     };
 
     const action$ = this.recebimentoEditandoId
@@ -604,16 +636,46 @@ export class RecebimentoDoacaoComponent implements OnInit {
           ? this.recebimentos.map((item) => (item.id === response.id ? response : item))
           : [response, ...this.recebimentos];
         this.recebimentoEditandoId = null;
+        this.contaRecebimentoSelecionadaId = null;
+        this.mensagemSucessoDoacao = 'Doação realizada com sucesso.';
         this.changeTab('lista');
+        this.popupTitulo = 'Sucesso';
+        this.popupErros = new PopupErrorBuilder().adicionar('Doação realizada com sucesso.').build();
       },
-      error: () => {
-        this.popupErros = new PopupErrorBuilder().adicionar('Não foi possível registrar o recebimento.').build();
+      error: (erro) => {
+        const mensagem =
+          erro?.error?.mensagem ||
+          erro?.error?.message ||
+          erro?.message ||
+          'Não foi possível registrar o recebimento.';
+        this.popupTitulo = 'Campos obrigatorios';
+        this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
       }
     });
   }
 
+  selecionarContaRecebimento(contaId: number): void {
+    this.contaRecebimentoSelecionadaId = contaId;
+  }
+
+  confirmarContaRecebimento(): void {
+    if (!this.contaRecebimentoSelecionadaId) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione a conta de recebimento local.')
+        .build();
+      return;
+    }
+    this.dialogContaRecebimentoAberto = false;
+    this.salvarRecebimento();
+  }
+
+  cancelarContaRecebimento(): void {
+    this.dialogContaRecebimentoAberto = false;
+  }
+
   editarRecebimento(item: RecebimentoDoacaoResponse): void {
     this.recebimentoEditandoId = item.id;
+    this.mensagemSucessoDoacao = '';
     this.recebimentoForm.patchValue({
       doadorId: item.doadorId ?? null,
       tipoDoacao: item.tipoDoacao,
@@ -633,6 +695,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
       descricao: item.descricao ?? '',
       observacoes: item.observacoes ?? ''
     });
+    this.contaRecebimentoSelecionadaId = item.contaRecebimentoId ?? null;
     const selected = this.doadores.find((doador) => doador.id === Number(item.doadorId));
     this.termoBuscaDoador = selected?.nome || item.doadorNome || '';
     this.onTipoDoacaoChange();

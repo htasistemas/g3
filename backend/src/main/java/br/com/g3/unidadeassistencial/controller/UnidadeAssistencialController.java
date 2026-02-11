@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +41,13 @@ public class UnidadeAssistencialController {
   @GetMapping("/atual")
   public UnidadeAssistencialConsultaResponse obterAtual() {
     return new UnidadeAssistencialConsultaResponse(service.obterAtual());
+  }
+
+  @PostMapping("/{id}/geocodificar-endereco")
+  public UnidadeAssistencialResponse geocodificarEndereco(
+      @PathVariable("id") Long id,
+      @RequestParam(value = "forcar", required = false, defaultValue = "false") boolean forcar) {
+    return service.geocodificarEndereco(id, forcar);
   }
 
   @PutMapping("/{id}")

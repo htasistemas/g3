@@ -13,5 +13,7 @@ public interface UnidadeAssistencialService {
 
   UnidadeAssistencialResponse atualizar(Long id, UnidadeAssistencialCriacaoRequest request);
 
+  UnidadeAssistencialResponse geocodificarEndereco(Long id, boolean forcar);
+
   void remover(Long id);
 }

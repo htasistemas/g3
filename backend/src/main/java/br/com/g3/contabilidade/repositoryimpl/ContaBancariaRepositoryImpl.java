@@ -30,6 +30,16 @@ public class ContaBancariaRepositoryImpl implements ContaBancariaRepository {
   }
 
   @Override
+  public Optional<ContaBancaria> buscarRecebimentoLocal() {
+    return jpaRepository.findFirstByRecebimentoLocalTrue();
+  }
+
+  @Override
+  public java.util.List<ContaBancaria> listarRecebimentoLocal() {
+    return jpaRepository.findByRecebimentoLocalTrue();
+  }
+
+  @Override
   public void remover(Long id) {
     jpaRepository.deleteById(id);
   }

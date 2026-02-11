@@ -21,6 +21,9 @@ public class RecebimentoDoacaoResponse {
   private String status;
   private String observacoes;
   private boolean contabilidadePendente;
+  private boolean lancamentosGerados;
+  private Long contaRecebimentoId;
+  private java.util.List<RecebimentoDoacaoItemResponse> itens;
 
   public Long getId() {
     return id;
@@ -156,5 +159,29 @@ public class RecebimentoDoacaoResponse {
 
   public void setContabilidadePendente(boolean contabilidadePendente) {
     this.contabilidadePendente = contabilidadePendente;
+  }
+
+  public boolean isLancamentosGerados() {
+    return lancamentosGerados;
+  }
+
+  public void setLancamentosGerados(boolean lancamentosGerados) {
+    this.lancamentosGerados = lancamentosGerados;
+  }
+
+  public Long getContaRecebimentoId() {
+    return contaRecebimentoId;
+  }
+
+  public void setContaRecebimentoId(Long contaRecebimentoId) {
+    this.contaRecebimentoId = contaRecebimentoId;
+  }
+
+  public java.util.List<RecebimentoDoacaoItemResponse> getItens() {
+    return itens;
+  }
+
+  public void setItens(java.util.List<RecebimentoDoacaoItemResponse> itens) {
+    this.itens = itens;
   }
 }

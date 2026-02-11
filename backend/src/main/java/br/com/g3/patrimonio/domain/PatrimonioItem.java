@@ -40,6 +40,9 @@ public class PatrimonioItem {
   @Column(name = "valor_aquisicao")
   private BigDecimal valorAquisicao;
 
+  @Column(name = "doacao_id")
+  private Long doacaoId;
+
   private String origem;
   private String responsavel;
   private String unidade;
@@ -141,6 +144,14 @@ public class PatrimonioItem {
 
   public void setValorAquisicao(BigDecimal valorAquisicao) {
     this.valorAquisicao = valorAquisicao;
+  }
+
+  public Long getDoacaoId() {
+    return doacaoId;
+  }
+
+  public void setDoacaoId(Long doacaoId) {
+    this.doacaoId = doacaoId;
   }
 
   public String getOrigem() {

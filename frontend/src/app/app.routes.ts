@@ -39,6 +39,7 @@ import { BibliotecaGestaoComponent } from './components/biblioteca-gestao/biblio
 import { SenhasChamarComponent } from './components/senhas-chamar/senhas-chamar.component';
 import { SenhasPainelComponent } from './components/senhas-painel/senhas-painel.component';
 import { LembretesDiariosComponent } from './components/lembretes-diarios/lembretes-diarios.component';
+import { FolhaPontoComponent } from './components/folha-ponto/folha-ponto.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -96,6 +97,11 @@ export const routes: Routes = [
         path: 'atendimentos/recebimento-doacao',
         component: RecebimentoDoacaoComponent,
         data: { title: 'Recebimento de doacao' }
+      },
+      {
+        path: 'rh/folha-ponto',
+        component: FolhaPontoComponent,
+        data: { title: 'Folha de ponto' }
       },
       {
         path: 'atendimentos/visitas',

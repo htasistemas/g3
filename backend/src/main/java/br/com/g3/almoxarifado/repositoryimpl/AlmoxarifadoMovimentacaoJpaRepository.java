@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AlmoxarifadoMovimentacaoJpaRepository
     extends JpaRepository<AlmoxarifadoMovimentacao, Long> {
   List<AlmoxarifadoMovimentacao> findAllByOrderByDataMovimentacaoDescIdDesc();
+
+  boolean existsByDoacaoId(Long doacaoId);
 }

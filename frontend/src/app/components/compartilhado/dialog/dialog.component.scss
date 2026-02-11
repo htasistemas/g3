@@ -23,6 +23,11 @@
   gap: 0.8rem;
 }
 
+.dialog__body {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .dialog__actions {
   display: flex;
   gap: 0.5rem;
