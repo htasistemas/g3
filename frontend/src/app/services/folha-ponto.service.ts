@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -191,7 +191,11 @@ export class FolhaPontoService {
     id: number,
     forcar = false
   ): Observable<UnidadeAssistencialResponse> {
-    const params = forcar ? { forcar: 'true' } : {};
-    return this.http.post<UnidadeAssistencialResponse>(`${this.unidadesUrl}/${id}/geocodificar-endereco`, {}, { params });
+    const params = forcar ? new HttpParams().set('forcar', 'true') : undefined;
+    return this.http.post<UnidadeAssistencialResponse>(
+      `${this.unidadesUrl}/${id}/geocodificar-endereco`,
+      {},
+      { params, responseType: 'json' }
+    );
   }
 }

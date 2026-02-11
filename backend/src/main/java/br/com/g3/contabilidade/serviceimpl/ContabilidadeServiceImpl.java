@@ -466,19 +466,7 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
     if (chave == null || chave.trim().isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe a chave Pix.");
     }
-    String chaveLimpa = chave.trim();
-    if ("cnpj".equalsIgnoreCase(tipo) && !validarCnpj(chaveLimpa)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CNPJ invalido na chave Pix.");
-    }
-    if ("email".equalsIgnoreCase(tipo) && !validarEmail(chaveLimpa)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email invalido na chave Pix.");
-    }
-    if ("telefone".equalsIgnoreCase(tipo) && !validarTelefone(chaveLimpa)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Telefone invalido na chave Pix.");
-    }
-    if ("aleatoria".equalsIgnoreCase(tipo) && !validarChaveAleatoria(chaveLimpa)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chave aleatoria invalida.");
-    }
+    // Regra definida: aceitar qualquer chave Pix informada.
   }
 
   private void validarChavePixAtualizacao(ContaBancariaRequest request, ContaBancaria contaAtual) {
