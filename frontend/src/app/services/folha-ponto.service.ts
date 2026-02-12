@@ -3,22 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export interface RhLocalPontoRequest {
-  nome: string;
-  endereco?: string;
-  latitude: number;
-  longitude: number;
-  raioMetros: number;
-  accuracyMaxMetros: number;
-  ativo: boolean;
-}
-
-export interface RhLocalPontoResponse extends RhLocalPontoRequest {
-  id: number;
-  criadoEm?: string;
-  atualizadoEm?: string;
-}
-
 export interface RhConfiguracaoPontoRequest {
   cargaSemanalMinutos?: number;
   cargaSegQuiMinutos?: number;
@@ -77,6 +61,8 @@ export interface RhPontoDiaResumoResponse {
   totalTrabalhadoMinutos: number;
   extrasMinutos: number;
   faltasAtrasosMinutos: number;
+  bancoHorasMinutos?: number;
+  cargaPrevistaMinutos?: number;
   observacoes?: string;
   pontoDiaId?: number;
 }
@@ -89,6 +75,7 @@ export interface RhPontoEspelhoResponse {
   totalDevidoMinutos: number;
   totalExtrasMinutos: number;
   totalFaltasAtrasosMinutos: number;
+  totalBancoHorasMinutos?: number;
   diasTrabalhados: number;
   dias: RhPontoDiaResumoResponse[];
 }
@@ -111,6 +98,10 @@ export interface UnidadeAssistencialResponse {
   cep?: string;
   latitude?: string;
   longitude?: string;
+  raioPontoMetros?: number;
+  accuracyMaxPontoMetros?: number;
+  ipValidacaoPonto?: string;
+  pingTimeoutMs?: number;
 }
 
 export interface UnidadeAssistencialConsultaResponse {
@@ -123,26 +114,6 @@ export class FolhaPontoService {
   private readonly unidadesUrl = `${environment.apiUrl}/api/unidades-assistenciais`;
 
   constructor(private readonly http: HttpClient) {}
-
-  listarLocais(): Observable<RhLocalPontoResponse[]> {
-    return this.http.get<RhLocalPontoResponse[]>(`${this.baseUrl}/locais`);
-  }
-
-  criarLocal(payload: RhLocalPontoRequest): Observable<RhLocalPontoResponse> {
-    return this.http.post<RhLocalPontoResponse>(`${this.baseUrl}/locais`, payload);
-  }
-
-  atualizarLocal(id: number, payload: RhLocalPontoRequest): Observable<RhLocalPontoResponse> {
-    return this.http.put<RhLocalPontoResponse>(`${this.baseUrl}/locais/${id}`, payload);
-  }
-
-  removerLocal(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/locais/${id}`);
-  }
-
-  buscarLocalAtivo(): Observable<RhLocalPontoResponse> {
-    return this.http.get<RhLocalPontoResponse>(`${this.baseUrl}/locais/ativo`);
-  }
 
   buscarConfiguracao(): Observable<RhConfiguracaoPontoResponse> {
     return this.http.get<RhConfiguracaoPontoResponse>(`${this.baseUrl}/configuracao`);
@@ -166,7 +137,19 @@ export class FolhaPontoService {
     });
   }
 
-  atualizarDia(id: number, usuarioId: number, payload: { ocorrencia?: string; observacoes?: string }): Observable<RhPontoDiaResponse> {
+  atualizarDia(
+    id: number,
+    usuarioId: number,
+    payload: {
+      ocorrencia?: string;
+      justificativa?: string;
+      senhaAdmin?: string;
+      entrada1?: string;
+      saida1?: string;
+      entrada2?: string;
+      saida2?: string;
+    }
+  ): Observable<RhPontoDiaResponse> {
     return this.http.put<RhPontoDiaResponse>(`${this.baseUrl}/dia/${id}`, payload, {
       params: { usuarioId }
     });
@@ -179,23 +162,48 @@ export class FolhaPontoService {
     });
   }
 
-  buscarUnidadeAtual(): Observable<UnidadeAssistencialConsultaResponse> {
-    return this.http.get<UnidadeAssistencialConsultaResponse>(`${this.unidadesUrl}/atual`);
+  imprimirEspelhoPdf(
+    mes: number,
+    ano: number,
+    funcionarioId: number,
+    usuarioId: number
+  ): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/relatorio/espelho-pdf`, {
+      params: { mes, ano, funcionarioId, usuarioId },
+      responseType: 'blob'
+    });
   }
 
-  listarUnidades(): Observable<UnidadeAssistencialResponse[]> {
-    return this.http.get<UnidadeAssistencialResponse[]>(this.unidadesUrl);
+  imprimirRelacaoColaboradores(usuarioId: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/relatorio/colaboradores-pdf`, {
+      params: { usuarioId },
+      responseType: 'blob'
+    });
+  }
+
+  imprimirConfiguracaoPonto(usuarioId: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/relatorio/configuracao-pdf`, {
+      params: { usuarioId },
+      responseType: 'blob'
+    });
+  }
+
+  buscarUnidadeAtual(): Observable<UnidadeAssistencialConsultaResponse> {
+    return this.http.get<UnidadeAssistencialConsultaResponse>(`${this.unidadesUrl}/atual`);
   }
 
   geocodificarEnderecoUnidade(
     id: number,
     forcar = false
   ): Observable<UnidadeAssistencialResponse> {
-    const params = forcar ? new HttpParams().set('forcar', 'true') : undefined;
+    const opcoes: { params?: HttpParams } = {};
+    if (forcar) {
+      opcoes.params = new HttpParams().set('forcar', 'true');
+    }
     return this.http.post<UnidadeAssistencialResponse>(
       `${this.unidadesUrl}/${id}/geocodificar-endereco`,
       {},
-      { params, responseType: 'json' }
+      opcoes
     );
   }
 }

@@ -287,6 +287,53 @@
             <option *ngFor="let uf of estados" [value]="uf">{{ uf }}</option>
           </select>
         </label>
+
+        <div class="field">
+          <span>Localização</span>
+          <div class="button-row">
+            <button
+              type="button"
+              class="btn-outline"
+              (click)="buscarLocalizacao()"
+              [disabled]="buscandoLocalizacao || !unidade?.id"
+            >
+              Buscar latitude/longitude
+            </button>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="usarLocalizacaoAtual()"
+            >
+              Usar localização atual
+            </button>
+          </div>
+          <span class="hint" *ngIf="!unidade?.id">Salve a unidade antes de buscar a localização.</span>
+          <span class="hint">Use a localização atual estando na instituição.</span>
+        </div>
+
+        <label class="field">Raio do ponto (m)
+          <input id="raioPontoMetros" type="number" formControlName="raioPontoMetros" />
+        </label>
+
+        <label class="field">Precisão máxima do GPS (m)
+          <input id="accuracyMaxPontoMetros" type="number" formControlName="accuracyMaxPontoMetros" />
+        </label>
+
+        <label class="field">Latitude
+          <input id="latitude" type="text" formControlName="latitude" placeholder="Ex.: -19.9208" readonly />
+        </label>
+
+        <label class="field">Longitude
+          <input id="longitude" type="text" formControlName="longitude" placeholder="Ex.: -43.9378" readonly />
+        </label>
+
+        <label class="field full">IP interno para validação do ponto
+          <input id="ipValidacaoPonto" type="text" formControlName="ipValidacaoPonto" placeholder="Ex.: 192.168.0.100" />
+        </label>
+
+        <label class="field">Timeout do ping (ms)
+          <input id="pingTimeoutMs" type="number" formControlName="pingTimeoutMs" />
+        </label>
       </div>
     </section>
 

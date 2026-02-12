@@ -35,6 +35,11 @@ public class UnidadeAssistencialRepositoryImpl implements UnidadeAssistencialRep
   }
 
   @Override
+  public Optional<UnidadeAssistencial> buscarPrincipal() {
+    return jpaRepository.findTopByUnidadePrincipalTrue();
+  }
+
+  @Override
   public void limparUnidadePrincipal() {
     jpaRepository.limparUnidadePrincipal();
   }

@@ -8,6 +8,7 @@ import br.com.g3.unidadeassistencial.dto.DiretoriaUnidadeRequest;
 import br.com.g3.unidadeassistencial.dto.DiretoriaUnidadeResponse;
 import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialCriacaoRequest;
 import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialResponse;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,10 @@ public class UnidadeAssistencialMapper {
     unidade.setHorarioFuncionamento(request.getHorarioFuncionamento());
     unidade.setObservacoes(request.getObservacoes());
     unidade.setUnidadePrincipal(request.isUnidadePrincipal());
+    unidade.setRaioPontoMetros(request.getRaioPontoMetros());
+    unidade.setAccuracyMaxPontoMetros(request.getAccuracyMaxPontoMetros());
+    unidade.setIpValidacaoPonto(request.getIpValidacaoPonto());
+    unidade.setPingTimeoutMs(request.getPingTimeoutMs());
     LocalDateTime agora = LocalDateTime.now();
     unidade.setCriadoEm(agora);
     unidade.setAtualizadoEm(agora);
@@ -46,6 +51,10 @@ public class UnidadeAssistencialMapper {
     unidade.setHorarioFuncionamento(request.getHorarioFuncionamento());
     unidade.setObservacoes(request.getObservacoes());
     unidade.setUnidadePrincipal(request.isUnidadePrincipal());
+    unidade.setRaioPontoMetros(request.getRaioPontoMetros());
+    unidade.setAccuracyMaxPontoMetros(request.getAccuracyMaxPontoMetros());
+    unidade.setIpValidacaoPonto(request.getIpValidacaoPonto());
+    unidade.setPingTimeoutMs(request.getPingTimeoutMs());
     unidade.setAtualizadoEm(LocalDateTime.now());
     aplicarEndereco(unidade, request);
     aplicarImagemUnidade(unidade, request);
@@ -82,7 +91,11 @@ public class UnidadeAssistencialMapper {
         endereco != null ? endereco.getSubzona() : null,
         endereco != null ? endereco.getEstado() : null,
         endereco != null && endereco.getLatitude() != null ? endereco.getLatitude().toPlainString() : null,
-        endereco != null && endereco.getLongitude() != null ? endereco.getLongitude().toPlainString() : null);
+        endereco != null && endereco.getLongitude() != null ? endereco.getLongitude().toPlainString() : null,
+        unidade.getRaioPontoMetros(),
+        unidade.getAccuracyMaxPontoMetros(),
+        unidade.getIpValidacaoPonto(),
+        unidade.getPingTimeoutMs());
   }
 
   private static Endereco criarEndereco(UnidadeAssistencialCriacaoRequest request, LocalDateTime agora) {
@@ -100,6 +113,8 @@ public class UnidadeAssistencialMapper {
     endereco.setZona(request.getZona());
     endereco.setSubzona(request.getSubzona());
     endereco.setEstado(request.getEstado());
+    endereco.setLatitude(parseCoordenada(request.getLatitude()));
+    endereco.setLongitude(parseCoordenada(request.getLongitude()));
     endereco.setCriadoEm(agora);
     endereco.setAtualizadoEm(agora);
     return endereco;
@@ -132,6 +147,8 @@ public class UnidadeAssistencialMapper {
     endereco.setZona(request.getZona());
     endereco.setSubzona(request.getSubzona());
     endereco.setEstado(request.getEstado());
+    endereco.setLatitude(parseCoordenada(request.getLatitude()));
+    endereco.setLongitude(parseCoordenada(request.getLongitude()));
     endereco.setAtualizadoEm(agora);
   }
 
@@ -227,7 +244,21 @@ public class UnidadeAssistencialMapper {
         || temValor(request.getCidade())
         || temValor(request.getZona())
         || temValor(request.getSubzona())
-        || temValor(request.getEstado());
+        || temValor(request.getEstado())
+        || temValor(request.getLatitude())
+        || temValor(request.getLongitude());
+  }
+
+  private static BigDecimal parseCoordenada(String valor) {
+    if (valor == null || valor.trim().isEmpty()) {
+      return null;
+    }
+    String ajustado = valor.trim().replace(",", ".");
+    try {
+      return new BigDecimal(ajustado);
+    } catch (NumberFormatException ex) {
+      return null;
+    }
   }
 
   private static boolean possuiDadosImagem(UnidadeAssistencialCriacaoRequest request) {

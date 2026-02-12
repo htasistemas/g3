@@ -1,5 +1,5 @@
 ﻿import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -24,6 +24,10 @@ export interface AssistanceUnitPayload {
   estado?: string;
   latitude?: string;
   longitude?: string;
+  raioPontoMetros?: number;
+  accuracyMaxPontoMetros?: number;
+  ipValidacaoPonto?: string;
+  pingTimeoutMs?: number;
   observacoes?: string;
   logomarca?: string;
   logomarcaRelatorio?: string;
@@ -89,6 +93,14 @@ export class AssistanceUnitService {
     }
 
     return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);        
+  }
+
+  geocodificarEndereco(id: number, forcar = false): Observable<AssistanceUnitPayload> {
+    const opcoes: { params?: HttpParams } = {};
+    if (forcar) {
+      opcoes.params = new HttpParams().set('forcar', 'true');
+    }
+    return this.http.post<AssistanceUnitPayload>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, opcoes);
   }
 
   remove(id: number): Observable<void> {

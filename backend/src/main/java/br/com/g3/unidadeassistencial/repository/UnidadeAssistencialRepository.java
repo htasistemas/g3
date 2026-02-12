@@ -13,6 +13,8 @@ public interface UnidadeAssistencialRepository {
 
   Optional<UnidadeAssistencial> buscarAtual();
 
+  Optional<UnidadeAssistencial> buscarPrincipal();
+
   void limparUnidadePrincipal();
 
   void remover(UnidadeAssistencial unidade);

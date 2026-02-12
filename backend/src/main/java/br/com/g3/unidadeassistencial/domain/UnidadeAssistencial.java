@@ -59,6 +59,17 @@ public class UnidadeAssistencial {
   @Column(name = "unidade_principal", nullable = false)
   private boolean unidadePrincipal;
 
+  @Column(name = "raio_ponto_metros", nullable = false)
+  private Integer raioPontoMetros;
+
+  @Column(name = "accuracy_max_ponto_metros", nullable = false)
+  private Integer accuracyMaxPontoMetros;
+
+  @Column(name = "ip_validacao_ponto", length = 45)
+  private String ipValidacaoPonto;
+
+  @Column(name = "ping_timeout_ms", nullable = false)
+  private Integer pingTimeoutMs;
   @Column(name = "criado_em", nullable = false)
   private LocalDateTime criadoEm;
 
@@ -167,6 +178,38 @@ public class UnidadeAssistencial {
 
   public void setUnidadePrincipal(boolean unidadePrincipal) {
     this.unidadePrincipal = unidadePrincipal;
+  }
+
+  public Integer getRaioPontoMetros() {
+    return raioPontoMetros;
+  }
+
+  public void setRaioPontoMetros(Integer raioPontoMetros) {
+    this.raioPontoMetros = raioPontoMetros;
+  }
+
+  public Integer getAccuracyMaxPontoMetros() {
+    return accuracyMaxPontoMetros;
+  }
+
+  public void setAccuracyMaxPontoMetros(Integer accuracyMaxPontoMetros) {
+    this.accuracyMaxPontoMetros = accuracyMaxPontoMetros;
+  }
+
+  public String getIpValidacaoPonto() {
+    return ipValidacaoPonto;
+  }
+
+  public void setIpValidacaoPonto(String ipValidacaoPonto) {
+    this.ipValidacaoPonto = ipValidacaoPonto;
+  }
+
+  public Integer getPingTimeoutMs() {
+    return pingTimeoutMs;
+  }
+
+  public void setPingTimeoutMs(Integer pingTimeoutMs) {
+    this.pingTimeoutMs = pingTimeoutMs;
   }
 
   public LocalDateTime getCriadoEm() {

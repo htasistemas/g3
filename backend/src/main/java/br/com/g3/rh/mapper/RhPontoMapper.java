@@ -1,11 +1,9 @@
 package br.com.g3.rh.mapper;
 
 import br.com.g3.rh.domain.RhConfiguracaoPonto;
-import br.com.g3.rh.domain.RhLocalPonto;
 import br.com.g3.rh.domain.RhPontoDia;
 import br.com.g3.rh.domain.RhPontoMarcacao;
 import br.com.g3.rh.dto.RhConfiguracaoPontoResponse;
-import br.com.g3.rh.dto.RhLocalPontoResponse;
 import br.com.g3.rh.dto.RhPontoDiaResponse;
 import br.com.g3.rh.dto.RhPontoMarcacaoResponse;
 import java.time.format.DateTimeFormatter;
@@ -15,21 +13,6 @@ import java.util.List;
 
 public class RhPontoMapper {
   private static final DateTimeFormatter HORA_FORMATO = DateTimeFormatter.ofPattern("HH:mm");
-
-  public RhLocalPontoResponse toLocalResponse(RhLocalPonto local) {
-    RhLocalPontoResponse response = new RhLocalPontoResponse();
-    response.setId(local.getId());
-    response.setNome(local.getNome());
-    response.setEndereco(local.getEndereco());
-    response.setLatitude(local.getLatitude());
-    response.setLongitude(local.getLongitude());
-    response.setRaioMetros(local.getRaioMetros());
-    response.setAccuracyMaxMetros(local.getAccuracyMaxMetros());
-    response.setAtivo(local.isAtivo());
-    response.setCriadoEm(local.getCriadoEm());
-    response.setAtualizadoEm(local.getAtualizadoEm());
-    return response;
-  }
 
   public RhConfiguracaoPontoResponse toConfiguracaoResponse(RhConfiguracaoPonto configuracao) {
     RhConfiguracaoPontoResponse response = new RhConfiguracaoPontoResponse();

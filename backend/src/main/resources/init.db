@@ -1057,6 +1057,38 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nome VARCHAR(150),
     email VARCHAR(150),
     senha_hash VARCHAR(255) NOT NULL,
+    horario_entrada_1 TIME,
+    horario_saida_1 TIME,
+    horario_entrada_2 TIME,
+    horario_saida_2 TIME,
+    horario_segunda_entrada_1 TIME,
+    horario_segunda_saida_1 TIME,
+    horario_segunda_entrada_2 TIME,
+    horario_segunda_saida_2 TIME,
+    horario_terca_entrada_1 TIME,
+    horario_terca_saida_1 TIME,
+    horario_terca_entrada_2 TIME,
+    horario_terca_saida_2 TIME,
+    horario_quarta_entrada_1 TIME,
+    horario_quarta_saida_1 TIME,
+    horario_quarta_entrada_2 TIME,
+    horario_quarta_saida_2 TIME,
+    horario_quinta_entrada_1 TIME,
+    horario_quinta_saida_1 TIME,
+    horario_quinta_entrada_2 TIME,
+    horario_quinta_saida_2 TIME,
+    horario_sexta_entrada_1 TIME,
+    horario_sexta_saida_1 TIME,
+    horario_sexta_entrada_2 TIME,
+    horario_sexta_saida_2 TIME,
+    horario_sabado_entrada_1 TIME,
+    horario_sabado_saida_1 TIME,
+    horario_sabado_entrada_2 TIME,
+    horario_sabado_saida_2 TIME,
+    horario_domingo_entrada_1 TIME,
+    horario_domingo_saida_1 TIME,
+    horario_domingo_entrada_2 TIME,
+    horario_domingo_saida_2 TIME,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
   );
@@ -1078,6 +1110,102 @@ ALTER TABLE usuarios
 
 ALTER TABLE usuarios
   ADD COLUMN IF NOT EXISTS foto_url VARCHAR(255);
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_segunda_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_segunda_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_segunda_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_segunda_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_terca_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_terca_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_terca_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_terca_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quarta_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quarta_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quarta_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quarta_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quinta_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quinta_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quinta_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_quinta_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sexta_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sexta_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sexta_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sexta_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sabado_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sabado_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sabado_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_sabado_saida_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_domingo_entrada_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_domingo_saida_1 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_domingo_entrada_2 TIME;
+
+ALTER TABLE usuarios
+  ADD COLUMN IF NOT EXISTS horario_domingo_saida_2 TIME;
 
 CREATE UNIQUE INDEX IF NOT EXISTS usuarios_nome_usuario_unique ON usuarios (nome_usuario);
 CREATE UNIQUE INDEX IF NOT EXISTS usuarios_email_unique ON usuarios (email);
@@ -1163,6 +1291,18 @@ ALTER TABLE unidade_assistencial
 
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS unidade_principal BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS raio_ponto_metros INTEGER NOT NULL DEFAULT 100;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS accuracy_max_ponto_metros INTEGER NOT NULL DEFAULT 200;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS ip_validacao_ponto VARCHAR(45);
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS ping_timeout_ms INTEGER NOT NULL DEFAULT 2000;
 
 ALTER TABLE usuarios
   ADD COLUMN IF NOT EXISTS nome_usuario VARCHAR(120);
@@ -3514,19 +3654,6 @@ WHERE NOT EXISTS (
 
 
 
-
-CREATE TABLE IF NOT EXISTS rh_local_ponto (
-  id BIGSERIAL PRIMARY KEY,
-  nome VARCHAR(150) NOT NULL,
-  endereco TEXT,
-  latitude NUMERIC(10, 7) NOT NULL,
-  longitude NUMERIC(10, 7) NOT NULL,
-  raio_metros INTEGER NOT NULL,
-  accuracy_max_metros INTEGER NOT NULL DEFAULT 80,
-  ativo BOOLEAN NOT NULL DEFAULT TRUE,
-  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
-  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
-);
 
 CREATE TABLE IF NOT EXISTS rh_configuracao_ponto (
   id BIGSERIAL PRIMARY KEY,

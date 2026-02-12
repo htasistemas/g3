@@ -65,13 +65,45 @@
             </div>
           </div>
 
+          <p class="info-note">
+            Para registrar o ponto, permita a localização e esteja dentro do raio definido da instituição.
+            A sequência obrigatória é: Entrada 1 → Saída 1 → Entrada 2 → Saída 2.
+          </p>
+
           <div class="info-grid">
             <div class="info-card">
-              <p class="info-card__label">Local de ponto ativo</p>
-              <h3>{{ localAtivo?.nome || 'Não configurado' }}</h3>
-              <p>{{ localAtivo?.endereco || 'Endereço não informado' }}</p>
-              <p *ngIf="localAtivo">
-                Raio: {{ localAtivo.raioMetros }}m • Precisão máxima: {{ localAtivo.accuracyMaxMetros }}m
+              <p class="info-card__label">Unidade assistencial</p>
+              <h3>{{ unidadeAssistencial?.nomeFantasia || 'Não configurada' }}</h3>
+              <p>
+                {{ unidadeAssistencial?.endereco || 'Endereço não informado' }}
+                <span *ngIf="unidadeAssistencial?.numeroEndereco">, {{ unidadeAssistencial?.numeroEndereco }}</span>
+              </p>
+              <p class="status-pill" [class.status-pill--ok]="unidadeAssistencial?.latitude && unidadeAssistencial?.longitude"
+                 [class.status-pill--pendente]="!unidadeAssistencial?.latitude || !unidadeAssistencial?.longitude">
+                {{ unidadeAssistencial?.latitude && unidadeAssistencial?.longitude ? 'Localização configurada' : 'Localização pendente' }}
+              </p>
+              <button
+                *ngIf="!unidadeAssistencial?.latitude || !unidadeAssistencial?.longitude"
+                type="button"
+                class="status-link"
+                [routerLink]="['/unidades/cadastro']"
+              >
+                Abrir cadastro da unidade
+              </button>
+              <button
+                *ngIf="!unidadeAssistencial?.latitude || !unidadeAssistencial?.longitude"
+                type="button"
+                class="status-link"
+                (click)="atualizarLocalizacaoUnidade()"
+              >
+                Atualizar localização
+              </button>
+              <p *ngIf="unidadeAssistencial">
+                Raio: {{ unidadeAssistencial.raioPontoMetros || 100 }}m • Precisão máxima:
+                {{ unidadeAssistencial.accuracyMaxPontoMetros || 80 }}m
+              </p>
+              <p *ngIf="unidadeAssistencial?.ipValidacaoPonto">
+                Validação por IP interno: {{ unidadeAssistencial?.ipValidacaoPonto }}
               </p>
             </div>
             <div class="info-card">
@@ -80,6 +112,39 @@
               <p>Seg–qui: {{ formatarMinutos(configuracao?.cargaSegQuiMinutos) }}</p>
               <p>Sexta: {{ formatarMinutos(configuracao?.cargaSextaMinutos) }}</p>
               <p>Tolerância: {{ formatarMinutos(configuracao?.toleranciaMinutos) }}</p>
+              <p>Carga prevista hoje: {{ cargaPrevistaHoje() }}</p>
+              <p>Horas trabalhadas hoje: {{ horasTrabalhadasHoje() }}</p>
+            </div>
+          </div>
+
+          <div class="horario-trabalho__data">
+            Hoje: {{ dataHojeCompleta() }} · {{ horaAtual }}
+          </div>
+
+          <div class="horario-trabalho">
+            <div class="horario-trabalho__header">
+              <p class="horario-trabalho__title">Horários do funcionário</p>
+              <span class="horario-trabalho__subtitle" *ngIf="isRhAdmin && funcionarioSelecionadoId">
+                Funcionário selecionado na lista
+              </span>
+            </div>
+            <div class="horario-trabalho__grid">
+              <div class="horario-trabalho__item">
+                <span class="horario-trabalho__label">Entrada 1</span>
+                <strong>{{ obterHorarioDiaAtual().entrada1 || '--:--' }}</strong>
+              </div>
+              <div class="horario-trabalho__item">
+                <span class="horario-trabalho__label">Saída 1</span>
+                <strong>{{ obterHorarioDiaAtual().saida1 || '--:--' }}</strong>
+              </div>
+              <div class="horario-trabalho__item">
+                <span class="horario-trabalho__label">Entrada 2</span>
+                <strong>{{ obterHorarioDiaAtual().entrada2 || '--:--' }}</strong>
+              </div>
+              <div class="horario-trabalho__item">
+                <span class="horario-trabalho__label">Saída 2</span>
+                <strong>{{ obterHorarioDiaAtual().saida2 || '--:--' }}</strong>
+              </div>
             </div>
           </div>
 
@@ -91,8 +156,12 @@
               [disabled]="!podeRegistrar('E1')"
               (click)="iniciarBatida('E1')"
             >
-              <span>Entrada manhã</span>
-              <strong>Registrar</strong>
+              <span class="batida-card__titulo">Entrada 1</span>
+              <strong class="batida-card__acao">
+                <fa-icon [icon]="faClock"></fa-icon>
+                Registrar
+              </strong>
+              <span class="batida-card__hora">{{ obterHoraExibida('E1') }}</span>
             </button>
             <button
               type="button"
@@ -101,8 +170,12 @@
               [disabled]="!podeRegistrar('S1')"
               (click)="iniciarBatida('S1')"
             >
-              <span>Saída manhã</span>
-              <strong>Registrar</strong>
+              <span class="batida-card__titulo">Saída 1</span>
+              <strong class="batida-card__acao">
+                <fa-icon [icon]="faClock"></fa-icon>
+                Registrar
+              </strong>
+              <span class="batida-card__hora">{{ obterHoraExibida('S1') }}</span>
             </button>
             <button
               type="button"
@@ -111,8 +184,12 @@
               [disabled]="!podeRegistrar('E2')"
               (click)="iniciarBatida('E2')"
             >
-              <span>Entrada tarde</span>
-              <strong>Registrar</strong>
+              <span class="batida-card__titulo">Entrada 2</span>
+              <strong class="batida-card__acao">
+                <fa-icon [icon]="faClock"></fa-icon>
+                Registrar
+              </strong>
+              <span class="batida-card__hora">{{ obterHoraExibida('E2') }}</span>
             </button>
             <button
               type="button"
@@ -121,8 +198,12 @@
               [disabled]="!podeRegistrar('S2')"
               (click)="iniciarBatida('S2')"
             >
-              <span>Saída tarde</span>
-              <strong>Registrar</strong>
+              <span class="batida-card__titulo">Saída 2</span>
+              <strong class="batida-card__acao">
+                <fa-icon [icon]="faClock"></fa-icon>
+                Registrar
+              </strong>
+              <span class="batida-card__hora">{{ obterHoraExibida('S2') }}</span>
             </button>
           </div>
         </div>
@@ -132,8 +213,20 @@
             <div class="tab-card__title-stack">
               <p class="tab-card__highlight">Espelho mensal</p>
             </div>
-            <div class="tab-card__header-actions" *ngIf="isRhAdmin">
+            <div class="tab-card__header-actions">
               <label class="field compact">
+                Mês
+                <select [(ngModel)]="espelhoMesSelecionado" (ngModelChange)="selecionarReferenciaEspelho()" name="mesEspelho">
+                  <option *ngFor="let mes of mesesEspelho" [value]="mes.valor">{{ mes.label }}</option>
+                </select>
+              </label>
+              <label class="field compact">
+                Ano
+                <select [(ngModel)]="espelhoAnoSelecionado" (ngModelChange)="selecionarReferenciaEspelho()" name="anoEspelho">
+                  <option *ngFor="let ano of anosEspelho" [value]="ano">{{ ano }}</option>
+                </select>
+              </label>
+              <label class="field compact" *ngIf="isRhAdmin">
                 Funcionário
                 <select #selectFuncionario (change)="selecionarFuncionario(selectFuncionario.value)">
                   <option *ngFor="let user of usuarios" [value]="user.id" [selected]="user.id === funcionarioSelecionadoId">
@@ -144,8 +237,31 @@
             </div>
           </div>
 
+          <p class="info-note">
+            Selecione o mês e o ano para consultar o espelho. Os totais são calculados automaticamente.
+          </p>
+
+          <div class="info-grid" *ngIf="espelho">
+            <div class="info-card">
+              <p class="info-card__label">Total trabalhado</p>
+              <h3>{{ formatarMinutos(espelho.totalTrabalhadoMinutos) }}</h3>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Total devido</p>
+              <h3>{{ formatarMinutos(espelho.totalDevidoMinutos) }}</h3>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Horas extras</p>
+              <h3>{{ formatarMinutos(espelho.totalExtrasMinutos) }}</h3>
+            </div>
+            <div class="info-card">
+              <p class="info-card__label">Faltas/Atrasos</p>
+              <h3>{{ formatarMinutos(espelho.totalFaltasAtrasosMinutos) }}</h3>
+            </div>
+          </div>
+
           <div class="table-wrapper" *ngIf="espelho?.dias?.length">
-            <table>
+            <table class="espelho-table">
               <thead>
                 <tr>
                   <th>Data</th>
@@ -174,7 +290,7 @@
                   <td>{{ formatarMinutos(dia.faltasAtrasosMinutos) }}</td>
                   <td>{{ dia.observacoes || '---' }}</td>
                   <td *ngIf="isRhAdmin">
-                    <button type="button" class="ghost" (click)="abrirEditarOcorrencia(dia)" [disabled]="!dia.pontoDiaId">
+                    <button type="button" class="primary" (click)="abrirEditarOcorrencia(dia)" [disabled]="!dia.pontoDiaId">
                       Corrigir
                     </button>
                   </td>
@@ -194,104 +310,6 @@
           </div>
         </div>
 
-        <div class="tab-card" *ngIf="activeTab === 'locais'">
-          <div class="tab-card__header">
-            <div class="tab-card__title-stack">
-              <p class="tab-card__highlight">Locais de ponto</p>
-            </div>
-          </div>
-
-          <form class="field-grid cols-3">
-            <label class="field full">Unidade assistencial
-              <select
-                [ngModel]="unidadeSelecionadaId"
-                (ngModelChange)="selecionarUnidade($event)"
-                name="unidadeSelecionada"
-              >
-                <option *ngFor="let unidade of unidadesAssistenciais" [value]="unidade.id">
-                  {{ unidade.nomeFantasia }}
-                </option>
-              </select>
-            </label>
-          </form>
-
-          <div class="info-grid" *ngIf="unidadeAssistencial">
-            <div class="info-card">
-              <p class="info-card__label">Unidade assistencial</p>
-              <h3>{{ unidadeAssistencial.nomeFantasia }}</h3>
-              <p *ngIf="unidadeAssistencial.razaoSocial">{{ unidadeAssistencial.razaoSocial }}</p>
-              <p *ngIf="unidadeAssistencial.cnpj">CNPJ: {{ unidadeAssistencial.cnpj }}</p>
-              <p *ngIf="unidadeAssistencial.telefone">Telefone: {{ unidadeAssistencial.telefone }}</p>
-              <p *ngIf="unidadeAssistencial.email">Email: {{ unidadeAssistencial.email }}</p>
-              <p *ngIf="unidadeAssistencial.endereco">
-                Endereço:
-                {{ unidadeAssistencial.endereco }}
-                <span *ngIf="unidadeAssistencial.numeroEndereco">, {{ unidadeAssistencial.numeroEndereco }}</span>
-                <span *ngIf="unidadeAssistencial.bairro"> - {{ unidadeAssistencial.bairro }}</span>
-                <span *ngIf="unidadeAssistencial.cidade">, {{ unidadeAssistencial.cidade }}</span>
-                <span *ngIf="unidadeAssistencial.estado">/{{ unidadeAssistencial.estado }}</span>
-              </p>
-            </div>
-          </div>
-
-          <form class="field-grid cols-3" [formGroup]="localForm">
-            <label class="field full">Nome do local (*)
-              <input formControlName="nome" />
-            </label>
-            <label class="field full">Endereço
-              <input formControlName="endereco" />
-            </label>
-            <label class="field">Latitude (*)
-              <input formControlName="latitude" type="number" step="0.000001" />
-            </label>
-            <label class="field">Longitude (*)
-              <input formControlName="longitude" type="number" step="0.000001" />
-            </label>
-            <label class="field">Raio permitido (m) (*)
-              <input formControlName="raioMetros" type="number" />
-            </label>
-            <label class="field">Precisão máxima (m) (*)
-              <input formControlName="accuracyMaxMetros" type="number" />
-            </label>
-            <label class="checkbox-field full">
-              <input type="checkbox" formControlName="ativo" />
-              <span>Local ativo</span>
-            </label>
-          </form>
-
-          <div class="tab-actions">
-            <button type="button" class="primary" (click)="salvarLocal()">Salvar local</button>
-          </div>
-
-          <div class="table-wrapper" *ngIf="locais.length">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Endereço</th>
-                  <th>Raio</th>
-                  <th>Precisão</th>
-                  <th>Status</th>
-                  <th class="text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let local of locais">
-                  <td>{{ local.nome }}</td>
-                  <td>{{ local.endereco || '---' }}</td>
-                  <td>{{ local.raioMetros }}m</td>
-                  <td>{{ local.accuracyMaxMetros }}m</td>
-                  <td>{{ local.ativo ? 'Ativo' : 'Inativo' }}</td>
-                  <td class="text-right">
-                    <button type="button" class="ghost" (click)="editarLocal(local)">Editar</button>
-                    <button type="button" class="ghost ghost--danger" (click)="removerLocal(local)">Remover</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div class="tab-card" *ngIf="activeTab === 'configuracao'">
           <div class="tab-card__header">
             <div class="tab-card__title-stack">
@@ -299,29 +317,123 @@
             </div>
           </div>
 
-          <form class="field-grid cols-3" [formGroup]="configuracaoForm">
-            <label class="field">Carga semanal (min) (*)
-              <input type="number" formControlName="cargaSemanalMinutos" />
+          <form class="field-grid cols-6" [formGroup]="configuracaoForm">
+            <label class="field">Carga semanal (horas) (*)
+              <input type="number" step="0.25" formControlName="cargaSemanalHoras" />
             </label>
-            <label class="field">Seg–Qui (min) (*)
-              <input type="number" formControlName="cargaSegQuiMinutos" />
+            <label class="field">Seg–Qui (horas) (*)
+              <input type="number" step="0.25" formControlName="cargaSegQuiHoras" />
             </label>
-            <label class="field">Sexta (min) (*)
-              <input type="number" formControlName="cargaSextaMinutos" />
+            <label class="field">Sexta (horas) (*)
+              <input type="number" step="0.25" formControlName="cargaSextaHoras" />
             </label>
-            <label class="field">Sábado (min) (*)
-              <input type="number" formControlName="cargaSabadoMinutos" />
+            <label class="field">Sábado (horas) (*)
+              <input type="number" step="0.25" formControlName="cargaSabadoHoras" />
             </label>
-            <label class="field">Domingo (min) (*)
-              <input type="number" formControlName="cargaDomingoMinutos" />
+            <label class="field">Domingo (horas) (*)
+              <input type="number" step="0.25" formControlName="cargaDomingoHoras" />
             </label>
             <label class="field">Tolerância (min) (*)
               <input type="number" formControlName="toleranciaMinutos" />
+            </label>
+            <label class="field">Carga diária sugerida
+              <input type="text" [value]="cargaDiariaSugerida()" readonly />
+            </label>
+            <label class="field">Observação
+              <input type="text" value="Sábado e domingo contam como horas extras" readonly />
             </label>
           </form>
 
           <div class="tab-actions">
             <button type="button" class="primary" (click)="salvarConfiguracao()">Salvar configuração</button>
+          </div>
+
+          <div class="tab-card__divider"></div>
+
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Horários do funcionário</p>
+            </div>
+          </div>
+
+          <div class="tab-card__subheader" *ngIf="isRhAdmin">
+            <label class="field compact">
+              Funcionário
+              <select #selectFuncionarioConfig (change)="selecionarFuncionario(selectFuncionarioConfig.value)">
+                <option *ngFor="let user of usuarios" [value]="user.id" [selected]="user.id === funcionarioSelecionadoId">
+                  {{ user.nome || user.nomeUsuario }}
+                </option>
+              </select>
+            </label>
+          </div>
+
+          <form class="horarios-semana" [formGroup]="horariosForm">
+            <div class="horario-dia" *ngFor="let dia of diasSemana; index as idx">
+              <div class="horario-dia__header">
+                <span class="horario-dia__title">{{ dia.label }}</span>
+                <button
+                  *ngIf="idx > 0 && isRhAdmin"
+                  type="button"
+                  class="ghost"
+                  (click)="copiarHorarioDia(idx)"
+                >
+                  Copiar do dia anterior
+                </button>
+              </div>
+              <div class="field-grid cols-4 inline">
+                <label class="field">Entrada 1
+                  <input type="time" [formControlName]="campoHorario(dia.id, 'Entrada1')" [readonly]="!isRhAdmin" />
+                </label>
+                <label class="field">Saída 1
+                  <input type="time" [formControlName]="campoHorario(dia.id, 'Saida1')" [readonly]="!isRhAdmin" />
+                </label>
+                <label class="field">Entrada 2
+                  <input type="time" [formControlName]="campoHorario(dia.id, 'Entrada2')" [readonly]="!isRhAdmin" />
+                </label>
+                <label class="field">Saída 2
+                  <input type="time" [formControlName]="campoHorario(dia.id, 'Saida2')" [readonly]="!isRhAdmin" />
+                </label>
+              </div>
+            </div>
+          </form>
+
+          <div class="tab-actions" *ngIf="isRhAdmin">
+            <button type="button" class="primary" (click)="salvarHorariosFuncionario()">Salvar horários</button>
+          </div>
+
+          <div class="table-wrapper" *ngIf="usuarios.length">
+            <table class="espelho-table">
+              <thead>
+                <tr>
+                  <th>Funcionário</th>
+                  <th>Segunda</th>
+                  <th>Terça</th>
+                  <th>Quarta</th>
+                  <th>Quinta</th>
+                  <th>Sexta</th>
+                  <th>Sábado</th>
+                  <th>Domingo</th>
+                  <th *ngIf="isRhAdmin">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of usuarios">
+                  <td>{{ user.nome || user.nomeUsuario }}</td>
+                  <td>{{ formatarHorarioDia(user, 'segunda') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'terca') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'quarta') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'quinta') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'sexta') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'sabado') }}</td>
+                  <td>{{ formatarHorarioDia(user, 'domingo') }}</td>
+                  <td *ngIf="isRhAdmin">
+                    <button type="button" class="primary" (click)="abrirDetalheHorario(user)">
+                      Ver detalhes
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -336,13 +448,23 @@
       (confirmar)="confirmarBatida()"
       (cancelar)="cancelarBatida()"
     >
-      <div class="dialog-conteudo">
-        <p class="muted">Tipo de batida: {{ tipoBatidaAtual }}</p>
-        <p class="muted" *ngIf="localizacaoAtual">
-          Precisão: {{ localizacaoAtual.accuracy | number: '1.0-0' }}m • Distância: {{ localizacaoAtual.distancia | number: '1.0-0' }}m
+      <div class="dialog-conteudo dialog-bloco">
+        <p class="dialog-info" *ngIf="batidaCarregando">Obtendo localização...</p>
+        <p class="dialog-info">Tipo de batida: <strong>{{ tipoBatidaAtual }}</strong></p>
+        <p class="dialog-info" *ngIf="localizacaoAtual">
+          Precisão: {{ localizacaoAtual.accuracy | number: '1.0-0' }}m
+          <ng-container *ngIf="localizacaoAtual.distancia !== undefined">
+            • Distância: {{ localizacaoAtual.distancia | number: '1.0-0' }}m
+          </ng-container>
         </p>
         <label class="field">Senha do funcionário (*)
-          <input type="password" [(ngModel)]="senhaBatida" name="senhaBatida" />
+          <input
+            type="password"
+            [(ngModel)]="senhaBatida"
+            name="senhaBatida"
+            placeholder="Digite sua senha"
+            (keyup.enter)="confirmarBatida()"
+          />
         </label>
       </div>
     </app-dialog>
@@ -350,13 +472,13 @@
     <app-dialog
       [aberto]="dialogOcorrenciaAberta"
       titulo="Corrigir ocorrência"
-      mensagem="Atualize a ocorrência ou observação do dia selecionado."
+      mensagem="Informe a justificativa e a senha administrativa para corrigir."
       confirmarLabel="Salvar"
       cancelarLabel="Cancelar"
       (confirmar)="confirmarEditarOcorrencia()"
       (cancelar)="cancelarEditarOcorrencia()"
     >
-      <div class="dialog-conteudo" [formGroup]="ocorrenciaForm">
+      <div class="dialog-conteudo dialog-bloco" [formGroup]="ocorrenciaForm">
         <label class="field">Ocorrência
           <select #selectFuncionario formControlName="ocorrencia">
             <option value="NORMAL">Normal</option>
@@ -367,9 +489,86 @@
             <option value="FALTA">Falta</option>
           </select>
         </label>
-        <label class="field">Observações
-          <textarea rows="3" formControlName="observacoes"></textarea>
+        <div class="field-grid cols-4">
+          <label class="field">Entrada 1
+            <input type="time" formControlName="entrada1" />
+          </label>
+          <label class="field">Saída 1
+            <input type="time" formControlName="saida1" />
+          </label>
+          <label class="field">Entrada 2
+            <input type="time" formControlName="entrada2" />
+          </label>
+          <label class="field">Saída 2
+            <input type="time" formControlName="saida2" />
+          </label>
+        </div>
+        <label class="field">Justificativa (*)
+          <textarea rows="3" formControlName="justificativa"></textarea>
         </label>
+        <label class="field">Senha administrativa (*)
+          <input type="password" formControlName="senhaAdmin" />
+        </label>
+      </div>
+    </app-dialog>
+
+    <app-dialog
+      [aberto]="dialogDetalheHorarioAberta"
+      titulo="Horários do funcionário"
+      mensagem="Horários cadastrados por dia da semana."
+      confirmarLabel="Fechar"
+      (confirmar)="fecharDetalheHorario()"
+      (cancelar)="fecharDetalheHorario()"
+    >
+      <div class="dialog-conteudo dialog-bloco" *ngIf="usuarioDetalheHorario as usuario">
+        <div class="horarios-semana">
+          <div class="horario-dia" *ngFor="let dia of diasSemana">
+            <div class="horario-dia__header">
+              <span class="horario-dia__title">{{ dia.label }}</span>
+            </div>
+            <div class="field-grid cols-4 inline">
+              <div class="field">
+                <span>Entrada 1</span>
+                <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Entrada1') || '--:--' }}</strong>
+              </div>
+              <div class="field">
+                <span>Saída 1</span>
+                <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Saida1') || '--:--' }}</strong>
+              </div>
+              <div class="field">
+                <span>Entrada 2</span>
+                <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Entrada2') || '--:--' }}</strong>
+              </div>
+              <div class="field">
+                <span>Saída 2</span>
+                <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Saida2') || '--:--' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </app-dialog>
+
+    <app-dialog
+      [aberto]="dialogImpressaoAberta"
+      titulo="Impressão"
+      mensagem="Selecione o tipo de relatório para imprimir."
+      confirmarLabel="Fechar"
+      (confirmar)="fecharDialogImpressao()"
+      (cancelar)="fecharDialogImpressao()"
+    >
+      <div class="dialog-conteudo dialog-bloco">
+        <div class="dialog-opcoes">
+          <button type="button" class="primary" (click)="imprimirEspelhoMensal()">
+            Espelho Mensal
+          </button>
+          <button type="button" class="primary" (click)="imprimirRelacaoColaboradores()">
+            Relação de Colaboradores
+          </button>
+          <button type="button" class="primary" (click)="imprimirConfiguracaoPonto()">
+            Configuração do ponto
+          </button>
+        </div>
       </div>
     </app-dialog>
   </section>

@@ -12,6 +12,8 @@ public class RhPontoDiaResumoResponse {
   private Integer totalTrabalhadoMinutos;
   private Integer extrasMinutos;
   private Integer faltasAtrasosMinutos;
+  private Integer cargaPrevistaMinutos;
+  private Integer bancoHorasMinutos;
   private String observacoes;
   private Long pontoDiaId;
 
@@ -85,6 +87,22 @@ public class RhPontoDiaResumoResponse {
 
   public void setFaltasAtrasosMinutos(Integer faltasAtrasosMinutos) {
     this.faltasAtrasosMinutos = faltasAtrasosMinutos;
+  }
+
+  public Integer getCargaPrevistaMinutos() {
+    return cargaPrevistaMinutos;
+  }
+
+  public void setCargaPrevistaMinutos(Integer cargaPrevistaMinutos) {
+    this.cargaPrevistaMinutos = cargaPrevistaMinutos;
+  }
+
+  public Integer getBancoHorasMinutos() {
+    return bancoHorasMinutos;
+  }
+
+  public void setBancoHorasMinutos(Integer bancoHorasMinutos) {
+    this.bancoHorasMinutos = bancoHorasMinutos;
   }
 
   public String getObservacoes() {

@@ -2,19 +2,17 @@ package br.com.g3.rh.controller;
 
 import br.com.g3.rh.dto.RhConfiguracaoPontoRequest;
 import br.com.g3.rh.dto.RhConfiguracaoPontoResponse;
-import br.com.g3.rh.dto.RhLocalPontoRequest;
-import br.com.g3.rh.dto.RhLocalPontoResponse;
 import br.com.g3.rh.dto.RhPontoBaterRequest;
 import br.com.g3.rh.dto.RhPontoDiaAtualizacaoRequest;
 import br.com.g3.rh.dto.RhPontoDiaResponse;
 import br.com.g3.rh.dto.RhPontoDiaResumoResponse;
 import br.com.g3.rh.dto.RhPontoEspelhoResponse;
+import br.com.g3.rh.service.RhPontoRelatorioService;
 import br.com.g3.rh.service.RhPontoService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -26,11 +24,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,37 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class RhPontoController {
   private static final DateTimeFormatter DATA_FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private final RhPontoService service;
+  private final RhPontoRelatorioService relatorioService;
 
-  public RhPontoController(RhPontoService service) {
+  public RhPontoController(RhPontoService service, RhPontoRelatorioService relatorioService) {
     this.service = service;
+    this.relatorioService = relatorioService;
   }
 
-  @GetMapping("/locais")
-  public List<RhLocalPontoResponse> listarLocais() {
-    return service.listarLocais();
-  }
-
-  @PostMapping("/locais")
-  public RhLocalPontoResponse criarLocal(@RequestBody RhLocalPontoRequest request) {
-    return service.criarLocal(request);
-  }
-
-  @PutMapping("/locais/{id}")
-  public RhLocalPontoResponse atualizarLocal(
-      @PathVariable("id") Long id,
-      @RequestBody RhLocalPontoRequest request) {
-    return service.atualizarLocal(id, request);
-  }
-
-  @DeleteMapping("/locais/{id}")
-  public void removerLocal(@PathVariable("id") Long id) {
-    service.removerLocal(id);
-  }
-
-  @GetMapping("/locais/ativo")
-  public RhLocalPontoResponse buscarLocalAtivo() {
-    return service.buscarLocalAtivo();
-  }
 
   @GetMapping("/configuracao")
   public RhConfiguracaoPontoResponse buscarConfiguracao() {
@@ -92,6 +65,7 @@ public class RhPontoController {
       HttpServletRequest httpRequest) {
     String ip = httpRequest.getRemoteAddr();
     String userAgent = httpRequest.getHeader("User-Agent");
+    request.setFuncionarioId(usuarioId);
     return service.baterPonto(request, usuarioId, ip, userAgent);
   }
 
@@ -126,6 +100,37 @@ public class RhPontoController {
     return ResponseEntity.ok().headers(headers).body(bytes);
   }
 
+  @GetMapping("/relatorio/espelho-pdf")
+  public ResponseEntity<byte[]> imprimirEspelhoMensal(
+      @RequestParam(value = "mes", required = false) Integer mes,
+      @RequestParam(value = "ano", required = false) Integer ano,
+      @RequestParam(value = "funcionarioId") Long funcionarioId,
+      @RequestParam("usuarioId") Long usuarioId) {
+    byte[] bytes = relatorioService.gerarRelatorioEspelhoMensal(mes, ano, funcionarioId, usuarioId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=espelho-mensal.pdf");
+    return ResponseEntity.ok().headers(headers).body(bytes);
+  }
+
+  @GetMapping("/relatorio/colaboradores-pdf")
+  public ResponseEntity<byte[]> imprimirRelacaoColaboradores(@RequestParam("usuarioId") Long usuarioId) {
+    byte[] bytes = relatorioService.gerarRelacaoColaboradores(usuarioId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=relacao-colaboradores.pdf");
+    return ResponseEntity.ok().headers(headers).body(bytes);
+  }
+
+  @GetMapping("/relatorio/configuracao-pdf")
+  public ResponseEntity<byte[]> imprimirConfiguracaoPonto(@RequestParam("usuarioId") Long usuarioId) {
+    byte[] bytes = relatorioService.gerarRelatorioConfiguracao(usuarioId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.set(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=configuracao-ponto.pdf");
+    return ResponseEntity.ok().headers(headers).body(bytes);
+  }
+
   private byte[] gerarRelatorioExcel(RhPontoEspelhoResponse espelho) throws IOException {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       var sheet = workbook.createSheet("Folha de Ponto");
@@ -133,8 +138,7 @@ public class RhPontoController {
 
       Row header = sheet.createRow(rowIndex++);
       String[] colunas = {
-        "Data", "Ocorr.", "Entrada", "SaÃ­da", "Entrada", "SaÃ­da",
-        "Horas Totais", "Hs Extras Total", "Faltas e Atrasos", "ObservaÃ§Ãµes"
+        "Data", "Ocorr.", "Entrada", "Saída", "Entrada", "Saída",`r`n        "Horas Totais", "Hs Extras Total", "Banco de Horas", "Faltas e Atrasos", "Observações"
       };
       CellStyle headerStyle = workbook.createCellStyle();
       headerStyle.setFillForegroundColor(IndexedColors.DARK_GREEN.getIndex());
@@ -161,15 +165,14 @@ public class RhPontoController {
         row.createCell(5).setCellValue(valorOuVazio(dia.getSaidaTarde()));
         row.createCell(6).setCellValue(formatarMinutos(dia.getTotalTrabalhadoMinutos()));
         row.createCell(7).setCellValue(formatarMinutos(dia.getExtrasMinutos()));
-        row.createCell(8).setCellValue(formatarMinutos(dia.getFaltasAtrasosMinutos()));
-        row.createCell(9).setCellValue(valorOuVazio(dia.getObservacoes()));
+        row.createCell(8).setCellValue(formatarMinutos(dia.getBancoHorasMinutos()));`r`n        row.createCell(9).setCellValue(formatarMinutos(dia.getFaltasAtrasosMinutos()));`r`n        row.createCell(10).setCellValue(valorOuVazio(dia.getObservacoes()));
       }
 
       Row totalRow = sheet.createRow(rowIndex + 1);
       totalRow.createCell(5).setCellValue("Totais");
       totalRow.createCell(6).setCellValue(formatarMinutos(espelho.getTotalTrabalhadoMinutos()));
       totalRow.createCell(7).setCellValue(formatarMinutos(espelho.getTotalExtrasMinutos()));
-      totalRow.createCell(8).setCellValue(formatarMinutos(espelho.getTotalFaltasAtrasosMinutos()));
+      totalRow.createCell(8).setCellValue(formatarMinutos(espelho.getTotalBancoHorasMinutos()));`r`n      totalRow.createCell(9).setCellValue(formatarMinutos(espelho.getTotalFaltasAtrasosMinutos()));
 
       for (int i = 0; i < colunas.length; i++) {
         sheet.autoSizeColumn(i);
@@ -194,3 +197,4 @@ public class RhPontoController {
     return valor == null ? "" : valor;
   }
 }
+

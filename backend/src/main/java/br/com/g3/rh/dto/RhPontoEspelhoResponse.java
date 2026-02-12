@@ -11,6 +11,7 @@ public class RhPontoEspelhoResponse {
   private Integer totalDevidoMinutos;
   private Integer totalExtrasMinutos;
   private Integer totalFaltasAtrasosMinutos;
+  private Integer totalBancoHorasMinutos;
   private Integer diasTrabalhados;
   private List<RhPontoDiaResumoResponse> dias = new ArrayList<>();
 
@@ -68,6 +69,14 @@ public class RhPontoEspelhoResponse {
 
   public void setTotalFaltasAtrasosMinutos(Integer totalFaltasAtrasosMinutos) {
     this.totalFaltasAtrasosMinutos = totalFaltasAtrasosMinutos;
+  }
+
+  public Integer getTotalBancoHorasMinutos() {
+    return totalBancoHorasMinutos;
+  }
+
+  public void setTotalBancoHorasMinutos(Integer totalBancoHorasMinutos) {
+    this.totalBancoHorasMinutos = totalBancoHorasMinutos;
   }
 
   public Integer getDiasTrabalhados() {

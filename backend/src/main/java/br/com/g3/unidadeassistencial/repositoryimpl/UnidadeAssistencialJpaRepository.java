@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 public interface UnidadeAssistencialJpaRepository extends JpaRepository<UnidadeAssistencial, Long> {
   Optional<UnidadeAssistencial> findTopByOrderByAtualizadoEmDesc();
 
+  Optional<UnidadeAssistencial> findTopByUnidadePrincipalTrue();
+
   @Modifying
   @Query("update UnidadeAssistencial unidade set unidade.unidadePrincipal = false where unidade.unidadePrincipal = true")
   void limparUnidadePrincipal();

@@ -55,6 +55,7 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
   reportLogoPreview: string | null = null;
   feedback: { type: 'success' | 'error' | 'warning'; message: string } | null = null;
   deleteConfirmation = false;
+  buscandoLocalizacao = false;
   activeTab: (typeof this.tabs)[number]['id'] = 'lista';
   private feedbackTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({    
@@ -138,6 +139,12 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       zona: [''],
       subzona: [''],
       estado: [''],
+      raioPontoMetros: [100, [Validators.required, Validators.min(10)]],
+      accuracyMaxPontoMetros: [200, [Validators.required, Validators.min(10)]],
+      latitude: [''],
+      longitude: [''],
+      ipValidacaoPonto: [''],
+      pingTimeoutMs: [2000, [Validators.required, Validators.min(500)]],
       observacoes: [''],
       unidadePrincipal: [false],
       logomarca: [''],
@@ -226,6 +233,13 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
       this.form.markAllAsTouched();
       return;
     }
+    if (this.coordenadasPendentes()) {
+      this.setFeedback({
+        type: 'error',
+        message: 'Preencha a latitude e longitude para salvar o endereco.'
+      });
+      return;
+    }
 
     const { itens: diretoria, invalido } = this.buildDiretoriaPayload();
     if (invalido) {
@@ -270,6 +284,102 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
         });
       }
     });
+  }
+
+  private coordenadasPendentes(): boolean {
+    const endereco = this.form.get('endereco')?.value as string | undefined;
+    const numero = this.form.get('numeroEndereco')?.value as string | undefined;
+    const cidade = this.form.get('cidade')?.value as string | undefined;
+    const estado = this.form.get('estado')?.value as string | undefined;
+    const latitude = this.form.get('latitude')?.value as string | undefined;
+    const longitude = this.form.get('longitude')?.value as string | undefined;
+    const enderecoInformado =
+      !!endereco?.trim() || !!numero?.trim() || !!cidade?.trim() || !!estado?.trim();
+    if (!enderecoInformado) {
+      return false;
+    }
+    return !latitude?.trim() || !longitude?.trim();
+  }
+
+  buscarLocalizacao(): void {
+    if (!this.unidade?.id) {
+      this.setFeedback({ type: 'error', message: 'Salve a unidade antes de buscar a localização.' });
+      return;
+    }
+    const faltantes = this.obterCamposEnderecoPendentes();
+    if (faltantes.length) {
+      this.setFeedback({
+        type: 'error',
+        message: `Preencha endereço completo antes de localizar: ${faltantes.join(', ')}.`
+      });
+      return;
+    }
+    if (this.buscandoLocalizacao) {
+      return;
+    }
+    this.buscandoLocalizacao = true;
+    this.unitService.geocodificarEndereco(this.unidade.id).subscribe({
+      next: (atualizada) => {
+        this.unidade = atualizada;
+        this.form.patchValue(atualizada);
+        this.form.get('endereco')?.setValue(atualizada.endereco ?? '', { emitEvent: false });
+        this.setFeedback({ type: 'success', message: 'Latitude e longitude atualizadas com sucesso.' }, { autoDismiss: true });
+        this.buscandoLocalizacao = false;
+      },
+      error: (erro) => {
+        const mensagem =
+          erro?.error?.mensagem ||
+          erro?.error?.message ||
+          'Não foi possível localizar a latitude e longitude do endereço.';
+        this.setFeedback({ type: 'error', message: mensagem });
+        this.buscandoLocalizacao = false;
+      }
+    });
+  }
+
+  usarLocalizacaoAtual(): void {
+    if (!navigator.geolocation) {
+      this.setFeedback({ type: 'error', message: 'Geolocalização indisponível no navegador.' });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (posicao) => {
+        const { latitude, longitude } = posicao.coords;
+        this.form.patchValue({
+          latitude: latitude.toFixed(6),
+          longitude: longitude.toFixed(6)
+        });
+        this.setFeedback(
+          { type: 'success', message: 'Latitude e longitude preenchidas com a localização atual.' },
+          { autoDismiss: true }
+        );
+      },
+      () => {
+        this.setFeedback({ type: 'error', message: 'Permita o acesso à localização para preencher os dados.' });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  private obterCamposEnderecoPendentes(): string[] {
+    const endereco = this.form.get('endereco')?.value as string | undefined;
+    const numero = this.form.get('numeroEndereco')?.value as string | undefined;
+    const cidade = this.form.get('cidade')?.value as string | undefined;
+    const estado = this.form.get('estado')?.value as string | undefined;
+    const faltantes: string[] = [];
+    if (!endereco || !endereco.trim()) {
+      faltantes.push('endereço');
+    }
+    if (!numero || !numero.trim()) {
+      faltantes.push('número');
+    }
+    if (!cidade || !cidade.trim()) {
+      faltantes.push('cidade');
+    }
+    if (!estado || !estado.trim()) {
+      faltantes.push('estado');
+    }
+    return faltantes;
   }
 
   requestDeletion(): void {

@@ -2,14 +2,14 @@ package br.com.g3.rh.serviceimpl;
 
 import br.com.g3.auditoria.service.AuditoriaService;
 import br.com.g3.rh.domain.RhConfiguracaoPonto;
-import br.com.g3.rh.domain.RhLocalPonto;
 import br.com.g3.rh.domain.RhPontoDia;
 import br.com.g3.rh.dto.RhPontoBaterRequest;
 import br.com.g3.rh.repository.RhConfiguracaoPontoRepository;
-import br.com.g3.rh.repository.RhLocalPontoRepository;
 import br.com.g3.rh.repository.RhPontoAuditoriaRepository;
 import br.com.g3.rh.repository.RhPontoDiaRepository;
 import br.com.g3.rh.repository.RhPontoMarcacaoRepository;
+import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialResponse;
+import br.com.g3.unidadeassistencial.service.UnidadeAssistencialService;
 import br.com.g3.usuario.domain.Usuario;
 import br.com.g3.usuario.repository.UsuarioRepository;
 import java.time.LocalDate;
@@ -30,34 +30,23 @@ import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 public class RhPontoServiceImplTeste {
-  @Mock private RhLocalPontoRepository localRepository;
   @Mock private RhConfiguracaoPontoRepository configuracaoRepository;
   @Mock private RhPontoDiaRepository pontoDiaRepository;
   @Mock private RhPontoMarcacaoRepository marcacaoRepository;
   @Mock private RhPontoAuditoriaRepository auditoriaRepository;
   @Mock private UsuarioRepository usuarioRepository;
+  @Mock private UnidadeAssistencialService unidadeAssistencialService;
   @Mock private PasswordEncoder passwordEncoder;
   @Mock private AuditoriaService auditoriaService;
 
   @InjectMocks private RhPontoServiceImpl service;
 
-  private RhLocalPonto local;
   private RhConfiguracaoPonto configuracao;
   private Usuario usuario;
+  private UnidadeAssistencialResponse unidadeResponse;
 
   @BeforeEach
   void setup() {
-    local = new RhLocalPonto();
-    local.setId(1L);
-    local.setNome("Sede");
-    local.setLatitude(-19.9);
-    local.setLongitude(-43.9);
-    local.setRaioMetros(100);
-    local.setAccuracyMaxMetros(80);
-    local.setAtivo(true);
-    local.setCriadoEm(LocalDateTime.now());
-    local.setAtualizadoEm(LocalDateTime.now());
-
     configuracao = new RhConfiguracaoPonto();
     configuracao.setId(1L);
     configuracao.setCargaSegQuiMinutos(540);
@@ -71,6 +60,38 @@ public class RhPontoServiceImplTeste {
     usuario = new Usuario();
     usuario.setId(10L);
     usuario.setSenhaHash("hash");
+
+    unidadeResponse = new UnidadeAssistencialResponse(
+        1L,
+        "Sede",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        true,
+        null,
+        null,
+        "Rua A",
+        "100",
+        null,
+        null,
+        null,
+        "Cidade",
+        null,
+        null,
+        "MG",
+        "-19.9",
+        "-43.9",
+        100,
+        80,
+        null,
+        2000);
   }
 
   @Test
@@ -85,6 +106,7 @@ public class RhPontoServiceImplTeste {
 
     Mockito.when(usuarioRepository.buscarPorId(10L)).thenReturn(Optional.of(usuario));
     Mockito.when(passwordEncoder.matches(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(false);
+    Mockito.when(unidadeAssistencialService.obterAtual()).thenReturn(unidadeResponse);
 
     ResponseStatusException ex = Assertions.assertThrows(
         ResponseStatusException.class,
@@ -106,7 +128,7 @@ public class RhPontoServiceImplTeste {
 
     Mockito.when(usuarioRepository.buscarPorId(10L)).thenReturn(Optional.of(usuario));
     Mockito.when(passwordEncoder.matches(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(true);
-    Mockito.when(localRepository.buscarPrimeiroAtivo()).thenReturn(Optional.of(local));
+    Mockito.when(unidadeAssistencialService.obterAtual()).thenReturn(unidadeResponse);
     Mockito.when(configuracaoRepository.buscarAtual()).thenReturn(Optional.of(configuracao));
 
     RhPontoDia pontoDia = new RhPontoDia();

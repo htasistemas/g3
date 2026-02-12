@@ -64,10 +64,22 @@ public class UnidadeAssistencialCriacaoRequest {
 
   private String logomarcaRelatorio;
 
+  private String latitude;
+
+  private String longitude;
+
   @Valid
   private List<DiretoriaUnidadeRequest> diretoria;
 
   private boolean unidadePrincipal;
+
+  private Integer raioPontoMetros;
+
+  private Integer accuracyMaxPontoMetros;
+
+  private String ipValidacaoPonto;
+
+  private Integer pingTimeoutMs;
 
   public String getNomeFantasia() {
     return nomeFantasia;
@@ -229,6 +241,22 @@ public class UnidadeAssistencialCriacaoRequest {
     this.logomarcaRelatorio = logomarcaRelatorio;
   }
 
+  public String getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(String latitude) {
+    this.latitude = latitude;
+  }
+
+  public String getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(String longitude) {
+    this.longitude = longitude;
+  }
+
   public List<DiretoriaUnidadeRequest> getDiretoria() {
     return diretoria;
   }
@@ -243,5 +271,37 @@ public class UnidadeAssistencialCriacaoRequest {
 
   public void setUnidadePrincipal(boolean unidadePrincipal) {
     this.unidadePrincipal = unidadePrincipal;
+  }
+
+  public Integer getRaioPontoMetros() {
+    return raioPontoMetros;
+  }
+
+  public void setRaioPontoMetros(Integer raioPontoMetros) {
+    this.raioPontoMetros = raioPontoMetros;
+  }
+
+  public Integer getAccuracyMaxPontoMetros() {
+    return accuracyMaxPontoMetros;
+  }
+
+  public void setAccuracyMaxPontoMetros(Integer accuracyMaxPontoMetros) {
+    this.accuracyMaxPontoMetros = accuracyMaxPontoMetros;
+  }
+
+  public String getIpValidacaoPonto() {
+    return ipValidacaoPonto;
+  }
+
+  public void setIpValidacaoPonto(String ipValidacaoPonto) {
+    this.ipValidacaoPonto = ipValidacaoPonto;
+  }
+
+  public Integer getPingTimeoutMs() {
+    return pingTimeoutMs;
+  }
+
+  public void setPingTimeoutMs(Integer pingTimeoutMs) {
+    this.pingTimeoutMs = pingTimeoutMs;
   }
 }

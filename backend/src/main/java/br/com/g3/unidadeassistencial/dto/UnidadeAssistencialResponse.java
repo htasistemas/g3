@@ -29,6 +29,10 @@ public class UnidadeAssistencialResponse {
   private final String estado;
   private final String latitude;
   private final String longitude;
+  private final Integer raioPontoMetros;
+  private final Integer accuracyMaxPontoMetros;
+  private final String ipValidacaoPonto;
+  private final Integer pingTimeoutMs;
 
   public UnidadeAssistencialResponse(
       Long id,
@@ -56,7 +60,11 @@ public class UnidadeAssistencialResponse {
       String subzona,
       String estado,
       String latitude,
-      String longitude) {
+      String longitude,
+      Integer raioPontoMetros,
+      Integer accuracyMaxPontoMetros,
+      String ipValidacaoPonto,
+      Integer pingTimeoutMs) {
     this.id = id;
     this.nomeFantasia = nomeFantasia;
     this.razaoSocial = razaoSocial;
@@ -83,6 +91,10 @@ public class UnidadeAssistencialResponse {
     this.estado = estado;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.raioPontoMetros = raioPontoMetros;
+    this.accuracyMaxPontoMetros = accuracyMaxPontoMetros;
+    this.ipValidacaoPonto = ipValidacaoPonto;
+    this.pingTimeoutMs = pingTimeoutMs;
   }
 
   public Long getId() {
@@ -187,5 +199,21 @@ public class UnidadeAssistencialResponse {
 
   public String getLongitude() {
     return longitude;
+  }
+
+  public Integer getRaioPontoMetros() {
+    return raioPontoMetros;
+  }
+
+  public Integer getAccuracyMaxPontoMetros() {
+    return accuracyMaxPontoMetros;
+  }
+
+  public String getIpValidacaoPonto() {
+    return ipValidacaoPonto;
+  }
+
+  public Integer getPingTimeoutMs() {
+    return pingTimeoutMs;
   }
 }

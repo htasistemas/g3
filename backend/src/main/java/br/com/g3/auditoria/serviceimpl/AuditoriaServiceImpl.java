@@ -33,7 +33,7 @@ public class AuditoriaServiceImpl implements AuditoriaService {
     evento.setAcao(acao);
     evento.setEntidade(entidade);
     evento.setEntidadeId(entidadeId);
-    evento.setDadosJson(dadosJson);
+    evento.setDadosJson(garantirJson(dadosJson));
     evento.setUsuarioId(usuarioId);
     evento.setCriadoEm(LocalDateTime.now());
     AuditoriaEvento salvo = repository.salvar(evento);
@@ -115,5 +115,25 @@ public class AuditoriaServiceImpl implements AuditoriaService {
     response.setDadosJson(evento.getDadosJson());
     response.setCriadoEm(evento.getCriadoEm());
     return response;
+  }
+
+  private String garantirJson(String dadosJson) {
+    if (dadosJson == null || dadosJson.isBlank()) {
+      return "{}";
+    }
+    String texto = dadosJson.trim();
+    if (texto.startsWith("{") || texto.startsWith("[")) {
+      return texto;
+    }
+    return "{\"mensagem\":\"" + escaparJson(texto) + "\"}";
+  }
+
+  private String escaparJson(String texto) {
+    return texto
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t");
   }
 }
