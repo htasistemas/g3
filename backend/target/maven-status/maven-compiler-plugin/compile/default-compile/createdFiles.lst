@@ -229,6 +229,7 @@ br\com\g3\bancoempregos\domain\BancoEmpregoEncaminhamento.class
 br\com\g3\cursosatendimentos\repositoryimpl\CursoAtendimentoJpaRepository.class
 br\com\g3\ocorrenciacrianca\domain\OcorrenciaCriancaAnexo.class
 br\com\g3\ocorrenciacrianca\repository\OcorrenciaCriancaRepository.class
+br\com\g3\rh\serviceimpl\RhPontoServiceImpl.class
 br\com\g3\cadastrovoluntario\dto\CadastroVoluntarioCriacaoRequest.class
 br\com\g3\fotoseventos\service\ArmazenamentoFotoEventoService.class
 br\com\g3\vinculofamiliar\dto\VinculoFamiliarCriacaoRequest.class
@@ -316,6 +317,7 @@ br\com\g3\relatorios\service\RelatorioSolicitacaoComprasService.class
 br\com\g3\doacaorealizada\domain\DoacaoRealizada.class
 br\com\g3\cadastroprofissionais\repositoryimpl\CadastroProfissionalRepositoryImpl.class
 br\com\g3\vinculofamiliar\dto\VinculoFamiliarMembroResponse.class
+br\com\g3\rh\serviceimpl\RhPontoServiceImpl$1.class
 br\com\g3\cursosatendimentos\repository\CursoAtendimentoRepository.class
 br\com\g3\cursosatendimentos\dto\CursoAtendimentoRequest.class
 br\com\g3\noticiasassistencia\dto\NoticiaAssistenciaResponse.class

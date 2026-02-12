@@ -1,3 +1,5 @@
+br\com\g3\recebimentodoacao\serviceimpl\RecebimentoDoacaoServiceImplTeste.class
 br\com\g3\autenticacao\serviceimpl\AutenticacaoServiceImplTeste.class
+br\com\g3\rh\serviceimpl\RhPontoServiceImplTeste.class
 br\com\g3\controleveiculos\serviceimpl\ControleVeiculosServiceImplTeste.class
 br\com\g3\documentosinstituicao\serviceimpl\DocumentoInstituicaoServiceImplTeste.class
