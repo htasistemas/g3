@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 import { catchError, map, Observable, throwError } from 'rxjs';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface DocumentoObrigatorio {
   id?: number | string;
@@ -137,17 +137,11 @@ export interface BeneficiaryPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BeneficiaryService {
-  private readonly apiBaseUrl = this.resolverApiBaseUrl();
-  private readonly baseUrls = [`${this.apiBaseUrl}/beneficiarios`, `${this.apiBaseUrl}/beneficiaries`];
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly apiBaseUrl = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
+  private readonly baseUrls = [`${this.apiBaseUrl}/api/beneficiarios`, `${this.apiBaseUrl}/api/beneficiaries`];
 
   constructor(private readonly http: HttpClient) {}
-  private resolverApiBaseUrl(): string {
-    const base = (environment.apiUrl || '').trim().replace(/\/$/, '');
-    if (!base) {
-      return '/api';
-    }
-    return base.endsWith('/api') ? base : `${base}/api`;
-  }
 
   getById(id: number): Observable<BeneficiaryPayload> {
     return this.requestWithFallback((baseUrl) =>
@@ -195,7 +189,7 @@ export class BeneficiaryService {
   }
 
   recalculateIvf(idBeneficiario: string): Observable<VulnerabilityIndexPayload> {
-    const url = `${environment.apiUrl}/api/ivf/${idBeneficiario}/recalcular`;
+    const url = `${this.runtimeConfig.apiUrl}/api/ivf/${idBeneficiario}/recalcular`;
     return this.http.post<{ indice: VulnerabilityIndexPayload }>(url, {}).pipe(map(({ indice }) => indice));
   }
 
@@ -258,4 +252,3 @@ export class BeneficiaryService {
     );
   }
 }
-

@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface SenhaFilaResponse {
   id: number;
@@ -47,7 +47,8 @@ export interface SenhaFinalizarRequest {
 
 @Injectable({ providedIn: 'root' })
 export class SenhasService {
-  private readonly baseUrl = `${environment.apiUrl}/api/senhas`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/senhas`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -123,4 +124,3 @@ export class SenhasService {
       .pipe(map((payload) => (payload ? this.normalizarChamada(payload) : null)));
   }
 }
-

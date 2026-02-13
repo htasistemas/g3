@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface ContaBancariaRequest {
   banco: string;
@@ -10,7 +10,6 @@ export interface ContaBancariaRequest {
   tipo: string;
   projetoVinculado?: string;
   pixVinculado?: boolean;
-  recebimentoLocal?: boolean;
   tipoChavePix?: string;
   chavePix?: string;
   saldo: number;
@@ -60,7 +59,6 @@ export interface MovimentacaoFinanceiraRequest {
   contaBancariaId?: number;
   dataMovimentacao: string;
   valor: number;
-  doacaoId?: number;
 }
 
 export interface MovimentacaoFinanceiraResponse extends MovimentacaoFinanceiraRequest {
@@ -85,7 +83,8 @@ export interface EmendaImpositivaResponse extends EmendaImpositivaRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ContabilidadeService {
-  private readonly baseUrl = `${environment.apiUrl}/api/contabilidade`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/contabilidade`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -158,4 +157,3 @@ export class ContabilidadeService {
     return this.http.patch<EmendaImpositivaResponse>(`${this.baseUrl}/emendas/${id}/status`, { status });
   }
 }
-

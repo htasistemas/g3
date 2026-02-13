@@ -1,12 +1,12 @@
 services:
   db:
     image: postgres:15
+    container_name: g3-db
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=${DB_USERNAME:-g3}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-admin}
       - POSTGRES_DB=${DB_NAME:-g3}
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -16,66 +16,46 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+    container_name: g3-backend
+    restart: unless-stopped
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-g3}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://g3-db:5432/${DB_NAME:-g3}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-g3}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-admin}
-    ports:
-      - "8080:8080"
-    volumes:
-      - backend_storage:/app/storage
-      - ./docker/secrets/configuracao servidor email.txt:/app/configuracao servidor email.txt:ro
-    depends_on:
-      db:
-        condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 20s
     networks:
       - g3_net
+      - hta_public_net
+
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    container_name: g3-frontend
+    restart: unless-stopped
     environment:
-      - API_BASE_URL=${API_BASE_URL:-}
-    ports:
-      - "80:80"
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html && wget -qO- http://localhost/ > /dev/null || exit 1"]
-      interval: 15s
-      timeout: 8s
-      retries: 8
-      start_period: 30s
+      - API_BASE_URL=https://g3.htasistemas.com.br
     networks:
       - g3_net
+      - hta_public_net
 
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    entrypoint: ["cloudflared", "tunnel", "--config", "/etc/cloudflared/config.yml", "run"]
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+  nginx-g3:
+    image: nginx:alpine
+    container_name: nginx-g3
+    restart: unless-stopped
     volumes:
-      - ./docker/cloudflared:/etc/cloudflared:ro
-    restart: always
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
     networks:
       - g3_net
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
+      - hta_public_net
+
+networks:
+  g3_net:
+  hta_public_net:
+    external: true
 
 volumes:
   db_data:
   backend_storage:
-
-networks:
-  g3_net:
-    driver: bridge

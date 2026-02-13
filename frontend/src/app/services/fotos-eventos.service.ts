@@ -1,8 +1,8 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface FotoEventoUpload {
   nomeArquivo: string;
@@ -71,7 +71,8 @@ export interface FotoEventoListaResponse {
 
 @Injectable({ providedIn: 'root' })
 export class FotosEventosService {
-  private readonly baseUrl = `${environment.apiUrl}/api/fotos-eventos`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/fotos-eventos`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -195,4 +196,3 @@ export class FotosEventosService {
     };
   }
 }
-

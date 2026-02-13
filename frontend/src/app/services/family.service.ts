@@ -1,9 +1,9 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BeneficiarioApiPayload } from './beneficiario-api.service';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface FamiliaMembroPayload {
   id_familia_membro?: string;
@@ -64,7 +64,8 @@ export interface FamiliaPayload {
 
 @Injectable({ providedIn: 'root' })
 export class FamilyService {
-  private readonly baseUrl = `${environment.apiUrl}/api/familias`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/familias`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -156,4 +157,3 @@ export class FamilyService {
     return this.http.delete(`${this.baseUrl}/${familiaId}/membros/${membroId}`);
   }
 }
-

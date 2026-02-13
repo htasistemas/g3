@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type ProfessionalStatus = 'ATIVO' | 'INATIVO' | 'DESATUALIZADO' | 'INCOMPLETO' | 'EM_ANALISE' | 'BLOQUEADO';
 
@@ -94,7 +94,8 @@ type ProfessionalApiPayload = {
 
 @Injectable({ providedIn: 'root' })
 export class ProfessionalService {
-  private readonly baseUrl = `${environment.apiUrl}/api/profissionais`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/profissionais`;
   private cachedProfessionals: ProfessionalRecord[] = [];
 
   constructor(private readonly http: HttpClient) {}
@@ -232,4 +233,3 @@ export class ProfessionalService {
     };
   }
 }
-

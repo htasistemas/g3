@@ -1,8 +1,8 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface DocumentoInstituicaoRequestPayload {
   tipoDocumento: string;
@@ -70,7 +70,8 @@ export interface DocumentoInstituicaoHistoricoResponsePayload
 
 @Injectable({ providedIn: 'root' })
 export class DocumentosInstituicaoService {
-  private readonly baseUrl = `${environment.apiUrl}/api/documentos-instituicao`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/documentos-instituicao`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -189,7 +190,6 @@ export class DocumentosInstituicaoService {
   private normalizarUrl(url?: string | null): string | undefined {
     if (!url) return undefined;
     if (url.startsWith('http')) return url;
-    return `${environment.apiUrl}${url}`;
+    return `${this.runtimeConfig.apiUrl}${url}`;
   }
 }
-

@@ -1,9 +1,9 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
 import { DocumentoObrigatorio } from './beneficiary.service';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface BeneficiarioApiPayload {
   id_beneficiario?: string;
@@ -118,17 +118,11 @@ export interface BeneficiarioApiPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BeneficiarioApiService {
-  private readonly apiBaseUrl = this.resolverApiBaseUrl();
-  private readonly baseUrl = `${this.apiBaseUrl}/beneficiarios`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly apiBaseUrl = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
+  private readonly baseUrl = `${this.apiBaseUrl}/api/beneficiarios`;
 
   constructor(private readonly http: HttpClient) {}
-  private resolverApiBaseUrl(): string {
-    const base = (environment.apiUrl || '').trim().replace(/\/$/, '');
-    if (!base) {
-      return '/api';
-    }
-    return base.endsWith('/api') ? base : `${base}/api`;
-  }
 
   private logAndRethrow(operation: string) {
     return (error: any) => {
@@ -216,4 +210,3 @@ export class BeneficiarioApiService {
     return this.http.post<{ beneficiario: BeneficiarioApiPayload }>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, { params });
   }
 }
-

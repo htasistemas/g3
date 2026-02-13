@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface AssistanceUnitPayload {
   id?: number;
@@ -24,10 +24,6 @@ export interface AssistanceUnitPayload {
   estado?: string;
   latitude?: string;
   longitude?: string;
-  raioPontoMetros?: number;
-  accuracyMaxPontoMetros?: number;
-  ipValidacaoPonto?: string;
-  pingTimeoutMs?: number;
   observacoes?: string;
   logomarca?: string;
   logomarcaRelatorio?: string;
@@ -47,7 +43,8 @@ export interface DiretoriaUnidadePayload {
 
 @Injectable({ providedIn: 'root' })
 export class AssistanceUnitService {
-  private readonly baseUrl = `${environment.apiUrl}/api/unidades-assistenciais`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/unidades-assistenciais`;
   private readonly activeUnitKey = 'g3-active-assistance-unit';
   private readonly activeUnitLogoKey = 'g3-active-assistance-logo';
 
@@ -68,20 +65,6 @@ export class AssistanceUnitService {
     return this.http.get<{ unidade: AssistanceUnitPayload | null }>(`${this.baseUrl}/atual`);
   }
 
-  carregarUnidadeAtual(): Observable<{ unidade: AssistanceUnitPayload | null }> {
-    return this.get().pipe(
-      tap((resposta) => {
-        const unidade = resposta?.unidade;
-        if (unidade?.nomeFantasia) {
-          this.setActiveUnit(unidade.nomeFantasia, unidade.logomarca || null);
-          return;
-        }
-
-        this.setActiveUnit('Navegação', null);
-      })
-    );
-  }
-
   list(): Observable<AssistanceUnitPayload[]> {
     return this.http.get<AssistanceUnitPayload[]>(this.baseUrl);
   }
@@ -93,14 +76,6 @@ export class AssistanceUnitService {
     }
 
     return this.http.post<AssistanceUnitPayload>(this.baseUrl, payload);        
-  }
-
-  geocodificarEndereco(id: number, forcar = false): Observable<AssistanceUnitPayload> {
-    const opcoes: { params?: HttpParams } = {};
-    if (forcar) {
-      opcoes.params = new HttpParams().set('forcar', 'true');
-    }
-    return this.http.post<AssistanceUnitPayload>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, opcoes);
   }
 
   remove(id: number): Observable<void> {
@@ -126,4 +101,3 @@ export class AssistanceUnitService {
     localStorage.removeItem(this.activeUnitLogoKey);
   }
 }
-

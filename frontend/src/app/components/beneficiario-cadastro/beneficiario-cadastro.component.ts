@@ -1,15 +1,5 @@
-﻿import { CommonModule } from '@angular/common';
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
@@ -24,8 +14,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faUsers } from '@fortawesome/free-solid-svg-icons';
 import {
   BeneficiarioApiService,
   BeneficiarioApiPayload,
@@ -46,9 +34,8 @@ import {
 } from '../../services/report.service';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
-import { environment } from '../../../environments/environment';
 import { Subject, firstValueFrom, of } from 'rxjs';
-import { catchError, finalize, map, take, takeUntil, timeout } from 'rxjs/operators';
+import { catchError, finalize, map, takeUntil } from 'rxjs/operators';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   ConfigAcoesCrud,
@@ -59,6 +46,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { criarDataLocal, formatarDataSemFuso } from '../../utils/data-format.util';
+import { RuntimeConfigService } from '../../services/runtime-config.service';
 type ViaCepResponse = {
   logradouro?: string;
   complemento?: string;
@@ -78,7 +66,6 @@ type PrintListOrder = 'alphabetical' | 'code';
     ReactiveFormsModule,
     FormsModule,
     RouterModule,
-    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
     DialogComponent,
@@ -86,17 +73,14 @@ type PrintListOrder = 'alphabetical' | 'code';
   templateUrl: './beneficiario-cadastro.component.html',
   styleUrl: './beneficiario-cadastro.component.scss',
 })
-export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy, AfterViewInit {
-  readonly faUsers = faUsers;
+export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
+  private readonly runtimeConfig = inject(RuntimeConfigService);
   form: FormGroup;
   searchForm: FormGroup;
   activeTab = 'lista';
   saving = false;
-  private _feedback: string | null = null;
-  private _listError: string | null = null;
+  feedback: string | null = null;
   popupErros: string[] = [];
-  popupMensagens: string[] = [];
-  popupTitulo = 'Aviso';
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
@@ -123,15 +107,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     { value: 'bairro', label: 'Bairro' },
   ];
   genderIdentityOptions = [
-    'Mulher cisgênero',
-    'Homem cisgênero',
-    'Mulher transgênero',
-    'Homem transgênero',
-    'Pessoa Não binaria',
+    'Mulher cisgenero',
+    'Homem cisgenero',
+    'Mulher transgenero',
+    'Homem transgenero',
+    'Pessoa nao binaria',
     'Travesti',
-    'gênero fluido',
+    'Genero fluido',
     'Outro',
-    'Prefiro Não informar',
+    'Prefiro nao informar',
   ];
   maritalStatusOptions = [
     'Solteiro(a)',
@@ -223,32 +207,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'TO',
   ];
   listLoading = false;
-  get feedback(): string | null {
-    return this._feedback;
-  }
-  set feedback(value: string | null) {
-    this._feedback = value;
-    if (!value) {
-      this.popupMensagens = [];
-      return;
-    }
-    this.popupTitulo = this.resolverTituloPopup(value);
-    this.popupMensagens = [value];
-  }
-  get listError(): string | null {
-    return this._listError;
-  }
-  set listError(value: string | null) {
-    this._listError = value;
-    if (!value) {
-      if (!this._feedback) {
-        this.popupMensagens = [];
-      }
-      return;
-    }
-    this.popupTitulo = 'Erro';
-    this.popupMensagens = [value];
-  }
+  listError: string | null = null;
   preferredContactOptions = [
     { value: 'MANHA', label: 'Manha' },
     { value: 'TARDE', label: 'Tarde' },
@@ -306,17 +265,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   pdfErrorDialogOpen = false;
   pdfErrorMessage: string | null = null;
   dialogConfirmacaoAberta = false;
-  dialogTitulo = 'Confirmar ação';
+  dialogTitulo = 'Confirmar acao';
   dialogMensagem = 'Deseja continuar?';
   dialogConfirmarLabel = 'Confirmar';
   private dialogAcao?: () => void;
-  private suprimirBuscaAutomatica = false;
   private documentNameKey(name?: string): string {
     return (name ?? '').trim().toLowerCase();
   }
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('campoNomeCompleto') campoNomeCompleto?: ElementRef<HTMLInputElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
     ['dadosPessoais', 'nome_completo'],
     ['dadosPessoais', 'nome_social'],
@@ -324,18 +281,18 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     ['dadosPessoais', 'naturalidade_cidade'],
     ['dadosPessoais', 'nome_mae'],
     ['dadosPessoais', 'nome_pai'],
-    ['Endereço', 'logradouro'],
-    ['Endereço', 'complemento'],
-    ['Endereço', 'bairro'],
-    ['Endereço', 'ponto_referência'],
-    ['Endereço', 'Município'],
+    ['endereco', 'logradouro'],
+    ['endereco', 'complemento'],
+    ['endereco', 'bairro'],
+    ['endereco', 'ponto_referencia'],
+    ['endereco', 'municipio'],
     ['contato', 'telefone_recado_nome'],
     ['documentos', 'certidao_tipo'],
     ['documentos', 'certidao_livro'],
     ['documentos', 'certidao_folha'],
     ['documentos', 'certidao_termo'],
     ['documentos', 'certidao_cartorio'],
-    ['documentos', 'certidao_Município'],
+    ['documentos', 'certidao_municipio'],
     ['documentos', 'titulo_eleitor'],
     ['documentos', 'cnh'],
     ['documentos', 'cartao_sus'],
@@ -348,10 +305,10 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     ['escolaridade', 'situacao_trabalho'],
     ['escolaridade', 'local_trabalho'],
     ['saude', 'tipo_deficiencia'],
-    ['saude', 'Descrição_medicacao'],
-    ['saude', 'servico_saude_referência'],
-    ['Benefícios', 'Benefícios_Descrição'],
-    ['observações', 'observações'],
+    ['saude', 'descricao_medicacao'],
+    ['saude', 'servico_saude_referencia'],
+    ['beneficios', 'beneficios_descricao'],
+    ['observacoes', 'observacoes'],
   ];
   educationLevelOptions: string[] = [
     'Sem escolaridade formal',
@@ -377,16 +334,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Outros',
   ];
   tabs = [
-    { id: 'lista', label: 'Listagem de Beneficiários' },
+    { id: 'lista', label: 'Listagem de beneficiarios' },
     { id: 'dados', label: 'Dados Pessoais' },
-    { id: 'endereco', label: 'Endereço' },
+    { id: 'endereco', label: 'Endereco' },
     { id: 'contato', label: 'Contato' },
     { id: 'documentos', label: 'Documentos' },
-    { id: 'familiar', label: 'Situação Familiar e Social' },
+    { id: 'familiar', label: 'Situacao Familiar e Social' },
     { id: 'escolaridade', label: 'Escolaridade e trabalho' },
-    { id: 'saude', label: 'Saúde' },
-    { id: 'beneficios', label: 'Benefícios' },
-    { id: 'observacoes', label: 'Observações e aceite' },
+    { id: 'saude', label: 'Saude' },
+    { id: 'beneficios', label: 'Beneficios' },
+    { id: 'observacoes', label: 'Observacoes e aceite' },
   ];
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     buscar: true,
@@ -398,7 +355,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   });
   get acoesDesabilitadas(): EstadoAcoesCrud {
     return {
-      buscar: this.saving || this.uploadingDocuments || this.listLoading,
+      buscar: this.saving || this.uploadingDocuments,
       salvar: this.saving || this.uploadingDocuments,
       excluir: !this.selectedBeneficiary,
       novo: this.saving || this.uploadingDocuments,
@@ -437,22 +394,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   fecharPopupErros(): void {
     this.popupErros = [];
-  }
-  fecharPopupMensagens(): void {
-    this.popupMensagens = [];
-    this._feedback = null;
-    this._listError = null;
-  }
-  private resolverTituloPopup(mensagem: string): string {
-    const texto = mensagem.toLowerCase();
-    if (texto.includes('sucesso')) return 'Sucesso';
-    if (texto.includes('erro') || texto.includes('não foi') || texto.includes('falha')) {
-      return 'Erro';
-    }
-    if (texto.includes('atenção') || texto.includes('obrigatório') || texto.includes('obrigatorios')) {
-      return 'Atenção';
-    }
-    return 'Aviso';
   }
   getTabLabel(id: string): string {
     return this.tabs.find((tab) => tab.id === id)?.label ?? '';
@@ -498,20 +439,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     private readonly reportService: ReportService,
     private readonly authService: AuthService,
     private readonly ngZone: NgZone,
-    private readonly changeDetector: ChangeDetectorRef,
     private readonly sanitizer: DomSanitizer,
   ) {
     super();
-    this.searchForm = this.fb.group(
-      {
-        nome: [''],
-        codigo: [''],
-        cpf: [''],
-        data_nascimento: [''],
-        status: [''],
-      },
-      { updateOn: 'change' },
-    );
+    this.searchForm = this.fb.group({
+      nome: [''],
+      codigo: [''],
+      cpf: [''],
+      data_nascimento: [''],
+      status: [''],
+    });
     this.form = this.fb.group({
       status: ['EM_ANALISE', Validators.required],
       motivo_bloqueio: [''],
@@ -655,7 +592,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
     this.carregarOrdenacaoDocumentos();
-    this.buscarBeneficiariosNaListagem(false);
+    this.searchBeneficiaries();
     this.searchForm
       .get('status')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -664,7 +601,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       const id = params.get('id');
       if (id) {
         this.beneficiarioId = id;
-        this.service.getById(id).subscribe(({ beneficiario }: { beneficiario: BeneficiarioApiPayload }) => {
+        this.service.getById(id).subscribe(({ beneficiario }) => {
           const normalizedBeneficiary = {
             ...beneficiario,
             codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined,
@@ -680,13 +617,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         });
       }
     });
-  }
-  ngAfterViewInit(): void {
-    this.ngZone.onStable
-      .pipe(take(1), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.activeTab = 'lista';
-      });
   }
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -864,15 +794,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.familyRegistration = this.getFamilyRegistrationValue(beneficiario);
   }
   formatDateTime(dateValue: string | null): string {
-    if (!dateValue) return 'Não informado';
+    if (!dateValue) return 'N??o informado';
     const parsed = new Date(dateValue);
-    if (isNaN(parsed.getTime())) return 'Não informado';
+    if (isNaN(parsed.getTime())) return 'N??o informado';
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(
       parsed,
     );
   }
   getFamilyRegistrationLabel(): string {
-    return this.familyRegistration || 'Não vinculado';
+    return this.familyRegistration || 'N??o vinculado';
   }
   private getFamilyRegistrationValue(beneficiario: BeneficiarioApiPayload | null): string | null {
     if (!beneficiario) return null;
@@ -885,12 +815,37 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     );
   }
   private loadRequiredDocuments(): void {
-    this.documentosObrigatorios = [];
-    if (this.hasLoadedExistingDocuments) {
-      this.mergeRequiredDocumentsWithExisting();
-    } else {
-      this.resetDocumentArray();
-    }
+    this.configService
+      .getBeneficiaryDocuments()
+      .pipe(
+        map(({ documents }) =>
+          (documents ?? []).map(
+            (doc) => ({ nome: doc.nome, obrigatorio: !!doc.obrigatorio }) as DocumentoObrigatorio,
+          ),
+        ),
+        catchError(() =>
+          this.beneficiaryService.getRequiredDocuments().pipe(
+            map(({ documents }) => documents ?? []),
+            catchError(() => of([])),
+          ),
+        ),
+      )
+      .subscribe({
+        next: (documents) => {
+          this.documentosObrigatorios = documents;
+          if (this.hasLoadedExistingDocuments) {
+            this.mergeRequiredDocumentsWithExisting();
+          } else {
+            this.resetDocumentArray();
+          }
+        },
+        error: () => {
+          this.documentosObrigatorios = [];
+          if (!this.hasLoadedExistingDocuments) {
+            this.resetDocumentArray();
+          }
+        },
+      });
   }
   private normalizeDocumentList(
     documents: Partial<DocumentoObrigatorio>[],
@@ -1034,7 +989,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const beneficiarioId = this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario;
     if (!content) {
       if (documentoId && beneficiarioId) {
-        const url = `${environment.apiUrl}/api/beneficiarios/${beneficiarioId}/documentos/${documentoId}`;
+        const url = `${this.runtimeConfig.apiUrl}/api/beneficiarios/${beneficiarioId}/documentos/${documentoId}`;
         const janela = window.open(url, '_blank', 'width=900,height=1100');
         if (janela) {
           janela.addEventListener('load', () => janela.print(), { once: true });
@@ -1094,7 +1049,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.updateUploadState();
     };
     reader.onerror = () => {
-      this.feedback = 'Não foi possível carregar o arquivo selecionado. Tente novamente.';
+      this.feedback = 'N??o foi poss??vel carregar o arquivo selecionado. Tente novamente.';
       delete this.uploadProgress[index];
       this.updateUploadState();
     };
@@ -1129,7 +1084,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const beneficiarioId = this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario;
     if (!content) {
       if (documentoId && beneficiarioId) {
-        const url = `${environment.apiUrl}/api/beneficiarios/${beneficiarioId}/documentos/${documentoId}`;
+        const url = `${this.runtimeConfig.apiUrl}/api/beneficiarios/${beneficiarioId}/documentos/${documentoId}`;
         window.open(url, '_blank');
         return;
       }
@@ -1158,7 +1113,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   private validateRequiredDocuments(): boolean {
     const missing = this.getMissingRequiredDocuments();
     if (missing.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missing.join(', ')}`;
       this.changeTab('documentos');
       return false;
     }
@@ -1167,7 +1122,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   confirmDocuments(): void {
     const missing = this.getMissingRequiredDocuments();
     if (missing.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missing.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missing.join(', ')}`;
       this.changeTab('documentos');
       return;
     }
@@ -1180,21 +1135,21 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       message?: string;
       validate?: (control: AbstractControl) => boolean;
     }[] = [
-      { path: ['status'], label: 'Status do Beneficiário' },
+      { path: ['status'], label: 'Status do beneficiario' },
       { path: ['dadosPessoais', 'nome_completo'], label: 'Nome completo' },
       { path: ['dadosPessoais', 'data_nascimento'], label: 'Data de nascimento' },
-      { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mãe' },
-      { path: ['Endereço', 'cep'], label: 'CEP', message: 'Informe um CEP válido.' },
+      { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da m??e' },
+      { path: ['endereco', 'cep'], label: 'CEP', message: 'Informe um CEP v??lido.' },
       { path: ['contato', 'telefone_principal'], label: 'Telefone principal' },
-      { path: ['documentos', 'cpf'], label: 'CPF', message: 'Informe um CPF válido.' },
+      { path: ['documentos', 'cpf'], label: 'CPF', message: 'Informe um CPF v??lido.' },
       {
         path: ['contato', 'email'],
         label: 'E-mail',
-        message: 'Informe um e-mail válido ou deixe o campo vazio.',
+        message: 'Informe um e-mail v??lido ou deixe o campo vazio.',
         validate: (control) => !!control.value && control.invalid,
       },
       {
-        path: ['observações', 'aceite_lgpd'],
+        path: ['observacoes', 'aceite_lgpd'],
         label: 'Aceite LGPD',
         message: 'Confirme o aceite LGPD para continuar.',
         validate: (control) => control.invalid,
@@ -1207,7 +1162,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         if (validate) return validate(control);
         return control.invalid;
       })
-      .map(({ label, message }) => message ?? `${label} é obrigatório.`);
+      .map(({ label, message }) => message ?? `${label} ?? obrigat??rio.`);
   }
   private showMissingFieldsModal(messages: string[]): void {
     this.missingFieldMessages = messages;
@@ -1227,14 +1182,23 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.feedbackTimeout = setTimeout(() => {
       this.ngZone.run(() => {
         this.feedback = null;
-        this.popupMensagens = [];
       });
     }, 4000);
+  }
+  dismissFeedback(): void {
+    if (this.feedbackTimeout) {
+      clearTimeout(this.feedbackTimeout);
+      this.feedbackTimeout = undefined;
+    }
+    this.feedback = null;
+  }
+  dismissListError(): void {
+    this.listError = null;
   }
   saveStatusChange(): void {
     if (this.saving) return;
     if (!this.beneficiarioId) {
-      this.feedback = 'Selecione um Beneficiário salvo para atualizar o status.';
+      this.feedback = 'Selecione um beneficiario salvo para atualizar o status.';
       return;
     }
     this.submit(true);
@@ -1273,7 +1237,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return manualStatus;
   }
   toggleBenefit(option: string): void {
-    const control = this.form.get(['Benefícios', 'Benefícios_recebidos']);
+    const control = this.form.get(['beneficios', 'beneficios_recebidos']);
     const current = new Set(control?.value ?? []);
     if (current.has(option)) {
       current.delete(option);
@@ -1283,13 +1247,13 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     control?.setValue(Array.from(current));
   }
   selectionChecked(option: string): boolean {
-    const control = this.form.get(['Benefícios', 'Benefícios_recebidos']);
+    const control = this.form.get(['beneficios', 'beneficios_recebidos']);
     return (control?.value as string[] | undefined)?.includes(option) ?? false;
   }
   formatCurrency(
     event: Event,
-    groupName = 'Benefícios',
-    controlName = 'valor_total_Benefícios',
+    groupName = 'beneficios',
+    controlName = 'valor_total_beneficios',
   ): void {
     const input = event.target as HTMLInputElement;
     const digits = input.value.replace(/\D/g, '');
@@ -1304,7 +1268,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   async handleLgpdToggle(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const dateControl = this.form.get(['observações', 'data_aceite_lgpd']);
+    const dateControl = this.form.get(['observacoes', 'data_aceite_lgpd']);
     if (input.checked) {
       if (!dateControl?.value) {
         dateControl?.setValue(this.getCurrentLocalDateTime());
@@ -1315,7 +1279,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
   reimprimirTermoConsentimento(): void {
-    const aceite = this.form.get(['observações', 'aceite_lgpd'])?.value;
+    const aceite = this.form.get(['observacoes', 'aceite_lgpd'])?.value;
     if (!aceite) {
       this.showTemporaryFeedback('Confirme o aceite LGPD antes de reimprimir o termo.');
       return;
@@ -1352,8 +1316,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const issuedBy =
       this.authService.user()?.nome ||
       this.authService.user()?.nomeUsuario ||
-      'Usuario Não informado';
-    const beneficiarioNome = personal.nome_completo || personal.nome_social || 'Beneficiário';
+      'Usuario nao informado';
+    const beneficiarioNome = personal.nome_completo || personal.nome_social || 'Beneficiario';
     const enderecoCompleto = this.formatAddress(address);
     const cidade = address.municipio || address.cidade || '';
     const uf = address.uf || '';
@@ -1445,14 +1409,14 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       const blob = await firstValueFrom(this.reportService.generateBeneficiaryList(filters));
       this.openPdfInNewWindow(blob);
     } catch (error) {
-      console.error('Erro ao gerar relação de Beneficiários', error);
-      this.feedback = 'Falha ao gerar a relação de Beneficiários. Tente novamente.';
+      console.error('Erro ao gerar rela????o de beneficiarios', error);
+      this.feedback = 'Falha ao gerar a rela????o de beneficiarios. Tente novamente.';
     }
   }
   async printIndividualRecord(): Promise<void> {
     const beneficiarioId = this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario;
     if (!beneficiarioId) {
-      this.feedback = 'Selecione ou salve o Beneficiário antes de gerar a ficha.';
+      this.feedback = 'Selecione ou salve o beneficiario antes de gerar a ficha.';
       return;
     }
     await this.printIndividualRecordById(String(beneficiarioId));
@@ -1468,12 +1432,12 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.openPdfInNewWindow(blob);
     } catch (error) {
       console.error('Erro ao gerar ficha individual', error);
-      this.feedback = 'Falha ao gerar a ficha individual do Beneficiário.';
+      this.feedback = 'Falha ao gerar a ficha individual do beneficiario.';
     }
   }
   imprimirFichaPorNome(beneficiario: BeneficiarioApiPayload): void {
     if (!beneficiario.id_beneficiario) {
-      this.feedback = 'Selecione um Beneficiário válido para imprimir a ficha.';
+      this.feedback = 'Selecione um beneficiario valido para imprimir a ficha.';
       return;
     }
     this.closePrintByName();
@@ -1547,9 +1511,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const statusClass = status === 'BLOQUEADO' ? 'status status--blocked' : 'status status--active';
     const benefitsLabel = benefits.recebe_beneficio
       ? displayValue(benefits.beneficios_descricao, 'Sim')
-      : 'Não';
+      : 'N??o';
     const programaVinculado = displayValue(personal.programa_vinculado);
-    return `      <!DOCTYPE html>      <html lang="pt-BR">        <head>          <meta charset="UTF-8" />          <meta name="viewport" content="width=device-width, initial-scale=1.0" />          <title>Ficha Individual do Beneficiário - Sistema G3</title>          <style>            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');            :root {              --brand-50: #f0f7ff;              --brand-100: #d9e9ff;              --brand-500: #1d7ed2;              --brand-700: #0d4d8c;              --slate-700: #334155;              --slate-500: #64748b;              --slate-300: #cbd5e1;              --accent: #fbbf24;            }            @page { size: A4; margin: 12mm; }            * { box-sizing: border-box; }            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #e2e8f0; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }            .report { width: 100%; max-width: 100%; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08); overflow: hidden; }            .report__inner { padding: 26px; }            .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 14px; }            .identity { display: flex; align-items: center; gap: 14px; }            .logo { width: 72px; height: 72px; border: 1px solid var(--slate-300); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-50); overflow: hidden; }            .logo img { width: 100%; height: 100%; object-fit: contain; }            .unit-name { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--slate-700); }            .unit-meta { margin: 2px 0; color: var(--slate-500); font-size: 12px; }            .header__title { text-align: right; }            .header__title h1 { margin: 0; font-size: 18px; color: var(--brand-700); letter-spacing: 0.3px; }            .header__title p { margin: 2px 0 0; font-size: 12px; color: var(--slate-500); }            .hero { margin: 20px 0 12px; }            .hero-card { display: flex; gap: 20px; align-items: stretch; flex-wrap: nowrap; padding: 16px; border-radius: 14px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }            .hero__media { width: 210px; flex: 0 0 210px; display: flex; flex-direction: column; }            .photo { width: 100%; height: 220px; border-radius: 14px; overflow: hidden; border: 2px solid var(--slate-300); box-shadow: inset 0 0 0 1px #e2e8f0; background: #fff; }            .photo img { width: 100%; height: 100%; object-fit: cover; }            .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; margin-top: 10px; border: 1px solid #cbd5e1; }            .status.status--blocked { color: #b91c1c; background: #fee2e2; border-color: #fecdd3; }            .status.status--active { color: #166534; background: #dcfce7; border-color: #bbf7d0; }            .headline { padding: 14px 16px; border-radius: 12px; background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 1px solid #e2e8f0; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04); flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }            .hero__content { flex: 1; min-width: 0; display: flex; }            .headline__name { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #0f172a; }            .chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }            .chip { padding: 10px 12px; border: 1px dashed #e2e8f0; border-radius: 10px; background: #fff; font-size: 13px; }            .chip strong { display: block; font-size: 12px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.3px; }            .grid { display: grid; gap: 16px; margin: 14px 0; }            .grid--two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }            .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); page-break-inside: avoid; }            .card__title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }            .card__title h2 { margin: 0; font-size: 15px; color: var(--brand-700); letter-spacing: 0.3px; }            .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }            .card--pessoais .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }            .field { padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }            .field__label { margin: 0 0 4px; font-size: 11px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.25px; }            .field__value { margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; word-break: break-word; }            .note { margin-top: 10px; padding: 12px; background: #fef9c3; border: 1px solid #fef08a; border-radius: 10px; font-size: 13px; color: #713f12; line-height: 1.5; }            footer { text-align: center; padding: 18px; border-top: 1px solid #e2e8f0; margin-top: 8px; font-size: 12px; color: var(--slate-500); page-break-inside: avoid; }            footer .footer-name { font-weight: 800; letter-spacing: 0.3px; color: #0f172a; }            @media print {              body { background: #fff; padding: 0; }              .report { box-shadow: none; border: none; border-radius: 0; }              .report__inner { padding: 18px 12px; }              .hero-card { display: flex; flex-wrap: nowrap; }            }          </style>        </head>        <body>          <article class="report">            <div class="report__inner">              <header class="header">                <div class="identity">                  <div class="logo">${logo ? `<img src="${logo}" alt="Logomarca da unidade" />` : '<span aria-hidden="true">???????</span>'}</div>                  <div>                    <p class="unit-name">${socialName}</p>                    ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="unit-meta">${unit.nomeFantasia}</p>` : ''}                    ${unit?.cnpj ? `<p class="unit-meta">CNPJ: ${unit.cnpj}</p>` : ''}                  </div>                </div>                <div class="header__title">                  <h1>Ficha Individual</h1>                  <p>Gerado em ${formattedGeneratedAt}</p>                </div>              </header>              <section class="hero">                <div class="hero-card">                  <div class="hero__media">                  <div class="photo">                    <img src="${photoUrl}" alt="Foto do beneficiario" />                  </div>                  <div class="${statusClass}" aria-label="Status do beneficiario">${statusLabel}</div>                </div>                <div class="hero__content">                  <div class="headline">                  <p class="headline__name">${beneficiaryName}</p>                  <div class="chips">                    <div class="chip"><strong>Código</strong>${codigo}</div>                    <div class="chip"><strong>CPF</strong>${displayValue(documents.cpf)}</div>                    <div class="chip"><strong>Data de inclusão</strong>${formattedInclusionDate}</div>                    <div class="chip"><strong>Categoria</strong>${displayValue(personal.categoria || personal.tipo_cadastro)}</div>                  </div>                  <div class="chip" style="margin-top: 10px; border-style: solid; border-color: #e0f2fe; background: #f0f9ff;">                    <strong>Programa vinculado</strong>${programaVinculado}                  </div>                </div>                </div>              </div>              </section>              <section class="grid grid--two">                <div class="card card--pessoais">                  <div class="card__title">                    <h2>Dados pessoais</h2>                  </div>                  <div class="fields">                    <div class="field">                      <p class="field__label">RG / Órgão emissor</p>                      <p class="field__value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</p>                    </div>                    <div class="field">                      <p class="field__label">UF emissor</p>                      <p class="field__value">${displayValue(documents.rg_uf)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nascimento</p>                      <p class="field__value">${formattedBirthDate}${age !== null ? ` (${age} anos)` : ''}</p>                    </div>                    <div class="field">                      <p class="field__label">Sexo</p>                      <p class="field__value">${displayValue(personal.sexo_biologico)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nome da mãe</p>                      <p class="field__value">${displayValue(personal.nome_mae)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nome do pai</p>                      <p class="field__value">${displayValue(personal.nome_pai)}</p>                    </div>                    <div class="field">                      <p class="field__label">Estado civil</p>                      <p class="field__value">${displayValue(personal.estado_civil)}</p>                    </div>                    <div class="field">                      <p class="field__label">Naturalidade</p>                      <p class="field__value">${displayValue(formattedNaturalidade)}</p>                    </div>                  </div>                </div>                <div class="card">                  <div class="card__title">                    <h2>Endereço & contato</h2>                  </div>                  <div class="fields">                    <div class="field" style="grid-column: span 2;">                      <p class="field__label">Endereço</p>                      <p class="field__value">${addressLabel}</p>                    </div>                    <div class="field">                      <p class="field__label">Ponto de referência</p>                      <p class="field__value">${displayValue(address.ponto_referencia)}</p>                    </div>                    <div class="field">                      <p class="field__label">Zona</p>                      <p class="field__value">${displayValue(address.zona)}</p>                    </div>                    <div class="field">                      <p class="field__label">Celular</p>                      <p class="field__value">${displayValue(contact.telefone_principal)}</p>                    </div>                    <div class="field">                      <p class="field__label">E-mail</p>                      <p class="field__value">${displayValue(contact.email)}</p>                    </div>                  </div>                </div>              </section>              <section class="card">                <div class="card__title">                  <h2>Dados socioeconômicos</h2>                </div>                <div class="fields" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">                  <div class="field">                    <p class="field__label">Renda familiar</p>                    <p class="field__value">${displayValue(rendaFamiliar)}</p>                  </div>                  <div class="field">                    <p class="field__label">Renda per capita</p>                    <p class="field__value">${displayValue(rendaPerCapita)}</p>                  </div>                  <div class="field">                    <p class="field__label">Membros da família</p>                    <p class="field__value">${displayValue(familyMembers)}</p>                  </div>                  <div class="field">                    <p class="field__label">Benefício governamental</p>                    <p class="field__value">${benefitsLabel}</p>                  </div>                </div>                <div class="note">                  <strong>Observações do assistente social:</strong><br />                  ${displayValue(observacoes, 'Sem observações registradas.')}                </div>              </section>            </div>            <footer>              <p class="footer-name">${socialName}</p>              ${unit?.cnpj ? `<p>CNPJ: ${unit.cnpj}</p>` : ''}              <p>${institutionAddress}</p>              ${this.joinParts([unit?.telefone, unit?.email], ' | ') || ''}              <div style="margin-top: 10px; font-size: 11px; color: var(--slate-300);">Documento gerado eletronicamente pelo Sistema G3 em ${formattedGeneratedAt}.</div>            </footer>          </article>        </body>      </html>    `;
+    return `      <!DOCTYPE html>      <html lang="pt-BR">        <head>          <meta charset="UTF-8" />          <meta name="viewport" content="width=device-width, initial-scale=1.0" />          <title>Ficha Individual do Benefici??rio - Sistema G3</title>          <style>            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');            :root {              --brand-50: #f0f7ff;              --brand-100: #d9e9ff;              --brand-500: #1d7ed2;              --brand-700: #0d4d8c;              --slate-700: #334155;              --slate-500: #64748b;              --slate-300: #cbd5e1;              --accent: #fbbf24;            }            @page { size: A4; margin: 12mm; }            * { box-sizing: border-box; }            body { font-family: 'Inter', system-ui, -apple-system, sans-serif; margin: 0; padding: 16px; background: #e2e8f0; color: #0f172a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }            .report { width: 100%; max-width: 100%; margin: 0 auto; background: #ffffff; border-radius: 16px; box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08); overflow: hidden; }            .report__inner { padding: 26px; }            .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 3px solid var(--brand-100); padding-bottom: 14px; }            .identity { display: flex; align-items: center; gap: 14px; }            .logo { width: 72px; height: 72px; border: 1px solid var(--slate-300); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--brand-50); overflow: hidden; }            .logo img { width: 100%; height: 100%; object-fit: contain; }            .unit-name { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: var(--slate-700); }            .unit-meta { margin: 2px 0; color: var(--slate-500); font-size: 12px; }            .header__title { text-align: right; }            .header__title h1 { margin: 0; font-size: 18px; color: var(--brand-700); letter-spacing: 0.3px; }            .header__title p { margin: 2px 0 0; font-size: 12px; color: var(--slate-500); }            .hero { margin: 20px 0 12px; }            .hero-card { display: flex; gap: 20px; align-items: stretch; flex-wrap: nowrap; padding: 16px; border-radius: 14px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }            .hero__media { width: 210px; flex: 0 0 210px; display: flex; flex-direction: column; }            .photo { width: 100%; height: 220px; border-radius: 14px; overflow: hidden; border: 2px solid var(--slate-300); box-shadow: inset 0 0 0 1px #e2e8f0; background: #fff; }            .photo img { width: 100%; height: 100%; object-fit: cover; }            .status { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2px; margin-top: 10px; border: 1px solid #cbd5e1; }            .status.status--blocked { color: #b91c1c; background: #fee2e2; border-color: #fecdd3; }            .status.status--active { color: #166534; background: #dcfce7; border-color: #bbf7d0; }            .headline { padding: 14px 16px; border-radius: 12px; background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 1px solid #e2e8f0; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04); flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }            .hero__content { flex: 1; min-width: 0; display: flex; }            .headline__name { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; color: #0f172a; }            .chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }            .chip { padding: 10px 12px; border: 1px dashed #e2e8f0; border-radius: 10px; background: #fff; font-size: 13px; }            .chip strong { display: block; font-size: 12px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.3px; }            .grid { display: grid; gap: 16px; margin: 14px 0; }            .grid--two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }            .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 16px; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04); page-break-inside: avoid; }            .card__title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }            .card__title h2 { margin: 0; font-size: 15px; color: var(--brand-700); letter-spacing: 0.3px; }            .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }            .card--pessoais .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }            .field { padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }            .field__label { margin: 0 0 4px; font-size: 11px; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.25px; }            .field__value { margin: 0; font-size: 14px; color: #0f172a; font-weight: 600; word-break: break-word; }            .note { margin-top: 10px; padding: 12px; background: #fef9c3; border: 1px solid #fef08a; border-radius: 10px; font-size: 13px; color: #713f12; line-height: 1.5; }            footer { text-align: center; padding: 18px; border-top: 1px solid #e2e8f0; margin-top: 8px; font-size: 12px; color: var(--slate-500); page-break-inside: avoid; }            footer .footer-name { font-weight: 800; letter-spacing: 0.3px; color: #0f172a; }            @media print {              body { background: #fff; padding: 0; }              .report { box-shadow: none; border: none; border-radius: 0; }              .report__inner { padding: 18px 12px; }              .hero-card { display: flex; flex-wrap: nowrap; }            }          </style>        </head>        <body>          <article class="report">            <div class="report__inner">              <header class="header">                <div class="identity">                  <div class="logo">${logo ? `<img src="${logo}" alt="Logomarca da unidade" />` : '<span aria-hidden="true">???????</span>'}</div>                  <div>                    <p class="unit-name">${socialName}</p>                    ${unit?.nomeFantasia && unit?.nomeFantasia !== unit?.razaoSocial ? `<p class="unit-meta">${unit.nomeFantasia}</p>` : ''}                    ${unit?.cnpj ? `<p class="unit-meta">CNPJ: ${unit.cnpj}</p>` : ''}                  </div>                </div>                <div class="header__title">                  <h1>Ficha Individual</h1>                  <p>Gerado em ${formattedGeneratedAt}</p>                </div>              </header>              <section class="hero">                <div class="hero-card">                  <div class="hero__media">                  <div class="photo">                    <img src="${photoUrl}" alt="Foto do beneficiario" />                  </div>                  <div class="${statusClass}" aria-label="Status do beneficiario">${statusLabel}</div>                </div>                <div class="hero__content">                  <div class="headline">                  <p class="headline__name">${beneficiaryName}</p>                  <div class="chips">                    <div class="chip"><strong>C??digo</strong>${codigo}</div>                    <div class="chip"><strong>CPF</strong>${displayValue(documents.cpf)}</div>                    <div class="chip"><strong>Data de inclus??o</strong>${formattedInclusionDate}</div>                    <div class="chip"><strong>Categoria</strong>${displayValue(personal.categoria || personal.tipo_cadastro)}</div>                  </div>                  <div class="chip" style="margin-top: 10px; border-style: solid; border-color: #e0f2fe; background: #f0f9ff;">                    <strong>Programa vinculado</strong>${programaVinculado}                  </div>                </div>                </div>              </div>              </section>              <section class="grid grid--two">                <div class="card card--pessoais">                  <div class="card__title">                    <h2>Dados pessoais</h2>                  </div>                  <div class="fields">                    <div class="field">                      <p class="field__label">RG / ??rg??o emissor</p>                      <p class="field__value">${this.joinParts([documents.rg_numero, documents.rg_orgao_emissor], ' / ') || '---'}</p>                    </div>                    <div class="field">                      <p class="field__label">UF emissor</p>                      <p class="field__value">${displayValue(documents.rg_uf)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nascimento</p>                      <p class="field__value">${formattedBirthDate}${age !== null ? ` (${age} anos)` : ''}</p>                    </div>                    <div class="field">                      <p class="field__label">Sexo</p>                      <p class="field__value">${displayValue(personal.sexo_biologico)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nome da m??e</p>                      <p class="field__value">${displayValue(personal.nome_mae)}</p>                    </div>                    <div class="field">                      <p class="field__label">Nome do pai</p>                      <p class="field__value">${displayValue(personal.nome_pai)}</p>                    </div>                    <div class="field">                      <p class="field__label">Estado civil</p>                      <p class="field__value">${displayValue(personal.estado_civil)}</p>                    </div>                    <div class="field">                      <p class="field__label">Naturalidade</p>                      <p class="field__value">${displayValue(formattedNaturalidade)}</p>                    </div>                  </div>                </div>                <div class="card">                  <div class="card__title">                    <h2>Endere??o & contato</h2>                  </div>                  <div class="fields">                    <div class="field" style="grid-column: span 2;">                      <p class="field__label">Endere??o</p>                      <p class="field__value">${addressLabel}</p>                    </div>                    <div class="field">                      <p class="field__label">Ponto de refer??ncia</p>                      <p class="field__value">${displayValue(address.ponto_referencia)}</p>                    </div>                    <div class="field">                      <p class="field__label">Zona</p>                      <p class="field__value">${displayValue(address.zona)}</p>                    </div>                    <div class="field">                      <p class="field__label">Celular</p>                      <p class="field__value">${displayValue(contact.telefone_principal)}</p>                    </div>                    <div class="field">                      <p class="field__label">E-mail</p>                      <p class="field__value">${displayValue(contact.email)}</p>                    </div>                  </div>                </div>              </section>              <section class="card">                <div class="card__title">                  <h2>Dados socioecon??micos</h2>                </div>                <div class="fields" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">                  <div class="field">                    <p class="field__label">Renda familiar</p>                    <p class="field__value">${displayValue(rendaFamiliar)}</p>                  </div>                  <div class="field">                    <p class="field__label">Renda per capita</p>                    <p class="field__value">${displayValue(rendaPerCapita)}</p>                  </div>                  <div class="field">                    <p class="field__label">Membros da familia</p>                    <p class="field__value">${displayValue(familyMembers)}</p>                  </div>                  <div class="field">                    <p class="field__label">Benef??cio governamental</p>                    <p class="field__value">${benefitsLabel}</p>                  </div>                </div>                <div class="note">                  <strong>Observa????es do assistente social:</strong><br />                  ${displayValue(observacoes, 'Sem observa????es registradas.')}                </div>              </section>            </div>            <footer>              <p class="footer-name">${socialName}</p>              ${unit?.cnpj ? `<p>CNPJ: ${unit.cnpj}</p>` : ''}              <p>${institutionAddress}</p>              ${this.joinParts([unit?.telefone, unit?.email], ' | ') || ''}              <div style="margin-top: 10px; font-size: 11px; color: var(--slate-300);">Documento gerado eletronicamente pelo Sistema G3 em ${formattedGeneratedAt}.</div>            </footer>          </article>        </body>      </html>    `;
   }
   private printStyles(): string {
     return `      <style>        * { box-sizing: border-box; }        @page { size: A4; margin: 12mm; }        body { font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; padding: 0; line-height: 1.6; color: #0f172a; background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }        h1 { margin: 0 0 4px; letter-spacing: 0.2px; color: #0f172a; }        h2 { margin: 0; }        p { margin: 0; }        .muted { color: #475569; font-size: 12px; }        .print-page { width: 100%; padding: 8px 0 16px; }        .report-wrapper { max-width: 100%; margin: 0 auto; background: #ffffff; padding: 26px 28px; border-radius: 18px; box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08); }        .report-header { display: flex; justify-content: center; align-items: center; gap: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 14px; }        .report-header__logo { max-height: 72px; object-fit: contain; border-radius: 12px; background: #f8fafc; padding: 6px; border: 1px solid #e2e8f0; }        .report-header__identity { text-align: center; }        .report-header__name { font-weight: 800; font-size: 15pt; margin: 0; letter-spacing: 0.2px; text-transform: uppercase; }        .report-header__fantasy { margin: 2px 0 0; font-size: 12pt; color: #1f2937; }        .report-meta { text-align: center; margin: 10px 0 6px; }        .report-meta h1 { font-size: 22px; font-weight: 800; }        .print-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11.5px; background: #fff; border-radius: 12px; overflow: hidden; }        .print-table th, .print-table td { border: 1px solid #e2e8f0; padding: 9px 10px; text-align: left; }        .print-table th { background: linear-gradient(135deg, #f8fafc, #eef2ff); font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.2px; }        .print-table tbody tr:nth-child(even) { background: #f8fafc; }        .print-table th:nth-child(3), .print-table td:nth-child(3) { text-align: center; }        .print-table th:nth-child(2), .print-table th:nth-child(4) { width: 16%; }        .print-table th:nth-child(5), .print-table td:nth-child(5) { width: 15%; }        @media print { body { background: #fff; } .report-wrapper { box-shadow: none; border-radius: 0; padding: 18px 12px; } }      </style>    `;
@@ -1656,7 +1620,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return [city, uf].filter(Boolean).join(' - ');
   }
   private formatBoolean(value?: boolean): string {
-    return value ? 'Sim' : 'Não';
+    return value ? 'Sim' : 'N??o';
   }
   formatDate(value?: string | null): string {
     return formatarDataSemFuso(value);
@@ -1689,12 +1653,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   private normalizeDigits(value?: string | null): string {
     return (value ?? '').toString().replace(/\D+/g, '');
-  }
-  private normalizeCodigoParaFiltro(value?: string | null): string {
-    const digits = this.normalizeDigits(value);
-    if (!digits) return '';
-    const semZeros = digits.replace(/^0+/, '');
-    return semZeros || '0';
   }
   private normalizeDateForFilter(value?: string | null): string {
     if (!value) return '';
@@ -1741,14 +1699,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
     this.popupErros = [];
     this.activeTab = tab;
-    if (
-      tab === 'lista' &&
-      !this.listLoading &&
-      this.beneficiarios.length === 0 &&
-      !this.suprimirBuscaAutomatica
-    ) {
-      this.searchBeneficiaries(false);
-    }
   }
   private validateCurrentTabRequirements(targetTab: string): boolean {
     if (targetTab === 'lista') {
@@ -1763,13 +1713,13 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       const requiredFields: { path: (string | number)[]; label: string }[] = [
         { path: ['dadosPessoais', 'nome_completo'], label: 'Nome completo' },
         { path: ['dadosPessoais', 'data_nascimento'], label: 'Data de nascimento' },
-        { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mãe' },
+        { path: ['dadosPessoais', 'nome_mae'], label: 'Nome da mae' },
       ];
       requiredFields.forEach(({ path, label }) => {
         const control = this.form.get(path);
         const value = String(control?.value ?? '').trim();
         if (!value) {
-          builder.adicionar(`${label} é obrigatório.`);
+          builder.adicionar(`${label} e obrigatorio.`);
         } else {
           this.changeTab('lista');
         }
@@ -1787,23 +1737,23 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       { controlPath: (string | number)[]; message: string; markGroup?: string }
     > = {
       endereco: {
-        controlPath: ['Endereço', 'cep'],
-        message: 'Preencha o CEP (campo obrigatório) antes de avançar.',
-        markGroup: 'Endereço',
+        controlPath: ['endereco', 'cep'],
+        message: 'Preencha o CEP (campo obrigat??rio) antes de avan??ar.',
+        markGroup: 'endereco',
       },
       contato: {
         controlPath: ['contato', 'telefone_principal'],
-        message: 'Informe o telefone principal (campo obrigatório) antes de avançar.',
+        message: 'Informe o telefone principal (campo obrigat??rio) antes de avan??ar.',
         markGroup: 'contato',
       },
       observacoes: {
-        controlPath: ['observações', 'aceite_lgpd'],
-        message: 'Confirme o aceite LGPD antes de avançar.',
-        markGroup: 'observações',
+        controlPath: ['observacoes', 'aceite_lgpd'],
+        message: 'Confirme o aceite LGPD antes de avan??ar.',
+        markGroup: 'observacoes',
       },
       documentos: {
         controlPath: ['documentos', 'cpf'],
-        message: 'Informe um CPF válido antes de avançar.',
+        message: 'Informe um CPF valido antes de avancar.',
         markGroup: 'documentos',
       },
     };
@@ -1825,7 +1775,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const statusForSave = this.determineStatusForSave(skipValidation, missingDocuments);
     this.form.get('status')?.setValue(statusForSave);
     if (!skipValidation && missingDocuments.length) {
-      this.feedback = `Envie os documentos obrigatórios: ${missingDocuments.join(', ')}`;
+      this.feedback = `Envie os documentos obrigat??rios: ${missingDocuments.join(', ')}`;
       this.changeTab('documentos');
       return;
     }
@@ -1834,12 +1784,12 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.form.markAllAsTouched();
       this.showMissingFieldsModal(fieldIssues);
       this.feedback =
-        'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+        'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
     }
     if (!skipValidation && this.form.invalid && !this.feedback) {
       this.form.markAllAsTouched();
       this.feedback =
-        'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+        'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
     }
     if (
       !skipValidation &&
@@ -1848,7 +1798,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     ) {
       this.feedback =
         this.feedback ??
-        'Cadastro salvo como incompleto. Preencha os campos obrigatórios para ativar.';
+        'Cadastro salvo como incompleto. Preencha os campos obrigat??rios para ativar.';
     }
     if (this.uploadingDocuments) {
       this.feedback = 'Aguarde o envio dos documentos antes de salvar o cadastro.';
@@ -1865,35 +1815,26 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.saving = true;
     try {
       const payload = await this.toPayload(statusForSave);
-      const beneficiarioId = this.beneficiarioId;
-      const emEdicao = !!beneficiarioId;
-      const request = emEdicao
-        ? this.service.update(beneficiarioId, payload)
+      const request = this.beneficiarioId
+        ? this.service.update(this.beneficiarioId, payload)
         : this.service.create(payload);
       request.pipe(finalize(() => this.ngZone.run(() => (this.saving = false)))).subscribe({
         next: () => {
           this.ngZone.run(() => {
-            this.showTemporaryFeedback(
-              emEdicao ? 'Alteração realizada com sucesso.' : 'Cadastro realizado com sucesso.',
-            );
+            this.showTemporaryFeedback('Registro salvo com sucesso');
             this.statusDirty = false;
             setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
           });
         },
         error: (error: HttpErrorResponse) => {
-          console.error('Erro ao salvar Beneficiário', error);
+          console.error('Erro ao salvar beneficiario', error);
           const serverMessage =
             typeof error?.error === 'string'
               ? error.error
-              : error?.error?.message || error.message || 'Erro ao salvar Beneficiário';
+              : error?.error?.message || error.message || 'Erro ao salvar beneficiario';
           if (error.status === 0) {
             this.feedback =
-              'Não foi possível comunicar com a API. Verifique a conexão e tente novamente.';
-            return;
-          }
-          if (error.status === 400) {
-            this.feedback =
-              'Não foi possível salvar. Verifique os campos obrigatórios e tente novamente.';
+              'N??o foi poss??vel comunicar com a API. Verifique a conex??o e tente novamente.';
             return;
           }
           this.feedback = serverMessage;
@@ -1901,7 +1842,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       });
     } catch (error) {
       console.error('Erro ao preparar salvamento', error);
-      this.feedback = 'Não foi possível salvar o Beneficiário. Tente novamente.';
+      this.feedback = 'N??o foi poss??vel salvar o beneficiario. Tente novamente.';
       this.saving = false;
     }
   }
@@ -1946,25 +1887,25 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   geocodificarEnderecoBeneficiario(forcar = false): void {
     if (!this.beneficiarioId) {
-      this.feedback = 'Salve o Beneficiário antes de geocodificar o Endereço.';
+      this.feedback = 'Salve o beneficiario antes de geocodificar o endereco.';
       return;
     }
     this.feedback = null;
     this.service.geocodificarEndereco(String(this.beneficiarioId), forcar).subscribe({
-      next: ({ beneficiario }: { beneficiario: BeneficiarioApiPayload }) => {
+      next: ({ beneficiario }) => {
         this.form
           .get('endereco')
           ?.patchValue({
             latitude: beneficiario.latitude ?? '',
             longitude: beneficiario.longitude ?? '',
           });
-        this.feedback = 'Endereço geocodificado com sucesso.';
+        this.feedback = 'Endere??o geocodificado com sucesso.';
       },
-      error: (error: any) => {
+      error: (error) => {
         const serverMessage =
           typeof error?.error === 'string'
             ? error.error
-            : error?.error?.message || 'Não foi possível geocodificar o Endereço.';
+            : error?.error?.message || 'N??o foi poss??vel geocodificar o endereco.';
         this.feedback = serverMessage;
       },
     });
@@ -2094,7 +2035,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   openQuickSearch(): void {
     this.quickSearchModalOpen = true;
     if (!this.beneficiarios.length && !this.listLoading) {
-      this.searchBeneficiaries(false);
+      this.searchBeneficiaries();
     }
   }
   closeQuickSearch(): void {
@@ -2118,7 +2059,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.beneficiaryCode = this.nextSequentialCode;
     this.lastStatus = 'EM_ANALISE';
     this.previousStatusBeforeBlock = 'EM_ANALISE';
-    this.statusDirty = false;
     this.activeTab = 'dados';
     this.form.reset();
     this.form.patchValue({
@@ -2129,14 +2069,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       beneficios: { beneficios_recebidos: [] },
     });
     this.resetDocumentArray();
-    this.form.markAsPristine();
-    this.form.markAsUntouched();
-    this.focarPrimeiroCampo();
-  }
-  private focarPrimeiroCampo(): void {
-    this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
-      this.campoNomeCompleto?.nativeElement?.focus();
-    });
   }
   togglePrintMenu(): void {
     this.printMenuOpen = !this.printMenuOpen;
@@ -2154,7 +2086,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (this.blockReasonModalOpen) this.cancelBlockReason();
     if (this.missingFieldsModalOpen) this.closeMissingFieldsModal();
     if (this.pdfErrorDialogOpen) this.closePdfErrorDialog();
-    if (this.popupMensagens.length) this.fecharPopupMensagens();
   }
   openPrintByName(): void {
     this.printByNameQuery = '';
@@ -2208,7 +2139,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return ['individual', 'authorization', 'list'];
   }
   onSave(): void {
-    if (this.saving) return;
     if (this.statusDirty && this.beneficiarioId && this.form.invalid) {
       this.submit(true);
       return;
@@ -2216,11 +2146,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.submit();
   }
   onCancel(): void {
-    if (this.activeTab === 'lista') {
-      this.clearSearchFilters(false);
-      return;
-    }
-    this.confirmarCancelamento();
+    this.startNewBeneficiario();
   }
   onDelete(): void {
     this.handleDeleteSelected();
@@ -2229,125 +2155,40 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.startNewBeneficiario();
   }
   onClose(): void {
-    this.confirmarFechamento();
-  }
-  private temAlteracoesPendentes(): boolean {
-    return this.form.dirty || this.statusDirty || this.uploadingDocuments;
-  }
-  private confirmarCancelamento(): void {
-    if (this.temAlteracoesPendentes()) {
-      this.abrirDialogoConfirmacao(
-        'Descartar alterações',
-        'Deseja descartar as alterações?',
-        'Descartar',
-        () => this.aplicarCancelamento(),
-      );
-      return;
-    }
-    this.aplicarCancelamento();
-  }
-  private aplicarCancelamento(): void {
-    if (this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario) {
-      const beneficiarioBase = this.selectedBeneficiary;
-      if (beneficiarioBase) {
-        this.selectBeneficiario(beneficiarioBase);
-      }
-      this.changeTab('dados');
-      return;
-    }
-    this.startNewBeneficiario();
-    this.changeTab('lista');
-  }
-  private confirmarFechamento(): void {
-    if (this.temAlteracoesPendentes()) {
-      this.abrirDialogoConfirmacao(
-        'Sair da tela',
-        'Deseja sair sem salvar as alterações?',
-        'Sair',
-        () => this.closeForm(),
-      );
-      return;
-    }
     this.closeForm();
   }
-  clearSearchFilters(exibirPopupSemResultados = true): void {
+  clearSearchFilters(): void {
     this.searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' });
-    this.searchBeneficiaries(exibirPopupSemResultados);
+    this.searchBeneficiaries();
   }
-  triggerSearchFromUi(exibirPopupSemResultados = true): void {
-    this.searchForm.updateValueAndValidity({ emitEvent: false });
-    this.searchBeneficiaries(exibirPopupSemResultados);
-  }
-  onBuscarEnter(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-    if (this.listLoading) return;
-    this.triggerSearchFromUi(true);
-  }
-  searchBeneficiaries(exibirPopupSemResultados = false): void {
-    try {
-      const { nome, cpf, codigo, data_nascimento, status } = this.searchForm.value;
-      this.ngZone.run(() => {
-        this.listLoading = true;
-        this.listError = null;
+  searchBeneficiaries(): void {
+    const { nome, cpf, codigo, data_nascimento, status } = this.searchForm.value;
+    this.listLoading = true;
+    this.listError = null;
+    this.service
+      .list({
+        nome: nome || undefined,
+        cpf: cpf || undefined,
+        codigo: codigo || undefined,
+        data_nascimento: data_nascimento || undefined,
+        status: status || undefined,
+      })
+      .pipe(finalize(() => (this.listLoading = false)))
+      .subscribe({
+        next: ({ beneficiarios }: { beneficiarios?: BeneficiarioApiPayload[] }) => {
+          this.handleBeneficiaryResponse(beneficiarios ?? []);
+        },
+        error: () => {
+          this.loadBeneficiariesFromFallback({ nome, cpf, codigo, data_nascimento, status });
+        },
       });
-      const timeoutId = setTimeout(() => {
-        this.ngZone.run(() => {
-          if (this.listLoading) {
-            this.listLoading = false;
-            this.listError = 'Não foi possível concluir a busca. Tente novamente.';
-          }
-        });
-      }, 20000);
-      this.service
-        .list({
-          nome: nome || undefined,
-          cpf: cpf || undefined,
-          codigo: codigo || undefined,
-          data_nascimento: data_nascimento || undefined,
-          status: status || undefined,
-        })
-        .pipe(
-          timeout(15000),
-          finalize(() => {
-            clearTimeout(timeoutId);
-            this.ngZone.run(() => {
-              this.listLoading = false;
-            });
-          }),
-        )
-        .subscribe({
-          next: ({ beneficiarios }: { beneficiarios?: BeneficiarioApiPayload[] }) => {
-            this.ngZone.run(() => {
-              const lista = beneficiarios ?? [];
-              this.handleBeneficiaryResponse(lista);
-              if (exibirPopupSemResultados && !lista.length) {
-                this.feedback = 'Nenhum resultado encontrado.';
-              }
-            });
-          },
-          error: () => {
-            this.ngZone.run(() => {
-              this.loadBeneficiariesFromFallback(
-                { nome, cpf, codigo, data_nascimento, status },
-                exibirPopupSemResultados,
-              );
-            });
-          },
-        });
-    } catch {
-      this.ngZone.run(() => {
-        this.listLoading = false;
-        this.listError = 'Não foi possível carregar os Beneficiários. Tente novamente.';
-      });
-    }
   }
   applyListFilters(): void {
     const { nome, cpf, codigo, data_nascimento, status } =
       this.searchForm.value;
     const nomeFiltro = this.normalizeSearchTerm(nome);
     const cpfFiltro = this.normalizeDigits(cpf);
-    const codigoFiltro = this.normalizeCodigoParaFiltro(codigo);
+    const codigoFiltro = this.normalizeDigits(codigo);
     const dataFiltro = this.normalizeDateForFilter(data_nascimento);
     this.filteredBeneficiarios = (this.beneficiarios ?? [])
       .filter((beneficiario) => {
@@ -2366,7 +2207,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
           if (cpfBeneficiario !== cpfFiltro) return false;
         }
         if (codigoFiltro) {
-          const codigoBeneficiario = this.normalizeCodigoParaFiltro(beneficiario.codigo);
+          const codigoBeneficiario = this.normalizeDigits(beneficiario.codigo);
           if (codigoBeneficiario !== codigoFiltro) return false;
         }
         if (dataFiltro) {
@@ -2399,8 +2240,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const beneficiarioId = beneficiarioNormalizado.id_beneficiario;
     if (!beneficiarioId) return;
     this.beneficiarioId = beneficiarioId;
-    this.service.getById(beneficiarioId).subscribe(
-      ({ beneficiario: details }: { beneficiario: BeneficiarioApiPayload }) => {
+    this.service.getById(beneficiarioId).subscribe(({ beneficiario: details }) => {
       const normalizedDetails = {
         ...this.normalizarCamposNome(details),
         codigo: this.normalizeBeneficiaryCode(details.codigo) || undefined,
@@ -2409,27 +2249,21 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.ignoreStatusChange = true;
       this.form.patchValue(this.mapToForm(normalizedDetails));
       this.ignoreStatusChange = false;
-      this.form.markAsPristine();
-      this.form.markAsUntouched();
       this.photoPreview = normalizedDetails.foto_3x4 ?? null;
       this.lastStatus = normalizedDetails.status ?? 'EM_ANALISE';
       this.previousStatusBeforeBlock = this.lastStatus;
       this.statusDirty = false;
       this.applyLoadedDocuments(this.getDocumentList(normalizedDetails));
       this.applyAutomaticStatusFromDates(normalizedDetails.status);
-      }
-    );
+    });
   }
-  private loadBeneficiariesFromFallback(
-    filters: {
-      nome?: string;
-      cpf?: string;
-      codigo?: string;
-      data_nascimento?: string;
-      status?: string;
-    },
-    exibirPopupSemResultados = false,
-  ): void {
+  private loadBeneficiariesFromFallback(filters: {
+    nome?: string;
+    cpf?: string;
+    codigo?: string;
+    data_nascimento?: string;
+    status?: string;
+  }): void {
     this.beneficiaryService
       .list({
         nome: filters.nome || undefined,
@@ -2437,28 +2271,20 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         codigo: filters.codigo || undefined,
         data_nascimento: filters.data_nascimento || undefined,
       })
-      .pipe(
-        timeout(15000),
-        finalize(() => (this.listLoading = false)),
-      )
+      .pipe(finalize(() => (this.listLoading = false)))
       .subscribe({
         next: ({ beneficiarios }: { beneficiarios?: BeneficiaryPayload[] }) => {
           const normalized = (beneficiarios ?? [])
             .map((beneficiario) => this.mapBeneficiaryPayload(beneficiario))
             .filter((beneficiario) => !filters.status || beneficiario.status === filters.status);
           this.handleBeneficiaryResponse(normalized);
-          if (exibirPopupSemResultados && !normalized.length) {
-            this.feedback = 'Nenhum resultado encontrado.';
-          }
         },
         error: () => {
-          this.listError = 'Não foi possível carregar os Beneficiários. Tente novamente.';
-          this.listLoading = false;
+          this.listError = 'N??o foi poss??vel carregar os beneficiarios. Tente novamente.';
         },
       });
   }
   private handleBeneficiaryResponse(beneficiarios: BeneficiarioApiPayload[]): void {
-    this.listLoading = false;
     const vistos = new Set<string>();
     const unicos = (beneficiarios ?? []).filter((beneficiario) => {
       const chave = this.getBeneficiarioChaveUnica(beneficiario);
@@ -2479,7 +2305,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.selectedBeneficiary = null;
     this.applyListFilters();
     this.updateSequentialCode();
-    this.changeDetector.detectChanges();
   }
   private getBeneficiarioChaveUnica(beneficiario: BeneficiarioApiPayload): string {
     const codigo = this.normalizeDigits(beneficiario.codigo);
@@ -2504,20 +2329,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       status: (beneficiary.status as BeneficiarioApiPayload['status']) || 'EM_ANALISE',
     };
   }
-  buscarBeneficiariosNaListagem(exibirPopupSemResultados = true): void {
-    this.listLoading = false;
-    this.listError = null;
-    this.suprimirBuscaAutomatica = true;
+  buscarBeneficiariosNaListagem(): void {
     this.changeTab('lista');
-    this.searchBeneficiaries(exibirPopupSemResultados);
-    this.suprimirBuscaAutomatica = false;
+    this.searchBeneficiaries();
   }
   deleteBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const beneficiarioId = beneficiario.id_beneficiario;
     if (!beneficiarioId) return;
     this.abrirDialogoConfirmacao(
-      'Excluir Beneficiário',
-      `Tem certeza que deseja excluir este registro? ${beneficiario.nome_completo || 'Beneficiário selecionado'}.`,
+      'Excluir beneficiario',
+      `Deseja excluir o beneficiario ${beneficiario.nome_completo || 'selecionado'}? Esta acao nao pode ser desfeita.`,
       'Excluir',
       () => {
         this.listLoading = true;
@@ -2536,16 +2357,20 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
               this.beneficiaryCode = null;
               this.selectedBeneficiary = null;
             }
-            this.feedback = 'Registro excluído com sucesso.';
-            this.searchBeneficiaries(true);
+            this.searchBeneficiaries();
           },
           error: () => {
-            this.listError = 'Não foi possivel excluir o Beneficiário.';
+            this.listError = 'Nao foi possivel excluir o beneficiario.';
             this.listLoading = false;
           },
         });
       },
     );
+  }
+  handleEditSelected(): void {
+    if (this.selectedBeneficiary?.id_beneficiario) {
+      this.editBeneficiario(this.selectedBeneficiary);
+    }
   }
   handleDeleteSelected(): void {
     if (this.selectedBeneficiary?.id_beneficiario) {
@@ -2574,14 +2399,24 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.dialogConfirmacaoAberta = false;
     this.dialogAcao = undefined;
   }
+  handleAlterSelected(): void {
+    if (this.selectedBeneficiary?.id_beneficiario) {
+      this.selectBeneficiario(this.selectedBeneficiary);
+      this.changeTab('dados');
+    }
+  }
   selecionarBeneficiarioNaLista(beneficiario: BeneficiarioApiPayload): void {
     this.selectBeneficiario(beneficiario);
     this.changeTab('dados');
   }
+  editBeneficiario(beneficiario: BeneficiarioApiPayload): void {
+    if (!beneficiario.id_beneficiario) return;
+    this.router.navigate(['/cadastros/beneficiarios', beneficiario.id_beneficiario]);
+  }
   async startCamera(): Promise<void> {
     this.captureError = null;
     if (!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-      this.captureError = 'Seu navegador Não permite capturar a câmera.';
+      this.captureError = 'Seu navegador n??o permite capturar a c??mera.';
       return;
     }
     try {
@@ -2594,8 +2429,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         await video.play();
       }
     } catch (error) {
-      console.error('Erro ao iniciar câmera', error);
-      this.captureError = 'Não foi possível acessar a câmera.';
+      console.error('Erro ao iniciar c??mera', error);
+      this.captureError = 'N??o foi poss??vel acessar a c??mera.';
       this.cameraActive = false;
       if (this.videoStream) {
         this.videoStream.getTracks().forEach((track) => track.stop());
@@ -2665,7 +2500,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.form.get(['documentos', 'cpf'])?.setValue(formatted, { emitEvent: false });
     input.value = formatted;
     if (
-      this.feedback === 'Informe um CPF válido antes de continuar.' &&
+      this.feedback === 'Informe um CPF v??lido antes de continuar.' &&
       this.form.get(['documentos', 'cpf'])?.valid
     ) {
       this.feedback = null;
@@ -2697,7 +2532,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   openWhatsapp(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para abrir o WhatsApp.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para abrir o WhatsApp.');
       return;
     }
     window.open(`https://wa.me/${digits}`, '_blank');
@@ -2705,7 +2540,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   startCall(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para iniciar a liga????o.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para iniciar a liga????o.');
       return;
     }
     window.open(`tel:${digits}`, '_self');
@@ -2713,7 +2548,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   sendSms(controlName: PhoneControlName): void {
     const digits = this.getPhoneDigits(controlName);
     if (!digits) {
-      this.showTemporaryFeedback('Informe um telefone válido para enviar SMS.');
+      this.showTemporaryFeedback('Informe um telefone v??lido para enviar SMS.');
       return;
     }
     window.open(`sms:${digits}`, '_self');
@@ -2754,18 +2589,18 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (digits.length > 5) {
       formatted = `${digits.slice(0, 5)}-${digits.slice(5)}`;
     }
-    this.form.get(['Endereço', 'cep'])?.setValue(formatted, { emitEvent: false });
+    this.form.get(['endereco', 'cep'])?.setValue(formatted, { emitEvent: false });
     this.cepLookupError = null;
     if (digits.length === 8) {
       this.lookupAddressByCep(digits);
     }
   }
   onCepBlur(): void {
-    const cepControl = this.form.get(['Endereço', 'cep']);
+    const cepControl = this.form.get(['endereco', 'cep']);
     if (!cepControl) return;
     if (cepControl.invalid) {
       this.cepLookupError = cepControl.value
-        ? 'Informe um CEP válido para consultar o Endereço.'
+        ? 'Informe um CEP v??lido para consultar o endereco.'
         : null;
       return;
     }
@@ -2782,7 +2617,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
     const consulta = this.montarConsultaEndereco();
     if (!consulta) {
-      this.showTemporaryFeedback('Informe o Endereço completo para consultar no Google Maps.');
+      this.showTemporaryFeedback('Informe o endereco completo para consultar no Google Maps.');
       return;
     }
     this.definirMapaEndereco(consulta);
@@ -2794,10 +2629,10 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   private obterCoordenadasEndereco(): string | null {
     const latitude = (
-      this.form.get(['Endereço', 'latitude'])?.value as string | null | undefined
+      this.form.get(['endereco', 'latitude'])?.value as string | null | undefined
     )?.trim();
     const longitude = (
-      this.form.get(['Endereço', 'longitude'])?.value as string | null | undefined
+      this.form.get(['endereco', 'longitude'])?.value as string | null | undefined
     )?.trim();
     if (!latitude || !longitude) {
       return null;
@@ -2842,11 +2677,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.cepLookupError = null;
     this.http
       .get<ViaCepResponse>(`https://viacep.com.br/ws/${cep}/json/`)
-      .pipe(finalize(() => this.form.get(['Endereço', 'cep'])?.markAsTouched()))
+      .pipe(finalize(() => this.form.get(['endereco', 'cep'])?.markAsTouched()))
       .subscribe({
         next: (response) => {
           if (response?.erro) {
-            this.cepLookupError = 'CEP Não encontrado.';
+            this.cepLookupError = 'CEP n??o encontrado.';
             return;
           }
           this.form
@@ -2859,7 +2694,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
             });
         },
         error: () => {
-          this.cepLookupError = 'Não foi possível consultar o CEP.';
+          this.cepLookupError = 'N??o foi poss??vel consultar o CEP.';
         },
       });
   }
@@ -2920,10 +2755,5 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
 }
-
-
-
-
-
 
 

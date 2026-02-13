@@ -1,7 +1,7 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface PermissionPayload {
   id: number;
@@ -10,7 +10,8 @@ export interface PermissionPayload {
 
 @Injectable({ providedIn: 'root' })
 export class PermissionService {
-  private readonly baseUrl = `${environment.apiUrl}/api/usuarios/permissoes`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/usuarios/permissoes`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -18,4 +19,3 @@ export class PermissionService {
     return this.http.get<PermissionPayload[]>(this.baseUrl);
   }
 }
-

@@ -1,9 +1,9 @@
-﻿import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap, timeout } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
+import { RuntimeConfigService } from './runtime-config.service';
 
 interface LoginResponse {
   token: string;
@@ -41,6 +41,7 @@ interface RedefinirSenhaRequest {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly runtimeConfig = inject(RuntimeConfigService);
   private readonly storageKey = 'g3_session';
   private readonly requestTimeoutMs = 10000;
   readonly user = signal<{
@@ -55,7 +56,7 @@ export class AuthService {
 
   login(nomeUsuario: string, senha: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${environment.apiUrl}/api/auth/login`, { nomeUsuario, senha })
+      .post<LoginResponse>(`${this.runtimeConfig.apiUrl}/api/auth/login`, { nomeUsuario, senha })
       .pipe(
         timeout(this.requestTimeoutMs),
         tap((response) => {
@@ -69,38 +70,22 @@ export class AuthService {
       );
   }
 
-  loginGoogle(idToken: string): Observable<LoginResponse> {
-    return this.http
-      .post<LoginResponse>(`${environment.apiUrl}/api/auth/google`, { idToken })
-      .pipe(
-        timeout(this.requestTimeoutMs),
-        tap((response) => {
-          const usuario =
-            response.usuario ?? response.user ?? { id: '0', nomeUsuario: '' };
-          this.persistSession({
-            ...response,
-            user: usuario,
-          });
-        })
-      );
-  }
-
   registrarConta(payload: CadastroContaRequest): Observable<void> {
     return this.http
-      .post<void>(`${environment.apiUrl}/api/auth/registrar`, payload)
+      .post<void>(`${this.runtimeConfig.apiUrl}/api/auth/registrar`, payload)
       .pipe(timeout(this.requestTimeoutMs));
   }
 
   solicitarRecuperacaoSenha(email: string): Observable<void> {
     const payload: RecuperarSenhaRequest = { email };
     return this.http
-      .post<void>(`${environment.apiUrl}/api/auth/recuperar-senha`, payload)
+      .post<void>(`${this.runtimeConfig.apiUrl}/api/auth/recuperar-senha`, payload)
       .pipe(timeout(this.requestTimeoutMs));
   }
 
   redefinirSenha(payload: RedefinirSenhaRequest): Observable<void> {
     return this.http
-      .post<void>(`${environment.apiUrl}/api/auth/redefinir-senha`, payload)
+      .post<void>(`${this.runtimeConfig.apiUrl}/api/auth/redefinir-senha`, payload)
       .pipe(timeout(this.requestTimeoutMs));
   }
 
@@ -141,4 +126,3 @@ export class AuthService {
   }
 
 }
-

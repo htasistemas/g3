@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type JobStatus = 'Aberta' | 'Pausada' | 'Encerrada';
 
@@ -72,7 +72,8 @@ export interface JobRecord extends JobPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BancoEmpregosService {
-  private readonly baseUrl = `${environment.apiUrl}/api/banco-empregos`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/banco-empregos`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -108,4 +109,3 @@ export class BancoEmpregosService {
     return this.http.delete<void>(`${this.baseUrl}/candidatos/${id}`);
   }
 }
-

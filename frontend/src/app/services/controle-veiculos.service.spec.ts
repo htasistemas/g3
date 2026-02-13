@@ -1,12 +1,12 @@
 ﻿import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ControleVeiculosService } from './controle-veiculos.service';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 describe('ControleVeiculosService', () => {
   let service: ControleVeiculosService;
   let mockHttp: HttpTestingController;
-  const urlApiBase = environment.apiUrl.replace(/\/api\/?$/, '');
+  let urlApiBase: string;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -14,6 +14,7 @@ describe('ControleVeiculosService', () => {
     });
     service = TestBed.inject(ControleVeiculosService);
     mockHttp = TestBed.inject(HttpTestingController);
+    urlApiBase = TestBed.inject(RuntimeConfigService).apiUrl.replace(/\/api\/?$/, '');
   });
 
   afterEach(() => {

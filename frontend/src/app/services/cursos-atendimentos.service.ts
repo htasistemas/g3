@@ -1,17 +1,11 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { SalaRecord } from './salas.service';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
 export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
-export type StatusAgendamento =
-  | 'AGUARDANDO'
-  | 'CONFIRMADO'
-  | 'REMARCAR'
-  | 'REMARCADO'
-  | 'NAO_RESPONDEU';
 
 export interface Enrollment {
   id: string;
@@ -19,13 +13,6 @@ export interface Enrollment {
   cpf: string;
   status: EnrollmentStatus;
   enrolledAt: string;
-  dataAgendada?: string | null;
-  horaAgendada?: string | null;
-  statusAgendamento?: StatusAgendamento | null;
-  profissionalId?: string | null;
-  profissionalNome?: string | null;
-  profissionalTipo?: 'PROFISSIONAL' | 'VOLUNTARIO' | null;
-  confirmacaoPresenca?: boolean;
 }
 
 export type PresencaStatus = 'PRESENTE' | 'AUSENTE';
@@ -64,7 +51,6 @@ export interface CourseRecord {
   vagaPreferencialIdosos?: boolean;
   sexoPermitido?: string;
   profissional: string;
-  instituicaoParceira?: string | null;
   salaId?: string | null;
   sala?: SalaRecord | null;
   createdAt: string;
@@ -79,14 +65,14 @@ export interface CourseRecord {
 }
 
 export interface CoursePayload
-  extends Omit<CourseRecord, 'id' | 'createdAt' | 'updatedAt' | 'vagasDisponiveis' | 'sala' | 'salaId'> {
+  extends Omit<CourseRecord, 'id' | 'createdAt' | 'updatedAt' | 'vagasDisponiveis' | 'sala'> {
   vagasDisponiveis?: number;
-  salaId?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
 export class CursosAtendimentosService {
-  private readonly baseUrl = `${environment.apiUrl}/api/cursos-atendimentos`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/cursos-atendimentos`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -131,5 +117,3 @@ export class CursosAtendimentosService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
-
-

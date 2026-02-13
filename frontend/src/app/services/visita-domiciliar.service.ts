@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type SituacaoVisita = 'Agendada' | 'Em andamento' | 'Realizada' | 'Cancelada';
 
@@ -95,7 +95,8 @@ interface VisitaDomiciliarListaResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VisitaDomiciliarService {
-  private readonly baseUrl = `${environment.apiUrl}/api/visitas-domiciliares`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/visitas-domiciliares`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -169,4 +170,3 @@ export class VisitaDomiciliarService {
     };
   }
 }
-

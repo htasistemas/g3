@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type StatusTransparencia = 'concluido' | 'andamento' | 'pendente';
 
@@ -66,7 +66,8 @@ export interface Transparencia extends TransparenciaPayload {
 
 @Injectable({ providedIn: 'root' })
 export class TransparenciaService {
-  private readonly baseUrl = `${environment.apiUrl}/api/transparencias`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/transparencias`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -98,4 +99,3 @@ export class TransparenciaService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
-

@@ -1,9 +1,9 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Observable, Subject } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { SenhaChamadaResponse } from './senhas.service';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface SenhaEventoResponse {
   evento: string;
@@ -12,6 +12,7 @@ export interface SenhaEventoResponse {
 
 @Injectable({ providedIn: 'root' })
 export class SenhasRealtimeService {
+  private readonly runtimeConfig = inject(RuntimeConfigService);
   private cliente: Client | null = null;
   private assunto = new Subject<SenhaEventoResponse>();
 
@@ -30,7 +31,7 @@ export class SenhasRealtimeService {
   }
 
   private criarCliente(): void {
-    const url = `${environment.apiUrl}/ws`;
+    const url = `${this.runtimeConfig.apiUrl}/ws`;
     this.cliente = new Client({
       webSocketFactory: () => new SockJS(url),
       reconnectDelay: 5000
@@ -50,4 +51,3 @@ export class SenhasRealtimeService {
     this.cliente.activate();
   }
 }
-

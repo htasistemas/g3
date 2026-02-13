@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface BeneficiaryDocumentConfig {
   id?: number;
@@ -33,7 +33,8 @@ export interface DestinoChamadoResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
-  private readonly baseUrl = `${environment.apiUrl}/api/config`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/config`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -58,11 +59,10 @@ export class ConfigService {
   }
 
   getVersaoArquivo(): Observable<string> {
-    return this.http.get(`${environment.apiUrl}/version.txt`, { responseType: 'text' });
+    return this.http.get(`${this.runtimeConfig.apiUrl}/version.txt`, { responseType: 'text' });
   }
 
   getDestinoChamados(): Observable<DestinoChamadoResponse> {
     return this.http.get<DestinoChamadoResponse>(`${this.baseUrl}/chamados/destino`);
   }
 }
-

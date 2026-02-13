@@ -1,8 +1,8 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface OcorrenciaCriancaPayload {
   id?: string;
@@ -68,7 +68,8 @@ export interface OcorrenciaCriancaAnexoPayload {
 
 @Injectable({ providedIn: 'root' })
 export class OcorrenciaCriancaService {
-  private readonly baseUrl = `${environment.apiUrl}/api/ocorrencias-crianca`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/ocorrencias-crianca`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -172,4 +173,3 @@ export class OcorrenciaCriancaService {
     };
   }
 }
-

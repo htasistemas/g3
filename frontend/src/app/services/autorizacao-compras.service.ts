@@ -1,7 +1,7 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface AutorizacaoCompraRequest {
   titulo: string;
@@ -89,7 +89,8 @@ export interface AutorizacaoPagamentoRequest {
 
 @Injectable({ providedIn: 'root' })
 export class AutorizacaoComprasService {
-  private readonly baseUrl = `${environment.apiUrl}/api/financeiro/autorizacao-compras`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/financeiro/autorizacao-compras`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -126,7 +127,7 @@ export class AutorizacaoComprasService {
 
   buscarFornecedorPorCnpj(cnpj: string): Observable<FornecedorCnpjResponse> {   
     return this.http.get<FornecedorCnpjResponse>(
-      `${environment.apiUrl}/api/financeiro/fornecedores/cnpj/${cnpj}`
+      `${this.runtimeConfig.apiUrl}/api/financeiro/fornecedores/cnpj/${cnpj}`
     );
   }
 
@@ -155,4 +156,3 @@ export class AutorizacaoComprasService {
   }
 
 }
-

@@ -1,8 +1,8 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type TipoTermo = 'Uniao' | 'Estado' | 'Municipio';
 export type SituacaoTermo = 'Ativo' | 'Aditivado' | 'Encerrado' | 'Cancelado';
@@ -43,7 +43,8 @@ export interface TermoFomentoPayload {
 
 @Injectable({ providedIn: 'root' })
 export class TermoFomentoService {
-  private readonly baseUrl = `${environment.apiUrl}/api/termos-fomento`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/termos-fomento`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -104,4 +105,3 @@ export class TermoFomentoService {
     };
   }
 }
-

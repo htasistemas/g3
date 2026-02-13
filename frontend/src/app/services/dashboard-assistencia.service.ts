@@ -1,7 +1,7 @@
-﻿import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { finalize } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface DashboardTop12 {
   beneficiariosAtendidosPeriodo: number;
@@ -73,6 +73,7 @@ export interface DashboardAssistenciaResponse {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardAssistenciaService {
+  private readonly runtimeConfig = inject(RuntimeConfigService);
   readonly data = signal<DashboardAssistenciaResponse | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -88,7 +89,7 @@ export class DashboardAssistenciaService {
     if (filters?.endDate) params = params.set('endDate', filters.endDate);
 
     this.http
-      .get<DashboardAssistenciaResponse>(`${environment.apiUrl}/api/dashboard/assistencia`, { params })
+      .get<DashboardAssistenciaResponse>(`${this.runtimeConfig.apiUrl}/api/dashboard/assistencia`, { params })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
@@ -101,4 +102,3 @@ export class DashboardAssistenciaService {
       });
   }
 }
-

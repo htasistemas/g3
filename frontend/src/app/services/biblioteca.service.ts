@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 import { map, Observable } from 'rxjs';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type BibliotecaStatusLivro = 'ATIVO' | 'INATIVO';
 export type BibliotecaStatusEmprestimo = 'ATIVO' | 'DEVOLVIDO' | 'ATRASADO' | 'CANCELADO';
@@ -81,7 +81,8 @@ export interface BibliotecaAlerta {
 
 @Injectable({ providedIn: 'root' })
 export class BibliotecaService {
-  private readonly apiUrlBase = environment.apiUrl.replace(/\/api\/?$/, '');
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly apiUrlBase = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
   private readonly urlBase = `${this.apiUrlBase}/api/biblioteca`;
 
   constructor(private readonly http: HttpClient) {}
@@ -150,4 +151,3 @@ export class BibliotecaService {
       .pipe(map((resposta) => resposta.alertas || []));
   }
 }
-

@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type MovementType = 'Entrada' | 'Saida' | 'Ajuste';
 export type AdjustmentDirection = 'increase' | 'decrease';
@@ -77,7 +77,8 @@ export interface KitVinculoMovimentacao {
 
 @Injectable({ providedIn: 'root' })
 export class AlmoxarifadoService {
-  private readonly baseUrl = `${environment.apiUrl}/api/almoxarifado`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/almoxarifado`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -95,8 +96,8 @@ export class AlmoxarifadoService {
 
   listMovements(): Observable<StockMovement[]> {
     return this.http
-      .get<{ movimentacoes: AlmoxarifadoMovimentacaoApi[] }>(`${this.baseUrl}/movements`)
-      .pipe(map((response) => (response.movimentacoes ?? []).map((item) => this.mapApiToMovement(item))));
+      .get<{ movimentações: AlmoxarifadoMovimentacaoApi[] }>(`${this.baseUrl}/movements`)
+      .pipe(map((response) => (response.movimentações ?? []).map((item) => this.mapApiToMovement(item))));
   }
 
   createItem(payload: StockItemPayload): Observable<StockItem> {
@@ -326,4 +327,3 @@ type MovimentacaoKitVinculoApi = {
   quantidade: number;
   saldo_apos: number;
 };
-

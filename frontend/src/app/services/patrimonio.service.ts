@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 import { map, Observable } from 'rxjs';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface PatrimonioMovimento {
   idMovimento: string;
@@ -50,7 +50,8 @@ export interface PatrimonioPayload {
 
 @Injectable({ providedIn: 'root' })
 export class PatrimonioService {
-  private readonly apiBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly apiBaseUrl = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
   private readonly baseUrl = `${this.apiBaseUrl}/api/patrimonios`;
 
   constructor(private readonly http: HttpClient) {}
@@ -82,4 +83,3 @@ export class PatrimonioService {
       .pipe(map((response) => response.patrimonio));
   }
 }
-

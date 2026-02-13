@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface AlertasSistemaConfiguracao {
   alertasSelecionados: string[];
@@ -10,7 +10,8 @@ export interface AlertasSistemaConfiguracao {
 
 @Injectable({ providedIn: 'root' })
 export class AlertasSistemaService {
-  private readonly baseUrl = `${environment.apiUrl}/api/alertas-sistema`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/alertas-sistema`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -24,4 +25,3 @@ export class AlertasSistemaService {
     return this.http.post<AlertasSistemaConfiguracao>(this.baseUrl, configuracao);
   }
 }
-

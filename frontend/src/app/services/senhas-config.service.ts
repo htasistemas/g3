@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface SenhasConfigResponse {
   fraseFala: string;
@@ -29,7 +29,8 @@ export interface SenhasConfigRequest {
 
 @Injectable({ providedIn: 'root' })
 export class SenhasConfigService {
-  private readonly baseUrl = `${environment.apiUrl}/api/senhas/config`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/senhas/config`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -41,4 +42,3 @@ export class SenhasConfigService {
     return this.http.put<SenhasConfigResponse>(this.baseUrl, payload);
   }
 }
-

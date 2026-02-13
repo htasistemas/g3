@@ -1,7 +1,7 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface ChartResponse {
   labels: string[];
@@ -17,7 +17,8 @@ export interface CursosMetricasResponse {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardBiService {
-  private readonly baseUrl = `${environment.apiUrl}/api/dashboard/bi`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/dashboard/bi`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -41,4 +42,3 @@ export class DashboardBiService {
     return of({ labels: [], values: [] });
   }
 }
-

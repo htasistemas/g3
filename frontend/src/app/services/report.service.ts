@@ -1,7 +1,7 @@
-﻿import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface AuthorizationTermPayload {
   beneficiarioNome: string;
@@ -53,18 +53,10 @@ export interface EmprestimoEventoRelatorioPayload {
   usuarioEmissor?: string;
 }
 
-export interface InformacoesAdministrativasRelatorioFilters {
-  tipo?: string;
-  categoria?: string;
-  titulo?: string;
-  tags?: string;
-  status?: boolean | null;
-  usuarioEmissor?: string;
-}
-
 @Injectable({ providedIn: 'root' })
 export class ReportService {
-  private readonly baseUrl = `${environment.apiUrl}/api/reports`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/reports`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -123,13 +115,4 @@ export class ReportService {
       responseType: 'blob'
     });
   }
-
-  generateInformacoesAdministrativasReport(
-    filtros: InformacoesAdministrativasRelatorioFilters
-  ): Observable<Blob> {
-    return this.http.post(`${this.baseUrl}/informacoes-administrativas`, filtros, {
-      responseType: 'blob'
-    });
-  }
 }
-

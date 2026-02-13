@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface DoacaoRealizadaItemResponse {
   id: number;
@@ -44,7 +44,8 @@ export interface DoacaoRealizadaRequest {
 
 @Injectable({ providedIn: 'root' })
 export class DoacaoRealizadaService {
-  private readonly baseUrl = `${environment.apiUrl}/api/doacoes-realizadas`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/doacoes-realizadas`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -69,4 +70,3 @@ export class DoacaoRealizadaService {
       .pipe(map((response) => response.doacao));
   }
 }
-

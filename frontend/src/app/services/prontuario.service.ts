@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type ProntuarioTipoRegistro =
   | 'atendimento'
@@ -106,7 +106,8 @@ export interface ProntuarioAnexoResponse extends ProntuarioAnexoRequest {
 
 @Injectable({ providedIn: 'root' })
 export class ProntuarioService {
-  private readonly baseUrl = `${environment.apiUrl}/api`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -146,4 +147,3 @@ export class ProntuarioService {
     return this.http.post<ProntuarioAnexoResponse>(`${this.baseUrl}/prontuario/registros/${registroId}/anexos`, payload);
   }
 }
-

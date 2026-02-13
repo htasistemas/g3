@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface SalaRecord {
   id: string;
@@ -16,7 +16,8 @@ export interface SalaPayload {
 
 @Injectable({ providedIn: 'root' })
 export class SalasService {
-  private readonly baseUrl = `${environment.apiUrl}/api/salas`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/salas`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -43,4 +44,3 @@ export class SalasService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
-

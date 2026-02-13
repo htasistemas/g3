@@ -1,8 +1,8 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface ChecklistItem {
   id: string;
@@ -76,7 +76,8 @@ interface TarefaPendenciaApiRequest {
 
 @Injectable({ providedIn: 'root' })
 export class TarefasPendenciasService {
-  private readonly baseUrl = `${environment.apiUrl}/api/administrativo/tarefas`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/administrativo/tarefas`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -146,7 +147,7 @@ export class TarefasPendenciasService {
 
   imprimirPendencias(): Observable<Blob> {
     return this.http
-      .get(`${environment.apiUrl}/api/reports/tarefas-pendencias`, { responseType: 'blob' })
+      .get(`${this.runtimeConfig.apiUrl}/api/reports/tarefas-pendencias`, { responseType: 'blob' })
       .pipe(catchError(this.logAndRethrow('ao baixar o relatório de pendências')));
   }
 
@@ -223,5 +224,4 @@ export class TarefasPendenciasService {
     };
   }
 }
-
 

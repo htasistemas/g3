@@ -1,6 +1,5 @@
 ﻿import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -26,8 +25,7 @@ import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { titleCaseWords } from '../../utils/capitalization.util';
-import { environment } from '../../../environments/environment';
-import { faImages } from '@fortawesome/free-solid-svg-icons';
+import { RuntimeConfigService } from '../../services/runtime-config.service';
 
 type FotoUploadItem = {
   arquivo: File;
@@ -48,22 +46,13 @@ type FotoUploadItem = {
     ReactiveFormsModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
-    DialogComponent,
-    FontAwesomeModule
+    DialogComponent
   ],
   templateUrl: './fotos-eventos.component.html',
   styleUrl: './fotos-eventos.component.scss'
 })
 export class FotosEventosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
-  readonly faImages = faImages;
-
-  readonly abas = [
-    { id: 'lista', label: 'Eventos' },
-    { id: 'detalhe', label: 'Detalhes' }
-  ];
-
-  abaAtiva = 'lista';
-
+  private readonly runtimeConfig = inject(RuntimeConfigService);
   filtrosForm: FormGroup;
   eventoForm: FormGroup;
   fotoForm: FormGroup;
@@ -186,10 +175,8 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       const idParam = params.get('id');
       this.detalheId = idParam ? Number(idParam) : null;
       if (this.detalheId) {
-        this.abaAtiva = 'detalhe';
         this.carregarDetalhe(this.detalheId);
       } else {
-        this.abaAtiva = 'lista';
         this.eventoSelecionado = null;
         this.fotosEvento = [];
       }
@@ -229,7 +216,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         error: () => {
           this.listLoading = false;
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('N?o foi poss?vel carregar os eventos.')
+            .adicionar('Nao foi possivel carregar os eventos.')
             .build();
         }
       });
@@ -267,16 +254,6 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.carregarEventos();
   }
 
-  alterarAba(tabId: string): void {
-    if (tabId === 'lista') {
-      this.voltarLista();
-      return;
-    }
-    if (tabId === 'detalhe') {
-      this.abaAtiva = 'detalhe';
-    }
-  }
-
   onBuscar(): void {
     if (this.mostrandoDetalhe) {
       this.voltarLista();
@@ -298,12 +275,10 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   }
 
   abrirDetalhe(evento: FotoEventoResponse): void {
-    this.abaAtiva = 'detalhe';
     this.router.navigate(['/administrativo/fotos-eventos', evento.id]);
   }
 
   voltarLista(): void {
-    this.abaAtiva = 'lista';
     this.router.navigate(['/administrativo/fotos-eventos']);
   }
 
@@ -321,7 +296,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         error: () => {
           this.detalheLoading = false;
           this.popupErros = new PopupErrorBuilder()
-            .adicionar('N?o foi poss?vel carregar o detalhe do evento.')
+            .adicionar('Nao foi possivel carregar o detalhe do evento.')
             .build();
         }
       });
@@ -329,7 +304,6 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
 
   abrirFormularioNovo(): void {
     this.formularioAberto = true;
-    this.abaAtiva = 'lista';
     this.eventoEmEdicaoId = null;
     this.atualizarValidacaoFotoPrincipal(true);
     this.eventoForm.reset({
@@ -376,7 +350,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     if (this.eventoForm.invalid) {
       this.eventoForm.markAllAsTouched();
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigat?rios do evento.')
+        .adicionar('Preencha os campos obrigatorios do evento.')
         .build();
       return;
     }
@@ -403,7 +377,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     } catch {
       this.salvandoEvento = false;
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('N?o foi poss?vel salvar o evento.')
+        .adicionar('Nao foi possivel salvar o evento.')
         .build();
     }
   }
@@ -441,7 +415,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('N?o foi poss?vel excluir o evento.')
+          .adicionar('Nao foi possivel excluir o evento.')
           .build();
       }
       return;
@@ -458,7 +432,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
         this.carregarEventos();
       } catch {
         this.popupErros = new PopupErrorBuilder()
-          .adicionar('N?o foi poss?vel remover a foto.')
+          .adicionar('Nao foi possivel remover a foto.')
           .build();
       }
     }
@@ -504,7 +478,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     } catch {
       this.enviandoFotos = false;
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('N?o foi poss?vel enviar as fotos.')
+        .adicionar('Nao foi possivel enviar as fotos.')
         .build();
     }
   }
@@ -558,7 +532,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       this.carregarDetalhe(this.eventoSelecionado.id);
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('N?o foi poss?vel atualizar a foto.')
+        .adicionar('Nao foi possivel atualizar a foto.')
         .build();
     }
   }
@@ -577,7 +551,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       this.carregarEventos();
     } catch {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('N?o foi poss?vel atualizar a foto principal.')
+        .adicionar('Nao foi possivel atualizar a foto principal.')
         .build();
     }
   }
@@ -765,7 +739,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
   private normalizarUrl(url?: string | null): string | null {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    return `${environment.apiUrl}${url}`;
+    return `${this.runtimeConfig.apiUrl}${url}`;
   }
 
   private async converterArquivo(file: File): Promise<{ nomeArquivo: string; contentType: string; conteudo: string }> {
@@ -823,4 +797,3 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     return null;
   }
 }
-

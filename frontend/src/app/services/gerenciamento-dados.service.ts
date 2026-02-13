@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface GerenciamentoDadosConfiguracaoResponse {
   id: number;
@@ -83,7 +83,8 @@ export interface GerenciamentoDadosRestauracaoResponse {
 
 @Injectable({ providedIn: 'root' })
 export class GerenciamentoDadosService {
-  private readonly baseUrl = `${environment.apiUrl}/api/config/gerenciamento-dados`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/config/gerenciamento-dados`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -115,4 +116,3 @@ export class GerenciamentoDadosService {
     );
   }
 }
-

@@ -1,7 +1,7 @@
-﻿import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export type StatusEmprestimoEvento =
   | 'RASCUNHO'
@@ -109,7 +109,8 @@ export interface EmprestimoEventoMovimentacaoResponse {
 
 @Injectable({ providedIn: 'root' })
 export class EmprestimosEventosService {
-  private readonly urlBase = `${environment.apiUrl}/api/emprestimos-eventos`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly urlBase = `${this.runtimeConfig.apiUrl}/api/emprestimos-eventos`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -228,5 +229,4 @@ export class EmprestimosEventosService {
     );
   }
 }
-
 

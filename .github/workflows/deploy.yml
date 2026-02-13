@@ -21,6 +21,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Sincronizando repositorio no runner..."
+          git fetch --all --prune
+          git checkout "${GITHUB_REF_NAME}"
+          git pull origin "${GITHUB_REF_NAME}"
+
           if [ -f docker-compose.tunnel.yml ]; then
             echo "ERRO: docker-compose.tunnel.yml existe. Remova para evitar queda do sistema."
             exit 1

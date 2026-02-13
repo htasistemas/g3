@@ -1,8 +1,8 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface DoadorRequest {
   nome: string;
@@ -40,37 +40,18 @@ export interface RecebimentoDoacaoRequest {
   proximaCobranca?: string;
   status: string;
   observacoes?: string;
-  contaRecebimentoId?: number;
-  itens?: RecebimentoDoacaoItemRequest[];
-}
-
-export interface RecebimentoDoacaoItemRequest {
-  descricao?: string;
-  quantidade?: number;
-  unidade?: string;
-  valorUnitario?: number;
-  valorTotal?: number;
-  marca?: string;
-  modelo?: string;
-  conservacao?: string;
-  observacoes?: string;
-}
-
-export interface RecebimentoDoacaoItemResponse extends RecebimentoDoacaoItemRequest {
-  id: number;
 }
 
 export interface RecebimentoDoacaoResponse extends RecebimentoDoacaoRequest {
   id: number;
   doadorNome?: string;
   contabilidadePendente: boolean;
-  lancamentosGerados?: boolean;
-  itens?: RecebimentoDoacaoItemResponse[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class RecebimentoDoacaoService {
-  private readonly baseUrl = `${environment.apiUrl}/api/recebimentos-doacao`;
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/recebimentos-doacao`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -107,4 +88,3 @@ export class RecebimentoDoacaoService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
-

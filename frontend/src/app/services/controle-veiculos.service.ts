@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { RuntimeConfigService } from './runtime-config.service';
 
 export interface VeiculoCadastro {
   id: number;
@@ -98,7 +98,8 @@ export interface MotoristaAutorizadoEntrada {
 
 @Injectable({ providedIn: 'root' })
 export class ControleVeiculosService {
-  private readonly urlApiBase = environment.apiUrl.replace(/\/api\/?$/, '');
+  private readonly runtimeConfig = inject(RuntimeConfigService);
+  private readonly urlApiBase = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
   private readonly urlBase = `${this.urlApiBase}/api/controle-veiculos`;
 
   constructor(private readonly http: HttpClient) {}
@@ -160,4 +161,3 @@ export class ControleVeiculosService {
     return this.http.delete<void>(`${this.urlBase}/motoristas-autorizados/${id}`);
   }
 }
-
