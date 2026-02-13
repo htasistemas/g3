@@ -138,7 +138,17 @@ public class RhPontoController {
 
       Row header = sheet.createRow(rowIndex++);
       String[] colunas = {
-        "Data", "Ocorr.", "Entrada", "Saída", "Entrada", "Saída",`r`n        "Horas Totais", "Hs Extras Total", "Banco de Horas", "Faltas e Atrasos", "Observações"
+        "Data",
+        "Ocorr.",
+        "Entrada",
+        "SaÃ­da",
+        "Entrada",
+        "SaÃ­da",
+        "Horas Totais",
+        "Hs Extras Total",
+        "Banco de Horas",
+        "Faltas e Atrasos",
+        "ObservaÃ§Ãµes",
       };
       CellStyle headerStyle = workbook.createCellStyle();
       headerStyle.setFillForegroundColor(IndexedColors.DARK_GREEN.getIndex());
@@ -165,14 +175,17 @@ public class RhPontoController {
         row.createCell(5).setCellValue(valorOuVazio(dia.getSaidaTarde()));
         row.createCell(6).setCellValue(formatarMinutos(dia.getTotalTrabalhadoMinutos()));
         row.createCell(7).setCellValue(formatarMinutos(dia.getExtrasMinutos()));
-        row.createCell(8).setCellValue(formatarMinutos(dia.getBancoHorasMinutos()));`r`n        row.createCell(9).setCellValue(formatarMinutos(dia.getFaltasAtrasosMinutos()));`r`n        row.createCell(10).setCellValue(valorOuVazio(dia.getObservacoes()));
+        row.createCell(8).setCellValue(formatarMinutos(dia.getBancoHorasMinutos()));
+        row.createCell(9).setCellValue(formatarMinutos(dia.getFaltasAtrasosMinutos()));
+        row.createCell(10).setCellValue(valorOuVazio(dia.getObservacoes()));
       }
 
       Row totalRow = sheet.createRow(rowIndex + 1);
       totalRow.createCell(5).setCellValue("Totais");
       totalRow.createCell(6).setCellValue(formatarMinutos(espelho.getTotalTrabalhadoMinutos()));
       totalRow.createCell(7).setCellValue(formatarMinutos(espelho.getTotalExtrasMinutos()));
-      totalRow.createCell(8).setCellValue(formatarMinutos(espelho.getTotalBancoHorasMinutos()));`r`n      totalRow.createCell(9).setCellValue(formatarMinutos(espelho.getTotalFaltasAtrasosMinutos()));
+      totalRow.createCell(8).setCellValue(formatarMinutos(espelho.getTotalBancoHorasMinutos()));
+      totalRow.createCell(9).setCellValue(formatarMinutos(espelho.getTotalFaltasAtrasosMinutos()));
 
       for (int i = 0; i < colunas.length; i++) {
         sheet.autoSizeColumn(i);
@@ -197,4 +210,5 @@ public class RhPontoController {
     return valor == null ? "" : valor;
   }
 }
+
 

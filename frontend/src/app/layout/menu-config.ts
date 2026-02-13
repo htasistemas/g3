@@ -173,7 +173,8 @@ export const menuSections: MenuItem[] = [
     label: 'Setor RH',
     icon: faUserClock,
     children: [
-      { label: 'Folha de ponto', icon: faClock, route: '/rh/folha-ponto' },
+      { label: 'Folha de Ponto', icon: faClock, route: '/rh/folha-ponto' },
+      { label: 'Contratação', icon: faClipboardCheck, route: '/rh/contratacao' },
     ],
   },
   {
@@ -195,5 +196,7 @@ export const menuSections: MenuItem[] = [
     ],
   },
 ];
+
+
 
 

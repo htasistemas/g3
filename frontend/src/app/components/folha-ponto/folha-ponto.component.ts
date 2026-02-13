@@ -714,10 +714,10 @@ export class FolhaPontoComponent implements OnInit {
       email: usuario.email || usuario.nomeUsuario,
       permissoes: usuario.permissoes || [],
       ...valores,
-      horarioEntrada1: valores.horarioSegundaEntrada1 || null,
-      horarioSaida1: valores.horarioSegundaSaida1 || null,
-      horarioEntrada2: valores.horarioSegundaEntrada2 || null,
-      horarioSaida2: valores.horarioSegundaSaida2 || null
+      horarioEntrada1: valores['horarioSegundaEntrada1'] || undefined,
+      horarioSaida1: valores['horarioSegundaSaida1'] || undefined,
+      horarioEntrada2: valores['horarioSegundaEntrada2'] || undefined,
+      horarioSaida2: valores['horarioSegundaSaida2'] || undefined
     };
     this.userService.update(this.funcionarioIdAtual, payload).subscribe({
       next: (usuario) => {

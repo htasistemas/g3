@@ -3730,3 +3730,157 @@ ALTER TABLE rh_ponto_auditoria
   DROP CONSTRAINT IF EXISTS fk_rh_ponto_auditoria_usuario;
 ALTER TABLE rh_ponto_auditoria
   ADD CONSTRAINT fk_rh_ponto_auditoria_usuario FOREIGN KEY (funcionario_id) REFERENCES usuarios(id);
+
+-- RH Contratacao
+INSERT INTO permissao (nome)
+VALUES
+  ('RH_USUARIO'),
+  ('GESTOR')
+ON CONFLICT (nome) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS rh_candidato (
+  id BIGSERIAL PRIMARY KEY,
+  nome_completo VARCHAR(200) NOT NULL,
+  cpf VARCHAR(20),
+  rg VARCHAR(40),
+  pis VARCHAR(40),
+  data_nascimento DATE,
+  naturalidade VARCHAR(120),
+  estado_civil VARCHAR(60),
+  nome_mae VARCHAR(200),
+  nome_conjuge VARCHAR(200),
+  vaga_pretendida VARCHAR(160),
+  data_preenchimento DATE,
+  filhos_possui BOOLEAN NOT NULL DEFAULT FALSE,
+  filhos_json TEXT,
+  deficiencia_possui BOOLEAN NOT NULL DEFAULT FALSE,
+  deficiencia_tipo VARCHAR(80),
+  deficiencia_descricao TEXT,
+  endereco_json TEXT,
+  telefone VARCHAR(40),
+  whatsapp VARCHAR(40),
+  anexos_json TEXT,
+  ativo BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS rh_candidato_nome_idx ON rh_candidato (nome_completo);
+CREATE INDEX IF NOT EXISTS rh_candidato_cpf_idx ON rh_candidato (cpf);
+
+CREATE TABLE IF NOT EXISTS rh_processo_contratacao (
+  id BIGSERIAL PRIMARY KEY,
+  candidato_id BIGINT NOT NULL REFERENCES rh_candidato(id) ON DELETE CASCADE,
+  status VARCHAR(40) NOT NULL,
+  responsavel_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  gestor_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  ultima_movimentacao_em TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_processo_contratacao_candidato_unique
+  ON rh_processo_contratacao (candidato_id);
+
+CREATE TABLE IF NOT EXISTS rh_entrevista (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  tipo_roteiro VARCHAR(80) NOT NULL,
+  perguntas_json TEXT,
+  respostas_json TEXT,
+  parecer VARCHAR(40),
+  observacoes TEXT,
+  data_entrevista TIMESTAMP,
+  criado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rh_ficha_admissao (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  dados_pessoais_json TEXT,
+  dependentes_json TEXT,
+  dados_internos_json TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_ficha_admissao_processo_unique
+  ON rh_ficha_admissao (processo_id);
+
+CREATE TABLE IF NOT EXISTS rh_documento_item (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  tipo_documento VARCHAR(160) NOT NULL,
+  obrigatorio BOOLEAN NOT NULL DEFAULT TRUE,
+  status VARCHAR(30) NOT NULL DEFAULT 'pendente',
+  observacao TEXT,
+  atualizado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_documento_item_unique
+  ON rh_documento_item (processo_id, tipo_documento);
+
+CREATE TABLE IF NOT EXISTS rh_arquivo (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  categoria VARCHAR(80) NOT NULL,
+  tipo_documento VARCHAR(160),
+  nome_arquivo VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(120) NOT NULL,
+  tamanho_bytes BIGINT NOT NULL,
+  caminho_arquivo TEXT NOT NULL,
+  versao INTEGER NOT NULL DEFAULT 1,
+  criado_por BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS rh_termo (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  tipo VARCHAR(40) NOT NULL,
+  dados_json TEXT,
+  status_assinatura VARCHAR(30),
+  data_assinatura DATE,
+  responsavel VARCHAR(120),
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_termo_unique
+  ON rh_termo (processo_id, tipo);
+
+CREATE TABLE IF NOT EXISTS rh_ppd (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  cabecalho_json TEXT,
+  lado_a_json TEXT,
+  lado_b_json TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_ppd_processo_unique
+  ON rh_ppd (processo_id);
+
+CREATE TABLE IF NOT EXISTS rh_carta_banco (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  dados_json TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rh_carta_banco_processo_unique
+  ON rh_carta_banco (processo_id);
+
+CREATE TABLE IF NOT EXISTS rh_auditoria_contratacao (
+  id BIGSERIAL PRIMARY KEY,
+  processo_id BIGINT NOT NULL REFERENCES rh_processo_contratacao(id) ON DELETE CASCADE,
+  ator_id BIGINT REFERENCES usuarios(id) ON DELETE SET NULL,
+  acao VARCHAR(160) NOT NULL,
+  detalhes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);

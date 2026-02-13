@@ -40,6 +40,7 @@ import { SenhasChamarComponent } from './components/senhas-chamar/senhas-chamar.
 import { SenhasPainelComponent } from './components/senhas-painel/senhas-painel.component';
 import { LembretesDiariosComponent } from './components/lembretes-diarios/lembretes-diarios.component';
 import { FolhaPontoComponent } from './components/folha-ponto/folha-ponto.component';
+import { ContratacaoComponent } from './components/contratacao/contratacao.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -97,6 +98,11 @@ export const routes: Routes = [
         path: 'atendimentos/recebimento-doacao',
         component: RecebimentoDoacaoComponent,
         data: { title: 'Recebimento de doacao' }
+      },
+      {
+        path: 'rh/contratacao',
+        component: ContratacaoComponent,
+        data: { title: 'Contratação' }
       },
       {
         path: 'rh/folha-ponto',
@@ -283,5 +289,6 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '' }
 ];
+
 
 
