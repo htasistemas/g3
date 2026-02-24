@@ -8,9 +8,9 @@ import java.util.List;
 public interface UsuarioService {
   List<UsuarioResponse> listar();
 
-  UsuarioResponse criar(UsuarioCriacaoRequest request);
+  UsuarioResponse criar(UsuarioCriacaoRequest request, Long usuarioId);
 
-  UsuarioResponse atualizar(Long id, UsuarioAtualizacaoRequest request);
+  UsuarioResponse atualizar(Long id, UsuarioAtualizacaoRequest request, Long usuarioId);
 
-  void remover(Long id);
+  void remover(Long id, Long usuarioId);
 }

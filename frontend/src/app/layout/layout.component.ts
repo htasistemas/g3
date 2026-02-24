@@ -121,6 +121,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   toggleSection(label: string): void {
+    if (this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = false;
+      this.openSection = label;
+      return;
+    }
     this.openSection = this.openSection === label ? null : label;
   }
 

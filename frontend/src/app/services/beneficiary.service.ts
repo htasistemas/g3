@@ -137,10 +137,17 @@ export interface BeneficiaryPayload {
 
 @Injectable({ providedIn: 'root' })
 export class BeneficiaryService {
-  private readonly apiBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
-  private readonly baseUrls = [`${this.apiBaseUrl}/api/beneficiarios`, `${this.apiBaseUrl}/api/beneficiaries`];
+  private readonly apiBaseUrl = this.resolverApiBaseUrl();
+  private readonly baseUrls = [`${this.apiBaseUrl}/beneficiarios`, `${this.apiBaseUrl}/beneficiaries`];
 
   constructor(private readonly http: HttpClient) {}
+  private resolverApiBaseUrl(): string {
+    const base = (environment.apiUrl || '').trim().replace(/\/$/, '');
+    if (!base) {
+      return '/api';
+    }
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
 
   getById(id: number): Observable<BeneficiaryPayload> {
     return this.requestWithFallback((baseUrl) =>

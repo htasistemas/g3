@@ -3,6 +3,9 @@
     <module name="backend" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.g3.G3Application" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/backend" />
+    <envs>
+      <env name="G3_SECRET_KEY" value="eVqel62VCrSfMWlR1vJZF5+9VzYN4WYZTm3o7dEd/dk=" />
+    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

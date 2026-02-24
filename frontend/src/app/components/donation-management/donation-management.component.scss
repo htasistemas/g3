@@ -191,6 +191,13 @@
   box-shadow: 0 10px 22px rgba(148, 163, 184, 0.16);
 }
 
+.ghost.ghost--icon {
+  padding: 0.45rem;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+}
+
 .ghost--danger {
   border-color: #fecdd3;
   color: #b91c1c;

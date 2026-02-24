@@ -30,6 +30,7 @@ import {
   faImages,
   faLandmark,
   faListCheck,
+  faLock,
   faMapLocationDot,
   faNotesMedical,
   faPeopleGroup,
@@ -192,6 +193,12 @@ export const menuSections: MenuItem[] = [
         route: '/configuracoes/gerenciamento-dados',
       },
       { label: 'Configurações do Sistema', icon: faSliders, route: '/configuracoes/parametros' },
+      {
+        label: 'Acesso Restrito',
+        icon: faLock,
+        route: '/configuracoes/informacoes-administrativas',
+        permissao: 'ADMINISTRADOR'
+      },
       { label: 'Versão do Sistema', icon: faTags, route: '/configuracoes/versao' },
     ],
   },

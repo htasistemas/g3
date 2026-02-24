@@ -10,7 +10,7 @@ public class RhPontoMarcacaoResponse {
   private Double longitude;
   private Double accuracy;
   private Double distanciaMetros;
-  private boolean dentroPerimetro;
+  private Boolean dentroPerimetro;
 
   public Long getId() {
     return id;
@@ -68,11 +68,11 @@ public class RhPontoMarcacaoResponse {
     this.distanciaMetros = distanciaMetros;
   }
 
-  public boolean isDentroPerimetro() {
+  public Boolean isDentroPerimetro() {
     return dentroPerimetro;
   }
 
-  public void setDentroPerimetro(boolean dentroPerimetro) {
+  public void setDentroPerimetro(Boolean dentroPerimetro) {
     this.dentroPerimetro = dentroPerimetro;
   }
 }

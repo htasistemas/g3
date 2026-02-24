@@ -1,6 +1,7 @@
 ﻿import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
@@ -47,7 +48,7 @@ import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
 import { environment } from '../../../environments/environment';
 import { Subject, firstValueFrom, of } from 'rxjs';
-import { catchError, finalize, map, take, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, map, take, takeUntil, timeout } from 'rxjs/operators';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import {
   ConfigAcoesCrud,
@@ -91,8 +92,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   searchForm: FormGroup;
   activeTab = 'lista';
   saving = false;
-  feedback: string | null = null;
+  private _feedback: string | null = null;
+  private _listError: string | null = null;
   popupErros: string[] = [];
+  popupMensagens: string[] = [];
+  popupTitulo = 'Aviso';
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
@@ -219,7 +223,32 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'TO',
   ];
   listLoading = false;
-  listError: string | null = null;
+  get feedback(): string | null {
+    return this._feedback;
+  }
+  set feedback(value: string | null) {
+    this._feedback = value;
+    if (!value) {
+      this.popupMensagens = [];
+      return;
+    }
+    this.popupTitulo = this.resolverTituloPopup(value);
+    this.popupMensagens = [value];
+  }
+  get listError(): string | null {
+    return this._listError;
+  }
+  set listError(value: string | null) {
+    this._listError = value;
+    if (!value) {
+      if (!this._feedback) {
+        this.popupMensagens = [];
+      }
+      return;
+    }
+    this.popupTitulo = 'Erro';
+    this.popupMensagens = [value];
+  }
   preferredContactOptions = [
     { value: 'MANHA', label: 'Manha' },
     { value: 'TARDE', label: 'Tarde' },
@@ -277,15 +306,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   pdfErrorDialogOpen = false;
   pdfErrorMessage: string | null = null;
   dialogConfirmacaoAberta = false;
-  dialogTitulo = 'Confirmar acao';
+  dialogTitulo = 'Confirmar ação';
   dialogMensagem = 'Deseja continuar?';
   dialogConfirmarLabel = 'Confirmar';
   private dialogAcao?: () => void;
+  private suprimirBuscaAutomatica = false;
   private documentNameKey(name?: string): string {
     return (name ?? '').trim().toLowerCase();
   }
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('campoNomeCompleto') campoNomeCompleto?: ElementRef<HTMLInputElement>;
   private readonly sentenceCaseFields: (string | number)[][] = [
     ['dadosPessoais', 'nome_completo'],
     ['dadosPessoais', 'nome_social'],
@@ -367,7 +398,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   });
   get acoesDesabilitadas(): EstadoAcoesCrud {
     return {
-      buscar: this.saving || this.uploadingDocuments,
+      buscar: this.saving || this.uploadingDocuments || this.listLoading,
       salvar: this.saving || this.uploadingDocuments,
       excluir: !this.selectedBeneficiary,
       novo: this.saving || this.uploadingDocuments,
@@ -406,6 +437,22 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   fecharPopupErros(): void {
     this.popupErros = [];
+  }
+  fecharPopupMensagens(): void {
+    this.popupMensagens = [];
+    this._feedback = null;
+    this._listError = null;
+  }
+  private resolverTituloPopup(mensagem: string): string {
+    const texto = mensagem.toLowerCase();
+    if (texto.includes('sucesso')) return 'Sucesso';
+    if (texto.includes('erro') || texto.includes('não foi') || texto.includes('falha')) {
+      return 'Erro';
+    }
+    if (texto.includes('atenção') || texto.includes('obrigatório') || texto.includes('obrigatorios')) {
+      return 'Atenção';
+    }
+    return 'Aviso';
   }
   getTabLabel(id: string): string {
     return this.tabs.find((tab) => tab.id === id)?.label ?? '';
@@ -451,6 +498,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     private readonly reportService: ReportService,
     private readonly authService: AuthService,
     private readonly ngZone: NgZone,
+    private readonly changeDetector: ChangeDetectorRef,
     private readonly sanitizer: DomSanitizer,
   ) {
     super();
@@ -607,7 +655,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.watchStatusChanges();
     this.setupSentenceCaseFormatting();
     this.carregarOrdenacaoDocumentos();
-    this.buscarBeneficiariosNaListagem();
+    this.buscarBeneficiariosNaListagem(false);
     this.searchForm
       .get('status')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -638,7 +686,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       .pipe(take(1), takeUntil(this.destroy$))
       .subscribe(() => {
         this.activeTab = 'lista';
-        this.searchBeneficiaries();
       });
   }
   ngOnDestroy(): void {
@@ -1180,18 +1227,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.feedbackTimeout = setTimeout(() => {
       this.ngZone.run(() => {
         this.feedback = null;
+        this.popupMensagens = [];
       });
     }, 4000);
-  }
-  dismissFeedback(): void {
-    if (this.feedbackTimeout) {
-      clearTimeout(this.feedbackTimeout);
-      this.feedbackTimeout = undefined;
-    }
-    this.feedback = null;
-  }
-  dismissListError(): void {
-    this.listError = null;
   }
   saveStatusChange(): void {
     if (this.saving) return;
@@ -1703,8 +1741,13 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
     this.popupErros = [];
     this.activeTab = tab;
-    if (tab === 'lista' && !this.listLoading && this.beneficiarios.length === 0) {
-      this.searchBeneficiaries();
+    if (
+      tab === 'lista' &&
+      !this.listLoading &&
+      this.beneficiarios.length === 0 &&
+      !this.suprimirBuscaAutomatica
+    ) {
+      this.searchBeneficiaries(false);
     }
   }
   private validateCurrentTabRequirements(targetTab: string): boolean {
@@ -1822,13 +1865,17 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.saving = true;
     try {
       const payload = await this.toPayload(statusForSave);
-      const request = this.beneficiarioId
-        ? this.service.update(this.beneficiarioId, payload)
+      const beneficiarioId = this.beneficiarioId;
+      const emEdicao = !!beneficiarioId;
+      const request = emEdicao
+        ? this.service.update(beneficiarioId, payload)
         : this.service.create(payload);
       request.pipe(finalize(() => this.ngZone.run(() => (this.saving = false)))).subscribe({
         next: () => {
           this.ngZone.run(() => {
-            this.showTemporaryFeedback('Registro salvo com sucesso');
+            this.showTemporaryFeedback(
+              emEdicao ? 'Alteração realizada com sucesso.' : 'Cadastro realizado com sucesso.',
+            );
             this.statusDirty = false;
             setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
           });
@@ -2047,7 +2094,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   openQuickSearch(): void {
     this.quickSearchModalOpen = true;
     if (!this.beneficiarios.length && !this.listLoading) {
-      this.searchBeneficiaries();
+      this.searchBeneficiaries(false);
     }
   }
   closeQuickSearch(): void {
@@ -2071,6 +2118,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.beneficiaryCode = this.nextSequentialCode;
     this.lastStatus = 'EM_ANALISE';
     this.previousStatusBeforeBlock = 'EM_ANALISE';
+    this.statusDirty = false;
     this.activeTab = 'dados';
     this.form.reset();
     this.form.patchValue({
@@ -2081,6 +2129,14 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       beneficios: { beneficios_recebidos: [] },
     });
     this.resetDocumentArray();
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+    this.focarPrimeiroCampo();
+  }
+  private focarPrimeiroCampo(): void {
+    this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
+      this.campoNomeCompleto?.nativeElement?.focus();
+    });
   }
   togglePrintMenu(): void {
     this.printMenuOpen = !this.printMenuOpen;
@@ -2098,6 +2154,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     if (this.blockReasonModalOpen) this.cancelBlockReason();
     if (this.missingFieldsModalOpen) this.closeMissingFieldsModal();
     if (this.pdfErrorDialogOpen) this.closePdfErrorDialog();
+    if (this.popupMensagens.length) this.fecharPopupMensagens();
   }
   openPrintByName(): void {
     this.printByNameQuery = '';
@@ -2151,6 +2208,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     return ['individual', 'authorization', 'list'];
   }
   onSave(): void {
+    if (this.saving) return;
     if (this.statusDirty && this.beneficiarioId && this.form.invalid) {
       this.submit(true);
       return;
@@ -2158,7 +2216,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.submit();
   }
   onCancel(): void {
-    this.startNewBeneficiario();
+    if (this.activeTab === 'lista') {
+      this.clearSearchFilters(false);
+      return;
+    }
+    this.confirmarCancelamento();
   }
   onDelete(): void {
     this.handleDeleteSelected();
@@ -2167,37 +2229,118 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.startNewBeneficiario();
   }
   onClose(): void {
+    this.confirmarFechamento();
+  }
+  private temAlteracoesPendentes(): boolean {
+    return this.form.dirty || this.statusDirty || this.uploadingDocuments;
+  }
+  private confirmarCancelamento(): void {
+    if (this.temAlteracoesPendentes()) {
+      this.abrirDialogoConfirmacao(
+        'Descartar alterações',
+        'Deseja descartar as alterações?',
+        'Descartar',
+        () => this.aplicarCancelamento(),
+      );
+      return;
+    }
+    this.aplicarCancelamento();
+  }
+  private aplicarCancelamento(): void {
+    if (this.beneficiarioId || this.selectedBeneficiary?.id_beneficiario) {
+      const beneficiarioBase = this.selectedBeneficiary;
+      if (beneficiarioBase) {
+        this.selectBeneficiario(beneficiarioBase);
+      }
+      this.changeTab('dados');
+      return;
+    }
+    this.startNewBeneficiario();
+    this.changeTab('lista');
+  }
+  private confirmarFechamento(): void {
+    if (this.temAlteracoesPendentes()) {
+      this.abrirDialogoConfirmacao(
+        'Sair da tela',
+        'Deseja sair sem salvar as alterações?',
+        'Sair',
+        () => this.closeForm(),
+      );
+      return;
+    }
     this.closeForm();
   }
-  clearSearchFilters(): void {
+  clearSearchFilters(exibirPopupSemResultados = true): void {
     this.searchForm.reset({ nome: '', codigo: '', cpf: '', data_nascimento: '', status: '' });
-    this.searchBeneficiaries();
+    this.searchBeneficiaries(exibirPopupSemResultados);
   }
-  triggerSearchFromUi(): void {
+  triggerSearchFromUi(exibirPopupSemResultados = true): void {
     this.searchForm.updateValueAndValidity({ emitEvent: false });
-    this.searchBeneficiaries();
+    this.searchBeneficiaries(exibirPopupSemResultados);
   }
-  searchBeneficiaries(): void {
-    const { nome, cpf, codigo, data_nascimento, status } = this.searchForm.value;
-    this.listLoading = true;
-    this.listError = null;
-    this.service
-      .list({
-        nome: nome || undefined,
-        cpf: cpf || undefined,
-        codigo: codigo || undefined,
-        data_nascimento: data_nascimento || undefined,
-        status: status || undefined,
-      })
-      .pipe(finalize(() => (this.listLoading = false)))
-      .subscribe({
-        next: ({ beneficiarios }: { beneficiarios?: BeneficiarioApiPayload[] }) => {
-          this.handleBeneficiaryResponse(beneficiarios ?? []);
-        },
-        error: () => {
-          this.loadBeneficiariesFromFallback({ nome, cpf, codigo, data_nascimento, status });
-        },
+  onBuscarEnter(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.listLoading) return;
+    this.triggerSearchFromUi(true);
+  }
+  searchBeneficiaries(exibirPopupSemResultados = false): void {
+    try {
+      const { nome, cpf, codigo, data_nascimento, status } = this.searchForm.value;
+      this.ngZone.run(() => {
+        this.listLoading = true;
+        this.listError = null;
       });
+      const timeoutId = setTimeout(() => {
+        this.ngZone.run(() => {
+          if (this.listLoading) {
+            this.listLoading = false;
+            this.listError = 'Não foi possível concluir a busca. Tente novamente.';
+          }
+        });
+      }, 20000);
+      this.service
+        .list({
+          nome: nome || undefined,
+          cpf: cpf || undefined,
+          codigo: codigo || undefined,
+          data_nascimento: data_nascimento || undefined,
+          status: status || undefined,
+        })
+        .pipe(
+          timeout(15000),
+          finalize(() => {
+            clearTimeout(timeoutId);
+            this.ngZone.run(() => {
+              this.listLoading = false;
+            });
+          }),
+        )
+        .subscribe({
+          next: ({ beneficiarios }: { beneficiarios?: BeneficiarioApiPayload[] }) => {
+            this.ngZone.run(() => {
+              const lista = beneficiarios ?? [];
+              this.handleBeneficiaryResponse(lista);
+              if (exibirPopupSemResultados && !lista.length) {
+                this.feedback = 'Nenhum resultado encontrado.';
+              }
+            });
+          },
+          error: () => {
+            this.ngZone.run(() => {
+              this.loadBeneficiariesFromFallback(
+                { nome, cpf, codigo, data_nascimento, status },
+                exibirPopupSemResultados,
+              );
+            });
+          },
+        });
+    } catch {
+      this.ngZone.run(() => {
+        this.listLoading = false;
+        this.listError = 'Não foi possível carregar os Beneficiários. Tente novamente.';
+      });
+    }
   }
   applyListFilters(): void {
     const { nome, cpf, codigo, data_nascimento, status } =
@@ -2266,6 +2409,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.ignoreStatusChange = true;
       this.form.patchValue(this.mapToForm(normalizedDetails));
       this.ignoreStatusChange = false;
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
       this.photoPreview = normalizedDetails.foto_3x4 ?? null;
       this.lastStatus = normalizedDetails.status ?? 'EM_ANALISE';
       this.previousStatusBeforeBlock = this.lastStatus;
@@ -2275,13 +2420,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       }
     );
   }
-  private loadBeneficiariesFromFallback(filters: {
-    nome?: string;
-    cpf?: string;
-    codigo?: string;
-    data_nascimento?: string;
-    status?: string;
-  }): void {
+  private loadBeneficiariesFromFallback(
+    filters: {
+      nome?: string;
+      cpf?: string;
+      codigo?: string;
+      data_nascimento?: string;
+      status?: string;
+    },
+    exibirPopupSemResultados = false,
+  ): void {
     this.beneficiaryService
       .list({
         nome: filters.nome || undefined,
@@ -2289,20 +2437,28 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         codigo: filters.codigo || undefined,
         data_nascimento: filters.data_nascimento || undefined,
       })
-      .pipe(finalize(() => (this.listLoading = false)))
+      .pipe(
+        timeout(15000),
+        finalize(() => (this.listLoading = false)),
+      )
       .subscribe({
         next: ({ beneficiarios }: { beneficiarios?: BeneficiaryPayload[] }) => {
           const normalized = (beneficiarios ?? [])
             .map((beneficiario) => this.mapBeneficiaryPayload(beneficiario))
             .filter((beneficiario) => !filters.status || beneficiario.status === filters.status);
           this.handleBeneficiaryResponse(normalized);
+          if (exibirPopupSemResultados && !normalized.length) {
+            this.feedback = 'Nenhum resultado encontrado.';
+          }
         },
         error: () => {
           this.listError = 'Não foi possível carregar os Beneficiários. Tente novamente.';
+          this.listLoading = false;
         },
       });
   }
   private handleBeneficiaryResponse(beneficiarios: BeneficiarioApiPayload[]): void {
+    this.listLoading = false;
     const vistos = new Set<string>();
     const unicos = (beneficiarios ?? []).filter((beneficiario) => {
       const chave = this.getBeneficiarioChaveUnica(beneficiario);
@@ -2323,6 +2479,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.selectedBeneficiary = null;
     this.applyListFilters();
     this.updateSequentialCode();
+    this.changeDetector.detectChanges();
   }
   private getBeneficiarioChaveUnica(beneficiario: BeneficiarioApiPayload): string {
     const codigo = this.normalizeDigits(beneficiario.codigo);
@@ -2347,16 +2504,20 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       status: (beneficiary.status as BeneficiarioApiPayload['status']) || 'EM_ANALISE',
     };
   }
-  buscarBeneficiariosNaListagem(): void {
+  buscarBeneficiariosNaListagem(exibirPopupSemResultados = true): void {
+    this.listLoading = false;
+    this.listError = null;
+    this.suprimirBuscaAutomatica = true;
     this.changeTab('lista');
-    this.searchBeneficiaries();
+    this.searchBeneficiaries(exibirPopupSemResultados);
+    this.suprimirBuscaAutomatica = false;
   }
   deleteBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const beneficiarioId = beneficiario.id_beneficiario;
     if (!beneficiarioId) return;
     this.abrirDialogoConfirmacao(
       'Excluir Beneficiário',
-      `Deseja excluir o beneficiario ${beneficiario.nome_completo || 'selecionado'}? Esta acao nao pode ser desfeita.`,
+      `Tem certeza que deseja excluir este registro? ${beneficiario.nome_completo || 'Beneficiário selecionado'}.`,
       'Excluir',
       () => {
         this.listLoading = true;
@@ -2375,7 +2536,8 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
               this.beneficiaryCode = null;
               this.selectedBeneficiary = null;
             }
-            this.searchBeneficiaries();
+            this.feedback = 'Registro excluído com sucesso.';
+            this.searchBeneficiaries(true);
           },
           error: () => {
             this.listError = 'Não foi possivel excluir o Beneficiário.';
@@ -2384,11 +2546,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         });
       },
     );
-  }
-  handleEditSelected(): void {
-    if (this.selectedBeneficiary?.id_beneficiario) {
-      this.editBeneficiario(this.selectedBeneficiary);
-    }
   }
   handleDeleteSelected(): void {
     if (this.selectedBeneficiary?.id_beneficiario) {
@@ -2417,19 +2574,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.dialogConfirmacaoAberta = false;
     this.dialogAcao = undefined;
   }
-  handleAlterSelected(): void {
-    if (this.selectedBeneficiary?.id_beneficiario) {
-      this.selectBeneficiario(this.selectedBeneficiary);
-      this.changeTab('dados');
-    }
-  }
   selecionarBeneficiarioNaLista(beneficiario: BeneficiarioApiPayload): void {
     this.selectBeneficiario(beneficiario);
     this.changeTab('dados');
-  }
-  editBeneficiario(beneficiario: BeneficiarioApiPayload): void {
-    if (!beneficiario.id_beneficiario) return;
-    this.router.navigate(['/cadastros/beneficiarios', beneficiario.id_beneficiario]);
   }
   async startCamera(): Promise<void> {
     this.captureError = null;

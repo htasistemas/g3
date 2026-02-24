@@ -9,6 +9,7 @@
   (cancelar)="onCancelar()"
   (imprimir)="onImprimir()"
   (buscar)="onBuscar()"
+  (fechar)="onFechar()"
 >
 <section class="cadastro">
   <app-popup-messages [mensagens]="popupErros" [titulo]="popupTitulo" (fechar)="fecharPopupErros()"></app-popup-messages>
@@ -176,6 +177,16 @@
   ></app-dialog>
 
   <app-dialog
+    [aberto]="dialogExcluirRecebimentoAberto"
+    titulo="Excluir recebimento"
+    mensagem="Deseja excluir este recebimento?"
+    confirmarLabel="Excluir"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarExcluirRecebimento()"
+    (cancelar)="cancelarExcluirRecebimento()"
+  ></app-dialog>
+
+  <app-dialog
     [aberto]="dialogContaRecebimentoAberto"
     titulo="Selecionar conta de recebimento"
     mensagem="Existe mais de uma conta marcada como recebimento local. Selecione a conta para registrar a doação."
@@ -217,7 +228,7 @@
     </div>
 
     <div class="field-grid cols-3 doacao-grid">
-      <label class="field field--doador">Doador (*)
+      <label class="field field--doador" [class.field--erro]="campoRecebimentoInvalido('doadorId')">Doador (*)
         <app-autocomplete
           [placeholder]="'Digite o nome do doador'"
           [termo]="termoBuscaDoador"
@@ -231,7 +242,7 @@
           Selecione um doador.
         </p>
       </label>
-      <label class="field">Tipo de doação (*)
+      <label class="field" [class.field--erro]="campoRecebimentoInvalido('tipoDoacao')">Tipo de doação (*)
         <select formControlName="tipoDoacao" (change)="onTipoDoacaoChange()">
           <option value="DINHEIRO">Dinheiro</option>
           <option value="ALIMENTOS">Alimentos</option>
@@ -241,31 +252,138 @@
           <option value="SERVICOS">Servicos</option>
         </select>
       </label>
-      <label class="field" *ngIf="isDoacaoItens">Quantidade (*)
+      <label class="field" *ngIf="isDoacaoItens" [class.field--erro]="campoRecebimentoInvalido('quantidadeItens')">Quantidade (*)
         <input type="number" formControlName="quantidadeItens" min="1" (input)="onQuantidadeItensChange($event)" />
         <p class="field-error" *ngIf="recebimentoForm.get('quantidadeItens')?.invalid && recebimentoForm.get('quantidadeItens')?.touched">
           Informe a quantidade do item.
         </p>
       </label>
-      <label class="field full" *ngIf="isDoacaoItens">Descrição do item doado
-        <textarea formControlName="descricao" rows="3" (blur)="onSentenceCaseBlur($event)"></textarea>
-      </label>
-      <label class="field">Data de recebimento (*)
-        <input type="date" formControlName="dataRecebimento" />
-      </label>
-      <label class="field" *ngIf="isDoacaoItens">Valor médio (*)
-        <input formControlName="valorMedio" placeholder="0,00" (input)="onValorMedioInput($event)" />
+      <label
+        class="field full"
+        *ngIf="isDoacaoItens"
+        [class.field--erro]="itemDoacaoExistenteNaoSelecionado || campoRecebimentoInvalido('descricao')"
+        [class.field--bloqueado]="itemDoacaoExistenteSelecionado"
+      >Descrição do item doado (*)
+          <app-autocomplete
+            [placeholder]="'Digite ou selecione o item'"
+            [termo]="termoBuscaItemDoado"
+            [opcoes]="itensDoacaoFiltrados"
+            (termoChange)="onItemDoacaoTermoChange($event)"
+            (selecionar)="onItemDoacaoSelecionado($event)"
+          ></app-autocomplete>
+          <p class="field-error" *ngIf="recebimentoForm.get('descricao')?.invalid && recebimentoForm.get('descricao')?.touched">
+            Informe a descrição do item.
+          </p>
+          <p class="field-error" *ngIf="itemDoacaoExistenteNaoSelecionado">
+            Item já existente. Selecione o item e informe apenas a quantidade.
+          </p>
+        </label>
+        <label
+          class="field"
+          *ngIf="isDoacaoItens"
+          [class.field--bloqueado]="itemDoacaoExistenteSelecionado"
+          [class.field--erro]="campoRecebimentoInvalido('categoriaItem')"
+        >Categoria (*)
+          <app-autocomplete
+            [termo]="categoriaItemTermo"
+            [opcoes]="categoriasItemOpcoes"
+            placeholder="Selecione a categoria"
+            (termoChange)="onCategoriaItemTermoChange($event)"
+            (selecionar)="onCategoriaItemSelecionado($event)"
+          ></app-autocomplete>
+          <p class="field-error" *ngIf="recebimentoForm.get('categoriaItem')?.invalid && recebimentoForm.get('categoriaItem')?.touched">
+            Informe a categoria.
+          </p>
+        </label>
+        <label
+          class="field"
+          *ngIf="isDoacaoItens"
+          [class.field--bloqueado]="itemDoacaoExistenteSelecionado"
+          [class.field--erro]="campoRecebimentoInvalido('unidadeItem')"
+        >Unidade de medida (*)
+          <app-autocomplete
+            [termo]="unidadeMedidaItemTermo"
+            [opcoes]="unidadesMedidaItemOpcoes"
+            placeholder="Selecione a unidade de medida"
+            (termoChange)="onUnidadeItemTermoChange($event)"
+            (selecionar)="onUnidadeItemSelecionado($event)"
+          ></app-autocomplete>
+          <p class="field-error" *ngIf="recebimentoForm.get('unidadeItem')?.invalid && recebimentoForm.get('unidadeItem')?.touched">
+            Informe a unidade de medida.
+          </p>
+        </label>
+        <label class="field" *ngIf="isDoacaoItens" [class.field--bloqueado]="itemDoacaoExistenteSelecionado">Localização
+          <app-autocomplete
+            [termo]="localizacaoItemTermo"
+            [opcoes]="localizacoesItemOpcoes"
+            placeholder="Selecione a sala"
+            (termoChange)="onLocalizacaoItemTermoChange($event)"
+            (selecionar)="onLocalizacaoItemSelecionado($event)"
+          ></app-autocomplete>
+        </label>
+        <label class="field" *ngIf="isDoacaoItens" [class.field--bloqueado]="itemDoacaoExistenteSelecionado">Localização interna
+          <app-autocomplete
+            [termo]="localizacaoInternaItemTermo"
+            [opcoes]="localizacoesInternasItemOpcoes"
+            placeholder="Selecione a localização interna"
+            (termoChange)="onLocalizacaoInternaItemTermoChange($event)"
+            (selecionar)="onLocalizacaoInternaItemSelecionado($event)"
+          ></app-autocomplete>
+        </label>
+        <label
+          class="field"
+          *ngIf="isDoacaoItens"
+          [class.field--bloqueado]="itemDoacaoExistenteSelecionado"
+          [class.field--erro]="campoRecebimentoInvalido('estoqueMinimoItem')"
+        >Estoque mínimo (*)
+          <input type="number" min="0" formControlName="estoqueMinimoItem" />
+          <p class="field-error" *ngIf="recebimentoForm.get('estoqueMinimoItem')?.invalid && recebimentoForm.get('estoqueMinimoItem')?.touched">
+            Informe o estoque mínimo.
+          </p>
+        </label>
+        <label class="field" *ngIf="isDoacaoItens" [class.field--bloqueado]="itemDoacaoExistenteSelecionado">Valor unitário estimado
+          <input formControlName="valorUnitarioItem" placeholder="0,00" (input)="onValorUnitarioItemInput($event)" />
+        </label>
+        <label
+          class="field"
+          *ngIf="isDoacaoItens"
+          [class.field--bloqueado]="itemDoacaoExistenteSelecionado"
+          [class.field--erro]="campoRecebimentoInvalido('statusItem')"
+        >Situação (*)
+          <select formControlName="statusItem">
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+          <p class="field-error" *ngIf="recebimentoForm.get('statusItem')?.invalid && recebimentoForm.get('statusItem')?.touched">
+            Informe a situação.
+          </p>
+        </label>
+      <label class="field" [class.field--erro]="campoRecebimentoInvalido('dataRecebimento')">Data de recebimento (*)
+          <input type="date" formControlName="dataRecebimento" />
+        </label>
+      <label class="field" *ngIf="isDoacaoItens" [class.field--erro]="campoRecebimentoInvalido('valorMedio')">Valor médio (*)
+        <input
+          formControlName="valorMedio"
+          placeholder="0,00"
+          (input)="onValorMedioInput($event)"
+          [disabled]="itemDoacaoExistenteSelecionado && itemDoacaoSelecionadoTemValor"
+        />
         <p class="field-error" *ngIf="recebimentoForm.get('valorMedio')?.invalid && recebimentoForm.get('valorMedio')?.touched">
           Informe o valor médio.
         </p>
       </label>
-      <label class="field" *ngIf="isDoacaoItens">Valor total (*)
-        <input formControlName="valorTotal" placeholder="0,00" (input)="onValorTotalInput($event)" />
+      <label class="field" *ngIf="isDoacaoItens" [class.field--erro]="campoRecebimentoInvalido('valorTotal')">Valor total (*)
+        <input
+          formControlName="valorTotal"
+          placeholder="0,00"
+          (input)="onValorTotalInput($event)"
+          [disabled]="itemDoacaoExistenteSelecionado && itemDoacaoSelecionadoTemValor"
+        />
         <p class="field-error" *ngIf="recebimentoForm.get('valorTotal')?.invalid && recebimentoForm.get('valorTotal')?.touched">
           Informe o valor total.
         </p>
       </label>
-      <label class="field" *ngIf="isDoacaoDinheiro">Valor (*)
+      <label class="field" *ngIf="isDoacaoDinheiro" [class.field--erro]="campoRecebimentoInvalido('valor')">Valor (*)
         <input formControlName="valor" placeholder="R$ 0,00" (input)="onValorInput($event)" />
         <p class="field-error" *ngIf="recebimentoForm.get('valor')?.invalid && recebimentoForm.get('valor')?.touched">
           Informe o valor recebido.
@@ -280,7 +398,7 @@
           <option value="CARTAO_CREDITO">Cartão de crédito</option>
         </select>
       </label>
-      <label class="field">Status (*)
+      <label class="field" [class.field--erro]="campoRecebimentoInvalido('status')">Status (*)
         <select formControlName="status">
           <option value="RECEBIDA">Recebida</option>
           <option value="PENDENTE">Pendente</option>
@@ -298,6 +416,7 @@
       <button type="button" class="ghost" (click)="changeTab('doador')">Voltar para doador</button>
       <button type="button" class="ghost" (click)="changeTab('recorrencia')">Configurar recorrência</button>
       <button type="button" class="ghost" (click)="changeTab('gestao')">Gestão da doação</button>
+      <button type="button" class="primary" (click)="onSalvar()">Incluir doação</button>
     </div>
   </div>
 
@@ -407,9 +526,6 @@
               <span class="status-chip" [class.status-chip--info]="!item.contabilidadePendente">
                 {{ item.contabilidadePendente ? 'Pendente' : 'Não aplicado' }}
               </span>
-              <button type="button" class="btn-outline" disabled title="Disponível quando a contabilidade estiver integrada">
-                Enviar para contabilidade
-              </button>
             </td>
             <td class="text-right">
               <button type="button" class="ghost danger" (click)="excluirRecebimento(item)">Excluir</button>

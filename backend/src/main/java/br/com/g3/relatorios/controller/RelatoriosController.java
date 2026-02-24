@@ -6,12 +6,14 @@ import br.com.g3.relatorios.dto.BeneficiarioRelacaoRequest;
 import br.com.g3.relatorios.dto.CursoAtendimentoFichaRequest;
 import br.com.g3.relatorios.dto.CursoAtendimentoRelacaoRequest;
 import br.com.g3.relatorios.dto.EmprestimoEventoRelatorioRequest;
+import br.com.g3.relatorios.dto.InformacaoAdministrativaRelatorioRequest;
 import br.com.g3.relatorios.dto.TermoAutorizacaoRequest;
 import br.com.g3.relatorios.service.BeneficiarioFichaService;
 import br.com.g3.relatorios.service.CursoAtendimentoFichaService;
 import br.com.g3.relatorios.service.RelatorioBeneficiariosService;
 import br.com.g3.relatorios.service.RelatorioCursosAtendimentosService;
 import br.com.g3.relatorios.service.RelatorioEmprestimoEventosService;
+import br.com.g3.relatorios.service.RelatorioInformacoesAdministrativasService;
 import br.com.g3.relatorios.service.RelatorioSolicitacaoComprasService;
 import br.com.g3.relatorios.service.RelatorioTarefasPendenciasService;
 import br.com.g3.relatorios.service.TermoEmprestimoEventosService;
@@ -39,6 +41,7 @@ public class RelatoriosController {
   private final RelatorioSolicitacaoComprasService relatorioSolicitacaoComprasService;
   private final RelatorioEmprestimoEventosService relatorioEmprestimoEventosService;
   private final TermoEmprestimoEventosService termoEmprestimoEventosService;
+  private final RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService;
 
   public RelatoriosController(
       TermoAutorizacaoService termoAutorizacaoService,
@@ -49,7 +52,8 @@ public class RelatoriosController {
       RelatorioCursosAtendimentosService relatorioCursosAtendimentosService,
       RelatorioSolicitacaoComprasService relatorioSolicitacaoComprasService,
       RelatorioEmprestimoEventosService relatorioEmprestimoEventosService,
-      TermoEmprestimoEventosService termoEmprestimoEventosService) {
+      TermoEmprestimoEventosService termoEmprestimoEventosService,
+      RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService) {
     this.termoAutorizacaoService = termoAutorizacaoService;
     this.relatorioTarefasPendenciasService = relatorioTarefasPendenciasService;
     this.beneficiarioFichaService = beneficiarioFichaService;
@@ -59,6 +63,7 @@ public class RelatoriosController {
     this.relatorioSolicitacaoComprasService = relatorioSolicitacaoComprasService;
     this.relatorioEmprestimoEventosService = relatorioEmprestimoEventosService;
     this.termoEmprestimoEventosService = termoEmprestimoEventosService;
+    this.relatorioInformacoesAdministrativasService = relatorioInformacoesAdministrativasService;
   }
 
   @PostMapping(value = "/authorization-term", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -150,6 +155,17 @@ public class RelatoriosController {
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDisposition(
         ContentDisposition.inline().filename("termo-emprestimo-evento.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/informacoes-administrativas", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarRelatorioInformacoesAdministrativas(
+      @RequestBody InformacaoAdministrativaRelatorioRequest requisicao) {
+    byte[] pdf = relatorioInformacoesAdministrativasService.gerarPdf(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(
+        ContentDisposition.inline().filename("informacoes-administrativas.pdf").build());
     return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
   }
 }

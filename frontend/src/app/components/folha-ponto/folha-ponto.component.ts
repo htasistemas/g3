@@ -375,13 +375,6 @@ export class FolhaPontoComponent implements OnInit {
     if (!this.funcionarioIdAtual) {
       return;
     }
-    if (!this.unidadeAssistencial?.latitude || !this.unidadeAssistencial?.longitude) {
-      this.popupTitulo = 'Localização';
-      this.popupErros = new PopupErrorBuilder()
-        .adicionar('Unidade assistencial sem latitude/longitude configuradas.')
-        .build();
-      return;
-    }
     if (!navigator.geolocation) {
       this.popupTitulo = 'Erro';
       this.popupErros = new PopupErrorBuilder().adicionar('Geolocalização indisponível no navegador.').build();
@@ -719,7 +712,15 @@ export class FolhaPontoComponent implements OnInit {
       horarioEntrada2: valores['horarioSegundaEntrada2'] || undefined,
       horarioSaida2: valores['horarioSegundaSaida2'] || undefined
     };
-    this.userService.update(this.funcionarioIdAtual, payload).subscribe({
+    const usuarioId = this.usuarioIdAtual;
+    if (!usuarioId) {
+      this.popupTitulo = 'Erro';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Usuário atual não identificado.')
+        .build();
+      return;
+    }
+    this.userService.update(this.funcionarioIdAtual, payload, usuarioId).subscribe({
       next: (usuario) => {
         const indice = this.usuarios.findIndex((item) => item.id === usuario.id);
         if (indice >= 0) {

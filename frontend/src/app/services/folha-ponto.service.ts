@@ -34,7 +34,7 @@ export interface RhPontoMarcacaoResponse {
   longitude: number;
   accuracy: number;
   distanciaMetros: number;
-  dentroPerimetro: boolean;
+  dentroPerimetro: boolean | null;
 }
 
 export interface RhPontoDiaResponse {

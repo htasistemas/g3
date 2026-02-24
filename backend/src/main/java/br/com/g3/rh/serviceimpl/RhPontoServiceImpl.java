@@ -122,50 +122,24 @@ public class RhPontoServiceImpl implements RhPontoService {
       registrarAuditoria(usuarioId, "PONTO_SENHA_VAZIA", "Senha no informada");
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe a senha para registrar o ponto.");
     }
-    if (request.getLatitude() == null || request.getLongitude() == null || request.getAccuracy() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Localizao no informada.");
-    }
-
     Usuario usuario = buscarUsuario(usuarioId);
     if (!passwordEncoder.matches(request.getSenha(), usuario.getSenhaHash())) {
       registrarAuditoria(usuarioId, "PONTO_SENHA_INVALIDA", "Senha invlida");
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha invlida.");
     }
-
     UnidadeAssistencialResponse unidade = unidadeAssistencialService.obterAtual();
-    if (unidade == null || unidade.getLatitude() == null || unidade.getLongitude() == null
-        || unidade.getLatitude().isBlank() || unidade.getLongitude().isBlank()) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
-          "Unidade assistencial sem latitude/longitude configuradas.");
-    }
-
-    double latitudeUnidade = parseCoordenada(unidade.getLatitude(), "Latitude da unidade invalida.");
-    double longitudeUnidade = parseCoordenada(unidade.getLongitude(), "Longitude da unidade invalida.");
-
-    int raioMetros = unidade.getRaioPontoMetros() != null ? unidade.getRaioPontoMetros() : RAIO_PADRAO_METROS;
-    int accuracyMax = unidade.getAccuracyMaxPontoMetros() != null
-        ? unidade.getAccuracyMaxPontoMetros()
-        : ACCURACY_MAX_METROS;
-    if (accuracyMax < 1000) {
-      accuracyMax = 1000;
-    }
-    validarPingLocal(unidade.getIpValidacaoPonto(), unidade.getPingTimeoutMs());
-    validarAccuracy(request.getAccuracy(), accuracyMax);
-
-    double distancia = calcularDistanciaMetros(
-        request.getLatitude(), request.getLongitude(), latitudeUnidade, longitudeUnidade);
-    boolean dentroPerimetro = distancia <= raioMetros;
-    if (!dentroPerimetro) {
-      registrarAuditoria(usuarioId, "PONTO_FORA_PERIMETRO",
-          String.format(Locale.forLanguageTag("pt-BR"), "Distancia %.2f m", distancia));
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
-          String.format(
-              Locale.forLanguageTag("pt-BR"),
-              "Voce precisa estar na instituicao para registrar o ponto. Distancia: %.2f m. Raio permitido: %d m.",
-              distancia,
-              raioMetros));
+    Double distancia = null;
+    Boolean dentroPerimetro = null;
+    if (request.getLatitude() != null && request.getLongitude() != null
+        && unidade != null
+        && unidade.getLatitude() != null && unidade.getLongitude() != null
+        && !unidade.getLatitude().isBlank() && !unidade.getLongitude().isBlank()) {
+      double latitudeUnidade = parseCoordenada(unidade.getLatitude(), "Latitude da unidade invalida.");
+      double longitudeUnidade = parseCoordenada(unidade.getLongitude(), "Longitude da unidade invalida.");
+      int raioMetros = unidade.getRaioPontoMetros() != null ? unidade.getRaioPontoMetros() : RAIO_PADRAO_METROS;
+      distancia = calcularDistanciaMetros(
+          request.getLatitude(), request.getLongitude(), latitudeUnidade, longitudeUnidade);
+      dentroPerimetro = distancia <= raioMetros;
     }
 
     LocalDate hoje = LocalDate.now();
@@ -187,7 +161,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     marcacao.setLongitude(request.getLongitude());
     marcacao.setAccuracy(request.getAccuracy());
     marcacao.setDistanciaMetros(distancia);
-    marcacao.setDentroPerimetro(true);
+    marcacao.setDentroPerimetro(dentroPerimetro);
     marcacao.setIp(ip);
     marcacao.setUserAgent(userAgent);
     marcacao.setCriadoEm(LocalDateTime.now());

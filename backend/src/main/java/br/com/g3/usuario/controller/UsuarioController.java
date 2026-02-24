@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,19 +34,23 @@ public class UsuarioController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public UsuarioResponse criar(@Valid @RequestBody UsuarioCriacaoRequest request) {
-    return service.criar(request);
+  public UsuarioResponse criar(
+      @RequestParam("usuarioId") Long usuarioId,
+      @Valid @RequestBody UsuarioCriacaoRequest request) {
+    return service.criar(request, usuarioId);
   }
 
   @PutMapping("/{id}")
   public UsuarioResponse atualizar(
-      @PathVariable("id") Long id, @Valid @RequestBody UsuarioAtualizacaoRequest request) {
-    return service.atualizar(id, request);
+      @PathVariable("id") Long id,
+      @RequestParam("usuarioId") Long usuarioId,
+      @Valid @RequestBody UsuarioAtualizacaoRequest request) {
+    return service.atualizar(id, request, usuarioId);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void remover(@PathVariable("id") Long id) {
-    service.remover(id);
+  public void remover(@PathVariable("id") Long id, @RequestParam("usuarioId") Long usuarioId) {
+    service.remover(id, usuarioId);
   }
 }

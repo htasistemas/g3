@@ -15,6 +15,7 @@ import {
   faNotesMedical,
   faPeopleGroup,
   faPlus,
+  faPrint,
   faTriangleExclamation,
   faUserCheck,
   faUserPlus
@@ -30,6 +31,8 @@ import {
   VisitaDomiciliar,
   VisitaDomiciliarService
 } from '../../services/visita-domiciliar.service';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
+import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autocomplete/autocomplete.component';
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
@@ -43,6 +46,8 @@ interface Beneficiary {
   name: string;
   document: string;
   cpf?: string;
+  city?: string;
+  state?: string;
   optaReceberCestaBasica?: boolean;
   aptoReceberCestaBasica?: boolean;
   birthDate?: string;
@@ -120,7 +125,15 @@ type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
 @Component({
   selector: 'app-donation-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, FontAwesomeModule, TelaPadraoComponent, PopupMessagesComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    PopupMessagesComponent,
+    AutocompleteComponent
+  ],
   templateUrl: './donation-management.component.html',
   styleUrl: './donation-management.component.scss'
 })
@@ -140,6 +153,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   readonly faChartPie = faChartPie;
   readonly faPeopleGroup = faPeopleGroup;
   readonly faGift = faGift;
+  readonly faPrint = faPrint;
   readonly Math = Math;
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     salvar: true,
@@ -168,6 +182,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);
   private readonly authService = inject(AuthService);
   private readonly visitaService = inject(VisitaDomiciliarService);
+  private readonly unidadeService = inject(AssistanceUnitService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
 
   tabs: { id: TabId; label: string }[] = [
@@ -196,6 +211,9 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   beneficiaries = signal<Beneficiary[]>([]);
 
   stockItems = signal<StockItem[]>([]);
+  termoBuscaItemEntrega = '';
+  itensEntregaOpcoes: AutocompleteOpcao[] = [];
+  unidadeAtual: AssistanceUnitPayload | null = null;
 
   donationHistory = signal<DonationRecord[]>([]);
 
@@ -319,6 +337,21 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     return plans;
   });
 
+  get itensEntregaFiltrados(): AutocompleteOpcao[] {
+    const termo = this.normalizarTexto(this.termoBuscaItemEntrega || '');
+    const itens = this.itensEntregaOpcoes;
+    if (!termo) {
+      return itens.slice(0, 15);
+    }
+    return itens
+      .filter((item) => {
+        const normalizado = this.normalizarTexto(item.label);
+        const sublabel = this.normalizarTexto(item.sublabel || '');
+        return normalizado.includes(termo) || sublabel.includes(termo);
+      })
+      .slice(0, 15);
+  }
+
   dashboardStats = computed(() => {
     const history = this.filteredHistory();
     const plans = this.filteredPlans();
@@ -347,6 +380,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.loadStockItems();
     this.loadDoacoesRealizadas();
     this.preencherResponsavelLogado();
+    this.carregarUnidadeAtual();
   }
 
   get selectedDeliveryItem() {
@@ -407,6 +441,20 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.carregarInformacoesCestaBasica(beneficiary.name);
   }
 
+  onItemEntregaTermoChange(termo: string): void {
+    this.termoBuscaItemEntrega = termo;
+    const selecionado = this.selectedDeliveryItem;
+    if (!termo || (selecionado && selecionado.description !== termo)) {
+      this.deliveredItemForm.patchValue({ itemCode: '' });
+    }
+  }
+
+  onItemEntregaSelecionado(opcao: AutocompleteOpcao): void {
+    const codigo = String(opcao.id || '');
+    this.deliveredItemForm.patchValue({ itemCode: codigo });
+    this.termoBuscaItemEntrega = opcao.label;
+  }
+
   async onBeneficiaryInput(value: string): Promise<void> {
     this.beneficiarySearch.set(value);
     this.identificationForm.get('beneficiaryName')?.setValue(value);
@@ -429,6 +477,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       name: payload.nome_completo || payload.nome_social || 'Beneficiário',
       document: payload.cpf || payload.nis || 'Documento não informado',
       cpf: payload.cpf || undefined,
+      city: payload.municipio || undefined,
+      state: payload.uf || undefined,
       optaReceberCestaBasica: payload.opta_receber_cesta_basica,
       aptoReceberCestaBasica: payload.apto_receber_cesta_basica,
       birthDate: payload.data_nascimento,
@@ -457,6 +507,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       name: payload.nome_familia,
       document: payload.municipio ? `Município: ${payload.municipio}` : 'Família cadastrada',
       cpf: undefined,
+      city: payload.municipio || undefined,
+      state: payload.uf || undefined,
       birthDate: undefined,
       age: null,
       photoUrl: undefined,
@@ -556,6 +608,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
     this.deliveredItems.update((current) => [...current, newItem]);
     this.deliveredItemForm.reset({ itemCode: '', quantity: 1, notes: '' });
+    this.termoBuscaItemEntrega = '';
   }
 
   removeDeliveredItem(index: number): void {
@@ -852,6 +905,11 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
           status: item.status
         }));
         this.stockItems.set(mapped);
+        this.itensEntregaOpcoes = mapped.map((item) => ({
+          id: item.code,
+          label: item.description,
+          sublabel: item.code
+        }));
       },
       error: () => {
         this.itemError.set('Não foi possível carregar itens do almoxarifado.');
@@ -907,6 +965,17 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       return;
     }
     this.identificationForm.patchValue({ responsible: usuario });
+  }
+
+  private carregarUnidadeAtual(): void {
+    this.unidadeService.get().subscribe({
+      next: (resposta) => {
+        this.unidadeAtual = resposta?.unidade ?? null;
+      },
+      error: () => {
+        this.unidadeAtual = null;
+      }
+    });
   }
 
   private ensureStockAvailable(code: string, quantity: number): boolean {
@@ -1337,8 +1406,246 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     window.print();
   }
 
+  imprimirTermoRecebimento(record: DonationRecord): void {
+    const html = this.buildTermoRecebimentoHtml(record);
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      return;
+    }
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.onload = () => {
+      const imagens = Array.from(printWindow.document.images || []);
+      const acionar = () => {
+        printWindow.onafterprint = () => {
+          printWindow.close();
+        };
+        printWindow.print();
+        setTimeout(() => {
+          if (!printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1500);
+      };
+      if (!imagens.length) {
+        acionar();
+        return;
+      }
+      let carregadas = 0;
+      const concluir = () => {
+        carregadas += 1;
+        if (carregadas >= imagens.length) {
+          acionar();
+        }
+      };
+      imagens.forEach((img) => {
+        if (img.complete) {
+          concluir();
+        } else {
+          img.addEventListener('load', concluir);
+          img.addEventListener('error', concluir);
+        }
+      });
+    };
+  }
+
+  private buildTermoRecebimentoHtml(record: DonationRecord): string {
+    const unidade = this.unidadeAtual;
+    const logo = unidade?.logomarcaRelatorio || unidade?.logomarca || '';
+    const nomeFantasia = unidade?.nomeFantasia || 'Instituição';
+    const razaoSocial = unidade?.razaoSocial || nomeFantasia;
+    const cnpj = unidade?.cnpj || '---';
+    const endereco = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' - ');
+    const telefoneUnidade = unidade?.telefone || '';
+    const emailUnidade = unidade?.email || '';
+
+    const dataEntrega = record.deliveryDate || record.date;
+    const dataFormatada = dataEntrega ? this.formatarDataExtenso(dataEntrega) : '';
+    const beneficiario = this.obterDadosBeneficiario(record);
+    const beneficiarioDocumento = beneficiario?.cpf
+      ? this.formatCpf(beneficiario.cpf)
+      : record.beneficiaryDocument || 'Não informado';
+    const codigoBeneficiario = beneficiario?.id || record.beneficiaryId || '---';
+    const responsavel = record.responsible || 'Não informado';
+    const enderecoCompleto = beneficiario?.address || 'Não informado';
+    const cidade = beneficiario?.city || 'Não informado';
+    const uf = beneficiario?.state || 'Não informado';
+    const telefoneBeneficiario = beneficiario?.phone ? this.formatPhoneValue(beneficiario.phone) : 'Não informado';
+    const nomeRelatorio = 'TERMO DE RECEBIMENTO DE DOAÇÕES';
+
+    const itensHtml = record.items
+      .map(
+        (item) => `
+          <tr>
+            <td>${this.escapeHtml(item.description)}</td>
+            <td class="center">${this.escapeHtml(item.unit)}</td>
+            <td class="center">${item.quantity}</td>
+            <td>${this.escapeHtml(item.notes || '')}</td>
+          </tr>
+        `
+      )
+      .join('');
+
+    const termo = `Eu, ${record.beneficiaryName}, portador do CPF nº ${beneficiarioDocumento}, declaro para os devidos fins que recebi gratuitamente da ${razaoSocial}, a doação acima discriminada, destinada a suprir minhas necessidades básicas.`;
+
+    const logoHtml = logo
+      ? `<img src="${logo}" alt="Logomarca da unidade" />`
+      : `<div class="logo-placeholder">Logomarca</div>`;
+
+    return `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>${nomeRelatorio}</title>
+          <style>
+            @page { size: A4; margin: 20mm; }
+            * { box-sizing: border-box; }
+            body { margin: 0; font-family: Arial, sans-serif; color: #111827; }
+            .report { display: flex; flex-direction: column; gap: 14px; }
+            header.report-header { display: grid; grid-template-columns: 120px 1fr; gap: 16px; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+            header.report-header img { width: 120px; height: auto; object-fit: contain; }
+            .logo-placeholder { width: 120px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px; }
+            .report-title { font-size: 18px; font-weight: 700; margin: 0; text-transform: uppercase; text-align: center; }
+            .report-subtitle { font-size: 16px; color: #111827; margin: 6px 0 0; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; }
+            .meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #4b5563; }
+            section { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+            h2 { font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.04em; color: #0f7a43; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+            th { background: #f8fafc; font-weight: 700; text-transform: uppercase; font-size: 11px; }
+            td.center, th.center { text-align: center; }
+            .termo { margin-top: 12px; font-size: 12px; line-height: 1.6; }
+            .assinaturas { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+            .assinatura { text-align: center; font-size: 12px; }
+            .linha { border-top: 1px solid #111827; margin-top: 34px; }
+            .beneficiario-destaque { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 6px; }
+            .beneficiario-nome { font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .beneficiario-codigo { font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; white-space: nowrap; }
+            footer.report-footer { text-align: center; padding: 6px 0; border-top: 1px solid #e2e8f0; margin-top: 12px; font-size: 10px; color: #111827; page-break-inside: avoid; font-weight: 400; position: fixed; left: 20mm; right: 20mm; bottom: 8mm; background: #fff; }
+            footer.report-footer .footer-name { font-weight: 400; letter-spacing: 0; color: #111827; margin: 0 0 2px; text-transform: none; }
+            footer.report-footer .footer-info { margin: 0; }
+            footer.report-footer .rodape-texto { margin-top: 6px; font-size: 10px; color: #9ca3af; }
+            footer.report-footer .page-number { display: block; text-align: right; }
+            .page-number:before { content: "Página " counter(page) " de " counter(pages); }
+          </style>
+        </head>
+        <body>
+          <div class="report">
+            <header class="report-header">
+              ${logoHtml}
+              <div>
+                <div class="report-title">${this.escapeHtml(razaoSocial)}</div>
+                <p class="report-subtitle">${nomeRelatorio}</p>
+              </div>
+            </header>
+
+            <section>
+              <h2>Dados do beneficiário</h2>
+              <div class="beneficiario-destaque">
+                <span class="beneficiario-nome">${this.escapeHtml(record.beneficiaryName)}</span>
+                <span class="beneficiario-codigo">Código: ${this.escapeHtml(String(codigoBeneficiario))}</span>
+              </div>
+              <div class="meta">
+                <span><strong>CPF:</strong> ${this.escapeHtml(beneficiarioDocumento)}</span>
+                <span><strong>Telefone:</strong> ${this.escapeHtml(telefoneBeneficiario)}</span>
+                <span><strong>Cidade/UF:</strong> ${this.escapeHtml(`${cidade} / ${uf}`)}</span>
+                <span><strong>Responsável:</strong> ${this.escapeHtml(responsavel)}</span>
+                <span><strong>Data da doação:</strong> ${this.escapeHtml(dataFormatada)}</span>
+                <span><strong>Endereço:</strong> ${this.escapeHtml(enderecoCompleto)}</span>
+              </div>
+            </section>
+
+            <section>
+              <h2>Itens doados</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th class="center">Unidade</th>
+                    <th class="center">Quantidade</th>
+                    <th>Observações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itensHtml}
+                </tbody>
+              </table>
+              <p class="termo">${this.escapeHtml(termo)}</p>
+              <div class="assinaturas">
+                <div class="assinatura">
+                  <div class="linha"></div>
+                  ${this.escapeHtml(record.beneficiaryName)}
+                </div>
+                <div class="assinatura">
+                  <div class="linha"></div>
+                  ADRA
+                </div>
+              </div>
+            </section>
+
+            <footer class="report-footer">
+              <p class="footer-name">${this.escapeHtml(razaoSocial)}</p>
+              <p class="footer-info">
+                ${this.escapeHtml(this.joinParts([
+                  cnpj ? `CNPJ: ${cnpj}` : '',
+                  endereco,
+                  this.joinParts([telefoneUnidade, emailUnidade], ' | ')
+                ], ' | ') || 'Endereço não informado')}
+              </p>
+              <p class="footer-info"><span class="page-number"></span></p>
+            </footer>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
   onFechar(): void {
     window.history.back();
+  }
+
+  private escapeHtml(valor: string): string {
+    return (valor || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private formatarDataExtenso(data: string): string {
+    const base = data.split('T')[0];
+    const partes = base.split('-').map((valor) => Number(valor));
+    if (partes.length < 3 || partes.some((valor) => Number.isNaN(valor))) {
+      return data;
+    }
+    const [ano, mes, dia] = partes;
+    const dataBase = new Date(ano, mes - 1, dia);
+    if (Number.isNaN(dataBase.getTime())) {
+      return data;
+    }
+    return dataBase.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  private obterDadosBeneficiario(record: DonationRecord): Beneficiary | null {
+    const selecionado = this.selectedBeneficiary();
+    if (selecionado && String(selecionado.id) === String(record.beneficiaryId)) {
+      return selecionado;
+    }
+    const lista = this.beneficiaries();
+    const encontrado = lista.find((item) => String(item.id) === String(record.beneficiaryId));
+    return encontrado ?? null;
+  }
+
+  private joinParts(parts: Array<string | null | undefined>, separador: string): string {
+    return parts
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(separador);
   }
 
 }

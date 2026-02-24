@@ -2291,6 +2291,49 @@ CREATE TABLE IF NOT EXISTS chamado_tecnico_auditoria_vinculo (
 
 CREATE INDEX IF NOT EXISTS chamado_tecnico_auditoria_vinculo_chamado_idx
   ON chamado_tecnico_auditoria_vinculo (chamado_id);
+
+CREATE TABLE IF NOT EXISTS g3_informacoes_administrativas (
+  id BIGSERIAL PRIMARY KEY,
+  tipo VARCHAR(80) NOT NULL,
+  categoria VARCHAR(120) NOT NULL,
+  titulo VARCHAR(200) NOT NULL,
+  descricao TEXT,
+  responsavel VARCHAR(160),
+  host_url VARCHAR(300),
+  porta INTEGER,
+  login VARCHAR(160),
+  segredo_ciphertext TEXT,
+  segredo_iv TEXT,
+  segredo_tag TEXT,
+  tags VARCHAR(300),
+  status BOOLEAN NOT NULL DEFAULT TRUE,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  criado_por VARCHAR(120),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_por VARCHAR(120)
+);
+
+CREATE TABLE IF NOT EXISTS g3_auditoria_info_admin (
+  id BIGSERIAL PRIMARY KEY,
+  info_admin_id BIGINT NOT NULL,
+  acao VARCHAR(40) NOT NULL,
+  usuario_id BIGINT,
+  usuario_nome VARCHAR(160),
+  data_hora TIMESTAMP NOT NULL DEFAULT NOW(),
+  ip_origem VARCHAR(120),
+  detalhes TEXT
+);
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN latitude DROP NOT NULL;
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN longitude DROP NOT NULL;
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN accuracy DROP NOT NULL;
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN distancia_metros DROP NOT NULL;
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN dentro_perimetro DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS prontuario_registros_tipo_idx
   ON prontuario_registros (tipo);
 CREATE INDEX IF NOT EXISTS prontuario_registros_profissional_idx

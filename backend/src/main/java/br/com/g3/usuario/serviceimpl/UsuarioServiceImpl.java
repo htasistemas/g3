@@ -42,7 +42,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
   @Override
   @Transactional
-  public UsuarioResponse criar(UsuarioCriacaoRequest request) {
+  public UsuarioResponse criar(UsuarioCriacaoRequest request, Long usuarioId) {
+    if (!usuarioEhAdmin(usuarioId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissao negada.");
+    }
     String email = request.getEmail().trim().toLowerCase();
     repository
         .buscarPorEmailIgnoreCase(email)
@@ -100,12 +103,14 @@ public class UsuarioServiceImpl implements UsuarioService {
 
   @Override
   @Transactional
-  public UsuarioResponse atualizar(Long id, UsuarioAtualizacaoRequest request) {
+  public UsuarioResponse atualizar(Long id, UsuarioAtualizacaoRequest request, Long usuarioId) {
+    validarPermissaoAlteracao(usuarioId, id);
     Usuario usuario =
         repository
             .buscarPorId(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
+    boolean admin = usuarioEhAdmin(usuarioId);
 
     String email = request.getEmail().trim().toLowerCase();
     if (usuario.getEmail() == null || !usuario.getEmail().equalsIgnoreCase(email)) {
@@ -129,7 +134,9 @@ public class UsuarioServiceImpl implements UsuarioService {
       usuario.setSenhaHash(passwordEncoder.encode(senha));
     }
 
-    usuario.setPermissoes(montarPermissoes(request.getPermissoes()));
+    if (admin) {
+      usuario.setPermissoes(montarPermissoes(request.getPermissoes()));
+    }
     usuario.setHorarioEntrada1(request.getHorarioEntrada1());
     usuario.setHorarioSaida1(request.getHorarioSaida1());
     usuario.setHorarioEntrada2(request.getHorarioEntrada2());
@@ -170,13 +177,41 @@ public class UsuarioServiceImpl implements UsuarioService {
 
   @Override
   @Transactional
-  public void remover(Long id) {
+  public void remover(Long id, Long usuarioId) {
+    if (!usuarioEhAdmin(usuarioId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissao negada.");
+    }
     Usuario usuario =
         repository
             .buscarPorId(id)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
     repository.remover(usuario);
+  }
+
+  private void validarPermissaoAlteracao(Long usuarioId, Long alvoId) {
+    if (usuarioId == null) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissao negada.");
+    }
+    if (usuarioEhAdmin(usuarioId)) {
+      return;
+    }
+    if (!usuarioId.equals(alvoId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissao negada.");
+    }
+  }
+
+  private boolean usuarioEhAdmin(Long usuarioId) {
+    if (usuarioId == null) {
+      return false;
+    }
+    Usuario usuario =
+        repository
+            .buscarPorId(usuarioId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissao negada."));
+    return usuario.getPermissoes().stream().map(Permissao::getNome)
+        .anyMatch(nome -> "ADMINISTRADOR".equalsIgnoreCase(nome));
   }
 
   private Set<Permissao> montarPermissoes(List<String> nomes) {

@@ -28,20 +28,20 @@ public class RhPontoMarcacao {
   @Column(name = "data_hora_servidor", nullable = false)
   private LocalDateTime dataHoraServidor;
 
-  @Column(name = "latitude", nullable = false)
+  @Column(name = "latitude")
   private Double latitude;
 
-  @Column(name = "longitude", nullable = false)
+  @Column(name = "longitude")
   private Double longitude;
 
-  @Column(name = "accuracy", nullable = false)
+  @Column(name = "accuracy")
   private Double accuracy;
 
-  @Column(name = "distancia_metros", nullable = false)
+  @Column(name = "distancia_metros")
   private Double distanciaMetros;
 
-  @Column(name = "dentro_perimetro", nullable = false)
-  private boolean dentroPerimetro;
+  @Column(name = "dentro_perimetro")
+  private Boolean dentroPerimetro;
 
   @Column(name = "ip", length = 60)
   private String ip;
@@ -116,11 +116,11 @@ public class RhPontoMarcacao {
     this.distanciaMetros = distanciaMetros;
   }
 
-  public boolean isDentroPerimetro() {
+  public Boolean isDentroPerimetro() {
     return dentroPerimetro;
   }
 
-  public void setDentroPerimetro(boolean dentroPerimetro) {
+  public void setDentroPerimetro(Boolean dentroPerimetro) {
     this.dentroPerimetro = dentroPerimetro;
   }
 

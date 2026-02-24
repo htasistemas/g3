@@ -349,7 +349,7 @@
         </div>
       </div>
 
-      <div [formGroup]="searchForm" class="list-filters">
+      <div [formGroup]="searchForm" class="list-filters" (keydown.enter)="onBuscarEnter($event)">
         <label class="field">Nome
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
@@ -363,12 +363,13 @@
           </select>
         </label>
         <div class="list-panel__filter-actions">
-          <button type="button" class="btn-outline" (click)="searchProfessionalsList()">Buscar</button>
-          <button type="button" class="btn-outline" (click)="clearSearchFilters()">Limpar</button>
+          <button type="button" class="btn-outline" (click)="clearSearchFilters()" [disabled]="listLoading">Limpar</button>
         </div>
       </div>
 
-      <div class="unit-list" *ngIf="professionalsPaginados.length">
+      <div *ngIf="listLoading" class="list-panel__loading">Carregando profissionais...</div>
+
+      <div class="unit-list" *ngIf="!listLoading && professionalsPaginados.length">
         <div class="unit-list__item" *ngFor="let professional of professionalsPaginados" (dblclick)="edit(professional)">
           <div>
             <div class="unit-list__name-row">
@@ -400,7 +401,7 @@
         </div>
       </div>
 
-      <div class="unit-list__pagination" *ngIf="filteredProfessionals.length && professionalsPaginados.length">
+      <div class="unit-list__pagination" *ngIf="!listLoading && filteredProfessionals.length && professionalsPaginados.length">
         <span class="unit-list__total">
           Total: {{ filteredProfessionals.length }} profissionais
         </span>
@@ -415,7 +416,7 @@
         </button>
       </div>
 
-      <p class="muted" *ngIf="!filteredProfessionals.length">Nenhum profissional cadastrado até o momento.</p>
+      <p class="muted" *ngIf="!listLoading && !filteredProfessionals.length">Nenhum profissional cadastrado até o momento.</p>
     </div>
 
   </form>

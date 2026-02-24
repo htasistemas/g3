@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PermissionPayload, PermissionService } from '../../services/permission.service';
 import { UserPayload, UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-user-management',
@@ -24,7 +25,8 @@ export class UserManagementComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly userService: UserService,
-    private readonly permissionService: PermissionService
+    private readonly permissionService: PermissionService,
+    private readonly auth: AuthService
   ) {
     this.form = this.fb.group({
       nome: ['', [Validators.required, Validators.minLength(3)]],
@@ -37,6 +39,21 @@ export class UserManagementComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
     this.loadPermissoes();
+  }
+
+  get isAdmin(): boolean {
+    const permissoes = this.auth.user()?.permissoes ?? [];
+    return permissoes.includes('ADMINISTRADOR');
+  }
+
+  get usuarioAtualId(): number | null {
+    const id = this.auth.user()?.id;
+    return id ? Number(id) : null;
+  }
+
+  podeEditarUsuario(id?: number | null): boolean {
+    if (this.isAdmin) return true;
+    return !!id && !!this.usuarioAtualId && id === this.usuarioAtualId;
   }
 
   loadUsers(): void {
@@ -77,11 +94,19 @@ export class UserManagementComponent implements OnInit {
   }
 
   novoUsuario(): void {
+    if (!this.isAdmin) {
+      this.feedback = { type: 'error', message: 'Permissão negada para criar usuários.' };
+      return;
+    }
     this.resetForm();
   }
 
   excluirUsuarioSelecionado(): void {
     if (!this.editingId) {
+      return;
+    }
+    if (!this.isAdmin) {
+      this.feedback = { type: 'error', message: 'Permissão negada para excluir usuários.' };
       return;
     }
     const user = this.users.find((item) => item.id === this.editingId);
@@ -105,12 +130,25 @@ export class UserManagementComponent implements OnInit {
 
   submit(): void {
     this.feedback = null;
+    if (!this.isAdmin && !this.editingId) {
+      this.feedback = { type: 'error', message: 'Permissão negada para criar usuários.' };
+      return;
+    }
+    if (this.editingId && !this.podeEditarUsuario(this.editingId)) {
+      this.feedback = { type: 'error', message: 'Permissão negada para editar outro usuário.' };
+      return;
+    }
     if (
       this.form.invalid ||
       (!this.editingId && !this.form.get('senha')?.value) ||
       !this.getPermissoes().length
     ) {
       this.form.markAllAsTouched();
+      return;
+    }
+    const usuarioId = this.usuarioAtualId;
+    if (!usuarioId) {
+      this.feedback = { type: 'error', message: 'Usuário atual não identificado.' };
       return;
     }
 
@@ -127,8 +165,8 @@ export class UserManagementComponent implements OnInit {
           email,
           ...(senha ? { senha } : {}),
           permissoes
-        })
-      : this.userService.create({ nome, email, senha: senha || '', permissoes });
+        }, usuarioId)
+      : this.userService.create({ nome, email, senha: senha || '', permissoes }, usuarioId);
 
     request$.subscribe({
       next: () => {
@@ -145,6 +183,10 @@ export class UserManagementComponent implements OnInit {
   }
 
   edit(user: UserPayload): void {
+    if (!this.podeEditarUsuario(user.id)) {
+      this.feedback = { type: 'error', message: 'Permissão negada para editar outro usuário.' };
+      return;
+    }
     this.editingId = user.id;
     this.form.reset({
       nome: user.nome ?? '',
@@ -155,12 +197,21 @@ export class UserManagementComponent implements OnInit {
   }
 
   delete(user: UserPayload): void {
+    if (!this.isAdmin) {
+      this.feedback = { type: 'error', message: 'Permissão negada para excluir usuários.' };
+      return;
+    }
+    const usuarioId = this.usuarioAtualId;
+    if (!usuarioId) {
+      this.feedback = { type: 'error', message: 'Usuário atual não identificado.' };
+      return;
+    }
     const confirmDelete = confirm(`Deseja realmente remover o usuário "${user.nomeUsuario}"?`);
     if (!confirmDelete) {
       return;
     }
 
-    this.userService.delete(user.id).subscribe({
+    this.userService.delete(user.id, usuarioId).subscribe({
       next: () => {
         this.feedback = { type: 'success', message: 'Usuário removido com sucesso.' };
         this.loadUsers();
@@ -181,6 +232,9 @@ export class UserManagementComponent implements OnInit {
   }
 
   togglePermissao(nome: string): void {
+    if (!this.isAdmin) {
+      return;
+    }
     const permissoes = this.getPermissoes();
     if (permissoes.includes(nome)) {
       this.form.get('permissoes')?.setValue(permissoes.filter((item) => item !== nome));

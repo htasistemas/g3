@@ -53,6 +53,15 @@ export interface EmprestimoEventoRelatorioPayload {
   usuarioEmissor?: string;
 }
 
+export interface InformacoesAdministrativasRelatorioFilters {
+  tipo?: string;
+  categoria?: string;
+  titulo?: string;
+  tags?: string;
+  status?: boolean | null;
+  usuarioEmissor?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly baseUrl = `${environment.apiUrl}/api/reports`;
@@ -111,6 +120,14 @@ export class ReportService {
     dados: EmprestimoEventoRelatorioPayload
   ): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/emprestimos-eventos/termo`, dados, {
+      responseType: 'blob'
+    });
+  }
+
+  generateInformacoesAdministrativasReport(
+    filtros: InformacoesAdministrativasRelatorioFilters
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/informacoes-administrativas`, filtros, {
       responseType: 'blob'
     });
   }

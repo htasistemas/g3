@@ -165,6 +165,39 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.field.field--bloqueado input,
+.field.field--bloqueado select,
+.field.field--bloqueado textarea {
+  background: #f8fafc;
+  pointer-events: none;
+}
+
+:host ::ng-deep .field.field--bloqueado .autocomplete .input,
+:host ::ng-deep .field.field--bloqueado .autocomplete .input:focus {
+  background: #f8fafc;
+  pointer-events: none;
+}
+
+.field.field--erro input,
+.field.field--erro select,
+.field.field--erro textarea {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
+.field.field--erro input:focus,
+.field.field--erro select:focus,
+.field.field--erro textarea:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
+:host ::ng-deep .field.field--erro .autocomplete .input,
+:host ::ng-deep .field.field--erro .autocomplete .input:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+}
+
 .field input:focus,
 .field select:focus,
 .field textarea:focus {

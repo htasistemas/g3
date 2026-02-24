@@ -2,7 +2,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, finalize, takeUntil } from 'rxjs';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faUserDoctor } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -65,6 +65,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   dialogAcao?: () => void;
   professionals: ProfessionalRecord[] = [];
   filteredProfessionals: ProfessionalRecord[] = [];
+  listLoading = false;
   editingId: string | null = null;
   saving = false;
   unidadeAtual: AssistanceUnitPayload | null = null;
@@ -252,7 +253,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   }
 
   ngOnInit(): void {
-    this.loadProfessionals();
+    this.buscarProfissionaisNaListagem(false);
     this.assistanceUnitService.get().pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ unidade }) => {
         this.unidadeAtual = unidade ?? null;
@@ -395,7 +396,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       novo: this.saving,
       cancelar: this.saving,
       imprimir: this.saving,
-      buscar: this.saving
+      buscar: this.saving || this.listLoading
     };
   }
 
@@ -407,13 +408,9 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     this.activeTab = tab;
   }
 
-  searchProfessionalsList(): void {
-    this.applyListFilters();
-  }
-
   clearSearchFilters(): void {
     this.searchForm.reset({ nome: '', categoria: '', email: '', status: '' });
-    this.applyListFilters();
+    this.buscarProfissionaisNaListagem(false);
   }
 
   paginaAnterior(): void {
@@ -924,24 +921,48 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     };
   }
 
-  private loadProfessionals(): void {
+  onBuscar(): void {
+    this.changeTab('lista');
+    this.buscarProfissionaisNaListagem();
+  }
+
+  onBuscarEnter(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.listLoading) return;
+    this.onBuscar();
+  }
+
+  private buscarProfissionaisNaListagem(exibirPopupSemResultados = true): void {
+    if (this.listLoading) return;
+
+    this.listLoading = true;
+    this.popupErros = [];
+    const { nome } = this.searchForm.value;
+    const filtroNome = (nome ?? '').toString().trim();
+
     this.professionalService
-      .list()
-      .pipe(takeUntil(this.destroy$))
+      .list(filtroNome || undefined)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.listLoading = false;
+        })
+      )
       .subscribe({
         next: (records) => {
           this.professionals = records;
           this.applyListFilters();
+          if (exibirPopupSemResultados && !this.filteredProfessionals.length) {
+            const builder = new PopupErrorBuilder();
+            builder.adicionar('Nenhum resultado encontrado.');
+            this.popupErros = builder.build();
+          }
         },
         error: () => {
-      this.setFeedback('Não foi possível carregar os profissionais.');
+          this.setFeedback('Não foi possível carregar os profissionais.');
         }
       });
-  }
-
-  onBuscar(): void {
-    this.changeTab('lista');
-    this.applyListFilters();
   }
 
   private applyListFilters(): void {

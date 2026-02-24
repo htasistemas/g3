@@ -2,6 +2,7 @@
 import { LoginComponent } from './components/login/login.component';
 import { LayoutComponent } from './layout/layout.component';
 import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DashboardIndicatorsComponent } from './components/dashboard-indicators/dashboard-indicators.component';
 import { BeneficiaryListComponent } from './components/beneficiary-list/beneficiary-list.component';
@@ -236,6 +237,15 @@ export const routes: Routes = [
         path: 'configuracoes/parametros',
         component: SystemParametersComponent,
         data: { title: 'Configurações do sistema' }
+      },
+      {
+        path: 'configuracoes/informacoes-administrativas',
+        loadChildren: () =>
+          import('./components/informacoes-administrativas/informacoes-administrativas.module').then(
+            (m) => m.InformacoesAdministrativasModule
+          ),
+        canActivate: [adminGuard],
+        data: { title: 'Acesso restrito' }
       },
       {
         path: 'configuracoes/alertas-sistema',

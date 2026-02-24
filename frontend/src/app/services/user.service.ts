@@ -96,16 +96,22 @@ export class UserService {
       .pipe(map((response) => (Array.isArray(response) ? response : response.usuarios ?? [])));
   }
 
-  create(payload: UserInput): Observable<UserPayload> {
-    return this.http.post<UserPayload>(this.baseUrl, payload);
+  create(payload: UserInput, usuarioId: number): Observable<UserPayload> {
+    return this.http.post<UserPayload>(this.baseUrl, payload, {
+      params: { usuarioId }
+    });
   }
 
-  update(id: number, payload: Partial<UserInput>): Observable<UserPayload> {
-    return this.http.put<UserPayload>(`${this.baseUrl}/${id}`, payload);
+  update(id: number, payload: Partial<UserInput>, usuarioId: number): Observable<UserPayload> {
+    return this.http.put<UserPayload>(`${this.baseUrl}/${id}`, payload, {
+      params: { usuarioId }
+    });
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  delete(id: number, usuarioId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, {
+      params: { usuarioId }
+    });
   }
 }
 

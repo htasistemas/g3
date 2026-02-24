@@ -806,19 +806,13 @@
 
 
 
-              <input placeholder="Selecione um item" [value]="selectedDeliveryItem?.description || ''" readonly />
-
-
-
-              <button type="button" class="ghost" (click)="openStockModal('deliver')">
-
-
-
-                Escolher item
-
-
-
-              </button>
+              <app-autocomplete
+                [placeholder]="'Digite o item do almoxarifado'"
+                [termo]="termoBuscaItemEntrega"
+                [opcoes]="itensEntregaFiltrados"
+                (termoChange)="onItemEntregaTermoChange($event)"
+                (selecionar)="onItemEntregaSelecionado($event)"
+              ></app-autocomplete>
 
 
 
@@ -878,7 +872,11 @@
 
 
 
-            <button type="button" class="ghost" (click)="deliveredItemForm.reset({ itemCode: '', quantity: 1, notes: '' })">
+            <button
+              type="button"
+              class="ghost"
+              (click)="deliveredItemForm.reset({ itemCode: '', quantity: 1, notes: '' }); termoBuscaItemEntrega = ''"
+            >
 
 
 
@@ -1247,6 +1245,7 @@
 
 
             <th>Responsável</th>
+            <th class="text-right">Ações</th>
 
 
 
@@ -1319,6 +1318,17 @@
 
 
             <td>{{ record.responsible }}</td>
+            <td class="text-right">
+              <button
+                type="button"
+                class="ghost ghost--icon"
+                (click)="imprimirTermoRecebimento(record)"
+                title="Imprimir termo de recebimento"
+                aria-label="Imprimir termo de recebimento"
+              >
+                <fa-icon [icon]="faPrint"></fa-icon>
+              </button>
+            </td>
 
 
 

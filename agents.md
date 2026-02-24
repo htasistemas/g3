@@ -121,9 +121,6 @@
   - MUST NOT usar margem negativa para “ajeitar layout”.
   - MUST evitar conflitos de `z-index`.
 
-### Comentário didático
-- MUST incluir comentário explicativo no topo direito da área de título (conforme padrão do Beneficiário).
-
 ---
 
 ## CARREGAMENTO AUTOMÁTICO DE DADOS (OBRIGATÓRIO)
@@ -156,7 +153,9 @@
 
 ### Listagens
 - SHOULD usar como modelo a listagem de beneficiários (filtros, cards, lista e paginação).
-- MUST manter botões de filtro (Buscar/Limpar) alinhados ao campo **Status** e com a mesma altura dos campos.
+- MUST manter apenas o botão **Limpar** nos filtros, alinhado ao campo **Status** e com a mesma altura dos campos.
+- MUST manter o botão **Buscar** somente na barra de ações do topo (CRUD).
+- MUST permitir **Enter** nos filtros para acionar o **Buscar** do topo sem duplicar evento.
 - MUST manter espaçamento horizontal entre os campos de filtro (ex.: Nome, Categoria, Status), evitando campos colados.
 - MUST remover botões de **Editar** nas listagens e permitir **duplo clique** na linha/card para abrir a edição.
 

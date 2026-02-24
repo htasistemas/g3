@@ -31,7 +31,7 @@ export class SystemVersionComponent implements OnInit, OnDestroy, AfterViewInit 
   readonly itensPorPagina = 5;
   private versaoAlvo = '';
   private readonly resumoAtualizacao =
-    'Controle de veículos com persistência no banco e ajustes no layout da tela.';
+    'Cadastro de informações administrativas e controle de permissões em usuários.';
 
   private readonly destroy$ = new Subject<void>();
 
