@@ -1,4 +1,4 @@
-﻿package br.com.g3.rhcontratacao.serviceimpl;
+package br.com.g3.rhcontratacao.serviceimpl;
 
 import br.com.g3.rhcontratacao.domain.RhArquivo;
 import br.com.g3.rhcontratacao.domain.RhAuditoriaContratacao;
