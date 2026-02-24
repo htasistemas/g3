@@ -1,4 +1,4 @@
-package br.com.g3.rhcontratacao.serviceimpl;
+ï»¿package br.com.g3.rhcontratacao.serviceimpl;
 
 import br.com.g3.rhcontratacao.domain.RhArquivo;
 import br.com.g3.rhcontratacao.domain.RhAuditoriaContratacao;
@@ -44,6 +44,7 @@ import br.com.g3.rhcontratacao.service.ArmazenamentoRhArquivoService;
 import br.com.g3.rhcontratacao.service.RhContratacaoService;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -725,19 +726,8 @@ public class RhContratacaoServiceImpl implements RhContratacaoService {
     if (!StringUtils.hasText(valor)) {
       return "";
     }
-    return valor.toLowerCase(Locale.ROOT)
-        .replace("ã", "a")
-        .replace("á", "a")
-        .replace("à", "a")
-        .replace("â", "a")
-        .replace("é", "e")
-        .replace("ê", "e")
-        .replace("í", "i")
-        .replace("ó", "o")
-        .replace("ô", "o")
-        .replace("õ", "o")
-        .replace("ú", "u")
-        .replace("ç", "c");
+    String normalizado = Normalizer.normalize(valor.toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
+    return normalizado.replaceAll("\\p{M}+", "");
   }
 
   private boolean equalText(String valor, String outro) {
@@ -747,3 +737,8 @@ public class RhContratacaoServiceImpl implements RhContratacaoService {
     return StringUtils.hasText(valor) && StringUtils.hasText(outro) && valor.equalsIgnoreCase(outro);
   }
 }
+
+
+
+
+
