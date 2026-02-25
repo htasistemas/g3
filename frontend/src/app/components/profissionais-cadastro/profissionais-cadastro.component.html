@@ -107,7 +107,7 @@
       <div class="field-grid cols-3">
         <label class="field field-nome-completo">Nome completo*<input formControlName="nome_completo" placeholder="Digite o nome completo" (input)="applyCapitalization('dadosPessoais.nome_completo', $any($event.target).value)" /></label>
 
-        <label class="field">Data de nascimento*<input type="date" formControlName="data_nascimento" /></label>
+        <label class="field">Data de nascimento<input type="date" formControlName="data_nascimento" /></label>
         <label class="field">Sexo biológico<select formControlName="sexo_biologico">
             <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
@@ -129,7 +129,7 @@
             <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
           </select></label>
 
-        <label class="field field-nome-mae">Nome da mãe*<input formControlName="nome_mae" (input)="applyCapitalization('dadosPessoais.nome_mae', $any($event.target).value)" /></label>
+        <label class="field field-nome-mae">Nome da mãe<input formControlName="nome_mae" (input)="applyCapitalization('dadosPessoais.nome_mae', $any($event.target).value)" /></label>
       </div>
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -144,7 +144,7 @@
       </div>
 
       <div class="field-grid cols-3">
-        <label class="field">CEP*<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
+        <label class="field">CEP<input formControlName="cep" placeholder="00000-000" (input)="onCepInput($event)" (blur)="onCepBlur()" />
           <p class="field-error" *ngIf="form.get(['endereco', 'cep'])?.invalid && form.get(['endereco', 'cep'])?.touched">
             Informe um CEP válido com 8 dígitos.
           </p>
@@ -201,7 +201,7 @@
             </div>
           </div>
         </div>
-        <label class="field">CPF*
+        <label class="field">CPF
           <input
             type="text"
             formControlName="cpf"
@@ -234,7 +234,7 @@
             (input)="applyCapitalization('registroConselho', $any($event.target).value)"
             (blur)="applyCapitalization('registroConselho', $any($event.target).value)"
         /></label>
-        <label class="field">E-mail*<input type="email" formControlName="email" placeholder="contato@instituicao.org.br" /></label>
+        <label class="field">E-mail<input type="email" formControlName="email" placeholder="contato@instituicao.org.br" /></label>
         <label class="field"
           >Telefone/WhatsApp<input
             type="text"
@@ -272,7 +272,7 @@
           <div class="search-hint" *ngIf="salasLoading">Carregando salas...</div>
         </label>
         <label class="field">Carga horária semanal<input type="number" formControlName="cargaHoraria" min="1" placeholder="Horas disponíveis" /></label>
-        <label class="field">Status*<select formControlName="status">
+        <label class="field">Status<select formControlName="status">
             <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
           </select></label>
 <div class="field full">

@@ -24,6 +24,7 @@ public class CursoAtendimentoResponse {
   private String sexoPermitido;
   private String restricoes;
   private String profissional;
+  private String instituicaoParceira;
   private String salaId;
   private SalaUnidadeResponse sala;
 
@@ -174,6 +175,14 @@ public class CursoAtendimentoResponse {
 
   public void setProfissional(String profissional) {
     this.profissional = profissional;
+  }
+
+  public String getInstituicaoParceira() {
+    return instituicaoParceira;
+  }
+
+  public void setInstituicaoParceira(String instituicaoParceira) {
+    this.instituicaoParceira = instituicaoParceira;
   }
 
   public String getSalaId() {

@@ -10,6 +10,7 @@ import { AssistanceUnitComponent } from './components/assistance-unit/assistance
 import { SystemParametersComponent } from './components/system-parameters/system-parameters.component';
 import { BeneficiarioCadastroComponent } from './components/beneficiario-cadastro/beneficiario-cadastro.component';
 import { SystemVersionComponent } from './components/system-version/system-version.component';
+import { ManualSistemaComponent } from './components/manual-sistema/manual-sistema.component';
 import { PatrimonioComponent } from './components/patrimonio/patrimonio.component';
 import { DonationManagementComponent } from './components/donation-management/donation-management.component';
 import { RecebimentoDoacaoComponent } from './components/recebimento-doacao/recebimento-doacao.component';
@@ -197,6 +198,11 @@ export const routes: Routes = [
         path: 'configuracoes/versao',
         component: SystemVersionComponent,
         data: { title: 'Versao do sistema' }
+      },
+      {
+        path: 'configuracoes/manual-sistema',
+        component: ManualSistemaComponent,
+        data: { title: 'Manual do sistema' }
       },
       {
         path: 'configuracoes/chamados-tecnicos',

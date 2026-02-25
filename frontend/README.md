@@ -57,3 +57,22 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Manual do Sistema
+
+Para atualizar o manual via registro de mudanças, use o endpoint do backend:
+
+```bash
+POST /api/manual-sistema/mudancas
+```
+
+Campos principais:
+- `autor`
+- `modulo`
+- `tela`
+- `tipo` (bugfix | feature | ajuste)
+- `descricaoCurta`
+- `descricaoDetalhada`
+- `versaoBuild`
+
+Toda mudança registrada entra automaticamente no bloco “O que mudou” e, quando informada a tela, adiciona uma nota na seção correspondente do manual.

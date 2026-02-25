@@ -105,7 +105,8 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   readonly vinculos = [
     { value: 'VOLUNTARIO', label: 'Voluntario' },
     { value: 'CLT', label: 'CLT' },
-    { value: 'PJ', label: 'PJ' }
+    { value: 'PJ', label: 'PJ' },
+    { value: 'ESTAGIARIO', label: 'Estagiário' }
   ];
   readonly tagsSugeridas = ['Acolhimento', 'Triagem', 'Famílias', 'Juventude', 'Visitas', 'Oficinas'];
   readonly brazilianStates = [
@@ -203,17 +204,17 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     this.form = this.fb.group({
       dadosPessoais: this.fb.group({
         nome_completo: ['', Validators.required],
-        data_nascimento: ['', Validators.required],
+        data_nascimento: [''],
         foto_3x4: [''],
         sexo_biologico: [''],
         estado_civil: [''],
         nacionalidade: [''],
         naturalidade_cidade: [''],
         naturalidade_uf: [''],
-        nome_mae: ['', Validators.required],
+        nome_mae: [''],
       }),
       endereco: this.fb.group({
-        cep: ['', [Validators.required, this.cepValidator]],
+        cep: ['', [this.cepValidator]],
         logradouro: [''],
         numero: [''],
         complemento: [''],
@@ -225,11 +226,11 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
         uf: ['']
       }),
       categoria: [this.categorias[0], Validators.required],
-      cpf: ['', [Validators.required, this.cpfValidator]],
+      cpf: ['', [this.cpfValidator]],
       vinculo: ['VOLUNTARIO'],
       registroConselho: [''],
       especialidade: [''],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       telefone: [''],
       unidadeId: [null],
       unidade: [''],
@@ -237,7 +238,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       cargaHoraria: [20, [Validators.min(1)]],
       disponibilidade: this.fb.control<string[]>([]),
       canaisAtendimento: this.fb.control<string[]>(['Presencial']),
-      status: ['EM_ANALISE', Validators.required],
+      status: ['INCOMPLETO'],
       tags: this.fb.control<string[]>([]),
       resumo: [''],
       observacoes: ['']
@@ -449,18 +450,14 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
   submit(): void {
     this.clearFeedback();
     this.popupErros = [];
+    const statusCalculado = this.definirStatusProfissional();
+    this.form.patchValue({ status: statusCalculado }, { emitEvent: false });
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       const builder = new PopupErrorBuilder();
       const requiredFields: { path: string; label: string }[] = [
         { path: 'dadosPessoais.nome_completo', label: 'Nome completo' },
-        { path: 'dadosPessoais.data_nascimento', label: 'Data de nascimento' },
-        { path: 'dadosPessoais.nome_mae', label: 'Nome da mae' },
-        { path: 'cpf', label: 'CPF' },
-        { path: 'categoria', label: 'Categoria' },
-        { path: 'email', label: 'E-mail' },
-        { path: 'status', label: 'Status' },
-        { path: 'vinculo', label: 'Vínculo' }
+        { path: 'categoria', label: 'Categoria' }
       ];
 
       requiredFields.forEach(({ path, label }) => {
@@ -470,6 +467,15 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
           builder.adicionar(`${label} e obrigatorio.`);
         }
       });
+      if (this.form.get('cpf')?.errors?.['cpfInvalid']) {
+        builder.adicionar('CPF invalido.');
+      }
+      if (this.form.get('email')?.errors?.['email']) {
+        builder.adicionar('E-mail invalido.');
+      }
+      if (this.form.get(['endereco', 'cep'])?.errors?.['cep']) {
+        builder.adicionar('CEP invalido.');
+      }
       this.popupErros = builder.build();
       this.setFeedback('Preencha os campos obrigatorios para salvar o profissional.');
       return;
@@ -688,7 +694,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       cargaHoraria: 20,
       disponibilidade: [],
       canaisAtendimento: ['Presencial'],
-      status: 'EM_ANALISE',
+      status: 'INCOMPLETO',
       tags: [],
       resumo: '',
       observacoes: ''
@@ -1036,6 +1042,28 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
     return digit === Number(value.charAt(10)) ? null : { cpfInvalid: true };
   };
 
+  private definirStatusProfissional(): ProfessionalStatus {
+    const camposObrigatorios = [
+      'dadosPessoais.nome_completo',
+      'dadosPessoais.data_nascimento',
+      'dadosPessoais.nome_mae',
+      'cpf',
+      'email',
+      'categoria',
+      'vinculo'
+    ];
+
+    const completo = camposObrigatorios.every((path) => {
+      const control = this.form.get(path);
+      const valor = String(control?.value ?? '').trim();
+      if (!valor) return false;
+      if (control?.invalid) return false;
+      return true;
+    });
+
+    return completo ? 'ATIVO' : 'INCOMPLETO';
+  }
+
   private buildPayload(): ProfessionalPayload {
     const value = this.form.value as any;
     const dados = value.dadosPessoais ?? {};
@@ -1072,7 +1100,7 @@ export class ProfissionaisCadastroComponent extends TelaBaseComponent implements
       cargaHoraria: value.cargaHoraria,
       disponibilidade: value.disponibilidade ?? [],
       canaisAtendimento: value.canaisAtendimento ?? [],
-      status: value.status,
+      status: this.definirStatusProfissional(),
       tags: value.tags ?? [],
       resumo: value.resumo,
       observacoes: value.observacoes

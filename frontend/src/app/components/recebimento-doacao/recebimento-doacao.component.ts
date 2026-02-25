@@ -278,6 +278,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.gestaoForm.reset({ canal: 'whatsapp' });
     this.contaRecebimentoSelecionadaId = null;
     this.limparSelecaoItemDoacao();
+    this.onTipoDoacaoChange();
     this.mensagemSucessoDoacao = '';
     this.popupErros = [];
     this.recebimentoEditandoId = null;
@@ -286,6 +287,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
 
   onCancelar(): void {
     this.onNovo();
+    this.popupErros = [];
+    this.popupTitulo = 'Campos obrigatorios';
   }
 
   onImprimir(): void {
@@ -332,7 +335,7 @@ export class RecebimentoDoacaoComponent implements OnInit {
     this.carregandoRecebimentos = true;
     this.service.listarRecebimentos().subscribe({
       next: (lista: RecebimentoDoacaoResponse[]) => {
-        this.recebimentos = lista;
+        this.recebimentos = this.ordenarRecebimentos(lista);
         this.carregandoRecebimentos = false;
         this.atualizarOpcoesItensDoacao();
       },
@@ -990,7 +993,9 @@ export class RecebimentoDoacaoComponent implements OnInit {
           )
         ).subscribe({
           next: (response: RecebimentoDoacaoResponse) => {
-            this.recebimentos = this.recebimentos.map((item) => (item.id === response.id ? response : item));
+            this.recebimentos = this.ordenarRecebimentos(
+              this.recebimentos.map((item) => (item.id === response.id ? response : item))
+            );
             this.recebimentoEditandoId = null;
             this.contaRecebimentoSelecionadaId = null;
             this.mensagemSucessoDoacao = 'Entrada registrada com sucesso.';
@@ -1052,8 +1057,8 @@ export class RecebimentoDoacaoComponent implements OnInit {
       .subscribe({
       next: (response: RecebimentoDoacaoResponse) => {
         this.recebimentos = this.recebimentoEditandoId
-          ? this.recebimentos.map((item) => (item.id === response.id ? response : item))
-          : [response, ...this.recebimentos];
+          ? this.ordenarRecebimentos(this.recebimentos.map((item) => (item.id === response.id ? response : item)))
+          : this.ordenarRecebimentos([response, ...this.recebimentos]);
         this.recebimentoEditandoId = null;
         this.contaRecebimentoSelecionadaId = null;
         this.mensagemSucessoDoacao = 'Doação realizada com sucesso.';
@@ -1374,6 +1379,24 @@ export class RecebimentoDoacaoComponent implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .trim()
       .toLowerCase();
+  }
+
+  private ordenarRecebimentos(lista: RecebimentoDoacaoResponse[]): RecebimentoDoacaoResponse[] {
+    return [...(lista || [])].sort((a, b) => {
+      const dataA = this.parseDataRecebimento(a.dataRecebimento);
+      const dataB = this.parseDataRecebimento(b.dataRecebimento);
+      if (dataA !== dataB) {
+        return dataB - dataA;
+      }
+      return (b.id || 0) - (a.id || 0);
+    });
+  }
+
+  private parseDataRecebimento(valor?: string | null): number {
+    if (!valor) return 0;
+    const data = new Date(valor);
+    const timestamp = data.getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
   }
 
   private findControlByElement(element: HTMLInputElement | HTMLTextAreaElement): AbstractControl | null {

@@ -89,6 +89,8 @@
   - MUST usar `type="button"` por padrão.
   - MAY usar `type="submit"` apenas quando estritamente necessário.
 - MUST evitar overlays capturando clique quando inativos (`pointer-events`, `z-index`).
+- MUST NOT usar lazy loading que adie o acionamento de botões; handlers devem estar prontos no primeiro clique.
+- MUST garantir que ações de botões não dependam de carregamentos tardios (init deve ocorrer em `ngOnInit`).
 
 ### Validação e mensagens
 - MUST exibir `(*)` em todo campo obrigatório.

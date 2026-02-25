@@ -240,6 +240,19 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+.field--error input,
+.field--error select,
+.field--error textarea,
+.field--error app-autocomplete .input {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+}
+
+.day-selector.field--error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+}
+
 .media-card {
   background: #f8fafc;
   border: 1px dashed #cbd5e1;
@@ -403,6 +416,100 @@
   display: flex;
   gap: 0.35rem;
   flex-wrap: nowrap;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.agenda-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.agenda-panel__title {
+  margin: 0;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.agenda-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.agenda-filtros__linha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+}
+
+.agenda-filtros__profissional {
+  flex: 1;
+}
+
+.agenda-filtros__limpar {
+  align-self: end;
+  height: 2.6rem;
+}
+
+.agenda-filtros__print {
+  align-self: end;
+  justify-self: start;
+  height: 2.6rem;
+  width: 2.6rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  background: #eef2ff;
+  color: #1e3a8a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.agenda-filtros__print:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  transform: translateY(-1px);
+}
+
+.agenda-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.agenda-chip {
+  background: #ecfdf3;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.empty-state {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
 }
 .inline-control {
   display: flex;
@@ -1088,6 +1195,13 @@
   margin: 0;
   color: var(--accent-subtext, #0f766e);
   font-weight: 700;
+}
+
+.catalog-card__partner {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
 }
 
 .catalog-card__description {

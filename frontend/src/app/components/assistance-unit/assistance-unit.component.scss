@@ -616,6 +616,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  min-height: 120px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
 }
 
 .room-chip {

@@ -70,6 +70,9 @@ public class CursoAtendimento {
   @Column(name = "profissional", length = 150)
   private String profissional;
 
+  @Column(name = "instituicao_parceira", length = 200)
+  private String instituicaoParceira;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "sala_id")
   private SalaUnidade sala;
@@ -239,6 +242,14 @@ public class CursoAtendimento {
 
   public void setProfissional(String profissional) {
     this.profissional = profissional;
+  }
+
+  public String getInstituicaoParceira() {
+    return instituicaoParceira;
+  }
+
+  public void setInstituicaoParceira(String instituicaoParceira) {
+    this.instituicaoParceira = instituicaoParceira;
   }
 
   public SalaUnidade getSala() {

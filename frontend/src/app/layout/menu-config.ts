@@ -199,6 +199,12 @@ export const menuSections: MenuItem[] = [
         route: '/configuracoes/informacoes-administrativas',
         permissao: 'ADMINISTRADOR'
       },
+      {
+        label: 'Manual do Sistema',
+        icon: faBook,
+        route: '/configuracoes/manual-sistema',
+        permissao: 'CONFIG_MANUAL_SISTEMA'
+      },
       { label: 'Versão do Sistema', icon: faTags, route: '/configuracoes/versao' },
     ],
   },

@@ -17,6 +17,15 @@
           class="sidebar__logo"
         />
       </a>
+      <button
+        type="button"
+        class="sidebar-toggle sidebar-toggle--header"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
+        [attr.title]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
+      >
+        <fa-icon [icon]="isSidebarCollapsed ? faChevronRight : faChevronLeft"></fa-icon>
+      </button>
     </div>
     <nav class="p-4 space-y-3">
       <div
@@ -74,21 +83,6 @@
         </div>
       </div>
     </nav>
-    <div class="sidebar__footer">
-      <div class="sidebar__version" *ngIf="versaoSistema">
-        <span class="sidebar__version-label">Versão</span>
-        <span class="sidebar__version-value">{{ versaoSistema }}</span>
-      </div>
-      <button
-        type="button"
-        class="sidebar-toggle"
-        (click)="toggleSidebar()"
-        [attr.aria-label]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
-        [attr.title]="isSidebarCollapsed ? 'Abrir menu' : 'Recolher menu'"
-      >
-        <fa-icon [icon]="isSidebarCollapsed ? faChevronRight : faChevronLeft"></fa-icon>
-      </button>
-    </div>
   </aside>
 
   <div class="flex-1 flex flex-col min-w-0 h-screen">
@@ -125,6 +119,7 @@
           <fa-icon [icon]="faUserCircle" class="text-white"></fa-icon>
           <span class="capitalize">{{ username }}</span>
         </span>
+        <span class="version-chip" *ngIf="versaoSistema">v{{ versaoSistema }}</span>
         <button
           type="button"
           (click)="toggleTheme()"

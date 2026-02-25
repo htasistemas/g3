@@ -53,6 +53,7 @@ public final class CursosAtendimentosMapper {
     curso.setSexoPermitido(request.getSexoPermitido());
     curso.setRestricoes(request.getRestricoes());
     curso.setProfissional(request.getProfissional());
+    curso.setInstituicaoParceira(request.getInstituicaoParceira());
     curso.setSala(sala);
 
     if (request.getStatus() != null) {
@@ -93,6 +94,7 @@ public final class CursosAtendimentosMapper {
     response.setSexoPermitido(curso.getSexoPermitido());
     response.setRestricoes(curso.getRestricoes());
     response.setProfissional(curso.getProfissional());
+    response.setInstituicaoParceira(curso.getInstituicaoParceira());
     response.setSalaId(curso.getSala() == null ? null : curso.getSala().getId().toString());
     response.setSala(toSalaResponse(curso.getSala()));
     response.setCriadoEm(curso.getCriadoEm());
@@ -136,6 +138,13 @@ public final class CursosAtendimentosMapper {
     response.setCpf(matricula.getCpf());
     response.setStatus(matricula.getStatus());
     response.setDataMatricula(matricula.getDataMatricula());
+    response.setDataAgendada(matricula.getDataAgendada());
+    response.setHoraAgendada(formatHorario(matricula.getHoraAgendada()));
+    response.setStatusAgendamento(matricula.getStatusAgendamento());
+    response.setProfissionalId(matricula.getProfissionalId());
+    response.setProfissionalNome(matricula.getProfissionalNome());
+    response.setProfissionalTipo(matricula.getProfissionalTipo());
+    response.setConfirmacaoPresenca(matricula.getConfirmacaoPresenca());
     return response;
   }
 
@@ -187,6 +196,14 @@ public final class CursosAtendimentosMapper {
       matricula.setStatus(request.getStatus() == null ? "Ativo" : request.getStatus());
       matricula.setDataMatricula(
           request.getDataMatricula() == null ? LocalDateTime.now() : request.getDataMatricula());
+      matricula.setDataAgendada(request.getDataAgendada());
+      matricula.setHoraAgendada(parseHorario(request.getHoraAgendada()));
+      matricula.setStatusAgendamento(request.getStatusAgendamento());
+      matricula.setProfissionalId(request.getProfissionalId());
+      matricula.setProfissionalNome(request.getProfissionalNome());
+      matricula.setProfissionalTipo(request.getProfissionalTipo());
+      matricula.setConfirmacaoPresenca(
+          request.getConfirmacaoPresenca() != null ? request.getConfirmacaoPresenca() : false);
       curso.getMatriculas().add(matricula);
     }
   }

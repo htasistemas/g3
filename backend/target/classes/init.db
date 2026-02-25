@@ -2512,6 +2512,7 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos (
   sexo_permitido VARCHAR(20),
   restricoes TEXT,
   profissional VARCHAR(150),
+  instituicao_parceira VARCHAR(200),
   sala_id BIGINT REFERENCES salas_unidade(id) ON DELETE SET NULL,
   status VARCHAR(30) NOT NULL,
   data_triagem DATE,
@@ -2520,6 +2521,9 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos (
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE cursos_atendimentos
+  ADD COLUMN IF NOT EXISTS instituicao_parceira VARCHAR(200);
 
 CREATE INDEX IF NOT EXISTS cursos_atendimentos_status_idx
   ON cursos_atendimentos (status);
@@ -2543,6 +2547,27 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos_matriculas (
   status VARCHAR(20) NOT NULL,
   data_matricula TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS data_agendada DATE;
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS hora_agendada TIME;
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS status_agendamento VARCHAR(30);
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS profissional_id VARCHAR(40);
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS profissional_nome VARCHAR(200);
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS profissional_tipo VARCHAR(20);
+
+ALTER TABLE cursos_atendimentos_matriculas
+  ADD COLUMN IF NOT EXISTS confirmacao_presenca BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS cursos_atendimentos_fila_espera (
   id BIGSERIAL PRIMARY KEY,
@@ -3926,4 +3951,279 @@ CREATE TABLE IF NOT EXISTS rh_auditoria_contratacao (
   acao VARCHAR(160) NOT NULL,
   detalhes TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Manual do Sistema
+CREATE TABLE IF NOT EXISTS manual_sistema_secoes (
+  id BIGSERIAL PRIMARY KEY,
+  slug VARCHAR(120) NOT NULL UNIQUE,
+  titulo VARCHAR(200) NOT NULL,
+  conteudo TEXT,
+  ordem INTEGER NOT NULL DEFAULT 0,
+  tags VARCHAR(300),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_por VARCHAR(120),
+  versao VARCHAR(40)
+);
+
+CREATE TABLE IF NOT EXISTS manual_sistema_mudancas (
+  id BIGSERIAL PRIMARY KEY,
+  data_mudanca TIMESTAMP NOT NULL DEFAULT NOW(),
+  autor VARCHAR(120),
+  modulo VARCHAR(120),
+  tela VARCHAR(120),
+  tipo VARCHAR(30),
+  descricao_curta VARCHAR(200),
+  descricao_detalhada TEXT,
+  versao_build VARCHAR(40),
+  links TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS manual_sistema_mudancas_data_idx
+  ON manual_sistema_mudancas (data_mudanca DESC);
+
+INSERT INTO permissao (nome)
+VALUES ('CONFIG_MANUAL_SISTEMA')
+ON CONFLICT (nome) DO NOTHING;
+
+INSERT INTO usuario_permissao (usuario_id, permissao_id)
+SELECT u.id, p.id
+FROM usuarios u
+JOIN permissao p ON p.nome = 'CONFIG_MANUAL_SISTEMA'
+WHERE u.nome_usuario = 'admin'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'introducao',
+       'Introdução',
+       $$<h3>Visão geral do G3</h3>
+<p>O G3 é um sistema de gestão integrado para apoio às rotinas de atendimento, administrativo, financeiro, jurídico e RH. O objetivo é organizar dados, reduzir retrabalho e manter rastreabilidade das ações.</p>
+<div class="manual-tip"><strong>Dica rápida:</strong> utilize o menu lateral para navegar entre módulos e o botão <em>Fechar</em> para voltar à tela anterior.</div>$$,
+       1,
+       'introducao,visao-geral'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'introducao');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'navegacao',
+       'Navegação',
+       $$<h3>Como navegar</h3>
+<ul>
+  <li>O menu lateral organiza os módulos por área.</li>
+  <li>O topo exibe o usuário atual e versão do sistema.</li>
+  <li>Abas laterais dentro das telas ajudam a separar etapas.</li>
+</ul>
+<div class="manual-tip"><strong>Dica rápida:</strong> use a busca dentro de listagens para localizar rapidamente registros.</div>$$,
+       2,
+       'navegacao,menu'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'navegacao');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'padroes-telas',
+       'Padrões das telas',
+       $$<h3>Botões padrão</h3>
+<ul>
+  <li><strong>Buscar</strong>: filtra ou carrega dados.</li>
+  <li><strong>Novo</strong>: prepara um novo cadastro.</li>
+  <li><strong>Salvar</strong>: grava alterações.</li>
+  <li><strong>Cancelar</strong>: limpa campos e desfaz alterações não salvas.</li>
+  <li><strong>Excluir</strong>: remove o registro selecionado.</li>
+  <li><strong>Imprimir</strong>: gera relatório.</li>
+  <li><strong>Fechar</strong>: retorna para a tela anterior.</li>
+</ul>
+<h3>Validações e mensagens</h3>
+<p>Campos obrigatórios aparecem com <strong>(*)</strong>. Ao salvar, mensagens são exibidas em popups padronizados.</p>
+<div class="manual-tip"><strong>Dica rápida:</strong> nenhuma ação deve exigir duplo clique.</div>$$,
+       3,
+       'padroes,ux'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'padroes-telas');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'cadastros',
+       'Cadastros',
+       $$<h3>Fluxo típico</h3>
+<ol>
+  <li>Clique em <strong>Buscar</strong> para carregar dados.</li>
+  <li>Selecione um registro para editar.</li>
+  <li>Altere os campos necessários e clique em <strong>Salvar</strong>.</li>
+</ol>
+<h3>Novo registro</h3>
+<p>Use <strong>Novo</strong> para limpar o formulário e preencher os dados iniciais.</p>
+<h3>Campos importantes</h3>
+<p>Confira sempre CPF/CNPJ, contatos e endereço antes de salvar.</p>$$,
+       4,
+       'cadastros'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'cadastros');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'operacoes',
+       'Operações',
+       $$<h3>Operações do dia a dia</h3>
+<ul>
+  <li>Registros de atendimento, doações e visitas.</li>
+  <li>Controle de tarefas e pendências.</li>
+  <li>Atualizações de status em módulos específicos.</li>
+</ul>
+<div class="manual-tip"><strong>Dica rápida:</strong> revise os dados antes de confirmar uma operação crítica.</div>$$,
+       5,
+       'operacoes'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'operacoes');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'listagens-filtros',
+       'Listagens e filtros',
+       $$<h3>Como usar filtros</h3>
+<ul>
+  <li>Preencha um ou mais campos e clique em <strong>Buscar</strong>.</li>
+  <li>Use a paginação para navegar entre páginas.</li>
+  <li>Algumas listas permitem duplo clique para editar.</li>
+</ul>
+<div class="manual-tip"><strong>Dica rápida:</strong> pressione Enter nos filtros quando a tela permitir.</div>$$,
+       6,
+       'listagens,filtros'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'listagens-filtros');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'relatorios',
+       'Relatórios',
+       $$<h3>Relatórios do sistema</h3>
+<p>Os relatórios seguem o padrão A4, com cabeçalho, corpo e rodapé. Sempre verifique a data e os filtros aplicados.</p>
+<div class="manual-tip"><strong>Dica rápida:</strong> utilize o botão <em>Imprimir</em> para gerar o relatório correto da tela atual.</div>$$,
+       7,
+       'relatorios'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'relatorios');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'configuracoes',
+       'Configurações',
+       $$<h3>Configurações gerais</h3>
+<p>Use este módulo para parametrizar o sistema, administrar alertas e acessar informações administrativas.</p>
+<h3>Permissões</h3>
+<p>Algumas telas são restritas a perfis autorizados.</p>$$,
+       8,
+       'configuracoes'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'configuracoes');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'rh',
+       'Recursos Humanos',
+       $$<h3>Folha de ponto</h3>
+<p>Registre horários, configure regras e acompanhe auditorias.</p>
+<h3>Contratação</h3>
+<p>Controle processos e documentos exigidos.</p>$$,
+       9,
+       'rh'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'rh');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'faq',
+       'Perguntas frequentes',
+       $$<h3>FAQ</h3>
+<ul>
+  <li><strong>Esqueci um campo obrigatório:</strong> o sistema avisará antes de salvar.</li>
+  <li><strong>Não encontro um registro:</strong> use filtros e verifique o status.</li>
+  <li><strong>Erro ao imprimir:</strong> confirme o bloqueador de pop-ups.</li>
+</ul>$$,
+       10,
+       'faq'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'faq');
+
+INSERT INTO manual_sistema_secoes (slug, titulo, conteudo, ordem, tags)
+SELECT 'o-que-mudou',
+       'O que mudou',
+       $$<p>Últimas atualizações registradas automaticamente.</p>
+<ul data-manual-changelog></ul>$$,
+       11,
+       'changelog'
+WHERE NOT EXISTS (SELECT 1 FROM manual_sistema_secoes WHERE slug = 'o-que-mudou');
+
+UPDATE versao_sistema
+SET versao = '1.00.74',
+  descricao = 'Correcoes na agenda de atendimentos (agendamento e relatorio).',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.74';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.74', 'Correcoes na agenda de atendimentos (agendamento e relatorio).', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.74'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.75',
+  descricao = 'Inclusao de instituicao parceira nos atendimentos e ajustes na agenda.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.75';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.75', 'Inclusao de instituicao parceira nos atendimentos e ajustes na agenda.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.75'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.76',
+  descricao = 'Ajustes de layout e exibicao da instituicao parceira no catalogo.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.76';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.76', 'Ajustes de layout e exibicao da instituicao parceira no catalogo.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.76'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.77',
+  descricao = 'Normalizacao do payload da agenda de atendimentos.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.77';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.77', 'Normalizacao do payload da agenda de atendimentos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.77'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.78',
+  descricao = 'Ajustes no cabecalho do relatorio de agenda de atendimentos.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.78';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.78', 'Ajustes no cabecalho do relatorio de agenda de atendimentos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.78'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.79',
+  descricao = 'Inclusao de endereco e contato no cabecalho da agenda.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.79';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.79', 'Inclusao de endereco e contato no cabecalho da agenda.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.79'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.80',
+  descricao = 'Correcao de tipagem do payload de cursos e atendimentos.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.80';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.80', 'Correcao de tipagem do payload de cursos e atendimentos.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.80'
 );

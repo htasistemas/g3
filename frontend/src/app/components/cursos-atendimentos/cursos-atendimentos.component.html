@@ -11,6 +11,7 @@
   (imprimir)="onImprimir()"
   (fechar)="closeForm()"
 >
+  <app-popup-messages [mensagens]="popupErros" (fechar)="fecharPopupErros()"></app-popup-messages>
 <header class="page-title page-title--row" slot="titulo">
   <div>
     <p class="page-title__label"></p>
@@ -75,7 +76,7 @@
         </div>
       </div>
       <div class="field-grid cols-4 dados-grid">
-        <label class="field">
+        <label class="field" [class.field--error]="campoInvalido(courseForm, 'tipo')">
           Tipo*
           <select formControlName="tipo">
             <option value=""></option>
@@ -84,7 +85,7 @@
             <option value="Oficina">Oficina</option>
           </select>
         </label>
-        <label class="field">
+        <label class="field" [class.field--error]="campoInvalido(courseForm, 'nome')">
           Nome do curso/atendimento*
           <input
             formControlName="nome"
@@ -92,18 +93,18 @@
             (blur)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
           />
         </label>
-        <label class="field">
+        <label class="field" [class.field--error]="campoInvalido(courseForm, 'horarioInicial')">
           Horário inicial*
           <input type="time" formControlName="horarioInicial" />
         </label>
-        <label class="field">
+        <label class="field" [class.field--error]="campoInvalido(courseForm, 'duracaoHoras')">
           Duração (horas)*
           <input type="number" formControlName="duracaoHoras" min="1" />
         </label>
       </div>
 
       <div class="field-grid cols-2 description-media full">
-        <label class="field description-field">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field description-field" [class.field--error]="campoInvalido(courseForm, 'descricao')">Descrição / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
 
         <div class="field media-card">
           <p class="field-title">Foto / Imagem ilustrativa</p>
@@ -117,7 +118,7 @@
         </div>
       </div>
 
-      <div class="field day-selector horizontal full">
+      <div class="field day-selector horizontal full" [class.field--error]="campoInvalido(courseForm, 'diasSemana')">
         <p class="field-title">Dias da semana*</p>
         <div class="chips">
           <label *ngFor="let dia of diasSemana" class="chip">
@@ -165,7 +166,7 @@
 
       <div class="field-grid cols-4 dados-grid load-room-grid">
         <label class="field">Carga horária total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
-        <label class="field">
+        <label class="field" [class.field--error]="campoInvalido(courseForm, 'vagasTotais')">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
         </label>
@@ -173,7 +174,7 @@
           Vagas
           <input type="number" [value]="currentCourse?.vagasDisponiveis ?? courseForm.value.vagasTotais" readonly />
         </label>
-        <div class="field sala-field">
+        <div class="field sala-field" [class.field--error]="campoInvalido(courseForm, 'salaId')">
           <label class="field-title" for="salaSelect">Sala*</label>
           <div class="inline-control">
             <select id="salaSelect" formControlName="salaId">
@@ -194,7 +195,7 @@
         ></textarea>
       </label>
 
-      <label class="field full">
+      <label class="field full" [class.field--error]="campoInvalido(courseForm, 'profissional')">
         Profissional responsável*
         <input
           formControlName="profissional"
@@ -211,6 +212,15 @@
             </button>
           </li>
         </ul>
+      </label>
+      <label class="field full">
+        Instituição parceira
+        <input
+          formControlName="instituicaoParceira"
+          placeholder="Ex.: Faculdade Uniessa"
+          (input)="applyCapitalization(courseForm, 'instituicaoParceira', $any($event.target).value)"
+          (blur)="applyCapitalization(courseForm, 'instituicaoParceira', $any($event.target).value)"
+        />
       </label>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
@@ -246,6 +256,9 @@
               <p class="catalog-card__category">{{ course.tipo }}</p>
               <h3 class="catalog-card__title">{{ course.nome }}</h3>
               <p class="catalog-card__subtitle">{{ course.profissional }}</p>
+              <p class="catalog-card__partner" *ngIf="course.instituicaoParceira">
+                Instituição parceira: {{ course.instituicaoParceira }}
+              </p>
             </div>
           </div>
           <p class="catalog-card__description">{{ course.descricao }}</p>
@@ -298,16 +311,20 @@
       </div>
 
       <div class="field-grid cols-4" [formGroup]="enrollmentForm">
-        <label class="field full">
+        <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'courseId')">
           Selecione o curso/atendimento*
           <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
             <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opção</option>
             <option *ngFor="let course of records" [value]="course.id">
-              {{ course.tipo }} â€¢ {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
+              {{ course.tipo }} • {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
             </option>
           </select>
         </label>
         <label class="field full">
+          Instituição parceira
+          <input [value]="currentCourse?.instituicaoParceira || ''" readonly />
+        </label>
+        <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'beneficiaryName')">
           Beneficiário (nome ou CPF)*
           <input
             formControlName="beneficiaryName"
@@ -325,7 +342,7 @@
             </li>
           </ul>
         </label>
-        <label class="field">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
+        <label class="field" [class.field--error]="campoInvalido(enrollmentForm, 'cpf')">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
         <div class="actions align-end">
             <div class="helper" *ngIf="currentCourse">
               <p class="helper__title">Vagas</p>
@@ -423,6 +440,189 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
+    <div class="tab-card" *ngIf="activeTab === 'agenda'">
+      <div class="tab-card__header">
+        <div class="tab-card__title-stack">
+          <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="!currentCourse">
+        Selecione um atendimento na aba de inscrições para visualizar a agenda.
+      </div>
+      <div class="empty-state" *ngIf="currentCourse && currentCourse.tipo !== 'Atendimento'">
+        A agenda está disponível apenas para atendimentos.
+      </div>
+
+      <ng-container *ngIf="currentCourse && currentCourse.tipo === 'Atendimento'">
+        <div class="agenda-grid">
+          <div class="agenda-panel">
+            <p class="agenda-panel__title">Agenda do dia</p>
+            <div class="agenda-filtros">
+              <div class="agenda-filtros__linha">
+                <label class="field">
+                  Data*
+                  <input
+                    type="date"
+                    [(ngModel)]="dataAgendaSelecionada"
+                    [ngModelOptions]="{ standalone: true }"
+                  />
+                </label>
+                <label class="field">
+                  Situação
+                  <select [(ngModel)]="filtroStatusAgenda" [ngModelOptions]="{ standalone: true }">
+                    <option value="TODOS">Todos</option>
+                    <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
+                      {{ status.label }}
+                    </option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  class="agenda-filtros__print"
+                  (click)="imprimirAgendaDoDia()"
+                  aria-label="Imprimir agenda do dia"
+                  title="Imprimir agenda do dia"
+                >
+                  <fa-icon [icon]="faPrint"></fa-icon>
+                </button>
+              </div>
+              <div class="agenda-filtros__linha">
+                <label class="field agenda-filtros__profissional">
+                  Profissional
+                  <app-autocomplete
+                    [termo]="profissionalFiltroTermo"
+                    [opcoes]="profissionalFiltroOpcoes"
+                    [carregando]="profissionalAgendaCarregando"
+                    placeholder="Buscar profissional"
+                    (termoChange)="atualizarProfissionalFiltro($event)"
+                    (selecionar)="selecionarProfissionalFiltro($event)"
+                  ></app-autocomplete>
+                </label>
+                <button
+                  type="button"
+                  class="ghost agenda-filtros__limpar"
+                  (click)="limparFiltroProfissional()"
+                >
+                  Limpar filtro
+                </button>
+              </div>
+            </div>
+            <div class="agenda-summary">
+              <span class="agenda-chip" *ngFor="let status of statusAgendamentoOpcoes">
+                {{ status.label }}: {{ contarStatusAgenda(status.valor) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="agenda-panel" [formGroup]="agendamentoForm">
+            <p class="agenda-panel__title">Agendar atendimento</p>
+            <div class="field-grid cols-4">
+              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'matriculaId')">
+                Beneficiário*
+                <app-autocomplete
+                  [termo]="beneficiarioAgendaTermo"
+                  [opcoes]="beneficiarioAgendaOpcoes"
+                  placeholder="Selecione o beneficiário"
+                  (termoChange)="atualizarBeneficiarioAgendaTermo($event)"
+                  (selecionar)="selecionarBeneficiarioAgenda($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'dataAgendada')">
+                Data*
+                <input type="date" formControlName="dataAgendada" />
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'horaAgendada')">
+                Hora*
+                <input type="time" formControlName="horaAgendada" />
+              </label>
+              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'profissionalId')">
+                Profissional*
+                <app-autocomplete
+                  [termo]="profissionalAgendaTermo"
+                  [opcoes]="profissionalAgendaOpcoes"
+                  [carregando]="profissionalAgendaCarregando"
+                  placeholder="Selecione o profissional"
+                  (termoChange)="atualizarProfissionalAgendaTermo($event)"
+                  (selecionar)="selecionarProfissionalAgenda($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'statusAgendamento')">
+                Situação*
+                <select formControlName="statusAgendamento">
+                  <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
+                    {{ status.label }}
+                  </option>
+                </select>
+              </label>
+              <div class="actions align-end">
+                <button type="button" class="primary" (click)="agendarAtendimento()">Agendar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-card">
+          <div class="list-card__header">
+            <div>
+              <p class="page-title__label">Beneficiários agendados</p>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Beneficiário</th>
+                  <th>CPF</th>
+                  <th>Profissional</th>
+                  <th>Situação</th>
+                  <th>Presença</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let matricula of agendamentosFiltrados">
+                  <td>{{ matricula.horaAgendada || '--:--' }}</td>
+                  <td>{{ matricula.beneficiaryName }}</td>
+                  <td>{{ matricula.cpf }}</td>
+                  <td>{{ matricula.profissionalNome || 'Não informado' }}</td>
+                  <td>
+                    <select
+                      [ngModel]="matricula.statusAgendamento || 'AGUARDANDO'"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="atualizarStatusAgendamento(matricula, $event)"
+                    >
+                      <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
+                        {{ status.label }}
+                      </option>
+                    </select>
+                  </td>
+                  <td>{{ matricula.confirmacaoPresenca ? 'Confirmada' : 'Pendente' }}</td>
+                  <td class="table-actions">
+                    <button
+                      type="button"
+                      class="primary"
+                      (click)="confirmarPresencaAgendamento(matricula)"
+                      [disabled]="matricula.confirmacaoPresenca"
+                    >
+                      Confirmar presença
+                    </button>
+                    <button type="button" class="ghost" (click)="marcarRemarcar(matricula)">Remarcar</button>
+                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">Não respondeu</button>
+                  </td>
+                </tr>
+                <tr *ngIf="!agendamentosFiltrados.length">
+                  <td colspan="7" class="muted">Nenhum atendimento agendado para este dia.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+
     <div class="tab-card" *ngIf="activeTab === 'presenca'">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
@@ -434,7 +634,7 @@
         <label class="field full">
           Selecione o curso/atendimento*
           <select [value]="currentCourse?.id || ''" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!currentCourse">Escolha uma opcao</option>
+            <option value="" disabled [selected]="!currentCourse">Escolha uma opção</option>
             <option *ngFor="let course of records" [value]="course.id">
               {{ course.tipo }} - {{ course.nome }}
             </option>
@@ -530,6 +730,7 @@
                 <th>Nome</th>
                 <th>Vagas</th>
                 <th>Profissional</th>
+                <th>Instituição parceira</th>
                 <th>Sala</th>
                 <th>Início</th>
                 <th>Ações</th>
@@ -541,6 +742,7 @@
                 <td>{{ course.nome }}</td>
                 <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
                 <td>{{ course.profissional }}</td>
+                <td>{{ course.instituicaoParceira || '---' }}</td>
                 <td>{{ getRoomName(course) }}</td>
                 <td>{{ course.horarioInicial }}</td>
                 <td class="table-actions">
@@ -549,7 +751,7 @@
                 </td>
               </tr>
               <tr *ngIf="!records.length">
-                <td colspan="6" class="muted">Nenhum curso ou atendimento cadastrado.</td>
+                <td colspan="8" class="muted">Nenhum curso ou atendimento cadastrado.</td>
               </tr>
             </tbody>
           </table>

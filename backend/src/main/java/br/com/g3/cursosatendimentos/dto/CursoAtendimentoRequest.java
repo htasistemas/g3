@@ -21,6 +21,7 @@ public class CursoAtendimentoRequest {
   private String sexoPermitido;
   private String restricoes;
   private String profissional;
+  private String instituicaoParceira;
   private Long salaId;
   private String status;
   private LocalDate dataTriagem;
@@ -151,6 +152,14 @@ public class CursoAtendimentoRequest {
 
   public void setProfissional(String profissional) {
     this.profissional = profissional;
+  }
+
+  public String getInstituicaoParceira() {
+    return instituicaoParceira;
+  }
+
+  public void setInstituicaoParceira(String instituicaoParceira) {
+    this.instituicaoParceira = instituicaoParceira;
   }
 
   public Long getSalaId() {

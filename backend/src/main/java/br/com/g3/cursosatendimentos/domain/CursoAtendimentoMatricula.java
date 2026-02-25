@@ -9,7 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "cursos_atendimentos_matriculas")
@@ -33,6 +35,27 @@ public class CursoAtendimentoMatricula {
 
   @Column(name = "data_matricula", nullable = false)
   private LocalDateTime dataMatricula;
+
+  @Column(name = "data_agendada")
+  private LocalDate dataAgendada;
+
+  @Column(name = "hora_agendada")
+  private LocalTime horaAgendada;
+
+  @Column(name = "status_agendamento", length = 30)
+  private String statusAgendamento;
+
+  @Column(name = "profissional_id", length = 40)
+  private String profissionalId;
+
+  @Column(name = "profissional_nome", length = 200)
+  private String profissionalNome;
+
+  @Column(name = "profissional_tipo", length = 20)
+  private String profissionalTipo;
+
+  @Column(name = "confirmacao_presenca", nullable = false)
+  private Boolean confirmacaoPresenca = false;
 
   public Long getId() {
     return id;
@@ -80,5 +103,61 @@ public class CursoAtendimentoMatricula {
 
   public void setDataMatricula(LocalDateTime dataMatricula) {
     this.dataMatricula = dataMatricula;
+  }
+
+  public LocalDate getDataAgendada() {
+    return dataAgendada;
+  }
+
+  public void setDataAgendada(LocalDate dataAgendada) {
+    this.dataAgendada = dataAgendada;
+  }
+
+  public LocalTime getHoraAgendada() {
+    return horaAgendada;
+  }
+
+  public void setHoraAgendada(LocalTime horaAgendada) {
+    this.horaAgendada = horaAgendada;
+  }
+
+  public String getStatusAgendamento() {
+    return statusAgendamento;
+  }
+
+  public void setStatusAgendamento(String statusAgendamento) {
+    this.statusAgendamento = statusAgendamento;
+  }
+
+  public String getProfissionalId() {
+    return profissionalId;
+  }
+
+  public void setProfissionalId(String profissionalId) {
+    this.profissionalId = profissionalId;
+  }
+
+  public String getProfissionalNome() {
+    return profissionalNome;
+  }
+
+  public void setProfissionalNome(String profissionalNome) {
+    this.profissionalNome = profissionalNome;
+  }
+
+  public String getProfissionalTipo() {
+    return profissionalTipo;
+  }
+
+  public void setProfissionalTipo(String profissionalTipo) {
+    this.profissionalTipo = profissionalTipo;
+  }
+
+  public Boolean getConfirmacaoPresenca() {
+    return confirmacaoPresenca;
+  }
+
+  public void setConfirmacaoPresenca(Boolean confirmacaoPresenca) {
+    this.confirmacaoPresenca = confirmacaoPresenca;
   }
 }
