@@ -30,6 +30,13 @@ export interface AssistanceUnitPayload {
   diretoria?: DiretoriaUnidadePayload[];
   horarioFuncionamento?: string;
   unidadePrincipal?: boolean;
+  raioPontoMetros?: number;
+  accuracyMaxPontoMetros?: number;
+  ipValidacaoPonto?: string;
+  ipsPublicosPonto?: string;
+  redesLocaisPonto?: string;
+  modoValidacaoPonto?: string;
+  pingTimeoutMs?: number;
 }
 
 export interface DiretoriaUnidadePayload {

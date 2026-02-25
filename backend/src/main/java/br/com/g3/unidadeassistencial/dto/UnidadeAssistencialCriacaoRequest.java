@@ -79,6 +79,15 @@ public class UnidadeAssistencialCriacaoRequest {
 
   private String ipValidacaoPonto;
 
+  @Size(max = 2000)
+  private String ipsPublicosPonto;
+
+  @Size(max = 2000)
+  private String redesLocaisPonto;
+
+  @Size(max = 30)
+  private String modoValidacaoPonto;
+
   private Integer pingTimeoutMs;
 
   public String getNomeFantasia() {
@@ -295,6 +304,30 @@ public class UnidadeAssistencialCriacaoRequest {
 
   public void setIpValidacaoPonto(String ipValidacaoPonto) {
     this.ipValidacaoPonto = ipValidacaoPonto;
+  }
+
+  public String getIpsPublicosPonto() {
+    return ipsPublicosPonto;
+  }
+
+  public void setIpsPublicosPonto(String ipsPublicosPonto) {
+    this.ipsPublicosPonto = ipsPublicosPonto;
+  }
+
+  public String getRedesLocaisPonto() {
+    return redesLocaisPonto;
+  }
+
+  public void setRedesLocaisPonto(String redesLocaisPonto) {
+    this.redesLocaisPonto = redesLocaisPonto;
+  }
+
+  public String getModoValidacaoPonto() {
+    return modoValidacaoPonto;
+  }
+
+  public void setModoValidacaoPonto(String modoValidacaoPonto) {
+    this.modoValidacaoPonto = modoValidacaoPonto;
   }
 
   public Integer getPingTimeoutMs() {

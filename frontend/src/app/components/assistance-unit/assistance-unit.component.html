@@ -331,6 +331,34 @@
           <input id="ipValidacaoPonto" type="text" formControlName="ipValidacaoPonto" placeholder="Ex.: 192.168.0.100" />
         </label>
 
+        <label class="field full">IPs públicos permitidos para o ponto
+          <textarea
+            id="ipsPublicosPonto"
+            formControlName="ipsPublicosPonto"
+            rows="2"
+            placeholder="Ex.: 200.150.10.20, 187.12.0.5"
+          ></textarea>
+          <span class="hint">Separe por vírgula ou use uma linha por IP.</span>
+        </label>
+
+        <label class="field full">Redes locais permitidas (CIDR)
+          <textarea
+            id="redesLocaisPonto"
+            formControlName="redesLocaisPonto"
+            rows="2"
+            placeholder="Ex.: 192.168.0.0/24, 10.0.0.0/24"
+          ></textarea>
+          <span class="hint">Separe por vírgula ou use uma linha por faixa.</span>
+        </label>
+
+        <label class="field">Modo de validação do ponto
+          <select id="modoValidacaoPonto" formControlName="modoValidacaoPonto">
+            <option value="IP_PUBLICO">IP público</option>
+            <option value="REDE_LOCAL">Rede local (CIDR)</option>
+            <option value="IP_OU_REDE">IP público ou rede local</option>
+          </select>
+        </label>
+
         <label class="field">Timeout do ping (ms)
           <input id="pingTimeoutMs" type="number" formControlName="pingTimeoutMs" />
         </label>

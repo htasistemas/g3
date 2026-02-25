@@ -32,6 +32,9 @@ public class UnidadeAssistencialResponse {
   private final Integer raioPontoMetros;
   private final Integer accuracyMaxPontoMetros;
   private final String ipValidacaoPonto;
+  private final String ipsPublicosPonto;
+  private final String redesLocaisPonto;
+  private final String modoValidacaoPonto;
   private final Integer pingTimeoutMs;
 
   public UnidadeAssistencialResponse(
@@ -64,6 +67,9 @@ public class UnidadeAssistencialResponse {
       Integer raioPontoMetros,
       Integer accuracyMaxPontoMetros,
       String ipValidacaoPonto,
+      String ipsPublicosPonto,
+      String redesLocaisPonto,
+      String modoValidacaoPonto,
       Integer pingTimeoutMs) {
     this.id = id;
     this.nomeFantasia = nomeFantasia;
@@ -94,6 +100,9 @@ public class UnidadeAssistencialResponse {
     this.raioPontoMetros = raioPontoMetros;
     this.accuracyMaxPontoMetros = accuracyMaxPontoMetros;
     this.ipValidacaoPonto = ipValidacaoPonto;
+    this.ipsPublicosPonto = ipsPublicosPonto;
+    this.redesLocaisPonto = redesLocaisPonto;
+    this.modoValidacaoPonto = modoValidacaoPonto;
     this.pingTimeoutMs = pingTimeoutMs;
   }
 
@@ -211,6 +220,18 @@ public class UnidadeAssistencialResponse {
 
   public String getIpValidacaoPonto() {
     return ipValidacaoPonto;
+  }
+
+  public String getIpsPublicosPonto() {
+    return ipsPublicosPonto;
+  }
+
+  public String getRedesLocaisPonto() {
+    return redesLocaisPonto;
+  }
+
+  public String getModoValidacaoPonto() {
+    return modoValidacaoPonto;
   }
 
   public Integer getPingTimeoutMs() {

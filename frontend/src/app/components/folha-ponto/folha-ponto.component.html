@@ -65,9 +65,9 @@
             </div>
           </div>
 
-          <p class="info-note">
-            Para registrar o ponto, permita a localização no navegador.
-            A sequência obrigatória é: Entrada 1 ? Saída 1 ? Entrada 2 ? Saída 2.
+                    <p class="info-note">
+            O registro de ponto é permitido apenas no computador da instituição, dentro da rede autorizada.
+            A sequência obrigatória é: Entrada 1 -> Saída 1 -> Entrada 2 -> Saída 2.
           </p>
 
           <div class="info-grid">
@@ -102,8 +102,14 @@
                 Raio: {{ unidadeAssistencial.raioPontoMetros || 100 }}m • Precisão máxima:
                 {{ unidadeAssistencial.accuracyMaxPontoMetros || 80 }}m
               </p>
-              <p *ngIf="unidadeAssistencial?.ipValidacaoPonto">
-                Validação por IP interno: {{ unidadeAssistencial?.ipValidacaoPonto }}
+                            <p *ngIf="unidadeAssistencial?.ipsPublicosPonto">
+                IPs públicos autorizados: {{ unidadeAssistencial?.ipsPublicosPonto }}
+              </p>
+              <p *ngIf="unidadeAssistencial?.redesLocaisPonto">
+                Redes locais autorizadas: {{ unidadeAssistencial?.redesLocaisPonto }}
+              </p>
+              <p *ngIf="unidadeAssistencial?.modoValidacaoPonto">
+                Modo de validação: {{ obterDescricaoModoValidacao(unidadeAssistencial?.modoValidacaoPonto) }}
               </p>
             </div>
             <div class="info-card">
@@ -432,7 +438,78 @@
                   </td>
                 </tr>
               </tbody>
+            </table>\r\n          </div>\r\n        </div>\r\n\r\n        <div class="tab-card" *ngIf="activeTab === 'auditoria'">
+          <div class="tab-card__header">
+            <div class="tab-card__title-stack">
+              <p class="tab-card__highlight">Auditoria do ponto</p>
+            </div>
+          </div>
+
+          <p class="info-note">
+            Consulte tentativas de registro, incluindo bloqueios por rede ou dispositivo.
+          </p>
+
+          <div class="field-grid cols-4">
+            <label class="field">Funcionário
+              <select [ngModel]="auditoriaFuncionarioId ?? ''" (ngModelChange)="auditoriaFuncionarioId = $event ? Number($event) : null; carregarAuditoria()">
+                <option value="">Todos</option>
+                <option *ngFor="let user of usuarios" [value]="user.id">
+                  {{ user.nome || user.nomeUsuario }}
+                </option>
+              </select>
+            </label>
+            <label class="field">Resultado
+              <select [(ngModel)]="auditoriaResultado" (ngModelChange)="carregarAuditoria()">
+                <option value="">Todos</option>
+                <option value="OK">OK</option>
+                <option value="BLOQUEADO">Bloqueado</option>
+              </select>
+            </label>
+            <label class="field">Data inicial
+              <input type="date" [(ngModel)]="auditoriaDataInicio" (change)="carregarAuditoria()" />
+            </label>
+            <label class="field">Data final
+              <input type="date" [(ngModel)]="auditoriaDataFim" (change)="carregarAuditoria()" />
+            </label>
+            <label class="field">Limite
+              <input type="number" [(ngModel)]="auditoriaLimite" (change)="carregarAuditoria()" />
+            </label>
+            <div class="field">
+              <span>&nbsp;</span>
+              <button type="button" class="primary" (click)="limparFiltrosAuditoria()">Limpar filtros</button>
+            </div>
+          </div>
+
+          <div class="table-wrapper" *ngIf="auditoria?.length">
+            <table class="espelho-table">
+              <thead>
+                <tr>
+                  <th>Data/hora</th>
+                  <th>Funcionário</th>
+                  <th>Tipo</th>
+                  <th>Resultado</th>
+                  <th>IP</th>
+                  <th>Motivo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of auditoria">
+                  <td>{{ item.dataHoraServidor | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <td>{{ obterNomeFuncionario(item.funcionarioId) }}</td>
+                  <td>{{ item.tipoMarcacao || '---' }}</td>
+                  <td>{{ obterDescricaoResultadoAuditoria(item.resultado) }}</td>
+                  <td>{{ item.ipDetectado || '---' }}</td>
+                  <td>{{ item.motivo || item.detalhes || '---' }}</td>
+                </tr>
+              </tbody>
             </table>
+          </div>
+
+          <div class="info-note" *ngIf="!auditoria?.length && !auditoriaCarregando">
+            Nenhum registro de auditoria encontrado com os filtros atuais.
+          </div>
+          <div class="info-note" *ngIf="auditoriaCarregando">
+            Carregando auditoria...
           </div>
         </div>
       </div>
@@ -440,7 +517,7 @@
 
     <app-dialog
       [aberto]="dialogBatidaAberta"
-      titulo="Confirmar batida"
+      titulo="Confirmar registro de ponto"
       mensagem="Informe a senha para concluir o registro do ponto."
       confirmarLabel="Confirmar"
       cancelarLabel="Cancelar"
@@ -448,14 +525,7 @@
       (cancelar)="cancelarBatida()"
     >
       <div class="dialog-conteudo dialog-bloco">
-        <p class="dialog-info" *ngIf="batidaCarregando">Obtendo localização...</p>
-        <p class="dialog-info">Tipo de batida: <strong>{{ tipoBatidaAtual }}</strong></p>
-        <p class="dialog-info" *ngIf="localizacaoAtual">
-          Precisão: {{ localizacaoAtual.accuracy | number: '1.0-0' }}m
-          <ng-container *ngIf="localizacaoAtual.distancia !== undefined">
-            • Distância: {{ localizacaoAtual.distancia | number: '1.0-0' }}m
-          </ng-container>
-        </p>
+        <p class="dialog-info">Tipo de marcação: <strong>{{ tipoBatidaAtual }}</strong></p>
         <label class="field">Senha do funcionário (*)
           <input
             type="password"

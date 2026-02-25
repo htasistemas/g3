@@ -68,6 +68,15 @@ public class UnidadeAssistencial {
   @Column(name = "ip_validacao_ponto", length = 45)
   private String ipValidacaoPonto;
 
+  @Column(name = "ips_publicos_ponto")
+  private String ipsPublicosPonto;
+
+  @Column(name = "redes_locais_ponto")
+  private String redesLocaisPonto;
+
+  @Column(name = "modo_validacao_ponto", nullable = false, length = 30)
+  private String modoValidacaoPonto;
+
   @Column(name = "ping_timeout_ms", nullable = false)
   private Integer pingTimeoutMs;
   @Column(name = "criado_em", nullable = false)
@@ -202,6 +211,30 @@ public class UnidadeAssistencial {
 
   public void setIpValidacaoPonto(String ipValidacaoPonto) {
     this.ipValidacaoPonto = ipValidacaoPonto;
+  }
+
+  public String getIpsPublicosPonto() {
+    return ipsPublicosPonto;
+  }
+
+  public void setIpsPublicosPonto(String ipsPublicosPonto) {
+    this.ipsPublicosPonto = ipsPublicosPonto;
+  }
+
+  public String getRedesLocaisPonto() {
+    return redesLocaisPonto;
+  }
+
+  public void setRedesLocaisPonto(String redesLocaisPonto) {
+    this.redesLocaisPonto = redesLocaisPonto;
+  }
+
+  public String getModoValidacaoPonto() {
+    return modoValidacaoPonto;
+  }
+
+  public void setModoValidacaoPonto(String modoValidacaoPonto) {
+    this.modoValidacaoPonto = modoValidacaoPonto;
   }
 
   public Integer getPingTimeoutMs() {

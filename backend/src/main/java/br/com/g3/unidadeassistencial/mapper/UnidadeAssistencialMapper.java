@@ -31,6 +31,9 @@ public class UnidadeAssistencialMapper {
     unidade.setRaioPontoMetros(request.getRaioPontoMetros());
     unidade.setAccuracyMaxPontoMetros(request.getAccuracyMaxPontoMetros());
     unidade.setIpValidacaoPonto(request.getIpValidacaoPonto());
+    unidade.setIpsPublicosPonto(request.getIpsPublicosPonto());
+    unidade.setRedesLocaisPonto(request.getRedesLocaisPonto());
+    unidade.setModoValidacaoPonto(normalizarModoValidacaoPonto(request.getModoValidacaoPonto()));
     unidade.setPingTimeoutMs(request.getPingTimeoutMs());
     LocalDateTime agora = LocalDateTime.now();
     unidade.setCriadoEm(agora);
@@ -54,6 +57,9 @@ public class UnidadeAssistencialMapper {
     unidade.setRaioPontoMetros(request.getRaioPontoMetros());
     unidade.setAccuracyMaxPontoMetros(request.getAccuracyMaxPontoMetros());
     unidade.setIpValidacaoPonto(request.getIpValidacaoPonto());
+    unidade.setIpsPublicosPonto(request.getIpsPublicosPonto());
+    unidade.setRedesLocaisPonto(request.getRedesLocaisPonto());
+    unidade.setModoValidacaoPonto(normalizarModoValidacaoPonto(request.getModoValidacaoPonto()));
     unidade.setPingTimeoutMs(request.getPingTimeoutMs());
     unidade.setAtualizadoEm(LocalDateTime.now());
     aplicarEndereco(unidade, request);
@@ -95,7 +101,17 @@ public class UnidadeAssistencialMapper {
         unidade.getRaioPontoMetros(),
         unidade.getAccuracyMaxPontoMetros(),
         unidade.getIpValidacaoPonto(),
+        unidade.getIpsPublicosPonto(),
+        unidade.getRedesLocaisPonto(),
+        unidade.getModoValidacaoPonto(),
         unidade.getPingTimeoutMs());
+  }
+
+  private static String normalizarModoValidacaoPonto(String modo) {
+    if (modo == null || modo.trim().isEmpty()) {
+      return "IP_OU_REDE";
+    }
+    return modo.trim().toUpperCase(java.util.Locale.forLanguageTag("pt-BR"));
   }
 
   private static Endereco criarEndereco(UnidadeAssistencialCriacaoRequest request, LocalDateTime agora) {

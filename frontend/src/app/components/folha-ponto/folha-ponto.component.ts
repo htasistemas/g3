@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faClock, faLocationDot, faFileExcel, faUserClock } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faUserClock } from '@fortawesome/free-solid-svg-icons';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
@@ -13,6 +13,7 @@ import { AuthService } from '../../services/auth.service';
 import {
   FolhaPontoService,
   RhConfiguracaoPontoResponse,
+  RhPontoAuditoriaResponse,
   RhPontoDiaResumoResponse,
   RhPontoEspelhoResponse,
   UnidadeAssistencialResponse
@@ -20,7 +21,7 @@ import {
 import { UserPayload, UserService } from '../../services/user.service';
 
 interface TabItem {
-  id: 'registro' | 'espelho' | 'configuracao';
+  id: 'registro' | 'espelho' | 'configuracao' | 'auditoria';
   label: string;
 }
 
@@ -43,14 +44,13 @@ interface TabItem {
 })
 export class FolhaPontoComponent implements OnInit {
   readonly faClock = faClock;
-  readonly faLocationDot = faLocationDot;
-  readonly faFileExcel = faFileExcel;
   readonly faUserClock = faUserClock;
 
   tabs: TabItem[] = [
     { id: 'registro', label: 'Registro diário' },
     { id: 'espelho', label: 'Espelho mensal' },
-    { id: 'configuracao', label: 'Configuração' }
+    { id: 'configuracao', label: 'Configuração' },
+    { id: 'auditoria', label: 'Auditoria' }
   ];
 
   activeTab: TabItem['id'] = 'registro';
@@ -82,12 +82,18 @@ export class FolhaPontoComponent implements OnInit {
   dialogImpressaoAberta = false;
   senhaBatida = '';
   tipoBatidaAtual: 'E1' | 'S1' | 'E2' | 'S2' | null = null;
-  localizacaoAtual: { latitude: number; longitude: number; accuracy: number; distancia?: number } | null = null;
-  batidaCarregando = false;
+  mobileBloqueado = false;
 
   espelho: RhPontoEspelhoResponse | null = null;
   configuracao: RhConfiguracaoPontoResponse | null = null;
   unidadeAssistencial: UnidadeAssistencialResponse | null = null;
+  auditoria: RhPontoAuditoriaResponse[] = [];
+  auditoriaCarregando = false;
+  auditoriaResultado = '';
+  auditoriaDataInicio = '';
+  auditoriaDataFim = '';
+  auditoriaLimite = 200;
+  auditoriaFuncionarioId: number | null = null;
   horaAtual = '';
   usuarios: UserPayload[] = [];
   funcionarioSelecionadoId: number | null = null;
@@ -194,6 +200,13 @@ export class FolhaPontoComponent implements OnInit {
       this.acoesDesabilitadas.imprimir = true;
       this.tabs = this.tabs.filter((tab) => tab.id === 'registro' || tab.id === 'espelho');
     }
+    this.mobileBloqueado = this.isMobileUserAgent();
+    if (this.mobileBloqueado) {
+      this.popupTitulo = 'Atenção';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Registro de ponto permitido apenas no computador da instituição.')
+        .build();
+    }
     this.carregarConfiguracao();
     this.carregarUnidadeAssistencial();
     this.carregarEspelhoAtual();
@@ -229,9 +242,16 @@ export class FolhaPontoComponent implements OnInit {
     if (tab === 'configuracao') {
       this.carregarConfiguracao();
     }
+    if (tab === 'auditoria') {
+      this.carregarAuditoria();
+    }
   }
 
   onBuscar(): void {
+    if (this.activeTab === 'auditoria') {
+      this.carregarAuditoria();
+      return;
+    }
     this.carregarEspelhoAtual();
   }
 
@@ -371,49 +391,105 @@ export class FolhaPontoComponent implements OnInit {
     });
   }
 
+  carregarAuditoria(): void {
+    if (!this.usuarioIdAtual || !this.isRhAdmin) {
+      return;
+    }
+    this.auditoriaCarregando = true;
+    const inicio = this.auditoriaDataInicio ? `${this.auditoriaDataInicio}T00:00:00` : null;
+    const fim = this.auditoriaDataFim ? `${this.auditoriaDataFim}T23:59:59` : null;
+    this.service
+      .listarAuditoria(this.usuarioIdAtual, {
+        funcionarioId: this.auditoriaFuncionarioId ? Number(this.auditoriaFuncionarioId) : null,
+        resultado: this.auditoriaResultado || null,
+        inicio,
+        fim,
+        limite: this.auditoriaLimite ? Number(this.auditoriaLimite) : null
+      })
+      .subscribe({
+        next: (registros) => {
+          this.auditoria = registros ?? [];
+          this.auditoriaCarregando = false;
+        },
+        error: () => {
+          this.auditoria = [];
+          this.auditoriaCarregando = false;
+          this.popupTitulo = 'Erro';
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar('Não foi possível carregar a auditoria do ponto.')
+            .build();
+        }
+      });
+  }
+
+  selecionarFuncionarioAuditoria(id: string): void {
+    this.auditoriaFuncionarioId = id ? Number(id) : null;
+    this.carregarAuditoria();
+  }
+
+  limparFiltrosAuditoria(): void {
+    this.auditoriaResultado = '';
+    this.auditoriaDataInicio = '';
+    this.auditoriaDataFim = '';
+    this.auditoriaFuncionarioId = null;
+    this.auditoriaLimite = 200;
+    this.carregarAuditoria();
+  }
+
+  obterNomeFuncionario(funcionarioId?: number | null): string {
+    if (!funcionarioId) {
+      return '---';
+    }
+    const usuario = this.usuarios.find((item) => item.id === funcionarioId);
+    return usuario?.nome || usuario?.nomeUsuario || '---';
+  }
+
+  obterDescricaoModoValidacao(modo?: string | null): string {
+    if (!modo) {
+      return 'IP público ou rede local';
+    }
+    const normalizado = modo.toUpperCase();
+    if (normalizado === 'IP_PUBLICO') {
+      return 'IP público';
+    }
+    if (normalizado === 'REDE_LOCAL') {
+      return 'Rede local';
+    }
+    return 'IP público ou rede local';
+  }
+
+  obterDescricaoResultadoAuditoria(resultado?: string | null): string {
+    if (!resultado) {
+      return '---';
+    }
+    const normalizado = resultado.toUpperCase();
+    if (normalizado === 'BLOQUEADO') {
+      return 'Bloqueado';
+    }
+    if (normalizado === 'OK') {
+      return 'OK';
+    }
+    return resultado;
+  }
+
   iniciarBatida(tipo: 'E1' | 'S1' | 'E2' | 'S2'): void {
     if (!this.funcionarioIdAtual) {
       return;
     }
-    if (!navigator.geolocation) {
-      this.popupTitulo = 'Erro';
-      this.popupErros = new PopupErrorBuilder().adicionar('Geolocalização indisponível no navegador.').build();
+    if (this.mobileBloqueado) {
+      this.popupTitulo = 'Atenção';
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Registro de ponto permitido apenas no computador da instituição.')
+        .build();
       return;
     }
-    this.batidaCarregando = true;
-    this.localizacaoAtual = null;
     this.tipoBatidaAtual = tipo;
     this.senhaBatida = '';
     this.dialogBatidaAberta = true;
-    navigator.geolocation.getCurrentPosition(
-      (posicao) => {
-        const { latitude, longitude, accuracy } = posicao.coords;
-        const latitudeUnidade = this.parseCoordenada(this.unidadeAssistencial?.latitude);
-        const longitudeUnidade = this.parseCoordenada(this.unidadeAssistencial?.longitude);
-        const distancia =
-          latitudeUnidade !== null && longitudeUnidade !== null
-            ? this.calcularDistanciaMetros(latitude, longitude, latitudeUnidade, longitudeUnidade)
-            : undefined;
-        this.localizacaoAtual = { latitude, longitude, accuracy, distancia };
-        this.batidaCarregando = false;
-      },
-      () => {
-        this.batidaCarregando = false;
-        this.dialogBatidaAberta = false;
-        this.popupTitulo = 'Localização';
-        this.popupErros = new PopupErrorBuilder()
-          .adicionar('Permita o acesso à localização para registrar o ponto.')
-          .build();
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
   }
 
   confirmarBatida(): void {
-    if (!this.tipoBatidaAtual || !this.localizacaoAtual || !this.usuarioIdAtual) {
-      return;
-    }
-    if (this.batidaCarregando) {
+    if (!this.tipoBatidaAtual || !this.usuarioIdAtual) {
       return;
     }
     if (!this.senhaBatida) {
@@ -423,10 +499,7 @@ export class FolhaPontoComponent implements OnInit {
     }
     const payload = {
       tipo: this.tipoBatidaAtual,
-      senha: this.senhaBatida,
-      latitude: this.localizacaoAtual.latitude,
-      longitude: this.localizacaoAtual.longitude,
-      accuracy: this.localizacaoAtual.accuracy
+      senha: this.senhaBatida
     };
     this.service.baterPonto(this.usuarioIdAtual, payload).subscribe({
       next: () => {
@@ -638,6 +711,9 @@ export class FolhaPontoComponent implements OnInit {
   }
 
   podeRegistrar(tipo: 'E1' | 'S1' | 'E2' | 'S2'): boolean {
+    if (this.mobileBloqueado) {
+      return false;
+    }
     return this.proximoTipo() === tipo;
   }
 
@@ -829,6 +905,14 @@ export class FolhaPontoComponent implements OnInit {
     setInterval(atualizar, 60000);
   }
 
+  private isMobileUserAgent(): boolean {
+    const userAgent = navigator.userAgent || '';
+    const normalizado = userAgent.toLowerCase();
+    return /android|iphone|ipad|ipod|windows phone|iemobile|blackberry|opera mini|opera mobi|mobile|tablet/.test(
+      normalizado
+    );
+  }
+
   private atualizarHorariosFuncionario(): void {
     const id = this.funcionarioIdAtual;
     if (!id) {
@@ -871,27 +955,6 @@ export class FolhaPontoComponent implements OnInit {
       },
       { emitEvent: false }
     );
-  }
-
-  private calcularDistanciaMetros(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const rad = Math.PI / 180;
-    const dLat = (lat2 - lat1) * rad;
-    const dLon = (lon2 - lon1) * rad;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return 6371000 * c;
-  }
-
-  private parseCoordenada(valor?: string | null): number | null {
-    if (!valor) {
-      return null;
-    }
-    const ajustado = valor.replace(',', '.');
-    const numero = Number(ajustado);
-    return Number.isFinite(numero) ? numero : null;
   }
 
   private minutosParaHoras(minutos?: number | null): number {

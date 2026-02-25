@@ -4,10 +4,13 @@ import br.com.g3.auditoria.service.AuditoriaService;
 import br.com.g3.rh.domain.RhConfiguracaoPonto;
 import br.com.g3.rh.domain.RhPontoDia;
 import br.com.g3.rh.dto.RhPontoBaterRequest;
+import br.com.g3.rh.dto.RhPontoDiaResponse;
 import br.com.g3.rh.repository.RhConfiguracaoPontoRepository;
 import br.com.g3.rh.repository.RhPontoAuditoriaRepository;
 import br.com.g3.rh.repository.RhPontoDiaRepository;
 import br.com.g3.rh.repository.RhPontoMarcacaoRepository;
+import br.com.g3.rh.service.PontoNetworkValidator;
+import br.com.g3.rh.service.ResultadoValidacaoPonto;
 import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialResponse;
 import br.com.g3.unidadeassistencial.service.UnidadeAssistencialService;
 import br.com.g3.usuario.domain.Usuario;
@@ -36,6 +39,7 @@ public class RhPontoServiceImplTeste {
   @Mock private RhPontoAuditoriaRepository auditoriaRepository;
   @Mock private UsuarioRepository usuarioRepository;
   @Mock private UnidadeAssistencialService unidadeAssistencialService;
+  @Mock private PontoNetworkValidator pontoNetworkValidator;
   @Mock private PasswordEncoder passwordEncoder;
   @Mock private AuditoriaService auditoriaService;
 
@@ -91,7 +95,16 @@ public class RhPontoServiceImplTeste {
         100,
         80,
         null,
+        "200.150.10.20",
+        "192.168.0.0/24",
+        "IP_OU_REDE",
         2000);
+
+    Mockito.when(pontoNetworkValidator.validarAutorizacao(
+            ArgumentMatchers.any(),
+            ArgumentMatchers.any(),
+            ArgumentMatchers.any()))
+        .thenReturn(new ResultadoValidacaoPonto(true, null));
   }
 
   @Test
@@ -152,5 +165,61 @@ public class RhPontoServiceImplTeste {
         () -> service.baterPonto(request, 10L, "127.0.0.1", "tester"));
 
     Assertions.assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+  }
+
+  @Test
+  void baterPonto_deveBloquearQuandoValidacaoNegar() {
+    RhPontoBaterRequest request = new RhPontoBaterRequest();
+    request.setFuncionarioId(10L);
+    request.setTipo("E1");
+    request.setSenha("ok");
+
+    Mockito.when(unidadeAssistencialService.obterAtual()).thenReturn(unidadeResponse);
+    Mockito.when(pontoNetworkValidator.validarAutorizacao(
+            ArgumentMatchers.any(),
+            ArgumentMatchers.any(),
+            ArgumentMatchers.any()))
+        .thenReturn(new ResultadoValidacaoPonto(false, "Você precisa estar na instituição para registrar o ponto."));
+
+    ResponseStatusException ex = Assertions.assertThrows(
+        ResponseStatusException.class,
+        () -> service.baterPonto(request, 10L, "200.150.10.20", "Mozilla/5.0"));
+
+    Assertions.assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+    Mockito.verify(auditoriaRepository, Mockito.times(1)).salvar(ArgumentMatchers.any());
+    Mockito.verify(usuarioRepository, Mockito.never()).buscarPorId(ArgumentMatchers.any());
+  }
+
+  @Test
+  void baterPonto_deveRegistrarQuandoIpPermitido() {
+    RhPontoBaterRequest request = new RhPontoBaterRequest();
+    request.setFuncionarioId(10L);
+    request.setTipo("E1");
+    request.setSenha("ok");
+
+    Mockito.when(usuarioRepository.buscarPorId(10L)).thenReturn(Optional.of(usuario));
+    Mockito.when(passwordEncoder.matches(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(true);
+    Mockito.when(unidadeAssistencialService.obterAtual()).thenReturn(unidadeResponse);
+    Mockito.when(configuracaoRepository.buscarAtual()).thenReturn(Optional.of(configuracao));
+    Mockito.when(pontoDiaRepository.buscarPorFuncionarioEData(10L, LocalDate.now()))
+        .thenReturn(Optional.empty());
+    Mockito.when(pontoDiaRepository.salvar(ArgumentMatchers.any())).thenAnswer(invocation -> {
+      RhPontoDia dia = invocation.getArgument(0);
+      if (dia.getId() == null) {
+        dia.setId(1L);
+      }
+      return dia;
+    });
+    Mockito.when(marcacaoRepository.salvar(ArgumentMatchers.any())).thenAnswer(invocation -> {
+      var marcacao = invocation.getArgument(0, br.com.g3.rh.domain.RhPontoMarcacao.class);
+      marcacao.setId(5L);
+      return marcacao;
+    });
+
+    RhPontoDiaResponse response = service.baterPonto(request, 10L, "200.150.10.20", "Mozilla/5.0");
+
+    Assertions.assertNotNull(response);
+    Assertions.assertEquals(1, response.getMarcacoes().size());
+    Mockito.verify(auditoriaRepository, Mockito.atLeastOnce()).salvar(ArgumentMatchers.any());
   }
 }

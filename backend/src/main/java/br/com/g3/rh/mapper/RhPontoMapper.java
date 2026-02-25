@@ -1,9 +1,11 @@
 package br.com.g3.rh.mapper;
 
 import br.com.g3.rh.domain.RhConfiguracaoPonto;
+import br.com.g3.rh.domain.RhPontoAuditoria;
 import br.com.g3.rh.domain.RhPontoDia;
 import br.com.g3.rh.domain.RhPontoMarcacao;
 import br.com.g3.rh.dto.RhConfiguracaoPontoResponse;
+import br.com.g3.rh.dto.RhPontoAuditoriaResponse;
 import br.com.g3.rh.dto.RhPontoDiaResponse;
 import br.com.g3.rh.dto.RhPontoMarcacaoResponse;
 import java.time.format.DateTimeFormatter;
@@ -63,6 +65,23 @@ public class RhPontoMapper {
           resposta.add(response);
         });
     return resposta;
+  }
+
+  public RhPontoAuditoriaResponse toAuditoriaResponse(RhPontoAuditoria auditoria) {
+    RhPontoAuditoriaResponse response = new RhPontoAuditoriaResponse();
+    response.setId(auditoria.getId());
+    response.setFuncionarioId(auditoria.getFuncionarioId());
+    response.setUnidadeId(auditoria.getUnidadeId());
+    response.setTipoMarcacao(auditoria.getTipoMarcacao());
+    response.setIpDetectado(auditoria.getIpDetectado());
+    response.setUserAgent(auditoria.getUserAgent());
+    response.setDataHoraServidor(auditoria.getDataHoraServidor());
+    response.setResultado(auditoria.getResultado());
+    response.setMotivo(auditoria.getMotivo());
+    response.setAcao(auditoria.getAcao());
+    response.setDetalhes(auditoria.getDetalhes());
+    response.setPontoMarcacaoId(auditoria.getPontoMarcacaoId());
+    return response;
   }
 
   public static String formatarHora(RhPontoMarcacao marcacao) {

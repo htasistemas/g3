@@ -1,55 +1,20 @@
-package br.com.g3.rh.domain;
+package br.com.g3.rh.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "rh_ponto_auditoria")
-public class RhPontoAuditoria {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class RhPontoAuditoriaResponse {
   private Long id;
-
-  @Column(name = "funcionario_id")
   private Long funcionarioId;
-
-  @Column(name = "unidade_id")
   private Long unidadeId;
-
-  @Column(name = "tipo_marcacao", length = 2)
   private String tipoMarcacao;
-
-  @Column(name = "ip_detectado", length = 60)
   private String ipDetectado;
-
-  @Column(name = "user_agent", length = 255)
   private String userAgent;
-
-  @Column(name = "data_hora_servidor", nullable = false)
   private LocalDateTime dataHoraServidor;
-
-  @Column(name = "resultado", length = 20)
   private String resultado;
-
-  @Column(name = "motivo")
   private String motivo;
-
-  @Column(name = "ponto_marcacao_id")
-  private Long pontoMarcacaoId;
-
-  @Column(name = "acao", nullable = false, length = 120)
   private String acao;
-
-  @Column(name = "detalhes")
   private String detalhes;
-
-  @Column(name = "criado_em", nullable = false)
-  private LocalDateTime criadoEm;
+  private Long pontoMarcacaoId;
 
   public Long getId() {
     return id;
@@ -123,14 +88,6 @@ public class RhPontoAuditoria {
     this.motivo = motivo;
   }
 
-  public Long getPontoMarcacaoId() {
-    return pontoMarcacaoId;
-  }
-
-  public void setPontoMarcacaoId(Long pontoMarcacaoId) {
-    this.pontoMarcacaoId = pontoMarcacaoId;
-  }
-
   public String getAcao() {
     return acao;
   }
@@ -147,11 +104,11 @@ public class RhPontoAuditoria {
     this.detalhes = detalhes;
   }
 
-  public LocalDateTime getCriadoEm() {
-    return criadoEm;
+  public Long getPontoMarcacaoId() {
+    return pontoMarcacaoId;
   }
 
-  public void setCriadoEm(LocalDateTime criadoEm) {
-    this.criadoEm = criadoEm;
+  public void setPontoMarcacaoId(Long pontoMarcacaoId) {
+    this.pontoMarcacaoId = pontoMarcacaoId;
   }
 }

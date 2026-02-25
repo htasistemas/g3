@@ -21,9 +21,9 @@ export interface RhPontoBaterRequest {
   funcionarioId?: number;
   tipo: string;
   senha: string;
-  latitude: number;
-  longitude: number;
-  accuracy: number;
+  latitude?: number | null;
+  longitude?: number | null;
+  accuracy?: number | null;
 }
 
 export interface RhPontoMarcacaoResponse {
@@ -80,6 +80,21 @@ export interface RhPontoEspelhoResponse {
   dias: RhPontoDiaResumoResponse[];
 }
 
+export interface RhPontoAuditoriaResponse {
+  id: number;
+  funcionarioId?: number | null;
+  unidadeId?: number | null;
+  tipoMarcacao?: string | null;
+  ipDetectado?: string | null;
+  userAgent?: string | null;
+  dataHoraServidor?: string;
+  resultado?: string | null;
+  motivo?: string | null;
+  acao?: string | null;
+  detalhes?: string | null;
+  pontoMarcacaoId?: number | null;
+}
+
 export interface UnidadeAssistencialResponse {
   id: number;
   nomeFantasia: string;
@@ -101,6 +116,9 @@ export interface UnidadeAssistencialResponse {
   raioPontoMetros?: number;
   accuracyMaxPontoMetros?: number;
   ipValidacaoPonto?: string;
+  ipsPublicosPonto?: string;
+  redesLocaisPonto?: string;
+  modoValidacaoPonto?: string;
   pingTimeoutMs?: number;
 }
 
@@ -186,6 +204,39 @@ export class FolhaPontoService {
       params: { usuarioId },
       responseType: 'blob'
     });
+  }
+
+  listarAuditoria(
+    usuarioId: number,
+    filtros: {
+      funcionarioId?: number | null;
+      unidadeId?: number | null;
+      resultado?: string | null;
+      inicio?: string | null;
+      fim?: string | null;
+      limite?: number | null;
+    }
+  ): Observable<RhPontoAuditoriaResponse[]> {
+    let params = new HttpParams().set('usuarioId', usuarioId);
+    if (filtros.funcionarioId) {
+      params = params.set('funcionarioId', filtros.funcionarioId);
+    }
+    if (filtros.unidadeId) {
+      params = params.set('unidadeId', filtros.unidadeId);
+    }
+    if (filtros.resultado) {
+      params = params.set('resultado', filtros.resultado);
+    }
+    if (filtros.inicio) {
+      params = params.set('inicio', filtros.inicio);
+    }
+    if (filtros.fim) {
+      params = params.set('fim', filtros.fim);
+    }
+    if (filtros.limite) {
+      params = params.set('limite', filtros.limite);
+    }
+    return this.http.get<RhPontoAuditoriaResponse[]>(`${this.baseUrl}/auditoria`, { params });
   }
 
   buscarUnidadeAtual(): Observable<UnidadeAssistencialConsultaResponse> {

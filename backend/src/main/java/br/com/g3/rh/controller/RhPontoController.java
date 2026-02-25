@@ -2,17 +2,21 @@ package br.com.g3.rh.controller;
 
 import br.com.g3.rh.dto.RhConfiguracaoPontoRequest;
 import br.com.g3.rh.dto.RhConfiguracaoPontoResponse;
+import br.com.g3.rh.dto.RhPontoAuditoriaResponse;
 import br.com.g3.rh.dto.RhPontoBaterRequest;
 import br.com.g3.rh.dto.RhPontoDiaAtualizacaoRequest;
 import br.com.g3.rh.dto.RhPontoDiaResponse;
 import br.com.g3.rh.dto.RhPontoDiaResumoResponse;
 import br.com.g3.rh.dto.RhPontoEspelhoResponse;
+import br.com.g3.rh.service.PontoNetworkValidator;
 import br.com.g3.rh.service.RhPontoRelatorioService;
 import br.com.g3.rh.service.RhPontoService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -24,6 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -39,10 +44,15 @@ public class RhPontoController {
   private static final DateTimeFormatter DATA_FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private final RhPontoService service;
   private final RhPontoRelatorioService relatorioService;
+  private final PontoNetworkValidator pontoNetworkValidator;
 
-  public RhPontoController(RhPontoService service, RhPontoRelatorioService relatorioService) {
+  public RhPontoController(
+      RhPontoService service,
+      RhPontoRelatorioService relatorioService,
+      PontoNetworkValidator pontoNetworkValidator) {
     this.service = service;
     this.relatorioService = relatorioService;
+    this.pontoNetworkValidator = pontoNetworkValidator;
   }
 
 
@@ -63,10 +73,24 @@ public class RhPontoController {
       @RequestBody RhPontoBaterRequest request,
       @RequestParam("usuarioId") Long usuarioId,
       HttpServletRequest httpRequest) {
-    String ip = httpRequest.getRemoteAddr();
+    String ip = pontoNetworkValidator.obterIpCliente(httpRequest);
     String userAgent = httpRequest.getHeader("User-Agent");
     request.setFuncionarioId(usuarioId);
     return service.baterPonto(request, usuarioId, ip, userAgent);
+  }
+
+  @GetMapping("/auditoria")
+  public List<RhPontoAuditoriaResponse> listarAuditoria(
+      @RequestParam("usuarioId") Long usuarioId,
+      @RequestParam(value = "funcionarioId", required = false) Long funcionarioId,
+      @RequestParam(value = "unidadeId", required = false) Long unidadeId,
+      @RequestParam(value = "resultado", required = false) String resultado,
+      @RequestParam(value = "inicio", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
+      @RequestParam(value = "fim", required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim,
+      @RequestParam(value = "limite", required = false) Integer limite) {
+    return service.listarAuditoria(usuarioId, funcionarioId, unidadeId, resultado, inicio, fim, limite);
   }
 
   @GetMapping("/espelho")

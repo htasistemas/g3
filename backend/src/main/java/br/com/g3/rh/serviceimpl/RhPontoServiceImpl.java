@@ -7,6 +7,7 @@ import br.com.g3.rh.domain.RhPontoDia;
 import br.com.g3.rh.domain.RhPontoMarcacao;
 import br.com.g3.rh.dto.RhConfiguracaoPontoRequest;
 import br.com.g3.rh.dto.RhConfiguracaoPontoResponse;
+import br.com.g3.rh.dto.RhPontoAuditoriaResponse;
 import br.com.g3.rh.dto.RhPontoBaterRequest;
 import br.com.g3.rh.dto.RhPontoDiaAtualizacaoRequest;
 import br.com.g3.rh.dto.RhPontoDiaResponse;
@@ -17,6 +18,8 @@ import br.com.g3.rh.repository.RhConfiguracaoPontoRepository;
 import br.com.g3.rh.repository.RhPontoAuditoriaRepository;
 import br.com.g3.rh.repository.RhPontoDiaRepository;
 import br.com.g3.rh.repository.RhPontoMarcacaoRepository;
+import br.com.g3.rh.service.PontoNetworkValidator;
+import br.com.g3.rh.service.ResultadoValidacaoPonto;
 import br.com.g3.rh.service.RhPontoService;
 import br.com.g3.unidadeassistencial.dto.UnidadeAssistencialResponse;
 import br.com.g3.unidadeassistencial.service.UnidadeAssistencialService;
@@ -60,6 +63,7 @@ public class RhPontoServiceImpl implements RhPontoService {
   private final RhPontoAuditoriaRepository auditoriaRepository;
   private final UsuarioRepository usuarioRepository;
   private final UnidadeAssistencialService unidadeAssistencialService;
+  private final PontoNetworkValidator pontoNetworkValidator;
   private final PasswordEncoder passwordEncoder;
   private final AuditoriaService auditoriaService;
   private final RhPontoMapper mapper = new RhPontoMapper();
@@ -71,6 +75,7 @@ public class RhPontoServiceImpl implements RhPontoService {
       RhPontoAuditoriaRepository auditoriaRepository,
       UsuarioRepository usuarioRepository,
       UnidadeAssistencialService unidadeAssistencialService,
+      PontoNetworkValidator pontoNetworkValidator,
       PasswordEncoder passwordEncoder,
       AuditoriaService auditoriaService) {
     this.configuracaoRepository = configuracaoRepository;
@@ -79,6 +84,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     this.auditoriaRepository = auditoriaRepository;
     this.usuarioRepository = usuarioRepository;
     this.unidadeAssistencialService = unidadeAssistencialService;
+    this.pontoNetworkValidator = pontoNetworkValidator;
     this.passwordEncoder = passwordEncoder;
     this.auditoriaService = auditoriaService;
   }
@@ -109,25 +115,68 @@ public class RhPontoServiceImpl implements RhPontoService {
   @Transactional
   public RhPontoDiaResponse baterPonto(RhPontoBaterRequest request, Long usuarioId, String ip, String userAgent) {
     if (request == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe os dados da marcao.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe os dados da marcação.");
     }
     if (usuarioId == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usurio no informado.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não informado.");
     }
     String tipo = normalizarTexto(request.getTipo());
+    UnidadeAssistencialResponse unidade = unidadeAssistencialService.obterAtual();
+    Long unidadeId = unidade != null ? unidade.getId() : null;
     if (!TIPOS_VALIDOS.contains(tipo)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de marcao invlido.");
+      registrarAuditoriaTentativa(
+          usuarioId,
+          unidadeId,
+          tipo,
+          ip,
+          userAgent,
+          "BLOQUEADO",
+          "Tipo de marcação inválido.",
+          null,
+          null);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de marcação inválido.");
+    }
+    ResultadoValidacaoPonto validacao = pontoNetworkValidator.validarAutorizacao(ip, userAgent, unidade);
+    if (!validacao.permitido()) {
+      registrarAuditoriaTentativa(
+          usuarioId,
+          unidadeId,
+          tipo,
+          ip,
+          userAgent,
+          "BLOQUEADO",
+          validacao.motivo(),
+          null,
+          null);
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, validacao.motivo());
     }
     if (request.getSenha() == null || request.getSenha().isBlank()) {
-      registrarAuditoria(usuarioId, "PONTO_SENHA_VAZIA", "Senha no informada");
+      registrarAuditoriaTentativa(
+          usuarioId,
+          unidadeId,
+          tipo,
+          ip,
+          userAgent,
+          "BLOQUEADO",
+          "Senha não informada.",
+          null,
+          null);
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe a senha para registrar o ponto.");
     }
     Usuario usuario = buscarUsuario(usuarioId);
     if (!passwordEncoder.matches(request.getSenha(), usuario.getSenhaHash())) {
-      registrarAuditoria(usuarioId, "PONTO_SENHA_INVALIDA", "Senha invlida");
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha invlida.");
+      registrarAuditoriaTentativa(
+          usuarioId,
+          unidadeId,
+          tipo,
+          ip,
+          userAgent,
+          "BLOQUEADO",
+          "Senha inválida.",
+          null,
+          null);
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha inválida.");
     }
-    UnidadeAssistencialResponse unidade = unidadeAssistencialService.obterAtual();
     Double distancia = null;
     Boolean dentroPerimetro = null;
     if (request.getLatitude() != null && request.getLongitude() != null
@@ -149,8 +198,18 @@ public class RhPontoServiceImpl implements RhPontoService {
 
     String proximoTipo = obterProximoTipo(pontoDia.getMarcacoes());
     if (!tipo.equals(proximoTipo)) {
+      registrarAuditoriaTentativa(
+          usuarioId,
+          unidadeId,
+          tipo,
+          ip,
+          userAgent,
+          "BLOQUEADO",
+          "Sequência de marcação inválida. Próxima marcação esperada: " + proximoTipo + ".",
+          null,
+          null);
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Sequencia de marcacao invalida. Proxima marcacao esperada: " + proximoTipo + ".");
+          "Sequência de marcação inválida. Próxima marcação esperada: " + proximoTipo + ".");
     }
 
     RhPontoMarcacao marcacao = new RhPontoMarcacao();
@@ -176,9 +235,18 @@ public class RhPontoServiceImpl implements RhPontoService {
         "Ponto registrado",
         "rh_ponto_dia",
         String.valueOf(pontoAtualizado.getId()),
-        "marcao " + tipo,
+        "marcação " + tipo,
         usuarioId);
-    registrarAuditoria(usuarioId, "PONTO_REGISTRADO", "marcao " + tipo);
+    registrarAuditoriaTentativa(
+        usuarioId,
+        unidadeId,
+        tipo,
+        ip,
+        userAgent,
+        "OK",
+        "Registro de ponto efetuado.",
+        marcacao.getDataHoraServidor(),
+        salvo.getId());
 
     return mapper.toPontoDiaResponse(pontoAtualizado);
   }
@@ -186,7 +254,7 @@ public class RhPontoServiceImpl implements RhPontoService {
   @Override
   public RhPontoEspelhoResponse consultarEspelho(Integer mes, Integer ano, Long funcionarioId) {
     if (funcionarioId == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Funcionrio no informado.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Funcionário não informado.");
     }
     YearMonth referencia = obterReferencia(mes, ano);
     LocalDate inicio = referencia.atDay(1);
@@ -245,7 +313,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     validarAdminRh(usuarioId);
     validarSenhaAdmin(usuarioId, request);
     RhPontoDia pontoDia = pontoDiaRepository.buscarPorId(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ponto do dia no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ponto do dia não encontrado."));
     if (request != null) {
       if (request.getOcorrencia() != null && !request.getOcorrencia().isBlank()) {
         pontoDia.setOcorrencia(normalizarTexto(request.getOcorrencia()));
@@ -265,7 +333,7 @@ public class RhPontoServiceImpl implements RhPontoService {
         "Ajuste de ponto",
         "rh_ponto_dia",
         String.valueOf(salvo.getId()),
-        "Ocorrncia " + salvo.getOcorrencia(),
+        "Ocorrência " + salvo.getOcorrencia(),
         usuarioId);
     registrarAuditoria(usuarioId, "PONTO_AJUSTADO", "Ponto dia " + salvo.getId());
     return mapper.toPontoDiaResponse(salvo);
@@ -291,7 +359,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     try {
       hora = LocalTime.parse(horario.trim());
     } catch (Exception ex) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario invalido: " + horario);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário inválido: " + horario);
     }
     LocalDate data = pontoDia.getData();
     LocalDateTime dataHora = LocalDateTime.of(data, hora);
@@ -328,21 +396,21 @@ public class RhPontoServiceImpl implements RhPontoService {
     }
     Usuario usuario = buscarUsuario(usuarioId);
     if (!passwordEncoder.matches(request.getSenhaAdmin(), usuario.getSenhaHash())) {
-      registrarAuditoria(usuarioId, "PONTO_SENHA_ADMIN_INVALIDA", "Senha administrativa invlida");
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha administrativa invlida.");
+      registrarAuditoria(usuarioId, "PONTO_SENHA_ADMIN_INVALIDA", "Senha administrativa inválida");
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Senha administrativa inválida.");
     }
   }
 
   private void validarAccuracy(Double accuracy, Integer limite) {
     if (accuracy == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Precisa informar a precisao do GPS.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Precisa informar a precisão do GPS.");
     }
     if (limite != null && accuracy > limite) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           String.format(
               Locale.forLanguageTag("pt-BR"),
-              "precisao do GPS insuficiente para registrar o ponto. Precisao atual: %.0f m. Limite: %d m.",
+              "precisão do GPS insuficiente para registrar o ponto. Precisão atual: %.0f m. Limite: %d m.",
               accuracy,
               limite));
     }
@@ -359,7 +427,7 @@ public class RhPontoServiceImpl implements RhPontoService {
       if (!alcancavel) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST,
-            "Nao foi possivel validar o acesso a rede da instituicao. "
+            "Não foi possível validar o acesso à rede da instituição. "
                 + "IP configurado: " + ipvalidacao + ".");
       }
     } catch (UnknownHostException ex) {
@@ -369,7 +437,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     } catch (Exception ex) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
-          "Nao foi possivel validar o acesso a rede da instituicao. "
+          "Não foi possível validar o acesso à rede da instituição. "
               + "IP configurado: " + ipvalidacao + ".");
     }
   }
@@ -556,12 +624,12 @@ public class RhPontoServiceImpl implements RhPontoService {
 
   private Usuario buscarUsuario(Long id) {
     return usuarioRepository.buscarPorId(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usurio no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
   }
 
   private void validarAdminRh(Long usuarioId) {
     if (usuarioId == null) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permisso insuficiente.");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissão insuficiente.");
     }
     Usuario usuario = buscarUsuario(usuarioId);
     boolean autorizado = usuario.getPermissoes().stream()
@@ -569,7 +637,7 @@ public class RhPontoServiceImpl implements RhPontoService {
         .map(this::normalizarTexto)
         .anyMatch(nome -> nome.equals("RH_ADMIN") || nome.equals("ADMINISTRADOR"));
     if (!autorizado) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permisso insuficiente.");
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Permissão insuficiente.");
     }
   }
 
@@ -578,6 +646,59 @@ public class RhPontoServiceImpl implements RhPontoService {
     auditoria.setFuncionarioId(funcionarioId);
     auditoria.setAcao(acao);
     auditoria.setDetalhes(detalhes);
+    auditoria.setDataHoraServidor(LocalDateTime.now());
+    auditoria.setCriadoEm(LocalDateTime.now());
+    auditoriaRepository.salvar(auditoria);
+  }
+
+  @Override
+  public List<RhPontoAuditoriaResponse> listarAuditoria(
+      Long usuarioId,
+      Long funcionarioId,
+      Long unidadeId,
+      String resultado,
+      LocalDateTime inicio,
+      LocalDateTime fim,
+      Integer limite) {
+    validarAdminRh(usuarioId);
+    int limiteFinal = limite != null && limite > 0 ? limite : 200;
+    String resultadoNormalizado = resultado != null && !resultado.isBlank()
+        ? resultado.trim().toUpperCase(Locale.forLanguageTag("pt-BR"))
+        : null;
+    return auditoriaRepository.buscarAuditoria(
+            funcionarioId,
+            unidadeId,
+            resultadoNormalizado,
+            inicio,
+            fim,
+            limiteFinal)
+        .stream()
+        .map(mapper::toAuditoriaResponse)
+        .toList();
+  }
+
+  private void registrarAuditoriaTentativa(
+      Long funcionarioId,
+      Long unidadeId,
+      String tipoMarcacao,
+      String ipDetectado,
+      String userAgent,
+      String resultado,
+      String motivo,
+      LocalDateTime dataHoraServidor,
+      Long pontoMarcacaoId) {
+    RhPontoAuditoria auditoria = new RhPontoAuditoria();
+    auditoria.setFuncionarioId(funcionarioId);
+    auditoria.setUnidadeId(unidadeId);
+    auditoria.setTipoMarcacao(tipoMarcacao);
+    auditoria.setIpDetectado(ipDetectado);
+    auditoria.setUserAgent(userAgent);
+    auditoria.setResultado(resultado);
+    auditoria.setMotivo(motivo);
+    auditoria.setPontoMarcacaoId(pontoMarcacaoId);
+    auditoria.setDataHoraServidor(dataHoraServidor != null ? dataHoraServidor : LocalDateTime.now());
+    auditoria.setAcao("PONTO_REGISTRO_TENTATIVA");
+    auditoria.setDetalhes(motivo);
     auditoria.setCriadoEm(LocalDateTime.now());
     auditoriaRepository.salvar(auditoria);
   }
