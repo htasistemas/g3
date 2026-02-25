@@ -15,4 +15,11 @@ fi
 log "Deploy app stack"
 docker compose -f "$APP_COMPOSE" up -d --build
 
+if [ -x /home/srv/g3/scripts/deploy-check.sh ]; then
+  log "Post-deploy checks"
+  /home/srv/g3/scripts/deploy-check.sh
+else
+  log "Post-deploy checks skipped (script not found)"
+fi
+
 log "Done"
