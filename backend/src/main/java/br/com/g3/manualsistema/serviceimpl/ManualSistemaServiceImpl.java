@@ -1,4 +1,4 @@
-﻿package br.com.g3.manualsistema.serviceimpl;
+package br.com.g3.manualsistema.serviceimpl;
 
 import br.com.g3.manualsistema.domain.ManualSistemaMudanca;
 import br.com.g3.manualsistema.domain.ManualSistemaSecao;
@@ -250,4 +250,3 @@ public class ManualSistemaServiceImpl implements ManualSistemaService {
     return response;
   }
 }
-
