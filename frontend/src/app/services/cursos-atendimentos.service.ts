@@ -5,7 +5,8 @@ import { SalaRecord } from './salas.service';
 import { RuntimeConfigService } from './runtime-config.service';
 
 export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
-export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
+export type EnrollmentStatus = 'Ativo' | 'ConcluÃ­do' | 'Cancelado';
+export type StatusAgendamento = 'AGUARDANDO' | 'CONFIRMADO' | 'REMARCAR' | 'REMARCADO' | 'NAO_RESPONDEU';
 
 export interface Enrollment {
   id: string;
@@ -13,6 +14,13 @@ export interface Enrollment {
   cpf: string;
   status: EnrollmentStatus;
   enrolledAt: string;
+  dataAgendada?: string | null;
+  horaAgendada?: string | null;
+  statusAgendamento?: StatusAgendamento | null;
+  profissionalId?: string | null;
+  profissionalNome?: string | null;
+  profissionalTipo?: string | null;
+  confirmacaoPresenca?: boolean;
 }
 
 export type PresencaStatus = 'PRESENTE' | 'AUSENTE';
@@ -51,7 +59,8 @@ export interface CourseRecord {
   vagaPreferencialIdosos?: boolean;
   sexoPermitido?: string;
   profissional: string;
-  salaId?: string | null;
+  instituicaoParceira?: string | null;
+  salaId?: string | number | null;
   sala?: SalaRecord | null;
   createdAt: string;
   updatedAt?: string;
@@ -117,3 +126,4 @@ export class CursosAtendimentosService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
+

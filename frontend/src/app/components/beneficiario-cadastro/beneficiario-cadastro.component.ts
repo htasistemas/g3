@@ -14,6 +14,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faUsers } from '@fortawesome/free-solid-svg-icons';
 import {
   BeneficiarioApiService,
   BeneficiarioApiPayload,
@@ -66,6 +68,7 @@ type PrintListOrder = 'alphabetical' | 'code';
     ReactiveFormsModule,
     FormsModule,
     RouterModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
     DialogComponent,
@@ -75,12 +78,15 @@ type PrintListOrder = 'alphabetical' | 'code';
 })
 export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   private readonly runtimeConfig = inject(RuntimeConfigService);
+  readonly faUsuarios = faUsers;
   form: FormGroup;
   searchForm: FormGroup;
   activeTab = 'lista';
   saving = false;
   feedback: string | null = null;
   popupErros: string[] = [];
+  popupMensagens: string[] = [];
+  popupTitulo = 'Aviso';
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
   beneficiaryAge: number | null = null;
@@ -394,6 +400,9 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   }
   fecharPopupErros(): void {
     this.popupErros = [];
+  }
+  fecharPopupMensagens(): void {
+    this.popupMensagens = [];
   }
   getTabLabel(id: string): string {
     return this.tabs.find((tab) => tab.id === id)?.label ?? '';
@@ -2332,6 +2341,12 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   buscarBeneficiariosNaListagem(): void {
     this.changeTab('lista');
     this.searchBeneficiaries();
+  }
+  onBuscarEnter(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.listLoading) return;
+    this.buscarBeneficiariosNaListagem();
   }
   deleteBeneficiario(beneficiario: BeneficiarioApiPayload): void {
     const beneficiarioId = beneficiario.id_beneficiario;

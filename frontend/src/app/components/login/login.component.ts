@@ -7,7 +7,7 @@ import { EMPTY } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
-import { environment } from '../../../environments/environment';
+import { RuntimeConfigService } from '../../services/runtime-config.service';
 
 declare global {
   interface Window {
@@ -64,6 +64,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   constructor(
     private readonly auth: AuthService,
     private readonly configService: ConfigService,
+    private readonly runtimeConfig: RuntimeConfigService,
     private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
   ) {
@@ -95,9 +96,12 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   private inicializarGoogle(): void {
     if (this.googleInicializado) return;
-    const clientId = environment.googleClientId;
+    const clientId = this.runtimeConfig.googleClientId;
     if (!clientId) {
-      this.googleErro = 'Login Google indisponível no momento.';
+      setTimeout(() => {
+        this.googleErro = 'Login Google indisponível no momento.';
+        this.cdr.detectChanges();
+      }, 0);
       return;
     }
     if (!this.googleTimeout) {

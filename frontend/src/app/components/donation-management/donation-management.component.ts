@@ -847,6 +847,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   realizarDoacaoPlanejada(plan: PlannedDonation): void {
     this.plannedError.set(null);
+    this.plannedPopupMensagens = [];
     if (!this.selectedBeneficiary()) {
       this.plannedError.set('Selecione um beneficiário primeiro.');
       return;
@@ -857,13 +858,16 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       return;
     }
 
-    if (!this.ensureStockAvailable(plan.itemCode, plan.quantity)) {
+    const estoqueItem = this.findStockItem(plan.itemCode);
+    if (!estoqueItem) {
+      this.plannedPopupTitulo = 'Atenção';
+      this.plannedPopupMensagens = ['Não é possível realizar a doação, item sem saldo.'];
       return;
     }
 
-    const estoqueItem = this.findStockItem(plan.itemCode);
-    if (!estoqueItem) {
-      this.plannedError.set('Item não encontrado no almoxarifado.');
+    if (plan.quantity > estoqueItem.currentStock) {
+      this.plannedPopupTitulo = 'Atenção';
+      this.plannedPopupMensagens = ['Não é possível realizar a doação, item sem saldo.'];
       return;
     }
 
@@ -891,6 +895,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
         this.donationHistory.update((history) => [this.mapDoacao(response), ...history]);
         this.atualizarStatusPlanejado(plan, 'entregue');
         this.changeTab('historico');
+        this.plannedPopupTitulo = 'Sucesso';
+        this.plannedPopupMensagens = ['Doação realizada com sucesso.'];
       },
       error: () => {
         this.plannedError.set('Não foi possível registrar a doação planejada.');

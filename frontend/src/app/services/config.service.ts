@@ -34,7 +34,8 @@ export interface DestinoChamadoResponse {
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
   private readonly runtimeConfig = inject(RuntimeConfigService);
-  private readonly baseUrl = `${this.runtimeConfig.apiUrl}/api/config`;
+  private readonly apiBaseUrl = this.runtimeConfig.apiUrl.replace(/\/api\/?$/, '');
+  private readonly baseUrl = `${this.apiBaseUrl}/api/config`;
 
   constructor(private readonly http: HttpClient) {}
 

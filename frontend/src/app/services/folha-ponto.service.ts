@@ -10,6 +10,7 @@ export interface RhConfiguracaoPontoRequest {
   cargaSabadoMinutos?: number;
   cargaDomingoMinutos?: number;
   toleranciaMinutos?: number;
+  ignorarValidacaoRede?: boolean;
 }
 
 export interface RhConfiguracaoPontoResponse extends RhConfiguracaoPontoRequest {

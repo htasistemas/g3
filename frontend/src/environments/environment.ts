@@ -9,8 +9,29 @@ const obterApiUrlRuntime = (): string | undefined => {
   return normalizado;
 };
 
+const obterGoogleClientIdRuntime = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  const clientId = (window as any).__env?.googleClientId as string | undefined;
+  const normalizado = (clientId ?? '').trim();
+  if (!normalizado || normalizado === '__ENV_GOOGLE_CLIENT_ID__') return undefined;
+  return normalizado;
+};
+
 export const environment = {
   production: true,
-  apiUrl: obterApiUrlRuntime() ?? '/api',
-  version: packageJson.version
+  apiUrl: (() => {
+    const apiUrlRuntime = obterApiUrlRuntime();
+    if (apiUrlRuntime) return apiUrlRuntime;
+    if (typeof window !== 'undefined') {
+      const { protocol, hostname, port } = window.location;
+      if (port === '4200') return 'http://localhost:8080';
+      if (hostname) {
+        const portaNormalizada = port ? `:${port}` : '';
+        return `${protocol}//${hostname}${portaNormalizada}`;
+      }
+    }
+    return 'http://localhost:3000';
+  })(),
+  version: packageJson.version,
+  googleClientId: obterGoogleClientIdRuntime() ?? ''
 };

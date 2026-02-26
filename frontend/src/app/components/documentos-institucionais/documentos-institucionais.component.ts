@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -33,6 +33,7 @@ import {
 import { AuthService } from '../../services/auth.service';
 
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { AssistanceUnitPayload, AssistanceUnitService } from '../../services/assistance-unit.service';
 
 type AlertaFiltro = 'hoje' | '7' | '30' | '60' | 'vencidos';
 
@@ -62,13 +63,13 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     { id: 'lista', label: 'Lista de Documentos' },
 
-    { id: 'cadastro', label: 'Cadastro / Edição' },
+    { id: 'cadastro', label: 'Cadastro / EdiÃ§Ã£o' },
 
-    { id: 'anexos', label: 'Anexos e Histórico' },
+    { id: 'anexos', label: 'Anexos e HistÃ³rico' },
 
     { id: 'alertas', label: 'Alertas e Vencimentos' },
 
-    { id: 'relatorios', label: 'Relatórios / Dashboard' }
+    { id: 'relatorios', label: 'RelatÃ³rios / Dashboard' }
 
   ];
 
@@ -154,29 +155,29 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
 
 
-  categorias: string[] = ['Fiscal', 'Trabalhista', 'Jurídico', 'Contratos', 'Licenças', 'Segurança'];
+  categorias: string[] = ['Fiscal', 'Trabalhista', 'JurÃ­dico', 'Contratos', 'LicenÃ§as', 'SeguranÃ§a'];
 
   tiposPadrao: string[] = [
 
-    'Certidão Negativa de Débitos Federal',
+    'CertidÃ£o Negativa de DÃ©bitos Federal',
 
-    'Certidão Negativa de Débitos Municipal',
+    'CertidÃ£o Negativa de DÃ©bitos Municipal',
 
     'Certificado de Regularidade do FGTS',
 
-    'Alvará de Funcionamento',
+    'AlvarÃ¡ de Funcionamento',
 
     'Auto de Vistoria do Corpo de Bombeiros',
 
-    'Contrato de Prestação de Serviços',
+    'Contrato de PrestaÃ§Ã£o de ServiÃ§os',
 
-    'Licença Sanitária',
+    'LicenÃ§a SanitÃ¡ria',
 
     'Registro de Marca no INPI'
 
   ];
 
-  readonly modosRenovacao: Array<'Manual' | 'Automática'> = ['Manual', 'Automática'];
+  readonly modosRenovacao: Array<'Manual' | 'AutomÃ¡tica'> = ['Manual', 'AutomÃ¡tica'];
 
 
 
@@ -190,6 +191,8 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
   historico: DocumentoInstituicaoHistoricoResponsePayload[] = [];
 
+  unidadeAssistencial: AssistanceUnitPayload | null = null;
+
 
 
   private readonly destroy$ = new Subject<void>();
@@ -202,7 +205,9 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     private readonly documentosService: DocumentosInstituicaoService,
 
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+
+    private readonly assistanceUnitService: AssistanceUnitService
 
   ) {
 
@@ -282,6 +287,18 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     this.carregarDocumentos();
 
+
+    this.assistanceUnitService
+      .get()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.unidadeAssistencial = response?.unidade ?? null;
+        },
+        error: () => {
+          this.unidadeAssistencial = null;
+        }
+      });
   }
 
 
@@ -540,7 +557,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível carregar os documentos institucionais.';
+          this.feedback = 'NÃ£o foi possÃ­vel carregar os documentos institucionais.';
 
         }
 
@@ -588,7 +605,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível carregar os anexos.';
+          this.feedback = 'NÃ£o foi possÃ­vel carregar os anexos.';
 
         }
 
@@ -616,7 +633,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível carregar o histórico.';
+          this.feedback = 'NÃ£o foi possÃ­vel carregar o histÃ³rico.';
 
         }
 
@@ -800,7 +817,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     if (existe) {
 
-      this.modalEntradaErro = 'Esse tipo de documento já está cadastrado na lista.';
+      this.modalEntradaErro = 'Esse tipo de documento jÃ¡ estÃ¡ cadastrado na lista.';
 
       return;
 
@@ -812,7 +829,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     this.documentoForm.get('tipoDocumento')?.setValue(novoTipo);
 
-    this.feedback = 'Novo tipo de documento incluído.';
+    this.feedback = 'Novo tipo de documento incluÃ­do.';
 
     this.fecharModalNovoTipoDocumento();
 
@@ -894,7 +911,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     if (existe) {
 
-      this.modalEntradaErro = 'Essa categoria já está disponível.';
+      this.modalEntradaErro = 'Essa categoria jÃ¡ estÃ¡ disponÃ­vel.';
 
       return;
 
@@ -934,7 +951,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     if (this.documentoForm.invalid) {
 
-      this.feedback = 'Preencha os campos obrigatórios do documento.';
+      this.feedback = 'Preencha os campos obrigatÃ³rios do documento.';
 
       this.documentoForm.markAllAsTouched();
 
@@ -948,7 +965,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     if (!valor.semVencimento && valor.validade && valor.emissao && valor.validade < valor.emissao) {
 
-      this.feedback = 'A data de vencimento não pode ser anterior à data de emissão.';
+      this.feedback = 'A data de vencimento nÃ£o pode ser anterior Ã  data de emissÃ£o.';
 
       return;
 
@@ -986,7 +1003,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
           error: () => {
 
-            this.feedback = 'Não foi possível atualizar o documento.';
+            this.feedback = 'NÃ£o foi possÃ­vel atualizar o documento.';
 
           }
 
@@ -1022,7 +1039,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível cadastrar o documento.';
+          this.feedback = 'NÃ£o foi possÃ­vel cadastrar o documento.';
 
         }
 
@@ -1060,7 +1077,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível excluir o documento.';
+          this.feedback = 'NÃ£o foi possÃ­vel excluir o documento.';
 
         }
 
@@ -1108,7 +1125,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     } catch {
 
-      this.feedback = 'Não foi possível ler o arquivo selecionado.';
+      this.feedback = 'NÃ£o foi possÃ­vel ler o arquivo selecionado.';
 
       return;
 
@@ -1150,7 +1167,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível salvar o anexo.';
+          this.feedback = 'NÃ£o foi possÃ­vel salvar o anexo.';
 
         }
 
@@ -1162,7 +1179,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     if (!anexo.arquivoUrl) {
 
-      this.feedback = 'Arquivo do anexo não encontrado.';
+      this.feedback = 'Arquivo do anexo nÃ£o encontrado.';
 
       return;
 
@@ -1206,7 +1223,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         error: () => {
 
-          this.feedback = 'Não foi possível registrar o histórico.';
+          this.feedback = 'NÃ£o foi possÃ­vel registrar o histÃ³rico.';
 
         }
 
@@ -1273,6 +1290,23 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
     if (!janela) return;
 
 
+    const unidade = this.unidadeAssistencial;
+    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || "Instituição";
+    const cnpj = unidade?.cnpj || "";
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(", ");
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : "", enderecoLinha, unidade?.bairro, unidade?.cidade]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ") || "Endereço não informado";
+    const linhaContato = [
+      unidade?.telefone ? `Telefone: ${unidade.telefone}` : "",
+      unidade?.email ? `E-mail: ${unidade.email}` : "",
+      unidade?.site ? `Site: ${unidade.site}` : ""
+    ]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ");
+
 
     const situacao = this.labelSituacao(doc.situacao ?? this.calcularSituacao(doc));
 
@@ -1300,6 +1334,8 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
             .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #0369a1; }
 
+            footer { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 11px; color: #475569; text-align: center; page-break-inside: avoid; }
+            .page-number:before { content: "Página " counter(page) " de " counter(pages); }
           </style>
 
         </head>
@@ -1314,21 +1350,26 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
             <tr><th>Tipo</th><td>${doc.tipoDocumento}</td></tr>
 
-            <tr><th>Órgão emissor</th><td>${doc.orgaoEmissor}</td></tr>
+            <tr><th>Ã“rgÃ£o emissor</th><td>${doc.orgaoEmissor}</td></tr>
 
             <tr><th>Categoria</th><td>${doc.categoria}</td></tr>
 
-            <tr><th>Emissão</th><td>${doc.emissao}</td></tr>
+            <tr><th>EmissÃ£o</th><td>${doc.emissao}</td></tr>
 
             <tr><th>Validade</th><td>${doc.validade || 'Sem vencimento'}</td></tr>
 
-            <tr><th>Responsável</th><td>${doc.responsavelInterno || '-'} </td></tr>
+            <tr><th>ResponsÃ¡vel</th><td>${doc.responsavelInterno || '-'} </td></tr>
 
-            <tr><th>Renovação</th><td>${doc.modoRenovacao}</td></tr>
+            <tr><th>RenovaÃ§Ã£o</th><td>${doc.modoRenovacao}</td></tr>
 
-            <tr><th>Observações</th><td>${doc.descricao || doc.observacaoRenovacao || '-'}</td></tr>
+            <tr><th>ObservaÃ§Ãµes</th><td>${doc.descricao || doc.observacaoRenovacao || '-'}</td></tr>
 
-          </table>
+          </table>\n          <footer>
+             <p>${razaoSocial}</p>
+             <p>${linhaEndereco}</p>
+             <p>${linhaContato}</p>
+             <p class="page-number"></p>
+           </footer>
 
         </body>
 
@@ -1352,13 +1393,13 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     const labels: Record<DocumentoSituacao, string> = {
 
-      valido: 'Válido',
+      valido: 'VÃ¡lido',
 
       vence_em_breve: 'Vence em breve',
 
       vencido: 'Vencido',
 
-      em_renovacao: 'Em renovação',
+      em_renovacao: 'Em renovaÃ§Ã£o',
 
       sem_vencimento: 'Sem vencimento'
 
@@ -1466,11 +1507,11 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
       'Vencimento',
 
-      'Situação',
+      'SituaÃ§Ã£o',
 
-      'Órgão emissor',
+      'Ã“rgÃ£o emissor',
 
-      'Responsável interno'
+      'ResponsÃ¡vel interno'
 
     ];
 
@@ -1488,7 +1529,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
       doc.orgaoEmissor,
 
-      doc.responsavelInterno || 'â'
+      doc.responsavelInterno || 'Ã¢Â€Â”'
 
     ]);
 
@@ -1522,13 +1563,30 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
   imprimirRelatorioTexto(): void {
 
+
+    const unidade = this.unidadeAssistencial;
+    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || "Instituição";
+    const cnpj = unidade?.cnpj || "";
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(", ");
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : "", enderecoLinha, unidade?.bairro, unidade?.cidade]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ") || "Endereço não informado";
+    const linhaContato = [
+      unidade?.telefone ? `Telefone: ${unidade.telefone}` : "",
+      unidade?.email ? `E-mail: ${unidade.email}` : "",
+      unidade?.site ? `Site: ${unidade.site}` : ""
+    ]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ");
     const janela = window.open('', '_blank', 'width=900,height=1200');
 
     if (!janela) return;
 
 
 
-    const headers = ['Tipo', 'Categoria', 'Vencimento', 'Situação'];
+    const headers = ['Tipo', 'Categoria', 'Vencimento', 'SituaÃ§Ã£o'];
 
     const linhas = this.documentos.map((doc) => [
 
@@ -1546,7 +1604,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
     const conteudo = [
 
-      'RELATÓRIO TEXTO - LISTA DE DOCUMENTOS',
+      'RELATÃ“RIO TEXTO - LISTA DE DOCUMENTOS',
 
       'Atualizado em: ' + new Date().toLocaleString('pt-BR'),
 
@@ -1556,8 +1614,13 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
       ''.padEnd(90, '-'),
 
-      ...linhas.map((linha) => linha.join(''))
+      ...linhas.map((linha) => linha.join('')),
 
+
+      '',
+      razaoSocial,
+      linhaEndereco,
+      linhaContato
     ].join('\n');
 
 
@@ -1568,7 +1631,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         <head>
 
-          <title>Relação resumida de documentos</title>
+          <title>RelaÃ§Ã£o resumida de documentos</title>
 
           <style>
 
@@ -1628,6 +1691,23 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
   private gerarHtmlRelatorio(): string {
 
+
+    const unidade = this.unidadeAssistencial;
+    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || "Instituição";
+    const cnpj = unidade?.cnpj || "";
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(", ");
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : "", enderecoLinha, unidade?.bairro, unidade?.cidade]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ") || "Endereço não informado";
+    const linhaContato = [
+      unidade?.telefone ? `Telefone: ${unidade.telefone}` : "",
+      unidade?.email ? `E-mail: ${unidade.email}` : "",
+      unidade?.site ? `Site: ${unidade.site}` : ""
+    ]
+      .filter((valor) => (valor ?? "").toString().trim().length > 0)
+      .join(" | ");
     const linhas = this.documentos
 
       .map(
@@ -1646,7 +1726,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
           <td>${doc.orgaoEmissor}</td>
 
-          <td>${doc.responsavelInterno || 'â'}</td>
+          <td>${doc.responsavelInterno || 'Ã¢Â€Â”'}</td>
 
         </tr>`
 
@@ -1662,7 +1742,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
         <head>
 
-          <title>Relatório de documentos institucionais</title>
+          <title>RelatÃ³rio de documentos institucionais</title>
 
           <style>
 
@@ -1676,13 +1756,15 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
             th { background: #f1f5f9; }
 
+            footer { margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 8px; font-size: 11px; color: #475569; text-align: center; page-break-inside: avoid; }
+            .page-number:before { content: "Página " counter(page) " de " counter(pages); }
           </style>
 
         </head>
 
         <body>
 
-          <h1>Relatório completo de documentos</h1>
+          <h1>RelatÃ³rio completo de documentos</h1>
 
           <p>Gerado em ${new Date().toLocaleString('pt-BR')}</p>
 
@@ -1698,11 +1780,11 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
                 <th>Vencimento</th>
 
-                <th>Situação</th>
+                <th>SituaÃ§Ã£o</th>
 
-                <th>Órgão emissor</th>
+                <th>Ã“rgÃ£o emissor</th>
 
-                <th>Responsável</th>
+                <th>ResponsÃ¡vel</th>
 
               </tr>
 
@@ -1710,7 +1792,12 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
             <tbody>${linhas}</tbody>
 
-          </table>
+          </table>\n          <footer>
+             <p>${razaoSocial}</p>
+             <p>${linhaEndereco}</p>
+             <p>${linhaContato}</p>
+             <p class="page-number"></p>
+           </footer>
 
         </body>
 
@@ -1748,7 +1835,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
   private formatarTamanho(bytes: number): string {
 
-    if (!bytes) return 'â';
+    if (!bytes) return 'Ã¢Â€Â”';
 
     const mb = bytes / (1024 * 1024);
 
@@ -1897,6 +1984,13 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
 
 }
+
+
+
+
+
+
+
 
 
 

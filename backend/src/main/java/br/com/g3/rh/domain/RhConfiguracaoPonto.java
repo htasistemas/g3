@@ -33,6 +33,9 @@ public class RhConfiguracaoPonto {
   @Column(name = "tolerancia_minutos", nullable = false)
   private Integer toleranciaMinutos;
 
+  @Column(name = "ignorar_validacao_rede", nullable = false)
+  private Boolean ignorarValidacaoRede;
+
   @Column(name = "atualizado_em", nullable = false)
   private LocalDateTime atualizadoEm;
 
@@ -90,6 +93,14 @@ public class RhConfiguracaoPonto {
 
   public void setToleranciaMinutos(Integer toleranciaMinutos) {
     this.toleranciaMinutos = toleranciaMinutos;
+  }
+
+  public Boolean getIgnorarValidacaoRede() {
+    return ignorarValidacaoRede;
+  }
+
+  public void setIgnorarValidacaoRede(Boolean ignorarValidacaoRede) {
+    this.ignorarValidacaoRede = ignorarValidacaoRede;
   }
 
   public LocalDateTime getAtualizadoEm() {

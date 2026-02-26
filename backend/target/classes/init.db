@@ -1304,6 +1304,15 @@ ALTER TABLE unidade_assistencial
 ALTER TABLE unidade_assistencial
   ADD COLUMN IF NOT EXISTS ping_timeout_ms INTEGER NOT NULL DEFAULT 2000;
 
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS ips_publicos_ponto TEXT;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS redes_locais_ponto TEXT;
+
+ALTER TABLE unidade_assistencial
+  ADD COLUMN IF NOT EXISTS modo_validacao_ponto VARCHAR(30) NOT NULL DEFAULT 'IP_OU_REDE';
+
 ALTER TABLE usuarios
   ADD COLUMN IF NOT EXISTS nome_usuario VARCHAR(120);
 
@@ -1906,6 +1915,21 @@ CREATE TABLE IF NOT EXISTS doacao_realizada_item (
   quantidade INTEGER NOT NULL,
   observacoes TEXT,
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS doacao_planejada (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
+  vinculo_familiar_id BIGINT REFERENCES vinculo_familiar(id) ON DELETE SET NULL,
+  almoxarifado_item_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE RESTRICT,
+  quantidade INTEGER NOT NULL,
+  data_prevista DATE NOT NULL,
+  prioridade VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  observacoes TEXT,
+  motivo_cancelamento TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS doador (
@@ -3731,8 +3755,12 @@ CREATE TABLE IF NOT EXISTS rh_configuracao_ponto (
   carga_sabado_minutos INTEGER NOT NULL DEFAULT 0,
   carga_domingo_minutos INTEGER NOT NULL DEFAULT 0,
   tolerancia_minutos INTEGER NOT NULL DEFAULT 10,
+  ignorar_validacao_rede BOOLEAN NOT NULL DEFAULT FALSE,
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS rh_configuracao_ponto
+  ADD COLUMN IF NOT EXISTS ignorar_validacao_rede BOOLEAN NOT NULL DEFAULT FALSE;
 
 INSERT INTO rh_configuracao_ponto (id)
 SELECT 1
@@ -3759,11 +3787,11 @@ CREATE TABLE IF NOT EXISTS rh_ponto_marcacao (
   ponto_dia_id BIGINT NOT NULL,
   tipo VARCHAR(2) NOT NULL,
   data_hora_servidor TIMESTAMP NOT NULL,
-  latitude NUMERIC(10, 7) NOT NULL,
-  longitude NUMERIC(10, 7) NOT NULL,
-  accuracy NUMERIC(10, 2) NOT NULL,
-  distancia_metros NUMERIC(10, 2) NOT NULL,
-  dentro_perimetro BOOLEAN NOT NULL,
+  latitude NUMERIC(10, 7),
+  longitude NUMERIC(10, 7),
+  accuracy NUMERIC(10, 2),
+  distancia_metros NUMERIC(10, 2),
+  dentro_perimetro BOOLEAN,
   ip VARCHAR(60),
   user_agent VARCHAR(255),
   criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -3773,10 +3801,58 @@ CREATE TABLE IF NOT EXISTS rh_ponto_marcacao (
 CREATE TABLE IF NOT EXISTS rh_ponto_auditoria (
   id BIGSERIAL PRIMARY KEY,
   funcionario_id BIGINT,
+  unidade_id BIGINT,
+  tipo_marcacao VARCHAR(2),
+  ip_detectado VARCHAR(60),
+  user_agent VARCHAR(255),
+  data_hora_servidor TIMESTAMP NOT NULL DEFAULT NOW(),
+  resultado VARCHAR(20),
+  motivo TEXT,
+  ponto_marcacao_id BIGINT,
   acao VARCHAR(120) NOT NULL,
   detalhes TEXT,
-  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (ponto_marcacao_id) REFERENCES rh_ponto_marcacao(id) ON DELETE SET NULL
 );
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN latitude DROP NOT NULL;
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN longitude DROP NOT NULL;
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN accuracy DROP NOT NULL;
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN distancia_metros DROP NOT NULL;
+
+ALTER TABLE rh_ponto_marcacao
+  ALTER COLUMN dentro_perimetro DROP NOT NULL;
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS unidade_id BIGINT;
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS tipo_marcacao VARCHAR(2);
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS ip_detectado VARCHAR(60);
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS user_agent VARCHAR(255);
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS data_hora_servidor TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS resultado VARCHAR(20);
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS motivo TEXT;
+
+ALTER TABLE rh_ponto_auditoria
+  ADD COLUMN IF NOT EXISTS ponto_marcacao_id BIGINT;
 
 UPDATE versao_sistema
 SET versao = '1.00.60',
@@ -4252,4 +4328,30 @@ SELECT '1.00.82', 'Correcao de erro de compilacao no Manual do Sistema.', NOW()
 WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
   WHERE versao = '1.00.82'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.83',
+  descricao = 'Bloqueio do registro de ponto por rede, validacao por IP/CIDR e auditoria de tentativas na folha de ponto.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.83';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.83', 'Bloqueio do registro de ponto por rede, validacao por IP/CIDR e auditoria de tentativas na folha de ponto.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.83'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.84',
+  descricao = 'Persistencia de doacoes planejadas na tela de doacao realizada.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.84';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.84', 'Persistencia de doacoes planejadas na tela de doacao realizada.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.84'
 );

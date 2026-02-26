@@ -899,6 +899,16 @@ td input {
   gap: 0.35rem;
 }
 
+:host ::ng-deep app-dialog .dialog__body .dialog-info {
+  display: grid;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep app-dialog .dialog__body .dialog-info p {
+  margin: 0;
+  color: #111827;
+}
+
 @media (max-width: 760px) {
   .tab-card__hero {
     grid-template-columns: 1fr;

@@ -53,6 +53,24 @@ export interface EmprestimoEventoRelatorioPayload {
   usuarioEmissor?: string;
 }
 
+export interface InformacoesAdministrativasRelatorioFilters {
+  tipo?: string;
+  categoria?: string;
+  titulo?: string;
+  tags?: string;
+  status?: boolean | null;
+  usuarioEmissor?: string;
+}
+
+export interface DoacoesPlanejadasRelatorioFilters {
+  usuarioEmissor?: string;
+}
+
+export interface DoacoesBeneficiarioRelatorioFilters {
+  beneficiarioId: string;
+  usuarioEmissor?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly runtimeConfig = inject(RuntimeConfigService);
@@ -112,6 +130,30 @@ export class ReportService {
     dados: EmprestimoEventoRelatorioPayload
   ): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/emprestimos-eventos/termo`, dados, {
+      responseType: 'blob'
+    });
+  }
+
+  generateInformacoesAdministrativasReport(
+    filtros: InformacoesAdministrativasRelatorioFilters
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/informacoes-administrativas/relatorio`, filtros, {
+      responseType: 'blob'
+    });
+  }
+
+  generateDoacoesPlanejadasPendentes(
+    filtros: DoacoesPlanejadasRelatorioFilters
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/doacoes-planejadas/pendentes`, filtros, {
+      responseType: 'blob'
+    });
+  }
+
+  generateDoacoesBeneficiario(
+    filtros: DoacoesBeneficiarioRelatorioFilters
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/doacoes/beneficiario`, filtros, {
       responseType: 'blob'
     });
   }

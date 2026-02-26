@@ -384,12 +384,25 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
     const logo = unidade?.logomarcaRelatorio || unidade?.logomarca || '';
     const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || 'Instituição';
     const nomeRelatorio = 'Relatório de Controle de Estoque';
-    const cnpj = unidade?.cnpj || '---';
-    const endereco = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
+    const cnpj = unidade?.cnpj || '';
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
       .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(' - ');
-    const telefone = unidade?.telefone || '---';
-    const email = unidade?.email || '---';
+      .join(', ');
+    const bairroLinha = unidade?.bairro || '';
+    const cidadeLinha = unidade?.cidade || '';
+    const telefone = unidade?.telefone || '';
+    const email = unidade?.email || '';
+    const site = unidade?.site || '';
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : '', enderecoLinha, bairroLinha, cidadeLinha]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' | ') || 'Endereço não informado';
+    const linhaContato = [
+      telefone ? `Telefone: ${telefone}` : '',
+      email ? `E-mail: ${email}` : '',
+      site ? `Site: ${site}` : ''
+    ]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' | ');
     const dataEmissao = new Date().toLocaleDateString('pt-BR');
 
     const itensRows = itens
@@ -534,8 +547,8 @@ export class AlmoxarifadoComponent extends TelaBaseComponent implements OnInit {
 
             <footer class="report-footer">
               <div>${this.escapeHtml(razaoSocial)}</div>
-              <div>${this.escapeHtml(endereco)}</div>
-              <div>Telefone: ${this.escapeHtml(telefone)} | Email: ${this.escapeHtml(email)}</div>
+              <div>${this.escapeHtml(linhaEndereco)}</div>
+              <div>${this.escapeHtml(linhaContato)}</div>
             </footer>
           </div>
         </body>

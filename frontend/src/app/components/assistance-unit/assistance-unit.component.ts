@@ -322,17 +322,18 @@ export class AssistanceUnitComponent extends TelaBaseComponent implements OnInit
     }
     this.buscandoLocalizacao = true;
     this.unitService.geocodificarEndereco(this.unidade.id).subscribe({
-      next: (atualizada) => {
+      next: (atualizada: AssistanceUnitPayload) => {
         this.unidade = atualizada;
         this.form.patchValue(atualizada);
         this.form.get('endereco')?.setValue(atualizada.endereco ?? '', { emitEvent: false });
         this.setFeedback({ type: 'success', message: 'Latitude e longitude atualizadas com sucesso.' }, { autoDismiss: true });
         this.buscandoLocalizacao = false;
       },
-      error: (erro) => {
+      error: (erro: unknown) => {
+        const erroResposta = erro as { error?: { mensagem?: string; message?: string } } | null;
         const mensagem =
-          erro?.error?.mensagem ||
-          erro?.error?.message ||
+          erroResposta?.error?.mensagem ||
+          erroResposta?.error?.message ||
           'Não foi possível localizar a latitude e longitude do endereço.';
         this.setFeedback({ type: 'error', message: mensagem });
         this.buscandoLocalizacao = false;

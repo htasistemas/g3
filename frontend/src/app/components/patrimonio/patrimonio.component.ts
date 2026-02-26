@@ -1125,19 +1125,32 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
 
     const unitTitle = this.assistanceUnit?.razaoSocial || this.assistanceUnit?.nomeFantasia || 'Instituição';
     const unitName = this.assistanceUnit?.nomeFantasia || this.assistanceUnit?.razaoSocial || '';
-    const unitCnpj = this.assistanceUnit?.cnpj ? `CNPJ: ${this.assistanceUnit.cnpj}` : '';
-    const unitPhone = this.assistanceUnit?.telefone ? `Telefone: ${this.assistanceUnit.telefone}` : '';
-    const unitEmail = this.assistanceUnit?.email ? `Email: ${this.assistanceUnit.email}` : '';
-    const unitAddress = [
+    const unitCnpj = this.assistanceUnit?.cnpj || '';
+    const unitPhone = this.assistanceUnit?.telefone || '';
+    const unitEmail = this.assistanceUnit?.email || '';
+    const unitSite = this.assistanceUnit?.site || '';
+    const enderecoLinha = [
       this.assistanceUnit?.endereco,
       this.assistanceUnit?.numeroEndereco,
-      this.assistanceUnit?.bairro,
-      this.assistanceUnit?.cidade,
-      this.assistanceUnit?.estado
+      this.assistanceUnit?.complemento
     ]
       .filter((item) => (item ?? '').toString().trim().length > 0)
       .join(', ');
-    const unitContact = [unitCnpj, unitAddress, unitPhone, unitEmail].filter(Boolean).join(' • ');
+    const linhaEndereco = [
+      unitCnpj ? `CNPJ: ${unitCnpj}` : '',
+      enderecoLinha,
+      this.assistanceUnit?.bairro,
+      this.assistanceUnit?.cidade
+    ]
+      .filter((item) => (item ?? '').toString().trim().length > 0)
+      .join(' | ') || 'Endereço não informado';
+    const linhaContato = [
+      unitPhone ? `Telefone: ${unitPhone}` : '',
+      unitEmail ? `E-mail: ${unitEmail}` : '',
+      unitSite ? `Site: ${unitSite}` : ''
+    ]
+      .filter((item) => (item ?? '').toString().trim().length > 0)
+      .join(' | ');
     const timestamp = new Date();
     const timestampLabel = this.formatDateTime(timestamp);
     const logo = this.assistanceUnit?.logomarcaRelatorio || this.assistanceUnit?.logomarca || '';
@@ -1160,7 +1173,7 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
             .report-highlight { margin: 0 0 8px; font-weight: 600; text-align: left; }
             .report-footer { position: fixed; bottom: 0; left: 0; right: 0; font-size: 10pt; color: #000; }
             .report-footer__line { border-top: 1px solid #000; margin-bottom: 2mm; }
-            .report-footer__content { display: flex; justify-content: space-between; align-items: center; gap: 8mm; }
+            .report-footer__content { display: flex; flex-direction: column; gap: 2mm; align-items: center; }
             .page-number::before { content: "Página " counter(page) " de " counter(pages); }
           </style>
         </head>
@@ -1178,7 +1191,9 @@ export class PatrimonioComponent implements OnInit, OnDestroy {
             <footer class="report-footer">
               <div class="report-footer__line"></div>
               <div class="report-footer__content">
-                <div>${unitName || unitTitle} ${unitContact ? `• ${unitContact}` : ''}</div>
+                <div>${unitName || unitTitle}</div>
+                <div>${linhaEndereco}</div>
+                <div>${linhaContato}</div>
                 <div class="page-number"></div>
                 <div>Gerado em ${timestampLabel}</div>
               </div>

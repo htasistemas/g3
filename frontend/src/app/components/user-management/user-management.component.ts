@@ -160,12 +160,16 @@ export class UserManagementComponent implements OnInit {
     const permissoes = this.getPermissoes();
 
     const request$ = this.editingId
-      ? this.userService.update(this.editingId, {
-          nome,
-          email,
-          ...(senha ? { senha } : {}),
-          permissoes
-        }, usuarioId)
+      ? this.userService.update(
+          this.editingId,
+          {
+            nome,
+            email,
+            ...(senha ? { senha } : {}),
+            permissoes
+          },
+          usuarioId
+        )
       : this.userService.create({ nome, email, senha: senha || '', permissoes }, usuarioId);
 
     request$.subscribe({

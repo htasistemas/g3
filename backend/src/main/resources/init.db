@@ -1917,6 +1917,21 @@ CREATE TABLE IF NOT EXISTS doacao_realizada_item (
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS doacao_planejada (
+  id BIGSERIAL PRIMARY KEY,
+  beneficiario_id BIGINT REFERENCES cadastro_beneficiario(id) ON DELETE SET NULL,
+  vinculo_familiar_id BIGINT REFERENCES vinculo_familiar(id) ON DELETE SET NULL,
+  almoxarifado_item_id BIGINT NOT NULL REFERENCES almoxarifado_item(id) ON DELETE RESTRICT,
+  quantidade INTEGER NOT NULL,
+  data_prevista DATE NOT NULL,
+  prioridade VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  observacoes TEXT,
+  motivo_cancelamento TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS doador (
   id BIGSERIAL PRIMARY KEY,
   nome VARCHAR(200) NOT NULL,
@@ -3740,8 +3755,12 @@ CREATE TABLE IF NOT EXISTS rh_configuracao_ponto (
   carga_sabado_minutos INTEGER NOT NULL DEFAULT 0,
   carga_domingo_minutos INTEGER NOT NULL DEFAULT 0,
   tolerancia_minutos INTEGER NOT NULL DEFAULT 10,
+  ignorar_validacao_rede BOOLEAN NOT NULL DEFAULT FALSE,
   atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS rh_configuracao_ponto
+  ADD COLUMN IF NOT EXISTS ignorar_validacao_rede BOOLEAN NOT NULL DEFAULT FALSE;
 
 INSERT INTO rh_configuracao_ponto (id)
 SELECT 1
@@ -4322,4 +4341,43 @@ SELECT '1.00.83', 'Bloqueio do registro de ponto por rede, validacao por IP/CIDR
 WHERE NOT EXISTS (
   SELECT 1 FROM historico_versao_sistema
   WHERE versao = '1.00.83'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.84',
+  descricao = 'Persistencia de doacoes planejadas na tela de doacao realizada.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.84';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.84', 'Persistencia de doacoes planejadas na tela de doacao realizada.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.84'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.85',
+  descricao = 'Relatorio de doacoes pendentes na tela de doacao realizada.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.85';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.85', 'Relatorio de doacoes pendentes na tela de doacao realizada.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.85'
+);
+
+UPDATE versao_sistema
+SET versao = '1.00.86',
+  descricao = 'Relatorio de doacoes realizadas e pendentes por beneficiario.',
+  atualizado_em = NOW()
+WHERE versao <> '1.00.86';
+
+INSERT INTO historico_versao_sistema (versao, descricao, criado_em)
+SELECT '1.00.86', 'Relatorio de doacoes realizadas e pendentes por beneficiario.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM historico_versao_sistema
+  WHERE versao = '1.00.86'
 );

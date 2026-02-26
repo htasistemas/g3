@@ -25,6 +25,7 @@ public class RhPontoMapper {
     response.setCargaSabadoMinutos(configuracao.getCargaSabadoMinutos());
     response.setCargaDomingoMinutos(configuracao.getCargaDomingoMinutos());
     response.setToleranciaMinutos(configuracao.getToleranciaMinutos());
+    response.setIgnorarValidacaoRede(configuracao.getIgnorarValidacaoRede());
     response.setAtualizadoEm(configuracao.getAtualizadoEm());
     return response;
   }

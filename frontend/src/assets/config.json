@@ -1,3 +1,5 @@
 {
-  "apiUrl": "$API_BASE_URL"
+  "apiUrl": "$API_BASE_URL",
+  "googleClientId": "1026369251340-2eskbj74ierlra1i9fm0aas29ucvnudf.apps.googleusercontent.com",
+  "pontoBypass": false
 }

@@ -7,6 +7,7 @@ public class RhConfiguracaoPontoRequest {
   private Integer cargaSabadoMinutos;
   private Integer cargaDomingoMinutos;
   private Integer toleranciaMinutos;
+  private Boolean ignorarValidacaoRede;
 
   public Integer getCargaSemanalMinutos() {
     return cargaSemanalMinutos;
@@ -54,5 +55,13 @@ public class RhConfiguracaoPontoRequest {
 
   public void setToleranciaMinutos(Integer toleranciaMinutos) {
     this.toleranciaMinutos = toleranciaMinutos;
+  }
+
+  public Boolean getIgnorarValidacaoRede() {
+    return ignorarValidacaoRede;
+  }
+
+  public void setIgnorarValidacaoRede(Boolean ignorarValidacaoRede) {
+    this.ignorarValidacaoRede = ignorarValidacaoRede;
   }
 }

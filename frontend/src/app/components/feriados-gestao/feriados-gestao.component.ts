@@ -328,10 +328,10 @@ export class FeriadosGestaoComponent extends TelaBaseComponent implements OnInit
     );
     const ano = this.anoSelecionado;
     this.feriadoService.listarPublicos(ano, 'BR').subscribe({
-      next: (feriadosPublicos) => {
+      next: (feriadosPublicos: FeriadoPayload[]) => {
         const base = feriadosPublicos.length ? feriadosPublicos : this.feriadosImportados;
         const faltantes = base.filter(
-          (feriado) => !chaveExistente.has(`${feriado.data}|${feriado.descricao}`.toLowerCase().trim())
+          (feriado: FeriadoPayload) => !chaveExistente.has(`${feriado.data}|${feriado.descricao}`.toLowerCase().trim())
         );
         if (!faltantes.length) return;
         from(faltantes)

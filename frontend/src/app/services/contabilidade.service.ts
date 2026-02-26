@@ -12,6 +12,7 @@ export interface ContaBancariaRequest {
   pixVinculado?: boolean;
   tipoChavePix?: string;
   chavePix?: string;
+  recebimentoLocal?: boolean;
   saldo: number;
   dataAtualizacao: string;
 }

@@ -106,6 +106,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     configuracao.setCargaSabadoMinutos(normalizarMinutos(request.getCargaSabadoMinutos(), 0));
     configuracao.setCargaDomingoMinutos(normalizarMinutos(request.getCargaDomingoMinutos(), 0));
     configuracao.setToleranciaMinutos(normalizarMinutos(request.getToleranciaMinutos(), 10));
+    configuracao.setIgnorarValidacaoRede(Boolean.TRUE.equals(request.getIgnorarValidacaoRede()));
     configuracao.setAtualizadoEm(LocalDateTime.now());
     RhConfiguracaoPonto salvo = configuracaoRepository.salvar(configuracao);
     return mapper.toConfiguracaoResponse(salvo);
@@ -123,6 +124,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     String tipo = normalizarTexto(request.getTipo());
     UnidadeAssistencialResponse unidade = unidadeAssistencialService.obterAtual();
     Long unidadeId = unidade != null ? unidade.getId() : null;
+    RhConfiguracaoPonto configuracao = configuracaoRepository.buscarAtual().orElseGet(this::criarConfiguracaoPadrao);
     if (!TIPOS_VALIDOS.contains(tipo)) {
       registrarAuditoriaTentativa(
           usuarioId,
@@ -136,19 +138,21 @@ public class RhPontoServiceImpl implements RhPontoService {
           null);
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de marcação inválido.");
     }
-    ResultadoValidacaoPonto validacao = pontoNetworkValidator.validarAutorizacao(ip, userAgent, unidade);
-    if (!validacao.permitido()) {
-      registrarAuditoriaTentativa(
-          usuarioId,
-          unidadeId,
-          tipo,
-          ip,
-          userAgent,
-          "BLOQUEADO",
-          validacao.motivo(),
-          null,
-          null);
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, validacao.motivo());
+    if (!Boolean.TRUE.equals(configuracao.getIgnorarValidacaoRede())) {
+      ResultadoValidacaoPonto validacao = pontoNetworkValidator.validarAutorizacao(ip, userAgent, unidade);
+      if (!validacao.permitido()) {
+        registrarAuditoriaTentativa(
+            usuarioId,
+            unidadeId,
+            tipo,
+            ip,
+            userAgent,
+            "BLOQUEADO",
+            validacao.motivo(),
+            null,
+            null);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, validacao.motivo());
+      }
     }
     if (request.getSenha() == null || request.getSenha().isBlank()) {
       registrarAuditoriaTentativa(
@@ -192,7 +196,6 @@ public class RhPontoServiceImpl implements RhPontoService {
     }
 
     LocalDate hoje = LocalDate.now();
-    RhConfiguracaoPonto configuracao = configuracaoRepository.buscarAtual().orElseGet(this::criarConfiguracaoPadrao);
     RhPontoDia pontoDia = pontoDiaRepository.buscarPorFuncionarioEData(usuarioId, hoje)
         .orElseGet(() -> criarPontoDia(hoje, usuarioId, configuracao));
 
@@ -618,6 +621,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     configuracao.setCargaSabadoMinutos(0);
     configuracao.setCargaDomingoMinutos(0);
     configuracao.setToleranciaMinutos(10);
+    configuracao.setIgnorarValidacaoRede(false);
     configuracao.setAtualizadoEm(LocalDateTime.now());
     return configuracaoRepository.salvar(configuracao);
   }

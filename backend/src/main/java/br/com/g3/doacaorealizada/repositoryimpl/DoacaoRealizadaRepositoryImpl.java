@@ -25,6 +25,11 @@ public class DoacaoRealizadaRepositoryImpl implements DoacaoRealizadaRepository 
   }
 
   @Override
+  public List<DoacaoRealizada> listarPorBeneficiario(Long beneficiarioId) {
+    return jpaRepository.listarPorBeneficiario(beneficiarioId);
+  }
+
+  @Override
   public Optional<DoacaoRealizada> buscarPorId(Long id) {
     return jpaRepository.findById(id);
   }

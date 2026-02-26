@@ -11,6 +11,8 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faImages } from '@fortawesome/free-solid-svg-icons';
 import {
   FotoEventoDetalheResponse,
   FotoEventoFotoResponse,
@@ -44,6 +46,7 @@ type FotoUploadItem = {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
     DialogComponent
@@ -53,6 +56,12 @@ type FotoUploadItem = {
 })
 export class FotosEventosComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   private readonly runtimeConfig = inject(RuntimeConfigService);
+  readonly faImagens = faImages;
+  readonly abas = [
+    { id: 'lista', label: 'Listagem' },
+    { id: 'detalhe', label: 'Detalhe' }
+  ] as const;
+  abaAtiva: (typeof this.abas)[number]['id'] = 'lista';
   filtrosForm: FormGroup;
   eventoForm: FormGroup;
   fotoForm: FormGroup;
@@ -174,6 +183,7 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const idParam = params.get('id');
       this.detalheId = idParam ? Number(idParam) : null;
+      this.abaAtiva = this.detalheId ? 'detalhe' : 'lista';
       if (this.detalheId) {
         this.carregarDetalhe(this.detalheId);
       } else {
@@ -260,6 +270,17 @@ export class FotosEventosComponent extends TelaBaseComponent implements OnInit, 
       return;
     }
     this.aplicarFiltros();
+  }
+
+  alterarAba(id: (typeof this.abas)[number]['id']): void {
+    this.abaAtiva = id;
+    if (id === 'lista' && this.mostrandoDetalhe) {
+      this.voltarLista();
+      return;
+    }
+    if (id === 'detalhe' && !this.mostrandoDetalhe && this.eventoSelecionado) {
+      this.abrirDetalhe(this.eventoSelecionado);
+    }
   }
 
   proximaPagina(): void {

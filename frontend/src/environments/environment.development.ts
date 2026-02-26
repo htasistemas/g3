@@ -8,8 +8,17 @@ const obterApiUrlRuntime = (): string | undefined => {
   return normalizado;
 };
 
+const obterGoogleClientIdRuntime = (): string | undefined => {
+  if (typeof window === 'undefined') return undefined;
+  const clientId = (window as any).__env?.googleClientId as string | undefined;
+  const normalizado = (clientId ?? '').trim();
+  if (!normalizado || normalizado === '__ENV_GOOGLE_CLIENT_ID__') return undefined;
+  return normalizado;
+};
+
 export const environment = {
   production: false,
-  apiUrl: obterApiUrlRuntime() ?? '/api',
-  version: packageJson.version
+  apiUrl: obterApiUrlRuntime() ?? 'http://localhost:8080',
+  version: packageJson.version,
+  googleClientId: obterGoogleClientIdRuntime() ?? ''
 };

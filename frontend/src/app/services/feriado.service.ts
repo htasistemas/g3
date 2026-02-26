@@ -26,6 +26,15 @@ export class FeriadoService {
       );
   }
 
+  listarPublicos(ano: number, pais = 'BR'): Observable<FeriadoPayload[]> {
+    return this.http
+      .get<FeriadoPayload[]>(`${this.baseUrl}/publicos`, { params: { ano, pais } })
+      .pipe(
+        map((feriados) => (feriados ?? []).map((item) => this.normalizar(item))),
+        catchError(this.logAndRethrow('ao carregar feriados publicos'))
+      );
+  }
+
   criar(payload: FeriadoPayload): Observable<FeriadoPayload> {
     return this.http
       .post<FeriadoPayload>(this.baseUrl, payload)

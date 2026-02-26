@@ -1005,6 +1005,23 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       })
       .join('');
 
+    const unidade = this.unidadeAtual;
+    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || 'Instituição';
+    const cnpj = unidade?.cnpj || '';
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(', ');
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : '', enderecoLinha, unidade?.bairro, unidade?.cidade]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' | ') || 'Endereço não informado';
+    const linhaContato = [
+      unidade?.telefone ? `Telefone: ${unidade.telefone}` : '',
+      unidade?.email ? `E-mail: ${unidade.email}` : '',
+      unidade?.site ? `Site: ${unidade.site}` : ''
+    ]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' | ');
+
     const janela = window.open('', '_blank', 'width=900,height=1100');
     if (!janela) {
       this.feedback = 'Permita a abertura de pop-ups para visualizar a impressao.';
@@ -1037,10 +1054,12 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
               font-size: 11px;
               color: #6b7280;
               display: flex;
-              justify-content: space-between;
+              flex-direction: column;
+              align-items: center;
+              gap: 4px;
             }
             footer .pagina:after {
-              content: counter(page) " de " counter(pages);
+              content: "Página " counter(page) " de " counter(pages);
             }
           </style>
         </head>
@@ -1068,8 +1087,10 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
             </table>
           </main>
           <footer>
-            <span>G3 Assistencial</span>
-            <span>Pagina <span class="pagina"></span></span>
+            <span>${razaoSocial}</span>
+            <span>${linhaEndereco}</span>
+            <span>${linhaContato}</span>
+            <span class="pagina"></span>
           </footer>
         </body>
       </html>
@@ -1317,7 +1338,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     }
 
     const nomeUnidade = unidade?.razaoSocial || unidade?.nomeFantasia || 'G3 Assistencial';
-    const cnpj = unidade?.cnpj || '---';
+    const cnpj = unidade?.cnpj || '';
     const nomeParceiro = this.currentCourse?.instituicaoParceira || 'Instituição parceira';
     const subtituloParceiro = this.currentCourse?.nome || 'Atendimento';
     const emissao = this.formatarDataHoraEmissao(new Date());
@@ -1325,10 +1346,17 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const dataAgendaTexto = this.formatarDataAgenda(this.dataAgendaSelecionada);
     const instituicaoPrincipal = nomeUnidade;
     const instituicaoPrincipalCnpj = cnpj ? `CNPJ: ${cnpj}` : '';
-    const enderecoInstituicao = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
+    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
       .filter(Boolean)
-      .join(' - ');
-    const contatoInstituicao = [unidade?.telefone, unidade?.email, unidade?.site]
+      .join(', ');
+    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : '', enderecoLinha, unidade?.bairro, unidade?.cidade]
+      .filter((valor) => (valor ?? '').toString().trim().length > 0)
+      .join(' | ') || 'Endereço não informado';
+    const linhaContato = [
+      unidade?.telefone ? `Telefone: ${unidade.telefone}` : '',
+      unidade?.email ? `E-mail: ${unidade.email}` : '',
+      unidade?.site ? `Site: ${unidade.site}` : ''
+    ]
       .filter((valor) => (valor ?? '').toString().trim().length > 0)
       .join(' | ');
 
@@ -1399,8 +1427,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
                 <div class="header-center">
                   <p class="report-instituicao">${instituicaoPrincipal}</p>
                   ${instituicaoPrincipalCnpj ? `<p class="report-instituicao-cnpj">${instituicaoPrincipalCnpj}</p>` : ''}
-                  ${enderecoInstituicao ? `<p class="report-instituicao-info">${enderecoInstituicao}</p>` : ''}
-                  ${contatoInstituicao ? `<p class="report-instituicao-info">${contatoInstituicao}</p>` : ''}
+                  ${linhaEndereco ? `<p class="report-instituicao-info">${linhaEndereco}</p>` : ''}
+                  ${linhaContato ? `<p class="report-instituicao-info">${linhaContato}</p>` : ''}
                   <p class="report-title">${subtituloParceiro}</p>
                   <p class="report-partner">Instituição parceira: ${nomeParceiro}</p>
                   <div class="agenda-date">Agenda do dia: ${dataAgendaTexto}</div>
@@ -1413,7 +1441,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           </div>
           <footer class="report-footer">
             <p class="footer-info">${nomeUnidade}</p>
-            <p class="footer-info">CNPJ: ${cnpj}</p>
+            <p class="footer-info">${linhaEndereco}</p>
+            <p class="footer-info">${linhaContato}</p>
             <span class="page-number"></span>
           </footer>
         </body>
@@ -1654,7 +1683,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     );
     const totalInscricoes = this.records.reduce((sum, c) => sum + c.enrollments.length, 0);
     const concluidos = this.records.reduce(
-      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Concluído').length,
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'ConcluÃ­do').length,
       0
     );
     const cancelados = this.records.reduce(

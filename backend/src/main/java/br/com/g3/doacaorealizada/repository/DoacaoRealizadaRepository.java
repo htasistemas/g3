@@ -9,5 +9,7 @@ public interface DoacaoRealizadaRepository {
 
   List<DoacaoRealizada> listar();
 
+  List<DoacaoRealizada> listarPorBeneficiario(Long beneficiarioId);
+
   Optional<DoacaoRealizada> buscarPorId(Long id);
 }

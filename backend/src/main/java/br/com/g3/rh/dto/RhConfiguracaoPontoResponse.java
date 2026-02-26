@@ -10,6 +10,7 @@ public class RhConfiguracaoPontoResponse {
   private Integer cargaSabadoMinutos;
   private Integer cargaDomingoMinutos;
   private Integer toleranciaMinutos;
+  private Boolean ignorarValidacaoRede;
   private LocalDateTime atualizadoEm;
 
   public Long getId() {
@@ -66,6 +67,14 @@ public class RhConfiguracaoPontoResponse {
 
   public void setToleranciaMinutos(Integer toleranciaMinutos) {
     this.toleranciaMinutos = toleranciaMinutos;
+  }
+
+  public Boolean getIgnorarValidacaoRede() {
+    return ignorarValidacaoRede;
+  }
+
+  public void setIgnorarValidacaoRede(Boolean ignorarValidacaoRede) {
+    this.ignorarValidacaoRede = ignorarValidacaoRede;
   }
 
   public LocalDateTime getAtualizadoEm() {

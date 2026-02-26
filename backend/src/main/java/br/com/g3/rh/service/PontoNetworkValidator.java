@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +25,12 @@ public class PontoNetworkValidator {
       "mobile",
       "tablet"
   );
+
+  private final boolean bypassValidacao;
+
+  public PontoNetworkValidator(@Value("${app.rh.ponto.bypass:false}") boolean bypassValidacao) {
+    this.bypassValidacao = bypassValidacao;
+  }
 
   public String obterIpCliente(HttpServletRequest request) {
     if (request == null) {
@@ -53,6 +60,9 @@ public class PontoNetworkValidator {
       String ipCliente,
       String userAgent,
       UnidadeAssistencialResponse unidade) {
+    if (bypassValidacao) {
+      return new ResultadoValidacaoPonto(true, null);
+    }
     if (isMobileUserAgent(userAgent)) {
       return new ResultadoValidacaoPonto(false, "Registro de ponto permitido apenas no computador da instituição.");
     }

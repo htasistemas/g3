@@ -27,6 +27,7 @@ export interface DoadorResponse extends DoadorRequest {
 
 export interface RecebimentoDoacaoRequest {
   doadorId?: number;
+  contaRecebimentoId?: number | null;
   tipoDoacao: string;
   descricao?: string;
   quantidadeItens?: number;

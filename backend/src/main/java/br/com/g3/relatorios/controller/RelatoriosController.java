@@ -5,6 +5,8 @@ import br.com.g3.relatorios.dto.BeneficiarioFichaRequest;
 import br.com.g3.relatorios.dto.BeneficiarioRelacaoRequest;
 import br.com.g3.relatorios.dto.CursoAtendimentoFichaRequest;
 import br.com.g3.relatorios.dto.CursoAtendimentoRelacaoRequest;
+import br.com.g3.relatorios.dto.DoacaoBeneficiarioRelatorioRequest;
+import br.com.g3.relatorios.dto.DoacaoPlanejadaRelatorioRequest;
 import br.com.g3.relatorios.dto.EmprestimoEventoRelatorioRequest;
 import br.com.g3.relatorios.dto.InformacaoAdministrativaRelatorioRequest;
 import br.com.g3.relatorios.dto.TermoAutorizacaoRequest;
@@ -12,6 +14,8 @@ import br.com.g3.relatorios.service.BeneficiarioFichaService;
 import br.com.g3.relatorios.service.CursoAtendimentoFichaService;
 import br.com.g3.relatorios.service.RelatorioBeneficiariosService;
 import br.com.g3.relatorios.service.RelatorioCursosAtendimentosService;
+import br.com.g3.relatorios.service.RelatorioDoacoesBeneficiarioService;
+import br.com.g3.relatorios.service.RelatorioDoacoesPlanejadasService;
 import br.com.g3.relatorios.service.RelatorioEmprestimoEventosService;
 import br.com.g3.relatorios.service.RelatorioInformacoesAdministrativasService;
 import br.com.g3.relatorios.service.RelatorioSolicitacaoComprasService;
@@ -42,6 +46,8 @@ public class RelatoriosController {
   private final RelatorioEmprestimoEventosService relatorioEmprestimoEventosService;
   private final TermoEmprestimoEventosService termoEmprestimoEventosService;
   private final RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService;
+  private final RelatorioDoacoesPlanejadasService relatorioDoacoesPlanejadasService;
+  private final RelatorioDoacoesBeneficiarioService relatorioDoacoesBeneficiarioService;
 
   public RelatoriosController(
       TermoAutorizacaoService termoAutorizacaoService,
@@ -53,7 +59,9 @@ public class RelatoriosController {
       RelatorioSolicitacaoComprasService relatorioSolicitacaoComprasService,
       RelatorioEmprestimoEventosService relatorioEmprestimoEventosService,
       TermoEmprestimoEventosService termoEmprestimoEventosService,
-      RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService) {
+      RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService,
+      RelatorioDoacoesPlanejadasService relatorioDoacoesPlanejadasService,
+      RelatorioDoacoesBeneficiarioService relatorioDoacoesBeneficiarioService) {
     this.termoAutorizacaoService = termoAutorizacaoService;
     this.relatorioTarefasPendenciasService = relatorioTarefasPendenciasService;
     this.beneficiarioFichaService = beneficiarioFichaService;
@@ -64,6 +72,8 @@ public class RelatoriosController {
     this.relatorioEmprestimoEventosService = relatorioEmprestimoEventosService;
     this.termoEmprestimoEventosService = termoEmprestimoEventosService;
     this.relatorioInformacoesAdministrativasService = relatorioInformacoesAdministrativasService;
+    this.relatorioDoacoesPlanejadasService = relatorioDoacoesPlanejadasService;
+    this.relatorioDoacoesBeneficiarioService = relatorioDoacoesBeneficiarioService;
   }
 
   @PostMapping(value = "/authorization-term", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -166,6 +176,28 @@ public class RelatoriosController {
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDisposition(
         ContentDisposition.inline().filename("informacoes-administrativas.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/doacoes-planejadas/pendentes", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarRelatorioDoacoesPlanejadasPendentes(
+      @RequestBody DoacaoPlanejadaRelatorioRequest requisicao) {
+    byte[] pdf = relatorioDoacoesPlanejadasService.gerarPdf(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(
+        ContentDisposition.inline().filename("doacoes-planejadas-pendentes.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/doacoes/beneficiario", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarRelatorioDoacoesBeneficiario(
+      @RequestBody DoacaoBeneficiarioRelatorioRequest requisicao) {
+    byte[] pdf = relatorioDoacoesBeneficiarioService.gerarPdf(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(
+        ContentDisposition.inline().filename("doacoes-beneficiario.pdf").build());
     return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { RuntimeConfigService } from './runtime-config.service';
 
 export interface AssistanceUnitPayload {
@@ -89,6 +89,27 @@ export class AssistanceUnitService {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)
       .pipe(tap(() => this.setActiveUnit('Navegação', null)));
+  }
+
+  carregarUnidadeAtual(): Observable<AssistanceUnitPayload | null> {
+    return this.get().pipe(
+      tap(({ unidade }) => {
+        if (unidade) {
+          this.setActiveUnit(unidade.nomeFantasia, unidade.logomarca ?? null);
+          return;
+        }
+        this.setActiveUnit('NavegaÃ§Ã£o', null);
+      }),
+      map(({ unidade }) => unidade ?? null)
+    );
+  }
+
+  geocodificarEndereco(id: number, forcar = false): Observable<AssistanceUnitPayload> {
+    const opcoes: { params?: HttpParams } = {};
+    if (forcar) {
+      opcoes.params = new HttpParams().set('forcar', 'true');
+    }
+    return this.http.post<AssistanceUnitPayload>(`${this.baseUrl}/${id}/geocodificar-endereco`, {}, opcoes);
   }
 
   setActiveUnit(name: string, logo?: string | null): void {

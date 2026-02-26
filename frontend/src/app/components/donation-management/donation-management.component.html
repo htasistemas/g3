@@ -1428,6 +1428,12 @@
 
 
 
+    <app-popup-messages
+      [mensagens]="plannedPopupMensagens"
+      [titulo]="plannedPopupTitulo"
+      (fechar)="fecharPopupPlanejamento()"
+    ></app-popup-messages>
+
     <div class="field-grid cols-3 compact planned-grid" [formGroup]="plannedForm">
 
 
@@ -1440,7 +1446,13 @@
 
 
 
-          <input placeholder="Selecione um item" [value]="selectedPlannedItem?.description || ''" readonly />
+          <app-autocomplete
+            [placeholder]="'Digite o item do almoxarifado'"
+            [termo]="termoBuscaItemPlanejado"
+            [opcoes]="itensPlanejamentoFiltrados"
+            (termoChange)="onItemPlanejadoTermoChange($event)"
+            (selecionar)="onItemPlanejadoSelecionado($event)"
+          ></app-autocomplete>
 
 
 
@@ -2044,7 +2056,7 @@
 
 
 
-      <label class="field">Responsável (*)
+      <label class="field">Responsável
 
 
 
@@ -2779,6 +2791,24 @@
   </div>
 
 
+
+  <app-dialog
+    [aberto]="printDialogOpen"
+    titulo="Imprimir relatório"
+    mensagem="Selecione a opção de impressão desejada."
+    confirmarLabel="Relatório do beneficiário"
+    cancelarLabel="Relatório de pendentes"
+    [cancelarAoClicarOverlay]="true"
+    (confirmar)="imprimirRelatorioDoacoesBeneficiario()"
+    (cancelar)="imprimirRelatorioDoacoesPendentes()"
+  >
+    <div class="dialog-info">
+      <p>
+        Beneficiário selecionado:
+        <strong>{{ selectedBeneficiary()?.name || 'Nenhum selecionado' }}</strong>
+      </p>
+    </div>
+  </app-dialog>
 
 </app-tela-padrao>
 
