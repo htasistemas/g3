@@ -11,6 +11,11 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - g3_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-g3} -d $${POSTGRES_DB:-g3}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -25,6 +30,11 @@ services:
     networks:
       - g3_net
       - hta_public_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   frontend:
     build:
@@ -37,6 +47,11 @@ services:
     networks:
       - g3_net
       - hta_public_net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   nginx-g3:
     image: nginx:alpine
@@ -64,6 +79,8 @@ services:
 
 networks:
   g3_net:
+    name: g3_g3_net
+    external: true
   hta_public_net:
     external: true
 

@@ -64,6 +64,16 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
+          # Garante que a rede externa exista para evitar falha na remocao
+          if ! docker network inspect g3_g3_net >/dev/null 2>&1; then
+            docker network create g3_g3_net
+          fi
+
+          # Remove tunnel antigo que ficou preso na rede
+          if docker ps -aq --filter "name=^g3-tunnel-1$" | grep -q .; then
+            docker rm -f g3-tunnel-1
+          fi
+
           # Evita downtime e erro de rede com containers externos (ex.: g3-tunnel)
           docker compose -p g3 -f docker-compose.yml up -d --build --force-recreate --remove-orphans
 
