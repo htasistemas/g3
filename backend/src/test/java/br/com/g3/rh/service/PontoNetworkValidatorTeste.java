@@ -114,6 +114,7 @@ public class PontoNetworkValidatorTeste {
         null,
         null,
         null,
+        null,
         100,
         200,
         null,
