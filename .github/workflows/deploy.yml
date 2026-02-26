@@ -64,7 +64,7 @@ jobs:
             cp /home/srv/g3/.env ./.env
           fi
 
-          docker compose -p g3 -f docker-compose.yml down --remove-orphans
+          # Evita downtime e erro de rede com containers externos (ex.: g3-tunnel)
           docker compose -p g3 -f docker-compose.yml up -d --build --force-recreate --remove-orphans
 
           echo "Aguardando backend subir..."
@@ -94,3 +94,6 @@ jobs:
             echo "Erro: frontend nao respondeu"
             exit 1
           fi
+
+          # Garante que os containers permaneçam em execucao mesmo apos falha anterior
+          docker compose -p g3 -f docker-compose.yml up -d
