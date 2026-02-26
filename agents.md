@@ -1,139 +1,138 @@
-# AGENTS.md ó Sistema G3 (Padr„o Oficial Consolidado)
+Ôªø# AGENTS.md ‚Äî Sistema G3 (Padr√£o Oficial Consolidado)
 
-> Objetivo: orientar implementaÁ„o de telas e alteraÁıes no G3 com padr„o ˙nico, sem gambiarras, sem divergÍncia visual, sem quebra arquitetural e sem inconsistÍncia estrutural.
+> Objetivo: orientar implementa√ß√£o de telas e altera√ß√µes no G3 com padr√£o √∫nico, sem gambiarras, sem diverg√™ncia visual, sem quebra arquitetural e sem inconsist√™ncia estrutural.
 
 ---
+# REGRAS GERAIS (OBRIGAT√ìRIAS)
 
-# REGRAS GERAIS (OBRIGAT”RIAS)
-
-## Idioma (Regra CrÌtica)
+## Idioma (Regra Cr√≠tica)
 
 ### FRONTEND (UI)
 
-- MUST utilizar PortuguÍs Brasil (pt-BR) com acentuaÁ„o correta em:
+- MUST utilizar Portugu√™s Brasil (pt-BR) com acentua√ß√£o correta em:
   - Textos visuais
   - Labels
   - Mensagens
-  - TÌtulos
-  - Botıes
+  - T√≠tulos
+  - Bot√µes
   - Popups
-  - RelatÛrios
+  - Relat√≥rios
   - Mensagens de erro
-  - DocumentaÁ„o visÌvel ao usu·rio
+  - Documenta√ß√£o vis√≠vel ao usu√°rio
 
 ### BACKEND (Java / Banco de Dados)
 
-- MUST utilizar PortuguÍs sem acentuaÁ„o em:
+- MUST utilizar Portugu√™s sem acentua√ß√£o em:
   - Classes
-  - MÈtodos
-  - Vari·veis
+  - M√©todos
+  - Vari√°veis
   - Tabelas
   - Colunas
   - DTOs
   - Domains
   - Scripts SQL
-- MUST NOT usar acentos em identificadores tÈcnicos.
-- MAY manter termos tÈcnicos universais (DTO, Service, Repository, Controller).
+- MUST NOT usar acentos em identificadores t√©cnicos.
+- MAY manter termos t√©cnicos universais (DTO, Service, Repository, Controller).
 
 ---
 
 ## Nomenclatura
 
 - MUST usar nomes claros e completos.
-- MUST evitar abreviaÁıes obscuras.
-- MUST usar camelCase para vari·veis e mÈtodos.
+- MUST evitar abrevia√ß√µes obscuras.
+- MUST usar camelCase para vari√°veis e m√©todos.
 - MUST usar PascalCase para classes.
-- MUST manter padr„o consistente em todo o projeto.
+- MUST manter padr√£o consistente em todo o projeto.
 
 ---
 
 ## Postura Arquitetural
 
 - MUST respeitar arquitetura existente.
-- MUST evitar reescritas desnecess·rias.
-- MUST manter compatibilidade com produÁ„o.
-- MUST sinalizar riscos tÈcnicos.
-- MUST NOT assumir requisitos implÌcitos.
-- MUST ser direto e tÈcnico.
+- MUST evitar reescritas desnecess√°rias.
+- MUST manter compatibilidade com produ√ß√£o.
+- MUST sinalizar riscos t√©cnicos.
+- MUST NOT assumir requisitos impl√≠citos.
+- MUST ser direto e t√©cnico.
 
 ---
 
-# SEGURAN«A (OBRIGAT”RIO)
+# SEGURAN√áA (OBRIGAT√ìRIO)
 
 - MUST validar dados no backend independentemente do frontend.
-- MUST NOT confiar apenas na validaÁ„o do frontend.
-- MUST validar permissıes no backend.
-- MUST proteger rotas por autenticaÁ„o e autorizaÁ„o.
-- MUST NOT armazenar tokens sensÌveis em localStorage.
+- MUST NOT confiar apenas na valida√ß√£o do frontend.
+- MUST validar permiss√µes no backend.
+- MUST proteger rotas por autentica√ß√£o e autoriza√ß√£o.
+- MUST NOT armazenar tokens sens√≠veis em localStorage.
 - MUST sanitizar entradas contra XSS e SQL Injection.
-- MUST registrar tentativas inv·lidas crÌticas (login, exclus„o).
-- MUST NOT expor stacktrace ao usu·rio final.
-- MUST retornar mensagens amig·veis no frontend.
+- MUST registrar tentativas inv√°lidas cr√≠ticas (login, exclus√£o).
+- MUST NOT expor stacktrace ao usu√°rio final.
+- MUST retornar mensagens amig√°veis no frontend.
 
 ---
 
 # PERFORMANCE E ESTADO (ANGULAR)
 
-- MUST evitar m˙ltiplas chamadas HTTP duplicadas.
-- MUST evitar chamadas dentro de loops de renderizaÁ„o.
+- MUST evitar m√∫ltiplas chamadas HTTP duplicadas.
+- MUST evitar chamadas dentro de loops de renderiza√ß√£o.
 - MUST evitar memory leaks.
-- MUST usar async pipe, takeUntil ou mecanismo equivalente de unsubscribe autom·tico.
+- MUST usar async pipe, takeUntil ou mecanismo equivalente de unsubscribe autom√°tico.
 - MUST NOT usar subscribe manual sem controle.
-- MUST carregar dados apenas uma vez quando possÌvel.
+- MUST carregar dados apenas uma vez quando poss√≠vel.
 - MUST centralizar estado compartilhado em Service.
-- MUST manter padr„o ˙nico de gerenciamento de estado.
+- MUST manter padr√£o √∫nico de gerenciamento de estado.
 - MUST NOT disparar chamadas HTTP repetidas sem necessidade.
 
 ---
 
-# VERIFICA«√O DE CLIQUES E LAZY LOADING (OBRIGAT”RIO)
+# VERIFICA√á√ÉO DE CLIQUES E LAZY LOADING (OBRIGAT√ìRIO)
 
-- MUST garantir que todos os botıes funcionem corretamente no primeiro clique.
-- MUST verificar que nenhum bot„o exija duplo clique para executar aÁ„o.
-- MUST verificar que lazy loading n„o atrase o binding de eventos.
+- MUST garantir que todos os bot√µes funcionem corretamente no primeiro clique.
+- MUST verificar que nenhum bot√£o exija duplo clique para executar a√ß√£o.
+- MUST verificar que lazy loading n√£o atrase o binding de eventos.
 - MUST garantir que handlers estejam prontos no ngOnInit.
 - MUST NOT depender de carregamento tardio para ativar eventos de clique.
-- MUST validar que componentes carregados via lazy loading j· estejam com listeners ativos.
-- MUST evitar que mÛdulos lazy causem re-renderizaÁıes que quebrem eventos.
-- MUST evitar m˙ltiplos bindings do mesmo evento.
-- MUST garantir que click n„o esteja sendo bloqueado por:
-  - overlays invisÌveis
+- MUST validar que componentes carregados via lazy loading j√° estejam com listeners ativos.
+- MUST evitar que m√≥dulos lazy causem re-renderiza√ß√µes que quebrem eventos.
+- MUST evitar m√∫ltiplos bindings do mesmo evento.
+- MUST garantir que click n√£o esteja sendo bloqueado por:
+  - overlays invis√≠veis
   - z-index incorreto
   - pointer-events ativos indevidamente
-- MUST validar que n„o existam HostListener duplicados.
-- MUST validar que n„o existam m˙ltiplos subscribe disparando a mesma aÁ„o.
-- MUST testar todos os botıes CRUD apÛs carregamento do mÛdulo.
-- MUST validar funcionamento apÛs:
+- MUST validar que n√£o existam HostListener duplicados.
+- MUST validar que n√£o existam m√∫ltiplos subscribe disparando a mesma a√ß√£o.
+- MUST testar todos os bot√µes CRUD ap√≥s carregamento do m√≥dulo.
+- MUST validar funcionamento ap√≥s:
   - troca de aba
-  - navegaÁ„o entre rotas
-  - retorno ‡ tela anterior
+  - navega√ß√£o entre rotas
+  - retorno √† tela anterior
 
 Se identificado problema de lazy loading:
 
-- MUST corrigir estrutura do mÛdulo.
-- MUST revisar importaÁıes.
+- MUST corrigir estrutura do m√≥dulo.
+- MUST revisar importa√ß√µes.
 - MUST revisar ciclo de vida do componente.
-- MUST eliminar qualquer dependÍncia de setTimeout para ativar clique.
+- MUST eliminar qualquer depend√™ncia de setTimeout para ativar clique.
 
 ---
 
 # RESPONSABILIDADE DAS CAMADAS (BACKEND)
 
 ## Controller
-- Receber requisiÁ„o.
+- Receber requisi√ß√£o.
 - Chamar Service.
 - Retornar resposta.
-- MUST NOT conter regra de negÛcio.
+- MUST NOT conter regra de neg√≥cio.
 
 ## Service
-- Implementar regra de negÛcio.
-- Realizar validaÁıes.
+- Implementar regra de neg√≥cio.
+- Realizar valida√ß√µes.
 - Orquestrar chamadas.
 - MUST NOT acessar HttpRequest diretamente.
 
 ## Repository
 - Apenas acesso a dados.
-- MUST NOT conter regra de negÛcio.
+- MUST NOT conter regra de neg√≥cio.
 
 ## Domain
 - Modelo do sistema.
@@ -144,71 +143,71 @@ Se identificado problema de lazy loading:
 
 ---
 
-# C”DIGO (GERAL)
+# C√ìDIGO (GERAL)
 
-- MUST manter cÛdigo simples, coeso e legÌvel.
-- MUST evitar duplicaÁ„o.
-- SHOULD aplicar responsabilidade ˙nica por mÈtodo.
-- SHOULD preferir composiÁ„o em vez de heranÁa.
-- MUST NOT criar implementaÁıes tempor·rias.
-- MUST NOT introduzir dependÍncias sem justificativa tÈcnica clara.
+- MUST manter c√≥digo simples, coeso e leg√≠vel.
+- MUST evitar duplica√ß√£o.
+- SHOULD aplicar responsabilidade √∫nica por m√©todo.
+- SHOULD preferir composi√ß√£o em vez de heran√ßa.
+- MUST NOT criar implementa√ß√µes tempor√°rias.
+- MUST NOT introduzir depend√™ncias sem justificativa t√©cnica clara.
 - MUST aplicar Design System global.
-- MUST reutilizar biblioteca ˙nica de formul·rios.
-- SHOULD implementar auditoria autom·tica (quem alterou, quando e o que).
+- MUST reutilizar biblioteca √∫nica de formul√°rios.
+- SHOULD implementar auditoria autom√°tica (quem alterou, quando e o que).
 
 ---
 
-# PADR√O OBRIGAT”RIO PARA TELAS (UI/UX)
+# PADR√ÉO OBRIGAT√ìRIO PARA TELAS (UI/UX)
 
-## ReferÍncia Oficial
+## Refer√™ncia Oficial
 
-- MUST usar como referÍncia a tela Cadastro de Benefici·rio.
-- MUST replicar padr„o visual, estrutural e funcional.
+- MUST usar como refer√™ncia a tela Cadastro de Benefici√°rio.
+- MUST replicar padr√£o visual, estrutural e funcional.
 
 ## Base da Tela
 
 - MUST usar app-tela-padrao.
 - MUST usar [fullWidth]="true".
-- MUST ocupar 100% da ·rea ˙til com respiro lateral.
-- MUST manter tipografia idÍntica ao padr„o Benefici·rio.
-- MUST manter Ìcone do tÌtulo igual ao menu correspondente.
-- MUST NOT criar variaÁıes visuais por tela.
-- MUST aplicar estilos globais via src/styles.scss quando padr„o global.
+- MUST ocupar 100% da √°rea √∫til com respiro lateral.
+- MUST manter tipografia id√™ntica ao padr√£o Benefici√°rio.
+- MUST manter √≠cone do t√≠tulo igual ao menu correspondente.
+- MUST NOT criar varia√ß√µes visuais por tela.
+- MUST aplicar estilos globais via src/styles.scss quando padr√£o global.
 - MUST NOT duplicar CSS estrutural nos componentes.
 
 ---
 
-# CabeÁalho da P·gina
+# Cabe√ßalho da P√°gina
 
 - MUST exibir:
-  - Linha 1: MENU PAI em letras mai˙sculas, cinza.
-  - Linha 2: Tela Atual (Primeira letra mai˙scula), preta.
-- MUST existir apenas 1 tÌtulo principal.
+  - Linha 1: MENU PAI em letras mai√∫sculas, cinza.
+  - Linha 2: Tela Atual (Primeira letra mai√∫scula), preta.
+- MUST existir apenas 1 t√≠tulo principal.
 - MUST NOT duplicar header.
 - MUST NOT sobrepor textos.
-- MUST NOT adicionar tÌtulos fora dos cards das abas.
+- MUST NOT adicionar t√≠tulos fora dos cards das abas.
 
 ---
 
-# Barra de AÁıes CRUD (Ordem Fixa)
+# Barra de A√ß√µes CRUD (Ordem Fixa)
 
 Buscar ? Novo ? Salvar ? Cancelar ? Excluir ? Imprimir ? Fechar
 
 - MUST manter essa ordem.
-- MUST destacar visualmente o bot„o Excluir.
-- MUST manter Fechar como ˙ltimo bot„o.
-- MUST garantir 1 clique por aÁ„o.
-- MUST usar type="button" por padr„o.
-- MAY usar type="submit" apenas quando estritamente necess·rio.
+- MUST destacar visualmente o bot√£o Excluir.
+- MUST manter Fechar como √∫ltimo bot√£o.
+- MUST garantir 1 clique por a√ß√£o.
+- MUST usar type="button" por padr√£o.
+- MAY usar type="submit" apenas quando estritamente necess√°rio.
 - MUST inicializar handlers no ngOnInit.
-- MUST NOT usar setTimeout como soluÁ„o estrutural.
-- MUST NOT duplicar eventos (click + mouseup, m˙ltiplos listeners).
+- MUST NOT usar setTimeout como solu√ß√£o estrutural.
+- MUST NOT duplicar eventos (click + mouseup, m√∫ltiplos listeners).
 
 ---
 
 # Abas Laterais
 
-- MUST usar abas laterais no padr„o Benefici·rio.
+- MUST usar abas laterais no padr√£o Benefici√°rio.
 - MUST aplicar CSS global via src/styles.scss.
 - MUST NOT duplicar CSS das abas nos componentes.
 - MUST manter tamanho:
@@ -216,65 +215,65 @@ Buscar ? Novo ? Salvar ? Cancelar ? Excluir ? Imprimir ? Fechar
   - padding: 0.35rem 0.55rem
   - font-size: 0.8rem
 - MUST permitir apenas 1 aba ativa por vez.
-- MUST manter badge verde com texto em mai˙sculas.
-- MUST manter comportamento idÍntico ao padr„o consolidado.
+- MUST manter badge verde com texto em mai√∫sculas.
+- MUST manter comportamento id√™ntico ao padr√£o consolidado.
 
 ---
 
-# Carregamento Autom·tico de Dados
+# Carregamento Autom√°tico de Dados
 
 - MUST carregar dados ao abrir a tela.
-- MUST usar lifecycle adequado (ngOnInit ou ngAfterViewInit quando necess·rio).
-- MUST garantir atualizaÁ„o correta se usar OnPush.
+- MUST usar lifecycle adequado (ngOnInit ou ngAfterViewInit quando necess√°rio).
+- MUST garantir atualiza√ß√£o correta se usar OnPush.
 - MUST NOT depender de clique, foco ou troca de aba para carregar dados.
 - MUST NOT usar eventos artificiais ou gambiarras.
 
 ---
 
-# Formul·rios e ValidaÁıes
+# Formul√°rios e Valida√ß√µes
 
-- MUST indicar campo obrigatÛrio com (*).
-- MUST exibir mensagem clara ao salvar com campos inv·lidos.
+- MUST indicar campo obrigat√≥rio com (*).
+- MUST exibir mensagem clara ao salvar com campos inv√°lidos.
 - MUST usar PopupErrorBuilder + app-popup-messages.
 - MUST validar CPF:
-  - M·scara 000.000.000-00
-  - ValidaÁ„o completa
-  - Indicar inv·lido com borda vermelha
+  - M√°scara 000.000.000-00
+  - Valida√ß√£o completa
+  - Indicar inv√°lido com borda vermelha
 - MUST validar CNPJ:
-  - M·scara 00.000.000/0000-00
-  - ValidaÁ„o completa
+  - M√°scara 00.000.000/0000-00
+  - Valida√ß√£o completa
 
 ---
 
 # Listagens
 
-- MUST seguir modelo da listagem de Benefici·rios.
-- MUST manter apenas bot„o Limpar nos filtros.
-- MUST manter bot„o Buscar apenas na barra CRUD superior.
+- MUST seguir modelo da listagem de Benefici√°rios.
+- MUST manter apenas bot√£o Limpar nos filtros.
+- MUST manter bot√£o Buscar apenas na barra CRUD superior.
 - MUST permitir tecla Enter acionar Buscar sem duplicar evento.
-- MUST remover bot„o Editar da listagem.
+- MUST remover bot√£o Editar da listagem.
 - MUST permitir duplo clique na linha/card para editar.
-- MUST manter espaÁamento horizontal adequado entre campos.
+- MUST manter espa√ßamento horizontal adequado entre campos.
 
 ---
 
-# Componentes Compartilhados (ReutilizaÁ„o ObrigatÛria)
+# Componentes Compartilhados (Reutiliza√ß√£o Obrigat√≥ria)
 
 - Autocomplete: MUST usar app-autocomplete.
-- Mensagens de formul·rio: MUST usar PopupErrorBuilder + app-popup-messages.
+- Mensagens de formul√°rio: MUST usar PopupErrorBuilder + app-popup-messages.
 - Mensagens globais: MUST usar ErrorService + ToastComponent.
-- ConfirmaÁıes: MUST usar app-dialog.
-- Email: MUST usar configuraÁ„o j· existente do servidor.
+- Confirma√ß√µes: MUST usar app-dialog.
+- Email: MUST usar configura√ß√£o j√° existente do servidor.
 
 ---
 
 # Banco de Dados
 
-- MUST registrar alteraÁ„o estrutural em init.db.
+- MUST registrar altera√ß√£o estrutural em init.db.
 - MUST criar scripts idempotentes.
-- MUST usar nomes em portuguÍs sem acentuaÁ„o.
+- MUST usar nomes em portugu√™s sem acentua√ß√£o.
 - MUST usar PK id sequencial.
-- MUST usar FKs obrigatÛrias.
+- MUST usar FKs obrigat√≥rias.
 - Ao criar entidade nova:
   - MUST criar Domain
   - MUST criar DTO
@@ -284,45 +283,60 @@ Buscar ? Novo ? Salvar ? Cancelar ? Excluir ? Imprimir ? Fechar
 
 ---
 
-# RelatÛrios
+# Relat√≥rios
 
-- MUST padr„o A4.
+- MUST padr√£o A4.
 - MUST margens 20mm.
 - MUST fonte Arial.
-- MUST conter cabeÁalho, corpo e rodapÈ.
-- MUST conter "P·gina X de Y".
+- MUST conter cabe√ßalho, corpo e rodap√©.
+- MUST conter "P√°gina X de Y".
 - MUST usar dados reais.
 - MUST gerar HTML + PDF.
 - MUST executar com 1 clique.
-- MUST usar template ˙nico reutiliz·vel.
+- MUST usar template √∫nico reutiliz√°vel.
+
+## Relatorio Padrao (#relatorio padrao)
+
+- MUST, ao iniciar uma nova demanda de relat√≥rio, registrar: implementar relatorio conforme #relatorio padrao.
+- MUST usar RelatorioTemplatePadrao para montar o HTML.
+- MUST gerar PDF via HtmlPdfRenderer.
+- MUST expor endpoint em /api/reports.
+- MUST criar DTO de requisi√ß√£o quando houver filtros.
+- MUST implementar Service dedicado e chamar a regra de neg√≥cio no Service.
+- MUST manter Controller apenas orquestrando a resposta.
+- MUST garantir dados reais e coerentes com o dom√≠nio.
+- MUST ordenar dados de forma previs√≠vel.
+- MUST retornar Content-Disposition inline com nome de arquivo .pdf.
+- MUST integrar no frontend via ReportService.
+- MUST abrir em nova guia e permitir 1 clique para imprimir.
 
 ---
 
 # Testes
 
 - MUST criar ou atualizar testes ao alterar comportamento.
-- SHOULD priorizar fluxos crÌticos.
-- MUST ser r·pidos e deterministas.
+- SHOULD priorizar fluxos cr√≠ticos.
+- MUST ser r√°pidos e deterministas.
 
 ---
 
 # Logs
 
-- MUST registrar erros crÌticos no backend.
-- MUST registrar falhas de autenticaÁ„o.
-- MUST registrar exclusıes crÌticas.
-- MUST n„o expor stacktrace ao usu·rio.
-- SHOULD seguir padr„o ˙nico de log.
+- MUST registrar erros cr√≠ticos no backend.
+- MUST registrar falhas de autentica√ß√£o.
+- MUST registrar exclus√µes cr√≠ticas.
+- MUST n√£o expor stacktrace ao usu√°rio.
+- SHOULD seguir padr√£o √∫nico de log.
 
 ---
 
-# Vers„o
+# Vers√£o
 
-- MUST atualizar vers„o em ConfiguraÁıes Gerais.
+- MUST atualizar vers√£o em Configura√ß√µes Gerais.
 - MUST usar formato 1.00.0.
-- MUST incrementar apenas o ˙ltimo grupo.
-- MUST n„o repetir n˙mero de vers„o.
-- MUST registrar mudanÁas de forma objetiva.
+- MUST incrementar apenas o √∫ltimo grupo.
+- MUST n√£o repetir n√∫mero de vers√£o.
+- MUST registrar mudan√ßas de forma objetiva.
 
 ---
 
@@ -330,17 +344,18 @@ Buscar ? Novo ? Salvar ? Cancelar ? Excluir ? Imprimir ? Fechar
 
 Todo agente MUST confirmar:
 
-- Tela idÍntica ao padr„o Benefici·rio
+- Tela id√™ntica ao padr√£o Benefici√°rio
 - CRUD funcional
-- 1 clique por aÁ„o
-- Sem sobreposiÁ„o visual
+- 1 clique por a√ß√£o
+- Sem sobreposi√ß√£o visual
 - Dados carregam automaticamente
-- ValidaÁıes completas
-- Sem duplicaÁ„o de cÛdigo
+- Valida√ß√µes completas
+- Sem duplica√ß√£o de c√≥digo
 - Backend seguro
 - Banco atualizado via init.db
 - Sem memory leak
 - Sem CSS duplicado
 - Idioma correto:
-  - Frontend: pt-BR com acentuaÁ„o
-  - Backend: portuguÍs sem acentuaÁ„o
+  - Frontend: pt-BR com acentua√ß√£o
+  - Backend: portugu√™s sem acentua√ß√£o
+
