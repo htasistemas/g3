@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class PontoNetworkValidatorTeste {
-  private final PontoNetworkValidator validator = new PontoNetworkValidator();
+  private final PontoNetworkValidator validator = new PontoNetworkValidator(false);
 
   @Test
   void obterIpCliente_deveUsarForwardedQuandoProxyLocal() {
@@ -100,7 +100,7 @@ public class PontoNetworkValidatorTeste {
         null,
         null,
         null,
-        List.of(),
+        List.<br.com.g3.unidadeassistencial.dto.DiretoriaUnidadeResponse>of(),
         true,
         null,
         null,
