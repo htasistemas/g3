@@ -25,7 +25,13 @@ import { BeneficiarioApiPayload, BeneficiarioApiService } from '../../services/b
 import { FamilyService, FamiliaPayload } from '../../services/family.service';
 import { AlmoxarifadoService } from '../../services/almoxarifado.service';
 import { DoacaoRealizadaResponse, DoacaoRealizadaService } from '../../services/doacao-realizada.service';
+import {
+  DoacaoPlanejadaRequest,
+  DoacaoPlanejadaResponse,
+  DoacaoPlanejadaService
+} from '../../services/doacao-planejada.service';
 import { AuthService } from '../../services/auth.service';
+import { ReportService } from '../../services/report.service';
 import { PopupErrorBuilder } from '../../utils/popup-error.builder';
 import {
   VisitaDomiciliar,
@@ -36,6 +42,7 @@ import { AutocompleteComponent, AutocompleteOpcao } from '../compartilhado/autoc
 
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
+import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import {
   ConfigAcoesCrud,
   EstadoAcoesCrud,
@@ -105,7 +112,7 @@ interface DonationRecord {
 }
 
 interface PlannedDonation {
-  id: string;
+  id: number;
   beneficiaryId: string;
   beneficiaryName: string;
   beneficiaryDocument: string;
@@ -132,6 +139,7 @@ type TabId = 'identificacao' | 'historico' | 'planejamento' | 'dashboard';
     FontAwesomeModule,
     TelaPadraoComponent,
     PopupMessagesComponent,
+    DialogComponent,
     AutocompleteComponent
   ],
   templateUrl: './donation-management.component.html',
@@ -180,7 +188,9 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   private readonly familyService = inject(FamilyService);
   private readonly almoxarifadoService = inject(AlmoxarifadoService);
   private readonly doacaoRealizadaService = inject(DoacaoRealizadaService);
+  private readonly doacaoPlanejadaService = inject(DoacaoPlanejadaService);
   private readonly authService = inject(AuthService);
+  private readonly reportService = inject(ReportService);
   private readonly visitaService = inject(VisitaDomiciliarService);
   private readonly unidadeService = inject(AssistanceUnitService);
   private readonly todayIso = new Date().toISOString().substring(0, 10);
@@ -204,14 +214,18 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   stockStatus = signal<'todos' | StockItem['status']>('todos');
   itemError = signal<string | null>(null);
   plannedError = signal<string | null>(null);
+  plannedPopupMensagens: string[] = [];
+  plannedPopupTitulo = 'Sucesso';
   historicoErro = signal<string | null>(null);
   editError = signal<string | null>(null);
   popupErros: string[] = [];
+  printDialogOpen = false;
 
   beneficiaries = signal<Beneficiary[]>([]);
 
   stockItems = signal<StockItem[]>([]);
   termoBuscaItemEntrega = '';
+  termoBuscaItemPlanejado = '';
   itensEntregaOpcoes: AutocompleteOpcao[] = [];
   unidadeAtual: AssistanceUnitPayload | null = null;
 
@@ -268,7 +282,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   searchingBeneficiaries = signal(false);
   motivoCestaBasica = signal<string | null>(null);
   mostrarMotivoCestaBasica = signal(false);
-  editingPlanId: string | null = null;
+  editingPlanId: number | null = null;
   cancelDialogOpen = signal(false);
   cancelReason = signal('');
   planToCancel = signal<PlannedDonation | null>(null);
@@ -331,7 +345,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   filteredPlans = computed(() => {
     let plans = this.plannedDonations();
     if (this.selectedBeneficiary()) {
-      plans = plans.filter((plan) => plan.beneficiaryId === this.selectedBeneficiary()!.id);
+      const selectedId = String(this.selectedBeneficiary()!.id);
+      plans = plans.filter((plan) => plan.beneficiaryId === selectedId);
     }
     plans = plans.filter((plan) => plan.status !== 'entregue');
     return plans;
@@ -339,6 +354,21 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
   get itensEntregaFiltrados(): AutocompleteOpcao[] {
     const termo = this.normalizarTexto(this.termoBuscaItemEntrega || '');
+    const itens = this.itensEntregaOpcoes;
+    if (!termo) {
+      return itens.slice(0, 15);
+    }
+    return itens
+      .filter((item) => {
+        const normalizado = this.normalizarTexto(item.label);
+        const sublabel = this.normalizarTexto(item.sublabel || '');
+        return normalizado.includes(termo) || sublabel.includes(termo);
+      })
+      .slice(0, 15);
+  }
+
+  get itensPlanejamentoFiltrados(): AutocompleteOpcao[] {
+    const termo = this.normalizarTexto(this.termoBuscaItemPlanejado || '');
     const itens = this.itensEntregaOpcoes;
     if (!termo) {
       return itens.slice(0, 15);
@@ -379,6 +409,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   ngOnInit(): void {
     this.loadStockItems();
     this.loadDoacoesRealizadas();
+    this.loadDoacoesPlanejadas();
     this.preencherResponsavelLogado();
     this.carregarUnidadeAtual();
   }
@@ -401,6 +432,9 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       this.activeTab.set(found.id);
       if (found.id === 'historico') {
         this.loadDoacoesRealizadas();
+      }
+      if (found.id === 'planejamento') {
+        this.loadDoacoesPlanejadas();
       }
     }
   }
@@ -437,6 +471,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     this.beneficiarySearch.set(beneficiary.name);
     this.identificationForm.patchValue({ beneficiaryName: beneficiary.name });
     this.loadDoacoesRealizadas();
+    this.loadDoacoesPlanejadas();
     this.handleBlockedBeneficiary(beneficiary);
     this.carregarInformacoesCestaBasica(beneficiary.name);
   }
@@ -453,6 +488,21 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const codigo = String(opcao.id || '');
     this.deliveredItemForm.patchValue({ itemCode: codigo });
     this.termoBuscaItemEntrega = opcao.label;
+  }
+
+  onItemPlanejadoTermoChange(termo: string): void {
+    this.termoBuscaItemPlanejado = termo;
+    const selecionado = this.selectedPlannedItem;
+    if (!termo || (selecionado && selecionado.description !== termo)) {
+      this.plannedForm.patchValue({ itemCode: '' });
+    }
+  }
+
+  onItemPlanejadoSelecionado(opcao: AutocompleteOpcao): void {
+    const codigo = String(opcao.id || '');
+    this.plannedForm.patchValue({ itemCode: codigo });
+    this.termoBuscaItemPlanejado = opcao.label;
+    this.atualizarDataPrevistaPorUltimaRetirada(codigo);
   }
 
   async onBeneficiaryInput(value: string): Promise<void> {
@@ -580,6 +630,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       this.deliveredItemForm.patchValue({ itemCode: item.code });
     } else if (this.stockModalContext() === 'plan') {
       this.plannedForm.patchValue({ itemCode: item.code });
+      this.termoBuscaItemPlanejado = item.description;
       this.atualizarDataPrevistaPorUltimaRetirada(item.code);
     } else {
       this.editItemForm.patchValue({ itemCode: item.code });
@@ -692,28 +743,44 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       return;
     }
 
-    const payload: PlannedDonation = {
-      id: this.editingPlanId ?? `PLAN-${String(this.plannedDonations().length + 1).padStart(3, '0')}`,
-      beneficiaryId: this.selectedBeneficiary()!.id,
-      beneficiaryName: this.selectedBeneficiary()!.name,
-      beneficiaryDocument: this.selectedBeneficiary()!.document,
-      itemCode: this.selectedPlannedItem.code,
-      itemDescription: this.selectedPlannedItem.description,
-      unit: this.selectedPlannedItem.unit,
-      quantity: this.plannedForm.value['quantity'],
-      dueDate: this.plannedForm.value['dueDate'],
-      priority: this.plannedForm.value['priority'],
+    const selected = this.selectedBeneficiary()!;
+    const request: DoacaoPlanejadaRequest = {
+      beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
+      vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
+      itemCodigo: this.selectedPlannedItem.code,
+      quantidade: this.plannedForm.value['quantity'],
+      dataPrevista: this.plannedForm.value['dueDate'],
+      prioridade: this.plannedForm.value['priority'],
       status: this.plannedForm.value['status'],
-      notes: this.plannedForm.value['notes']
+      observacoes: this.plannedForm.value['notes']
     };
 
-    if (this.editingPlanId) {
-      this.plannedDonations.update((plans) => plans.map((plan) => (plan.id === this.editingPlanId ? payload : plan)));
-    } else {
-      this.plannedDonations.update((plans) => [payload, ...plans]);
-    }
+    const requisicao$ = this.editingPlanId
+      ? this.doacaoPlanejadaService.atualizar(this.editingPlanId, request)
+      : this.doacaoPlanejadaService.criar(request);
 
-    this.clearPlanForm();
+    requisicao$.subscribe({
+      next: (response) => {
+        const payload = this.mapDoacaoPlanejada(response, selected);
+        if (this.editingPlanId) {
+          this.plannedDonations.update((plans) => plans.map((plan) => (plan.id === payload.id ? payload : plan)));
+        } else {
+          this.plannedDonations.update((plans) => [payload, ...plans]);
+        }
+        this.clearPlanForm();
+        this.loadDoacoesPlanejadas();
+        this.plannedPopupTitulo = 'Sucesso';
+        this.plannedPopupMensagens = ['Doação planejada registrada com sucesso.'];
+      },
+      error: () => {
+        this.plannedError.set('Não foi possível salvar a doação planejada.');
+      }
+    });
+  }
+
+  fecharPopupPlanejamento(): void {
+    this.plannedPopupMensagens = [];
+    this.plannedPopupTitulo = 'Sucesso';
   }
 
   editPlan(plan: PlannedDonation): void {
@@ -726,17 +793,24 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       status: plan.status,
       notes: plan.notes ?? ''
     });
+    this.termoBuscaItemPlanejado = plan.itemDescription;
     this.stockModalContext.set('plan');
   }
 
   cancelPlan(plan: PlannedDonation): void {
-    this.plannedDonations.update((plans) =>
-      plans.map((p) =>
-        p.id === plan.id
-          ? { ...p, status: 'cancelado', cancelReason: this.cancelReason() || p.cancelReason, notes: p.notes }
-          : p
-      )
-    );
+    const request = this.montarRequestPlanejado(plan, {
+      status: 'cancelado',
+      motivoCancelamento: this.cancelReason() || plan.cancelReason || ''
+    });
+    this.doacaoPlanejadaService.atualizar(plan.id, request).subscribe({
+      next: (response) => {
+        const atualizado = this.mapDoacaoPlanejada(response, this.selectedBeneficiary() ?? null);
+        this.plannedDonations.update((plans) => plans.map((p) => (p.id === atualizado.id ? atualizado : p)));
+      },
+      error: () => {
+        this.plannedError.set('Não foi possível cancelar a doação planejada.');
+      }
+    });
   }
 
   markPlanAsDelivered(plan: PlannedDonation): void {
@@ -815,9 +889,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       next: (response) => {
         this.adjustStock(plan.itemCode, -plan.quantity);
         this.donationHistory.update((history) => [this.mapDoacao(response), ...history]);
-        this.plannedDonations.update((plans) =>
-          plans.map((item) => (item.id === plan.id ? { ...item, status: 'entregue' } : item))
-        );
+        this.atualizarStatusPlanejado(plan, 'entregue');
         this.changeTab('historico');
       },
       error: () => {
@@ -885,6 +957,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       status: 'pendente',
       notes: ''
     });
+    this.termoBuscaItemPlanejado = '';
   }
 
   private findStockItem(code?: string): StockItem | undefined {
@@ -926,6 +999,24 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.historicoErro.set('Não foi possível carregar as doações realizadas.');
+      }
+    });
+  }
+
+  private loadDoacoesPlanejadas(): void {
+    const selected = this.selectedBeneficiary();
+    const filtros = selected
+      ? selected.type === 'beneficiario'
+        ? { beneficiarioId: Number(selected.id) }
+        : { vinculoFamiliarId: Number(selected.id) }
+      : undefined;
+    this.doacaoPlanejadaService.listar(filtros).subscribe({
+      next: (records) => {
+        const mapped = records.map((record) => this.mapDoacaoPlanejada(record, selected));
+        this.plannedDonations.set(mapped);
+      },
+      error: () => {
+        this.plannedError.set('Não foi possível carregar as doações planejadas.');
       }
     });
   }
@@ -1035,29 +1126,31 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const templateItem = record.items[0];
     if (!templateItem) return;
 
-    const payload: PlannedDonation = {
-      id: `PLAN-${String(this.plannedDonations().length + 1).padStart(3, '0')}`,
-      beneficiaryId: this.selectedBeneficiary()!.id,
-      beneficiaryName: this.selectedBeneficiary()!.name,
-      beneficiaryDocument: this.selectedBeneficiary()!.document,
-      itemCode: templateItem.stockCode,
-      itemDescription: templateItem.description,
-      unit: templateItem.unit,
-      quantity: templateItem.quantity,
-      dueDate: this.offsetDate(30),
-      priority: 'media',
+    const selected = this.selectedBeneficiary()!;
+    const request: DoacaoPlanejadaRequest = {
+      beneficiarioId: selected.type === 'beneficiario' ? Number(selected.id) : undefined,
+      vinculoFamiliarId: selected.type === 'familia' ? Number(selected.id) : undefined,
+      itemCodigo: templateItem.stockCode,
+      quantidade: templateItem.quantity,
+      dataPrevista: this.offsetDate(30),
+      prioridade: 'media',
       status: 'pendente',
-      notes: 'Próxima cesta básica programada automaticamente após a entrega.'
+      observacoes: 'Próxima cesta básica programada automaticamente após a entrega.'
     };
 
-    this.plannedDonations.update((plans) => [payload, ...plans]);
-    this.plannedForm.patchValue({
-      itemCode: payload.itemCode,
-      quantity: payload.quantity,
-      dueDate: payload.dueDate,
-      priority: payload.priority,
-      status: payload.status,
-      notes: ''
+    this.doacaoPlanejadaService.criar(request).subscribe({
+      next: (response) => {
+        const payload = this.mapDoacaoPlanejada(response, selected);
+        this.plannedDonations.update((plans) => [payload, ...plans]);
+        this.plannedForm.patchValue({
+          itemCode: payload.itemCode,
+          quantity: payload.quantity,
+          dueDate: payload.dueDate,
+          priority: payload.priority,
+          status: payload.status,
+          notes: ''
+        });
+      }
     });
   }
 
@@ -1403,7 +1496,54 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   }
 
   onImprimir(): void {
-    window.print();
+    this.printDialogOpen = true;
+  }
+
+  fecharDialogoImpressao(): void {
+    this.printDialogOpen = false;
+  }
+
+  imprimirRelatorioDoacoesPendentes(): void {
+    this.printDialogOpen = false;
+    const usuarioEmissor = this.authService.user()?.nome || this.authService.user()?.nomeUsuario || 'Sistema';
+    this.reportService.generateDoacoesPlanejadasPendentes({ usuarioEmissor }).subscribe({
+      next: (arquivo: Blob) => this.abrirPdfEmNovaGuia(arquivo),
+      error: () => {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível gerar o relatório de doações pendentes.')
+          .build();
+      }
+    });
+  }
+
+  imprimirRelatorioDoacoesBeneficiario(): void {
+    const selecionado = this.selectedBeneficiary();
+    if (!selecionado) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione um beneficiário para gerar o relatório.')
+        .build();
+      return;
+    }
+    if (selecionado.type !== 'beneficiario') {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Selecione um beneficiário (não família) para gerar o relatório.')
+        .build();
+      return;
+    }
+
+    this.printDialogOpen = false;
+    const usuarioEmissor = this.authService.user()?.nome || this.authService.user()?.nomeUsuario || 'Sistema';
+    this.reportService.generateDoacoesBeneficiario({
+      beneficiarioId: selecionado.id,
+      usuarioEmissor
+    }).subscribe({
+      next: (arquivo: Blob) => this.abrirPdfEmNovaGuia(arquivo),
+      error: () => {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Não foi possível gerar o relatório do beneficiário.')
+          .build();
+      }
+    });
   }
 
   imprimirTermoRecebimento(record: DonationRecord): void {
@@ -1429,10 +1569,10 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
           }
         }, 1500);
       };
-      if (!imagens.length) {
-        acionar();
-        return;
-      }
+    if (!imagens.length) {
+      acionar();
+      return;
+    }
       let carregadas = 0;
       const concluir = () => {
         carregadas += 1;
@@ -1448,7 +1588,86 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
           img.addEventListener('error', concluir);
         }
       });
+      };
+    }
+
+  private abrirPdfEmNovaGuia(arquivo: Blob): void {
+    const url = URL.createObjectURL(arquivo);
+    const janela = window.open(url, '_blank', 'width=900,height=1100');
+    if (!janela) {
+      this.popupErros = new PopupErrorBuilder()
+        .adicionar('Permita a abertura de pop-ups para visualizar o relatório.')
+        .build();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    const acionarImpressao = () => {
+      janela.focus();
+      janela.print();
     };
+
+    janela.addEventListener('load', acionarImpressao, { once: true });
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  private mapDoacaoPlanejada(
+    record: DoacaoPlanejadaResponse,
+    beneficiarioSelecionado: Beneficiary | null
+  ): PlannedDonation {
+    const beneficiaryId = String(record.beneficiarioId ?? record.vinculoFamiliarId ?? '');
+    const beneficiaryName =
+      beneficiarioSelecionado?.id === beneficiaryId
+        ? beneficiarioSelecionado.name
+        : beneficiarioSelecionado?.name || 'Beneficiário';
+    const beneficiaryDocument = beneficiarioSelecionado?.document || 'Documento não informado';
+
+    return {
+      id: record.id,
+      beneficiaryId,
+      beneficiaryName,
+      beneficiaryDocument,
+      itemCode: record.itemCodigo,
+      itemDescription: record.itemDescricao || 'Item',
+      unit: record.itemUnidade || '-',
+      quantity: record.quantidade,
+      dueDate: record.dataPrevista,
+      priority: (record.prioridade as PlannedDonation['priority']) || 'media',
+      status: (record.status as PlannedDonation['status']) || 'pendente',
+      notes: record.observacoes,
+      cancelReason: record.motivoCancelamento
+    };
+  }
+
+  private montarRequestPlanejado(
+    plan: PlannedDonation,
+    override?: Partial<Pick<DoacaoPlanejadaRequest, 'status' | 'observacoes' | 'motivoCancelamento'>>
+  ): DoacaoPlanejadaRequest {
+    const beneficiario = this.selectedBeneficiary();
+    return {
+      beneficiarioId: beneficiario?.type === 'beneficiario' ? Number(beneficiario.id) : undefined,
+      vinculoFamiliarId: beneficiario?.type === 'familia' ? Number(beneficiario.id) : undefined,
+      itemCodigo: plan.itemCode,
+      quantidade: plan.quantity,
+      dataPrevista: plan.dueDate,
+      prioridade: plan.priority,
+      status: override?.status ?? plan.status,
+      observacoes: override?.observacoes ?? plan.notes,
+      motivoCancelamento: override?.motivoCancelamento ?? plan.cancelReason
+    };
+  }
+
+  private atualizarStatusPlanejado(plan: PlannedDonation, status: PlannedDonation['status']): void {
+    const request = this.montarRequestPlanejado(plan, { status });
+    this.doacaoPlanejadaService.atualizar(plan.id, request).subscribe({
+      next: (response) => {
+        const atualizado = this.mapDoacaoPlanejada(response, this.selectedBeneficiary() ?? null);
+        this.plannedDonations.update((plans) => plans.map((item) => (item.id === atualizado.id ? atualizado : item)));
+      },
+      error: () => {
+        this.plannedError.set('Não foi possível atualizar o status da doação planejada.');
+      }
+    });
   }
 
   private buildTermoRecebimentoHtml(record: DonationRecord): string {
@@ -1456,12 +1675,13 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
     const logo = unidade?.logomarcaRelatorio || unidade?.logomarca || '';
     const nomeFantasia = unidade?.nomeFantasia || 'Instituição';
     const razaoSocial = unidade?.razaoSocial || nomeFantasia;
-    const cnpj = unidade?.cnpj || '---';
-    const endereco = [unidade?.endereco, unidade?.numeroEndereco, unidade?.bairro, unidade?.cidade, unidade?.estado]
-      .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(' - ');
+    const cnpj = unidade?.cnpj || '';
+    const enderecoLinha = this.joinParts([unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento], ', ');
+    const bairroLinha = unidade?.bairro || '';
+    const cidadeLinha = unidade?.cidade || '';
     const telefoneUnidade = unidade?.telefone || '';
     const emailUnidade = unidade?.email || '';
+    const siteUnidade = unidade?.site || '';
 
     const dataEntrega = record.deliveryDate || record.date;
     const dataFormatada = dataEntrega ? this.formatarDataExtenso(dataEntrega) : '';
@@ -1593,9 +1813,17 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
               <p class="footer-info">
                 ${this.escapeHtml(this.joinParts([
                   cnpj ? `CNPJ: ${cnpj}` : '',
-                  endereco,
-                  this.joinParts([telefoneUnidade, emailUnidade], ' | ')
+                  enderecoLinha,
+                  bairroLinha,
+                  cidadeLinha
                 ], ' | ') || 'Endereço não informado')}
+              </p>
+              <p class="footer-info">
+                ${this.escapeHtml(this.joinParts([
+                  telefoneUnidade ? `Telefone: ${telefoneUnidade}` : '',
+                  emailUnidade ? `E-mail: ${emailUnidade}` : '',
+                  siteUnidade ? `Site: ${siteUnidade}` : ''
+                ], ' | '))}
               </p>
               <p class="footer-info"><span class="page-number"></span></p>
             </footer>
@@ -1649,6 +1877,8 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   }
 
 }
+
+
 
 
 

@@ -19,6 +19,7 @@ import {
   UnidadeAssistencialResponse
 } from '../../services/folha-ponto.service';
 import { UserPayload, UserService } from '../../services/user.service';
+import { RuntimeConfigService } from '../../services/runtime-config.service';
 
 interface TabItem {
   id: 'registro' | 'espelho' | 'configuracao' | 'auditoria';
@@ -135,7 +136,8 @@ export class FolhaPontoComponent implements OnInit {
     private readonly service: FolhaPontoService,
     private readonly userService: UserService,
     private readonly auth: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly runtimeConfig: RuntimeConfigService
   ) {
     this.configuracaoForm = this.fb.group({
       cargaSemanalHoras: [40, Validators.required],
@@ -143,7 +145,8 @@ export class FolhaPontoComponent implements OnInit {
       cargaSextaHoras: [4, Validators.required],
       cargaSabadoHoras: [0, Validators.required],
       cargaDomingoHoras: [0, Validators.required],
-      toleranciaMinutos: [10, Validators.required]
+      toleranciaMinutos: [10, Validators.required],
+      ignorarValidacaoRede: [false]
     });
 
     this.horariosForm = this.fb.group({
@@ -352,10 +355,6 @@ export class FolhaPontoComponent implements OnInit {
     });
   }
 
-  atualizarLocalizacaoUnidade(): void {
-    this.carregarUnidadeAssistencial();
-  }
-
   carregarConfiguracao(): void {
     this.service.buscarConfiguracao().subscribe({
       next: (config) => {
@@ -366,7 +365,8 @@ export class FolhaPontoComponent implements OnInit {
           cargaSextaHoras: this.minutosParaHoras(config.cargaSextaMinutos),
           cargaSabadoHoras: this.minutosParaHoras(config.cargaSabadoMinutos),
           cargaDomingoHoras: this.minutosParaHoras(config.cargaDomingoMinutos),
-          toleranciaMinutos: config.toleranciaMinutos
+          toleranciaMinutos: config.toleranciaMinutos,
+          ignorarValidacaoRede: Boolean(config.ignorarValidacaoRede)
         });
       },
       error: () => {
@@ -476,7 +476,7 @@ export class FolhaPontoComponent implements OnInit {
     if (!this.funcionarioIdAtual) {
       return;
     }
-    if (this.mobileBloqueado) {
+    if (this.mobileBloqueado && !this.runtimeConfig.pontoBypass && !this.configuracao?.ignorarValidacaoRede) {
       this.popupTitulo = 'Atenção';
       this.popupErros = new PopupErrorBuilder()
         .adicionar('Registro de ponto permitido apenas no computador da instituição.')
@@ -655,7 +655,8 @@ export class FolhaPontoComponent implements OnInit {
       cargaSextaMinutos: this.horasParaMinutos(valores.cargaSextaHoras),
       cargaSabadoMinutos: this.horasParaMinutos(valores.cargaSabadoHoras),
       cargaDomingoMinutos: this.horasParaMinutos(valores.cargaDomingoHoras),
-      toleranciaMinutos: valores.toleranciaMinutos
+      toleranciaMinutos: valores.toleranciaMinutos,
+      ignorarValidacaoRede: Boolean(valores.ignorarValidacaoRede)
     };
     this.service.atualizarConfiguracao(this.usuarioIdAtual, payload).subscribe({
       next: (config) => {
@@ -711,7 +712,7 @@ export class FolhaPontoComponent implements OnInit {
   }
 
   podeRegistrar(tipo: 'E1' | 'S1' | 'E2' | 'S2'): boolean {
-    if (this.mobileBloqueado) {
+    if (this.mobileBloqueado && !this.runtimeConfig.pontoBypass && !this.configuracao?.ignorarValidacaoRede) {
       return false;
     }
     return this.proximoTipo() === tipo;
@@ -955,6 +956,14 @@ export class FolhaPontoComponent implements OnInit {
       },
       { emitEvent: false }
     );
+  }
+
+  converterNumero(valor: string | number | null | undefined): number | null {
+    if (valor === null || valor === undefined || valor === '') {
+      return null;
+    }
+    const numero = typeof valor === 'number' ? valor : Number(valor);
+    return Number.isNaN(numero) ? null : numero;
   }
 
   private minutosParaHoras(minutos?: number | null): number {
