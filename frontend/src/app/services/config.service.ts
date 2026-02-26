@@ -60,7 +60,7 @@ export class ConfigService {
   }
 
   getVersaoArquivo(): Observable<string> {
-    return this.http.get(`${this.runtimeConfig.apiUrl}/version.txt`, { responseType: 'text' });
+    return this.http.get(`${this.baseUrl}/versao/arquivo`, { responseType: 'text' });
   }
 
   getDestinoChamados(): Observable<DestinoChamadoResponse> {

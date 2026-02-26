@@ -14,4 +14,6 @@ public interface ConfiguracaoSistemaService {
   List<HistoricoVersaoResponse> listarHistorico();
 
   DestinoChamadoResponse obterDestinoChamados();
+
+  String obterVersaoArquivo();
 }

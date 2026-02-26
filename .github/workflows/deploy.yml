@@ -95,5 +95,8 @@ jobs:
             exit 1
           fi
 
+          echo "Atualizando versao do sistema a partir do arquivo..."
+          curl -fsS http://localhost:8080/api/config/versao > /dev/null || true
+
           # Garante que os containers permaneçam em execucao mesmo apos falha anterior
           docker compose -p g3 -f docker-compose.yml up -d

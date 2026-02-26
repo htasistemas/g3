@@ -98,6 +98,11 @@ public class ConfiguracaoSistemaServiceImpl implements ConfiguracaoSistemaServic
     return new DestinoChamadoResponse(destinoChamado);
   }
 
+  @Override
+  public String obterVersaoArquivo() {
+    return carregarVersaoArquivo();
+  }
+
   private boolean isBlank(String value) {
     return value == null || value.trim().isEmpty();
   }

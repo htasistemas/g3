@@ -6,6 +6,9 @@ import br.com.g3.configuracoes.dto.HistoricoVersaoResponse;
 import br.com.g3.configuracoes.dto.VersaoSistemaResponse;
 import br.com.g3.configuracoes.service.ConfiguracaoSistemaService;
 import java.util.List;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +27,14 @@ public class ConfiguracaoSistemaController {
   @GetMapping("/versao")
   public VersaoSistemaResponse obterVersaoAtual() {
     return service.obterVersaoAtual();
+  }
+
+  @GetMapping(value = "/versao/arquivo", produces = MediaType.TEXT_PLAIN_VALUE)
+  public ResponseEntity<String> obterVersaoArquivo() {
+    String versao = service.obterVersaoArquivo();
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noStore())
+        .body(versao == null ? "" : versao);
   }
 
   @PutMapping("/versao")
