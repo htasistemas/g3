@@ -294,6 +294,10 @@ Buscar ? Novo ? Salvar ? Cancelar ? Excluir ? Imprimir ? Fechar
 - MUST gerar HTML + PDF.
 - MUST executar com 1 clique.
 - MUST usar template único reutilizável.
+- MUST padronizar rodapé do relatório em 3 linhas:
+  - Linha 1: nome ou razão social da instituição.
+  - Linha 2: CNPJ, endereço, bairro e cidade.
+  - Linha 3: telefone, e-mail e site (se houver).
 
 ## Relatorio Padrao (#relatorio padrao)
 
@@ -358,4 +362,5 @@ Todo agente MUST confirmar:
 - Idioma correto:
   - Frontend: pt-BR com acentuação
   - Backend: português sem acentuação
+
 
