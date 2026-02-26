@@ -124,7 +124,7 @@
 
             <div class="tab-card__title-stack">
 
-              <p class="tab-card__highlight">Registro diÃ¡rio</p>
+              <p class="tab-card__highlight">Registro diário</p>
 
             </div>
 
@@ -134,9 +134,9 @@
 
                     <p class="info-note">
 
-            O registro de ponto ? permitido apenas no computador da instituiÃ§Ã£o, dentro da rede autorizada.
+            O registro de ponto é permitido apenas no computador da instituição, dentro da rede autorizada.
 
-            A sequÃªncia obrigatÃ³ria ?: Entrada 1 -> SaÃ­da 1 -> Entrada 2 -> SaÃ­da 2.
+            A sequência obrigatória é: Entrada 1 -> Saída 1 -> Entrada 2 -> Saída 2.
 
           </p>
 
@@ -148,18 +148,18 @@
 
               <p class="info-card__label">Unidade assistencial</p>
 
-              <h3>{{ unidadeAssistencial?.nomeFantasia || 'NÃ£o configurada' }}</h3>
+              <h3>{{ unidadeAssistencial?.nomeFantasia || 'Não configurada' }}</h3>
 
               <p>
 
-                {{ unidadeAssistencial?.endereco || 'EndereÃ§o n?o informado' }}
+                {{ unidadeAssistencial?.endereco || 'Endereço não informado' }}
 
                 <span *ngIf="unidadeAssistencial?.numeroEndereco">, {{ unidadeAssistencial?.numeroEndereco }}</span>
 
               </p>
               <p *ngIf="unidadeAssistencial?.ipsPublicosPonto">
 
-                IPs pÃºblicos autorizados: {{ unidadeAssistencial?.ipsPublicosPonto }}
+                IPs públicos autorizados: {{ unidadeAssistencial?.ipsPublicosPonto }}
 
               </p>
 
@@ -171,7 +171,7 @@
 
               <p *ngIf="unidadeAssistencial?.modoValidacaoPonto">
 
-                Modo de validaÃ§Ã£o: {{ obterDescricaoModoValidacao(unidadeAssistencial?.modoValidacaoPonto) }}
+                Modo de validação: {{ obterDescricaoModoValidacao(unidadeAssistencial?.modoValidacaoPonto) }}
 
               </p>
 
@@ -179,7 +179,7 @@
 
             <div class="info-card">
 
-              <p class="info-card__label">Carga e tolerÃ¢ncia</p>
+              <p class="info-card__label">Carga e tolerância</p>
 
               <h3>{{ formatarMinutos(configuracao?.cargaSemanalMinutos) }} semanais</h3>
 
@@ -187,7 +187,7 @@
 
               <p>Sexta: {{ formatarMinutos(configuracao?.cargaSextaMinutos) }}</p>
 
-              <p>Toler?ncia: {{ formatarMinutos(configuracao?.toleranciaMinutos) }}</p>
+              <p>Tolerância: {{ formatarMinutos(configuracao?.toleranciaMinutos) }}</p>
 
               <p>Carga prevista hoje: {{ cargaPrevistaHoje() }}</p>
 
@@ -211,11 +211,11 @@
 
             <div class="horario-trabalho__header">
 
-              <p class="horario-trabalho__title">HorÃ¡rios do funcion?rio</p>
+              <p class="horario-trabalho__title">Horários do funcionário</p>
 
               <span class="horario-trabalho__subtitle" *ngIf="isRhAdmin && funcionarioSelecionadoId">
 
-                FuncionÃ¡rio selecionado na lista
+                Funcionário selecionado na lista
 
               </span>
 
@@ -233,7 +233,7 @@
 
               <div class="horario-trabalho__item">
 
-                <span class="horario-trabalho__label">SaÃ­da 1</span>
+                <span class="horario-trabalho__label">Saída 1</span>
 
                 <strong>{{ obterHorarioDiaAtual().saida1 || '--:--' }}</strong>
 
@@ -249,7 +249,7 @@
 
               <div class="horario-trabalho__item">
 
-                <span class="horario-trabalho__label">SaÃ­da 2</span>
+                <span class="horario-trabalho__label">Saída 2</span>
 
                 <strong>{{ obterHorarioDiaAtual().saida2 || '--:--' }}</strong>
 
@@ -263,7 +263,7 @@
 
             <div class="horario-trabalho__header">
 
-              <p class="horario-trabalho__title">HorÃ¡rios registrados hoje</p>
+              <p class="horario-trabalho__title">Horários registrados hoje</p>
 
               <span class="horario-trabalho__subtitle" *ngIf="!getResumoDiaAtual()">
 
@@ -285,7 +285,7 @@
 
               <div class="horario-trabalho__item">
 
-                <span class="horario-trabalho__label">SaÃ­da 1</span>
+                <span class="horario-trabalho__label">Saída 1</span>
 
                 <strong>{{ obterHoraRegistrada('S1') || '--:--' }}</strong>
 
@@ -301,7 +301,7 @@
 
               <div class="horario-trabalho__item">
 
-                <span class="horario-trabalho__label">SaÃ­da 2</span>
+                <span class="horario-trabalho__label">Saída 2</span>
 
                 <strong>{{ obterHoraRegistrada('S2') || '--:--' }}</strong>
 
@@ -356,7 +356,7 @@
 
             >
 
-              <span class="batida-card__titulo">SaÃ­da 1</span>
+              <span class="batida-card__titulo">Saída 1</span>
 
               <strong class="batida-card__acao">
 
@@ -412,7 +412,7 @@
 
             >
 
-              <span class="batida-card__titulo">SaÃ­da 2</span>
+              <span class="batida-card__titulo">Saída 2</span>
 
               <strong class="batida-card__acao">
 
@@ -682,7 +682,7 @@
 
             </label>
 
-            <label class="field">Toler?ncia (min) (*)
+            <label class="field">Tolerância (min) (*)
 
               <input type="number" formControlName="toleranciaMinutos" />
             </label>
@@ -722,7 +722,7 @@
 
             <div class="tab-card__title-stack">
 
-              <p class="tab-card__highlight">HorÃ¡rios do funcion?rio</p>
+              <p class="tab-card__highlight">Horários do funcionário</p>
 
             </div>
 
@@ -784,7 +784,7 @@
 
                 </label>
 
-                <label class="field">SaÃ­da 1
+                <label class="field">Saída 1
 
                   <input type="time" [formControlName]="campoHorario(dia.id, 'Saida1')" [readonly]="!isRhAdmin" />
 
@@ -796,7 +796,7 @@
 
                 </label>
 
-                <label class="field">SaÃ­da 2
+                <label class="field">Saída 2
 
                   <input type="time" [formControlName]="campoHorario(dia.id, 'Saida2')" [readonly]="!isRhAdmin" />
 
@@ -1130,7 +1130,7 @@
 
           </label>
 
-          <label class="field">SaÃ­da 1
+          <label class="field">Saída 1
 
             <input type="time" formControlName="saida1" />
 
@@ -1142,7 +1142,7 @@
 
           </label>
 
-          <label class="field">SaÃ­da 2
+          <label class="field">Saída 2
 
             <input type="time" formControlName="saida2" />
 
@@ -1172,7 +1172,7 @@
 
       [aberto]="dialogDetalheHorarioAberta"
 
-      titulo="HorÃ¡rios do funcion?rio"
+      titulo="Horários do funcionário"
 
       mensagem="Horrios cadastrados por dia da semana."
 
@@ -1208,7 +1208,7 @@
 
               <div class="field">
 
-                <span>SaÃ­da 1</span>
+                <span>Saída 1</span>
 
                 <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Saida1') || '--:--' }}</strong>
 
@@ -1224,7 +1224,7 @@
 
               <div class="field">
 
-                <span>SaÃ­da 2</span>
+                <span>Saída 2</span>
 
                 <strong>{{ obterValorHorarioUsuario(usuario, dia.id, 'Saida2') || '--:--' }}</strong>
 
@@ -1289,6 +1289,8 @@
   </section>
 
 </app-tela-padrao>
+
+
 
 
 

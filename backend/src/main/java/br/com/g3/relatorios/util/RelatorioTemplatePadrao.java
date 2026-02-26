@@ -40,7 +40,11 @@ public final class RelatorioTemplatePadrao {
     String razaoSocial = safe(unidade != null ? unidade.getRazaoSocial() : null);
     String cnpj = safe(unidade != null ? unidade.getCnpj() : null);
     String telefone = safe(unidade != null ? unidade.getTelefone() : null);
-    String endereco = montarEndereco(unidade);
+    String enderecoLinha = montarEnderecoLinha(unidade);
+    String bairro = safe(unidade != null ? unidade.getBairro() : null);
+    String cidade = safe(unidade != null ? unidade.getCidade() : null);
+    String email = safe(unidade != null ? unidade.getEmail() : null);
+    String site = safe(unidade != null ? unidade.getSite() : null);
     String emissao = DATA_HORA_FORMATTER.format(dataHoraEmissao);
     String usuario = safe(usuarioEmissor);
 
@@ -150,7 +154,7 @@ public final class RelatorioTemplatePadrao {
             + "        text-align: center;\n"
             + "      }\n"
             + "      .page-number:before {\n"
-            + "        content: \"Pagina \" counter(page) \" de \" counter(pages);\n"
+            + "        content: \"Página \" counter(page) \" de \" counter(pages);\n"
             + "      }\n"
             + "      .signature { margin-top: 28px; width: 100%%; }\n"
             + "      .signature__line { display: inline-block; width: 49%%; border-top: 1px solid #111827; padding-top: 4px; text-align: center; font-size: 11px; vertical-align: top; }\n"
@@ -181,9 +185,8 @@ public final class RelatorioTemplatePadrao {
             + "    </main>\n"
             + "    <div class=\"footer page-footer\">\n"
             + "      <div>%s</div>\n"
-            + "      <div>CNPJ: %s</div>\n"
-            + "      <div>Endereco: %s</div>\n"
-            + "      <div>Telefone: %s</div>\n"
+            + "      <div>%s</div>\n"
+            + "      <div>%s</div>\n"
             + "      <div class=\"page-number\"></div>\n"
             + "      <div>Gerado em: %s</div>\n"
             + "    </div>\n"
@@ -202,9 +205,8 @@ public final class RelatorioTemplatePadrao {
         prepararParaFormatacao(""),
         prepararParaFormatacao(corpoHtml),
         prepararParaFormatacao(escape(razaoSocial)),
-        prepararParaFormatacao(escape(cnpj)),
-        prepararParaFormatacao(escape(endereco)),
-        prepararParaFormatacao(escape(telefone)),
+        prepararParaFormatacao(escape(montarLinhaCnpjEndereco(cnpj, enderecoLinha, bairro, cidade))),
+        prepararParaFormatacao(escape(montarLinhaContato(telefone, email, site))),
         prepararParaFormatacao(escape(emissao)));
   }
 
@@ -215,7 +217,7 @@ public final class RelatorioTemplatePadrao {
     return "<img class=\"header__logo\" src=\"" + escape(logomarcaRelatorio) + "\" alt=\"Logomarca\" />";
   }
 
-  private static String montarEndereco(UnidadeAssistencialResponse unidade) {
+  private static String montarEnderecoLinha(UnidadeAssistencialResponse unidade) {
     if (unidade == null) {
       return "Nao informado";
     }
@@ -223,10 +225,25 @@ public final class RelatorioTemplatePadrao {
     appendParte(sb, unidade.getEndereco());
     appendParte(sb, unidade.getNumeroEndereco());
     appendParte(sb, unidade.getComplemento());
-    appendParte(sb, unidade.getBairro());
-    appendParte(sb, unidade.getCidade());
-    appendParte(sb, unidade.getEstado());
     return sb.length() > 0 ? sb.toString() : "Nao informado";
+  }
+
+  private static String montarLinhaCnpjEndereco(
+      String cnpj, String endereco, String bairro, String cidade) {
+    StringBuilder sb = new StringBuilder();
+    appendParteComSeparador(sb, cnpj.isEmpty() ? "" : "CNPJ: " + cnpj, " | ");
+    appendParteComSeparador(sb, endereco, " | ");
+    appendParteComSeparador(sb, bairro, " | ");
+    appendParteComSeparador(sb, cidade, " | ");
+    return sb.length() > 0 ? sb.toString() : "Endereco nao informado";
+  }
+
+  private static String montarLinhaContato(String telefone, String email, String site) {
+    StringBuilder sb = new StringBuilder();
+    appendParteComSeparador(sb, telefone.isEmpty() ? "" : "Telefone: " + telefone, " | ");
+    appendParteComSeparador(sb, email.isEmpty() ? "" : "Email: " + email, " | ");
+    appendParteComSeparador(sb, site.isEmpty() ? "" : "Site: " + site, " | ");
+    return sb.toString();
   }
 
   private static void appendParte(StringBuilder sb, String valor) {
@@ -235,6 +252,16 @@ public final class RelatorioTemplatePadrao {
     }
     if (sb.length() > 0) {
       sb.append(" - ");
+    }
+    sb.append(valor.trim());
+  }
+
+  private static void appendParteComSeparador(StringBuilder sb, String valor, String separador) {
+    if (valor == null || valor.trim().isEmpty()) {
+      return;
+    }
+    if (sb.length() > 0) {
+      sb.append(separador);
     }
     sb.append(valor.trim());
   }
