@@ -13,6 +13,16 @@ frontend/dist
 docker/secrets/configuracao servidor email.txt
 backend-antigo/data
 backend/*.sqlite
+/backend/target
+**/target
+*.class
+.idea
+.vscode
+.classpath
+.project
+.settings
+.gradle
+tmp_folha.txt
 .env
 actions-runner
 configuracao servidor email.txt
