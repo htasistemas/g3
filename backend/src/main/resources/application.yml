@@ -49,6 +49,9 @@ app:
   storage:
     beneficiarios: storage/beneficiarios
     fotos-eventos: storage/fotos-eventos
+  backup:
+    pg-dump-path: ${APP_BACKUP_PG_DUMP_PATH:pg_dump}
+    psql-path: ${APP_BACKUP_PSQL_PATH:psql}
   email:
     habilitado: ${APP_EMAIL_HABILITADO:true}
     remetente: ${APP_EMAIL_REMETENTE:}

@@ -5,12 +5,15 @@ import { faServer } from '@fortawesome/free-solid-svg-icons';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { Subscription, timer } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import {
   GerenciamentoDadosBackupResponse,
   GerenciamentoDadosConfiguracaoResponse,
   GerenciamentoDadosService,
   GerenciamentoDadosRestauracaoResponse,
 } from '../../services/gerenciamento-dados.service';
+import { PopupErrorBuilder } from '../../utils/popup-error.builder';
+import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-messages.component';
 
 type BackupStatus = 'executando' | 'sucesso' | 'falha';
 
@@ -31,7 +34,13 @@ interface BackupRecord {
 @Component({
   selector: 'app-data-management',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, TelaPadraoComponent, DialogComponent],
+  imports: [
+    CommonModule,
+    FontAwesomeModule,
+    TelaPadraoComponent,
+    DialogComponent,
+    PopupMessagesComponent,
+  ],
   templateUrl: './data-management.component.html',
   styleUrl: './data-management.component.scss'
 })
@@ -39,7 +48,9 @@ export class DataManagementComponent implements OnInit, OnDestroy {
   readonly faServer = faServer;
   configuracao: GerenciamentoDadosConfiguracaoResponse | null = null;
   runningBackupId: number | null = null;
+  backupSolicitando = false;
   recentBackups: BackupRecord[] = [];
+  popupErros: string[] = [];
   restauracaoFeedback: { tipo: 'success' | 'error' | 'info'; mensagem: string } | null = null;
   restauracaoEmAndamento = false;
   dialogoRestaurarAberto = false;
@@ -62,7 +73,8 @@ export class DataManagementComponent implements OnInit, OnDestroy {
   }
 
   startBackup(): void {
-    if (this.runningBackupId) {
+    this.popupErros = [];
+    if (this.runningBackupId || this.backupSolicitando) {
       return;
     }
 
@@ -70,6 +82,7 @@ export class DataManagementComponent implements OnInit, OnDestroy {
     const armazenadoEm = this.configuracao?.caminhoDestino ?? 'C:\\Backup G3';
     const criptografado = !!this.configuracao?.criptografia;
 
+    this.backupSolicitando = true;
     this.gerenciamentoDadosService
       .criarBackup({
         rotulo: 'Backup completo manual',
@@ -79,11 +92,20 @@ export class DataManagementComponent implements OnInit, OnDestroy {
         criptografado,
         retencaoDias,
       })
-      .subscribe((backup) => {
-        const item = this.mapearBackupResposta(backup);
-        this.recentBackups = [item, ...this.recentBackups].slice(0, 6);
-        this.runningBackupId = item.status === 'executando' ? item.id : null;
-        this.gerenciarAtualizacaoAutomatica();
+      .pipe(finalize(() => (this.backupSolicitando = false)))
+      .subscribe({
+        next: (backup) => {
+          const item = this.mapearBackupResposta(backup);
+          this.recentBackups = [item, ...this.recentBackups].slice(0, 6);
+          this.runningBackupId = item.status === 'executando' ? item.id : null;
+          this.gerenciarAtualizacaoAutomatica();
+        },
+        error: () => {
+          const builder = new PopupErrorBuilder();
+          builder.adicionar('Não foi possível iniciar o backup completo.');
+          builder.adicionar('Verifique a configuração e tente novamente.');
+          this.popupErros = builder.build();
+        },
       });
   }
 
@@ -95,6 +117,10 @@ export class DataManagementComponent implements OnInit, OnDestroy {
   cancelarDialogoRestaurar(): void {
     this.dialogoRestaurarAberto = false;
     this.backupSelecionado = null;
+  }
+
+  fecharPopup(): void {
+    this.popupErros = [];
   }
 
   confirmarDialogoRestaurar(): void {

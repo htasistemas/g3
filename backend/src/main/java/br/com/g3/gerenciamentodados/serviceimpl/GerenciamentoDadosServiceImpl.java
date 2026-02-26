@@ -11,15 +11,22 @@ import br.com.g3.gerenciamentodados.repository.GerenciamentoDadosBackupRepositor
 import br.com.g3.gerenciamentodados.repository.GerenciamentoDadosConfiguracaoRepository;
 import br.com.g3.gerenciamentodados.service.GerenciamentoDadosService;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -27,6 +34,22 @@ import org.springframework.util.StringUtils;
 public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService {
   private static final DateTimeFormatter CODIGO_FORMATO =
       DateTimeFormatter.ofPattern("yyyyMMdd", Locale.getDefault());
+  private static final Logger LOGGER = LoggerFactory.getLogger(GerenciamentoDadosServiceImpl.class);
+
+  @Value("${spring.datasource.url:jdbc:postgresql://localhost:5432/g3}")
+  private String datasourceUrl;
+
+  @Value("${spring.datasource.username:postgres}")
+  private String datasourceUsuario;
+
+  @Value("${spring.datasource.password:}")
+  private String datasourceSenha;
+
+  @Value("${app.backup.pg-dump-path:pg_dump}")
+  private String pgDumpPath;
+
+  @Value("${app.backup.psql-path:psql}")
+  private String psqlPath;
 
   private final GerenciamentoDadosConfiguracaoRepository configuracaoRepository;
   private final GerenciamentoDadosBackupRepository backupRepository;
@@ -248,30 +271,35 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
     String caminhoSeguro = safeText(caminhoDestino, "C:\\\\Backup G3");
     LocalDateTime agora = LocalDateTime.now();
     try {
+      PostgresConfig postgresConfig = obterConfiguracaoPostgres();
       Path pasta = Paths.get(caminhoSeguro);
       Files.createDirectories(pasta);
       String arquivoNome = backup.getCodigo() + ".sql";
       Path arquivo = pasta.resolve(arquivoNome);
 
-      ProcessBuilder builder =
-          new ProcessBuilder(
-              "pg_dump",
-              "-h",
-              "localhost",
-              "-p",
-              "5432",
-              "-U",
-              "postgres",
-              "--clean",
-              "--if-exists",
-              "-F",
-              "p",
-              "-f",
-              arquivo.toString(),
-              "g3");
-      builder.environment().put("PGPASSWORD", "admin");
+      List<String> comando = new ArrayList<>();
+      comando.add(pgDumpPath);
+      comando.add("-h");
+      comando.add(postgresConfig.host);
+      comando.add("-p");
+      comando.add(String.valueOf(postgresConfig.porta));
+      comando.add("-U");
+      comando.add(postgresConfig.usuario);
+      comando.add("--clean");
+      comando.add("--if-exists");
+      comando.add("-F");
+      comando.add("p");
+      comando.add("-f");
+      comando.add(arquivo.toString());
+      comando.add(postgresConfig.banco);
+
+      ProcessBuilder builder = new ProcessBuilder(comando);
+      if (StringUtils.hasText(postgresConfig.senha)) {
+        builder.environment().put("PGPASSWORD", postgresConfig.senha);
+      }
       builder.redirectErrorStream(true);
       Process processo = builder.start();
+      String saida = lerSaidaProcesso(processo);
       int resultado = processo.waitFor();
       if (resultado == 0 && Files.exists(arquivo)) {
         long tamanhoBytes = Files.size(arquivo);
@@ -280,10 +308,15 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
         backup.setTamanho(String.format("%.2f MB", tamanhoBytes / (1024.0 * 1024.0)));
       } else {
         backup.setStatus("falha");
+        LOGGER.error(
+            "Falha ao executar backup. Codigo: {}. Saida: {}",
+            backup.getCodigo(),
+            limitarTexto(saida, 2000));
       }
     } catch (IOException | InterruptedException ex) {
       backup.setStatus("falha");
       Thread.currentThread().interrupt();
+      LOGGER.error("Falha ao executar backup. Codigo: {}.", backup.getCodigo(), ex);
     } finally {
       backup.setAtualizadoEm(LocalDateTime.now());
       backupRepository.salvar(backup);
@@ -292,6 +325,7 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
 
   private boolean executarRestauracaoPostgres(String arquivoBackup) {
     try {
+      PostgresConfig postgresConfig = obterConfiguracaoPostgres();
       Path arquivo = Paths.get(arquivoBackup);
       if (!Files.exists(arquivo)) {
         return false;
@@ -299,61 +333,153 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
 
       boolean schemaLimpo =
           executarComandoPsql(
-              List.of(
-                  "psql",
-                  "-h",
-                  "localhost",
-                  "-p",
-                  "5432",
-                  "-U",
-                  "postgres",
-                  "-d",
-                  "g3",
-                  "-v",
-                  "ON_ERROR_STOP=1",
-                  "-c",
-                  "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"));
+              montarComandoPsql(
+                  postgresConfig,
+                  List.of(
+                      "-v",
+                      "ON_ERROR_STOP=1",
+                      "-c",
+                      "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")),
+              postgresConfig.senha);
       if (!schemaLimpo) {
         return false;
       }
 
-      ProcessBuilder builder =
-          new ProcessBuilder(
-              "psql",
-              "-h",
-              "localhost",
-              "-p",
-              "5432",
-              "-U",
-              "postgres",
-              "-d",
-              "g3",
-              "-v",
-              "ON_ERROR_STOP=1",
-              "-f",
-              arquivo.toString());
-      builder.environment().put("PGPASSWORD", "admin");
+      List<String> comando =
+          montarComandoPsql(
+              postgresConfig,
+              List.of("-v", "ON_ERROR_STOP=1", "-f", arquivo.toString()));
+      ProcessBuilder builder = new ProcessBuilder(comando);
+      if (StringUtils.hasText(postgresConfig.senha)) {
+        builder.environment().put("PGPASSWORD", postgresConfig.senha);
+      }
       builder.redirectErrorStream(true);
       Process processo = builder.start();
+      String saida = lerSaidaProcesso(processo);
       int resultado = processo.waitFor();
+      if (resultado != 0) {
+        LOGGER.error("Falha ao restaurar backup. Saida: {}", limitarTexto(saida, 2000));
+      }
       return resultado == 0;
     } catch (IOException | InterruptedException ex) {
       Thread.currentThread().interrupt();
+      LOGGER.error("Falha ao restaurar backup.", ex);
       return false;
     }
   }
 
-  private boolean executarComandoPsql(List<String> argumentos) {
+  private boolean executarComandoPsql(List<String> argumentos, String senha) {
     try {
       ProcessBuilder builder = new ProcessBuilder(argumentos);
-      builder.environment().put("PGPASSWORD", "admin");
+      if (StringUtils.hasText(senha)) {
+        builder.environment().put("PGPASSWORD", senha);
+      }
       builder.redirectErrorStream(true);
       Process processo = builder.start();
+      String saida = lerSaidaProcesso(processo);
       int resultado = processo.waitFor();
+      if (resultado != 0) {
+        LOGGER.error("Falha ao executar comando psql. Saida: {}", limitarTexto(saida, 2000));
+      }
       return resultado == 0;
     } catch (IOException | InterruptedException ex) {
       Thread.currentThread().interrupt();
+      LOGGER.error("Falha ao executar comando psql.", ex);
       return false;
+    }
+  }
+
+  private PostgresConfig obterConfiguracaoPostgres() {
+    String urlSeguro = safeText(datasourceUrl, "jdbc:postgresql://localhost:5432/g3");
+    String usuario = safeText(datasourceUsuario, "postgres");
+    String senha = safeText(datasourceSenha, "");
+    String host = "localhost";
+    int porta = 5432;
+    String banco = "g3";
+
+    try {
+      String semJdbc = urlSeguro.startsWith("jdbc:") ? urlSeguro.substring(5) : urlSeguro;
+      URI uri = URI.create(semJdbc);
+      if (StringUtils.hasText(uri.getHost())) {
+        host = uri.getHost();
+      }
+      if (uri.getPort() > 0) {
+        porta = uri.getPort();
+      }
+      String caminho = uri.getPath();
+      if (StringUtils.hasText(caminho)) {
+        banco = caminho.startsWith("/") ? caminho.substring(1) : caminho;
+      }
+    } catch (IllegalArgumentException ex) {
+      String semPrefixo = urlSeguro.replace("jdbc:postgresql://", "");
+      String[] partes = semPrefixo.split("/", 2);
+      if (partes.length > 0 && StringUtils.hasText(partes[0])) {
+        String hostPorta = partes[0];
+        if (hostPorta.contains(":")) {
+          String[] hp = hostPorta.split(":", 2);
+          host = hp[0];
+          porta = parsePorta(hp[1], porta);
+        } else {
+          host = hostPorta;
+        }
+      }
+      if (partes.length > 1 && StringUtils.hasText(partes[1])) {
+        banco = partes[1].split("\\?")[0];
+      }
+    }
+
+    return new PostgresConfig(host, porta, banco, usuario, senha);
+  }
+
+  private List<String> montarComandoPsql(PostgresConfig config, List<String> argumentosExtras) {
+    List<String> comando = new ArrayList<>();
+    comando.add(psqlPath);
+    comando.add("-h");
+    comando.add(config.host);
+    comando.add("-p");
+    comando.add(String.valueOf(config.porta));
+    comando.add("-U");
+    comando.add(config.usuario);
+    comando.add("-d");
+    comando.add(config.banco);
+    comando.addAll(argumentosExtras);
+    return comando;
+  }
+
+  private String lerSaidaProcesso(Process processo) throws IOException {
+    try (InputStream inputStream = processo.getInputStream()) {
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+  }
+
+  private String limitarTexto(String texto, int limite) {
+    if (!StringUtils.hasText(texto) || texto.length() <= limite) {
+      return texto;
+    }
+    return texto.substring(0, limite);
+  }
+
+  private int parsePorta(String valor, int fallback) {
+    try {
+      return Integer.parseInt(valor.trim());
+    } catch (NumberFormatException ex) {
+      return fallback;
+    }
+  }
+
+  private static class PostgresConfig {
+    private final String host;
+    private final int porta;
+    private final String banco;
+    private final String usuario;
+    private final String senha;
+
+    private PostgresConfig(String host, int porta, String banco, String usuario, String senha) {
+      this.host = host;
+      this.porta = porta;
+      this.banco = banco;
+      this.usuario = usuario;
+      this.senha = senha;
     }
   }
 }

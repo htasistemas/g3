@@ -1,5 +1,10 @@
 ﻿<app-tela-padrao [fullWidth]="true">
   <section class="cadastro">
+    <app-popup-messages
+      [mensagens]="popupErros"
+      (fechar)="fecharPopup()"
+    ></app-popup-messages>
+
     <div class="cadastro-layout">
       <aside class="cadastro-menu">
         <div class="tab-shell">
@@ -35,9 +40,21 @@
                 <p class="muted">Execute o backup completo e acompanhe o último registro.</p>
               </div>
               <div class="flex gap-2">
-                <button type="button" class="btn-primary" (click)="startBackup()" [disabled]="backupEmAndamento()">
+                <button
+                  type="button"
+                  class="btn-primary"
+                  (click)="startBackup()"
+                  [disabled]="backupEmAndamento() || backupSolicitando"
+                >
                   Backup completo
                 </button>
+              </div>
+            </div>
+
+            <div class="inline-feedback inline-feedback--info" *ngIf="backupSolicitando">
+              <div>
+                <p class="font-semibold text-slate-800">Solicitando backup</p>
+                <p class="muted">Aguarde enquanto o backup é iniciado.</p>
               </div>
             </div>
 
