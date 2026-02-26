@@ -51,6 +51,17 @@ services:
       - g3_net
       - hta_public_net
 
+  g3-tunnel:
+    image: cloudflare/cloudflared:2024.2.1
+    container_name: g3-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - g3_net
+
 networks:
   g3_net:
   hta_public_net:
