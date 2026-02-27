@@ -246,20 +246,18 @@
         <article *ngFor="let course of records" class="catalog-card" [ngClass]="getCardAccent(course)">
           <div class="catalog-card__badge" [ngClass]="courseStatus(course).tone">{{ courseStatus(course).label }}</div>
           <div class="catalog-card__header">
-            <div class="catalog-card__media" *ngIf="course.imagem; else fallbackIcon">
-              <img [src]="course.imagem" [alt]="course.nome" />
+            <div class="catalog-card__media">
+              <img *ngIf="course.imagem; else fallbackIcon" [src]="course.imagem" [alt]="course.nome" />
+              <ng-template #fallbackIcon>
+                <div class="catalog-card__icon" aria-hidden="true">{{ course.tipo.slice(0, 1) }}</div>
+              </ng-template>
             </div>
-            <ng-template #fallbackIcon>
-              <div class="catalog-card__icon" aria-hidden="true">{{ course.tipo.slice(0, 1) }}</div>
-            </ng-template>
-            <div class="catalog-card__meta">
-              <p class="catalog-card__category">{{ course.tipo }}</p>
-              <h3 class="catalog-card__title">{{ course.nome }}</h3>
-              <p class="catalog-card__subtitle">{{ course.profissional }}</p>
-              <p class="catalog-card__partner" *ngIf="course.instituicaoParceira">
-                Instituição parceira: {{ course.instituicaoParceira }}
-              </p>
-            </div>
+            <h3 class="catalog-card__title">{{ course.nome }}</h3>
+            <p class="catalog-card__category">{{ course.tipo }}</p>
+            <p class="catalog-card__subtitle">{{ course.profissional }}</p>
+            <p class="catalog-card__partner" *ngIf="course.instituicaoParceira">
+              Instituição parceira: {{ course.instituicaoParceira }}
+            </p>
           </div>
           <p class="catalog-card__description">{{ course.descricao }}</p>
           <dl class="catalog-card__details">
