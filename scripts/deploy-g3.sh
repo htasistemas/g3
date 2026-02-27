@@ -22,25 +22,47 @@ else
   exit 1
 fi
 
- up -d --build backend frontend
+container_health() {
+  local name="$1"
+  local id
+  id="$($COMPOSE ps -q "$name" || true)"
+  if [[ -z "$id" ]]; then
+    echo "missing"
+    return 0
+  fi
+  docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-health{{end}}' "$id" 2>/dev/null || echo "missing"
+}
+
+wait_healthy() {
+  local name="$1"
+  local timeout="${2:-120}"
+  local start
+  local status
+  start="$(date +%s)"
+  while true; do
+    status="$(container_health "$name")"
+    if [[ "$status" == "healthy" ]]; then
+      echo "$name is healthy"
+      return 0
+    fi
+    if [[ "$status" == "unhealthy" ]]; then
+      echo "$name is unhealthy"
+      return 1
+    fi
+    if (( "$(date +%s)" - start >= timeout )); then
+      echo "$name healthcheck timeout after ${timeout}s (status: $status)"
+      return 1
+    fi
+    sleep 3
+  done
+}
+
+$COMPOSE up -d --build backend frontend
 
 echo "Aguardando backend..."
-for i in {1..20}; do
-  if curl -fsS http://localhost:8080/health >/dev/null; then
-    echo "Backend respondeu /health"
-    break
-  fi
-  sleep 3
- done
+wait_healthy backend 180 || { echo "Erro: backend nao respondeu /health"; exit 1; }
 
-if ! curl -fsS http://localhost:8080/health >/dev/null; then
-  echo "Erro: backend nao respondeu /health"
-  exit 1
-fi
-
-if ! curl -fsS http://localhost/ >/dev/null; then
-  echo "Erro: frontend nao respondeu"
-  exit 1
-fi
+echo "Aguardando frontend..."
+wait_healthy frontend 180 || { echo "Erro: frontend nao respondeu"; exit 1; }
 
 echo "Deploy finalizado."
