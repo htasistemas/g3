@@ -440,14 +440,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       .sort((a, b) => {
         const dataA = this.parseDate(a.dataMovimentacao)?.getTime();
         const dataB = this.parseDate(b.dataMovimentacao)?.getTime();
-        const valorA = dataA ?? Number.MAX_SAFE_INTEGER;
-        const valorB = dataB ?? Number.MAX_SAFE_INTEGER;
+        const valorA = dataA ?? Number.MIN_SAFE_INTEGER;
+        const valorB = dataB ?? Number.MIN_SAFE_INTEGER;
         if (valorA !== valorB) {
-          return valorA - valorB;
+          return valorB - valorA;
         }
         const idA = a.id ?? 0;
         const idB = b.id ?? 0;
-        return idA - idB;
+        return idB - idA;
       });
   }
 
