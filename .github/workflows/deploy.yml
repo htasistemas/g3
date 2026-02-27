@@ -80,36 +80,49 @@ jobs:
           # Remove apenas containers encerrados do projeto (evita erro de rede)
           docker ps -aq --filter "label=com.docker.compose.project=g3" --filter "status=exited" | xargs -r docker rm -f || true
 
-          echo "Aguardando backend subir..."
-          for i in {1..20}; do
-            if curl -fsS http://localhost:8080/health > /dev/null; then
-              echo "Backend respondeu /health"
-              break
+          container_health() {
+            local name="$1"
+            local id
+            id="$(docker compose -p g3 -f docker-compose.yml ps -q "$name" || true)"
+            if [[ -z "$id" ]]; then
+              echo "missing"
+              return 0
             fi
-            sleep 3
-          done
+            docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-health{{end}}' "$id" 2>/dev/null || echo "missing"
+          }
 
-          if ! curl -fsS http://localhost:8080/health > /dev/null; then
-            echo "Erro: backend nao respondeu /health"
-            exit 1
-          fi
+          wait_healthy() {
+            local name="$1"
+            local timeout="${2:-120}"
+            local start
+            local status
+            start="$(date +%s)"
+            while true; do
+              status="$(container_health "$name")"
+              if [[ "$status" == "healthy" ]]; then
+                echo "$name is healthy"
+                return 0
+              fi
+              if [[ "$status" == "unhealthy" ]]; then
+                echo "$name is unhealthy"
+                return 1
+              fi
+              if (( "$(date +%s)" - start >= timeout )); then
+                echo "$name healthcheck timeout after ${timeout}s (status: $status)"
+                return 1
+              fi
+              sleep 3
+            done
+          }
+
+          echo "Aguardando backend subir..."
+          wait_healthy backend 180 || { echo "Erro: backend nao respondeu /health"; exit 1; }
 
           echo "Aguardando frontend subir..."
-          for i in {1..20}; do
-            if curl -fsS http://localhost/ > /dev/null; then
-              echo "Frontend respondeu"
-              break
-            fi
-            sleep 3
-          done
-
-          if ! curl -fsS http://localhost/ > /dev/null; then
-            echo "Erro: frontend nao respondeu"
-            exit 1
-          fi
+          wait_healthy frontend 180 || { echo "Erro: frontend nao respondeu"; exit 1; }
 
           echo "Atualizando versao do sistema a partir do arquivo..."
-          curl -fsS http://localhost:8080/api/config/versao > /dev/null || true
+          docker exec g3-backend curl -fsS http://localhost:8080/api/config/versao > /dev/null || true
 
           # Garante que os containers permaneçam em execucao mesmo apos falha anterior
           docker compose -p g3 -f docker-compose.yml up -d
