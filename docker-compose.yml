@@ -9,13 +9,14 @@ services:
       - POSTGRES_DB=${DB_NAME:-g3}
     volumes:
       - db_data:/var/lib/postgresql/data
-    networks:
-      - g3_net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-g3} -d $${POSTGRES_DB:-g3}"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 10s
+    networks:
+      - g3_net
 
   backend:
     build:
@@ -27,14 +28,18 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://g3-db:5432/${DB_NAME:-g3}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:-g3}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-admin}
-    networks:
-      - g3_net
-      - hta_public_net
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
+      start_period: 20s
+    networks:
+      - g3_net
+      - hta_public_net
 
   frontend:
     build:
@@ -44,14 +49,18 @@ services:
     restart: unless-stopped
     environment:
       - API_BASE_URL=https://g3.htasistemas.com.br
-    networks:
-      - g3_net
-      - hta_public_net
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
+      start_period: 20s
+    networks:
+      - g3_net
+      - hta_public_net
 
   nginx-g3:
     image: nginx:alpine
@@ -60,8 +69,16 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - frontend
-      - backend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     networks:
       - g3_net
       - hta_public_net
@@ -72,8 +89,8 @@ services:
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
     depends_on:
-      - frontend
-      - backend
+      nginx-g3:
+        condition: service_healthy
     networks:
       - g3_net
 
