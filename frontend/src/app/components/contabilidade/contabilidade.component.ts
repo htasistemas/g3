@@ -1240,6 +1240,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.relatorioErro = 'Permita pop-ups para visualizar o relatório.';
       return;
     }
+    this.prepararJanelaRelatorio(janelaRelatorio, 'Gerando relatório. Aguarde...');
     this.imprimindoRelatorio = true;
 
     let request$;
@@ -1273,7 +1274,10 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       },
       error: () => {
         this.relatorioErro = 'Não foi possível gerar o relatório. Tente novamente.';
-        janelaRelatorio.close();
+        this.prepararJanelaRelatorio(
+          janelaRelatorio,
+          'Não foi possível gerar o relatório. Verifique os dados e tente novamente.'
+        );
       }
     });
     subscription.add(() => {
@@ -1289,6 +1293,39 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       window.open(url, '_blank', 'width=900,height=1100');
     }
     setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
+  private prepararJanelaRelatorio(janelaRelatorio: Window, mensagem: string): void {
+    if (janelaRelatorio.closed) {
+      return;
+    }
+    try {
+      janelaRelatorio.document.open();
+      janelaRelatorio.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+          <head>
+            <meta charset="UTF-8" />
+            <title>Relatório</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 32px; color: #0f172a; }
+              .box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: #f8fafc; }
+              h1 { font-size: 18px; margin: 0 0 8px; }
+              p { margin: 0; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="box">
+              <h1>Relatório</h1>
+              <p>${mensagem}</p>
+            </div>
+          </body>
+        </html>
+      `);
+      janelaRelatorio.document.close();
+    } catch {
+      // ignora falha de escrita em janela externa
+    }
   }
 
   isLancamentoProcessando(entry: LancamentoFinanceiroResponse): boolean {
