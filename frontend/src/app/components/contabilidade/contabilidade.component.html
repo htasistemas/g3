@@ -511,7 +511,7 @@
   <div class="tab-card" *ngIf="activeTab === 'contas'">
     <div class="tab-card__header">
       <div class="tab-card__title-stack">
-        <p class="tab-card__highlight">Contas bancarias</p>
+        <p class="tab-card__highlight">Contas bancárias</p>
         <p class="muted">Saldos atualizados das contas cadastradas.</p>
       </div>
     </div>
@@ -520,7 +520,7 @@
       <header class="panel__header">
         <div>
           <p class="panel__eyebrow">cadastro</p>
-          <p class="panel__title">Nova conta bancaria</p>
+          <p class="panel__title">Nova conta bancária</p>
         </div>
         <span class="pill">Saldo real</span>
       </header>
@@ -543,7 +543,7 @@
           </datalist>
         </label>
         <label class="form-field">
-          <span>Agencia</span>
+            <span>Agência</span>
           <input
             type="text"
             class="input"
@@ -554,7 +554,7 @@
           />
         </label>
         <label class="form-field">
-          <span>Numero da conta *</span>
+            <span>Número da conta *</span>
           <input
             type="text"
             class="input"
@@ -566,7 +566,7 @@
           />
         </label>
         <label class="form-field">
-          <span>Tipo *</span>
+            <span>Tipo *</span>
           <select class="select" name="type" [(ngModel)]="newAccount.tipo" required>
             <option *ngFor="let tipo of tiposConta" [value]="tipo.value">{{ tipo.label }}</option>
           </select>
@@ -618,7 +618,7 @@
         </label>
         <div class="form-row-inline">
           <label class="form-field">
-            <span>ultima atualização</span>
+            <span>Última atualização</span>
             <input
               type="date"
               class="input"
@@ -787,7 +787,7 @@
               <option value="Operacional"></option>
               <option value="Pessoal"></option>
               <option value="Projeto"></option>
-              <option value="Captacao"></option>
+              <option value="Captação"></option>
             </datalist>
           </label>
           <label class="form-field form-field--wide">
@@ -830,7 +830,7 @@
           </label>
           <div class="form-actions">
             <button class="primary" type="submit" [disabled]="salvandoMovimentacao">
-              {{ movimentacaoEmEdicaoId ? 'Atualizar movimentacao' : 'Registrar movimentacao' }}
+              {{ movimentacaoEmEdicaoId ? 'Atualizar movimentação' : 'Registrar movimentação' }}
             </button>
             <button class="ghost" type="button" *ngIf="movimentacaoEmEdicaoId" [disabled]="salvandoMovimentacao" (click)="cancelarEdicaoMovimentacao()">
               Cancelar

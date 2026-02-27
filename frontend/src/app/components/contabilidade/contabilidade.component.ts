@@ -489,7 +489,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       !this.newEntry.valor
     ) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios do lancamento.')
+        .adicionar('Preencha os campos obrigatórios do lançamento.')
         .build();
       this.abrirPopupTemporario();
       return;
@@ -581,9 +581,9 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   registerMovement(): void {
     this.onValorMovimentacaoInput(this.valorMovimentacaoMascara);
     if (!this.newMovement.descricao || !this.newMovement.contaBancariaId || !this.newMovement.dataMovimentacao) {
-      this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios da movimentacao.')
-        .build();
+    this.popupErros = new PopupErrorBuilder()
+      .adicionar('Preencha os campos obrigatórios da movimentação.')
+      .build();
       this.abrirPopupTemporario();
       return;
     }
@@ -607,8 +607,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.popupErros = new PopupErrorBuilder()
         .adicionar(
           this.movimentacaoEmEdicaoId
-            ? 'Movimentacao atualizada com sucesso.'
-            : 'Movimentacao registrada com sucesso.'
+            ? 'Movimentação atualizada com sucesso.'
+            : 'Movimentação registrada com sucesso.'
         )
         .build();
       this.changeDetector.detectChanges();
@@ -657,8 +657,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return;
     }
     this.abrirDialogoConfirmacao(
-      'Excluir movimentacao',
-      'Confirma a exclusao desta movimentacao registrada?',
+      'Excluir movimentação',
+      'Confirma a exclusão desta movimentação registrada?',
       'Excluir',
       () => {
         if (this.movimentacoesEmProcesso.has(movement.id!)) {
@@ -676,7 +676,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
               this.refreshPanels();
             });
             this.popupErros = new PopupErrorBuilder()
-              .adicionar('Movimentacao excluida com sucesso.')
+              .adicionar('Movimentação excluída com sucesso.')
               .build();
             this.abrirPopupTemporario();
             this.movimentacoesEmProcesso.delete(movement.id!);
@@ -767,14 +767,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     this.onSaldoContaInput(this.saldoContaMascara);
     if (!this.newAccount.banco || !this.newAccount.numero) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Informe banco e numero da conta.')
+        .adicionar('Informe banco e número da conta.')
         .build();
       this.abrirPopupTemporario();
       return;
     }
     if (!this.newAccount.dataAtualizacao) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Informe a data da ultima atualizacao da conta.')
+        .adicionar('Informe a data da última atualização da conta.')
         .build();
       this.abrirPopupTemporario();
       return;
@@ -827,7 +827,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
           const mensagem =
             erro?.error?.message ||
             erro?.message ||
-            'Nao foi possivel atualizar a conta bancaria. Verifique os dados informados.';
+            'Não foi possível atualizar a conta bancária. Verifique os dados informados.';
           this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
           this.abrirPopupTemporario();
           this.salvandoConta = false;
@@ -869,8 +869,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return;
     }
     this.abrirDialogoConfirmacao(
-      'Excluir conta bancaria',
-      'Deseja excluir esta conta bancaria? Esta acao nao pode ser desfeita.',
+      'Excluir conta bancária',
+      'Deseja excluir esta conta bancária? Esta ação não pode ser desfeita.',
       'Excluir',
       () => {
         if (this.contasEmProcesso.has(conta.id!)) {
@@ -904,7 +904,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   addAmendment(): void {
     if (!this.newAmendment.identificacao || !this.newAmendment.dataPrevista || !this.newAmendment.valorPrevisto) {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('Preencha os campos obrigatorios da emenda.')
+      .adicionar('Preencha os campos obrigatórios da emenda.')
         .build();
       this.abrirPopupTemporario();
       return;
@@ -938,8 +938,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     }
     const mensagem =
       status === 'pago'
-        ? 'Confirmar registro de pagamento deste lancamento?'
-        : 'Confirmar marcacao de atraso deste lancamento?';
+        ? 'Confirmar registro de pagamento deste lançamento?'
+        : 'Confirmar marcação de atraso deste lançamento?';
     this.abrirDialogoConfirmacao('Confirmar alteracao', mensagem, 'Confirmar', () => {
       if (this.lancamentosEmProcesso.has(entry.id!)) {
         return;
@@ -960,7 +960,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     if (this.pagamentosEmProcesso.has(entry.id)) {
       return;
     }
-    this.abrirDialogoConfirmacao('Confirmar pagamento', 'Confirmar pagamento deste lancamento?', 'Confirmar', () => {
+    this.abrirDialogoConfirmacao('Confirmar pagamento', 'Confirmar pagamento deste lançamento?', 'Confirmar', () => {
       if (this.pagamentosEmProcesso.has(entry.id!)) {
         return;
       }
@@ -1235,6 +1235,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return;
     }
     this.relatorioErro = null;
+    const janelaRelatorio = window.open('', '_blank', 'width=900,height=1100');
+    if (!janelaRelatorio) {
+      this.relatorioErro = 'Permita pop-ups para visualizar o relatório.';
+      return;
+    }
     this.imprimindoRelatorio = true;
 
     let request$;
@@ -1263,11 +1268,12 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
     const subscription = request$.subscribe({
       next: (blob) => {
-        this.openPdfInNewWindow(blob);
+        this.openPdfInWindow(blob, janelaRelatorio);
         this.fecharModalImpressao();
       },
       error: () => {
         this.relatorioErro = 'Não foi possível gerar o relatório. Tente novamente.';
+        janelaRelatorio.close();
       }
     });
     subscription.add(() => {
@@ -1275,9 +1281,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     });
   }
 
-  private openPdfInNewWindow(blob: Blob): void {
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank', 'width=900,height=1100');
+  private openPdfInWindow(blob: Blob, janelaRelatorio: Window | null): void {
+    const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+    if (janelaRelatorio && !janelaRelatorio.closed) {
+      janelaRelatorio.location.href = url;
+    } else {
+      window.open(url, '_blank', 'width=900,height=1100');
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
 
   isLancamentoProcessando(entry: LancamentoFinanceiroResponse): boolean {
@@ -1506,13 +1517,13 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return 'Informe a chave Pix.';
     }
     if (tipo === 'cnpj' && !this.validarCnpj(chave)) {
-      return 'CNPJ invalido na chave Pix.';
+      return 'CNPJ inválido na chave Pix.';
     }
     if (tipo === 'email' && !this.validarEmail(chave)) {
-      return 'Email invalido na chave Pix.';
+      return 'Email inválido na chave Pix.';
     }
     if (tipo === 'telefone' && !this.validarTelefone(chave)) {
-      return 'Telefone invalido na chave Pix.';
+      return 'Telefone inválido na chave Pix.';
     }
     if (tipo === 'aleatoria' && !this.validarChaveAleatoria(chave)) {
       return 'Chave aleatoria invalida.';

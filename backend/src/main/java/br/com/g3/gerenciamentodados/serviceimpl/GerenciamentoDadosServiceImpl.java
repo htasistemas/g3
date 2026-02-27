@@ -138,7 +138,7 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
       return new GerenciamentoDadosRestauracaoResponse(
           backupId,
           "falha",
-          "Caminho do arquivo de backup nao encontrado.",
+          "Caminho do arquivo de backup não encontrado.",
           backup.getArmazenadoEm());
     }
 
@@ -146,7 +146,7 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
     String status = restaurado ? "sucesso" : "falha";
     String mensagem =
         restaurado
-            ? "Restauracao concluida com sucesso."
+            ? "Restauração concluída com sucesso."
             : "Falha ao restaurar o backup. Verifique o arquivo e o psql.";
     return new GerenciamentoDadosRestauracaoResponse(backupId, status, mensagem, arquivoBackup);
   }
@@ -158,14 +158,14 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
       return new GerenciamentoDadosRestauracaoResponse(
           null,
           "falha",
-          "Arquivo invalido. Envie um arquivo .sql.",
+          "Arquivo inválido. Envie um arquivo .sql.",
           nomeSeguro);
     }
     if (conteudo == null || conteudo.length == 0) {
       return new GerenciamentoDadosRestauracaoResponse(
           null,
           "falha",
-          "Arquivo vazio ou nao enviado.",
+          "Arquivo vazio ou não enviado.",
           nomeSeguro);
     }
     Path arquivoTemp = null;
@@ -176,7 +176,7 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
       String status = restaurado ? "sucesso" : "falha";
       String mensagem =
           restaurado
-              ? "Restauracao concluida com sucesso."
+              ? "Restauração concluída com sucesso."
               : "Falha ao restaurar o backup. Verifique o arquivo e o psql.";
       return new GerenciamentoDadosRestauracaoResponse(null, status, mensagem, nomeSeguro);
     } catch (IOException ex) {
