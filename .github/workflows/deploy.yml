@@ -75,7 +75,10 @@ jobs:
           fi
 
           # Evita downtime e erro de rede com containers externos (ex.: g3-tunnel)
-          docker compose -p g3 -f docker-compose.yml up -d --build --force-recreate --remove-orphans
+          docker compose -p g3 -f docker-compose.yml up -d --build --force-recreate
+
+          # Remove apenas containers encerrados do projeto (evita erro de rede)
+          docker ps -aq --filter "label=com.docker.compose.project=g3" --filter "status=exited" | xargs -r docker rm -f || true
 
           echo "Aguardando backend subir..."
           for i in {1..20}; do
