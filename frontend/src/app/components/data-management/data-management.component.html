@@ -48,6 +48,14 @@
                 >
                   Backup completo
                 </button>
+                <button
+                  type="button"
+                  class="btn-outline"
+                  (click)="abrirDialogoRestaurarArquivo()"
+                  [disabled]="backupEmAndamento() || restauracaoEmAndamento || backupSolicitando"
+                >
+                  Restaurar arquivo
+                </button>
               </div>
             </div>
 
@@ -186,4 +194,32 @@
     (confirmar)="confirmarDialogoRestaurar()"
     (cancelar)="cancelarDialogoRestaurar()"
   ></app-dialog>
+
+  <div class="modal-overlay" *ngIf="dialogoRestaurarArquivoAberto" (click)="cancelarDialogoRestaurarArquivo()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-card__header">
+        <div>
+          <p class="modal-card__eyebrow">Restauração</p>
+          <p class="modal-card__title">Restaurar backup externo</p>
+        </div>
+        <button type="button" class="btn-outline" (click)="cancelarDialogoRestaurarArquivo()">Fechar</button>
+      </div>
+      <div class="modal-card__body">
+        <label class="form-field">
+          <span>Arquivo SQL *</span>
+          <input type="file" class="input" accept=".sql" (change)="onArquivoRestauracaoSelecionado($event)" />
+        </label>
+        <p class="muted">Envie um arquivo `.sql` completo para restaurar os dados.</p>
+        <p class="field-error" *ngIf="erroRestauracaoArquivo">{{ erroRestauracaoArquivo }}</p>
+      </div>
+      <div class="modal-card__actions">
+        <button type="button" class="btn-outline" [disabled]="restaurandoArquivo" (click)="cancelarDialogoRestaurarArquivo()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-primary" [disabled]="restaurandoArquivo" (click)="confirmarRestaurarArquivo()">
+          {{ restaurandoArquivo ? 'Restaurando...' : 'Restaurar' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </app-tela-padrao>

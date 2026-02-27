@@ -78,6 +78,20 @@ export interface CursoAtendimentoListaPresencaPayload {
   exibirCpf?: boolean;
 }
 
+export interface RelatorioExtratoMensalPayload {
+  mesReferencia?: string;
+  usuarioEmissor?: string;
+}
+
+export interface RelatorioContasBancariasPayload {
+  dataReferencia?: string;
+  usuarioEmissor?: string;
+}
+
+export interface RelatorioContasPendentesPayload {
+  usuarioEmissor?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly runtimeConfig = inject(RuntimeConfigService);
@@ -123,6 +137,30 @@ export class ReportService {
     payload: CursoAtendimentoListaPresencaPayload
   ): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/cursos-atendimentos/presenca-lista`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateExtratoMensalContabilidade(payload: RelatorioExtratoMensalPayload): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/contabilidade/extrato-mensal`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateContasAReceber(payload: RelatorioContasPendentesPayload): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/contabilidade/contas-receber`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateContasAPagar(payload: RelatorioContasPendentesPayload): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/contabilidade/contas-pagar`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateContasBancarias(payload: RelatorioContasBancariasPayload): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/contabilidade/contas-bancarias`, payload, {
       responseType: 'blob'
     });
   }

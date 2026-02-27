@@ -8,6 +8,7 @@ import { PopupMessagesComponent } from '../compartilhado/popup-messages/popup-me
 import { DialogComponent } from '../compartilhado/dialog/dialog.component';
 import { TelaPadraoComponent } from '../compartilhado/tela-padrao/tela-padrao.component';
 import { ConfigAcoesCrud, EstadoAcoesCrud, TelaBaseComponent } from '../compartilhado/tela-base.component';
+import { ReportService } from '../../services/report.service';
 import {
   ContabilidadeService,
   ContaBancariaRequest,
@@ -96,6 +97,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   });
 
   popupErros: string[] = [];
+  relatorioErro: string | null = null;
   private popupTimeout?: ReturnType<typeof setTimeout>;
   dialogConfirmacaoAberta = false;
   dialogTitulo = 'Confirmar ação';
@@ -197,6 +199,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   upcomingPayables: LancamentoFinanceiroResponse[] = [];
   alerts: string[] = [];
   reciboPagamento: ReciboPagamentoResponse | null = null;
+  mostrarModalImpressao = false;
+  imprimindoRelatorio = false;
+  tipoRelatorioImpressao: 'extrato-mensal' | 'contas-receber' | 'contas-pagar' | 'contas-bancarias' = 'extrato-mensal';
+  relatorioMesReferencia = '';
+  relatorioDataReferencia = '';
 
   filtrosContas = {
     banco: '',
@@ -285,6 +292,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   constructor(
     private readonly contabilidadeService: ContabilidadeService,
+    private readonly reportService: ReportService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly router: Router
   ) {
@@ -294,6 +302,8 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   ngOnInit(): void {
     this.carregarDados();
     this.saldoContaMascara = this.formatarValorMonetario(this.newAccount.saldo);
+    this.relatorioMesReferencia = this.obterMesAtualISO();
+    this.relatorioDataReferencia = this.todayISO();
   }
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
@@ -679,6 +689,44 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     );
   }
 
+  removerLancamento(entry: LancamentoFinanceiroResponse): void {
+    if (!entry.id || this.lancamentosEmProcesso.has(entry.id)) {
+      return;
+    }
+    this.abrirDialogoConfirmacao(
+      'Excluir lançamento',
+      'Confirma a exclusão deste lançamento? Os dados serão removidos.',
+      'Excluir',
+      () => {
+        if (this.lancamentosEmProcesso.has(entry.id!)) {
+          return;
+        }
+        this.lancamentosEmProcesso.add(entry.id!);
+        this.contabilidadeService.removerLancamento(entry.id).subscribe({
+          next: () => {
+            this.agenda = this.agenda.filter((item) => item.id !== entry.id);
+            if (this.lancamentoEmEdicaoId === entry.id) {
+              this.cancelarEdicaoLancamento();
+            }
+            this.refreshPanels();
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Lançamento excluído com sucesso.')
+              .build();
+            this.abrirPopupTemporario();
+            this.lancamentosEmProcesso.delete(entry.id!);
+          },
+          error: () => {
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Não foi possível excluir o lançamento.')
+              .build();
+            this.abrirPopupTemporario();
+            this.lancamentosEmProcesso.delete(entry.id!);
+          }
+        });
+      }
+    );
+  }
+
   cancelarEdicaoMovimentacao(): void {
     this.newMovement = {
       descricao: '',
@@ -995,8 +1043,34 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       return;
     }
 
+    if (this.activeTab === 'movimentacoes') {
+      const movimento = this.financialMovements.find((item) => item.id === this.movimentacaoEmEdicaoId);
+      if (!movimento) {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Selecione uma movimentação para excluir.')
+          .build();
+        this.abrirPopupTemporario();
+        return;
+      }
+      this.removerMovimentacao(movimento);
+      return;
+    }
+
+    if (this.activeTab === 'lancamentos' || this.activeTab === 'visao-geral') {
+      const lancamento = this.agenda.find((item) => item.id === this.lancamentoEmEdicaoId);
+      if (!lancamento) {
+        this.popupErros = new PopupErrorBuilder()
+          .adicionar('Selecione um lançamento para excluir.')
+          .build();
+        this.abrirPopupTemporario();
+        return;
+      }
+      this.removerLancamento(lancamento);
+      return;
+    }
+
     this.popupErros = new PopupErrorBuilder()
-      .adicionar('Exclusao disponivel apenas para contas bancarias.')
+      .adicionar('Exclusão não disponível nesta aba.')
       .build();
     this.abrirPopupTemporario();
   }
@@ -1020,6 +1094,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
           tipo: 'entrada',
           categoria: 'Operacional'
         };
+        this.movimentacaoEmEdicaoId = null;
         return;
       case 'emendas':
         this.newAmendment = {
@@ -1053,11 +1128,44 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   onImprimir(): void {
-    this.printResumo();
+    this.abrirModalImpressao();
   }
 
   onBuscar(): void {
-    this.changeTab('lancamentos');
+    this.popupErros = [];
+    switch (this.activeTab) {
+      case 'visao-geral':
+      case 'lancamentos':
+        this.carregarLancamentos();
+        break;
+      case 'contas':
+        this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+          this.bankAccounts = contas ?? [];
+          this.refreshPanels();
+          this.changeDetector.detectChanges();
+        });
+        break;
+      case 'movimentacoes':
+        this.contabilidadeService.listarMovimentacoes().subscribe((lista) => {
+          this.financialMovements = lista ?? [];
+          this.refreshPanels();
+          this.changeDetector.detectChanges();
+        });
+        break;
+      case 'emendas':
+        this.contabilidadeService.listarEmendas().subscribe((lista) => {
+          this.amendmentControls = lista ?? [];
+          this.refreshPanels();
+          this.changeDetector.detectChanges();
+        });
+        break;
+      default:
+        this.carregarDados();
+    }
+    this.popupErros = new PopupErrorBuilder()
+      .adicionar('Dados atualizados com sucesso.')
+      .build();
+    this.abrirPopupTemporario();
   }
 
   onFechar(): void {
@@ -1101,6 +1209,75 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   cancelarDialogo(): void {
     this.dialogConfirmacaoAberta = false;
     this.dialogAcao = undefined;
+  }
+
+  abrirModalImpressao(): void {
+    this.relatorioErro = null;
+    if (this.filtrosMovimentacoes.mesReferencia) {
+      this.relatorioMesReferencia = this.filtrosMovimentacoes.mesReferencia;
+    }
+    if (!this.relatorioMesReferencia) {
+      this.relatorioMesReferencia = this.obterMesAtualISO();
+    }
+    if (!this.relatorioDataReferencia) {
+      this.relatorioDataReferencia = this.todayISO();
+    }
+    this.mostrarModalImpressao = true;
+  }
+
+  fecharModalImpressao(): void {
+    this.mostrarModalImpressao = false;
+    this.relatorioErro = null;
+  }
+
+  confirmarImpressao(): void {
+    if (this.imprimindoRelatorio) {
+      return;
+    }
+    this.relatorioErro = null;
+    this.imprimindoRelatorio = true;
+
+    let request$;
+    switch (this.tipoRelatorioImpressao) {
+      case 'extrato-mensal':
+        request$ = this.reportService.generateExtratoMensalContabilidade({
+          mesReferencia: this.relatorioMesReferencia || this.obterMesAtualISO()
+        });
+        break;
+      case 'contas-receber':
+        request$ = this.reportService.generateContasAReceber({});
+        break;
+      case 'contas-pagar':
+        request$ = this.reportService.generateContasAPagar({});
+        break;
+      case 'contas-bancarias':
+        request$ = this.reportService.generateContasBancarias({
+          dataReferencia: this.relatorioDataReferencia || this.todayISO()
+        });
+        break;
+      default:
+        request$ = this.reportService.generateExtratoMensalContabilidade({
+          mesReferencia: this.relatorioMesReferencia || this.obterMesAtualISO()
+        });
+    }
+
+    const subscription = request$.subscribe({
+      next: (blob) => {
+        this.openPdfInNewWindow(blob);
+        this.fecharModalImpressao();
+      },
+      error: () => {
+        this.relatorioErro = 'Não foi possível gerar o relatório. Tente novamente.';
+      }
+    });
+    subscription.add(() => {
+      this.imprimindoRelatorio = false;
+    });
+  }
+
+  private openPdfInNewWindow(blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'width=900,height=1100');
   }
 
   isLancamentoProcessando(entry: LancamentoFinanceiroResponse): boolean {
@@ -1566,6 +1743,13 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   private todayISO(): string {
     return this.formatLocalISO(new Date());
+  }
+
+  private obterMesAtualISO(): string {
+    const hoje = new Date();
+    const year = hoje.getFullYear();
+    const month = String(hoje.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
   }
 
   private formatarDataInput(date: string | Date | null | undefined): string {

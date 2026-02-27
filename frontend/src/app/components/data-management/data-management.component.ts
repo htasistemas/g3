@@ -56,6 +56,10 @@ export class DataManagementComponent implements OnInit, OnDestroy {
   dialogoRestaurarAberto = false;
   backupSelecionado: BackupRecord | null = null;
   restauracaoInicio: Date | null = null;
+  dialogoRestaurarArquivoAberto = false;
+  arquivoRestauracao: File | null = null;
+  restaurandoArquivo = false;
+  erroRestauracaoArquivo: string | null = null;
   private atualizacaoBackupsSub: Subscription | null = null;
 
   constructor(
@@ -119,6 +123,25 @@ export class DataManagementComponent implements OnInit, OnDestroy {
     this.backupSelecionado = null;
   }
 
+  abrirDialogoRestaurarArquivo(): void {
+    this.dialogoRestaurarArquivoAberto = true;
+    this.arquivoRestauracao = null;
+    this.erroRestauracaoArquivo = null;
+  }
+
+  cancelarDialogoRestaurarArquivo(): void {
+    this.dialogoRestaurarArquivoAberto = false;
+    this.arquivoRestauracao = null;
+    this.erroRestauracaoArquivo = null;
+  }
+
+  onArquivoRestauracaoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files.length ? input.files[0] : null;
+    this.arquivoRestauracao = file;
+    this.erroRestauracaoArquivo = null;
+  }
+
   fecharPopup(): void {
     this.popupErros = [];
   }
@@ -150,6 +173,47 @@ export class DataManagementComponent implements OnInit, OnDestroy {
         this.restauracaoInicio = null;
         this.gerenciarAtualizacaoAutomatica();
       },
+    });
+  }
+
+  confirmarRestaurarArquivo(): void {
+    if (this.restaurandoArquivo) {
+      return;
+    }
+    if (!this.arquivoRestauracao) {
+      this.erroRestauracaoArquivo = 'Selecione um arquivo .sql para restaurar.';
+      return;
+    }
+    if (!this.arquivoRestauracao.name.toLowerCase().endsWith('.sql')) {
+      this.erroRestauracaoArquivo = 'Formato inválido. Envie um arquivo .sql.';
+      return;
+    }
+
+    this.restaurandoArquivo = true;
+    this.restauracaoFeedback = {
+      tipo: 'info',
+      mensagem: 'Restauração iniciada. Aguarde a conclusão.',
+    };
+    this.restauracaoEmAndamento = true;
+    this.restauracaoInicio = new Date();
+    this.gerenciarAtualizacaoAutomatica();
+
+    this.gerenciamentoDadosService.restaurarBackupArquivo(this.arquivoRestauracao).subscribe({
+      next: (response) => {
+        this.aplicarFeedbackRestauracao(response);
+        this.cancelarDialogoRestaurarArquivo();
+      },
+      error: () => {
+        this.restauracaoFeedback = {
+          tipo: 'error',
+          mensagem: 'Falha ao restaurar o backup externo.',
+        };
+        this.restauracaoEmAndamento = false;
+        this.restauracaoInicio = null;
+        this.gerenciarAtualizacaoAutomatica();
+      },
+    }).add(() => {
+      this.restaurandoArquivo = false;
     });
   }
 

@@ -1191,6 +1191,49 @@
   </div>
 </section>
 
+<div class="modal-overlay" *ngIf="mostrarModalImpressao" (click)="fecharModalImpressao()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-card__header">
+      <div>
+        <p class="modal-card__eyebrow">Impressão</p>
+        <p class="modal-card__title">Selecione o relatório</p>
+      </div>
+      <button type="button" class="ghost" (click)="fecharModalImpressao()">Fechar</button>
+    </div>
+    <div class="modal-card__body">
+      <label class="form-field">
+        <span>Tipo de relatório</span>
+        <select class="select" [(ngModel)]="tipoRelatorioImpressao">
+          <option value="extrato-mensal">Extrato mensal</option>
+          <option value="contas-receber">Contas a receber</option>
+          <option value="contas-pagar">Contas a pagar</option>
+          <option value="contas-bancarias">Contas bancárias</option>
+        </select>
+      </label>
+
+      <label class="form-field" *ngIf="tipoRelatorioImpressao === 'extrato-mensal'">
+        <span>Mês de referência</span>
+        <input type="month" class="input" [(ngModel)]="relatorioMesReferencia" />
+      </label>
+
+      <label class="form-field" *ngIf="tipoRelatorioImpressao === 'contas-bancarias'">
+        <span>Data de referência</span>
+        <input type="date" class="input" [(ngModel)]="relatorioDataReferencia" />
+      </label>
+
+      <p class="field-error" *ngIf="relatorioErro">{{ relatorioErro }}</p>
+    </div>
+    <div class="modal-card__actions">
+      <button type="button" class="ghost" [disabled]="imprimindoRelatorio" (click)="fecharModalImpressao()">
+        Cancelar
+      </button>
+      <button type="button" class="primary" [disabled]="imprimindoRelatorio" (click)="confirmarImpressao()">
+        {{ imprimindoRelatorio ? 'Gerando...' : 'Imprimir' }}
+      </button>
+    </div>
+  </div>
+</div>
+
 <app-dialog
   [aberto]="dialogConfirmacaoAberta"
   [titulo]="dialogTitulo"

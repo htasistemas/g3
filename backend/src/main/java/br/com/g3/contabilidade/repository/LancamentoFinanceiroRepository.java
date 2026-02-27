@@ -12,4 +12,6 @@ public interface LancamentoFinanceiroRepository {
   Optional<LancamentoFinanceiro> buscarPorId(Long id);
 
   Optional<LancamentoFinanceiro> buscarPorCompraId(Long compraId);
+
+  void remover(Long id);
 }

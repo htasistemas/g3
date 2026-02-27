@@ -17,4 +17,6 @@ public interface GerenciamentoDadosService {
   GerenciamentoDadosBackupResponse criarBackup(GerenciamentoDadosBackupRequest request);
 
   GerenciamentoDadosRestauracaoResponse restaurarBackup(Long backupId);
+
+  GerenciamentoDadosRestauracaoResponse restaurarBackupArquivo(String nomeArquivo, byte[] conteudo);
 }

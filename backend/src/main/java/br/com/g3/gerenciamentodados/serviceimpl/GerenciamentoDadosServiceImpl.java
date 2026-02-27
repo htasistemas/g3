@@ -151,6 +151,52 @@ public class GerenciamentoDadosServiceImpl implements GerenciamentoDadosService 
     return new GerenciamentoDadosRestauracaoResponse(backupId, status, mensagem, arquivoBackup);
   }
 
+  @Override
+  public GerenciamentoDadosRestauracaoResponse restaurarBackupArquivo(String nomeArquivo, byte[] conteudo) {
+    String nomeSeguro = safeText(nomeArquivo, "backup.sql");
+    if (!nomeSeguro.toLowerCase(Locale.getDefault()).endsWith(".sql")) {
+      return new GerenciamentoDadosRestauracaoResponse(
+          null,
+          "falha",
+          "Arquivo invalido. Envie um arquivo .sql.",
+          nomeSeguro);
+    }
+    if (conteudo == null || conteudo.length == 0) {
+      return new GerenciamentoDadosRestauracaoResponse(
+          null,
+          "falha",
+          "Arquivo vazio ou nao enviado.",
+          nomeSeguro);
+    }
+    Path arquivoTemp = null;
+    try {
+      arquivoTemp = Files.createTempFile("g3-backup-", ".sql");
+      Files.write(arquivoTemp, conteudo);
+      boolean restaurado = executarRestauracaoPostgres(arquivoTemp.toString());
+      String status = restaurado ? "sucesso" : "falha";
+      String mensagem =
+          restaurado
+              ? "Restauracao concluida com sucesso."
+              : "Falha ao restaurar o backup. Verifique o arquivo e o psql.";
+      return new GerenciamentoDadosRestauracaoResponse(null, status, mensagem, nomeSeguro);
+    } catch (IOException ex) {
+      LOGGER.error("Falha ao restaurar backup externo.", ex);
+      return new GerenciamentoDadosRestauracaoResponse(
+          null,
+          "falha",
+          "Falha ao processar o arquivo de backup.",
+          nomeSeguro);
+    } finally {
+      if (arquivoTemp != null) {
+        try {
+          Files.deleteIfExists(arquivoTemp);
+        } catch (IOException ex) {
+          LOGGER.warn("Falha ao remover arquivo temporario de backup externo.");
+        }
+      }
+    }
+  }
+
   private GerenciamentoDadosConfiguracao criarConfiguracaoPadrao() {
     LocalDateTime agora = LocalDateTime.now();
     GerenciamentoDadosConfiguracao configuracao = new GerenciamentoDadosConfiguracao();

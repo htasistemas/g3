@@ -165,6 +165,19 @@ public class ContabilidadeServiceImpl implements ContabilidadeService {
 
   @Override
   @Transactional
+  public void removerLancamento(Long id) {
+    LancamentoFinanceiro lancamento =
+        lancamentoRepository
+            .buscarPorId(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (lancamento.getCompraId() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lancamento vinculado a compra.");
+    }
+    lancamentoRepository.remover(id);
+  }
+
+  @Override
+  @Transactional
   public ReciboPagamentoResponse pagarLancamento(Long id, PagamentoLancamentoRequest request) {
     LancamentoFinanceiro lancamento =
         lancamentoRepository

@@ -29,6 +29,8 @@ public interface ContabilidadeService {
 
   LancamentoFinanceiroResponse atualizarSituacaoLancamento(Long id, String status);
 
+  void removerLancamento(Long id);
+
   ReciboPagamentoResponse pagarLancamento(Long id, PagamentoLancamentoRequest request);
 
   MovimentacaoFinanceiraResponse criarMovimentacao(MovimentacaoFinanceiraRequest request);

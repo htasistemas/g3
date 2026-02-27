@@ -146,6 +146,10 @@ export class ContabilidadeService {
     return this.http.delete<void>(`${this.baseUrl}/movimentacoes/${id}`);
   }
 
+  removerLancamento(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/lancamentos/${id}`);
+  }
+
   listarEmendas(): Observable<EmendaImpositivaResponse[]> {
     return this.http.get<EmendaImpositivaResponse[]>(`${this.baseUrl}/emendas`);
   }

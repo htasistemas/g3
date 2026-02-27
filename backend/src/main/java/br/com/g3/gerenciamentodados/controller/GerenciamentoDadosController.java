@@ -7,6 +7,7 @@ import br.com.g3.gerenciamentodados.dto.GerenciamentoDadosConfiguracaoResponse;
 import br.com.g3.gerenciamentodados.dto.GerenciamentoDadosRestauracaoResponse;
 import br.com.g3.gerenciamentodados.service.GerenciamentoDadosService;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/config/gerenciamento-dados")
@@ -50,5 +53,13 @@ public class GerenciamentoDadosController {
   public GerenciamentoDadosRestauracaoResponse restaurarBackup(
       @PathVariable("backupId") Long backupId) {
     return service.restaurarBackup(backupId);
+  }
+
+  @PostMapping(value = "/backups/restaurar-arquivo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public GerenciamentoDadosRestauracaoResponse restaurarBackupArquivo(
+      @RequestPart("arquivo") MultipartFile arquivo) throws Exception {
+    String nomeArquivo = arquivo.getOriginalFilename();
+    byte[] conteudo = arquivo.getBytes();
+    return service.restaurarBackupArquivo(nomeArquivo, conteudo);
   }
 }

@@ -115,4 +115,13 @@ export class GerenciamentoDadosService {
       {}
     );
   }
+
+  restaurarBackupArquivo(arquivo: File): Observable<GerenciamentoDadosRestauracaoResponse> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo, arquivo.name);
+    return this.http.post<GerenciamentoDadosRestauracaoResponse>(
+      `${this.baseUrl}/backups/restaurar-arquivo`,
+      formData
+    );
+  }
 }

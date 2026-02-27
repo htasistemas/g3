@@ -10,10 +10,15 @@ import br.com.g3.relatorios.dto.DoacaoBeneficiarioRelatorioRequest;
 import br.com.g3.relatorios.dto.DoacaoPlanejadaRelatorioRequest;
 import br.com.g3.relatorios.dto.EmprestimoEventoRelatorioRequest;
 import br.com.g3.relatorios.dto.InformacaoAdministrativaRelatorioRequest;
+import br.com.g3.relatorios.dto.RelatorioContasAPagarRequest;
+import br.com.g3.relatorios.dto.RelatorioContasAReceberRequest;
+import br.com.g3.relatorios.dto.RelatorioContasBancariasRequest;
+import br.com.g3.relatorios.dto.RelatorioExtratoMensalRequest;
 import br.com.g3.relatorios.dto.TermoAutorizacaoRequest;
 import br.com.g3.relatorios.service.BeneficiarioFichaService;
 import br.com.g3.relatorios.service.CursoAtendimentoFichaService;
 import br.com.g3.relatorios.service.CursoAtendimentoListaPresencaService;
+import br.com.g3.relatorios.service.RelatorioContabilidadeService;
 import br.com.g3.relatorios.service.RelatorioBeneficiariosService;
 import br.com.g3.relatorios.service.RelatorioCursosAtendimentosService;
 import br.com.g3.relatorios.service.RelatorioDoacoesBeneficiarioService;
@@ -51,6 +56,7 @@ public class RelatoriosController {
   private final RelatorioDoacoesPlanejadasService relatorioDoacoesPlanejadasService;
   private final RelatorioDoacoesBeneficiarioService relatorioDoacoesBeneficiarioService;
   private final CursoAtendimentoListaPresencaService cursoAtendimentoListaPresencaService;
+  private final RelatorioContabilidadeService relatorioContabilidadeService;
 
   public RelatoriosController(
       TermoAutorizacaoService termoAutorizacaoService,
@@ -65,7 +71,8 @@ public class RelatoriosController {
       RelatorioInformacoesAdministrativasService relatorioInformacoesAdministrativasService,
       RelatorioDoacoesPlanejadasService relatorioDoacoesPlanejadasService,
       RelatorioDoacoesBeneficiarioService relatorioDoacoesBeneficiarioService,
-      CursoAtendimentoListaPresencaService cursoAtendimentoListaPresencaService) {
+      CursoAtendimentoListaPresencaService cursoAtendimentoListaPresencaService,
+      RelatorioContabilidadeService relatorioContabilidadeService) {
     this.termoAutorizacaoService = termoAutorizacaoService;
     this.relatorioTarefasPendenciasService = relatorioTarefasPendenciasService;
     this.beneficiarioFichaService = beneficiarioFichaService;
@@ -79,6 +86,7 @@ public class RelatoriosController {
     this.relatorioDoacoesPlanejadasService = relatorioDoacoesPlanejadasService;
     this.relatorioDoacoesBeneficiarioService = relatorioDoacoesBeneficiarioService;
     this.cursoAtendimentoListaPresencaService = cursoAtendimentoListaPresencaService;
+    this.relatorioContabilidadeService = relatorioContabilidadeService;
   }
 
   @PostMapping(value = "/authorization-term", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -214,6 +222,46 @@ public class RelatoriosController {
     headers.setContentType(MediaType.APPLICATION_PDF);
     headers.setContentDisposition(
         ContentDisposition.inline().filename("lista-presenca.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/contabilidade/extrato-mensal", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarExtratoMensalContabilidade(
+      @RequestBody RelatorioExtratoMensalRequest requisicao) {
+    byte[] pdf = relatorioContabilidadeService.gerarExtratoMensal(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(ContentDisposition.inline().filename("extrato-mensal.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/contabilidade/contas-receber", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarContasAReceber(
+      @RequestBody RelatorioContasAReceberRequest requisicao) {
+    byte[] pdf = relatorioContabilidadeService.gerarContasAReceber(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(ContentDisposition.inline().filename("contas-receber.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/contabilidade/contas-pagar", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarContasAPagar(
+      @RequestBody RelatorioContasAPagarRequest requisicao) {
+    byte[] pdf = relatorioContabilidadeService.gerarContasAPagar(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(ContentDisposition.inline().filename("contas-pagar.pdf").build());
+    return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+  }
+
+  @PostMapping(value = "/contabilidade/contas-bancarias", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> gerarContasBancarias(
+      @RequestBody RelatorioContasBancariasRequest requisicao) {
+    byte[] pdf = relatorioContabilidadeService.gerarContasBancarias(requisicao);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    headers.setContentDisposition(ContentDisposition.inline().filename("contas-bancarias.pdf").build());
     return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
   }
 }
