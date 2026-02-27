@@ -1402,6 +1402,130 @@
   align-items: center;
 }
 
+.presence-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.presence-date {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.presence-date:hover {
+  border-color: #0f7a43;
+  box-shadow: 0 6px 14px rgba(15, 122, 67, 0.12);
+}
+
+.presence-date.active {
+  border-color: #0f7a43;
+  box-shadow: 0 0 0 2px rgba(15, 122, 67, 0.12);
+}
+
+.presence-date__meta {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.badge--green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge--amber {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.badge--red {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.empty-state {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.anexo-upload {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.file-button input {
+  display: none;
+}
+
+.anexo-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.anexo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.8rem;
+}
+
+.anexo-item strong {
+  display: block;
+}
+
+.link {
+  color: #0f7a43;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
 .page-title__note {
   align-self: flex-start;
   text-align: right;

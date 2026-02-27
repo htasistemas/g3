@@ -10,6 +10,8 @@ import {
   CursosAtendimentosService,
   Enrollment,
   EnrollmentStatus,
+  PresencaAnexoRecord,
+  PresencaDataRecord,
   PresencaResponse,
   PresencaStatus,
   StatusAgendamento,
@@ -163,8 +165,17 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   roomsLoading = false;
   unidadeAtualId: number | null = null;
   dataPresencaSelecionada = '';
+  presencaDataSelecionada: PresencaDataRecord | null = null;
+  presencaDatas: PresencaDataRecord[] = [];
+  presencaAnexos: PresencaAnexoRecord[] = [];
   presencaCarregando = false;
   presencaSalvando = false;
+  presencaGerando = false;
+  presencaAnexosCarregando = false;
+  presencaAnexoEnviando = false;
+  presencaObservacoes = '';
+  presencaExibirCpf = true;
+  presencaPendente = false;
   private presencasPorMatricula: Record<string, PresencaStatus> = {};
   dataAgendaSelecionada = '';
   filtroStatusAgenda = 'TODOS';
@@ -658,7 +669,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       statusAgendamento: 'AGUARDANDO'
     });
     this.atualizarOpcoesBeneficiarioAgenda();
-    this.carregarPresencas();
+    this.resetPresenca();
+    this.carregarPresencaDatas();
   }
 
   startNew(): void {
@@ -963,22 +975,186 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   atualizarDataPresenca(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.dataPresencaSelecionada = input.value;
-    this.carregarPresencas();
+    this.presencaDataSelecionada = null;
+    this.presencaObservacoes = '';
+    this.presencaAnexos = [];
+    this.presencaPendente = false;
   }
 
   atualizarPresenca(matricula: Enrollment, status: PresencaStatus): void {
-    const curso = this.currentCourse;
-    if (!curso || !this.dataPresencaSelecionada) return;
+    if (!this.presencaDataSelecionada) return;
     const atual = this.presencasPorMatricula[matricula.id];
     this.presencasPorMatricula[matricula.id] = atual === status ? 'AUSENTE' : status;
-    this.salvarPresencas();
+    this.presencaPendente = true;
   }
 
   obterPresenca(matricula: Enrollment): PresencaStatus {
     return this.presencasPorMatricula[matricula.id] ?? 'AUSENTE';
   }
 
-  imprimirListaPresenca(): void {
+  private resetPresenca(): void {
+    this.dataPresencaSelecionada = '';
+    this.presencaDataSelecionada = null;
+    this.presencasPorMatricula = {};
+    this.presencaObservacoes = '';
+    this.presencaAnexos = [];
+    this.presencaPendente = false;
+  }
+
+  selecionarPresencaData(presencaData: PresencaDataRecord): void {
+    this.presencaDataSelecionada = presencaData;
+    this.dataPresencaSelecionada = presencaData.dataAula;
+    this.presencaObservacoes = presencaData.observacoes ?? '';
+    this.carregarPresencas();
+    this.carregarPresencaAnexos();
+  }
+
+  async carregarPresencaDatas(): Promise<void> {
+    const curso = this.currentCourse;
+    if (!curso) {
+      this.presencaDatas = [];
+      return;
+    }
+    try {
+      const response = await firstValueFrom(this.service.listarPresencaDatas(curso.id, false));
+      this.presencaDatas = response.datas ?? [];
+      if (this.presencaDataSelecionada) {
+        const atualizada = this.presencaDatas.find((item) => item.id === this.presencaDataSelecionada?.id);
+        if (atualizada) {
+          this.presencaDataSelecionada = atualizada;
+          this.presencaObservacoes = atualizada.observacoes ?? this.presencaObservacoes;
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar datas de presença', error);
+      this.presencaDatas = [];
+    }
+  }
+
+  salvarObservacoesPresenca(): void {
+    const curso = this.currentCourse;
+    const presencaData = this.presencaDataSelecionada;
+    if (!curso || !presencaData) return;
+    this.presencaSalvando = true;
+    this.service
+      .atualizarPresencaData(curso.id, presencaData.id, {
+        observacoes: this.presencaObservacoes?.trim() || null
+      })
+      .pipe(finalize(() => (this.presencaSalvando = false)))
+      .subscribe({
+        next: (response) => {
+          this.presencaDataSelecionada = response;
+          this.carregarPresencaDatas();
+        },
+        error: () => {
+          this.feedback = 'Não foi possível salvar as observações.';
+        }
+      });
+  }
+
+  cancelarPresencaData(): void {
+    const curso = this.currentCourse;
+    const presencaData = this.presencaDataSelecionada;
+    if (!curso || !presencaData) return;
+    if (!window.confirm('Confirmar cancelamento da data selecionada?')) return;
+    this.presencaSalvando = true;
+    this.service
+      .cancelarPresencaData(curso.id, presencaData.id)
+      .pipe(finalize(() => (this.presencaSalvando = false)))
+      .subscribe({
+        next: (response) => {
+          this.presencaDataSelecionada = response;
+          this.carregarPresencaDatas();
+        },
+        error: () => {
+          this.feedback = 'Não foi possível cancelar a data selecionada.';
+        }
+      });
+  }
+
+  removerPresencaData(): void {
+    const curso = this.currentCourse;
+    const presencaData = this.presencaDataSelecionada;
+    if (!curso || !presencaData) return;
+    if (!window.confirm('Excluir a data selecionada? Esta ação é irreversível.')) return;
+    this.presencaSalvando = true;
+    this.service
+      .removerPresencaData(curso.id, presencaData.id)
+      .pipe(finalize(() => (this.presencaSalvando = false)))
+      .subscribe({
+        next: () => {
+          this.presencaDataSelecionada = null;
+          this.carregarPresencaDatas();
+          this.presencasPorMatricula = {};
+          this.presencaAnexos = [];
+        },
+        error: () => {
+          this.feedback = 'Não foi possível excluir a data selecionada.';
+        }
+      });
+  }
+
+  carregarPresencaAnexos(): void {
+    const curso = this.currentCourse;
+    const presencaData = this.presencaDataSelecionada;
+    if (!curso || !presencaData) {
+      this.presencaAnexos = [];
+      return;
+    }
+    this.presencaAnexosCarregando = true;
+    this.service
+      .listarPresencaAnexos(curso.id, presencaData.id)
+      .pipe(finalize(() => (this.presencaAnexosCarregando = false)))
+      .subscribe({
+        next: (anexos) => {
+          this.presencaAnexos = anexos ?? [];
+        },
+        error: () => {
+          this.presencaAnexos = [];
+          this.feedback = 'Não foi possível carregar os anexos.';
+        }
+      });
+  }
+
+  async anexarListaPresenca(event: Event): Promise<void> {
+    const curso = this.currentCourse;
+    const presencaData = this.presencaDataSelecionada;
+    const input = event.target as HTMLInputElement;
+    const arquivo = input?.files?.[0];
+    if (!curso || !presencaData || !arquivo) {
+      if (input) input.value = '';
+      return;
+    }
+    if (!arquivo.type.includes('pdf') && !arquivo.name.toLowerCase().endsWith('.pdf')) {
+      this.feedback = 'Envie apenas arquivo PDF.';
+      if (input) input.value = '';
+      return;
+    }
+    this.presencaAnexoEnviando = true;
+    try {
+      const conteudoBase64 = await this.lerArquivoBase64(arquivo);
+      const anexo = await firstValueFrom(
+        this.service.adicionarPresencaAnexo(curso.id, presencaData.id, {
+          nomeArquivo: arquivo.name,
+          tipoMime: arquivo.type || 'application/pdf',
+          conteudoBase64,
+          tamanho: this.formatarTamanho(arquivo.size),
+          dataUpload: new Date().toISOString().slice(0, 10),
+          usuario: this.usuarioEmissor()
+        })
+      );
+      this.presencaAnexos = [anexo, ...this.presencaAnexos];
+    } catch (error) {
+      console.error('Erro ao enviar anexo da presença', error);
+      this.feedback = 'Não foi possível salvar o anexo.';
+    } finally {
+      this.presencaAnexoEnviando = false;
+      if (input) input.value = '';
+      this.carregarPresencaDatas();
+    }
+  }
+
+  async imprimirListaPresenca(): Promise<void> {
     this.feedback = null;
     const curso = this.currentCourse;
     if (!curso) {
@@ -989,137 +1165,32 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       this.feedback = 'Informe a data da aula para imprimir a lista de presença.';
       return;
     }
-    const linhas = this.matriculasAtivas
-      .map((matricula, index) => {
-        const status = this.obterPresenca(matricula);
-        const presente = status === 'PRESENTE' ? 'Presente' : 'Ausente';
-        return `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${matricula.beneficiaryName}</td>
-            <td>${matricula.cpf || ''}</td>
-            <td>${presente}</td>
-            <td></td>
-          </tr>
-        `;
-      })
-      .join('');
-
-    const unidade = this.unidadeAtual;
-    const razaoSocial = unidade?.razaoSocial || unidade?.nomeFantasia || 'Instituição';
-    const cnpj = unidade?.cnpj || '';
-    const enderecoLinha = [unidade?.endereco, unidade?.numeroEndereco, unidade?.complemento]
-      .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(', ');
-    const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : '', enderecoLinha, unidade?.bairro, unidade?.cidade]
-      .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(' | ') || 'Endereço não informado';
-    const linhaContato = [
-      unidade?.telefone ? `Telefone: ${unidade.telefone}` : '',
-      unidade?.email ? `E-mail: ${unidade.email}` : '',
-      unidade?.site ? `Site: ${unidade.site}` : ''
-    ]
-      .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(' | ');
-
-    const janela = window.open('', '_blank', 'width=900,height=1100');
-    if (!janela) {
-      this.feedback = 'Permita a abertura de pop-ups para visualizar a impressao.';
-      return;
+    if (this.presencaGerando) return;
+    this.presencaGerando = true;
+    try {
+      const presencaData = await firstValueFrom(
+        this.service.criarPresencaData(curso.id, {
+          dataAula: this.dataPresencaSelecionada,
+          observacoes: this.presencaObservacoes?.trim() || null
+        })
+      );
+      this.presencaDataSelecionada = presencaData;
+      await this.carregarPresencaDatas();
+      const blob = await firstValueFrom(
+        this.reportService.generateCursoAtendimentoListaPresenca({
+          cursoId: String(curso.id),
+          dataAula: this.dataPresencaSelecionada,
+          usuarioEmissor: this.usuarioEmissor(),
+          exibirCpf: this.presencaExibirCpf
+        })
+      );
+      this.openPdfInNewWindow(blob);
+    } catch (error) {
+      console.error('Erro ao gerar lista de presença', error);
+      this.feedback = 'Não foi possível gerar a lista de presença.';
+    } finally {
+      this.presencaGerando = false;
     }
-
-    janela.document.write(`
-      <!doctype html>
-      <html lang="pt-BR">
-        <head>
-          <meta charset="utf-8" />
-          <title>lista de presença</title>
-          <style>
-            @page { size: A4; margin: 20mm; }
-            body { font-family: Arial, sans-serif; color: #111827; }
-            header { margin-bottom: 12px; }
-            h1 { font-size: 18px; margin: 0 0 4px; }
-            .subtitulo { font-size: 12px; margin: 0 0 6px; }
-            .linha-info { font-size: 12px; margin: 0; color: #374151; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            th, td { border: 1px solid #d1d5db; padding: 6px 8px; font-size: 12px; }
-            th { background: #f3f4f6; text-align: left; }
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-            footer {
-              position: fixed;
-              bottom: 0;
-              left: 0;
-              right: 0;
-              font-size: 11px;
-              color: #6b7280;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 4px;
-            }
-            footer .pagina:after {
-              content: "Página " counter(page) " de " counter(pages);
-            }
-          </style>
-        </head>
-        <body>
-          <header>
-            <div class="linha-info">G3 Assistencial</div>
-            <h1>lista de presença</h1>
-            <p class="subtitulo">Curso/Atendimento: ${curso.nome}</p>
-            <p class="linha-info">Data da aula: ${this.dataPresencaSelecionada}</p>
-          </header>
-          <main>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>beneficiário</th>
-                  <th>CPF</th>
-                  <th>Status</th>
-                  <th>Assinatura</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${linhas || '<tr><td colspan="5">Nenhuma matricula ativa.</td></tr>'}
-              </tbody>
-            </table>
-          </main>
-          <footer>
-            <span>${razaoSocial}</span>
-            <span>${linhaEndereco}</span>
-            <span>${linhaContato}</span>
-            <span class="pagina"></span>
-          </footer>
-        </body>
-      </html>
-    `);
-    janela.document.close();
-    const imprimir = () => {
-      janela.focus();
-      janela.print();
-    };
-    const imagens = Array.from(janela.document.images);
-    if (!imagens.length) {
-      imprimir();
-      return;
-    }
-    let carregadas = 0;
-    const concluir = () => {
-      carregadas += 1;
-      if (carregadas >= imagens.length) {
-        imprimir();
-      }
-    };
-    imagens.forEach((img) => {
-      if (img.complete) {
-        concluir();
-      } else {
-        img.addEventListener('load', concluir);
-        img.addEventListener('error', concluir);
-      }
-    });
   }
 
   selectBeneficiary(beneficiary: BeneficiaryPayload): void {
@@ -1461,12 +1532,16 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     return { label: 'Abertas', tone: 'green' };
   }
 
+  get presencaDatasPendentes(): PresencaDataRecord[] {
+    return this.presencaDatas.filter((item) => item.status === 'GERADA');
+  }
+
   private carregarPresencas(): void {
     const curso = this.currentCourse;
-    if (!curso || !this.dataPresencaSelecionada) return;
+    if (!curso || !this.presencaDataSelecionada) return;
     this.presencaCarregando = true;
     this.service
-      .listarPresencas(curso.id, this.dataPresencaSelecionada)
+      .listarPresencasPorData(curso.id, this.presencaDataSelecionada.id)
       .pipe(finalize(() => (this.presencaCarregando = false)))
       .subscribe({
         next: (response) => {
@@ -1479,6 +1554,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
               this.presencasPorMatricula[matricula.id] = 'AUSENTE';
             }
           });
+          this.presencaPendente = false;
         },
         error: () => {
           this.feedback = 'Não foi possível carregar a presença desta data.';
@@ -1488,11 +1564,11 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   salvarPresencas(): void {
     const curso = this.currentCourse;
-    if (!curso || !this.dataPresencaSelecionada) return;
+    if (!curso || !this.presencaDataSelecionada) return;
     const payload = this.montarPayloadPresenca();
     this.presencaSalvando = true;
     this.service
-      .salvarPresencas(curso.id, payload)
+      .salvarPresencasPorData(curso.id, this.presencaDataSelecionada.id, payload)
       .pipe(finalize(() => (this.presencaSalvando = false)))
       .subscribe({
         next: (response) => {
@@ -1500,6 +1576,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           response.presencas.forEach((presenca) => {
             this.presencasPorMatricula[presenca.matriculaId] = presenca.status;
           });
+          this.presencaPendente = false;
+          this.carregarPresencaDatas();
         },
         error: () => {
           this.feedback = 'Não foi possível salvar a presença.';
@@ -1513,9 +1591,27 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       status: this.obterPresenca(matricula),
     }));
     return {
-      dataAula: this.dataPresencaSelecionada,
+      dataAula: this.presencaDataSelecionada?.dataAula || this.dataPresencaSelecionada,
       presencas,
     };
+  }
+
+  private lerArquivoBase64(arquivo: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Falha ao ler arquivo.'));
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(arquivo);
+    });
+  }
+
+  private formatarTamanho(bytes: number): string {
+    if (!bytes && bytes !== 0) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(1)} MB`;
   }
 
   private setupBeneficiarySearch(): void {

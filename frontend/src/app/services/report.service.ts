@@ -71,6 +71,13 @@ export interface DoacoesBeneficiarioRelatorioFilters {
   usuarioEmissor?: string;
 }
 
+export interface CursoAtendimentoListaPresencaPayload {
+  cursoId: string;
+  dataAula: string;
+  usuarioEmissor?: string;
+  exibirCpf?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly runtimeConfig = inject(RuntimeConfigService);
@@ -108,6 +115,14 @@ export class ReportService {
     usuarioEmissor?: string;
   }): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/cursos-atendimentos/ficha`, payload, {
+      responseType: 'blob'
+    });
+  }
+
+  generateCursoAtendimentoListaPresenca(
+    payload: CursoAtendimentoListaPresencaPayload
+  ): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/cursos-atendimentos/presenca-lista`, payload, {
       responseType: 'blob'
     });
   }

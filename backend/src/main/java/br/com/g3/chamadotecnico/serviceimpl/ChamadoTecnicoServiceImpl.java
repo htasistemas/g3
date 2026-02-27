@@ -33,6 +33,8 @@ import br.com.g3.chamadotecnico.repository.ChamadoTecnicoRepository;
 import br.com.g3.chamadotecnico.service.ArmazenamentoChamadoAnexoService;
 import br.com.g3.chamadotecnico.service.ChamadoTecnicoService;
 import br.com.g3.shared.service.EmailService;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -534,6 +538,31 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
   }
 
   @Override
+  public Resource obterAnexo(UUID id, UUID anexoId) {
+    buscarEntidade(id);
+    ChamadoTecnicoAnexo anexo =
+        anexoRepository
+            .buscarPorId(anexoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo nao encontrado."));
+    if (anexo.getChamadoId() == null || !anexo.getChamadoId().equals(id)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo nao encontrado.");
+    }
+    if (anexo.getStoragePath() == null || anexo.getStoragePath().trim().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");
+    }
+    try {
+      Path caminho = Paths.get(anexo.getStoragePath());
+      Resource resource = new UrlResource(caminho.toUri());
+      if (!resource.exists()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");
+      }
+      return resource;
+    } catch (Exception ex) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");
+    }
+  }
+
+  @Override
   public List<ChamadoTecnicoAcaoResponse> listarAcoes(UUID id) {
     buscarEntidade(id);
     return acaoRepository.listarPorChamado(id).stream()
@@ -689,6 +718,10 @@ public class ChamadoTecnicoServiceImpl implements ChamadoTecnicoService {
     response.setMimeType(anexo.getMimeType());
     response.setTamanhoBytes(anexo.getTamanhoBytes());
     response.setStoragePath(anexo.getStoragePath());
+    if (anexo.getId() != null && anexo.getChamadoId() != null && anexo.getStoragePath() != null) {
+      response.setArquivoUrl(
+          "/api/chamados-tecnicos/" + anexo.getChamadoId() + "/anexos/" + anexo.getId() + "/arquivo");
+    }
     response.setCriadoPorUsuarioId(anexo.getCriadoPorUsuarioId());
     response.setCriadoEm(anexo.getCriadoEm());
     return response;

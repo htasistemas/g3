@@ -215,8 +215,27 @@
 
           <div class="timeline">
             <div class="timeline__item" *ngFor="let anexo of anexos">
-              <p class="timeline__title">{{ anexo.nome_arquivo }}</p>
-              <p class="timeline__meta">{{ anexo.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
+              <div class="timeline__row">
+                <div>
+                  <p class="timeline__title">{{ anexo.nome_arquivo }}</p>
+                  <p class="timeline__meta">{{ anexo.criado_em | date: 'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <a
+                  class="timeline__link"
+                  *ngIf="anexo.arquivo_url"
+                  [href]="anexo.arquivo_url"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Visualizar
+                </a>
+              </div>
+              <img
+                *ngIf="isImagemAnexo(anexo) && anexo.arquivo_url"
+                [src]="anexo.arquivo_url"
+                [alt]="anexo.nome_arquivo"
+                class="timeline__preview"
+              />
             </div>
             <p class="muted" *ngIf="!anexos.length">Nenhum anexo registrado.</p>
           </div>

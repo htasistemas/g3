@@ -14,6 +14,8 @@ public class ChamadoTecnicoAnexoResponse {
   private Long tamanhoBytes;
   @JsonProperty("storage_path")
   private String storagePath;
+  @JsonProperty("arquivo_url")
+  private String arquivoUrl;
   @JsonProperty("criado_por_usuario_id")
   private Long criadoPorUsuarioId;
   @JsonProperty("criado_em")
@@ -57,6 +59,14 @@ public class ChamadoTecnicoAnexoResponse {
 
   public void setStoragePath(String storagePath) {
     this.storagePath = storagePath;
+  }
+
+  public String getArquivoUrl() {
+    return arquivoUrl;
+  }
+
+  public void setArquivoUrl(String arquivoUrl) {
+    this.arquivoUrl = arquivoUrl;
   }
 
   public Long getCriadoPorUsuarioId() {

@@ -13,4 +13,6 @@ public interface CursoAtendimentoPresencaJpaRepository
 
   Optional<CursoAtendimentoPresenca> findByCursoAtendimentoIdAndMatriculaIdAndDataAula(
       Long cursoId, Long matriculaId, LocalDate dataAula);
+
+  void deleteByCursoAtendimentoIdAndDataAula(Long cursoId, LocalDate dataAula);
 }

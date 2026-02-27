@@ -31,4 +31,9 @@ public class CursoAtendimentoPresencaRepositoryImpl implements CursoAtendimentoP
     return jpaRepository.findByCursoAtendimentoIdAndMatriculaIdAndDataAula(
         cursoId, matriculaId, dataAula);
   }
+
+  @Override
+  public void removerPorCursoEData(Long cursoId, LocalDate dataAula) {
+    jpaRepository.deleteByCursoAtendimentoIdAndDataAula(cursoId, dataAula);
+  }
 }

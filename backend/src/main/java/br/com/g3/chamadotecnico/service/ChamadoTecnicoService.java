@@ -16,6 +16,7 @@ import br.com.g3.chamadotecnico.dto.ChamadoTecnicoStatusRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
 
 public interface ChamadoTecnicoService {
   ChamadoTecnicoResponse criar(ChamadoTecnicoCriacaoRequest request);
@@ -51,6 +52,8 @@ public interface ChamadoTecnicoService {
   ChamadoTecnicoAnexoResponse adicionarAnexo(UUID id, ChamadoTecnicoAnexoRequest request);
 
   List<ChamadoTecnicoAnexoResponse> listarAnexos(UUID id);
+
+  Resource obterAnexo(UUID id, UUID anexoId);
 
   List<ChamadoTecnicoAcaoResponse> listarAcoes(UUID id);
 

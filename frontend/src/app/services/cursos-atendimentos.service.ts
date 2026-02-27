@@ -35,6 +35,33 @@ export interface PresencaResponse {
   presencas: PresencaItem[];
 }
 
+export interface PresencaDataRecord {
+  id: string;
+  dataAula: string;
+  status: 'GERADA' | 'PREENCHIDA' | 'CANCELADA';
+  observacoes?: string | null;
+  totalPresencas?: number | null;
+  totalAnexos?: number | null;
+  criadoEm?: string;
+  atualizadoEm?: string;
+}
+
+export interface PresencaDataListaResponse {
+  datas: PresencaDataRecord[];
+}
+
+export interface PresencaAnexoRecord {
+  id: string;
+  presencaDataId: string;
+  nomeArquivo: string;
+  tipoMime: string;
+  tamanho?: string | null;
+  arquivoUrl?: string | null;
+  dataUpload?: string | null;
+  usuario?: string | null;
+  criadoEm?: string | null;
+}
+
 export interface WaitlistEntry {
   id: string;
   beneficiaryName: string;
@@ -120,6 +147,82 @@ export class CursosAtendimentosService {
 
   salvarPresencas(cursoId: string, payload: PresencaResponse): Observable<PresencaResponse> {
     return this.http.post<PresencaResponse>(`${this.baseUrl}/${cursoId}/presencas`, payload);
+  }
+
+  listarPresencaDatas(cursoId: string, somentePendentes = false): Observable<PresencaDataListaResponse> {
+    return this.http.get<PresencaDataListaResponse>(`${this.baseUrl}/${cursoId}/presencas/datas`, {
+      params: { pendentes: String(somentePendentes) }
+    });
+  }
+
+  criarPresencaData(
+    cursoId: string,
+    payload: { dataAula: string; observacoes?: string | null }
+  ): Observable<PresencaDataRecord> {
+    return this.http.post<PresencaDataRecord>(`${this.baseUrl}/${cursoId}/presencas/datas`, payload);
+  }
+
+  atualizarPresencaData(
+    cursoId: string,
+    presencaDataId: string,
+    payload: { observacoes?: string | null; status?: string }
+  ): Observable<PresencaDataRecord> {
+    return this.http.put<PresencaDataRecord>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}`,
+      payload
+    );
+  }
+
+  cancelarPresencaData(cursoId: string, presencaDataId: string): Observable<PresencaDataRecord> {
+    return this.http.patch<PresencaDataRecord>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}/cancelar`,
+      {}
+    );
+  }
+
+  removerPresencaData(cursoId: string, presencaDataId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}`);
+  }
+
+  listarPresencasPorData(cursoId: string, presencaDataId: string): Observable<PresencaResponse> {
+    return this.http.get<PresencaResponse>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}/itens`
+    );
+  }
+
+  salvarPresencasPorData(
+    cursoId: string,
+    presencaDataId: string,
+    payload: PresencaResponse
+  ): Observable<PresencaResponse> {
+    return this.http.post<PresencaResponse>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}/itens`,
+      payload
+    );
+  }
+
+  listarPresencaAnexos(cursoId: string, presencaDataId: string): Observable<PresencaAnexoRecord[]> {
+    return this.http.get<PresencaAnexoRecord[]>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}/anexos`
+    );
+  }
+
+  adicionarPresencaAnexo(
+    cursoId: string,
+    presencaDataId: string,
+    payload: {
+      nomeArquivo: string;
+      tipoMime: string;
+      conteudoBase64: string;
+      tamanho?: string | null;
+      dataUpload?: string | null;
+      usuario: string;
+    }
+  ): Observable<PresencaAnexoRecord> {
+    return this.http.post<PresencaAnexoRecord>(
+      `${this.baseUrl}/${cursoId}/presencas/datas/${presencaDataId}/anexos`,
+      payload
+    );
   }
 
   delete(id: string): Observable<void> {

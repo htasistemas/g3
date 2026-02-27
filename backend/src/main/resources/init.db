@@ -2615,6 +2615,35 @@ CREATE TABLE IF NOT EXISTS cursos_atendimentos_presencas (
 CREATE INDEX IF NOT EXISTS cursos_atendimentos_presencas_curso_data_idx
   ON cursos_atendimentos_presencas (curso_id, data_aula);
 
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_presenca_datas (
+  id BIGSERIAL PRIMARY KEY,
+  curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,
+  data_aula DATE NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  observacoes TEXT,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (curso_id, data_aula)
+);
+
+CREATE INDEX IF NOT EXISTS cursos_atendimentos_presenca_datas_curso_data_idx
+  ON cursos_atendimentos_presenca_datas (curso_id, data_aula);
+
+CREATE TABLE IF NOT EXISTS cursos_atendimentos_presenca_anexos (
+  id BIGSERIAL PRIMARY KEY,
+  presenca_data_id BIGINT NOT NULL REFERENCES cursos_atendimentos_presenca_datas(id) ON DELETE CASCADE,
+  nome_arquivo VARCHAR(200) NOT NULL,
+  tipo_mime VARCHAR(120) NOT NULL,
+  tamanho VARCHAR(40),
+  caminho_arquivo TEXT,
+  data_upload DATE NOT NULL,
+  usuario VARCHAR(120) NOT NULL,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS cursos_atendimentos_presenca_anexos_data_idx
+  ON cursos_atendimentos_presenca_anexos (presenca_data_id, data_upload DESC);
+
 CREATE TABLE IF NOT EXISTS cursos_atendimentos_status (
   id BIGSERIAL PRIMARY KEY,
   curso_id BIGINT NOT NULL REFERENCES cursos_atendimentos(id) ON DELETE CASCADE,

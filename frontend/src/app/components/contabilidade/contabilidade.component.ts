@@ -1163,7 +1163,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     }).format(value || 0);
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | Date): string {
     const parsed = this.parseDate(date);
     if (!parsed) return '';
     return parsed.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -1459,7 +1459,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       runningBalance += receivable - payable;
 
       return {
-        period: `${this.formatDate(startWeek.toISOString())} - ${this.formatDate(endWeek.toISOString())}`,
+        period: `${this.formatDate(startWeek)} - ${this.formatDate(endWeek)}`,
         receivable,
         payable,
         projection: runningBalance
@@ -1565,7 +1565,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   private todayISO(): string {
-    return new Date().toISOString().substring(0, 10);
+    return this.formatLocalISO(new Date());
   }
 
   private formatarDataInput(date: string | Date | null | undefined): string {
@@ -1573,7 +1573,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
     if (!parsed) {
       return this.todayISO();
     }
-    return parsed.toISOString().substring(0, 10);
+    return this.formatLocalISO(parsed);
   }
 
   private startOfWeek(date: Date): Date {
@@ -1586,9 +1586,23 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
 
   private parseDate(date: string | Date | null | undefined): Date | null {
     if (!date) return null;
+    if (typeof date === 'string') {
+      const trimmed = date.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [year, month, day] = trimmed.split('-').map((part) => Number(part));
+        return new Date(year, month - 1, day);
+      }
+    }
     const parsed = new Date(date as any);
     if (isNaN(parsed.getTime())) return null;
     return parsed;
+  }
+
+  private formatLocalISO(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private toDateOnly(date: Date): Date {

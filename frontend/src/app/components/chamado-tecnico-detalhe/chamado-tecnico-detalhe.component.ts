@@ -514,6 +514,11 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
     return this.nomeUsuarioLogado() || (comentario.criado_por_usuario_id ? String(comentario.criado_por_usuario_id) : '---');
   }
 
+  isImagemAnexo(anexo: ChamadoTecnicoAnexo): boolean {
+    const mime = (anexo.mime_type || '').toLowerCase();
+    return mime.startsWith('image/');
+  }
+
   private enviarAnexoArquivo(chamadoId: string, file: File): void {
     const reader = new FileReader();
     reader.onload = () => {

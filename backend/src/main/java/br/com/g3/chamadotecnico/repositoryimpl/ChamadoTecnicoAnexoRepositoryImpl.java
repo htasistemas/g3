@@ -3,6 +3,7 @@ package br.com.g3.chamadotecnico.repositoryimpl;
 import br.com.g3.chamadotecnico.domain.ChamadoTecnicoAnexo;
 import br.com.g3.chamadotecnico.repository.ChamadoTecnicoAnexoRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
@@ -22,5 +23,10 @@ public class ChamadoTecnicoAnexoRepositoryImpl implements ChamadoTecnicoAnexoRep
   @Override
   public List<ChamadoTecnicoAnexo> listarPorChamado(UUID chamadoId) {
     return jpaRepository.findByChamadoIdOrderByCriadoEmDesc(chamadoId);
+  }
+
+  @Override
+  public Optional<ChamadoTecnicoAnexo> buscarPorId(UUID id) {
+    return jpaRepository.findById(id);
   }
 }

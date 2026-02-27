@@ -15,11 +15,17 @@ import br.com.g3.chamadotecnico.dto.ChamadoTecnicoResponse;
 import br.com.g3.chamadotecnico.dto.ChamadoTecnicoStatusRequest;
 import br.com.g3.chamadotecnico.service.ChamadoTecnicoService;
 import jakarta.validation.Valid;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -120,6 +126,13 @@ public class ChamadoTecnicoController {
     return service.listarAnexos(id);
   }
 
+  @GetMapping("/{id}/anexos/{anexoId}/arquivo")
+  public ResponseEntity<Resource> baixarAnexo(
+      @PathVariable("id") UUID id, @PathVariable("anexoId") UUID anexoId) {
+    Resource resource = service.obterAnexo(id, anexoId);
+    return ResponseEntity.ok().contentType(obterMediaType(resource)).body(resource);
+  }
+
   @GetMapping("/{id}/acoes")
   public List<ChamadoTecnicoAcaoResponse> listarAcoes(@PathVariable("id") UUID id) {
     return service.listarAcoes(id);
@@ -135,5 +148,15 @@ public class ChamadoTecnicoController {
   @GetMapping("/{id}/auditoria-vinculada")
   public List<ChamadoTecnicoAuditoriaVinculoResponse> listarAuditoria(@PathVariable("id") UUID id) {
     return service.listarAuditoriasVinculadas(id);
+  }
+
+  private MediaType obterMediaType(Resource resource) {
+    try {
+      Path caminho = Paths.get(resource.getFile().getAbsolutePath());
+      String contentType = Files.probeContentType(caminho);
+      return contentType != null ? MediaType.parseMediaType(contentType) : MediaType.APPLICATION_OCTET_STREAM;
+    } catch (Exception ex) {
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
   }
 }

@@ -80,6 +80,7 @@ export interface ChamadoTecnicoAnexo {
   mime_type: string;
   tamanho_bytes?: number | null;
   storage_path?: string | null;
+  arquivo_url?: string | null;
   criado_por_usuario_id?: number | null;
   criado_em: string;
 }

@@ -628,7 +628,7 @@
         </div>
       </div>
 
-      <div class="field-grid cols-3">
+      <div class="field-grid cols-4">
         <label class="field full">
           Selecione o curso/atendimento*
           <select [value]="currentCourse?.id || ''" (change)="selectCourseForEnrollment($any($event.target).value)">
@@ -646,16 +646,135 @@
             (change)="atualizarDataPresenca($event)"
           />
         </label>
+        <label class="field inline-check">
+          <span>Exibir CPF na lista</span>
+          <input type="checkbox" [(ngModel)]="presencaExibirCpf" [ngModelOptions]="{ standalone: true }" />
+        </label>
         <div class="actions align-end">
-          <button type="button" class="ghost" [disabled]="presencaSalvando" (click)="salvarPresencas()">
-            Salvar
+          <button
+            type="button"
+            class="ghost"
+            [disabled]="presencaSalvando || !presencaDataSelecionada || presencaDataSelecionada.status === 'CANCELADA' || !presencaPendente"
+            (click)="salvarPresencas()"
+          >
+            Salvar presenças
           </button>
-          <button type="button" class="primary" (click)="imprimirListaPresenca()">
-            Imprimir lista
+          <button
+            type="button"
+            class="primary"
+            [disabled]="presencaGerando || !dataPresencaSelecionada"
+            (click)="imprimirListaPresenca()"
+          >
+            Gerar lista
           </button>
         </div>
       </div>
       <div class="search-hint" *ngIf="presencaCarregando">Carregando...</div>
+
+      <div class="list-card">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__label">Datas geradas</p>
+          </div>
+        </div>
+        <div class="presence-dates" *ngIf="presencaDatas.length; else emptyPresencaDatas">
+          <button
+            type="button"
+            class="presence-date"
+            *ngFor="let data of presencaDatas"
+            [class.active]="presencaDataSelecionada?.id === data.id"
+            (click)="selecionarPresencaData(data)"
+          >
+            <div>
+              <strong>{{ data.dataAula | date: 'dd/MM/yyyy' }}</strong>
+              <span class="presence-date__meta" *ngIf="data.totalPresencas">
+                {{ data.totalPresencas }} presença(s)
+              </span>
+            </div>
+            <span class="badge" [class.badge--green]="data.status === 'PREENCHIDA'"
+              [class.badge--amber]="data.status === 'GERADA'"
+              [class.badge--red]="data.status === 'CANCELADA'">
+              {{ data.status }}
+            </span>
+          </button>
+        </div>
+        <ng-template #emptyPresencaDatas>
+          <p class="empty-state">Nenhuma data gerada.</p>
+        </ng-template>
+      </div>
+
+      <div class="list-card" *ngIf="presencaDataSelecionada">
+        <div class="list-card__header">
+          <div>
+            <p class="page-title__label">Detalhes da data selecionada</p>
+          </div>
+        </div>
+        <div class="field-grid cols-2">
+          <label class="field full">
+            Observações
+            <textarea rows="4" [(ngModel)]="presencaObservacoes" [ngModelOptions]="{ standalone: true }"></textarea>
+          </label>
+          <div class="field full">
+            <div class="actions">
+              <button
+                type="button"
+                class="ghost"
+                [disabled]="presencaSalvando || presencaDataSelecionada.status === 'CANCELADA'"
+                (click)="salvarObservacoesPresenca()"
+              >
+                Salvar observações
+              </button>
+              <button
+                type="button"
+                class="ghost"
+                [disabled]="presencaSalvando || presencaDataSelecionada.status === 'CANCELADA'"
+                (click)="cancelarPresencaData()"
+              >
+                Cancelar data
+              </button>
+              <button
+                type="button"
+                class="danger"
+                [disabled]="presencaSalvando"
+                (click)="removerPresencaData()"
+              >
+                Excluir data
+              </button>
+            </div>
+            <div class="anexo-upload">
+              <label class="file-button">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  (change)="anexarListaPresenca($event)"
+                  [disabled]="presencaAnexoEnviando || presencaDataSelecionada.status === 'CANCELADA'"
+                />
+                Anexar PDF da lista
+              </label>
+            </div>
+            <div class="anexo-list" *ngIf="presencaAnexos.length; else emptyPresencaAnexos">
+              <div class="anexo-item" *ngFor="let anexo of presencaAnexos">
+                <div>
+                  <strong>{{ anexo.nomeArquivo }}</strong>
+                  <span>{{ anexo.dataUpload | date: 'dd/MM/yyyy' }}</span>
+                </div>
+                <a
+                  class="link"
+                  *ngIf="anexo.arquivoUrl"
+                  [href]="anexo.arquivoUrl"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Visualizar
+                </a>
+              </div>
+            </div>
+            <ng-template #emptyPresencaAnexos>
+              <p class="empty-state">Nenhum anexo enviado.</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
 
       <div class="list-card">
         <div class="list-card__header">
@@ -683,7 +802,7 @@
                         type="checkbox"
                         [checked]="obterPresenca(matricula) === 'PRESENTE'"
                         (change)="atualizarPresenca(matricula, 'PRESENTE')"
-                        [disabled]="!dataPresencaSelecionada || presencaSalvando"
+                        [disabled]="!presencaDataSelecionada || presencaDataSelecionada.status === 'CANCELADA' || presencaSalvando"
                       />
                       <span>Presente</span>
                     </label>
@@ -692,7 +811,7 @@
                         type="checkbox"
                         [checked]="obterPresenca(matricula) === 'AUSENTE'"
                         (change)="atualizarPresenca(matricula, 'AUSENTE')"
-                        [disabled]="!dataPresencaSelecionada || presencaSalvando"
+                        [disabled]="!presencaDataSelecionada || presencaDataSelecionada.status === 'CANCELADA' || presencaSalvando"
                       />
                       <span>Ausente</span>
                     </label>

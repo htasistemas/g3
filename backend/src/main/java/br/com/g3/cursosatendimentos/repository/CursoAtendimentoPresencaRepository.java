@@ -12,4 +12,6 @@ public interface CursoAtendimentoPresencaRepository {
 
   Optional<CursoAtendimentoPresenca> buscarPorCursoMatriculaData(
       Long cursoId, Long matriculaId, LocalDate dataAula);
+
+  void removerPorCursoEData(Long cursoId, LocalDate dataAula);
 }
