@@ -11,6 +11,7 @@ docker compose up -d --build --remove-orphans
 
 Checklist rapido:
 - `docker compose ps`
+- O backend expõe a porta localmente no host (`127.0.0.1:8080:8080`) apenas para o healthcheck do runner.
 - `curl -fsS http://localhost:8080/health`
 - `curl -fsS http://localhost/`
 
