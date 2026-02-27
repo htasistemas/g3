@@ -412,7 +412,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   get movimentacoesFiltradas(): MovimentacaoFinanceiraResponse[] {
-    return this.financialMovements.filter((item) => {
+    const filtradas = this.financialMovements.filter((item) => {
       const descricao = this.normalizeString(item.descricao);
       const categoria = this.normalizeString(item.categoria || '');
       const tipo = this.normalizeString(item.tipo);
@@ -427,6 +427,20 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
         (!mesReferencia || mesMovimentacao === mesReferencia)
       );
     });
+    return filtradas
+      .slice()
+      .sort((a, b) => {
+        const dataA = this.parseDate(a.dataMovimentacao)?.getTime();
+        const dataB = this.parseDate(b.dataMovimentacao)?.getTime();
+        const valorA = dataA ?? Number.MAX_SAFE_INTEGER;
+        const valorB = dataB ?? Number.MAX_SAFE_INTEGER;
+        if (valorA !== valorB) {
+          return valorA - valorB;
+        }
+        const idA = a.id ?? 0;
+        const idB = b.id ?? 0;
+        return idA - idB;
+      });
   }
 
   get emendasFiltradas(): EmendaImpositivaResponse[] {
