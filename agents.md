@@ -54,6 +54,8 @@
 - MUST sinalizar riscos técnicos.
 - MUST NOT assumir requisitos implícitos.
 - MUST ser direto e técnico.
+- MUST NOT alterar rotas do sistema sem solicitação explícita.
+- MUST focar alterações apenas em atualizações do sistema e deploy quando solicitado.
 
 ---
 
