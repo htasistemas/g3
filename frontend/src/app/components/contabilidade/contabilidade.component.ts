@@ -237,6 +237,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   valorLancamentoMascara = 'R$ 0,00';
   lancamentoEmEdicaoId: number | null = null;
   salvandoLancamento = false;
+  salvandoMovimentacao = false;
+  salvandoConta = false;
+  salvandoEmenda = false;
+  private lancamentosEmProcesso = new Set<number>();
+  private pagamentosEmProcesso = new Set<number>();
+  private movimentacoesEmProcesso = new Set<number>();
+  private contasEmProcesso = new Set<number>();
+  private emendasEmProcesso = new Set<number>();
   movimentacaoEmEdicaoId: number | null = null;
   valorMovimentacaoMascara = 'R$ 0,00';
 
@@ -289,7 +297,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   get acoesDesabilitadas(): EstadoAcoesCrud {
-    const bloqueado = this.salvandoLancamento;
+    const bloqueado = this.bloquearAcoesToolbar();
     return {
       salvar: bloqueado,
       excluir: bloqueado,
@@ -569,10 +577,14 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.abrirPopupTemporario();
       return;
     }
+    if (this.salvandoMovimentacao) {
+      return;
+    }
+    this.salvandoMovimentacao = true;
     const request$ = this.movimentacaoEmEdicaoId
       ? this.contabilidadeService.atualizarMovimentacao(this.movimentacaoEmEdicaoId, this.newMovement)
       : this.contabilidadeService.criarMovimentacao(this.newMovement);
-    request$.subscribe((response) => {
+    const subscription = request$.subscribe((response) => {
       if (this.movimentacaoEmEdicaoId) {
         this.financialMovements = this.financialMovements.map((item) => (item.id === response.id ? response : item));
       } else {
@@ -603,6 +615,9 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.valorMovimentacaoMascara = this.formatarValorMonetario(0);
       this.movimentacaoEmEdicaoId = null;
     });
+    subscription.add(() => {
+      this.salvandoMovimentacao = false;
+    });
   }
 
   editarMovimentacao(movement: MovimentacaoFinanceiraResponse): void {
@@ -628,24 +643,37 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   removerMovimentacao(movement: MovimentacaoFinanceiraResponse): void {
+    if (!movement.id || this.movimentacoesEmProcesso.has(movement.id)) {
+      return;
+    }
     this.abrirDialogoConfirmacao(
       'Excluir movimentacao',
       'Confirma a exclusao desta movimentacao registrada?',
       'Excluir',
       () => {
-        this.contabilidadeService.removerMovimentacao(movement.id).subscribe(() => {
-          this.financialMovements = this.financialMovements.filter((item) => item.id !== movement.id);
-          if (this.movimentacaoEmEdicaoId === movement.id) {
-            this.cancelarEdicaoMovimentacao();
+        if (this.movimentacoesEmProcesso.has(movement.id!)) {
+          return;
+        }
+        this.movimentacoesEmProcesso.add(movement.id!);
+        this.contabilidadeService.removerMovimentacao(movement.id).subscribe({
+          next: () => {
+            this.financialMovements = this.financialMovements.filter((item) => item.id !== movement.id);
+            if (this.movimentacaoEmEdicaoId === movement.id) {
+              this.cancelarEdicaoMovimentacao();
+            }
+            this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
+              this.bankAccounts = contas ?? [];
+              this.refreshPanels();
+            });
+            this.popupErros = new PopupErrorBuilder()
+              .adicionar('Movimentacao excluida com sucesso.')
+              .build();
+            this.abrirPopupTemporario();
+            this.movimentacoesEmProcesso.delete(movement.id!);
+          },
+          error: () => {
+            this.movimentacoesEmProcesso.delete(movement.id!);
           }
-          this.contabilidadeService.listarContasBancarias().subscribe((contas) => {
-            this.bankAccounts = contas ?? [];
-            this.refreshPanels();
-          });
-          this.popupErros = new PopupErrorBuilder()
-            .adicionar('Movimentacao excluida com sucesso.')
-            .build();
-          this.abrirPopupTemporario();
         });
       }
     );
@@ -710,6 +738,9 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.abrirPopupTemporario();
       return;
     }
+    if (this.salvandoConta) {
+      return;
+    }
     this.erroChavePix = this.validarChavePix();
     const podeIgnorarPixInvalido = this.contaEmEdicaoId && !this.isPixAlterado();
     if (this.erroChavePix && !podeIgnorarPixInvalido) {
@@ -717,6 +748,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.abrirPopupTemporario();
       return;
     }
+    this.salvandoConta = true;
     const payload = {
       ...this.newAccount,
       recebimentoLocal: Boolean(this.newAccount.recebimentoLocal),
@@ -727,30 +759,32 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       ? this.contabilidadeService.atualizarContaBancaria(this.contaEmEdicaoId, payload)
       : this.contabilidadeService.criarContaBancaria(payload);
     const estavaEditando = Boolean(this.contaEmEdicaoId);
-    request$.subscribe({
-      next: (response) => {
-        if (estavaEditando) {
-          this.bankAccounts = this.bankAccounts.map((conta) => (conta.id === response.id ? response : conta));
-        } else {
-          this.bankAccounts = [...this.bankAccounts, response];
+      request$.subscribe({
+        next: (response) => {
+          if (estavaEditando) {
+            this.bankAccounts = this.bankAccounts.map((conta) => (conta.id === response.id ? response : conta));
+          } else {
+            this.bankAccounts = [...this.bankAccounts, response];
+          }
+          this.resetContaBancariaForm();
+          this.refreshPanels();
+          this.popupErros = new PopupErrorBuilder()
+            .adicionar(estavaEditando ? 'Conta atualizada com sucesso.' : 'Conta cadastrada com sucesso.')
+            .build();
+          this.abrirPopupTemporario();
+          this.changeDetector.detectChanges();
+          this.salvandoConta = false;
+        },
+        error: (erro) => {
+          const mensagem =
+            erro?.error?.message ||
+            erro?.message ||
+            'Nao foi possivel atualizar a conta bancaria. Verifique os dados informados.';
+          this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
+          this.abrirPopupTemporario();
+          this.salvandoConta = false;
         }
-        this.resetContaBancariaForm();
-        this.refreshPanels();
-        this.popupErros = new PopupErrorBuilder()
-          .adicionar(estavaEditando ? 'Conta atualizada com sucesso.' : 'Conta cadastrada com sucesso.')
-          .build();
-        this.abrirPopupTemporario();
-        this.changeDetector.detectChanges();
-      },
-      error: (erro) => {
-        const mensagem =
-          erro?.error?.message ||
-          erro?.message ||
-          'Nao foi possivel atualizar a conta bancaria. Verifique os dados informados.';
-        this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
-        this.abrirPopupTemporario();
-      }
-    });
+      });
   }
 
   editarContaBancaria(conta: ContaBancariaResponse): void {
@@ -783,7 +817,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   }
 
   removerContaBancaria(conta: ContaBancariaResponse): void {
-    if (!conta.id) {
+    if (!conta.id || this.contasEmProcesso.has(conta.id)) {
       return;
     }
     this.abrirDialogoConfirmacao(
@@ -791,12 +825,22 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       'Deseja excluir esta conta bancaria? Esta acao nao pode ser desfeita.',
       'Excluir',
       () => {
-        this.contabilidadeService.removerContaBancaria(conta.id).subscribe(() => {
-          this.bankAccounts = this.bankAccounts.filter((item) => item.id !== conta.id);
-          if (this.contaEmEdicaoId === conta.id) {
-            this.resetContaBancariaForm();
+        if (this.contasEmProcesso.has(conta.id!)) {
+          return;
+        }
+        this.contasEmProcesso.add(conta.id!);
+        this.contabilidadeService.removerContaBancaria(conta.id).subscribe({
+          next: () => {
+            this.bankAccounts = this.bankAccounts.filter((item) => item.id !== conta.id);
+            if (this.contaEmEdicaoId === conta.id) {
+              this.resetContaBancariaForm();
+            }
+            this.refreshPanels();
+            this.contasEmProcesso.delete(conta.id!);
+          },
+          error: () => {
+            this.contasEmProcesso.delete(conta.id!);
           }
-          this.refreshPanels();
         });
       }
     );
@@ -817,7 +861,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       this.abrirPopupTemporario();
       return;
     }
-    this.contabilidadeService.criarEmenda(this.newAmendment).subscribe((response) => {
+    if (this.salvandoEmenda) {
+      return;
+    }
+    this.salvandoEmenda = true;
+    const subscription = this.contabilidadeService.criarEmenda(this.newAmendment).subscribe((response) => {
       this.amendmentControls = [...this.amendmentControls, response];
       this.newAmendment = {
         identificacao: '',
@@ -830,25 +878,45 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
       };
       this.refreshPanels();
     });
+    subscription.add(() => {
+      this.salvandoEmenda = false;
+    });
   }
 
   setEntryStatus(entry: LancamentoFinanceiroResponse, status: string): void {
     if (!entry.id) return;
+    if (this.lancamentosEmProcesso.has(entry.id)) {
+      return;
+    }
     const mensagem =
       status === 'pago'
         ? 'Confirmar registro de pagamento deste lancamento?'
         : 'Confirmar marcacao de atraso deste lancamento?';
     this.abrirDialogoConfirmacao('Confirmar alteracao', mensagem, 'Confirmar', () => {
+      if (this.lancamentosEmProcesso.has(entry.id!)) {
+        return;
+      }
+      this.lancamentosEmProcesso.add(entry.id!);
       this.contabilidadeService.atualizarSituacaoLancamento(entry.id, status).subscribe((response) => {
         this.agenda = this.agenda.map((item) => (item.id === entry.id ? response : item));
         this.refreshPanels();
+        this.lancamentosEmProcesso.delete(entry.id!);
+      }, () => {
+        this.lancamentosEmProcesso.delete(entry.id!);
       });
     });
   }
 
   pagarLancamento(entry: LancamentoFinanceiroResponse): void {
     if (!entry.id) return;
+    if (this.pagamentosEmProcesso.has(entry.id)) {
+      return;
+    }
     this.abrirDialogoConfirmacao('Confirmar pagamento', 'Confirmar pagamento deste lancamento?', 'Confirmar', () => {
+      if (this.pagamentosEmProcesso.has(entry.id!)) {
+        return;
+      }
+      this.pagamentosEmProcesso.add(entry.id!);
       this.contabilidadeService.pagarLancamento(entry.id).subscribe((response) => {
         this.reciboPagamento = response;
         this.agenda = this.agenda.map((item) =>
@@ -864,15 +932,25 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
           this.refreshPanels();
         });
         window.print();
+        this.pagamentosEmProcesso.delete(entry.id!);
+      }, () => {
+        this.pagamentosEmProcesso.delete(entry.id!);
       });
     });
   }
 
   setAmendmentStatus(amendment: EmendaImpositivaResponse, status: string): void {
     if (!amendment.id) return;
+    if (this.emendasEmProcesso.has(amendment.id)) {
+      return;
+    }
+    this.emendasEmProcesso.add(amendment.id);
     this.contabilidadeService.atualizarStatusEmenda(amendment.id, status).subscribe((response) => {
       this.amendmentControls = this.amendmentControls.map((item) => (item.id === amendment.id ? response : item));
       this.refreshPanels();
+      this.emendasEmProcesso.delete(amendment.id!);
+    }, () => {
+      this.emendasEmProcesso.delete(amendment.id!);
     });
   }
 
@@ -1023,6 +1101,47 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
   cancelarDialogo(): void {
     this.dialogConfirmacaoAberta = false;
     this.dialogAcao = undefined;
+  }
+
+  isLancamentoProcessando(entry: LancamentoFinanceiroResponse): boolean {
+    if (!entry.id) return false;
+    return this.lancamentosEmProcesso.has(entry.id) || this.pagamentosEmProcesso.has(entry.id);
+  }
+
+  isPagamentoProcessando(entry: LancamentoFinanceiroResponse): boolean {
+    if (!entry.id) return false;
+    return this.pagamentosEmProcesso.has(entry.id);
+  }
+
+  isMovimentacaoProcessando(movement: MovimentacaoFinanceiraResponse): boolean {
+    if (!movement.id) return false;
+    return this.movimentacoesEmProcesso.has(movement.id);
+  }
+
+  isContaProcessando(conta: ContaBancariaResponse): boolean {
+    if (!conta.id) return false;
+    return this.contasEmProcesso.has(conta.id);
+  }
+
+  isEmendaProcessando(amendment: EmendaImpositivaResponse): boolean {
+    if (!amendment.id) return false;
+    return this.emendasEmProcesso.has(amendment.id);
+  }
+
+  private bloquearAcoesToolbar(): boolean {
+    switch (this.activeTab) {
+      case 'visao-geral':
+      case 'lancamentos':
+        return this.salvandoLancamento || this.lancamentosEmProcesso.size > 0 || this.pagamentosEmProcesso.size > 0;
+      case 'movimentacoes':
+        return this.salvandoMovimentacao || this.movimentacoesEmProcesso.size > 0;
+      case 'contas':
+        return this.salvandoConta || this.contasEmProcesso.size > 0;
+      case 'emendas':
+        return this.salvandoEmenda || this.emendasEmProcesso.size > 0;
+      default:
+        return false;
+    }
   }
 
   getStatusLabel(entry: LancamentoFinanceiroResponse): string {

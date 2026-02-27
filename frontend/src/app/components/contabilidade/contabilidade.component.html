@@ -89,7 +89,7 @@
             <p class="panel__eyebrow">Agenda de pagamentos e recebimentos</p>
           </div>
           <div class="panel__actions">
-            <button type="button" class="ghost" (click)="novoLancamento()">Novo lançamento</button>
+            <button type="button" class="ghost" [disabled]="salvandoLancamento" (click)="novoLancamento()">Novo lançamento</button>
             <span class="pill pill--ghost">Operacional</span>
           </div>
         </header>
@@ -163,10 +163,10 @@
             </select>
           </label>
           <div class="form-actions">
-            <button class="primary" type="submit">
+            <button class="primary" type="submit" [disabled]="salvandoLancamento">
               {{ lancamentoEmEdicaoId ? 'Atualizar lançamento' : 'Salvar lançamento' }}
             </button>
-            <button class="ghost" type="button" *ngIf="lancamentoEmEdicaoId" (click)="cancelarEdicaoLancamento()">
+            <button class="ghost" type="button" *ngIf="lancamentoEmEdicaoId" [disabled]="salvandoLancamento" (click)="cancelarEdicaoLancamento()">
               Cancelar
             </button>
           </div>
@@ -255,21 +255,22 @@
                   </span>
                 </td>
                 <td class="text-right actions">
-                  <button class="ghost" type="button" (click)="editarLancamento(item)">Editar</button>
+                  <button class="ghost" type="button" [disabled]="salvandoLancamento || isLancamentoProcessando(item)" (click)="editarLancamento(item)">Editar</button>
                   <button
                     class="primary"
                     type="button"
                     *ngIf="item.compraId; else pagamentoManual"
+                    [disabled]="isPagamentoProcessando(item)"
                     (click)="pagarLancamento(item)"
                   >
                     Efetuar pagamento
                   </button>
                   <ng-template #pagamentoManual>
-                    <button class="primary" type="button" (click)="setEntryStatus(item, 'pago')">
+                    <button class="primary" type="button" [disabled]="isLancamentoProcessando(item)" (click)="setEntryStatus(item, 'pago')">
                       Registrar pagamento
                     </button>
                   </ng-template>
-                  <button class="ghost" type="button" (click)="setEntryStatus(item, 'atrasado')">Marcar atraso</button>
+                  <button class="ghost" type="button" [disabled]="isLancamentoProcessando(item)" (click)="setEntryStatus(item, 'atrasado')">Marcar atraso</button>
                 </td>
               </tr>
             </tbody>
@@ -443,7 +444,7 @@
             <textarea class="input" name="notes" [(ngModel)]="newAmendment.observacoes" rows="2" placeholder="Responsavel, etapa ou vinculo"></textarea>
           </label>
           <div class="form-actions">
-            <button class="primary" type="submit">Controlar emenda</button>
+            <button class="primary" type="submit" [disabled]="salvandoEmenda">Controlar emenda</button>
           </div>
         </form>
 
@@ -474,7 +475,7 @@
             </div>
             <div class="tag-wrapper">
               <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
-              <button class="pill pill--ghost" type="button" (click)="setAmendmentStatus(amendment, 'recebido')">
+              <button class="ghost" type="button" [disabled]="isEmendaProcessando(amendment)" (click)="setAmendmentStatus(amendment, 'recebido')">
                 Marcar recebido
               </button>
             </div>
@@ -645,13 +646,14 @@
         </div>
       </form>
       <div class="form-actions form-actions--card-end">
-        <button class="primary" type="submit" form="formContaBancaria">
+        <button class="primary" type="submit" form="formContaBancaria" [disabled]="salvandoConta">
           {{ contaEmEdicaoId ? 'Atualizar conta' : 'Salvar conta' }}
         </button>
         <button
           *ngIf="contaEmEdicaoId"
           class="ghost"
           type="button"
+          [disabled]="salvandoConta"
           (click)="cancelarEdicaoContaBancaria()"
         >
           Cancelar
@@ -719,11 +721,11 @@
         <p class="bank-card__updated">Atualizado em {{ formatDate(account.dataAtualizacao) }}</p>
         <p class="bank-card__local-center" *ngIf="account.recebimentoLocal">Recebimento local</p>
         <div class="bank-card__actions">
-          <button class="ghost" type="button" (click)="editarContaBancaria(account)">Editar</button>
-          <button class="ghost" type="button" *ngIf="isChavePixInvalida(account)" (click)="corrigirPix(account)">
+          <button class="ghost" type="button" [disabled]="isContaProcessando(account)" (click)="editarContaBancaria(account)">Editar</button>
+          <button class="ghost" type="button" *ngIf="isChavePixInvalida(account)" [disabled]="isContaProcessando(account)" (click)="corrigirPix(account)">
             Corrigir Pix
           </button>
-          <button class="ghost" type="button" (click)="removerContaBancaria(account)">Excluir</button>
+          <button class="ghost" type="button" [disabled]="isContaProcessando(account)" (click)="removerContaBancaria(account)">Excluir</button>
         </div>
       </article>
     </div>
@@ -827,10 +829,10 @@
             />
           </label>
           <div class="form-actions">
-            <button class="primary" type="submit">
+            <button class="primary" type="submit" [disabled]="salvandoMovimentacao">
               {{ movimentacaoEmEdicaoId ? 'Atualizar movimentacao' : 'Registrar movimentacao' }}
             </button>
-            <button class="ghost" type="button" *ngIf="movimentacaoEmEdicaoId" (click)="cancelarEdicaoMovimentacao()">
+            <button class="ghost" type="button" *ngIf="movimentacaoEmEdicaoId" [disabled]="salvandoMovimentacao" (click)="cancelarEdicaoMovimentacao()">
               Cancelar
             </button>
           </div>
@@ -909,11 +911,12 @@
                     class="ghost"
                     type="button"
                     *ngIf="isMovimentacaoEntrada(movement)"
+                    [disabled]="isMovimentacaoProcessando(movement)"
                     (click)="editarMovimentacao(movement)"
                   >
                     Editar
                   </button>
-                  <button class="ghost" type="button" (click)="removerMovimentacao(movement)">
+                  <button class="ghost" type="button" [disabled]="isMovimentacaoProcessando(movement)" (click)="removerMovimentacao(movement)">
                     Excluir
                   </button>
                 </td>
@@ -1010,7 +1013,7 @@
           <textarea class="input" name="notes" [(ngModel)]="newAmendment.observacoes" rows="2" placeholder="Responsavel, etapa ou vinculo"></textarea>
         </label>
         <div class="form-actions">
-          <button class="primary" type="submit">Controlar emenda</button>
+          <button class="primary" type="submit" [disabled]="salvandoEmenda">Controlar emenda</button>
         </div>
       </form>
     </div>
@@ -1044,7 +1047,7 @@
         </div>
         <div class="tag-wrapper">
           <span class="tag positive">{{ amendment.valorPrevisto | currency:'BRL' }}</span>
-          <button class="pill pill--ghost" type="button" (click)="setAmendmentStatus(amendment, 'recebido')">Marcar recebido</button>
+          <button class="ghost" type="button" [disabled]="isEmendaProcessando(amendment)" (click)="setAmendmentStatus(amendment, 'recebido')">Marcar recebido</button>
         </div>
       </li>
     </ul>

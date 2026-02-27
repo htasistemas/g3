@@ -597,9 +597,9 @@
   gap: 0.6rem;
   align-items: center;
   padding: 0.7rem 0.75rem;
-  background: #f8fafc;
+  background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -619,6 +619,20 @@
   gap: 0.5rem;
   cursor: pointer;
   color: #0f172a;
+}
+
+button.primary,
+button.ghost,
+button.report-card {
+  min-height: 36px;
+}
+
+button.primary:disabled,
+button.ghost:disabled,
+button.report-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .quick-actions {
