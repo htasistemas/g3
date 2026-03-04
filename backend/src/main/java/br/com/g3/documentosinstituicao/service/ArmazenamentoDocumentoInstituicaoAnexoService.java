@@ -40,6 +40,25 @@ public class ArmazenamentoDocumentoInstituicaoAnexoService {
     }
   }
 
+  public Path resolverCaminhoArquivo(String caminhoArquivo, Long documentoId) {
+    if (caminhoArquivo == null || caminhoArquivo.trim().isEmpty()) {
+      return null;
+    }
+    Path caminho = Paths.get(caminhoArquivo);
+    if (Files.exists(caminho)) {
+      return caminho;
+    }
+    if (documentoId == null) {
+      return caminho;
+    }
+    Path nomeArquivo = caminho.getFileName();
+    if (nomeArquivo == null) {
+      return caminho;
+    }
+    Path fallback = baseDir.resolve(String.valueOf(documentoId)).resolve(nomeArquivo.toString());
+    return Files.exists(fallback) ? fallback : caminho;
+  }
+
   private void validarTipoArquivo(String contentType, String nomeArquivo) {
     String tipo = contentType == null ? "" : contentType.toLowerCase();
     String nome = nomeArquivo == null ? "" : nomeArquivo.toLowerCase();

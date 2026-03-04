@@ -54,7 +54,7 @@ import { ProfessionalRecord, ProfessionalService } from '../../services/professi
 
 import { VolunteerService } from '../../services/volunteer.service';
 
-import { catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, Subscription, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, Subscription, switchMap, tap, timeout } from 'rxjs';
 
 import { titleCaseWords } from '../../utils/capitalization.util';
 
@@ -975,19 +975,17 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
 
   getRoomName(course: CourseRecord): string {
+    const roomId = this.normalizarSalaId(course.salaId ?? course.sala?.id);
 
-    const roomId = course.salaId ?? course.sala?.id;
-
-    if (roomId) {
-
-      const room = this.rooms.find((item) => item.id === roomId);
+    if (roomId !== null) {
+      const room = this.rooms.find(
+        (item) => this.normalizarSalaId(item.id) === roomId
+      );
 
       if (room) return room.nome;
-
     }
 
     return course.sala?.nome ?? 'Não informado';
-
   }
 
 
@@ -1262,38 +1260,31 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
 
 
-  private openPdfInNewWindow(blob: Blob): void {
-
+  private openPdfInNewWindow(blob: Blob, autoPrint = true): void {
     const url = URL.createObjectURL(blob);
-
     const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
-
     if (!documentWindow) {
-
       this.feedback = 'Permita a abertura de pop-ups para visualizar o relatório.';
-
       URL.revokeObjectURL(url);
-
       return;
-
     }
 
+    if (!autoPrint) {
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return;
+    }
 
-
+    let printed = false;
     const triggerPrint = () => {
-
+      if (printed) return;
+      printed = true;
       documentWindow.focus();
-
       documentWindow.print();
-
     };
 
-
-
     documentWindow.addEventListener('load', triggerPrint, { once: true });
-
+    setTimeout(triggerPrint, 1200);
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
-
   }
 
 

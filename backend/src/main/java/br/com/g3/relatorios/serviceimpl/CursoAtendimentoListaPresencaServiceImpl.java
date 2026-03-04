@@ -75,7 +75,9 @@ public class CursoAtendimentoListaPresencaServiceImpl implements CursoAtendiment
     StringBuilder sb = new StringBuilder();
     sb.append("<section>");
     sb.append("<p><strong>Curso/Atendimento:</strong> ")
+        .append("<span class=\"presenca-course-name\">")
         .append(escape(valorOuNaoInformado(curso.getNome())))
+        .append("</span>")
         .append("</p>");
     sb.append("<p><strong>Data da aula:</strong> ")
         .append(escape(DATA_FORMATTER.format(request.getDataAula())))
@@ -91,8 +93,8 @@ public class CursoAtendimentoListaPresencaServiceImpl implements CursoAtendiment
     if (exibirCpf) {
       sb.append("<th class=\"col-cpf\">CPF</th>");
     }
-    sb.append("<th class=\"col-presente\">Presente</th>");
-    sb.append("<th class=\"col-ausente\">Ausente</th>");
+    sb.append("<th class=\"col-presente\">P</th>");
+    sb.append("<th class=\"col-ausente\">A</th>");
     sb.append("<th class=\"col-assinatura\">Assinatura</th>");
     sb.append("</tr></thead>");
     sb.append("<tbody>");

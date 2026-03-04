@@ -82,6 +82,7 @@ export class FolhaPontoComponent implements OnInit {
   dialogDetalheHorarioAberta = false;
   dialogImpressaoAberta = false;
   senhaBatida = '';
+  confirmandoBatida = false;
   tipoBatidaAtual: 'E1' | 'S1' | 'E2' | 'S2' | null = null;
   mobileBloqueado = false;
 
@@ -485,6 +486,7 @@ export class FolhaPontoComponent implements OnInit {
     }
     this.tipoBatidaAtual = tipo;
     this.senhaBatida = '';
+    this.confirmandoBatida = false;
     this.dialogBatidaAberta = true;
   }
 
@@ -492,11 +494,15 @@ export class FolhaPontoComponent implements OnInit {
     if (!this.tipoBatidaAtual || !this.usuarioIdAtual) {
       return;
     }
+    if (this.confirmandoBatida) {
+      return;
+    }
     if (!this.senhaBatida) {
       this.popupTitulo = 'Campos obrigatórios';
       this.popupErros = new PopupErrorBuilder().adicionar('Informe a senha para confirmar a batida.').build();
       return;
     }
+    this.confirmandoBatida = true;
     const payload = {
       tipo: this.tipoBatidaAtual,
       senha: this.senhaBatida
@@ -508,11 +514,13 @@ export class FolhaPontoComponent implements OnInit {
         this.popupErros = new PopupErrorBuilder().adicionar('Registro de ponto realizado com sucesso.').build();
         this.activeTab = 'registro';
         this.carregarEspelhoAtual();
+        this.confirmandoBatida = false;
       },
       error: (erro) => {
         this.popupTitulo = 'Erro';
         const mensagem = erro?.error?.mensagem || erro?.message || 'Não foi possível registrar o ponto.';
         this.popupErros = new PopupErrorBuilder().adicionar(mensagem).build();
+        this.confirmandoBatida = false;
       }
     });
   }
@@ -520,6 +528,7 @@ export class FolhaPontoComponent implements OnInit {
   cancelarBatida(): void {
     this.dialogBatidaAberta = false;
     this.tipoBatidaAtual = null;
+    this.confirmandoBatida = false;
   }
 
   abrirEditarOcorrencia(dia: RhPontoDiaResumoResponse): void {

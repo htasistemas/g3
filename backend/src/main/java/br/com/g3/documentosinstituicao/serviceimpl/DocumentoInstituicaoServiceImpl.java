@@ -160,7 +160,10 @@ public class DocumentoInstituicaoServiceImpl implements br.com.g3.documentosinst
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");
     }
     try {
-      Path caminho = Paths.get(anexo.getCaminhoArquivo());
+      Path caminho = armazenamentoService.resolverCaminhoArquivo(anexo.getCaminhoArquivo(), documentoId);
+      if (caminho == null) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");
+      }
       Resource resource = new UrlResource(caminho.toUri());
       if (!resource.exists()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo nao encontrado.");

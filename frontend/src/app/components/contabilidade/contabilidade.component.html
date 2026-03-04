@@ -892,7 +892,7 @@
             </thead>
             <tbody>
               <tr *ngFor="let movement of movimentacoesFiltradas; index as i">
-                <td>{{ i + 1 }}</td>
+                <td>{{ movimentacoesFiltradas.length - i }}</td>
                 <td>{{ formatDate(movement.dataMovimentacao) }}</td>
                 <td>
                   <p class="strong">{{ movement.descricao }}</p>

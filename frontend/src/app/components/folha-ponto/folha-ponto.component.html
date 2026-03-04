@@ -201,7 +201,7 @@
 
           <div class="horario-trabalho__data">
 
-            Hoje: {{ dataHojeCompleta() }} Â· {{ horaAtual }}
+            Hoje: {{ dataHojeCompleta() }} Hs: {{ horaAtual }}
 
           </div>
 
@@ -882,7 +882,7 @@
 
               </tbody>
 
-            </table>\r\n          </div>\r\n        </div>\r\n\r\n        <div class="tab-card" *ngIf="activeTab === 'auditoria'">
+            </table>          </div>        </div>        <div class="tab-card" *ngIf="activeTab === 'auditoria'">
 
           <div class="tab-card__header">
 
@@ -1056,9 +1056,9 @@
 
       <div class="dialog-conteudo dialog-bloco">
 
-        <p class="dialog-info">Tipo de marcao: <strong>{{ tipoBatidaAtual }}</strong></p>
+        <p class="dialog-info">Tipo de marcação: <strong>{{ tipoBatidaAtual }}</strong></p>
 
-        <label class="field">Senha do funcionrio (*)
+        <label class="field">Senha do funcionário (*)
 
           <input
 
@@ -1086,7 +1086,7 @@
 
       [aberto]="dialogOcorrenciaAberta"
 
-      titulo="Corrigir ocorrncia"
+      titulo="Corrigir ocorrência"
 
       mensagem="Informe a justificativa e a senha administrativa para corrigir."
 
@@ -1289,16 +1289,3 @@
   </section>
 
 </app-tela-padrao>
-
-
-
-
-
-
-
-
-
-
-
-
-

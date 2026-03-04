@@ -480,8 +480,8 @@
 
 
 
-      <div class="field-grid cols-4" [formGroup]="enrollmentForm">
-        <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'courseId')">
+      <div class="field-grid cols-4 enrollment-grid" [formGroup]="enrollmentForm">
+        <label class="field span-2" [class.field--error]="campoInvalido(enrollmentForm, 'courseId')">
           Selecione o curso/atendimento*
           <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
             <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opção</option>
@@ -490,11 +490,11 @@
             </option>
           </select>
         </label>
-        <label class="field full">
+        <label class="field span-2">
           Instituição parceira
           <input [value]="currentCourse?.instituicaoParceira || ''" readonly />
         </label>
-        <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'beneficiaryName')">
+        <label class="field span-2" [class.field--error]="campoInvalido(enrollmentForm, 'beneficiaryName')">
           Beneficiário (nome ou CPF)*
           <input
             formControlName="beneficiaryName"
@@ -512,7 +512,7 @@
 
             <li *ngFor="let beneficiary of beneficiaryResults">
 
-              <button type="button" (click)="selectBeneficiary(beneficiary)">
+              <button type="button" (mousedown)="selectBeneficiary(beneficiary); $event.preventDefault()">
 
                 <span>{{ beneficiary.nomeCompleto || beneficiary.nomeSocial }}</span>
 

@@ -453,11 +453,11 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
         const valorA = dataA ?? Number.MIN_SAFE_INTEGER;
         const valorB = dataB ?? Number.MIN_SAFE_INTEGER;
         if (valorA !== valorB) {
-          return valorB - valorA;
+          return valorA - valorB;
         }
         const idA = a.id ?? 0;
         const idB = b.id ?? 0;
-        return idB - idA;
+        return idA - idB;
       });
   }
 

@@ -96,14 +96,16 @@ public class RhPontoRelatorioServiceImpl implements RhPontoRelatorioService {
 
   private String montarHtmlEspelho(RhPontoEspelhoResponse espelho, Usuario funcionario) {
     StringBuilder sb = new StringBuilder();
-    sb.append("<div class=\"section\">");
-    sb.append("<p><strong>Funcionario:</strong> ").append(escape(nomeUsuario(funcionario))).append("</p>");
+    sb.append("<section class=\"espelho\">");
+    sb.append("<div class=\"espelho__spacer\"></div>");
+    sb.append("<div class=\"section espelho__meta\">");
+    sb.append("<p><strong>Colaborador:</strong> ").append(escape(nomeUsuario(funcionario))).append("</p>");
     sb.append("<p><strong>Periodo:</strong> ");
-    sb.append(String.format(Locale.forLanguageTag("pt-BR"), "%02d/%d", espelho.getMes(), espelho.getAno()));
+    sb.append(formatarMesPorExtenso(espelho.getMes(), espelho.getAno()));
     sb.append("</p>");
     sb.append("</div>");
 
-    sb.append("<table class=\"print-table\">");
+    sb.append("<table class=\"print-table print-table--espelho\">");
     sb.append("<thead><tr>");
     sb.append("<th>Data</th>");
     sb.append("<th>Ocorr.</th>");
@@ -144,11 +146,24 @@ public class RhPontoRelatorioServiceImpl implements RhPontoRelatorioService {
     sb.append("</tr></tfoot>");
     sb.append("</table>");
 
-    sb.append("<div class=\"signature\">");
-    sb.append("<div class=\"signature__line\">Funcionario</div>");
-    sb.append("<div class=\"signature__line\">Instituicao</div>");
+    sb.append("<div class=\"signature signature--espelho\">");
+    sb.append("<div class=\"signature__line\">Colaborador</div>");
+    sb.append("<div class=\"signature__line\">Instituição</div>");
     sb.append("</div>");
+    sb.append("<div class=\"espelho__signature-spacer\"></div>");
+    sb.append("</section>");
     return sb.toString();
+  }
+
+  private String formatarMesPorExtenso(Integer mes, Integer ano) {
+    int mesFinal = mes != null ? mes : 0;
+    int anoFinal = ano != null ? ano : 0;
+    if (mesFinal < 1 || mesFinal > 12 || anoFinal <= 0) {
+      return String.format(Locale.forLanguageTag("pt-BR"), "%02d/%d", mesFinal, anoFinal);
+    }
+    String nomeMes = java.time.Month.of(mesFinal)
+        .getDisplayName(java.time.format.TextStyle.FULL, Locale.forLanguageTag("pt-BR"));
+    return String.format(Locale.forLanguageTag("pt-BR"), "%s de %d", nomeMes, anoFinal);
   }
 
   private String montarHtmlColaboradores(List<Usuario> usuarios) {

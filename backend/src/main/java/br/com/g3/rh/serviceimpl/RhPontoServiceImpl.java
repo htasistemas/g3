@@ -31,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -56,6 +57,7 @@ public class RhPontoServiceImpl implements RhPontoService {
   private static final String OCORRENCIA_FALTA = "FALTA";
   private static final int RAIO_PADRAO_METROS = 100;
   private static final int ACCURACY_MAX_METROS = 200;
+  private static final ZoneId ZONA_BRASILIA = ZoneId.of("America/Sao_Paulo");
 
   private final RhConfiguracaoPontoRepository configuracaoRepository;
   private final RhPontoDiaRepository pontoDiaRepository;
@@ -95,6 +97,14 @@ public class RhPontoServiceImpl implements RhPontoService {
     return mapper.toConfiguracaoResponse(configuracao);
   }
 
+  private LocalDate hojeBrasilia() {
+    return LocalDate.now(ZONA_BRASILIA);
+  }
+
+  private LocalDateTime agoraBrasilia() {
+    return LocalDateTime.now(ZONA_BRASILIA);
+  }
+
   @Override
   @Transactional
   public RhConfiguracaoPontoResponse atualizarConfiguracao(RhConfiguracaoPontoRequest request, Long usuarioId) {
@@ -107,7 +117,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     configuracao.setCargaDomingoMinutos(normalizarMinutos(request.getCargaDomingoMinutos(), 0));
     configuracao.setToleranciaMinutos(normalizarMinutos(request.getToleranciaMinutos(), 10));
     configuracao.setIgnorarValidacaoRede(Boolean.TRUE.equals(request.getIgnorarValidacaoRede()));
-    configuracao.setAtualizadoEm(LocalDateTime.now());
+    configuracao.setAtualizadoEm(agoraBrasilia());
     RhConfiguracaoPonto salvo = configuracaoRepository.salvar(configuracao);
     return mapper.toConfiguracaoResponse(salvo);
   }
@@ -195,7 +205,7 @@ public class RhPontoServiceImpl implements RhPontoService {
       dentroPerimetro = distancia <= raioMetros;
     }
 
-    LocalDate hoje = LocalDate.now();
+    LocalDate hoje = hojeBrasilia();
     RhPontoDia pontoDia = pontoDiaRepository.buscarPorFuncionarioEData(usuarioId, hoje)
         .orElseGet(() -> criarPontoDia(hoje, usuarioId, configuracao));
 
@@ -218,7 +228,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     RhPontoMarcacao marcacao = new RhPontoMarcacao();
     marcacao.setPontoDia(pontoDia);
     marcacao.setTipo(tipo);
-    marcacao.setDataHoraServidor(LocalDateTime.now());
+    marcacao.setDataHoraServidor(agoraBrasilia());
     marcacao.setLatitude(request.getLatitude());
     marcacao.setLongitude(request.getLongitude());
     marcacao.setAccuracy(request.getAccuracy());
@@ -226,12 +236,12 @@ public class RhPontoServiceImpl implements RhPontoService {
     marcacao.setDentroPerimetro(dentroPerimetro);
     marcacao.setIp(ip);
     marcacao.setUserAgent(userAgent);
-    marcacao.setCriadoEm(LocalDateTime.now());
+    marcacao.setCriadoEm(agoraBrasilia());
     RhPontoMarcacao salvo = marcacaoRepository.salvar(marcacao);
     pontoDia.getMarcacoes().add(salvo);
 
     recalcularPontoDia(pontoDia, configuracao);
-    pontoDia.setAtualizadoEm(LocalDateTime.now());
+    pontoDia.setAtualizadoEm(agoraBrasilia());
     RhPontoDia pontoAtualizado = pontoDiaRepository.salvar(pontoDia);
 
     auditoriaService.registrarEvento(
@@ -330,7 +340,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     }
     RhConfiguracaoPonto configuracao = configuracaoRepository.buscarAtual().orElseGet(this::criarConfiguracaoPadrao);
     recalcularPontoDia(pontoDia, configuracao);
-    pontoDia.setAtualizadoEm(LocalDateTime.now());
+    pontoDia.setAtualizadoEm(agoraBrasilia());
     RhPontoDia salvo = pontoDiaRepository.salvar(pontoDia);
     auditoriaService.registrarEvento(
         "Ajuste de ponto",
@@ -380,7 +390,7 @@ public class RhPontoServiceImpl implements RhPontoService {
       marcacao.setDentroPerimetro(true);
       marcacao.setIp("ajuste-manual");
       marcacao.setUserAgent("ajuste-manual");
-      marcacao.setCriadoEm(LocalDateTime.now());
+      marcacao.setCriadoEm(agoraBrasilia());
     }
     marcacao.setDataHoraServidor(dataHora);
     RhPontoMarcacao salvo = marcacaoRepository.salvar(marcacao);
@@ -456,7 +466,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     pontoDia.setTotalTrabalhadoMinutos(0);
     pontoDia.setExtrasMinutos(0);
     pontoDia.setFaltasAtrasosMinutos(0);
-    LocalDateTime agora = LocalDateTime.now();
+    LocalDateTime agora = agoraBrasilia();
     pontoDia.setCriadoEm(agora);
     pontoDia.setAtualizadoEm(agora);
     try {
@@ -622,7 +632,7 @@ public class RhPontoServiceImpl implements RhPontoService {
     configuracao.setCargaDomingoMinutos(0);
     configuracao.setToleranciaMinutos(10);
     configuracao.setIgnorarValidacaoRede(false);
-    configuracao.setAtualizadoEm(LocalDateTime.now());
+    configuracao.setAtualizadoEm(agoraBrasilia());
     return configuracaoRepository.salvar(configuracao);
   }
 
@@ -650,8 +660,8 @@ public class RhPontoServiceImpl implements RhPontoService {
     auditoria.setFuncionarioId(funcionarioId);
     auditoria.setAcao(acao);
     auditoria.setDetalhes(detalhes);
-    auditoria.setDataHoraServidor(LocalDateTime.now());
-    auditoria.setCriadoEm(LocalDateTime.now());
+    auditoria.setDataHoraServidor(agoraBrasilia());
+    auditoria.setCriadoEm(agoraBrasilia());
     auditoriaRepository.salvar(auditoria);
   }
 
@@ -700,10 +710,10 @@ public class RhPontoServiceImpl implements RhPontoService {
     auditoria.setResultado(resultado);
     auditoria.setMotivo(motivo);
     auditoria.setPontoMarcacaoId(pontoMarcacaoId);
-    auditoria.setDataHoraServidor(dataHoraServidor != null ? dataHoraServidor : LocalDateTime.now());
+    auditoria.setDataHoraServidor(dataHoraServidor != null ? dataHoraServidor : agoraBrasilia());
     auditoria.setAcao("PONTO_REGISTRO_TENTATIVA");
     auditoria.setDetalhes(motivo);
-    auditoria.setCriadoEm(LocalDateTime.now());
+    auditoria.setCriadoEm(agoraBrasilia());
     auditoriaRepository.salvar(auditoria);
   }
 
@@ -712,7 +722,7 @@ public class RhPontoServiceImpl implements RhPontoService {
   }
 
   private YearMonth obterReferencia(Integer mes, Integer ano) {
-    LocalDate hoje = LocalDate.now();
+    LocalDate hoje = hojeBrasilia();
     int mesRef = mes != null ? mes : hoje.getMonthValue();
     int anoRef = ano != null ? ano : hoje.getYear();
     return YearMonth.of(anoRef, mesRef);

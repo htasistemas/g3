@@ -123,6 +123,10 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
+.field-grid.enrollment-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .field-grid.dados-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
@@ -1591,7 +1595,7 @@
   text-align: right;
 }
 
-/* Ajustes para seguir o padrão do cadastro de beneficiários */
+/* Ajustes para seguir o padrï¿½o do cadastro de beneficiï¿½rios */
 :host {
   padding: 0;
 }
