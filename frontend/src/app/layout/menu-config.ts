@@ -15,6 +15,7 @@ import {
   faClipboardCheck,
   faClipboardList,
   faClipboardUser,
+  faDollarSign,
   faDisplay,
   faFileContract,
   faFileInvoiceDollar,
@@ -151,7 +152,7 @@ export const menuSections: MenuItem[] = [
   },
   {
     label: 'Setor Financeiro',
-    icon: faWallet,
+    icon: faDollarSign,
     children: [
       {
         label: 'Autorização de Compras',

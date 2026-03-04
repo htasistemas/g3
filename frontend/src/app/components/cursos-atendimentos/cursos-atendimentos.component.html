@@ -1,4 +1,4 @@
-Ôªø<app-tela-padrao
+<app-tela-padrao
   [acoes]="acoesToolbar"
   [desabilitado]="estadoAcoesToolbar"
   [mostrarFechar]="true"
@@ -24,7 +24,7 @@
       <div class="tab-shell">
         <p class="tab-shell__title tab-shell__title--destaque">
           <fa-icon [icon]="faGraduationCap" class="tab-shell__icon"></fa-icon>
-          Cadastros de Matr√≠culas
+          Cadastros de MatrÌculas
         </p>
         <ol class="step-tabs" role="tablist">
           <li
@@ -53,7 +53,7 @@
     <div *ngIf="feedback" class="feedback" role="alert">
       <span>{{ feedback }}</span>
       <button type="button" class="feedback__close" aria-label="Fechar aviso" (click)="dismissFeedback()">
-        √ó
+        ◊
       </button>
     </div>
 
@@ -94,25 +94,25 @@
           />
         </label>
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'horarioInicial')">
-          Hor√°rio inicial*
+          Hor·rio inicial*
           <input type="time" formControlName="horarioInicial" />
         </label>
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'duracaoHoras')">
-          Dura√ß√£o (horas)*
+          DuraÁ„o (horas)*
           <input type="number" formControlName="duracaoHoras" min="1" />
         </label>
       </div>
 
       <div class="field-grid cols-2 description-media full">
-        <label class="field description-field" [class.field--error]="campoInvalido(courseForm, 'descricao')">Descri√ß√£o / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field description-field" [class.field--error]="campoInvalido(courseForm, 'descricao')">DescriÁ„o / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
 
         <div class="field media-card">
           <p class="field-title">Foto / Imagem ilustrativa</p>
           <input type="file" accept="image/*" (change)="handleImage($event)" />
           <div class="upload-preview" *ngIf="courseForm.value.imagem">
-            <img [src]="courseForm.value.imagem" alt="Pr√©-visualiza√ß√£o" />
+            <img [src]="courseForm.value.imagem" alt="PrÈ-visualizaÁ„o" />
             <div>
-              <p class="strong">Pr√©-visualiza√ß√£o</p>
+              <p class="strong">PrÈ-visualizaÁ„o</p>
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@
       </div>
 
       <div class="field-grid cols-4 dados-grid load-room-grid">
-        <label class="field">Carga hor√°ria total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
+        <label class="field">Carga hor·ria total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'vagasTotais')">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
@@ -187,16 +187,16 @@
       </div>
 
       <label class="field full">
-        Restri√ß√µes e p√∫blico indicado
+        RestriÁıes e p˙blico indicado
         <textarea
           rows="2"
           formControlName="restricoes"
-          placeholder="Ex.: menores de 18 anos n√£o podem participar, vagas preferenciais para idosos, faixa et√°ria recomendada"
+          placeholder="Ex.: menores de 18 anos n„o podem participar, vagas preferenciais para idosos, faixa et·ria recomendada"
         ></textarea>
       </label>
 
       <label class="field full" [class.field--error]="campoInvalido(courseForm, 'profissional')">
-        Profissional respons√°vel*
+        Profissional respons·vel*
         <input
           formControlName="profissional"
           placeholder="Pesquise ou digite o nome do profissional"
@@ -214,7 +214,7 @@
         </ul>
       </label>
       <label class="field full">
-        Institui√ß√£o parceira
+        InstituiÁ„o parceira
         <input
           formControlName="instituicaoParceira"
           placeholder="Ex.: Faculdade Uniessa"
@@ -256,13 +256,13 @@
             <p class="catalog-card__category">{{ course.tipo }}</p>
             <p class="catalog-card__subtitle">{{ course.profissional }}</p>
             <p class="catalog-card__partner" *ngIf="course.instituicaoParceira">
-              Institui√ß√£o parceira: {{ course.instituicaoParceira }}
+              InstituiÁ„o parceira: {{ course.instituicaoParceira }}
             </p>
           </div>
           <p class="catalog-card__description">{{ course.descricao }}</p>
           <dl class="catalog-card__details">
             <div>
-              <dt>In√≠cio</dt>
+              <dt>InÌcio</dt>
               <dd>{{ course.horarioInicial }}</dd>
             </div>
             <div>
@@ -291,7 +291,7 @@
                 (click)="selectFromCatalog(course.id)"
                 [disabled]="course.vagasDisponiveis === 0"
               >
-                Inscrever benefici√°rio
+                Inscrever benefici·rio
               </button>
             </div>
           </div>
@@ -312,30 +312,30 @@
         <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'courseId')">
           Selecione o curso/atendimento*
           <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma op√ß√£o</option>
+            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opÁ„o</option>
             <option *ngFor="let course of records" [value]="course.id">
-              {{ course.tipo }} ‚Ä¢ {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
+              {{ course.tipo }} ï {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
             </option>
           </select>
         </label>
         <label class="field full">
-          Institui√ß√£o parceira
+          InstituiÁ„o parceira
           <input [value]="currentCourse?.instituicaoParceira || ''" readonly />
         </label>
         <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'beneficiaryName')">
-          Benefici√°rio (nome ou CPF)*
+          Benefici·rio (nome ou CPF)*
           <input
             formControlName="beneficiaryName"
-            placeholder="Buscar benefici√°rio"
+            placeholder="Buscar benefici·rio"
             (input)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
             (blur)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
           />
-          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando benefici√°rios...</div>
+          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando benefici·rios...</div>
           <ul class="search-results" *ngIf="beneficiaryResults.length">
             <li *ngFor="let beneficiary of beneficiaryResults">
               <button type="button" (click)="selectBeneficiary(beneficiary)">
                 <span>{{ beneficiary.nomeCompleto || beneficiary.nomeSocial }}</span>
-                <small>{{ beneficiary.cpf || 'CPF n√£o informado' }}</small>
+                <small>{{ beneficiary.cpf || 'CPF n„o informado' }}</small>
               </button>
             </li>
           </ul>
@@ -353,8 +353,8 @@
       <div class="list-card">
         <div class="list-card__header">
           <div>
-            <p class="page-title__eyebrow">Matr√≠culas</p>
-            <p class="page-title__label">Benefici√°rios vinculados</p>
+            <p class="page-title__eyebrow">MatrÌculas</p>
+            <p class="page-title__label">Benefici·rios vinculados</p>
           </div>
         </div>
         <div class="table-wrapper">
@@ -363,9 +363,9 @@
               <tr>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th>Situa√ß√£o</th>
+                <th>SituaÁ„o</th>
                 <th>Data de entrada</th>
-                <th>A√ß√µes</th>
+                <th>AÁıes</th>
               </tr>
             </thead>
             <tbody>
@@ -379,19 +379,19 @@
                     (ngModelChange)="updateEnrollmentStatus(enrollment, $event)"
                   >
                     <option value="Ativo">Ativo</option>
-                    <option value="Conclu√≠do">Conclu√≠do</option>
+                    <option value="ConcluÌdo">ConcluÌdo</option>
                     <option value="Cancelado">Cancelado</option>
                   </select>
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
                 <td class="table-actions">
                   <button class="danger" type="button" (click)="removeEnrollment(enrollment)">
-                    Excluir matr√≠cula
+                    Excluir matrÌcula
                   </button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="5" class="muted">Nenhuma matr√≠cula cadastrada.</td>
+                <td colspan="5" class="muted">Nenhuma matrÌcula cadastrada.</td>
               </tr>
             </tbody>
           </table>
@@ -411,8 +411,8 @@
                 <th>Nome</th>
                 <th>CPF</th>
                 <th>Data de entrada</th>
-                <th>Posi√ß√£o</th>
-                <th>A√ß√µes</th>
+                <th>PosiÁ„o</th>
+                <th>AÁıes</th>
               </tr>
             </thead>
             <tbody>
@@ -423,13 +423,13 @@
                 <td>{{ idx + 1 }}</td>
                 <td class="table-actions">
                   <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
-                    Converter para matr√≠cula
+                    Converter para matrÌcula
                   </button>
                   <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.waitlist?.length">
-                <td colspan="4" class="muted">Nenhum benefici√°rio em fila.</td>
+                <td colspan="4" class="muted">Nenhum benefici·rio em fila.</td>
               </tr>
             </tbody>
           </table>
@@ -446,10 +446,10 @@
       </div>
 
       <div class="empty-state" *ngIf="!currentCourse">
-        Selecione um atendimento na aba de inscri√ß√µes para visualizar a agenda.
+        Selecione um atendimento na aba de inscriÁıes para visualizar a agenda.
       </div>
       <div class="empty-state" *ngIf="currentCourse && currentCourse.tipo !== 'Atendimento'">
-        A agenda est√° dispon√≠vel apenas para atendimentos.
+        A agenda est· disponÌvel apenas para atendimentos.
       </div>
 
       <ng-container *ngIf="currentCourse && currentCourse.tipo === 'Atendimento'">
@@ -467,7 +467,7 @@
                   />
                 </label>
                 <label class="field">
-                  Situa√ß√£o
+                  SituaÁ„o
                   <select [(ngModel)]="filtroStatusAgenda" [ngModelOptions]="{ standalone: true }">
                     <option value="TODOS">Todos</option>
                     <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
@@ -517,11 +517,11 @@
             <p class="agenda-panel__title">Agendar atendimento</p>
             <div class="field-grid cols-4">
               <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'matriculaId')">
-                Benefici√°rio*
+                Benefici·rio*
                 <app-autocomplete
                   [termo]="beneficiarioAgendaTermo"
                   [opcoes]="beneficiarioAgendaOpcoes"
-                  placeholder="Selecione o benefici√°rio"
+                  placeholder="Selecione o benefici·rio"
                   (termoChange)="atualizarBeneficiarioAgendaTermo($event)"
                   (selecionar)="selecionarBeneficiarioAgenda($event)"
                 ></app-autocomplete>
@@ -546,7 +546,7 @@
                 ></app-autocomplete>
               </label>
               <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'statusAgendamento')">
-                Situa√ß√£o*
+                SituaÁ„o*
                 <select formControlName="statusAgendamento">
                   <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
                     {{ status.label }}
@@ -563,7 +563,7 @@
         <div class="list-card">
           <div class="list-card__header">
             <div>
-              <p class="page-title__label">Benefici√°rios agendados</p>
+              <p class="page-title__label">Benefici·rios agendados</p>
             </div>
           </div>
           <div class="table-wrapper">
@@ -571,12 +571,12 @@
               <thead>
                 <tr>
                   <th>Hora</th>
-                  <th>Benefici√°rio</th>
+                  <th>Benefici·rio</th>
                   <th>CPF</th>
                   <th>Profissional</th>
-                  <th>Situa√ß√£o</th>
-                  <th>Presen√ßa</th>
-                  <th>A√ß√µes</th>
+                  <th>SituaÁ„o</th>
+                  <th>PresenÁa</th>
+                  <th>AÁıes</th>
                 </tr>
               </thead>
               <tbody>
@@ -584,7 +584,7 @@
                   <td>{{ matricula.horaAgendada || '--:--' }}</td>
                   <td>{{ matricula.beneficiaryName }}</td>
                   <td>{{ matricula.cpf }}</td>
-                  <td>{{ matricula.profissionalNome || 'N√£o informado' }}</td>
+                  <td>{{ matricula.profissionalNome || 'N„o informado' }}</td>
                   <td>
                     <select
                       [ngModel]="matricula.statusAgendamento || 'AGUARDANDO'"
@@ -604,10 +604,10 @@
                       (click)="confirmarPresencaAgendamento(matricula)"
                       [disabled]="matricula.confirmacaoPresenca"
                     >
-                      Confirmar presen√ßa
+                      Confirmar presenÁa
                     </button>
                     <button type="button" class="ghost" (click)="marcarRemarcar(matricula)">Remarcar</button>
-                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">N√£o respondeu</button>
+                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">N„o respondeu</button>
                   </td>
                 </tr>
                 <tr *ngIf="!agendamentosFiltrados.length">
@@ -632,7 +632,7 @@
         <label class="field full">
           Selecione o curso/atendimento*
           <select [value]="currentCourse?.id || ''" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!currentCourse">Escolha uma op√ß√£o</option>
+            <option value="" disabled [selected]="!currentCourse">Escolha uma opÁ„o</option>
             <option *ngFor="let course of records" [value]="course.id">
               {{ course.tipo }} - {{ course.nome }}
             </option>
@@ -657,16 +657,17 @@
             [disabled]="presencaSalvando || !presencaDataSelecionada || presencaDataSelecionada.status === 'CANCELADA' || !presencaPendente"
             (click)="salvarPresencas()"
           >
-            Salvar presen√ßas
+            Salvar presenÁas
           </button>
           <button
             type="button"
             class="primary"
-            [disabled]="presencaGerando || !dataPresencaSelecionada"
+            [disabled]="presencaGerando || (!dataPresencaSelecionada && !presencaDataSelecionada)"
             (click)="imprimirListaPresenca()"
           >
             Gerar lista
           </button>
+          <span class="loading-inline" *ngIf="presencaGerando">Gerando lista...</span>
         </div>
       </div>
       <div class="search-hint" *ngIf="presencaCarregando">Carregando...</div>
@@ -688,7 +689,7 @@
             <div>
               <strong>{{ data.dataAula | date: 'dd/MM/yyyy' }}</strong>
               <span class="presence-date__meta" *ngIf="data.totalPresencas">
-                {{ data.totalPresencas }} presen√ßa(s)
+                {{ data.totalPresencas }} presenÁa(s)
               </span>
             </div>
             <span class="badge" [class.badge--green]="data.status === 'PREENCHIDA'"
@@ -711,7 +712,7 @@
         </div>
         <div class="field-grid cols-2">
           <label class="field full">
-            Observa√ß√µes
+            ObservaÁıes
             <textarea rows="4" [(ngModel)]="presencaObservacoes" [ngModelOptions]="{ standalone: true }"></textarea>
           </label>
           <div class="field full">
@@ -722,7 +723,7 @@
                 [disabled]="presencaSalvando || presencaDataSelecionada.status === 'CANCELADA'"
                 (click)="salvarObservacoesPresenca()"
               >
-                Salvar observa√ß√µes
+                Salvar observaÁıes
               </button>
               <button
                 type="button"
@@ -836,7 +837,7 @@
       <div class="list-card">
         <div class="list-card__header">
           <div>
-            <p class="page-title__label">Matr√≠culas cadastradas</p>
+            <p class="page-title__label">MatrÌculas cadastradas</p>
           </div>
         </div>
         <div class="table-wrapper">
@@ -847,10 +848,10 @@
                 <th>Nome</th>
                 <th>Vagas</th>
                 <th>Profissional</th>
-                <th>Institui√ß√£o parceira</th>
+                <th>InstituiÁ„o parceira</th>
                 <th>Sala</th>
-                <th>In√≠cio</th>
-                <th>A√ß√µes</th>
+                <th>InÌcio</th>
+                <th>AÁıes</th>
               </tr>
             </thead>
             <tbody>
@@ -907,8 +908,8 @@
         <div class="control-card">
           <div class="control-card__header">
             <div>
-              <p class="control-card__eyebrow">Pain√©is gerenci√°veis</p>
-              <p class="control-card__title">Personalize os cart√µes exibidos</p>
+              <p class="control-card__eyebrow">PainÈis gerenci·veis</p>
+              <p class="control-card__title">Personalize os cartıes exibidos</p>
             </div>
             <span class="pill">{{ visibleWidgets.length }} / {{ dashboardWidgets.length }} ativos</span>
           </div>
@@ -931,7 +932,7 @@
         </div>
 
         <div class="insights-panel">
-          <p class="insights-title">Insights r√°pidos</p>
+          <p class="insights-title">Insights r·pidos</p>
           <div class="insight-chips">
             <span class="insight-chip">{{ dashboardTotals().ativosCurso }} cursos</span>
             <span class="insight-chip">{{ dashboardTotals().ativosAtendimento }} atendimentos</span>
@@ -940,7 +941,7 @@
           </div>
           <div class="insight-trend">
             <div>
-              <p class="trend-label">Press√£o de fila</p>
+              <p class="trend-label">Press„o de fila</p>
               <p class="trend-value">{{ dashboardSnapshot.waitlistPressao }}%</p>
             </div>
             <div class="trend-meter">
@@ -955,19 +956,37 @@
 
   <app-dialog
     [aberto]="printDialogOpen"
-    titulo="Imprimir relat√≥rios"
-    mensagem="Selecione qual relat√≥rio deseja gerar."
-    confirmarLabel="Rela√ß√£o"
+    titulo="Imprimir relatÛrios"
+    mensagem="Selecione qual relatÛrio deseja gerar."
+    confirmarLabel="RelaÁ„o"
     cancelarLabel="Ficha do curso selecionado"
     [cancelarAoClicarOverlay]="false"
     (confirmar)="imprimirRelacao()"
     (cancelar)="imprimirFichaSelecionada()"
   ></app-dialog>
 
-</div>
+  <app-dialog
+    [aberto]="listaEsperaDialogAberto"
+    titulo="Lista de espera"
+    mensagem="N&atilde;o h&aacute; vagas dispon&iacute;veis. Deseja incluir o benefici&aacute;rio na lista de espera?"
+    confirmarLabel="Incluir"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarDialogListaEspera()"
+    (cancelar)="cancelarDialogListaEspera()"
+  ></app-dialog>
+  <app-dialog
+    [aberto]="confirmacaoExclusaoAberta"
+    titulo="Confirmar exclusao"
+    [mensagem]="confirmacaoExclusaoMensagem"
+    confirmarLabel="Excluir"
+    cancelarLabel="Cancelar"
+    (confirmar)="confirmarExclusao()"
+    (cancelar)="cancelarExclusao()"
+  ></app-dialog></div>
   </div>
 </section>
 </app-tela-padrao>
+
 
 
 

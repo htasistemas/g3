@@ -679,7 +679,7 @@ export class ChamadoTecnicoDetalheComponent extends TelaBaseComponent implements
 
   onVersaoInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const digits = (input.value || '').replace(/\D/g, '').slice(0, 5);
+    const digits = (input.value || '').replace(/\D/g, '').slice(0, 6);
     let formatted = digits;
     if (digits.length > 1) {
       formatted = `${digits.slice(0, 1)}.${digits.slice(1)}`;

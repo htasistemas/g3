@@ -18,7 +18,7 @@ import { menuSections, MenuItem } from './menu-config';
 import { AssistanceUnitService } from '../services/assistance-unit.service';
 import { ThemeService } from '../services/theme.service';
 import { filter, take, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import { TarefasPendenciasService } from '../services/tarefas-pendencias.service';
 import { LembreteDiario, LembretesDiariosService } from '../services/lembretes-diarios.service';
 import { ConfigService } from '../services/config.service';
@@ -108,11 +108,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       this.carregarResumoLembretes();
     }, 30000);
 
-    this.configService.getVersaoSistema().subscribe({
-      next: (response) => {
-        this.versaoSistema = response?.versao || '';
-      }
-    });
+    this.carregarVersaoSistema();
   }
 
   get username(): string {
@@ -281,6 +277,29 @@ export class LayoutComponent implements OnInit, OnDestroy {
     if (!usuario?.id) return null;
     const id = Number(usuario.id);
     return Number.isNaN(id) ? null : id;
+  }
+
+  private carregarVersaoSistema(): void {
+    firstValueFrom(this.configService.getVersaoSistema())
+      .then((response) => {
+        const versao = (response?.versao || '').trim();
+        if (versao) {
+          this.versaoSistema = versao;
+          return;
+        }
+        return this.carregarVersaoArquivo();
+      })
+      .catch(() => this.carregarVersaoArquivo());
+  }
+
+  private carregarVersaoArquivo(): Promise<void> {
+    return firstValueFrom(this.configService.getVersaoArquivo())
+      .then((versao) => {
+        this.versaoSistema = (versao || '').trim();
+      })
+      .catch(() => {
+        this.versaoSistema = '';
+      });
   }
 
 }

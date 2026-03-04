@@ -1,9 +1,9 @@
-Ôªøimport { AfterViewInit, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { EMPTY } from 'rxjs';
+import { EMPTY, firstValueFrom } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ConfigService } from '../../services/config.service';
@@ -23,13 +23,14 @@ declare global {
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent implements AfterViewInit, OnDestroy {
+export class LoginComponent implements AfterViewInit, OnDestroy, OnInit {
   nomeUsuario = '';
   senha = '';
   loading = false;
   error: string | null = null;
   success: string | null = null;
   versaoSistema = '';
+  versaoSistemaErro = false;
 
   criarContaAberto = false;
   recuperarSenhaAberto = false;
@@ -67,7 +68,9 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     private readonly runtimeConfig: RuntimeConfigService,
     private readonly router: Router,
     private readonly cdr: ChangeDetectorRef
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.carregarVersaoSistema();
   }
 
@@ -84,14 +87,32 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   private carregarVersaoSistema(): void {
-    this.configService.getVersaoSistema().subscribe({
-      next: (response) => {
-        this.versaoSistema = response.versao || '';
-      },
-      error: () => {
+    this.versaoSistemaErro = false;
+    firstValueFrom(this.configService.getVersaoSistema())
+      .then((response) => {
+        const versao = (response?.versao || '').trim();
+        if (versao) {
+          this.versaoSistema = versao;
+          this.cdr.detectChanges();
+          return;
+        }
+        return this.carregarVersaoArquivo();
+      })
+      .catch(() => this.carregarVersaoArquivo());
+  }
+
+  private carregarVersaoArquivo(): Promise<void> {
+    return firstValueFrom(this.configService.getVersaoArquivo())
+      .then((versao) => {
+        this.versaoSistema = (versao || '').trim();
+        this.versaoSistemaErro = !this.versaoSistema;
+        this.cdr.detectChanges();
+      })
+      .catch(() => {
         this.versaoSistema = '';
-      }
-    });
+        this.versaoSistemaErro = true;
+        this.cdr.detectChanges();
+      });
   }
 
   private inicializarGoogle(): void {
@@ -99,7 +120,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     const clientId = this.runtimeConfig.googleClientId;
     if (!clientId) {
       setTimeout(() => {
-        this.googleErro = 'Login Google indispon√≠vel no momento.';
+        this.googleErro = 'Login Google indisponÌvel no momento.';
         this.cdr.detectChanges();
       }, 0);
       return;
@@ -107,7 +128,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     if (!this.googleTimeout) {
       this.googleTimeout = setTimeout(() => {
         if (!this.googleInicializado) {
-          this.googleErro = 'Login Google indispon√≠vel no momento.';
+          this.googleErro = 'Login Google indisponÌvel no momento.';
           this.cdr.detectChanges();
         }
       }, 5000);
@@ -166,7 +187,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   forcarPromptGoogle(): void {
     if (!window.google?.accounts?.id) {
-      this.googleErro = 'Login Google indispon√≠vel no momento.';
+      this.googleErro = 'Login Google indisponÌvel no momento.';
       return;
     }
     this.googleErro = null;
@@ -276,7 +297,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
       if (this.recuperando) {
         this.recuperando = false;
         this.recuperacaoErro =
-          'O envio est√° demorando mais do que o esperado. Verifique sua conex√£o e tente novamente.';
+          'O envio est· demorando mais do que o esperado. Verifique sua conex„o e tente novamente.';
         this.cdr.detectChanges();
       }
     }, 15000);
@@ -461,6 +482,9 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     return 'Falha ao processar a solicitacao. Tente novamente.';
   }
 }
+
+
+
 
 
 

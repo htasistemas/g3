@@ -50,10 +50,27 @@
 
 .sidebar--collapsed .menu-card {
   @apply p-2;
+  overflow: visible;
 }
 
 .sidebar--collapsed nav {
   padding: 1rem 0.75rem;
+}
+
+.sidebar--collapsed .menu-card__trigger {
+  padding: 0.5rem;
+}
+
+.sidebar--collapsed .menu-card__trigger > span {
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebar--collapsed .menu-section__icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  width: 1.5rem;
+  text-align: center;
 }
 
 .sidebar__header {
@@ -66,6 +83,10 @@
   flex-direction: column;
   justify-content: center;
   gap: 0.5rem;
+}
+
+.sidebar--collapsed .sidebar__logo-wrapper {
+  display: none;
 }
 
 .sidebar__footer {

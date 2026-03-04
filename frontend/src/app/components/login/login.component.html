@@ -1,10 +1,10 @@
-ï»¿<div class="bg-gradient-to-br from-slate-50 via-white to-g3-green-50 flex items-start justify-center px-4 py-10 lg:py-12">
+<div class="login-wrapper bg-gradient-to-br from-slate-50 via-white to-g3-green-50 flex items-start justify-center px-4 py-4 lg:py-6">
   <div
-    class="w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl ring-1 ring-slate-200/80 bg-white/90 backdrop-blur"
+    class="login-card w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl ring-1 ring-slate-200/80 bg-white/90 backdrop-blur"
   >
     <div class="grid lg:grid-cols-[1.05fr_1fr]">
       <!-- Form section -->
-      <div class="p-8 lg:p-10 bg-white/80 flex flex-col gap-8">
+      <div class="login-form p-5 lg:p-7 bg-white/80 flex flex-col gap-4">
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-4 brand">
             <div class="h-20 w-20 rounded-2xl bg-white text-white flex items-center justify-center shadow-lg shadow-g3-green-700/30 ring-1 ring-slate-200">
@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-1">
           <h1 class="text-3xl font-semibold text-slate-900 flex items-center gap-3">
             <span class="inline-block h-10 w-1.5 rounded-full bg-g3-green-600"></span>
             Entre com a sua conta
@@ -127,7 +127,12 @@
               pol&iacute;tica de privacidade
             </button>.
           </span>
-          <span class="block mt-2 text-slate-400">Versao do sistema: {{ versaoSistema || '--' }}</span>
+          <span class="block mt-2 text-slate-400" *ngIf="!versaoSistemaErro">
+            Vers&atilde;o do sistema: {{ versaoSistema || '--' }}
+          </span>
+          <span class="block mt-2 text-amber-600" *ngIf="versaoSistemaErro">
+            Vers&atilde;o do sistema: indisponível no momento.
+          </span>
         </div>
       </div>
 
@@ -143,7 +148,7 @@
           </div>
 
           <div class="hero-cta text-center flex flex-col items-center gap-4">
-            <div class="space-y-3">
+            <div class="space-y-2">
               <h2 class="text-3xl font-semibold leading-tight">Cuidando das pessoas que importam</h2>
               <p class="text-sm text-white/80 leading-relaxed">
                 Acesse sua conta ou crie um acesso para acompanhar as a&ccedil;&otilde;es de sua institui&ccedil;&atilde;o.
@@ -458,4 +463,8 @@
     </footer>
   </div>
 </div>
+
+
+
+
 

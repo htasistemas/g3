@@ -1,4 +1,4 @@
-Ôªøimport { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faGraduationCap, faPrint } from '@fortawesome/free-solid-svg-icons';
@@ -117,22 +117,22 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   readonly faPrint = faPrint;
   readonly tabs: StepTab[] = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'dados', label: 'Dados de Matr√≠culas' },
-    { id: 'catalogo', label: 'Cat√°logo e vagas' },
-    { id: 'inscricoes', label: 'Inscri√ß√µes e lista de espera' },
+    { id: 'dados', label: 'Dados de MatrÌculas' },
+    { id: 'catalogo', label: 'Cat·logo e vagas' },
+    { id: 'inscricoes', label: 'InscriÁıes e lista de espera' },
     { id: 'agenda', label: 'Atendimentos agendados' },
-    { id: 'presenca', label: 'Presen√ßa' },
-    { id: 'listagem', label: 'Listagem de matr√≠culas' }
+    { id: 'presenca', label: 'PresenÁa' },
+    { id: 'listagem', label: 'Listagem de matrÌculas' }
   ];
 
   readonly diasSemana = [
     'Domingo',
     'Segunda-feira',
-    'Ter√ßa-feira',
+    'TerÁa-feira',
     'Quarta-feira',
     'Quinta-feira',
     'Sexta-feira',
-    'S√°bado'
+    'S·bado'
   ];
 
   readonly faixasEtarias = [
@@ -150,6 +150,14 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   printDialogOpen = false;
   saving = false;
   editingId: string | null = null;
+  listaEsperaDialogAberto = false;
+  private listaEsperaPendente: { beneficiaryName: string; cpf: string } | null = null;
+  confirmacaoExclusaoAberta = false;
+  confirmacaoExclusaoTipo: 'matricula' | 'fila' | null = null;
+  private exclusaoPendente:
+    | { tipo: 'matricula'; matricula: Enrollment }
+    | { tipo: 'fila'; item: WaitlistEntry }
+    | null = null;
   private readonly capitalizationSubs: Subscription[] = [];
 
   courseForm: FormGroup;
@@ -195,7 +203,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     { valor: 'CONFIRMADO', label: 'Confirmado' },
     { valor: 'REMARCAR', label: 'Remarcar' },
     { valor: 'REMARCADO', label: 'Remarcado' },
-    { valor: 'NAO_RESPONDEU', label: 'N√£o respondeu' }
+    { valor: 'NAO_RESPONDEU', label: 'N„o respondeu' }
   ];
 
   records: CourseRecord[] = [];
@@ -204,8 +212,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   readonly dashboardWidgets: DashboardWidget[] = [
     {
       id: 'ocupacao',
-      title: 'Taxa de ocupa√ß√£o',
-      description: 'Quanto das vagas est√° preenchido nos cursos e atendimentos.',
+      title: 'Taxa de ocupaÁ„o',
+      description: 'Quanto das vagas est· preenchido nos cursos e atendimentos.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.ocupacao}%`,
       getHelper: (snapshot) => `${snapshot.vagasEmUso}/${snapshot.totalVagas || 0} vagas em uso`,
@@ -214,15 +222,15 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     {
       id: 'profissionais',
       title: 'Profissionais ativos',
-      description: 'Respons√°veis vinculados √†s ofertas cadastradas.',
+      description: 'Respons·veis vinculados ‡s ofertas cadastradas.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.profissionais}`,
-      getHelper: (snapshot) => `${snapshot.mediaCargaHoraria}h m√©dia de carga semanal`
+      getHelper: (snapshot) => `${snapshot.mediaCargaHoraria}h mÈdia de carga semanal`
     },
     {
       id: 'matriculas',
-      title: 'Inscri√ß√µes ativas',
-      description: 'Matr√≠culas em andamento e fila de espera.',
+      title: 'InscriÁıes ativas',
+      description: 'MatrÌculas em andamento e fila de espera.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.totalMatriculas}`,
       getHelper: (snapshot) => `${snapshot.totalInscricoes} registros + ${snapshot.waitlist} em espera`,
@@ -230,20 +238,20 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     },
     {
       id: 'conclusao',
-      title: 'Taxa de conclus√£o',
-      description: 'Percentual de benefici√°rios que conclu√≠ram as atividades.',
+      title: 'Taxa de conclus„o',
+      description: 'Percentual de benefici·rios que concluÌram as atividades.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.taxaConclusao}%`,
-      getHelper: (snapshot) => `${snapshot.concluidos} conclu√≠dos ‚Ä¢ ${snapshot.cancelados} cancelamentos`,
+      getHelper: (snapshot) => `${snapshot.concluidos} concluÌdos ï ${snapshot.cancelados} cancelamentos`,
       getProgress: (snapshot) => snapshot.taxaConclusao
     },
     {
       id: 'portfolio',
-      title: 'Portf√≥lio de ofertas',
-      description: 'Distribui√ß√£o entre cursos, atendimentos e oficinas.',
+      title: 'PortfÛlio de ofertas',
+      description: 'DistribuiÁ„o entre cursos, atendimentos e oficinas.',
       gradient: 'teal',
       getValue: (snapshot) => `${snapshot.cursos + snapshot.atendimentos + snapshot.oficinas}`,
-      getHelper: (snapshot) => `${snapshot.cursos} cursos ‚Ä¢ ${snapshot.atendimentos} atendimentos ‚Ä¢ ${snapshot.oficinas} oficinas`
+      getHelper: (snapshot) => `${snapshot.cursos} cursos ï ${snapshot.atendimentos} atendimentos ï ${snapshot.oficinas} oficinas`
     },
     
   ];
@@ -342,7 +350,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.roomsLoading = false;
-        this.feedback = 'N√£o foi poss√≠vel carregar as salas. Tente novamente.';
+        this.feedback = 'N„o foi possÌvel carregar as salas. Tente novamente.';
       }
     });
   }
@@ -479,7 +487,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       const room = this.rooms.find((item) => item.id === roomId);
       if (room) return room.nome;
     }
-    return course.sala?.nome ?? 'N√£o informado';
+    return course.sala?.nome ?? 'N„o informado';
   }
 
   submit(): void {
@@ -525,7 +533,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.saving = false;
       },
       error: () => {
-        this.feedback = 'N√£o foi poss√≠vel salvar o cadastro. Tente novamente.';
+        this.feedback = 'N„o foi possÌvel salvar o cadastro. Tente novamente.';
         this.saving = false;
       }
     });
@@ -542,7 +550,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         }
       },
       error: () => {
-        this.feedback = 'N√£o foi poss√≠vel carregar os registros. Tente novamente.';
+        this.feedback = 'N„o foi possÌvel carregar os registros. Tente novamente.';
       }
     });
   }
@@ -582,8 +590,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       );
       this.openPdfInNewWindow(blob);
     } catch (error) {
-      console.error('Erro ao gerar rela√ß√£o de cursos e atendimentos', error);
-      this.feedback = 'Falha ao gerar a rela√ß√£o de cursos e atendimentos.';
+      console.error('Erro ao gerar relaÁ„o de cursos e atendimentos', error);
+      this.feedback = 'Falha ao gerar a relaÁ„o de cursos e atendimentos.';
     }
   }
 
@@ -621,7 +629,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const url = URL.createObjectURL(blob);
     const documentWindow = window.open(url, '_blank', 'width=900,height=1100');
     if (!documentWindow) {
-      this.feedback = 'Permita a abertura de pop-ups para visualizar o relat√≥rio.';
+      this.feedback = 'Permita a abertura de pop-ups para visualizar o relatÛrio.';
       URL.revokeObjectURL(url);
       return;
     }
@@ -728,7 +736,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.saving = false;
       },
       error: () => {
-        this.feedback = 'N√£o foi poss√≠vel excluir o cadastro. Tente novamente.';
+        this.feedback = 'N„o foi possÌvel excluir o cadastro. Tente novamente.';
         this.saving = false;
       }
     });
@@ -778,7 +786,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   enroll(): void {
     this.feedback = null;
     if (!this.currentCourse) {
-      this.feedback = 'Selecione um curso/atendimento para gerenciar as inscri√ß√µes.';
+      this.feedback = 'Selecione um curso/atendimento para gerenciar as inscriÁıes.';
       return;
     }
 
@@ -804,7 +812,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     );
 
     if (alreadyRegistered || alreadyOnWaitlist) {
-      this.feedback = 'Este benefici√°rio j√° est√° inscrito ou aguardando neste curso/atendimento.';
+      this.feedback = 'Este benefici·rio j· est· inscrito ou aguardando neste curso/atendimento.';
       return;
     }
 
@@ -821,20 +829,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       this.persistCurrentCourse();
       this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
     } else {
-      const confirmWaitlist = window.confirm(
-        'N√£o h√° vagas dispon√≠veis. Deseja incluir o benefici√°rio na lista de espera??'
-      );
-      if (confirmWaitlist) {
-        const entry: WaitlistEntry = {
-          id: generateId(),
-          beneficiaryName,
-          cpf,
-          joinedAt: new Date().toISOString()
-        };
-        this.currentCourse.waitlist.push(entry);
-        this.persistCurrentCourse();
-        this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
-      }
+      this.abrirDialogListaEspera(beneficiaryName, cpf);
     }
   }
 
@@ -866,8 +861,13 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   removeEnrollment(enrollment: Enrollment): void {
     if (!this.currentCourse) return;
-    const confirm = window.confirm('A exclus√£o √© irrevers√≠vel, tem certeza?');
-    if (!confirm) return;
+    this.exclusaoPendente = { tipo: 'matricula', matricula: enrollment };
+    this.confirmacaoExclusaoTipo = 'matricula';
+    this.confirmacaoExclusaoAberta = true;
+  }
+
+  private confirmarRemocaoMatricula(enrollment: Enrollment): void {
+    if (!this.currentCourse) return;
 
     const statusAnterior = enrollment.status;
     this.currentCourse.enrollments = this.currentCourse.enrollments.filter(
@@ -879,17 +879,75 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.currentCourse.vagasTotais,
         this.currentCourse.vagasDisponiveis + 1
       );
-      this.tryPromoteWaitlist();
     }
 
     this.persistCurrentCourse();
   }
 
+  abrirDialogListaEspera(beneficiaryName: string, cpf: string): void {
+    this.listaEsperaPendente = { beneficiaryName, cpf };
+    this.listaEsperaDialogAberto = true;
+  }
+
+  cancelarDialogListaEspera(): void {
+    this.listaEsperaDialogAberto = false;
+    this.listaEsperaPendente = null;
+  }
+
+  confirmarDialogListaEspera(): void {
+    if (!this.currentCourse || !this.listaEsperaPendente) {
+      this.cancelarDialogListaEspera();
+      return;
+    }
+
+    const entry: WaitlistEntry = {
+      id: generateId(),
+      beneficiaryName: this.listaEsperaPendente.beneficiaryName,
+      cpf: this.listaEsperaPendente.cpf,
+      joinedAt: new Date().toISOString()
+    };
+    this.currentCourse.waitlist.push(entry);
+    this.persistCurrentCourse();
+    this.enrollmentForm.reset({ courseId: this.currentCourse.id, beneficiaryName: '', cpf: '' });
+    this.cancelarDialogListaEspera();
+  }
+
+  confirmarExclusao(): void {
+    if (!this.exclusaoPendente) {
+      this.cancelarExclusao();
+      return;
+    }
+
+    if (this.exclusaoPendente.tipo === 'matricula') {
+      this.confirmarRemocaoMatricula(this.exclusaoPendente.matricula);
+    }
+
+    if (this.exclusaoPendente.tipo === 'fila') {
+      if (!this.currentCourse) {
+        this.cancelarExclusao();
+        return;
+      }
+      this.currentCourse.waitlist = this.currentCourse.waitlist.filter(
+        (item) => item.id !== this.exclusaoPendente?.item.id
+      );
+      this.persistCurrentCourse();
+    }
+
+    this.cancelarExclusao();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoExclusaoAberta = false;
+    this.exclusaoPendente = null;
+    this.confirmacaoExclusaoTipo = null;
+  }
+
   removeFromWaitlist(entry: WaitlistEntry, course?: CourseRecord): void {
     const targetCourse = course ?? this.currentCourse;
     if (!targetCourse) return;
-    targetCourse.waitlist = targetCourse.waitlist.filter((item) => item.id !== entry.id);
-    this.persistCourse(targetCourse);
+    this.exclusaoPendente = { tipo: 'fila', item: entry };
+    this.confirmacaoExclusaoTipo = 'fila';
+    this.confirmacaoExclusaoAberta = true;
   }
 
   tryPromoteWaitlist(): void {
@@ -1026,7 +1084,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar datas de presen√ßa', error);
+      console.error('Erro ao carregar datas de presenÁa', error);
       this.presencaDatas = [];
     }
   }
@@ -1047,7 +1105,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           this.carregarPresencaDatas();
         },
         error: () => {
-          this.feedback = 'N√£o foi poss√≠vel salvar as observa√ß√µes.';
+          this.feedback = 'N„o foi possÌvel salvar as observaÁıes.';
         }
       });
   }
@@ -1067,7 +1125,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           this.carregarPresencaDatas();
         },
         error: () => {
-          this.feedback = 'N√£o foi poss√≠vel cancelar a data selecionada.';
+          this.feedback = 'N„o foi possÌvel cancelar a data selecionada.';
         }
       });
   }
@@ -1076,7 +1134,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const curso = this.currentCourse;
     const presencaData = this.presencaDataSelecionada;
     if (!curso || !presencaData) return;
-    if (!window.confirm('Excluir a data selecionada? Esta a√ß√£o √© irrevers√≠vel.')) return;
+    if (!window.confirm('Excluir a data selecionada? Esta aÁ„o È irreversÌvel.')) return;
     this.presencaSalvando = true;
     this.service
       .removerPresencaData(curso.id, presencaData.id)
@@ -1089,7 +1147,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           this.presencaAnexos = [];
         },
         error: () => {
-          this.feedback = 'N√£o foi poss√≠vel excluir a data selecionada.';
+          this.feedback = 'N„o foi possÌvel excluir a data selecionada.';
         }
       });
   }
@@ -1111,7 +1169,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         },
         error: () => {
           this.presencaAnexos = [];
-          this.feedback = 'N√£o foi poss√≠vel carregar os anexos.';
+          this.feedback = 'N„o foi possÌvel carregar os anexos.';
         }
       });
   }
@@ -1145,8 +1203,8 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       );
       this.presencaAnexos = [anexo, ...this.presencaAnexos];
     } catch (error) {
-      console.error('Erro ao enviar anexo da presen√ßa', error);
-      this.feedback = 'N√£o foi poss√≠vel salvar o anexo.';
+      console.error('Erro ao enviar anexo da presenÁa', error);
+      this.feedback = 'N„o foi possÌvel salvar o anexo.';
     } finally {
       this.presencaAnexoEnviando = false;
       if (input) input.value = '';
@@ -1157,12 +1215,13 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   async imprimirListaPresenca(): Promise<void> {
     this.feedback = null;
     const curso = this.currentCourse;
+    const dataAula = this.dataPresencaSelecionada || this.presencaDataSelecionada?.dataAula;
     if (!curso) {
-      this.feedback = 'Selecione um curso/atendimento para gerar a lista de presen√ßa.';
+      this.feedback = 'Selecione um curso/atendimento para gerar a lista de presenÁa.';
       return;
     }
-    if (!this.dataPresencaSelecionada) {
-      this.feedback = 'Informe a data da aula para imprimir a lista de presen√ßa.';
+    if (!dataAula) {
+      this.feedback = 'Informe a data da aula para imprimir a lista de presenÁa.';
       return;
     }
     if (this.presencaGerando) return;
@@ -1170,24 +1229,25 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     try {
       const presencaData = await firstValueFrom(
         this.service.criarPresencaData(curso.id, {
-          dataAula: this.dataPresencaSelecionada,
+          dataAula,
           observacoes: this.presencaObservacoes?.trim() || null
         })
       );
       this.presencaDataSelecionada = presencaData;
+      this.dataPresencaSelecionada = dataAula;
       await this.carregarPresencaDatas();
       const blob = await firstValueFrom(
         this.reportService.generateCursoAtendimentoListaPresenca({
           cursoId: String(curso.id),
-          dataAula: this.dataPresencaSelecionada,
+          dataAula,
           usuarioEmissor: this.usuarioEmissor(),
           exibirCpf: this.presencaExibirCpf
         })
       );
       this.openPdfInNewWindow(blob);
     } catch (error) {
-      console.error('Erro ao gerar lista de presen√ßa', error);
-      this.feedback = 'N√£o foi poss√≠vel gerar a lista de presen√ßa.';
+      console.error('Erro ao gerar lista de presenÁa', error);
+      this.feedback = 'N„o foi possÌvel gerar a lista de presenÁa.';
     } finally {
       this.presencaGerando = false;
     }
@@ -1256,7 +1316,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     }
     if (this.currentCourse.tipo !== 'Atendimento') {
       this.popupErros = new PopupErrorBuilder()
-        .adicionar('A agenda est√° dispon√≠vel apenas para atendimentos.')
+        .adicionar('A agenda est· disponÌvel apenas para atendimentos.')
         .build();
       return;
     }
@@ -1264,19 +1324,19 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       this.agendamentoForm.markAllAsTouched();
       const builder = new PopupErrorBuilder();
       if (this.campoInvalido(this.agendamentoForm, 'matriculaId')) {
-        builder.adicionar('Selecione o benefici√°rio.');
+        builder.adicionar('Selecione o benefici·rio.');
       }
       if (this.campoInvalido(this.agendamentoForm, 'dataAgendada')) {
         builder.adicionar('Informe a data do atendimento.');
       }
       if (this.campoInvalido(this.agendamentoForm, 'horaAgendada')) {
-        builder.adicionar('Informe o hor√°rio do atendimento.');
+        builder.adicionar('Informe o hor·rio do atendimento.');
       }
       if (this.campoInvalido(this.agendamentoForm, 'profissionalId')) {
         builder.adicionar('Selecione o profissional.');
       }
       if (this.campoInvalido(this.agendamentoForm, 'statusAgendamento')) {
-        builder.adicionar('Selecione a situa√ß√£o do atendimento.');
+        builder.adicionar('Selecione a situaÁ„o do atendimento.');
       }
       this.popupErros = builder
         .adicionar('Preencha os campos obrigatorios para agendar.')
@@ -1286,7 +1346,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const formValue = this.agendamentoForm.getRawValue();
     const matricula = this.currentCourse.enrollments.find((item) => item.id === String(formValue.matriculaId));
     if (!matricula) {
-      this.feedback = 'Benefici√°rio n√£o encontrado na matr√≠cula selecionada.';
+      this.feedback = 'Benefici·rio n„o encontrado na matrÌcula selecionada.';
       return;
     }
 
@@ -1355,7 +1415,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     const agendamentos = this.obterAgendamentosDoDia();
     const unidade = this.unidadeAtual;
     const agendamentosPorProfissional = agendamentos.reduce((acc, item) => {
-      const chave = item.profissionalNome || 'Profissional n√£o informado';
+      const chave = item.profissionalNome || 'Profissional n„o informado';
       if (!acc[chave]) acc[chave] = [];
       acc[chave].push(item);
       return acc;
@@ -1381,16 +1441,16 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           .join('');
         return `
           <div class="agenda-profissional">
-            <p class="agenda-profissional__titulo">Profissional respons√°vel: ${profissional}</p>
+            <p class="agenda-profissional__titulo">Profissional respons·vel: ${profissional}</p>
             <table>
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Hora</th>
-                  <th>Benefici√°rio</th>
+                  <th>Benefici·rio</th>
                   <th>CPF</th>
-                  <th>Situa√ß√£o</th>
-                  <th>Presen√ßa</th>
+                  <th>SituaÁ„o</th>
+                  <th>PresenÁa</th>
                 </tr>
               </thead>
               <tbody>
@@ -1410,7 +1470,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
     const nomeUnidade = unidade?.razaoSocial || unidade?.nomeFantasia || 'G3 Assistencial';
     const cnpj = unidade?.cnpj || '';
-    const nomeParceiro = this.currentCourse?.instituicaoParceira || 'Institui√ß√£o parceira';
+    const nomeParceiro = this.currentCourse?.instituicaoParceira || 'InstituiÁ„o parceira';
     const subtituloParceiro = this.currentCourse?.nome || 'Atendimento';
     const emissao = this.formatarDataHoraEmissao(new Date());
     const usuario = this.usuarioEmissor();
@@ -1422,7 +1482,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       .join(', ');
     const linhaEndereco = [cnpj ? `CNPJ: ${cnpj}` : '', enderecoLinha, unidade?.bairro, unidade?.cidade]
       .filter((valor) => (valor ?? '').toString().trim().length > 0)
-      .join(' | ') || 'Endere√ßo n√£o informado';
+      .join(' | ') || 'EndereÁo n„o informado';
     const linhaContato = [
       unidade?.telefone ? `Telefone: ${unidade.telefone}` : '',
       unidade?.email ? `E-mail: ${unidade.email}` : '',
@@ -1484,7 +1544,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
             }
             footer.report-footer .footer-info { margin: 0; }
             footer.report-footer .page-number { display: block; text-align: right; }
-            .page-number:before { content: "P√°gina " counter(page) " de " counter(pages); }
+            .page-number:before { content: "P·gina " counter(page) " de " counter(pages); }
           </style>
         </head>
         <body>
@@ -1501,7 +1561,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
                   ${linhaEndereco ? `<p class="report-instituicao-info">${linhaEndereco}</p>` : ''}
                   ${linhaContato ? `<p class="report-instituicao-info">${linhaContato}</p>` : ''}
                   <p class="report-title">${subtituloParceiro}</p>
-                  <p class="report-partner">Institui√ß√£o parceira: ${nomeParceiro}</p>
+                  <p class="report-partner">InstituiÁ„o parceira: ${nomeParceiro}</p>
                   <div class="agenda-date">Agenda do dia: ${dataAgendaTexto}</div>
                 </div>
               </div>
@@ -1557,7 +1617,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           this.presencaPendente = false;
         },
         error: () => {
-          this.feedback = 'N√£o foi poss√≠vel carregar a presen√ßa desta data.';
+          this.feedback = 'N„o foi possÌvel carregar a presenÁa desta data.';
         },
       });
   }
@@ -1580,7 +1640,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
           this.carregarPresencaDatas();
         },
         error: () => {
-          this.feedback = 'N√£o foi poss√≠vel salvar a presen√ßa.';
+          this.feedback = 'N„o foi possÌvel salvar a presenÁa.';
         },
       });
   }
@@ -1713,7 +1773,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       },
       error: () => {
         this.profissionalAgendaCarregando = false;
-        this.feedback = 'N√£o foi poss√≠vel carregar profissionais e volunt√°rios.';
+        this.feedback = 'N„o foi possÌvel carregar profissionais e volunt·rios.';
       }
     });
   }
@@ -1741,7 +1801,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         this.widgetState = { ...this.widgetState, ...(JSON.parse(saved) as WidgetState) };
       }
     } catch (error) {
-      console.warn('N√£o foi poss√≠vel carregar as prefer√™ncias do dashboard', error);
+      console.warn('N„o foi possÌvel carregar as preferÍncias do dashboard', error);
     }
 
     this.normalizeWidgetState();
@@ -1753,7 +1813,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
         localStorage.setItem(this.widgetPrefsKey, JSON.stringify(this.widgetState));
       }
     } catch (error) {
-      console.warn('N√£o foi poss√≠vel salvar as prefer√™ncias do dashboard', error);
+      console.warn('N„o foi possÌvel salvar as preferÍncias do dashboard', error);
     }
   }
 
@@ -1779,7 +1839,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     );
     const totalInscricoes = this.records.reduce((sum, c) => sum + c.enrollments.length, 0);
     const concluidos = this.records.reduce(
-      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Conclu√É¬≠do').length,
+      (sum, c) => sum + c.enrollments.filter((e) => e.status === 'Conclu√≠do').length,
       0
     );
     const cancelados = this.records.reduce(
@@ -1873,7 +1933,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
     this.service.update(course.id, payload).subscribe({
       next: (record) => this.replaceRecord(record),
       error: () => {
-        this.feedback = 'N√£o foi poss√≠vel salvar as altera√ß√µes. Tente novamente.';
+        this.feedback = 'N„o foi possÌvel salvar as alteraÁıes. Tente novamente.';
       }
     });
   }
@@ -1895,7 +1955,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       .map((item) => ({
         id: item.id,
         label: item.beneficiaryName,
-        sublabel: item.cpf || 'CPF n√£o informado'
+        sublabel: item.cpf || 'CPF n„o informado'
       }))
       .filter((opcao) => !termo || this.normalizarTexto(opcao.label).includes(termo))
       .slice(0, 10);
@@ -2017,6 +2077,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
       });
   }
 }
+
+
+
 
 
 

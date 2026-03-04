@@ -210,10 +210,12 @@ public class CursoAtendimentoRequest {
     this.matriculas = matriculas;
   }
 
+  @JsonProperty("waitlist")
   public List<CursoAtendimentoFilaEsperaRequest> getFilaEspera() {
     return filaEspera;
   }
 
+  @JsonProperty("waitlist")
   public void setFilaEspera(List<CursoAtendimentoFilaEsperaRequest> filaEspera) {
     this.filaEspera = filaEspera;
   }
