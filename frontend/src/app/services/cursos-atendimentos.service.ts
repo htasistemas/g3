@@ -5,7 +5,7 @@ import { SalaRecord } from './salas.service';
 import { RuntimeConfigService } from './runtime-config.service';
 
 export type CourseType = 'Curso' | 'Atendimento' | 'Oficina';
-export type EnrollmentStatus = 'Ativo' | 'ConcluÃ­do' | 'Cancelado';
+export type EnrollmentStatus = 'Ativo' | 'Concluído' | 'Cancelado';
 export type StatusAgendamento = 'AGUARDANDO' | 'CONFIRMADO' | 'REMARCAR' | 'REMARCADO' | 'NAO_RESPONDEU';
 
 export interface Enrollment {

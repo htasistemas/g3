@@ -1,4 +1,5 @@
 <app-tela-padrao
+
   [acoes]="acoesToolbar"
   [desabilitado]="estadoAcoesToolbar"
   [mostrarFechar]="true"
@@ -18,13 +19,14 @@
   </div>
 </header>
 
+
   <section class="cadastro">
   <div class="cadastro-layout">
     <aside class="cadastro-menu">
       <div class="tab-shell">
         <p class="tab-shell__title tab-shell__title--destaque">
           <fa-icon [icon]="faGraduationCap" class="tab-shell__icon"></fa-icon>
-          Cadastros de MatrÌculas
+          Cadastros de Matr√≠culas
         </p>
         <ol class="step-tabs" role="tablist">
           <li
@@ -51,30 +53,55 @@
     <div class="cadastro-conteudo">
   <form [formGroup]="courseForm" class="form-shell" (ngSubmit)="submit()">
     <div *ngIf="feedback" class="feedback" role="alert">
+
       <span>{{ feedback }}</span>
+
       <button type="button" class="feedback__close" aria-label="Fechar aviso" (click)="dismissFeedback()">
-        ◊
+
+        √ó
+
       </button>
+
     </div>
 
+
+
     <ng-template #navigationControls>
+
       <div class="tab-actions">
+
         <button type="button" class="ghost" *ngIf="hasPreviousTab" (click)="goToPreviousTab()">Voltar</button>
+
         <button type="submit" class="primary" [disabled]="saving">
+
           {{ saving ? 'Salvando...' : 'Salvar cadastro' }}
+
         </button>
+
         <button type="button" class="ghost" *ngIf="hasNextTab" (click)="goToNextTab()">
+
           Ir para: {{ nextTabLabel }}
+
         </button>
+
       </div>
+
     </ng-template>
 
+
+
     <div class="tab-card" *ngIf="activeTab === 'dados'">
+
       <div class="tab-card__header">
+
         <div class="tab-card__title-stack">
+
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+
         </div>
+
       </div>
+
       <div class="field-grid cols-4 dados-grid">
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'tipo')">
           Tipo*
@@ -90,82 +117,143 @@
           <input
             formControlName="nome"
             (input)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
+
             (blur)="applyCapitalization(courseForm, 'nome', $any($event.target).value)"
+
           />
+
         </label>
+
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'horarioInicial')">
-          Hor·rio inicial*
+          Hor√°rio inicial*
           <input type="time" formControlName="horarioInicial" />
         </label>
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'duracaoHoras')">
-          DuraÁ„o (horas)*
+          Dura√ß√£o (horas)*
           <input type="number" formControlName="duracaoHoras" min="1" />
         </label>
       </div>
 
+
       <div class="field-grid cols-2 description-media full">
-        <label class="field description-field" [class.field--error]="campoInvalido(courseForm, 'descricao')">DescriÁ„o / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+        <label class="field description-field" [class.field--error]="campoInvalido(courseForm, 'descricao')">Descri√ß√£o / Objetivo*<textarea rows="3" formControlName="descricao"></textarea></label>
+
 
         <div class="field media-card">
+
           <p class="field-title">Foto / Imagem ilustrativa</p>
+
           <input type="file" accept="image/*" (change)="handleImage($event)" />
+
           <div class="upload-preview" *ngIf="courseForm.value.imagem">
-            <img [src]="courseForm.value.imagem" alt="PrÈ-visualizaÁ„o" />
+
+            <img [src]="courseForm.value.imagem" alt="Pr√©-visualiza√ß√£o" />
+
             <div>
-              <p class="strong">PrÈ-visualizaÁ„o</p>
+
+              <p class="strong">Pr√©-visualiza√ß√£o</p>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
+
 
       <div class="field day-selector horizontal full" [class.field--error]="campoInvalido(courseForm, 'diasSemana')">
         <p class="field-title">Dias da semana*</p>
         <div class="chips">
           <label *ngFor="let dia of diasSemana" class="chip">
+
             <input
+
               type="checkbox"
+
               [checked]="selectionChecked(['diasSemana'], dia)"
+
               (change)="toggleSelection(['diasSemana'], dia)"
+
             />
+
             <span>{{ dia }}</span>
+
           </label>
+
         </div>
+
       </div>
+
+
 
       <div class="field day-selector horizontal full">
+
         <p class="field-title">Faixa etaria</p>
+
         <div class="chips">
+
           <label *ngFor="let faixa of faixasEtarias" class="chip">
+
             <input
+
               type="checkbox"
+
               [checked]="selectionChecked(['faixasEtarias'], faixa)"
+
               (change)="toggleSelection(['faixasEtarias'], faixa)"
+
             />
+
             <span>{{ faixa }}</span>
+
           </label>
+
         </div>
+
       </div>
+
+
 
       <div class="field-grid cols-3 dados-grid full">
+
         <label class="field">
+
           Vaga preferencial para idosos
+
           <label class="inline-check">
+
             <input type="checkbox" formControlName="vagaPreferencialIdosos" />
+
             <span>Sim</span>
+
           </label>
+
         </label>
+
         <label class="field">
+
           Sexo permitido
+
           <select formControlName="sexoPermitido">
+
             <option value="Todos">Todos</option>
+
             <option value="Feminino">Feminino</option>
+
             <option value="Masculino">Masculino</option>
+
           </select>
+
         </label>
+
       </div>
 
+
+
       <div class="field-grid cols-4 dados-grid load-room-grid">
-        <label class="field">Carga hor·ria total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
+        <label class="field">Carga hor√°ria total (horas)<input type="number" formControlName="cargaHoraria" min="0" /></label>
         <label class="field" [class.field--error]="campoInvalido(courseForm, 'vagasTotais')">
           Quantidade de vagas totais*
           <input type="number" formControlName="vagasTotais" min="1" />
@@ -179,24 +267,41 @@
           <div class="inline-control">
             <select id="salaSelect" formControlName="salaId">
               <option value="" disabled [selected]="!courseForm.value.salaId">Selecione a sala</option>
+
               <option *ngFor="let room of rooms" [value]="room.id">{{ room.nome }}</option>
+
             </select>
+
           </div>
+
           <div class="search-hint" *ngIf="roomsLoading">Carregando salas...</div>
+
         </div>
+
       </div>
 
+
+
       <label class="field full">
-        RestriÁıes e p˙blico indicado
+
+        Restri√ß√µes e p√∫blico indicado
+
         <textarea
+
           rows="2"
+
           formControlName="restricoes"
-          placeholder="Ex.: menores de 18 anos n„o podem participar, vagas preferenciais para idosos, faixa et·ria recomendada"
+
+          placeholder="Ex.: menores de 18 anos n√£o podem participar, vagas preferenciais para idosos, faixa et√°ria recomendada"
+
         ></textarea>
+
       </label>
 
+
+
       <label class="field full" [class.field--error]="campoInvalido(courseForm, 'profissional')">
-        Profissional respons·vel*
+        Profissional respons√°vel*
         <input
           formControlName="profissional"
           placeholder="Pesquise ou digite o nome do profissional"
@@ -214,7 +319,7 @@
         </ul>
       </label>
       <label class="field full">
-        InstituiÁ„o parceira
+        Institui√ß√£o parceira
         <input
           formControlName="instituicaoParceira"
           placeholder="Ex.: Faculdade Uniessa"
@@ -224,25 +329,44 @@
       </label>
       <div class="actions">
         <button type="button" class="ghost" (click)="startNew()">Novo cadastro</button>
+
         <div class="actions__stack">
+
           <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar e continuar' }}</button>
+
           <div class="actions__inline">
+
           <button type="button" class="ghost" (click)="changeTab('inscricoes')">Ir para</button>
           </div>
+
         </div>
+
       </div>
+
+
 
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+
     </div>
 
+
+
     <div class="tab-card" *ngIf="activeTab === 'catalogo'">
+
       <div class="tab-card__header">
+
         <div class="tab-card__title-stack">
+
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+
         </div>
+
       </div>
 
+
+
       <div class="catalog-grid">
+
         <article *ngFor="let course of records" class="catalog-card" [ngClass]="getCardAccent(course)">
           <div class="catalog-card__badge" [ngClass]="courseStatus(course).tone">{{ courseStatus(course).label }}</div>
           <div class="catalog-card__header">
@@ -256,116 +380,195 @@
             <p class="catalog-card__category">{{ course.tipo }}</p>
             <p class="catalog-card__subtitle">{{ course.profissional }}</p>
             <p class="catalog-card__partner" *ngIf="course.instituicaoParceira">
-              InstituiÁ„o parceira: {{ course.instituicaoParceira }}
+              Institui√ß√£o parceira: {{ course.instituicaoParceira }}
             </p>
           </div>
           <p class="catalog-card__description">{{ course.descricao }}</p>
+
           <dl class="catalog-card__details">
+
             <div>
-              <dt>InÌcio</dt>
+
+              <dt>In√≠cio</dt>
+
               <dd>{{ course.horarioInicial }}</dd>
+
             </div>
+
             <div>
+
               <dt>Vagas</dt>
+
               <dd>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</dd>
+
             </div>
+
             <div>
+
               <dt>Dias</dt>
+
               <dd>{{ course.diasSemana.join(', ') }}</dd>
+
             </div>
+
             <div>
+
               <dt>Sala</dt>
+
               <dd>{{ getRoomName(course) }}</dd>
+
             </div>
+
           </dl>
+
           <div class="catalog-card__footer">
+
             <div class="catalog-card__chips" *ngIf="course.restricoes">
+
               <span class="chip muted-chip">{{ course.restricoes }}</span>
+
             </div>
+
             <div class="catalog-card__actions">
+
               <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
+
               <button type="button" class="danger" (click)="deleteCourse(course)">Excluir</button>
+
               <button
+
                 type="button"
+
                 class="primary"
+
                 (click)="selectFromCatalog(course.id)"
+
                 [disabled]="course.vagasDisponiveis === 0"
+
               >
-                Inscrever benefici·rio
+
+                Inscrever benefici√°rio
+
               </button>
+
             </div>
+
           </div>
+
         </article>
+
       </div>
 
+
+
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+
     </div>
+
+
 
     <div class="tab-card" *ngIf="activeTab === 'inscricoes'">
       <div class="tab-card__header">
+
         <div class="tab-card__title-stack">
+
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+
         </div>
+
       </div>
+
+
 
       <div class="field-grid cols-4" [formGroup]="enrollmentForm">
         <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'courseId')">
           Selecione o curso/atendimento*
           <select formControlName="courseId" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma opÁ„o</option>
+            <option value="" disabled [selected]="!enrollmentForm.value.courseId">Escolha uma op√ß√£o</option>
             <option *ngFor="let course of records" [value]="course.id">
-              {{ course.tipo }} ï {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
+              {{ course.tipo }} ‚Ä¢ {{ course.nome }} ({{ course.vagasDisponiveis }} vagas livres)
             </option>
           </select>
         </label>
         <label class="field full">
-          InstituiÁ„o parceira
+          Institui√ß√£o parceira
           <input [value]="currentCourse?.instituicaoParceira || ''" readonly />
         </label>
         <label class="field full" [class.field--error]="campoInvalido(enrollmentForm, 'beneficiaryName')">
-          Benefici·rio (nome ou CPF)*
+          Benefici√°rio (nome ou CPF)*
           <input
             formControlName="beneficiaryName"
-            placeholder="Buscar benefici·rio"
+            placeholder="Buscar benefici√°rio"
+
             (input)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
+
             (blur)="applyCapitalization(enrollmentForm, 'beneficiaryName', $any($event.target).value)"
+
           />
-          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando benefici·rios...</div>
+
+          <div class="search-hint" *ngIf="beneficiarySearchLoading">Buscando benefici√°rios...</div>
+
           <ul class="search-results" *ngIf="beneficiaryResults.length">
+
             <li *ngFor="let beneficiary of beneficiaryResults">
+
               <button type="button" (click)="selectBeneficiary(beneficiary)">
+
                 <span>{{ beneficiary.nomeCompleto || beneficiary.nomeSocial }}</span>
-                <small>{{ beneficiary.cpf || 'CPF n„o informado' }}</small>
+
+                <small>{{ beneficiary.cpf || 'CPF n√£o informado' }}</small>
+
               </button>
+
             </li>
+
           </ul>
+
         </label>
+
         <label class="field" [class.field--error]="campoInvalido(enrollmentForm, 'cpf')">CPF*<input formControlName="cpf" placeholder="000.000.000-00" /></label>
         <div class="actions align-end">
+
             <div class="helper" *ngIf="currentCourse">
+
               <p class="helper__title">Vagas</p>
               <p class="helper__value">{{ currentCourse.vagasDisponiveis }} / {{ currentCourse.vagasTotais }}</p>
+
             </div>
+
           <button class="primary" type="button" (click)="enroll()">Inscrever</button>
+
         </div>
+
       </div>
 
+
+
       <div class="list-card">
+
         <div class="list-card__header">
+
           <div>
-            <p class="page-title__eyebrow">MatrÌculas</p>
-            <p class="page-title__label">Benefici·rios vinculados</p>
+
+            <p class="page-title__eyebrow">Matr√≠culas</p>
+
+            <p class="page-title__label">Benefici√°rios vinculados</p>
+
           </div>
+
         </div>
+
         <div class="table-wrapper">
+
           <table>
+
             <thead>
               <tr>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th>SituaÁ„o</th>
+                <th>Situa√ß√£o</th>
                 <th>Data de entrada</th>
-                <th>AÁıes</th>
+                <th>A√ß√µes</th>
               </tr>
             </thead>
             <tbody>
@@ -373,68 +576,109 @@
                 <td>{{ enrollment.beneficiaryName }}</td>
                 <td>{{ enrollment.cpf }}</td>
                 <td>
+
                   <select
                     [ngModel]="enrollment.status"
                     [ngModelOptions]="{ standalone: true }"
                     (ngModelChange)="updateEnrollmentStatus(enrollment, $event)"
                   >
                     <option value="Ativo">Ativo</option>
-                    <option value="ConcluÌdo">ConcluÌdo</option>
+
+                    <option value="Conclu√≠do">Conclu√≠do</option>
+
                     <option value="Cancelado">Cancelado</option>
                   </select>
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
                 <td class="table-actions">
                   <button class="danger" type="button" (click)="removeEnrollment(enrollment)">
-                    Excluir matrÌcula
+                    Excluir matr√≠cula
                   </button>
                 </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
-                <td colspan="5" class="muted">Nenhuma matrÌcula cadastrada.</td>
+                <td colspan="5" class="muted">Nenhuma matr√≠cula cadastrada.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
+
       <div class="list-card">
+
         <div class="list-card__header">
+
           <div>
+
             <p class="page-title__label">Ordem de chegada</p>
+
           </div>
+
         </div>
+
         <div class="table-wrapper">
+
           <table>
+
             <thead>
+
               <tr>
+
                 <th>Nome</th>
+
                 <th>CPF</th>
+
                 <th>Data de entrada</th>
-                <th>PosiÁ„o</th>
-                <th>AÁıes</th>
+
+                <th>Posi√ß√£o</th>
+
+                <th>A√ß√µes</th>
+
               </tr>
+
             </thead>
+
             <tbody>
+
               <tr *ngFor="let item of currentCourse?.waitlist; index as idx">
+
                 <td>{{ item.beneficiaryName }}</td>
+
                 <td>{{ item.cpf }}</td>
+
                 <td>{{ item.joinedAt | date: 'shortDate' }}</td>
+
                 <td>{{ idx + 1 }}</td>
+
                 <td class="table-actions">
+
                   <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
-                    Converter para matrÌcula
+
+                    Converter para matr√≠cula
+
                   </button>
+
                   <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
+
                 </td>
+
               </tr>
+
               <tr *ngIf="!currentCourse?.waitlist?.length">
-                <td colspan="4" class="muted">Nenhum benefici·rio em fila.</td>
+
+                <td colspan="4" class="muted">Nenhum benefici√°rio em fila.</td>
+
               </tr>
+
             </tbody>
+
           </table>
+
         </div>
+
       </div>
+
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
@@ -446,10 +690,10 @@
       </div>
 
       <div class="empty-state" *ngIf="!currentCourse">
-        Selecione um atendimento na aba de inscriÁıes para visualizar a agenda.
+        Selecione um atendimento na aba de inscri√ß√µes para visualizar a agenda.
       </div>
       <div class="empty-state" *ngIf="currentCourse && currentCourse.tipo !== 'Atendimento'">
-        A agenda est· disponÌvel apenas para atendimentos.
+        A agenda est√° dispon√≠vel apenas para atendimentos.
       </div>
 
       <ng-container *ngIf="currentCourse && currentCourse.tipo === 'Atendimento'">
@@ -467,7 +711,7 @@
                   />
                 </label>
                 <label class="field">
-                  SituaÁ„o
+                  Situa√ß√£o
                   <select [(ngModel)]="filtroStatusAgenda" [ngModelOptions]="{ standalone: true }">
                     <option value="TODOS">Todos</option>
                     <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
@@ -517,11 +761,11 @@
             <p class="agenda-panel__title">Agendar atendimento</p>
             <div class="field-grid cols-4">
               <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'matriculaId')">
-                Benefici·rio*
+                Benefici√°rio*
                 <app-autocomplete
                   [termo]="beneficiarioAgendaTermo"
                   [opcoes]="beneficiarioAgendaOpcoes"
-                  placeholder="Selecione o benefici·rio"
+                  placeholder="Selecione o benefici√°rio"
                   (termoChange)="atualizarBeneficiarioAgendaTermo($event)"
                   (selecionar)="selecionarBeneficiarioAgenda($event)"
                 ></app-autocomplete>
@@ -546,7 +790,7 @@
                 ></app-autocomplete>
               </label>
               <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'statusAgendamento')">
-                SituaÁ„o*
+                Situa√ß√£o*
                 <select formControlName="statusAgendamento">
                   <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
                     {{ status.label }}
@@ -563,7 +807,7 @@
         <div class="list-card">
           <div class="list-card__header">
             <div>
-              <p class="page-title__label">Benefici·rios agendados</p>
+              <p class="page-title__label">Benefici√°rios agendados</p>
             </div>
           </div>
           <div class="table-wrapper">
@@ -571,12 +815,12 @@
               <thead>
                 <tr>
                   <th>Hora</th>
-                  <th>Benefici·rio</th>
+                  <th>Benefici√°rio</th>
                   <th>CPF</th>
                   <th>Profissional</th>
-                  <th>SituaÁ„o</th>
-                  <th>PresenÁa</th>
-                  <th>AÁıes</th>
+                  <th>Situa√ß√£o</th>
+                  <th>Presen√ßa</th>
+                  <th>A√ß√µes</th>
                 </tr>
               </thead>
               <tbody>
@@ -584,7 +828,7 @@
                   <td>{{ matricula.horaAgendada || '--:--' }}</td>
                   <td>{{ matricula.beneficiaryName }}</td>
                   <td>{{ matricula.cpf }}</td>
-                  <td>{{ matricula.profissionalNome || 'N„o informado' }}</td>
+                  <td>{{ matricula.profissionalNome || 'N√£o informado' }}</td>
                   <td>
                     <select
                       [ngModel]="matricula.statusAgendamento || 'AGUARDANDO'"
@@ -604,10 +848,10 @@
                       (click)="confirmarPresencaAgendamento(matricula)"
                       [disabled]="matricula.confirmacaoPresenca"
                     >
-                      Confirmar presenÁa
+                      Confirmar presen√ßa
                     </button>
                     <button type="button" class="ghost" (click)="marcarRemarcar(matricula)">Remarcar</button>
-                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">N„o respondeu</button>
+                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">N√£o respondeu</button>
                   </td>
                 </tr>
                 <tr *ngIf="!agendamentosFiltrados.length">
@@ -632,7 +876,7 @@
         <label class="field full">
           Selecione o curso/atendimento*
           <select [value]="currentCourse?.id || ''" (change)="selectCourseForEnrollment($any($event.target).value)">
-            <option value="" disabled [selected]="!currentCourse">Escolha uma opÁ„o</option>
+            <option value="" disabled [selected]="!currentCourse">Escolha uma op√ß√£o</option>
             <option *ngFor="let course of records" [value]="course.id">
               {{ course.tipo }} - {{ course.nome }}
             </option>
@@ -657,7 +901,7 @@
             [disabled]="presencaSalvando || !presencaDataSelecionada || presencaDataSelecionada.status === 'CANCELADA' || !presencaPendente"
             (click)="salvarPresencas()"
           >
-            Salvar presenÁas
+            Salvar presen√ßas
           </button>
           <button
             type="button"
@@ -689,7 +933,7 @@
             <div>
               <strong>{{ data.dataAula | date: 'dd/MM/yyyy' }}</strong>
               <span class="presence-date__meta" *ngIf="data.totalPresencas">
-                {{ data.totalPresencas }} presenÁa(s)
+                {{ data.totalPresencas }} presen√ßa(s)
               </span>
             </div>
             <span class="badge" [class.badge--green]="data.status === 'PREENCHIDA'"
@@ -712,7 +956,7 @@
         </div>
         <div class="field-grid cols-2">
           <label class="field full">
-            ObservaÁıes
+            Observa√ß√µes
             <textarea rows="4" [(ngModel)]="presencaObservacoes" [ngModelOptions]="{ standalone: true }"></textarea>
           </label>
           <div class="field full">
@@ -723,7 +967,7 @@
                 [disabled]="presencaSalvando || presencaDataSelecionada.status === 'CANCELADA'"
                 (click)="salvarObservacoesPresenca()"
               >
-                Salvar observaÁıes
+                Salvar observa√ß√µes
               </button>
               <button
                 type="button"
@@ -830,33 +1074,53 @@
 
     <div class="tab-card" *ngIf="activeTab === 'listagem'">
       <div class="tab-card__header">
+
         <div class="tab-card__title-stack">
+
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+
         </div>
+
       </div>
+
       <div class="list-card">
+
         <div class="list-card__header">
+
           <div>
-            <p class="page-title__label">MatrÌculas cadastradas</p>
+
+            <p class="page-title__label">Matr√≠culas cadastradas</p>
+
           </div>
+
         </div>
+
         <div class="table-wrapper">
+
           <table>
+
             <thead>
+
               <tr>
+
                 <th>Tipo</th>
+
                 <th>Nome</th>
                 <th>Vagas</th>
                 <th>Profissional</th>
-                <th>InstituiÁ„o parceira</th>
+                <th>Institui√ß√£o parceira</th>
                 <th>Sala</th>
-                <th>InÌcio</th>
-                <th>AÁıes</th>
+                <th>In√≠cio</th>
+                <th>A√ß√µes</th>
               </tr>
+
             </thead>
+
             <tbody>
+
               <tr *ngFor="let course of records" (dblclick)="fillFromCourse(course)">
                 <td>{{ course.tipo }}</td>
+
                 <td>{{ course.nome }}</td>
                 <td>{{ course.vagasDisponiveis }} / {{ course.vagasTotais }}</td>
                 <td>{{ course.profissional }}</td>
@@ -872,95 +1136,175 @@
                 <td colspan="8" class="muted">Nenhum curso ou atendimento cadastrado.</td>
               </tr>
             </tbody>
+
           </table>
+
         </div>
+
       </div>
+
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+
     </div>
 
+
+
     <div class="tab-card" *ngIf="activeTab === 'dashboard'">
+
       <div class="tab-card__header">
+
         <div class="tab-card__title-stack">
+
           <p class="tab-card__highlight">{{ tabs[activeTabIndex].label }}</p>
+
         </div>
+
       </div>
 
+
+
       <div class="widget-grid">
+
         <article
+
           class="widget-card"
+
           *ngFor="let widget of visibleWidgets; trackBy: trackWidget"
+
           [attr.data-gradient]="widget.gradient"
+
         >
+
           <div class="widget-card__header">
             <p class="widget-card__title">{{ widget.title }}</p>
           </div>
           <p class="widget-card__value">{{ widget.getValue(dashboardSnapshot) }}</p>
+
           <p class="widget-card__helper">{{ widget.getHelper(dashboardSnapshot) }}</p>
+
           <div class="widget-card__progress" *ngIf="widget.getProgress">
+
             <div
+
               class="widget-card__progress-bar"
+
               [style.width]="widget.getProgress!(dashboardSnapshot) + '%'"
+
             ></div>
+
           </div>
+
         </article>
+
       </div>
+
       <div class="dashboard-controls">
+
         <div class="control-card">
+
           <div class="control-card__header">
+
             <div>
-              <p class="control-card__eyebrow">PainÈis gerenci·veis</p>
-              <p class="control-card__title">Personalize os cartıes exibidos</p>
+
+              <p class="control-card__eyebrow">Pain√©is gerenci√°veis</p>
+
+              <p class="control-card__title">Personalize os cart√µes exibidos</p>
+
             </div>
+
             <span class="pill">{{ visibleWidgets.length }} / {{ dashboardWidgets.length }} ativos</span>
+
           </div>
+
           <div class="control-list">
+
             <label class="control-item" *ngFor="let widget of dashboardWidgets">
+
               <div>
+
                 <p class="control-item__title">{{ widget.title }}</p>
+
                 <p class="control-item__desc">{{ widget.description }}</p>
+
               </div>
+
               <div class="control-actions">
+
                 <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'up')" aria-label="Mover para cima">Subir</button>
                 <button type="button" class="icon-button" (click)="moveWidget(widget.id, 'down')" aria-label="Mover para baixo">Descer</button>
                 <label class="switch">
+
                   <input type="checkbox" [checked]="isWidgetEnabled(widget.id)" (change)="toggleWidget(widget.id)" />
+
                   <span></span>
+
                 </label>
+
               </div>
+
             </label>
+
           </div>
+
         </div>
 
+
+
         <div class="insights-panel">
-          <p class="insights-title">Insights r·pidos</p>
+
+          <p class="insights-title">Insights r√°pidos</p>
+
           <div class="insight-chips">
+
             <span class="insight-chip">{{ dashboardTotals().ativosCurso }} cursos</span>
+
             <span class="insight-chip">{{ dashboardTotals().ativosAtendimento }} atendimentos</span>
+
             <span class="insight-chip">{{ dashboardSnapshot.waitlist }} em fila</span>
+
             <span class="insight-chip">{{ dashboardSnapshot.profissionais }} profissionais</span>
+
           </div>
+
           <div class="insight-trend">
+
             <div>
-              <p class="trend-label">Press„o de fila</p>
+
+              <p class="trend-label">Press√£o de fila</p>
+
               <p class="trend-value">{{ dashboardSnapshot.waitlistPressao }}%</p>
+
             </div>
+
             <div class="trend-meter">
+
               <div class="trend-bar" [style.width]="dashboardSnapshot.waitlistPressao + '%'" aria-hidden="true"></div>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+
     </div>
+
   </form>
+
+
 
   <app-dialog
     [aberto]="printDialogOpen"
-    titulo="Imprimir relatÛrios"
-    mensagem="Selecione qual relatÛrio deseja gerar."
-    confirmarLabel="RelaÁ„o"
+    titulo="Imprimir relat√≥rios"
+    mensagem="Selecione qual relat√≥rio deseja gerar."
+    confirmarLabel="Rela√ß√£o"
     cancelarLabel="Ficha do curso selecionado"
+
     [cancelarAoClicarOverlay]="false"
+
     (confirmar)="imprimirRelacao()"
     (cancelar)="imprimirFichaSelecionada()"
   ></app-dialog>
@@ -976,7 +1320,7 @@
   ></app-dialog>
   <app-dialog
     [aberto]="confirmacaoExclusaoAberta"
-    titulo="Confirmar exclusao"
+    titulo="Confirmar exclus√£o"
     [mensagem]="confirmacaoExclusaoMensagem"
     confirmarLabel="Excluir"
     cancelarLabel="Cancelar"
@@ -986,6 +1330,17 @@
   </div>
 </section>
 </app-tela-padrao>
+
+
+
+
+
+
+
+
+
+
+
 
 
 
