@@ -196,73 +196,72 @@
           <p class="tab-card__highlight">{{ getTabLabel('dados') }}</p>
         </div>
       </div>
-      <div class="tab-card__hero" [class.tab-card__hero--camera]="cameraActive">
-        <div class="photo-section">
-          <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
-            <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiario" />
-            <span *ngIf="!photoPreview">Foto 3x4 do Beneficiário</span>
+      <div class="dados-topo">
+        <div class="bloco-foto">
+          <div class="photo-section">
+            <div class="photo-preview" [class.photo-preview--empty]="!photoPreview">
+              <img *ngIf="photoPreview" [src]="photoPreview" alt="Foto 3x4 do beneficiario" />
+              <span *ngIf="!photoPreview">Foto 3x4 do Beneficiário</span>
+            </div>
+            <div class="photo-actions">
+              <label class="upload-btn upload-btn--success photo-action-shadow" role="button">
+                Enviar foto 3x4
+                <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+              </label>
+              <button type="button" class="ghost photo-action-shadow" (click)="handleCameraCapture()">
+                {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
+              </button>
+              <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
+              <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
+              <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
+              <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
+            </div>
           </div>
-          <div class="photo-actions">
-            <label class="upload-btn">
-              Enviar foto 3x4
-              <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+
+          <div class="camera-panel" *ngIf="cameraActive">
+            <p class="camera-panel__title">Visualização da câmera</p>
+            <div class="camera-panel__preview">
+              <video #videoElement autoplay muted playsinline></video>
+            </div>
+            <p class="camera-panel__hint">Ajuste o enquadramento e clique em "Registrar foto" para salvar.</p>
+          </div>
+        </div>
+
+        <div class="bloco-status">
+          <div class="status-panel">
+            <p class="status-panel__title">Status do Beneficiário</p>
+            <div class="status-panel__current">
+              <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
+              <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
+                Motivo: {{ form.get('motivo_bloqueio')?.value }}
+              </span>
+            </div>
+            <label class="field">
+              <span>Atualizar status*</span>
+              <select formControlName="status">
+                <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
+              </select>
             </label>
-            <button type="button" class="ghost" (click)="handleCameraCapture()">
-              {{ cameraActive ? 'Registrar foto' : 'Capturar pela câmera' }}
+            <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
+              Editar motivo do bloqueio
             </button>
-            <button type="button" class="ghost" *ngIf="photoPreview" (click)="removePhoto()">Remover foto</button>
-            <button type="button" class="ghost" *ngIf="cameraActive" (click)="stopCamera()">Fechar câmera</button>
-            <p class="photo-hint">Aceite arquivos enviados ou registre uma nova foto pela webcam.</p>
-            <p *ngIf="captureError" class="field-error">{{ captureError }}</p>
           </div>
-        </div>
-
-        <div class="camera-panel" *ngIf="cameraActive">
-          <p class="camera-panel__title">Visualização da câmera</p>
-          <div class="camera-panel__preview">
-            <video #videoElement autoplay muted playsinline></video>
-          </div>
-          <p class="camera-panel__hint">Ajuste o enquadramento e clique em "Registrar foto" para salvar.</p>
-        </div>
-
-        <div class="status-panel">
-          <p class="status-panel__title">Status do Beneficiário</p>
-          <div class="status-panel__current">
-            <span [ngClass]="getStatusClass(form.get('status')?.value)">{{ formatStatusLabel(form.get('status')?.value) }}</span>
-            <span class="status-panel__reason" *ngIf="form.get('motivo_bloqueio')?.value">
-              Motivo: {{ form.get('motivo_bloqueio')?.value }}
-            </span>
-          </div>
-          <label class="field">
-            <span>Atualizar status*</span>
-            <select formControlName="status">
-              <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
-            </select>
-          </label>          <button type="button" class="ghost" *ngIf="form.get('status')?.value === 'BLOQUEADO'" (click)="blockReasonModalOpen = true">
-            Editar motivo do bloqueio
-          </button>
         </div>
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
-      <div class="field-grid cols-3 dados-grid" formGroupName="dadosPessoais">
+      <div class="grid-campos" formGroupName="dadosPessoais">
         <label class="field field-matricula">Código
           <input [value]="beneficiaryCode || nextSequentialCode" readonly />
         </label>
         <label class="field field-nome-completo">Nome*<input #campoNomeCompleto formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
 
         <label class="field field-social">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
-        <label class="field field-apelido">Apelido<input formControlName="apelido" placeholder="Como prefere ser chamado" /></label>
         <label class="field field-sexo">Sexo biológico<select formControlName="sexo_biologico">
             <option value="">Selecione</option>
             <option value="MASCULINO">Masculino</option>
             <option value="FEMININO">Feminino</option>
             <option value="OUTRO">Outro</option>
           </select></label>
-        <label class="field field-identidade">Identidade de gênero<select formControlName="identidade_genero">
-            <option value="">Selecione</option>
-            <option *ngFor="let option of genderIdentityOptions" [value]="option">{{ option }}</option>
-          </select></label>
-
         <label class="field field-cor">Cor/Raça<select formControlName="cor_raca">
             <option value=""></option>
             <option value="BRANCA">Branca</option>
@@ -272,6 +271,14 @@
             <option value="INDIGENA">Indígena</option>
             <option value="NAO_INFORMADO">Não informado</option>
           </select></label>
+        <label class="field field-nacionalidade">Nacionalidade<select formControlName="nacionalidade">
+            <option value=""></option>
+            <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
+          </select></label>
+        <label class="field field-estado-civil">Estado civil<select formControlName="estado_civil">
+            <option value=""></option>
+            <option *ngFor="let option of maritalStatusOptions" [value]="option">{{ option }}</option>
+          </select></label>
         <div class="field date-field field-nascimento">
           <label class="field">Data de nascimento*
             <div class="date-age-row">
@@ -280,21 +287,12 @@
             </div>
           </label>
         </div>
-        <label class="field field-estado-civil">Estado civil<select formControlName="estado_civil">
-            <option value=""></option>
-            <option *ngFor="let option of maritalStatusOptions" [value]="option">{{ option }}</option>
-          </select></label>
-        <label class="field field-nacionalidade">Nacionalidade<select formControlName="nacionalidade">
-            <option value=""></option>
-            <option *ngFor="let option of nationalityOptions" [value]="option">{{ option }}</option>
-          </select></label>
 
         <label class="field field-naturalidade">Naturalidade (cidade)<input formControlName="naturalidade_cidade" /></label>
         <label class="field field-uf">Estado<select formControlName="naturalidade_uf">
             <option value="">Selecione o estado</option>
             <option *ngFor="let uf of brazilianStates" [value]="uf">{{ uf }}</option>
           </select></label>
-
         <label class="field field-mae">Nome da mae*<input formControlName="nome_mae" /></label>
         <label class="field field-pai">Nome do pai<input formControlName="nome_pai" /></label>
       </div>
@@ -656,6 +654,7 @@
                 <tr>
                   <th>Tipo</th>
                   <th>Arquivo</th>
+                  <th>Status</th>
                   <th class="text-right">ações</th>
                 </tr>
               </thead>
@@ -663,6 +662,12 @@
                 <tr *ngFor="let item of documentosAnexados">
                   <td>{{ item.control.get('nome')?.value }}</td>
                   <td>{{ item.control.get('nomeArquivo')?.value || 'Arquivo anexado' }}</td>
+                  <td>
+                    <span class="document-status" [ngClass]="getDocumentStatusClass(item.index, item.control)">
+                      <span class="document-status__spinner" *ngIf="isDocumentUploading(item.index)"></span>
+                      {{ getDocumentStatusLabel(item.index, item.control) }}
+                    </span>
+                  </td>
                   <td class="text-right actions">
                     <button type="button" class="ghost" (click)="viewDocument(item.index)">Visualizar</button>
                     <button type="button" class="ghost" (click)="printDocument(item.index)">Imprimir</button>
@@ -676,7 +681,7 @@
             <ng-template #emptyDocs>
               <tbody>
                 <tr>
-                  <td colspan="3" class="list-panel__empty">Nenhum documento anexado ate o momento.</td>
+                  <td colspan="4" class="list-panel__empty">Nenhum documento anexado ate o momento.</td>
                 </tr>
               </tbody>
             </ng-template>
@@ -1090,7 +1095,7 @@
     <div class="modal__content">
       <div class="modal__header">
         <div>
-          <p class="modal__eyebrow">Campos obrigatorios</p>
+          <p class="modal__eyebrow">Campos obrigatórios</p>
           <h3>Complete os itens para ativar o cadastro</h3>
         </div>
         <button type="button" class="ghost" (click)="closeMissingFieldsModal()" aria-label="Fechar aviso">&times;</button>
@@ -1104,7 +1109,7 @@
       </ul>
       <div class="modal__actions">
         <button type="button" class="ghost" (click)="closeMissingFieldsModal()">Entendi</button>
-        <button type="button" class="primary" (click)="closeMissingFieldsModal()">Voltar ao formulario</button>
+        <button type="button" class="primary" (click)="closeMissingFieldsModal()">Voltar ao formulário</button>
       </div>
     </div>
   </div>
