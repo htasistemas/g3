@@ -80,29 +80,35 @@ public class CursoAtendimentoListaPresencaServiceImpl implements CursoAtendiment
     sb.append("<p><strong>Data da aula:</strong> ")
         .append(escape(DATA_FORMATTER.format(request.getDataAula())))
         .append("</p>");
-    sb.append("<table class=\"print-table\">");
+    String tabelaClasse =
+        exibirCpf
+            ? "print-table print-table--presenca"
+            : "print-table print-table--presenca print-table--presenca-sem-cpf";
+    sb.append("<table class=\"").append(tabelaClasse).append("\">");
     sb.append("<thead><tr>");
-    sb.append("<th>#</th>");
-    sb.append("<th>Nome</th>");
+    sb.append("<th class=\"col-num\">#</th>");
+    sb.append("<th class=\"col-nome\">Nome</th>");
     if (exibirCpf) {
-      sb.append("<th>CPF</th>");
+      sb.append("<th class=\"col-cpf\">CPF</th>");
     }
-    sb.append("<th>Presente</th>");
-    sb.append("<th>Ausente</th>");
-    sb.append("<th>Assinatura</th>");
+    sb.append("<th class=\"col-presente\">Presente</th>");
+    sb.append("<th class=\"col-ausente\">Ausente</th>");
+    sb.append("<th class=\"col-assinatura\">Assinatura</th>");
     sb.append("</tr></thead>");
     sb.append("<tbody>");
     int idx = 1;
     for (CursoAtendimentoMatricula matricula : matriculas) {
       sb.append("<tr>");
-      sb.append("<td>").append(idx++).append("</td>");
-      sb.append("<td>").append(escape(valorOuNaoInformado(matricula.getBeneficiarioNome()))).append("</td>");
+      sb.append("<td class=\"col-num\">").append(idx++).append("</td>");
+      sb.append("<td class=\"col-nome\">")
+          .append(escape(valorOuNaoInformado(matricula.getBeneficiarioNome())))
+          .append("</td>");
       if (exibirCpf) {
-        sb.append("<td>").append(escape(valorOuNaoInformado(matricula.getCpf()))).append("</td>");
+        sb.append("<td class=\"col-cpf\">").append(escape(valorOuNaoInformado(matricula.getCpf()))).append("</td>");
       }
-      sb.append("<td>[ ]</td>");
-      sb.append("<td>[ ]</td>");
-      sb.append("<td></td>");
+      sb.append("<td class=\"col-presente\">[ ]</td>");
+      sb.append("<td class=\"col-ausente\">[ ]</td>");
+      sb.append("<td class=\"col-assinatura\"></td>");
       sb.append("</tr>");
     }
     if (matriculas.isEmpty()) {
