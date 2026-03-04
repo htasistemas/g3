@@ -52,32 +52,57 @@ describe('BeneficiarioCadastroComponent', () => {
       preventDefault: jasmine.createSpy('preventDefault'),
       stopPropagation: jasmine.createSpy('stopPropagation')
     } as any;
-    spyOn(componente, 'triggerSearchFromUi');
+    spyOn(componente, 'buscarBeneficiariosNaListagem');
 
     componente.onBuscarEnter(evento);
 
-    expect(componente.triggerSearchFromUi).toHaveBeenCalledTimes(1);
+    expect(componente.buscarBeneficiariosNaListagem).toHaveBeenCalledTimes(1);
     expect(evento.preventDefault).toHaveBeenCalled();
     expect(evento.stopPropagation).toHaveBeenCalled();
   });
 
-  it('abre confirmação ao cancelar com alterações pendentes', () => {
+  it('reinicia o cadastro ao cancelar', () => {
     const componente = criarComponente();
-    componente.form.markAsDirty();
+    spyOn(componente, 'startNewBeneficiario');
 
     componente.onCancel();
 
-    expect(componente.dialogConfirmacaoAberta).toBeTrue();
-    expect(componente.dialogTitulo).toBe('Descartar alterações');
+    expect(componente.startNewBeneficiario).toHaveBeenCalled();
   });
 
-  it('volta para a listagem ao cancelar sem alterações em novo cadastro', () => {
+  it('exibe popup de sucesso ao salvar', async () => {
     const componente = criarComponente();
-    componente.form.markAsPristine();
-    componente.beneficiarios = [{} as any];
+    const serviceMock = (componente as any).service;
+    serviceMock.create.and.returnValue(
+      of({
+        beneficiario: {
+          id_beneficiario: '10',
+          codigo: '0010',
+          nome_completo: 'Maria Teste',
+          nome_mae: 'Josefa Teste',
+          data_nascimento: '1990-01-01',
+          cpf: '11144477735',
+          status: 'EM_ANALISE'
+        }
+      })
+    );
+    (componente as any).beneficiarioId = null;
+    componente.form.patchValue({
+      status: 'EM_ANALISE',
+      dadosPessoais: {
+        nome_completo: 'Maria Teste',
+        data_nascimento: '1990-01-01',
+        nome_mae: 'Josefa Teste'
+      },
+      endereco: { cep: '12345-678' },
+      contato: { telefone_principal: '11999999999' },
+      documentos: { cpf: '111.444.777-35' },
+      observacoes: { aceite_lgpd: true }
+    });
 
-    componente.onCancel();
+    await componente.submit();
 
-    expect(componente.activeTab).toBe('lista');
+    expect(componente.popupTitulo).toBe('Sucesso');
+    expect(componente.popupMensagens.length).toBe(1);
   });
 });

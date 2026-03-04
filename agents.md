@@ -22,7 +22,7 @@
 
 ### BACKEND (Java / Banco de Dados)
 
-- MUST utilizar Português sem acentuação em:
+- MUST não utilizar acentos em:
   - Classes
   - Métodos
   - Variáveis

@@ -709,7 +709,14 @@
                   <p class="page-title__label">Upload e organização</p>
                 </div>
 
-                <button class="ghost button-anexo-destaque" type="button" (click)="adicionarAnexo()">Salvar anexo</button>
+                <button
+                  class="ghost button-anexo-destaque"
+                  type="button"
+                  [disabled]="salvandoAnexo"
+                  (click)="adicionarAnexo()"
+                >
+                  Salvar anexo
+                </button>
 
               </div>
 
@@ -739,7 +746,7 @@
 
                 <label class="field full">Arquivo digitalizado*
 
-                  <input type="file" accept=".pdf,image/*" (change)="onFileSelected($event)" />
+                  <input #arquivoAnexoInput type="file" accept=".pdf,image/*" (change)="onFileSelected($event)" />
 
                   <span class="muted">Formatos aceitos: PDF, JPG ou PNG. Tamanho máximo sugerido: 10MB.</span>
 

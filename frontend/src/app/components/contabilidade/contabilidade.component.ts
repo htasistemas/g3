@@ -605,11 +605,7 @@ export class ContabilidadeComponent extends TelaBaseComponent implements OnInit 
         this.refreshPanels();
       });
       this.popupErros = new PopupErrorBuilder()
-        .adicionar(
-          this.movimentacaoEmEdicaoId
-            ? 'Movimentação atualizada com sucesso.'
-            : 'Movimentação registrada com sucesso.'
-        )
+        .adicionar('Registro realizado com sucesso.')
         .build();
       this.changeDetector.detectChanges();
       this.abrirPopupTemporario();

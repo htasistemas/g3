@@ -4,7 +4,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-import { faGraduationCap, faPrint } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarAlt,
+  faCheckCircle,
+  faGraduationCap,
+  faPrint,
+  faTimesCircle
+} from '@fortawesome/free-solid-svg-icons';
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -232,6 +239,11 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   readonly faPrint = faPrint;
 
+  readonly faWhatsapp = faWhatsapp;
+  readonly faCheckCircle = faCheckCircle;
+  readonly faCalendarAlt = faCalendarAlt;
+  readonly faTimesCircle = faTimesCircle;
+
   readonly tabs: StepTab[] = [
 
     { id: 'dashboard', label: 'Dashboard' },
@@ -295,6 +307,7 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
   feedback: string | null = null;
 
   popupErros: string[] = [];
+  private popupTimeout?: ReturnType<typeof setTimeout>;
 
   printDialogOpen = false;
 
@@ -810,6 +823,30 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   }
 
+  get agendamentosPorProfissional(): { profissional: string; itens: Enrollment[] }[] {
+
+    const grupos = new Map<string, Enrollment[]>();
+
+    this.agendamentosFiltrados.forEach((matricula) => {
+
+      const profissional = (matricula.profissionalNome || 'Profissional não informado').trim();
+
+      const lista = grupos.get(profissional) ?? [];
+
+      lista.push(matricula);
+
+      grupos.set(profissional, lista);
+
+    });
+
+    return Array.from(grupos.entries())
+
+      .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+
+      .map(([profissional, itens]) => ({ profissional, itens }));
+
+  }
+
 
 
   get visibleWidgets(): DashboardWidget[] {
@@ -936,6 +973,15 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
     this.popupErros = [];
 
+  }
+
+  private abrirPopupTemporario(): void {
+    if (this.popupTimeout) {
+      clearTimeout(this.popupTimeout);
+    }
+    this.popupTimeout = setTimeout(() => {
+      this.fecharPopupErros();
+    }, 10000);
   }
 
 
@@ -2765,6 +2811,95 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
   }
 
+  enviarWhatsappAgendamento(matricula: Enrollment): void {
+
+    const cpf = (matricula.cpf || '').replace(/\D/g, '');
+
+    if (!cpf) {
+
+      this.popupErros = new PopupErrorBuilder()
+
+        .adicionar('CPF n\u00e3o informado para este benefici\u00e1rio.')
+
+        .build();
+
+      this.abrirPopupTemporario();
+
+      return;
+
+    }
+
+    this.beneficiarioApiService
+
+      .list({ cpf })
+
+      .subscribe({
+
+        next: ({ beneficiarios }) => {
+
+          const beneficiario = (beneficiarios ?? [])[0];
+
+          const telefone = (beneficiario?.telefone_principal || '').toString();
+
+          const digits = telefone.replace(/\D/g, '');
+
+          if (!digits) {
+
+            this.popupErros = new PopupErrorBuilder()
+
+              .adicionar('Telefone principal do benefici\u00e1rio n\u00e3o informado.')
+
+              .build();
+
+            this.abrirPopupTemporario();
+
+            return;
+
+          }
+
+          const mensagem = this.buildMensagemWhatsApp(matricula);
+
+          const url = `https://wa.me/${digits}?text=${encodeURIComponent(mensagem)}`;
+
+          window.open(url, '_blank');
+
+        },
+
+        error: () => {
+
+          this.popupErros = new PopupErrorBuilder()
+
+            .adicionar('N\u00e3o foi poss\u00edvel localizar os dados do benefici\u00e1rio.')
+
+            .build();
+
+          this.abrirPopupTemporario();
+
+        }
+
+      });
+
+  }
+
+  private formatDate(value: string | Date): string {
+    if (!value) return '';
+    const parsed = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  private buildMensagemWhatsApp(matricula: Enrollment): string {
+
+    const nome = matricula.beneficiaryName || 'beneficiário';
+
+    const data = matricula.dataAgendada ? this.formatDate(matricula.dataAgendada) : 'data a confirmar';
+
+    const hora = matricula.horaAgendada || 'horário a confirmar';
+
+    return `Olá, ${nome}. Seu atendimento está agendado para ${data} às ${hora}.`;
+
+  }
+
 
 
   contarStatusAgenda(status: StatusAgendamento): number {
@@ -3873,7 +4008,9 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
     const curso = this.currentCourse;
 
-    const termo = this.normalizarTexto(this.beneficiarioAgendaTermo || '');
+    const termoBruto = this.beneficiarioAgendaTermo || '';
+    const termo = this.normalizarTexto(termoBruto);
+    const termoNumerico = termoBruto.replace(/\D/g, '');
 
     if (!curso) {
 
@@ -3897,7 +4034,15 @@ export class CursosAtendimentosComponent extends TelaBaseComponent implements On
 
       }))
 
-      .filter((opcao) => !termo || this.normalizarTexto(opcao.label).includes(termo))
+      .filter((opcao) => {
+        if (!termo && !termoNumerico) return true;
+        const nomeNormalizado = this.normalizarTexto(opcao.label);
+        const cpfNormalizado = (opcao.sublabel || '').replace(/\D/g, '');
+        return (
+          (termo && nomeNormalizado.includes(termo)) ||
+          (termoNumerico && cpfNormalizado.includes(termoNumerico))
+        );
+      })
 
       .slice(0, 10);
 

@@ -261,6 +261,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   private feedbackTimeout?: ReturnType<typeof setTimeout>;
   uploadProgress: Record<number, number> = {};
   uploadingDocuments = false;
+  private sequentialLoading = false;
   documentoTipoSelecionado = '';
   tiposDocumento = ['CPF', 'RG', 'Certidao', 'Titulo', 'CNH', 'Cartao SUS', 'Outros'];
   filtroTipoDocumento = '';
@@ -340,16 +341,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     'Outros',
   ];
   tabs = [
-    { id: 'lista', label: 'Listagem de beneficiarios' },
+    { id: 'lista', label: 'Listagem de beneficiários' },
     { id: 'dados', label: 'Dados Pessoais' },
-    { id: 'endereco', label: 'Endereco' },
+    { id: 'endereco', label: 'Endereço' },
     { id: 'contato', label: 'Contato' },
     { id: 'documentos', label: 'Documentos' },
-    { id: 'familiar', label: 'Situacao Familiar e Social' },
+    { id: 'familiar', label: 'Situação Familiar e Social' },
     { id: 'escolaridade', label: 'Escolaridade e trabalho' },
-    { id: 'saude', label: 'Saude' },
-    { id: 'beneficios', label: 'Beneficios' },
-    { id: 'observacoes', label: 'Observacoes e aceite' },
+    { id: 'saude', label: 'Saúde' },
+    { id: 'beneficios', label: 'Benefícios' },
+    { id: 'observacoes', label: 'Observações e aceite' },
   ];
   readonly acoesToolbar: Required<ConfigAcoesCrud> = this.criarConfigAcoes({
     buscar: true,
@@ -595,6 +596,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   ngOnInit(): void {
     this.loadRequiredDocuments();
     this.loadAssistanceUnit();
+    this.refreshSequentialCode();
     this.watchBirthDate();
     this.setupNationalityAutomation();
     this.setupEducationControls();
@@ -1828,11 +1830,34 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
         ? this.service.update(this.beneficiarioId, payload)
         : this.service.create(payload);
       request.pipe(finalize(() => this.ngZone.run(() => (this.saving = false)))).subscribe({
-        next: () => {
+        next: ({ beneficiario }) => {
           this.ngZone.run(() => {
-            this.showTemporaryFeedback('Registro salvo com sucesso');
-            this.statusDirty = false;
-            setTimeout(() => this.router.navigate(['/cadastros/beneficiarios']), 800);
+            if (beneficiario) {
+              const normalized = {
+                ...this.normalizarCamposNome(beneficiario),
+                codigo: this.normalizeBeneficiaryCode(beneficiario.codigo) || undefined,
+              };
+              this.selectedBeneficiary = normalized;
+              this.beneficiarioId = normalized.id_beneficiario ?? this.beneficiarioId;
+              this.ignoreStatusChange = true;
+              this.form.patchValue(this.mapToForm(normalized));
+              this.ignoreStatusChange = false;
+              this.photoPreview = normalized.foto_3x4 ?? null;
+              this.lastStatus = normalized.status ?? 'EM_ANALISE';
+              this.previousStatusBeforeBlock = this.lastStatus;
+              this.statusDirty = false;
+              this.applyLoadedDocuments(this.getDocumentList(normalized));
+              this.applyAutomaticStatusFromDates(normalized.status);
+            } else {
+              this.statusDirty = false;
+            }
+            this.feedback = null;
+            this.searchBeneficiaries();
+            this.changeTab('lista');
+            this.popupTitulo = 'Sucesso';
+            this.popupMensagens = new PopupErrorBuilder()
+              .adicionar('Cadastro realizado com sucesso.')
+              .build();
           });
         },
         error: (error: HttpErrorResponse) => {
@@ -2078,6 +2103,50 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       beneficios: { beneficios_recebidos: [] },
     });
     this.resetDocumentArray();
+    this.refreshSequentialCode();
+  }
+
+  private refreshSequentialCode(): void {
+    if (this.sequentialLoading) return;
+    this.sequentialLoading = true;
+    this.service
+      .list()
+      .pipe(finalize(() => (this.sequentialLoading = false)))
+      .subscribe({
+        next: ({ beneficiarios }: { beneficiarios?: BeneficiarioApiPayload[] }) => {
+          this.applySequentialFromList(beneficiarios ?? []);
+        },
+        error: () => {
+          this.beneficiaryService
+            .list({})
+            .pipe(finalize(() => (this.sequentialLoading = false)))
+            .subscribe({
+              next: ({ beneficiarios }: { beneficiarios?: BeneficiaryPayload[] }) => {
+                const normalized = (beneficiarios ?? []).map((beneficiario) =>
+                  this.mapBeneficiaryPayload(beneficiario),
+                );
+                this.applySequentialFromList(normalized);
+              },
+              error: () => {
+                this.updateSequentialCode();
+                if (!this.beneficiarioId) {
+                  this.beneficiaryCode = this.nextSequentialCode;
+                }
+              },
+            });
+        },
+      });
+  }
+
+  private applySequentialFromList(beneficiarios: BeneficiarioApiPayload[]): void {
+    const numericCodes = (beneficiarios ?? [])
+      .map((beneficiario) => this.extractNumericCode(beneficiario.codigo))
+      .filter((value): value is number => value !== null);
+    const highestCode = Math.max(0, ...numericCodes);
+    this.nextSequentialCode = this.formatSequentialCode(highestCode + 1);
+    if (!this.beneficiarioId) {
+      this.beneficiaryCode = this.nextSequentialCode;
+    }
   }
   togglePrintMenu(): void {
     this.printMenuOpen = !this.printMenuOpen;
@@ -2313,7 +2382,16 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }));
     this.selectedBeneficiary = null;
     this.applyListFilters();
-    this.updateSequentialCode();
+    if (!this.hasActiveSearchFilters()) {
+      this.updateSequentialCode();
+      if (!this.beneficiarioId) {
+        this.beneficiaryCode = this.nextSequentialCode;
+      }
+    }
+  }
+  private hasActiveSearchFilters(): boolean {
+    const { nome, cpf, codigo, data_nascimento, status } = this.searchForm.value ?? {};
+    return !!(nome || cpf || codigo || data_nascimento || status);
   }
   private getBeneficiarioChaveUnica(beneficiario: BeneficiarioApiPayload): string {
     const codigo = this.normalizeDigits(beneficiario.codigo);

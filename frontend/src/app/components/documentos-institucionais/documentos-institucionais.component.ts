@@ -2,11 +2,11 @@
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, finalize, takeUntil } from 'rxjs';
 
 
 
@@ -138,6 +138,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
   focoNovoTipoDocumento = false;
 
   focoNovaCategoria = false;
+  salvandoAnexo = false;
 
 
 
@@ -196,6 +197,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
 
   private readonly destroy$ = new Subject<void>();
+  @ViewChild('arquivoAnexoInput') arquivoAnexoInput?: ElementRef<HTMLInputElement>;
 
 
 
@@ -1133,6 +1135,7 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
 
 
+    this.salvandoAnexo = true;
     this.documentosService
 
       .adicionarAnexo(this.selectedDocumentId, {
@@ -1153,7 +1156,12 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
 
       })
 
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.salvandoAnexo = false;
+        })
+      )
 
       .subscribe({
 
@@ -1162,6 +1170,10 @@ export class DocumentosInstitucionaisComponent extends TelaBaseComponent impleme
           this.anexos = [anexo, ...this.anexos];
 
           this.anexoForm.reset({ tipo: 'PDF', arquivo: null, nomeArquivo: '' });
+          if (this.arquivoAnexoInput) {
+            this.arquivoAnexoInput.nativeElement.value = '';
+          }
+          this.feedback = 'Anexo salvo com sucesso.';
 
         },
 

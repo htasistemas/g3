@@ -591,10 +591,44 @@
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
                 <td class="table-actions">
-                  <button class="danger" type="button" (click)="removeEnrollment(enrollment)">
-                    Excluir matrícula
-                  </button>
-                </td>
+                        <button
+                          type="button"
+                          class="primary"
+                          (click)="confirmarPresencaAgendamento(matricula)"
+                          [disabled]="matricula.confirmacaoPresenca"
+                          aria-label="Confirmar presença"
+                          title="Confirmar presença"
+                        >
+                          <fa-icon [icon]="faCheckCircle"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="enviarWhatsappAgendamento(matricula)"
+                          aria-label="Enviar WhatsApp"
+                          title="Enviar WhatsApp"
+                        >
+                          <fa-icon [icon]="faWhatsapp"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="marcarRemarcar(matricula)"
+                          aria-label="Remarcar"
+                          title="Remarcar"
+                        >
+                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="danger"
+                          (click)="marcarNaoRespondeu(matricula)"
+                          aria-label="Não respondeu"
+                          title="Não respondeu"
+                        >
+                          <fa-icon [icon]="faTimesCircle"></fa-icon>
+                        </button>
+                      </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
                 <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
@@ -652,16 +686,44 @@
                 <td>{{ idx + 1 }}</td>
 
                 <td class="table-actions">
-
-                  <button class="primary" type="button" (click)="convertWaitlist(item)" [disabled]="(currentCourse?.vagasDisponiveis ?? 0) === 0">
-
-                    Converter para matrícula
-
-                  </button>
-
-                  <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
-
-                </td>
+                        <button
+                          type="button"
+                          class="primary"
+                          (click)="confirmarPresencaAgendamento(matricula)"
+                          [disabled]="matricula.confirmacaoPresenca"
+                          aria-label="Confirmar presença"
+                          title="Confirmar presença"
+                        >
+                          <fa-icon [icon]="faCheckCircle"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="enviarWhatsappAgendamento(matricula)"
+                          aria-label="Enviar WhatsApp"
+                          title="Enviar WhatsApp"
+                        >
+                          <fa-icon [icon]="faWhatsapp"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="marcarRemarcar(matricula)"
+                          aria-label="Remarcar"
+                          title="Remarcar"
+                        >
+                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="danger"
+                          (click)="marcarNaoRespondeu(matricula)"
+                          aria-label="Não respondeu"
+                          title="Não respondeu"
+                        >
+                          <fa-icon [icon]="faTimesCircle"></fa-icon>
+                        </button>
+                      </td>
 
               </tr>
 
@@ -698,7 +760,54 @@
 
       <ng-container *ngIf="currentCourse && currentCourse.tipo === 'Atendimento'">
         <div class="agenda-grid">
-          <div class="agenda-panel">
+          <div class="agenda-panel" [formGroup]="agendamentoForm">
+            <p class="agenda-panel__title">Agendar atendimento</p>
+            <div class="field-grid cols-4">
+              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'matriculaId')">
+                Beneficiário*
+                <app-autocomplete
+                  [termo]="beneficiarioAgendaTermo"
+                  [opcoes]="beneficiarioAgendaOpcoes"
+                  placeholder="Selecione o beneficiário"
+                  (termoChange)="atualizarBeneficiarioAgendaTermo($event)"
+                  (selecionar)="selecionarBeneficiarioAgenda($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'dataAgendada')">
+                Data*
+                <input type="date" formControlName="dataAgendada" />
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'horaAgendada')">
+                Hora*
+                <input type="time" formControlName="horaAgendada" />
+              </label>
+              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'profissionalId')">
+                Profissional*
+                <app-autocomplete
+                  [termo]="profissionalAgendaTermo"
+                  [opcoes]="profissionalAgendaOpcoes"
+                  [carregando]="profissionalAgendaCarregando"
+                  placeholder="Selecione o profissional"
+                  (termoChange)="atualizarProfissionalAgendaTermo($event)"
+                  (selecionar)="selecionarProfissionalAgenda($event)"
+                ></app-autocomplete>
+              </label>
+              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'statusAgendamento')">
+                Situação*
+                <select formControlName="statusAgendamento">
+                  <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
+                    {{ status.label }}
+                  </option>
+                </select>
+              </label>
+              <div class="actions align-end">
+                <button type="button" class="primary" (click)="agendarAtendimento()">Agendar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="agenda-panel">
             <p class="agenda-panel__title">Agenda do dia</p>
             <div class="agenda-filtros">
               <div class="agenda-filtros__linha">
@@ -757,108 +866,91 @@
             </div>
           </div>
 
-          <div class="agenda-panel" [formGroup]="agendamentoForm">
-            <p class="agenda-panel__title">Agendar atendimento</p>
-            <div class="field-grid cols-4">
-              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'matriculaId')">
-                Beneficiário*
-                <app-autocomplete
-                  [termo]="beneficiarioAgendaTermo"
-                  [opcoes]="beneficiarioAgendaOpcoes"
-                  placeholder="Selecione o beneficiário"
-                  (termoChange)="atualizarBeneficiarioAgendaTermo($event)"
-                  (selecionar)="selecionarBeneficiarioAgenda($event)"
-                ></app-autocomplete>
-              </label>
-              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'dataAgendada')">
-                Data*
-                <input type="date" formControlName="dataAgendada" />
-              </label>
-              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'horaAgendada')">
-                Hora*
-                <input type="time" formControlName="horaAgendada" />
-              </label>
-              <label class="field full" [class.field--error]="campoInvalido(agendamentoForm, 'profissionalId')">
-                Profissional*
-                <app-autocomplete
-                  [termo]="profissionalAgendaTermo"
-                  [opcoes]="profissionalAgendaOpcoes"
-                  [carregando]="profissionalAgendaCarregando"
-                  placeholder="Selecione o profissional"
-                  (termoChange)="atualizarProfissionalAgendaTermo($event)"
-                  (selecionar)="selecionarProfissionalAgenda($event)"
-                ></app-autocomplete>
-              </label>
-              <label class="field" [class.field--error]="campoInvalido(agendamentoForm, 'statusAgendamento')">
-                Situação*
-                <select formControlName="statusAgendamento">
-                  <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
-                    {{ status.label }}
-                  </option>
-                </select>
-              </label>
-              <div class="actions align-end">
-                <button type="button" class="primary" (click)="agendarAtendimento()">Agendar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="list-card">
+          <div class="list-card">
           <div class="list-card__header">
             <div>
               <p class="page-title__label">Beneficiários agendados</p>
             </div>
           </div>
           <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Hora</th>
-                  <th>Beneficiário</th>
-                  <th>CPF</th>
-                  <th>Profissional</th>
-                  <th>Situação</th>
-                  <th>Presença</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let matricula of agendamentosFiltrados">
-                  <td>{{ matricula.horaAgendada || '--:--' }}</td>
-                  <td>{{ matricula.beneficiaryName }}</td>
-                  <td>{{ matricula.cpf }}</td>
-                  <td>{{ matricula.profissionalNome || 'Não informado' }}</td>
-                  <td>
-                    <select
-                      [ngModel]="matricula.statusAgendamento || 'AGUARDANDO'"
-                      [ngModelOptions]="{ standalone: true }"
-                      (ngModelChange)="atualizarStatusAgendamento(matricula, $event)"
-                    >
-                      <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
-                        {{ status.label }}
-                      </option>
-                    </select>
-                  </td>
-                  <td>{{ matricula.confirmacaoPresenca ? 'Confirmada' : 'Pendente' }}</td>
-                  <td class="table-actions">
-                    <button
-                      type="button"
-                      class="primary"
-                      (click)="confirmarPresencaAgendamento(matricula)"
-                      [disabled]="matricula.confirmacaoPresenca"
-                    >
-                      Confirmar presença
-                    </button>
-                    <button type="button" class="ghost" (click)="marcarRemarcar(matricula)">Remarcar</button>
-                    <button type="button" class="danger" (click)="marcarNaoRespondeu(matricula)">Não respondeu</button>
-                  </td>
-                </tr>
-                <tr *ngIf="!agendamentosFiltrados.length">
-                  <td colspan="7" class="muted">Nenhum atendimento agendado para este dia.</td>
-                </tr>
-              </tbody>
-            </table>
+            <ng-container *ngIf="agendamentosPorProfissional.length; else emptyAgendamentos">
+              <div class="agenda-profissional" *ngFor="let grupo of agendamentosPorProfissional">
+                <p class="agenda-profissional__titulo">Profissional: {{ grupo.profissional }}</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Beneficiário</th>
+                      <th>CPF</th>
+                      <th>Situação</th>
+                      <th>Presença</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let matricula of grupo.itens">
+                      <td>{{ matricula.horaAgendada || '--:--' }}</td>
+                      <td>{{ matricula.beneficiaryName }}</td>
+                      <td>{{ matricula.cpf }}</td>
+                      <td>
+                        <select
+                          [ngModel]="matricula.statusAgendamento || 'AGUARDANDO'"
+                          [ngModelOptions]="{ standalone: true }"
+                          (ngModelChange)="atualizarStatusAgendamento(matricula, $event)"
+                        >
+                          <option *ngFor="let status of statusAgendamentoOpcoes" [value]="status.valor">
+                            {{ status.label }}
+                          </option>
+                        </select>
+                      </td>
+                      <td>{{ matricula.confirmacaoPresenca ? 'Confirmada' : 'Pendente' }}</td>
+                      <td class="table-actions">
+                        <button
+                          type="button"
+                          class="primary"
+                          (click)="confirmarPresencaAgendamento(matricula)"
+                          [disabled]="matricula.confirmacaoPresenca"
+                          aria-label="Confirmar presença"
+                          title="Confirmar presença"
+                        >
+                          <fa-icon [icon]="faCheckCircle"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="enviarWhatsappAgendamento(matricula)"
+                          aria-label="Enviar WhatsApp"
+                          title="Enviar WhatsApp"
+                        >
+                          <fa-icon [icon]="faWhatsapp"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="marcarRemarcar(matricula)"
+                          aria-label="Remarcar"
+                          title="Remarcar"
+                        >
+                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="danger"
+                          (click)="marcarNaoRespondeu(matricula)"
+                          aria-label="Não respondeu"
+                          title="Não respondeu"
+                        >
+                          <fa-icon [icon]="faTimesCircle"></fa-icon>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </ng-container>
+            <ng-template #emptyAgendamentos>
+              <div class="muted">Nenhum atendimento agendado para este dia.</div>
+            </ng-template>
           </div>
         </div>
       </ng-container>
@@ -1128,9 +1220,44 @@
                 <td>{{ getRoomName(course) }}</td>
                 <td>{{ course.horarioInicial }}</td>
                 <td class="table-actions">
-                  <button class="primary" type="button" (click)="changeTab('inscricoes'); loadCourse(course.id);">Gerenciar</button>
-                  <button class="danger" type="button" (click)="deleteCourse(course)">Excluir</button>
-                </td>
+                        <button
+                          type="button"
+                          class="primary"
+                          (click)="confirmarPresencaAgendamento(matricula)"
+                          [disabled]="matricula.confirmacaoPresenca"
+                          aria-label="Confirmar presença"
+                          title="Confirmar presença"
+                        >
+                          <fa-icon [icon]="faCheckCircle"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="enviarWhatsappAgendamento(matricula)"
+                          aria-label="Enviar WhatsApp"
+                          title="Enviar WhatsApp"
+                        >
+                          <fa-icon [icon]="faWhatsapp"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost"
+                          (click)="marcarRemarcar(matricula)"
+                          aria-label="Remarcar"
+                          title="Remarcar"
+                        >
+                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
+                        </button>
+                        <button
+                          type="button"
+                          class="danger"
+                          (click)="marcarNaoRespondeu(matricula)"
+                          aria-label="Não respondeu"
+                          title="Não respondeu"
+                        >
+                          <fa-icon [icon]="faTimesCircle"></fa-icon>
+                        </button>
+                      </td>
               </tr>
               <tr *ngIf="!records.length">
                 <td colspan="8" class="muted">Nenhum curso ou atendimento cadastrado.</td>
