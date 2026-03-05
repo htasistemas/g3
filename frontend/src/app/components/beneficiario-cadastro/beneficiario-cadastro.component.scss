@@ -867,7 +867,7 @@
 }
 
 .grid-campos .field-mae {
-  grid-column: span 1;
+  grid-column: span 2;
 }
 
 .grid-campos .field-pai {
@@ -1910,7 +1910,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   row-gap: 10px;
-  column-gap: 0;
+  column-gap: 6px;
   margin-top: 1rem;
 }
 
