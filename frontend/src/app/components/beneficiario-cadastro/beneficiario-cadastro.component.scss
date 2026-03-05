@@ -1899,7 +1899,8 @@
 .grid-campos {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px 12px;
+  row-gap: 10px;
+  column-gap: 0;
   margin-top: 1rem;
 }
 
