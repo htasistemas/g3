@@ -163,6 +163,13 @@ public class CadastroBeneficiarioServiceImpl implements CadastroBeneficiarioServ
         .collect(Collectors.toList());
   }
 
+  @Override
+  public String obterProximoCodigo() {
+    Integer maiorCodigo = repository.buscarMaiorCodigo();
+    int proximoCodigo = (maiorCodigo == null ? 0 : maiorCodigo) + 1;
+    return String.format("%04d", proximoCodigo);
+  }
+
   private List<String> montarCodigosPesquisa(String codigo) {
     String valor = codigo == null ? "" : codigo.trim();
     if (valor.isEmpty()) {

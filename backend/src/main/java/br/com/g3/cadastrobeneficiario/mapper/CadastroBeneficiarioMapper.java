@@ -40,7 +40,6 @@ public class CadastroBeneficiarioMapper {
     cadastro.setDataNascimento(request.getDataNascimento());
     cadastro.setFoto3x4(request.getFoto3x4());
     cadastro.setSexoBiologico(request.getSexoBiologico());
-    cadastro.setIdentidadeGenero(request.getIdentidadeGenero());
     cadastro.setCorRaca(request.getCorRaca());
     cadastro.setEstadoCivil(request.getEstadoCivil());
     cadastro.setNacionalidade(request.getNacionalidade());
@@ -73,7 +72,6 @@ public class CadastroBeneficiarioMapper {
     cadastro.setDataNascimento(request.getDataNascimento());
     cadastro.setFoto3x4(request.getFoto3x4());
     cadastro.setSexoBiologico(request.getSexoBiologico());
-    cadastro.setIdentidadeGenero(request.getIdentidadeGenero());
     cadastro.setCorRaca(request.getCorRaca());
     cadastro.setEstadoCivil(request.getEstadoCivil());
     cadastro.setNacionalidade(request.getNacionalidade());
@@ -148,7 +146,6 @@ public class CadastroBeneficiarioMapper {
         cadastro.getDataNascimento(),
         cadastro.getFoto3x4(),
         cadastro.getSexoBiologico(),
-        cadastro.getIdentidadeGenero(),
         cadastro.getCorRaca(),
         cadastro.getEstadoCivil(),
         cadastro.getNacionalidade(),

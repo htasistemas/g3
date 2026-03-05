@@ -25,7 +25,7 @@
 - MUST não utilizar acentos em:
   - Classes
   - Métodos
-  - Variáveis
+  - Variáveis'
   - Tabelas
   - Colunas
   - DTOs

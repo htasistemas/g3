@@ -142,6 +142,9 @@ export class BeneficiarioApiService {
     if (!normalized.codigo && normalized.codigo_beneficiario) {
       normalized.codigo = normalized.codigo_beneficiario;
     }
+    if (!normalized.id_beneficiario && normalized.id) {
+      normalized.id_beneficiario = String(normalized.id);
+    }
 
     return normalized as BeneficiarioApiPayload;
   }
@@ -178,6 +181,10 @@ export class BeneficiarioApiService {
           return { beneficiarios: beneficiarios.map((item) => this.normalizePayload(item)) };
         })
       );
+  }
+
+  obterProximoCodigo(): Observable<{ codigo: string }> {
+    return this.http.get<{ codigo: string }>(`${this.baseUrl}/proximo-codigo`);
   }
 
   getById(id: string): Observable<{ beneficiario: BeneficiarioApiPayload }> {

@@ -23,6 +23,11 @@
   gap: 0.8rem;
 }
 
+.dialog__message--danger {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
 .dialog__body {
   display: grid;
   gap: 0.5rem;

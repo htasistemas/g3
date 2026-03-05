@@ -41,8 +41,6 @@ public class CadastroBeneficiarioCriacaoRequest {
   private String sexoBiologico;
 
   @Size(max = 120)
-  @JsonProperty("identidade_genero")
-  private String identidadeGenero;
 
   @Size(max = 60)
   @JsonProperty("cor_raca")
@@ -400,13 +398,6 @@ public class CadastroBeneficiarioCriacaoRequest {
     this.sexoBiologico = sexoBiologico;
   }
 
-  public String getIdentidadeGenero() {
-    return identidadeGenero;
-  }
-
-  public void setIdentidadeGenero(String identidadeGenero) {
-    this.identidadeGenero = identidadeGenero;
-  }
 
   public String getCorRaca() {
     return corRaca;

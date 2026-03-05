@@ -591,44 +591,8 @@
                 </td>
                 <td>{{ enrollment.enrolledAt | date: 'shortDate' }}</td>
                 <td class="table-actions">
-                        <button
-                          type="button"
-                          class="primary"
-                          (click)="confirmarPresencaAgendamento(matricula)"
-                          [disabled]="matricula.confirmacaoPresenca"
-                          aria-label="Confirmar presença"
-                          title="Confirmar presença"
-                        >
-                          <fa-icon [icon]="faCheckCircle"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="enviarWhatsappAgendamento(matricula)"
-                          aria-label="Enviar WhatsApp"
-                          title="Enviar WhatsApp"
-                        >
-                          <fa-icon [icon]="faWhatsapp"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="marcarRemarcar(matricula)"
-                          aria-label="Remarcar"
-                          title="Remarcar"
-                        >
-                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="danger"
-                          (click)="marcarNaoRespondeu(matricula)"
-                          aria-label="Não respondeu"
-                          title="Não respondeu"
-                        >
-                          <fa-icon [icon]="faTimesCircle"></fa-icon>
-                        </button>
-                      </td>
+                  <button type="button" class="danger" (click)="removeEnrollment(enrollment)">Excluir</button>
+                </td>
               </tr>
               <tr *ngIf="!currentCourse?.enrollments?.length">
                 <td colspan="5" class="muted">Nenhuma matrícula cadastrada.</td>
@@ -686,44 +650,8 @@
                 <td>{{ idx + 1 }}</td>
 
                 <td class="table-actions">
-                        <button
-                          type="button"
-                          class="primary"
-                          (click)="confirmarPresencaAgendamento(matricula)"
-                          [disabled]="matricula.confirmacaoPresenca"
-                          aria-label="Confirmar presença"
-                          title="Confirmar presença"
-                        >
-                          <fa-icon [icon]="faCheckCircle"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="enviarWhatsappAgendamento(matricula)"
-                          aria-label="Enviar WhatsApp"
-                          title="Enviar WhatsApp"
-                        >
-                          <fa-icon [icon]="faWhatsapp"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="marcarRemarcar(matricula)"
-                          aria-label="Remarcar"
-                          title="Remarcar"
-                        >
-                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="danger"
-                          (click)="marcarNaoRespondeu(matricula)"
-                          aria-label="Não respondeu"
-                          title="Não respondeu"
-                        >
-                          <fa-icon [icon]="faTimesCircle"></fa-icon>
-                        </button>
-                      </td>
+                <button class="ghost" type="button" (click)="removeFromWaitlist(item)">Remover</button>
+              </td>
 
               </tr>
 
@@ -1220,44 +1148,8 @@
                 <td>{{ getRoomName(course) }}</td>
                 <td>{{ course.horarioInicial }}</td>
                 <td class="table-actions">
-                        <button
-                          type="button"
-                          class="primary"
-                          (click)="confirmarPresencaAgendamento(matricula)"
-                          [disabled]="matricula.confirmacaoPresenca"
-                          aria-label="Confirmar presença"
-                          title="Confirmar presença"
-                        >
-                          <fa-icon [icon]="faCheckCircle"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="enviarWhatsappAgendamento(matricula)"
-                          aria-label="Enviar WhatsApp"
-                          title="Enviar WhatsApp"
-                        >
-                          <fa-icon [icon]="faWhatsapp"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="ghost"
-                          (click)="marcarRemarcar(matricula)"
-                          aria-label="Remarcar"
-                          title="Remarcar"
-                        >
-                          <fa-icon [icon]="faCalendarAlt"></fa-icon>
-                        </button>
-                        <button
-                          type="button"
-                          class="danger"
-                          (click)="marcarNaoRespondeu(matricula)"
-                          aria-label="Não respondeu"
-                          title="Não respondeu"
-                        >
-                          <fa-icon [icon]="faTimesCircle"></fa-icon>
-                        </button>
-                      </td>
+                  <button type="button" class="ghost" (click)="fillFromCourse(course)">Editar</button>
+                </td>
               </tr>
               <tr *ngIf="!records.length">
                 <td colspan="8" class="muted">Nenhum curso ou atendimento cadastrado.</td>

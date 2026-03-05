@@ -104,6 +104,21 @@ export class LoginComponent implements AfterViewInit, OnDestroy, OnInit {
   private carregarVersaoArquivo(): Promise<void> {
     return firstValueFrom(this.configService.getVersaoArquivo())
       .then((versao) => {
+        const normalizado = (versao || '').trim();
+        if (normalizado) {
+          this.versaoSistema = normalizado;
+          this.versaoSistemaErro = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        return this.carregarVersaoLocal();
+      })
+      .catch(() => this.carregarVersaoLocal());
+  }
+
+  private carregarVersaoLocal(): Promise<void> {
+    return firstValueFrom(this.configService.getVersaoLocal())
+      .then((versao) => {
         this.versaoSistema = (versao || '').trim();
         this.versaoSistemaErro = !this.versaoSistema;
         this.cdr.detectChanges();

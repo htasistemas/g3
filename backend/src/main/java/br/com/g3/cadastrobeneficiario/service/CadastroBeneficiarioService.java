@@ -18,6 +18,8 @@ public interface CadastroBeneficiarioService {
 
   List<CadastroBeneficiarioResumoResponse> listarResumo(String nome, String status, String codigo);
 
+  String obterProximoCodigo();
+
   void remover(Long id);
 
   DocumentoBeneficiario obterDocumento(Long beneficiarioId, Long documentoId);

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -15,7 +15,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faEye, faPrint, faTrash, faUpload, faUsers } from '@fortawesome/free-solid-svg-icons';
 import {
   BeneficiarioApiService,
   BeneficiarioApiPayload,
@@ -60,6 +60,15 @@ type ViaCepResponse = {
 type PhoneControlName = 'telefone_principal' | 'telefone_secundario' | 'telefone_recado_numero';
 type PrintOrder = 'nome' | 'data_nascimento' | 'idade' | 'bairro';
 type PrintListOrder = 'alphabetical' | 'code';
+
+type DocumentOverviewRow = {
+  label: string;
+  field?: string;
+  uploadName: string;
+  description?: string;
+  placeholder?: string;
+  required?: boolean;
+};
 @Component({
   selector: 'app-beneficiario-cadastro',
   standalone: true,
@@ -79,6 +88,11 @@ type PrintListOrder = 'alphabetical' | 'code';
 export class BeneficiarioCadastroComponent extends TelaBaseComponent implements OnInit, OnDestroy {
   private readonly runtimeConfig = inject(RuntimeConfigService);
   readonly faUsuarios = faUsers;
+  readonly faEnviarArquivo = faUpload;
+  readonly faCapturarCamera = faCamera;
+  readonly faVisualizarDocumento = faEye;
+  readonly faImprimirDocumento = faPrint;
+  readonly faExcluirDocumento = faTrash;
   form: FormGroup;
   searchForm: FormGroup;
   activeTab = 'lista';
@@ -89,6 +103,36 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   popupTitulo = 'Aviso';
   beneficiarioId: string | null = null;
   documentosObrigatorios: DocumentoObrigatorio[] = [];
+  readonly documentOverviewRows: DocumentOverviewRow[] = [
+    {
+      label: 'CPF',
+      field: 'cpf',
+      uploadName: 'CPF',
+      description: 'Número oficial do CPF',
+      placeholder: '000.000.000-00',
+      required: true,
+    },
+    { label: 'CNH', field: 'cnh', uploadName: 'CNH', description: 'Carteira Nacional de Habilitação' },
+    {
+      label: 'Certidão de Nascimento',
+      uploadName: 'Certidão de Nascimento',
+      description: 'Documento civil de nascimento',
+    },
+    {
+      label: 'Certidão de Casamento',
+      uploadName: 'Certidão de Casamento',
+      description: 'Documento civil de casamento',
+    },
+    { label: 'Carteira de Trabalho', uploadName: 'Carteira de Trabalho' },
+    { label: 'Título de eleitor', field: 'titulo_eleitor', uploadName: 'Título de eleitor' },
+    { label: 'Cartão SUS', field: 'cartao_sus', uploadName: 'Cartão SUS' },
+    {
+      label: 'Comprovante de endereço',
+      uploadName: 'Comprovante de endereço',
+      description: 'Comprovante com CEP e logradouro atualizados',
+    },
+  ];
+  pendingDocumentCaptureName: string | null = null;
   beneficiaryAge: number | null = null;
   beneficiaryCode: string | null = null;
   selectedBeneficiary: BeneficiarioApiPayload | null = null;
@@ -276,8 +320,12 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   dialogMensagem = 'Deseja continuar?';
   dialogConfirmarLabel = 'Confirmar';
   private dialogAcao?: () => void;
+  private readonly documentoObrigatorioUnico = 'CPF';
   private documentNameKey(name?: string): string {
     return (name ?? '').trim().toLowerCase();
+  }
+  private isRequiredDocument(name?: string): boolean {
+    return this.documentNameKey(name) === this.documentNameKey(this.documentoObrigatorioUnico);
   }
   @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement?: ElementRef<HTMLCanvasElement>;
@@ -657,6 +705,93 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       return this.ordenarDocumentosAsc ? comparison : -comparison;
     });
   }
+  private findDocumentIndex(uploadName?: string | null): number {
+    if (!uploadName) return -1;
+    const normalized = this.documentNameKey(uploadName);
+    if (!normalized) return -1;
+    return this.anexos.controls.findIndex(
+      (control) => this.documentNameKey(control.get('nome')?.value) === normalized,
+    );
+  }
+
+  getDocumentIndex(uploadName: string): number | null {
+    const index = this.findDocumentIndex(uploadName);
+    return index >= 0 ? index : null;
+  }
+
+  getDocumentControl(uploadName: string): FormGroup | null {
+    const index = this.findDocumentIndex(uploadName);
+    if (index < 0) return null;
+    return this.anexos.at(index) as FormGroup;
+  }
+
+  private ensureDocumentControl(uploadName: string): number {
+    const existingIndex = this.findDocumentIndex(uploadName);
+    if (existingIndex >= 0) {
+      return existingIndex;
+    }
+    this.anexos.push(this.buildDocumentControl({ nome: uploadName, obrigatorio: false }));
+    return this.anexos.length - 1;
+  }
+
+  handlePrimaryDocumentFile(event: Event, uploadName: string): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !uploadName) {
+      input.value = '';
+      return;
+    }
+    const index = this.ensureDocumentControl(uploadName);
+    const control = this.anexos.at(index) as FormGroup;
+    this.applyFileToDocument(control, file, index);
+    input.value = '';
+  }
+
+  getDocumentFileName(uploadName: string): string | null {
+    const control = this.getDocumentControl(uploadName);
+    return (control?.get('nomeArquivo')?.value as string) || null;
+  }
+
+  hasDocumentContent(uploadName: string): boolean {
+    const control = this.getDocumentControl(uploadName);
+    return !!control && (!!control.get('nomeArquivo')?.value || !!control.get('conteudo')?.value);
+  }
+
+  removeDocumentByUploadName(uploadName: string): void {
+    const index = this.getDocumentIndex(uploadName);
+    if (index === null) {
+      this.feedback = 'Nenhum arquivo anexado para remover.';
+      return;
+    }
+    this.removeUploadedDocument(index);
+  }
+
+  isDocumentUploading(index: number | null): boolean {
+    if (index === null) return false;
+    const progress = this.uploadProgress[index];
+    return progress !== undefined && progress < 100;
+  }
+
+  getDocumentStatusClass(index: number | null, control: FormGroup | null): string {
+    if (this.isDocumentUploading(index)) {
+      return 'document-status document-status--loading';
+    }
+    if (control && (control.get('nomeArquivo')?.value || control.get('conteudo')?.value)) {
+      return 'document-status document-status--saved';
+    }
+    return 'document-status document-status--pending';
+  }
+
+  getDocumentStatusLabel(index: number | null, control: FormGroup | null): string {
+    if (this.isDocumentUploading(index)) {
+      return 'Enviando';
+    }
+    if (control && (control.get('nomeArquivo')?.value || control.get('conteudo')?.value)) {
+      return 'Anexado';
+    }
+    return 'Pendente';
+  }
+
   private normalizarTextoNome(valor?: string | null): string {
     if (!valor) return '';
     return this.toSentenceCase(valor.toString());
@@ -910,7 +1045,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.resetDocumentArray(currentDocuments);
   }
   private normalizeDocumentData(doc: Partial<DocumentoObrigatorio>): DocumentoObrigatorio {
-    const obrigatorio = doc.obrigatorio ?? doc.required ?? doc.baseRequired ?? false;
+    const obrigatorio = this.isRequiredDocument(doc.nome);
     const nomeArquivo = doc.nomeArquivo ?? (doc.conteudo ? doc.nome : '');
     return {
       id: doc.id,
@@ -988,7 +1123,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     this.applyFileToDocument(control, file, indexToUse);
     input.value = '';
   }
-  printDocument(index: number): void {
+  printDocument(index: number | null): void {
+    if (index === null) {
+      this.feedback = 'Nenhum arquivo disponível para imprimir.';
+      return;
+    }
     const control = this.anexos.at(index) as FormGroup;
     const content = control.get('conteudo')?.value as string;
     const contentType = (control.get('contentType')?.value as string) || 'application/octet-stream';
@@ -1067,6 +1206,27 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     reader.readAsDataURL(file);
     control.markAsDirty();
   }
+  private applyCapturedDocumentContent(documentName: string, dataUrl: string): void {
+    if (!documentName?.trim()) return;
+    const index = this.ensureDocumentControl(documentName);
+    if (index < 0) return;
+    const control = this.anexos.at(index) as FormGroup;
+    const safeName =
+      documentName
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') ||
+      'documento';
+    control.patchValue({
+      conteudo: dataUrl,
+      contentType: 'image/png',
+      nomeArquivo: `${safeName}.png`,
+      file: null,
+    });
+    this.uploadProgress[index] = 100;
+    this.updateUploadState();
+    control.markAsDirty();
+  }
+
   removeUploadedDocument(index: number): void {
     const control = this.anexos.at(index) as FormGroup | undefined;
     if (!control) return;
@@ -1083,7 +1243,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
   private updateUploadState(): void {
     this.uploadingDocuments = Object.values(this.uploadProgress).some((value) => value < 100);
   }
-  viewDocument(index: number): void {
+  viewDocument(index: number | null): void {
+    if (index === null) {
+      this.feedback = 'Nenhum arquivo disponivel para este documento.';
+      return;
+    }
     const control = this.anexos.at(index) as FormGroup;
     const content = control.get('conteudo')?.value as string;
     const contentType = (control.get('contentType')?.value as string) || 'application/octet-stream';
@@ -1975,19 +2139,19 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     const literacyControl = this.form.get(['escolaridade', 'sabe_ler_escrever']);
     const levelControl = this.form.get(['escolaridade', 'nivel_escolaridade']);
     const setNoEducation = () => {
-      levelControl?.setValue('Sem escolaridade formal', { emitEvent: false });
-      levelControl?.disable({ emitEvent: false });
-    };
-    if (!literacyControl?.value) {
-      setNoEducation();
-    }
-    literacyControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((canRead) => {
-      if (canRead) {
-        levelControl?.enable({ emitEvent: false });
-        levelControl?.markAsUntouched();
-        return;
+      if (!levelControl) return;
+      if (!levelControl.value) {
+        levelControl.setValue('Sem escolaridade formal', { emitEvent: false });
       }
-      setNoEducation();
+      levelControl.enable({ emitEvent: false });
+    };
+    if (!literacyControl?.value) setNoEducation();
+    literacyControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((canRead) => {
+      levelControl?.enable({ emitEvent: false });
+      if (!canRead) {
+        setNoEducation();
+      }
+      levelControl?.markAsUntouched();
     });
   }
   private toSentenceCase(value: string): string {
@@ -2531,14 +2695,15 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       }
     }
   }
-  async handleCameraCapture(): Promise<void> {
+  async handleCameraCapture(documentName?: string): Promise<void> {
     if (this.cameraActive) {
-      this.capturePhoto();
+      this.capturePhoto(documentName);
       return;
     }
+    this.pendingDocumentCaptureName = documentName ?? null;
     await this.startCamera();
   }
-  capturePhoto(): void {
+  capturePhoto(documentName?: string): void {
     const video = this.videoElement?.nativeElement;
     const canvas = this.canvasElement?.nativeElement;
     if (!video || !canvas) return;
@@ -2548,7 +2713,11 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     canvas.height = 640;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/png');
-    this.setPhotoPreview(dataUrl);
+    if (documentName) {
+      this.applyCapturedDocumentContent(documentName, dataUrl);
+    } else {
+      this.setPhotoPreview(dataUrl);
+    }
     this.stopCamera();
   }
   stopCamera(): void {
@@ -2561,6 +2730,7 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       video.srcObject = null;
     }
     this.cameraActive = false;
+    this.pendingDocumentCaptureName = null;
   }
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -2848,5 +3018,6 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
     }
   }
 }
+
 
 

@@ -12,6 +12,7 @@ export class DialogComponent {
   @Input() aberto = false;
   @Input() titulo = 'Confirmar acao';
   @Input() mensagem = 'Deseja continuar?';
+  @Input() mensagemDestaque = false;
   @Input() confirmarLabel = 'Confirmar';
   @Input() cancelarLabel = 'Cancelar';
   @Input() cancelarAoClicarOverlay = true;

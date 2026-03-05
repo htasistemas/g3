@@ -32,8 +32,6 @@ public class CadastroBeneficiarioResponse {
   @JsonProperty("sexo_biologico")
   private final String sexoBiologico;
 
-  @JsonProperty("identidade_genero")
-  private final String identidadeGenero;
 
   @JsonProperty("cor_raca")
   private final String corRaca;
@@ -296,7 +294,6 @@ public class CadastroBeneficiarioResponse {
       LocalDate dataNascimento,
       String foto3x4,
       String sexoBiologico,
-      String identidadeGenero,
       String corRaca,
       String estadoCivil,
       String nacionalidade,
@@ -389,7 +386,6 @@ public class CadastroBeneficiarioResponse {
     this.dataNascimento = dataNascimento;
     this.foto3x4 = foto3x4;
     this.sexoBiologico = sexoBiologico;
-    this.identidadeGenero = identidadeGenero;
     this.corRaca = corRaca;
     this.estadoCivil = estadoCivil;
     this.nacionalidade = nacionalidade;
@@ -508,9 +504,6 @@ public class CadastroBeneficiarioResponse {
     return sexoBiologico;
   }
 
-  public String getIdentidadeGenero() {
-    return identidadeGenero;
-  }
 
   public String getCorRaca() {
     return corRaca;

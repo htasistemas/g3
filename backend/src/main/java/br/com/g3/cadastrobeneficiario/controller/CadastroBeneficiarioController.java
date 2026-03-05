@@ -2,6 +2,7 @@ package br.com.g3.cadastrobeneficiario.controller;
 
 import br.com.g3.cadastrobeneficiario.domain.DocumentoBeneficiario;
 import br.com.g3.cadastrobeneficiario.dto.AptidaoCestaBasicaRequest;
+import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCodigoResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioConsultaResponse;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioCriacaoRequest;
 import br.com.g3.cadastrobeneficiario.dto.CadastroBeneficiarioListaResponse;
@@ -91,6 +92,11 @@ public class CadastroBeneficiarioController {
       @RequestParam(value = "codigo", required = false) String codigo) {
     List<CadastroBeneficiarioResponse> beneficiarios = service.listar(nome, status, codigo);
     return new CadastroBeneficiarioListaResponse(beneficiarios);
+  }
+
+  @GetMapping("/proximo-codigo")
+  public CadastroBeneficiarioCodigoResponse obterProximoCodigo() {
+    return new CadastroBeneficiarioCodigoResponse(service.obterProximoCodigo());
   }
 
   @GetMapping("/resumo")

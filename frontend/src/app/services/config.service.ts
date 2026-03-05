@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RuntimeConfigService } from './runtime-config.service';
 
 export interface BeneficiaryDocumentConfig {
@@ -61,6 +62,12 @@ export class ConfigService {
 
   getVersaoArquivo(): Observable<string> {
     return this.http.get(`${this.baseUrl}/versao/arquivo`, { responseType: 'text' });
+  }
+
+  getVersaoLocal(): Observable<string> {
+    return this.http
+      .get<{ versao?: string }>('assets/versao.json')
+      .pipe(map((response) => (response?.versao ?? '').trim()));
   }
 
   getDestinoChamados(): Observable<DestinoChamadoResponse> {

@@ -5,7 +5,7 @@
   ></div>
   <div class="dialog__content">
     <h3>{{ titulo }}</h3>
-    <p>{{ mensagem }}</p>
+    <p [class.dialog__message--danger]="mensagemDestaque">{{ mensagem }}</p>
     <div class="dialog__body">
       <ng-content></ng-content>
     </div>

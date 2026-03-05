@@ -44,19 +44,19 @@
           Código
           <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
         </label>
-        <label class="field">
+        <label class="field field-nome">
           Nome ou apelido
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
-        <label class="field">
+        <label class="field field-nascimento">
           Data de nascimento
           <input type="date" formControlName="data_nascimento" />
         </label>
-        <label class="field">
+        <label class="field field-cpf">
           CPF
           <input type="text" formControlName="cpf" placeholder="Somente números" />
         </label>
-        <label class="field">
+        <label class="field field-status">
           Status
           <select formControlName="status">
             <option value="">Todos</option>
@@ -160,7 +160,7 @@
         <button
           type="button"
           class="ghost"
-          *ngIf="beneficiarioId || selectedBeneficiary?.id_beneficiario"
+          *ngIf="(beneficiarioId || selectedBeneficiary?.id_beneficiario) && activeTab !== 'observacoes'"
           (click)="abrirProntuario()"
           [disabled]="uploadingDocuments"
         >
@@ -218,13 +218,6 @@
             </div>
           </div>
 
-          <div class="camera-panel" *ngIf="cameraActive">
-            <p class="camera-panel__title">Visualização da câmera</p>
-            <div class="camera-panel__preview">
-              <video #videoElement autoplay muted playsinline></video>
-            </div>
-            <p class="camera-panel__hint">Ajuste o enquadramento e clique em "Registrar foto" para salvar.</p>
-          </div>
         </div>
 
         <div class="bloco-status">
@@ -306,10 +299,12 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('endereco') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
         <div class="tab-card__header-actions">
-          <button type="button" class="btn-outline" (click)="abrirMapaEndereco()">Ver no Google Maps</button>
+          <button type="button" class="btn-outline btn-google-maps" (click)="abrirMapaEndereco()">
+            <img src="assets/icons/google-maps.svg" alt="" aria-hidden="true" />
+            <span>Ver no Google Maps</span>
+          </button>
         </div>
 </div>
       <div class="field-grid cols-3 endereco-grid">
@@ -345,10 +340,9 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('contato') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
-        <div class="field-grid cols-2">
+        <div class="field-grid cols-2 contato-grid">
           <label class="field">
             <span>Telefone principal*</span>
             <div class="contact-row">
@@ -578,140 +572,177 @@
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'documentos'" formGroupName="documentos">
+        <div class="tab-card tab-card--documentos" *ngIf="activeTab === 'documentos'" formGroupName="documentos">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('documentos') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
-      <div class="field-grid cols-3">
-        <label class="field">CPF*<input formControlName="cpf" (input)="onCpfInput($event)" />
-          <p class="field-error" *ngIf="form.get(['documentos', 'cpf'])?.invalid && form.get(['documentos', 'cpf'])?.touched">
-            Informe um CPF válido.
-          </p>
-        </label>
-        <label class="field">RG Número<input formControlName="rg_numero" /></label>
-        <label class="field">Orgao emissor<input formControlName="rg_orgao_emissor" /></label>
-        <label class="field">Estado<input maxlength="2" formControlName="rg_uf" /></label>
-        <label class="field">Data emissao<input type="date" formControlName="rg_data_emissao" /></label>
-        <label class="field">NIS<input formControlName="nis" /></label>
-        <label class="field">Certidao tipo<input formControlName="certidao_tipo" /></label>
-        <label class="field">Livro<input formControlName="certidao_livro" /></label>
-        <label class="field">Folha<input formControlName="certidao_folha" /></label>
-        <label class="field">Termo<input formControlName="certidao_termo" /></label>
-        <label class="field">Cartorio<input formControlName="certidao_cartorio" /></label>
-        <label class="field">Município<input formControlName="certidao_municipio" /></label>
-        <label class="field">Estado<input maxlength="2" formControlName="certidao_uf" /></label>
-        <label class="field">Titulo de eleitor<input formControlName="titulo_eleitor" /></label>
-        <label class="field">CNH<input formControlName="cnh" /></label>
-        <label class="field">Cartao SUS<input formControlName="cartao_sus" /></label>
-      </div>
-      <div class="document-section" formArrayName="anexos">
-        <div class="document-request">
-          <div class="document-request__header">
-            <div>
-              <p class="document-request__title">Envio de documentos</p>
-              <p class="document-request__subtitle">Selecione o tipo de documento, anexe o arquivo e visualize na listagem.</p>
-            </div>
-          </div>
-          <p class="document-count document-count--top">
-            Documentos anexados
-            <span class="document-count__badge">{{ documentosAnexados.length }}</span>
-          </p>
-          <div class="document-upload-grid">
-            <label class="field">
-              Tipo de documento
-              <select [(ngModel)]="documentoTipoSelecionado" [ngModelOptions]="{ standalone: true }">
-                <option value="">Selecione</option>
-                <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
-              </select>
-            </label>
-            <label class="field">
-              Arquivo
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
-                (change)="onDocumentTypeFileSelected($event)"
-              />
-            </label>
-            <label class="field">
-              Filtrar por tipo
-              <select [(ngModel)]="filtroTipoDocumento" [ngModelOptions]="{ standalone: true }">
-                <option value="">Todos</option>
-                <option *ngFor="let tipo of tiposDocumento" [value]="tipo">{{ tipo }}</option>
-              </select>
-            </label>
-            <div class="document-upload-grid__hint">
-              <button type="button" class="ghost ghost--compact" (click)="toggleOrdenacaoDocumentos()">
-                Ordenar: {{ ordenarDocumentosAsc ? 'A-Z' : 'Z-A' }}
-              </button>
-              <p class="upload-hint" *ngIf="uploadingDocuments">Aguarde o envio dos documentos selecionados.</p>
-            </div>
-          </div>
-
-          <div class="document-table">
+      <div class="document-tab__body">
+        <section class="documentos-dados">
+          <div class="documentos-dados__table">
             <table>
               <thead>
                 <tr>
-                  <th>Tipo</th>
-                  <th>Arquivo</th>
+                  <th>Documento</th>
+                  <th>Número / Identificação</th>
                   <th>Status</th>
-                  <th class="text-right">ações</th>
+                  <th>Anexo</th>
+                  <th width="220">Ações</th>
                 </tr>
               </thead>
-              <tbody *ngIf="documentosAnexados.length; else emptyDocs">
-                <tr *ngFor="let item of documentosAnexados">
-                  <td>{{ item.control.get('nome')?.value }}</td>
-                  <td>{{ item.control.get('nomeArquivo')?.value || 'Arquivo anexado' }}</td>
+              <tbody>
+                <tr
+                  *ngFor="let row of documentOverviewRows"
+                  [class.document-row--attached]="
+                    hasDocumentContent(row.uploadName) && !isDocumentUploading(getDocumentIndex(row.uploadName))
+                  "
+                >
                   <td>
-                    <span class="document-status" [ngClass]="getDocumentStatusClass(item.index, item.control)">
-                      <span class="document-status__spinner" *ngIf="isDocumentUploading(item.index)"></span>
-                      {{ getDocumentStatusLabel(item.index, item.control) }}
+                    <div class="documentos-dados__label">
+                      <div class="documentos-dados__label-row">
+                        <span>{{ row.label }}</span>
+                        <small *ngIf="row.required" class="documentos-dados__required">Obrigatório</small>
+                      </div>
+                      <small *ngIf="row.description" class="muted">{{ row.description }}</small>
+                    </div>
+                  </td>
+                  <td>
+                    <ng-container *ngIf="row.field; else uploadOnly">
+                      <input
+                        [attr.placeholder]="row.placeholder || 'Digite o número'"
+                        [formControlName]="row.field"
+                        [attr.maxlength]="row.field === 'cpf' ? 14 : null"
+                        (input)="row.field === 'cpf' ? onCpfInput($event) : null"
+                      />
+                      <p
+                        class="field-error"
+                        *ngIf="row.field === 'cpf' && form.get(['documentos', 'cpf'])?.invalid && form.get(['documentos', 'cpf'])?.touched"
+                      >
+                        Informe um CPF válido antes de continuar.
+                      </p>
+                    </ng-container>
+                    <ng-template #uploadOnly>
+                      <span class="muted">Sem número, apenas anexo</span>
+                    </ng-template>
+                  </td>
+                  <td>
+                    <span
+                      class="document-status"
+                      [ngClass]="getDocumentStatusClass(getDocumentIndex(row.uploadName), getDocumentControl(row.uploadName))"
+                    >
+                      <span class="document-status__spinner" *ngIf="isDocumentUploading(getDocumentIndex(row.uploadName))"></span>
+                      {{ getDocumentStatusLabel(getDocumentIndex(row.uploadName), getDocumentControl(row.uploadName)) }}
                     </span>
                   </td>
+                  <td>
+                    <div class="documentos-dados__upload">
+                      <label
+                        class="icon-action icon-action--upload"
+                        role="button"
+                        title="Enviar arquivo"
+                        aria-label="Enviar arquivo"
+                      >
+                        <fa-icon [icon]="faEnviarArquivo"></fa-icon>
+                        <input
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                          (change)="handlePrimaryDocumentFile($event, row.uploadName)"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        class="icon-action"
+                        title="Capturar pela câmera"
+                        aria-label="Capturar pela câmera"
+                        (click)="handleCameraCapture(row.uploadName)"
+                      >
+                        <fa-icon [icon]="faCapturarCamera"></fa-icon>
+                      </button>
+                    </div>
+                    <p class="documentos-dados__filename" *ngIf="getDocumentFileName(row.uploadName)">
+                      {{ getDocumentFileName(row.uploadName) }}
+                    </p>
+                  </td>
                   <td class="text-right actions">
-                    <button type="button" class="ghost" (click)="viewDocument(item.index)">Visualizar</button>
-                    <button type="button" class="ghost" (click)="printDocument(item.index)">Imprimir</button>
-                    <button type="button" class="ghost destructive" (click)="removeUploadedDocument(item.index)">
-                      Remover
+                    <button
+                      type="button"
+                      class="icon-action"
+                      title="Visualizar documento"
+                      aria-label="Visualizar documento"
+                      (click)="viewDocument(getDocumentIndex(row.uploadName))"
+                      [disabled]="!hasDocumentContent(row.uploadName)"
+                    >
+                      <fa-icon [icon]="faVisualizarDocumento"></fa-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-action"
+                      title="Imprimir documento"
+                      aria-label="Imprimir documento"
+                      (click)="printDocument(getDocumentIndex(row.uploadName))"
+                      [disabled]="!hasDocumentContent(row.uploadName)"
+                    >
+                      <fa-icon [icon]="faImprimirDocumento"></fa-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-action icon-action--danger"
+                      title="Excluir documento"
+                      aria-label="Excluir documento"
+                      (click)="removeDocumentByUploadName(row.uploadName)"
+                      [disabled]="!hasDocumentContent(row.uploadName)"
+                    >
+                      <fa-icon [icon]="faExcluirDocumento"></fa-icon>
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <ng-template #emptyDocs>
-              <tbody>
-                <tr>
-                  <td colspan="4" class="list-panel__empty">Nenhum documento anexado ate o momento.</td>
-                </tr>
-              </tbody>
-            </ng-template>
           </div>
+        </section>
+
+      </div>
+      <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+    </div>
+    <div class="camera-overlay" *ngIf="cameraActive">
+      <div class="camera-panel">
+        <p class="camera-panel__title">
+          {{ pendingDocumentCaptureName ? ('Capturar ' + pendingDocumentCaptureName) : 'Visualização da câmera' }}
+        </p>
+        <div class="camera-panel__preview">
+          <video #videoElement autoplay muted playsinline></video>
         </div>
-        <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
+        <p class="camera-panel__hint">
+          {{ pendingDocumentCaptureName ? 'Ajuste o enquadramento do documento e confirme.' : 'Ajuste o enquadramento e clique em "Registrar foto" para salvar.' }}
+        </p>
+        <div class="camera-panel__actions">
+          <button type="button" class="ghost" (click)="handleCameraCapture(pendingDocumentCaptureName ?? undefined)">
+            {{ pendingDocumentCaptureName ? 'Registrar documento' : 'Registrar foto' }}
+          </button>
+          <button type="button" class="ghost" (click)="stopCamera()">Fechar câmera</button>
+        </div>
       </div>
     </div>
 
-    <div class="tab-card" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
+<div class="tab-card" *ngIf="activeTab === 'familiar'" formGroupName="familiar">
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('familiar') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
-      <div class="field-grid cols-2">
-        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a familia</span></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Responsavel legal</span></label>
+      <div class="field-grid cols-2 familiar-grid">
         <label class="field">Vinculo familiar<input formControlName="vinculo_familiar" /></label>
         <label class="field">Composicao familiar<textarea formControlName="composicao_familiar"></textarea></label>
         <label class="field">Criancas/adolescentes no domicilio<input type="number" formControlName="criancas_adolescentes" /></label>
         <label class="field">Idosos no domicilio<input type="number" formControlName="idosos" /></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela saude (e-SUS)</span></label>
         <label class="field">Participação comunitaria<input formControlName="participa_comunidade" placeholder="Conselhos, grupos, coletivos" /></label>
         <label class="field">Rede de apoio<textarea formControlName="rede_apoio" placeholder="Instituicoes, vizinhos, familiares"></textarea></label>
-        <label class="field full">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+        <label class="field">Situação de vulnerabilidade<textarea formControlName="situacao_vulnerabilidade"></textarea></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="mora_com_familia" /> <span>Mora com a familia</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="responsavel_legal" /> <span>Responsavel legal</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_cras" /> <span>Em acompanhamento do CRAS/CREAS</span></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="acompanhamento_saude" /> <span>Em acompanhamento pela saude (e-SUS)</span></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -720,33 +751,30 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('escolaridade') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
-      <div class="field-grid cols-3">
-        <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
-        <label class="field">Nivel de escolaridade<select formControlName="nivel_escolaridade">
+      <div class="escolaridade-layout">
+        <div class="field-grid escolaridade-grid-top">
+          <label class="checkbox-field"><input type="checkbox" formControlName="sabe_ler_escrever" /> <span>Sabe ler e escrever</span></label>
+          <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
+          <label class="field">Nivel de escolaridade<select formControlName="nivel_escolaridade">
             <option value="">Selecione</option>
             <option *ngFor="let option of educationLevelOptions" [value]="option">{{ option }}</option>
           </select></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="estuda_atualmente" /> <span>Estuda atualmente</span></label>
-        <label class="field">Ocupação
-          <input
-            formControlName="ocupacao"
-            placeholder="Informe a ocupação"
-          />
-        </label>
-        <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
-        <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
-        <label class="field">Renda mensal
-          <input
-            type="text"
-            formControlName="renda_mensal"
-            (input)="formatCurrency($event, 'escolaridade', 'renda_mensal')"
-            placeholder="R$ 0,00"
-          />
-        </label>
-        <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
+        </div>
+        <div class="field-grid escolaridade-grid-bottom">
+          <label class="field">Local de trabalho<input formControlName="local_trabalho" /></label>
+          <label class="field">Renda mensal
+            <input
+              type="text"
+              formControlName="renda_mensal"
+              (input)="formatCurrency($event, 'escolaridade', 'renda_mensal')"
+              placeholder="R$ 0,00"
+            />
+          </label>
+          <label class="field">Fonte de renda<input formControlName="fonte_renda" /></label>
+          <label class="field">Situação de trabalho<input formControlName="situacao_trabalho" /></label>
+        </div>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
@@ -755,7 +783,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('saude') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -763,7 +790,7 @@
         <label class="field">Tipo de deficiencia<input formControlName="tipo_deficiencia" /></label>
         <label class="field">CID principal<input formControlName="cid_principal" /></label>
         <label class="checkbox-field"><input type="checkbox" formControlName="usa_medicacao_continua" /> <span>Usa medicação continua</span></label>
-        <label class="field full">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
+        <label class="field">Descrição da medicação<textarea formControlName="descricao_medicacao"></textarea></label>
         <label class="field">Servico de saude de referência<input formControlName="servico_saude_referencia" /></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
@@ -773,7 +800,6 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('beneficios') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
       <div class="field-grid cols-2">
@@ -799,18 +825,23 @@
       <div class="tab-card__header">
         <div class="tab-card__title-stack">
           <p class="tab-card__highlight">{{ getTabLabel('observacoes') }}</p>
-          <p class="muted">Localização completa para correspondências e visitas.</p>
         </div>
       </div>
-      <div class="field-grid cols-2">
-        <label class="field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
-        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD*</span></label>
-        <div class="field full">
-          <button type="button" class="ghost" (click)="reimprimirTermoConsentimento()">
-            Reimprimir termo de consentimento
+      <div class="field-grid cols-2 observacoes-grid">
+        <div class="observacoes-data-print">
+          <label class="field observacoes-data-field">Data do aceite<input type="datetime-local" formControlName="data_aceite_lgpd" /></label>
+          <button
+            type="button"
+            class="term-print-icon term-print-icon--small"
+            title="Reimprimir termo de consentimento"
+            aria-label="Reimprimir termo de consentimento"
+            (click)="reimprimirTermoConsentimento()"
+          >
+            <fa-icon [icon]="faImprimirDocumento"></fa-icon>
           </button>
         </div>
-        <label class="field full">Observações<textarea formControlName="observacoes"></textarea></label>
+        <label class="checkbox-field"><input type="checkbox" formControlName="aceite_lgpd" (change)="handleLgpdToggle($event)" /> <span>Aceite LGPD*</span></label>
+        <label class="field full observacoes-notes-field">Observações<textarea class="observacoes-textarea" rows="6" formControlName="observacoes"></textarea></label>
         <p class="field-error full-span" *ngIf="form.get(['observacoes', 'aceite_lgpd'])?.invalid && form.get(['observacoes', 'aceite_lgpd'])?.touched">
           Confirme o aceite LGPD para continuar.
         </p>
@@ -829,16 +860,16 @@
         <label class="field field-codigo">Código
           <input type="text" formControlName="codigo" placeholder="Ex.: 0001" />
         </label>
-        <label class="field">Nome
+        <label class="field field-nome">Nome
           <input type="text" formControlName="nome" placeholder="Digite parte do nome" />
         </label>
-        <label class="field">Nascimento
+        <label class="field field-nascimento">Nascimento
           <input type="date" formControlName="data_nascimento" />
         </label>
-        <label class="field">CPF
+        <label class="field field-cpf">CPF
           <input type="text" formControlName="cpf" placeholder="Somente números" />
         </label>
-        <label class="field">Status
+        <label class="field field-status">Status
           <select formControlName="status">
             <option value="">Todos</option>
             <option *ngFor="let option of statusOptions" [value]="option">{{ formatStatusLabel(option) }}</option>
