@@ -250,10 +250,12 @@
       </div>
       <canvas #canvasElement class="capture-canvas"></canvas>
       <div class="grid-campos" formGroupName="dadosPessoais">
-        <label class="field field-matricula">Código
-          <input [value]="beneficiaryCode || nextSequentialCode" readonly />
-        </label>
-        <label class="field field-nome-completo">Nome*<input #campoNomeCompleto formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
+        <div class="campo-codigo-nome">
+          <label class="field field-matricula">Código
+            <input [value]="beneficiaryCode || nextSequentialCode" readonly />
+          </label>
+          <label class="field field-nome-completo">Nome*<input #campoNomeCompleto formControlName="nome_completo" placeholder="Digite o nome completo" /></label>
+        </div>
 
         <label class="field field-social">Nome social<input formControlName="nome_social" placeholder="Se houver" /></label>
         <label class="field field-sexo">Sexo biológico<select formControlName="sexo_biologico">

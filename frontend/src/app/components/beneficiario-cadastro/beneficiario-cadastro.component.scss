@@ -1903,6 +1903,22 @@
   margin-top: 1rem;
 }
 
+.campo-codigo-nome {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  column-gap: 0;
+  row-gap: 10px;
+  grid-column: span 2;
+}
+
+.campo-codigo-nome .field-matricula {
+  width: 100%;
+}
+
+.campo-codigo-nome .field-nome-completo {
+  grid-column: span 1;
+}
+
 @media (max-width: 1199px) {
   .grid-campos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
