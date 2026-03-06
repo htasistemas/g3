@@ -296,8 +296,9 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
   filteredBeneficiaries = computed(() => {
     const term = this.beneficiarySearch().toLowerCase();
     if (!term) return this.beneficiaries();
+    const safeLower = (value?: string | null) => (value ?? '').toLowerCase();
     return this.beneficiaries().filter((beneficiary) =>
-      beneficiary.name.toLowerCase().includes(term) || beneficiary.family?.toLowerCase().includes(term)
+      safeLower(beneficiary.name).includes(term) || safeLower(beneficiary.family).includes(term)
     );
   });
 
@@ -551,10 +552,11 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       payload.municipio,
       payload.uf
     ]);
+    const familyName = (payload.nome_familia ?? '').trim() || 'Família';
 
     return {
       id: payload.id_familia ?? '',
-      name: payload.nome_familia,
+      name: familyName,
       document: payload.municipio ? `Município: ${payload.municipio}` : 'Família cadastrada',
       cpf: undefined,
       city: payload.municipio || undefined,
@@ -564,7 +566,7 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
       photoUrl: undefined,
       phone: undefined,
       address,
-      family: payload.nome_familia,
+      family: familyName,
       status: undefined,
       blockReason: undefined,
       type: 'familia'
@@ -588,18 +590,30 @@ export class DonationManagementComponent extends TelaBaseComponent implements On
 
     this.searchingBeneficiaries.set(true);
     try {
-      const [beneficiaryResponse, familyResponse] = await Promise.all([
+      const [beneficiaryResult, familyResult] = await Promise.allSettled([
         firstValueFrom(this.beneficiaryService.list({ nome: query })),
         firstValueFrom(this.familyService.list({ nome_familia: query }))
       ]);
 
-      const beneficiaryResults = (beneficiaryResponse.beneficiarios ?? []).map((item) => this.mapBeneficiary(item));
+      const beneficiaryResponse =
+        beneficiaryResult.status === 'fulfilled' ? beneficiaryResult.value : { beneficiarios: [] };
+      const familyResponse =
+        familyResult.status === 'fulfilled' ? familyResult.value : { familias: [] };
+
+      const beneficiaryResults = (beneficiaryResponse.beneficiarios ?? []).map((item) =>
+        this.mapBeneficiary(item)
+      );
       const familyResults = (familyResponse.familias ?? []).map((item) => this.mapFamily(item));
       const merged = [...beneficiaryResults, ...familyResults];
 
       this.beneficiaries.set(merged);
 
-      const exactMatch = merged.find((item) => item.name.toLowerCase() === query.toLowerCase());
+      if (beneficiaryResult.status === 'rejected' && familyResult.status === 'rejected') {
+        throw new Error('Falha ao buscar beneficiários e famílias.');
+      }
+
+      const safeLower = (value?: string | null) => (value ?? '').toLowerCase();
+      const exactMatch = merged.find((item) => safeLower(item.name) === safeLower(query));
       if (exactMatch) {
         this.populateBeneficiary(exactMatch);
       } else if (merged.length === 1) {

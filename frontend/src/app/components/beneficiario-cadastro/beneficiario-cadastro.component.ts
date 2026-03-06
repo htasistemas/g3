@@ -763,7 +763,19 @@ export class BeneficiarioCadastroComponent extends TelaBaseComponent implements 
       this.feedback = 'Nenhum arquivo anexado para remover.';
       return;
     }
-    this.removeUploadedDocument(index);
+    const control = this.anexos.at(index) as FormGroup;
+    const nomeDocumento = (control.get('nome')?.value as string) || uploadName;
+    const nomeArquivo = (control.get('nomeArquivo')?.value as string) || '';
+    const mensagem = nomeArquivo
+      ? `Tem certeza que deseja excluir o documento "${nomeDocumento}" (${nomeArquivo})?`
+      : `Tem certeza que deseja excluir o documento "${nomeDocumento}"?`;
+
+    this.abrirDialogoConfirmacao('Excluir documento', mensagem, 'Excluir', () => {
+      const latestIndex = this.getDocumentIndex(uploadName);
+      if (latestIndex === null) return;
+      this.removeUploadedDocument(latestIndex);
+      this.feedback = 'Documento excluído com sucesso.';
+    });
   }
 
   isDocumentUploading(index: number | null): boolean {

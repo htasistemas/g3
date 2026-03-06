@@ -785,7 +785,7 @@
           <p class="tab-card__highlight">{{ getTabLabel('saude') }}</p>
         </div>
       </div>
-      <div class="field-grid cols-2">
+      <div class="field-grid cols-2 beneficios-grid">
         <label class="checkbox-field"><input type="checkbox" formControlName="possui_deficiencia" /> <span>Possui deficiencia</span></label>
         <label class="field">Tipo de deficiencia<input formControlName="tipo_deficiencia" /></label>
         <label class="field">CID principal<input formControlName="cid_principal" /></label>
@@ -816,7 +816,7 @@
             </label>
           </div>
         </div>
-        <label class="field full">Descrição dos Benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
+        <label class="field full beneficios-descricao-field">Descrição dos Benefícios<textarea formControlName="beneficios_descricao"></textarea></label>
       </div>
       <ng-container *ngTemplateOutlet="navigationControls"></ng-container>
     </div>
